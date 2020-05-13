@@ -58,7 +58,7 @@ resource "ec_deployment" "example_minimal" {
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
 - [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
 
-## Developing the Provider
+## Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-aws#requirements) before proceeding).
 
