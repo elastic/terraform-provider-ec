@@ -1,0 +1,14 @@
+## Formats the all Go files to the desired format.
+.PHONY: format
+format: deps tools
+	@ echo "-> Formatting Go files..."
+	@ $(MAKE) license-header
+	@ $(GOBIN)/golangci-lint run --fix
+	@ $(GOBIN)/tfproviderlint -fix ./...
+	@ echo "-> Formatting Terraform documentation blocks..."
+	@ find ./docs -type f -name "*.md" -exec $(GOBIN)/terrafmt fmt -f {} \;
+	@ echo "-> Done."
+
+.PHONY: license-header
+license-header:
+	@ $(GOBIN)/go-licenser -license ASL2

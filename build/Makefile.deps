@@ -1,0 +1,50 @@
+
+OS:=$(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
+VERSION_DIR:=$(GOBIN)/versions
+
+VERSION_GOBIN:=v0.0.13
+VERSION_GOLINT:=v0.0.0-20191125180803-fdd1cda4f05f
+VERSION_GOLICENSER:=v0.3.0
+VERSION_GOLANGCILINT:=v1.26.0
+
+deps: $(GOBIN)/gobin $(GOBIN)/golint $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
+
+$(GOBIN):
+	@ mkdir -p $(GOBIN)
+
+$(VERSION_DIR): | $(GOBIN)
+	@ mkdir -p $(GOBIN)/versions
+
+$(VERSION_DIR)/.version-gobin-$(VERSION_GOBIN): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-gobin-*
+	@ echo $(VERSION_GOBIN) > $(VERSION_DIR)/.version-gobin-$(VERSION_GOBIN)
+
+$(GOBIN)/gobin: $(VERSION_DIR)/.version-gobin-$(VERSION_GOBIN) | $(GOBIN)
+	@ echo "-> Installing gobin..."
+	@ curl -sL -o $(GOBIN)/gobin https://github.com/myitcv/gobin/releases/download/$(VERSION_GOBIN)/$(OS)-$(ARCH)
+	@ chmod +x $(GOBIN)/gobin
+
+$(VERSION_DIR)/.version-golint-$(VERSION_GOLINT): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-golint-*
+	@ echo $(VERSION_GOLINT) > $(VERSION_DIR)/.version-golint-$(VERSION_GOLINT)
+
+$(GOBIN)/golint: $(GOBIN)/gobin $(VERSION_DIR)/.version-golint-$(VERSION_GOLINT) | $(GOBIN)
+	@ echo "-> Installing golint..."
+	@ $(GOBIN)/gobin golang.org/x/lint/golint@$(VERSION_GOLINT)
+
+$(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-go-licenser-*
+	@ echo $(VERSION_GOLICENSER) > $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER)
+
+$(GOBIN)/go-licenser: $(GOBIN)/gobin $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER) | $(GOBIN)
+	@ echo "-> Installing go-licenser..."
+	@ $(GOBIN)/gobin github.com/elastic/go-licenser@$(VERSION_GOLICENSER)
+
+$(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-golangci-lint-*
+	@ echo $(VERSION_GOLANGCILINT) > $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT)
+
+$(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
+	@ echo "-> Installing golangci-lint..."
+	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)

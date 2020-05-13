@@ -1,0 +1,34 @@
+
+VERSION_TFPROVIDERDOCS:=v0.6.0
+VERSION_TERRAFMT:=12db38d
+VERSION_TFPROVIDERLINT:=v0.14.0
+
+## Installs the required static checks for terraform.
+tools: $(GOBIN)/tfproviderdocs $(GOBIN)/terrafmt $(GOBIN)/tfproviderlint
+
+
+$(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-tfproviderdocs-*
+	@ echo $(VERSION_TFPROVIDERDOCS) > $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS)
+
+$(GOBIN)/tfproviderdocs: $(GOBIN)/gobin $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS) | $(GOBIN)
+	@ echo "-> Installing tfproviderdocs..."
+	@ $(GOBIN)/gobin github.com/bflad/tfproviderdocs@$(VERSION_TFPROVIDERDOCS)
+
+
+$(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-terrafmt-*
+	@ echo $(VERSION_TERRAFMT) > $(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT)
+
+$(GOBIN)/terrafmt: $(GOBIN)/gobin $(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT) | $(GOBIN)
+	@ echo "-> Installing terrafmt..."
+	@ $(GOBIN)/gobin github.com/katbyte/terrafmt@$(VERSION_TERRAFMT)
+
+
+$(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-tfproviderlint-*
+	@ echo $(VERSION_TFPROVIDERLINT) > $(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT)
+
+$(GOBIN)/tfproviderlint: $(GOBIN)/gobin $(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT) | $(GOBIN)
+	@ echo "-> Installing tfproviderlint..."
+	@ $(GOBIN)/gobin github.com/bflad/tfproviderlint/cmd/tfproviderlint@$(VERSION_TFPROVIDERLINT)

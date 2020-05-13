@@ -1,0 +1,33 @@
+## Lints all of the source files
+.PHONY: lint
+lint: golint golangci-lint check-license tfproviderlint tfproviderdocs terrafmt
+
+.PHONY: tfproviderlint
+tfproviderlint: tools
+	@ echo "-> Checking source code against terraform provider linters..."
+	@ $(GOBIN)/tfproviderlint ./...
+
+.PHONY: tfproviderdocs
+tfproviderdocs: tools
+	@ echo "-> Running terraform provider docs check..."
+	@ $(GOBIN)/tfproviderdocs check -provider-name $(BINARY) .
+
+.PHONY: check-license
+check-license: deps
+	@ echo "-> Running license check..."
+	@ $(GOBIN)/go-licenser -license ASL2 -d .
+
+.PHONY: golangci-lint
+golangci-lint: deps
+	@ echo "-> Running golangci-lint..."
+	@ $(GOBIN)/golangci-lint run
+
+.PHONY: golint
+golint: deps
+	@ echo "-> Running golint..."
+	@ $(GOBIN)/golint -set_exit_status ./...
+
+.PHONY: terrafmt
+terrafmt:
+	@ echo "-> Checking that the terraform docs codeblocks are formatted..."
+	@ find ./docs -type f -name "*.md" -exec $(GOBIN)/terrafmt diff -c -q {} \;

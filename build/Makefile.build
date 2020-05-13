@@ -1,0 +1,25 @@
+BINARY_LOCAITON ?= bin/$(BINARY)
+PLUGIN_LOCATION ?= ~/.terraform.d/plugins/
+
+### Build targets
+
+## Generates the required files for the builds. (Auto-run by build).
+.PHONY: gen
+gen:
+	@ echo "-> Generating files..."
+	@ go generate ./...
+	@ $(MAKE) license-header
+
+generate: gen
+
+## Builds the source code and saves the binary to bin/terraform-provider-ec.
+.PHONY: build
+build: gen
+	@ echo "-> Building binary in $(BINARY_LOCAITON)..."
+	@ go build -o $(BINARY_LOCAITON) .
+
+## Builds the source code and moves the binary to the user's terraform plugin location.
+.PHONY: install
+install: build
+	@ mkdir -p $(PLUGIN_LOCATION)
+	@ cp $(BINARY_LOCAITON) $(PLUGIN_LOCATION)

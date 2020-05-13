@@ -1,0 +1,22 @@
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - gofmt
+    - gosimple
+    - ineffassign
+    - misspell
+    - staticcheck
+    - structcheck
+    - unconvert
+    - unused
+    - varcheck
+    - vet
+
+linters-settings:
+  errcheck:
+    ignore: github.com/hashicorp/terraform-plugin-sdk/helper/schema:ForceNew|Set,fmt:.*,io:Close
+
+run:
+  timeout: 10m
