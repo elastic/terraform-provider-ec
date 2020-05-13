@@ -1,4 +1,4 @@
-# Terraform Provider for Elastic Cloud
+# Terraform Provider for Elastic Cloud
 
 Terraform provider for the Elastic Cloud API, including:
 
@@ -17,28 +17,35 @@ provider "ec" {
   # setting "insecure" to true is required.
   insecure = true
 
+  # APIKey is the recommended authentication mechanism. When
+  # Targeting the Elasticsearch Service, APIKeys are the only
+  # valid authentication mechanism.
+  apikey = "my-apikey"
+
+  # When targeting ECE installations, username and password
+  # authentication is allowed.
   username = "my-username"
   password = "my-password"
 }
 
 
-resource "ec_deployment" "my_deployment" {
-  name = "my example deployment"
+# Create an Elastic Cloud deployment
+resource "ec_deployment" "example_minimal" {
+  # Optional name.
+  name = "my_example_deployment"
 
-  version = "7.6.2"
-  region  = "us-east-1"
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = "7.6.2"
+  deployment_template_id = "aws-io-optimized"
 
   elasticsearch {
-    deployment_template_id = "aws-io-optimized"
-
     topology {
       instance_configuration_id = "aws.data.highio.i3"
     }
   }
 
   kibana {
-    deployment_template_id = "aws-io-optimized"
-
     topology {
       instance_configuration_id = "aws.kibana.r4"
     }
