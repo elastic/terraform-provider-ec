@@ -7,5 +7,3 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk v1.12.0
 	github.com/stretchr/testify v1.4.0
 )
-
-replace github.com/elastic/cloud-sdk-go => ../cloud-sdk-go
