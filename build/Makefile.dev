@@ -18,7 +18,7 @@ unit: _report_path
 tests: unit
 
 ## Downlaods all the Golang dependencies and generates the NOTICE file.
-vendor:
+vendor: $(GOBIN)/go-licenser
 	@ echo "-> Downloading project imports..."
 	@ go mod download
 	@ go mod tidy
