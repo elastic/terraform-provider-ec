@@ -1,3 +1,7 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "ec" {
 }
 
@@ -20,6 +24,12 @@ resource "ec_deployment" "example_minimal" {
   kibana {
     topology {
       instance_configuration_id = "aws.kibana.r4"
+    }
+  }
+
+  apm {
+    topology {
+      instance_configuration_id = "aws.apm.r4"
     }
   }
 }

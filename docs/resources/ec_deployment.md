@@ -11,25 +11,30 @@ Provides an Elastic Cloud deployment resource. This allows deployments to be cre
 ## Example Usage
 
 ```hcl
-resource "ec_deployment" "my_deployment" {
-  name = "my example deployment"
+resource "ec_deployment" "example_minimal" {
+  # Optional name.
+  name = "my_example_deployment"
 
-  version = "7.6.2"
-  region  = "us-east-1"
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = "7.6.2"
+  deployment_template_id = "aws-io-optimized"
 
   elasticsearch {
-    deployment_template_id = "aws-io-optimized"
-
     topology {
       instance_configuration_id = "aws.data.highio.i3"
     }
   }
 
   kibana {
-    deployment_template_id = "aws-io-optimized"
-
     topology {
       instance_configuration_id = "aws.kibana.r4"
+    }
+  }
+
+  apm {
+    topology {
+      instance_configuration_id = "aws.apm.r4"
     }
   }
 }

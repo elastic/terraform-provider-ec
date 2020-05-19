@@ -14,4 +14,12 @@ unit: _report_path
 	@ echo "-> Running unit tests for $(BINARY)..."
 	@ go test $(TEST_UNIT_FLAGS) $(TEST_UNIT_PACKAGE)
 
+## Alias to "unit".
 tests: unit
+
+## Downlaods all the Golang dependencies and generates the NOTICE file.
+vendor:
+	@ echo "-> Downloading project imports..."
+	@ go mod download
+	@ go mod tidy
+	@ $(GOBIN)/go-licenser -license ASL2 -notice

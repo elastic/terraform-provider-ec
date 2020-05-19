@@ -60,6 +60,38 @@ resource "ec_deployment" "example_minimal" {
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-aws#requirements) before proceeding).
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine.
 
 *Note:* This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). The instructions that follow assume a directory in your home directory outside of the standard GOPATH (i.e `$HOME/development/terraform-providers/`).
+
+### Installing the provider via the source code
+
+First, clone the repository to a folder on your machine, for example:
+
+```sh
+$ mkdir -p ~/development; cd ~/development
+$ git clone https://github.com/elastic/terraform-provider-ec
+$ cd terraform-provider-ec
+$ make install
+```
+
+### Generating an Elasticsearch Service API Key
+
+To generate an API key, follow these steps:
+
+  1. Navigate to <https://cloud.elastic.co/login> with your browser
+  2. Log in with your Email and Password.
+  3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
+  4. Navigate to [Account > API Keys](https://cloud.elastic.co/account/keys) and click on **Generate API Key**.
+  5. Once you Re-Authenticate, you'll have to chose a name for your API key.
+  6. Copy your API key somewhere safe.
+
+### Using your API Key on the Elastic Cloud terraform provider
+
+After you've generated your API Key, you can make it available to the Terraform provider by exporting it as an environment variable:
+
+```sh
+$ export EC_APIKEY="<apikey value>"
+```
+
+After doing so, you can navigate to any of our examples in `./examples` and try one.

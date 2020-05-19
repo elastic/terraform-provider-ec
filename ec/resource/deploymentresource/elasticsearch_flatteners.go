@@ -1,0 +1,162 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package deploymentresource
+
+import (
+	"fmt"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+)
+
+func flattenElasticsearchResource(in []*models.ElasticsearchResourceInfo, name string) []interface{} {
+	var result = make([]interface{}, 0, len(in))
+	for _, res := range in {
+		var m = make(map[string]interface{})
+		if isCurrentESPlanEmpty(res) {
+			continue
+		}
+
+		if res.Info.ClusterName != nil && *res.Info.ClusterName != name && *res.Info.ClusterName != "" {
+			m["display_name"] = *res.Info.ClusterName
+		}
+
+		if res.Info.ClusterID != nil && *res.Info.ClusterID != "" {
+			m["resource_id"] = *res.Info.ClusterID
+		}
+
+		if res.RefID != nil && *res.RefID != "" {
+			m["ref_id"] = *res.RefID
+		}
+
+		var plan = res.Info.PlanInfo.Current.Plan
+		if plan.Elasticsearch != nil {
+			m["version"] = plan.Elasticsearch.Version
+		}
+
+		if res.Region != nil {
+			m["region"] = *res.Region
+		}
+
+		if topology := flattenElasticsearchTopology(plan); len(topology) > 0 {
+			m["topology"] = topology
+		}
+
+		for k, v := range flattenElasticsearchSettings(res.Info) {
+			m[k] = v
+		}
+
+		var metadata = res.Info.Metadata
+		if metadata != nil && metadata.CloudID != "" {
+			m["cloud_id"] = metadata.CloudID
+		}
+
+		// TODO: Save endpoint information
+
+		// TODO: Flatten repository state.
+		// Determine what to do with the default snapshot repository.
+
+		result = append(result, m)
+	}
+
+	return result
+}
+
+func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
+	var result = make([]interface{}, 0, len(plan.ClusterTopology))
+	for _, topology := range plan.ClusterTopology {
+		var m = make(map[string]interface{})
+		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
+			continue
+		}
+
+		if topology.InstanceConfigurationID != "" {
+			m["instance_configuration_id"] = topology.InstanceConfigurationID
+		}
+
+		// TODO: Check legacy plans.
+		// if topology.MemoryPerNode > 0 {
+		// 	m["memory_per_node"] = strconv.Itoa(int(topology.MemoryPerNode))
+		// }
+
+		if *topology.Size.Resource == "memory" {
+			m["memory_per_node"] = memoryToState(*topology.Size.Value)
+		}
+
+		if nt := topology.NodeType; nt != nil {
+			if nt.Data != nil {
+				m["node_type_data"] = *nt.Data
+			}
+
+			if nt.Ingest != nil {
+				m["node_type_ingest"] = *nt.Ingest
+			}
+
+			if nt.Master != nil {
+				m["node_type_master"] = *nt.Master
+			}
+
+			if nt.Ml != nil {
+				m["node_type_ml"] = *nt.Ml
+			}
+		}
+
+		if topology.NodeCountPerZone > 0 {
+			m["node_count_per_zone"] = topology.NodeCountPerZone
+		}
+
+		m["zone_count"] = topology.ZoneCount
+
+		result = append(result, m)
+	}
+
+	return result
+}
+
+func flattenElasticsearchSettings(info *models.ElasticsearchClusterInfo) map[string]interface{} {
+	// TODO Check if this is set in ECE; if not, remove entirely.
+	// var validMonitoringSettings = info.Settings != nil && info.Settings.Monitoring != nil
+	// validMonitoringSettings = validMonitoringSettings && info.Settings.Monitoring.TargetClusterID != nil
+	// if validMonitoringSettings {
+	// 	m["monitoring_settings"] = []interface{}{map[string]interface{}{
+	// 		"target_cluster_id": *info.Settings.Monitoring.TargetClusterID,
+	// 	}}
+	// }
+
+	var m = make(map[string]interface{})
+	var monitoringInfo = info.ElasticsearchMonitoringInfo != nil
+	monitoringInfo = monitoringInfo && info.ElasticsearchMonitoringInfo != nil
+	if monitoringInfo && len(info.ElasticsearchMonitoringInfo.DestinationClusterIds) > 0 {
+		m["monitoring_settings"] = []interface{}{map[string]interface{}{
+			"target_cluster_id": info.ElasticsearchMonitoringInfo.DestinationClusterIds[0],
+		}}
+	}
+
+	return m
+}
+
+func memoryToState(mem int32) string {
+	if mem%1024 > 1 && mem%512 == 0 {
+		return fmt.Sprintf("%0.1fg", float32(mem)/1024)
+	}
+	return fmt.Sprintf("%dg", mem/1024)
+}
+
+func isCurrentESPlanEmpty(res *models.ElasticsearchResourceInfo) bool {
+	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
+	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
+}

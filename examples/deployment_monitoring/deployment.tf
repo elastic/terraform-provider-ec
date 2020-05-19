@@ -1,3 +1,7 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "ec" {
 }
 
@@ -41,3 +45,4 @@ resource "ec_deployment" "example_monitor" {
     }
   }
 }
+
