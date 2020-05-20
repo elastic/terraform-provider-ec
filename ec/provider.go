@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-ec/ec/resource"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource"
 )
 
 const (
@@ -120,7 +120,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment": resource.Deployment(),
+			"ec_deployment": ecresource.Deployment(),
 		},
 	}
 }

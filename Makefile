@@ -8,6 +8,7 @@ include scripts/Makefile.help
 .DEFAULT_GOAL := help
 
 include build/Makefile.build
+include build/Makefile.test
 include build/Makefile.dev
 include build/Makefile.deps
 include build/Makefile.tools

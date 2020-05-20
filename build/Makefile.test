@@ -1,0 +1,35 @@
+SWEEP ?=us-east-1
+SWEEP_DIR ?= $(TEST_ACC)
+TEST ?= ./...
+TEST_COUNT ?= 1
+TESTUNITARGS ?= -timeout 10s -p 4 -race -cover -coverprofile=reports/c.out
+TEST_ACC ?= github.com/terraform-providers/terraform-provider-ec/ec/acc
+
+REPORT_PATH ?= ./reports
+
+### Test targets
+
+.PHONY: _report_path
+_report_path:
+	@ mkdir -p $(REPORT_PATH)
+
+## Runs unit tests. Use TESTARGS and TEST to control which flags and packages are used and tested.
+.PHONY: unit
+unit: _report_path
+	@ echo "-> Running unit tests for $(BINARY)..."
+	@ go test $(TEST) $(TESTARGS) $(TESTUNITARGS)
+
+## Alias to "unit".
+tests: unit
+
+.PHONY: testacc
+## Runs the Terraform acceptance tests. Use TEST, TESTARGS and TEST_COUNT to control execution
+testacc: format
+	@ echo "-> Running terraform acceptance tests..."
+	@ TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel 20 $(TESTARGS) -timeout 120m
+
+.PHONY: sweep
+## Destroys any dangling infrastructure created by the acceptance tests (terraform_acc_ prefix).
+sweep:
+	@ echo "-> WARNING: This will destroy infrastructure. Use only in development accounts."
+	@ go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS) -timeout 60m

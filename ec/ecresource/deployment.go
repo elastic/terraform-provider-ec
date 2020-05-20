@@ -15,13 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package resource
+package ecresource
 
 import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-ec/ec/resource/deploymentresource"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource"
 )
 
 // Deployment returns the ec_deployment resource schema.
