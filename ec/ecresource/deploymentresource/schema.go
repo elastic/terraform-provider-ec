@@ -36,7 +36,7 @@ func NewSchema() map[string]*schema.Schema {
 		},
 		"request_id": {
 			Type:     schema.TypeString,
-			Computed: true,
+			Optional: true,
 		},
 		"deployment_template_id": {
 			Type:     schema.TypeString,
@@ -61,6 +61,8 @@ func NewSchema() map[string]*schema.Schema {
 						Default:  "main-elasticsearch",
 						Optional: true,
 					},
+
+					// Computed attributes
 					"resource_id": {
 						Type:     schema.TypeString,
 						Computed: true,
@@ -85,6 +87,8 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+
+					// Sub-objects
 					"topology": elasticsearchTopologySchema(),
 
 					// This setting hasn't been implemented.
@@ -192,7 +196,7 @@ func elasticsearchTopologySchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
-					Optional: true,
+					Required: true,
 				},
 				"memory_per_node": {
 					Type:     schema.TypeString,

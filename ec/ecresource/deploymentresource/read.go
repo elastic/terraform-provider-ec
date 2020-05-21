@@ -37,6 +37,7 @@ func Read(d *schema.ResourceData, meta interface{}) error {
 			ShowMetadata: true,
 		},
 	})
+
 	if err != nil {
 		return multierror.NewPrefixed("failed reading deployment", err)
 	}

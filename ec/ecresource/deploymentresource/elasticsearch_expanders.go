@@ -167,6 +167,8 @@ func parseTopologySize(topology map[string]interface{}) (models.TopologySize, er
 		}
 
 		return models.TopologySize{
+			// TODO: For now the resource is assumed to be "memory". This can
+			// and will change in the future, we need to accommodate for this case.
 			Value: ec.Int32(val), Resource: ec.String("memory"),
 		}, nil
 	}

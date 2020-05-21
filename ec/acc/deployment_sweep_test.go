@@ -18,6 +18,8 @@
 package acc
 
 import (
+	"strings"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
@@ -55,6 +57,10 @@ func testSweepDeployment(_ string) error {
 	var sweepDeployments []string
 	for _, d := range res.Deployments {
 		if d.Resources == nil || *d.Metadata.Hidden {
+			continue
+		}
+
+		if !strings.HasPrefix(*d.Name, prefix) {
 			continue
 		}
 
