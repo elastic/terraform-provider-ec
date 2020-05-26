@@ -23,8 +23,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
 )
 
-// WaitForPlan waits for a pending plan to finish.
-func WaitForPlan(client *api.API, id string) error {
+// WaitForPlanCompletion waits for a pending plan to finish.
+func WaitForPlanCompletion(client *api.API, id string) error {
 	return planutil.Wait(plan.TrackChangeParams{
 		API: client, DeploymentID: id,
 	})

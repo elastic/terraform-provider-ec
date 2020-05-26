@@ -51,7 +51,7 @@ func Create(d *schema.ResourceData, meta interface{}) error {
 		return merr.Append(newCreationError(reqID))
 	}
 
-	if err := WaitForPlan(client, *res.ID); err != nil {
+	if err := WaitForPlanCompletion(client, *res.ID); err != nil {
 		merr := multierror.NewPrefixed("failed tracking create progress", err)
 		return merr.Append(newCreationError(reqID))
 	}

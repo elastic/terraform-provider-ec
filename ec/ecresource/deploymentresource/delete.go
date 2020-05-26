@@ -33,7 +33,7 @@ func Delete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	if err := WaitForPlan(client, d.Id()); err != nil {
+	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
 		return err
 	}
 

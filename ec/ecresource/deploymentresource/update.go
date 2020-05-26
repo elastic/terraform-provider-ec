@@ -47,7 +47,7 @@ func Update(d *schema.ResourceData, meta interface{}) error {
 		return multierror.NewPrefixed("failed updating deployment", err)
 	}
 
-	if err := WaitForPlan(client, d.Id()); err != nil {
+	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
 		return multierror.NewPrefixed("failed tracking update progress", err)
 	}
 
