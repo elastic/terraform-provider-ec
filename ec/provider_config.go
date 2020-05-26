@@ -69,7 +69,6 @@ func verboseSettings(verbose bool) api.VerboseSettings {
 		return api.VerboseSettings{}
 	}
 
-	_ = os.Remove("request.log")
 	f, err := os.Create("request.log")
 	if err != nil {
 		return api.VerboseSettings{}

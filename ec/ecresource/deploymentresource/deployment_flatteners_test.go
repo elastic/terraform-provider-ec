@@ -191,7 +191,7 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 		{
 			name: "empty resources returns an error",
 			args: args{res: &models.DeploymentResources{}},
-			err:  errors.New("failed to obtain the elasticsearch deployment template id"),
+			err:  errors.New("failed to obtain the deployment template id"),
 		},
 		{
 			name: "single empty current plan returns error",
@@ -212,7 +212,7 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 					},
 				},
 			}},
-			err: errors.New("failed to obtain the elasticsearch deployment template id"),
+			err: errors.New("failed to obtain the deployment template id"),
 		},
 		{
 			name: "multiple deployment templates returns an error",
@@ -246,7 +246,7 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 					},
 				},
 			}},
-			err: errors.New("there's more than 1 deployment template: \"someid, someotherid\""),
+			err: errors.New("there are more than 1 deployment template specified on the deployment: \"someid, someotherid\""),
 		},
 		{
 			name: "single deployment template returns it",

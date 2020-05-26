@@ -34,7 +34,7 @@ func Deployment() *schema.Resource {
 
 		Schema: deploymentresource.NewSchema(),
 
-		// TODO: importer
+		// TODO: write importer function.
 		Importer:    nil,
 		Description: "",
 

@@ -28,10 +28,10 @@ import (
 )
 
 const (
-	eceOnlyText      = "Only usable when targeting ECE Installations or Elasticsearch Service Private"
-	saasRequiredText = "It's the only valid authentication mechanism for the Elasticsearch Service"
+	eceOnlyText      = "Available only when targeting ECE Installations or Elasticsearch Service Private"
+	saasRequiredText = "The only valid authentication mechanism for the Elasticsearch Service"
 
-	endpointDesc = "Endpoint where the terraform provider will point to, defaults to \"%s\"."
+	endpointDesc = "Endpoint where the terraform provider will point to. Defaults to \"%s\"."
 	insecureDesc = "Allow the provider to skip TLS validation on its outgoing HTTP calls."
 	timeoutDesc  = "Timeout used for individual HTTP calls. Defaults to \"1m\"."
 	verboseDesc  = "When set, a \"request.log\" file will be written with all outgoing HTTP requests. Defaults to \"false\"."

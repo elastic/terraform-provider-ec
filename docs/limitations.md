@@ -1,10 +1,11 @@
 # Limitations
 
-This document aims to document the limitations of the terraform provider
+This document aims to document the limitations of the terraform provider for development purposes.
+Intended as internal (temporary) documentation and will be removed eventually.
 
 ## Version field diff
 
-When upgrading the version of a deployment from A to B, the diff will look like:
+When upgrading the version of a deployment from A to B, the diff will look like this:
 
 ```diff
 An execution plan has been generated and is shown below.

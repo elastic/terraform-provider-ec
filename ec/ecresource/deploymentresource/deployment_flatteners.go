@@ -84,12 +84,12 @@ func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 	}
 
 	if deploymentTemplateID == "" {
-		return "", errors.New("failed to obtain the elasticsearch deployment template id")
+		return "", errors.New("failed to obtain the deployment template id")
 	}
 
 	if len(foundTemplates) > 1 {
 		return "", fmt.Errorf(
-			"there's more than 1 deployment template: \"%s\"", strings.Join(foundTemplates, ", "),
+			"there are more than 1 deployment template specified on the deployment: \"%s\"", strings.Join(foundTemplates, ", "),
 		)
 	}
 
@@ -111,16 +111,16 @@ func parseCredentials(d *schema.ResourceData, resources []*models.DeploymentReso
 				return errors.New("failed parsing credentials: no elasticsearch state saved")
 			}
 
-			var props = ess[0].(map[string]interface{})
+			var es = ess[0].(map[string]interface{})
 			if creds.Username != nil && *creds.Username != "" {
-				props["username"] = *creds.Username
+				es["username"] = *creds.Username
 				if err := d.Set("elasticsearch", ess); err != nil {
 					merr = merr.Append(err)
 				}
 			}
 
 			if creds.Password != nil && *creds.Password != "" {
-				props["password"] = *creds.Password
+				es["password"] = *creds.Password
 				if err := d.Set("elasticsearch", ess); err != nil {
 					merr = merr.Append(err)
 				}
@@ -129,13 +129,13 @@ func parseCredentials(d *schema.ResourceData, resources []*models.DeploymentReso
 
 		// Parse secret token for APM resources.
 		if res.SecretToken != "" {
-			var apm = d.Get("apm").([]interface{})
-			if len(apm) == 0 {
+			var apms = d.Get("apm").([]interface{})
+			if len(apms) == 0 {
 				return errors.New("failed parsing credentials: no elasticsearch state saved")
 			}
-			var props = apm[0].(map[string]interface{})
-			props["secret_token"] = res.SecretToken
-			if err := d.Set("apm", apm); err != nil {
+			var apm = apms[0].(map[string]interface{})
+			apm["secret_token"] = res.SecretToken
+			if err := d.Set("apm", apms); err != nil {
 				merr = merr.Append(err)
 			}
 		}
