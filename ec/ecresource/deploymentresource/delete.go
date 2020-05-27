@@ -38,8 +38,8 @@ func Delete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// We don't particularly care if delete succeeds or not. It's better to
-	// remove it but it might fail on ESS for example when user's aren't
-	// allowed to delete deployments or on ECE when the cluster is "still
+	// remove it, but it might fail on ESS. For example, when user's aren't
+	// allowed to delete deployments, or on ECE when the cluster is "still
 	// being shutdown". Sumarizing, even if the call fails the deployment
 	// won't be there.
 	_, _ = deploymentapi.Delete(deploymentapi.DeleteParams{
