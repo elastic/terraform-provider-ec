@@ -10,5 +10,5 @@ format: deps tools
 	@ echo "-> Done."
 
 .PHONY: license-header
-license-header:
+license-header: deps
 	@ $(GOBIN)/go-licenser -license ASL2

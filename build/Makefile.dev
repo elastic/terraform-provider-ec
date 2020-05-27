@@ -1,17 +1,8 @@
-REPORT_PATH ?= ./reports
-TEST_UNIT_FLAGS ?= -timeout 10s -p 4 -race -cover -coverprofile=reports/c.out
-TEST_UNIT_PACKAGE ?= ./...
-
 ### Development targets
 
-.PHONY: _report_path
-_report_path:
-	@ mkdir -p $(REPORT_PATH)
-
-## Runs unit tests. Use TEST_UNIT_FLAGS and TEST_UNIT_PACKAGE to control which flags and packages are used and tested.
-.PHONY: unit
-unit: _report_path
-	@ echo "-> Running unit tests for $(BINARY)..."
-	@ go test $(TEST_UNIT_FLAGS) $(TEST_UNIT_PACKAGE)
-
-tests: unit
+## Downlaods all the Golang dependencies and generates the NOTICE file.
+vendor: $(GOBIN)/go-licenser
+	@ echo "-> Downloading project imports..."
+	@ go mod download
+	@ go mod tidy
+	@ $(GOBIN)/go-licenser -license ASL2 -notice
