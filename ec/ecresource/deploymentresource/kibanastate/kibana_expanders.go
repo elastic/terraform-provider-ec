@@ -15,21 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package kibanastate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-func expandKibanaResources(ess []interface{}) ([]*models.KibanaPayload, error) {
-	if len(ess) == 0 {
+// ExpandResources expands the flattened kibana resources into its models.
+func ExpandResources(kibanas []interface{}) ([]*models.KibanaPayload, error) {
+	if len(kibanas) == 0 {
 		return nil, nil
 	}
 
-	result := make([]*models.KibanaPayload, 0, len(ess))
-	for _, raw := range ess {
-		resResource, err := expandKibanaResource(raw)
+	result := make([]*models.KibanaPayload, 0, len(kibanas))
+	for _, raw := range kibanas {
+		resResource, err := expandResource(raw)
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +41,7 @@ func expandKibanaResources(ess []interface{}) ([]*models.KibanaPayload, error) {
 	return result, nil
 }
 
-func expandKibanaResource(raw interface{}) (*models.KibanaPayload, error) {
+func expandResource(raw interface{}) (*models.KibanaPayload, error) {
 	var es = raw.(map[string]interface{})
 	var res = models.KibanaPayload{
 		Plan: &models.KibanaClusterPlan{
@@ -71,7 +73,7 @@ func expandKibanaResource(raw interface{}) (*models.KibanaPayload, error) {
 	}
 
 	if rawTopology, ok := es["topology"]; ok {
-		topology, err := expandKibanaTopology(rawTopology)
+		topology, err := expandTopology(rawTopology)
 		if err != nil {
 			return nil, err
 		}
@@ -81,13 +83,13 @@ func expandKibanaResource(raw interface{}) (*models.KibanaPayload, error) {
 	return &res, nil
 }
 
-func expandKibanaTopology(raw interface{}) ([]*models.KibanaClusterTopologyElement, error) {
+func expandTopology(raw interface{}) ([]*models.KibanaClusterTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.KibanaClusterTopologyElement, 0, len(rawTopologies))
 	for _, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 
-		size, err := parseTopologySize(topology)
+		size, err := deploymentstate.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}

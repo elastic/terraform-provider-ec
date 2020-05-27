@@ -15,42 +15,44 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package apmstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-func flattenKibanaResource(in []*models.KibanaResourceInfo, name string) []interface{} {
+// FlattenResources flattens apm resources into its flattened structure.
+func FlattenResources(in []*models.ApmResourceInfo, name string) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentKibanaPlanEmpty(res) {
+		if isCurrentPlanEmpty(res) {
 			continue
 		}
 
-		if res.Info.ClusterName != nil && *res.Info.ClusterName != name && *res.Info.ClusterName != "" {
-			m["display_name"] = *res.Info.ClusterName
+		if res.Info.Name != nil && *res.Info.Name != name && *res.Info.Name != "" {
+			m["display_name"] = *res.Info.Name
 		}
 
 		if res.RefID != nil && *res.RefID != "" {
 			m["ref_id"] = *res.RefID
 		}
 
-		if res.Info.ClusterID != nil && *res.Info.ClusterID != "" {
-			m["resource_id"] = *res.Info.ClusterID
+		if res.Info.ID != nil && *res.Info.ID != "" {
+			m["resource_id"] = *res.Info.ID
 		}
 
 		var plan = res.Info.PlanInfo.Current.Plan
-		if plan.Kibana != nil {
-			m["version"] = plan.Kibana.Version
+		if plan.Apm != nil {
+			m["version"] = plan.Apm.Version
 		}
 
 		if res.Region != nil {
 			m["region"] = *res.Region
 		}
 
-		if topology := flattenKibanaTopology(plan); len(topology) > 0 {
+		if topology := flattenTopology(plan); len(topology) > 0 {
 			m["topology"] = topology
 		}
 
@@ -64,7 +66,7 @@ func flattenKibanaResource(in []*models.KibanaResourceInfo, name string) []inter
 	return result
 }
 
-func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
+func flattenTopology(plan *models.ApmPlan) []interface{} {
 	var result = make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
@@ -76,17 +78,8 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 			m["instance_configuration_id"] = topology.InstanceConfigurationID
 		}
 
-		// TODO: Check legacy plans.
-		// if topology.MemoryPerNode > 0 {
-		// 	m["memory_per_node"] = strconv.Itoa(int(topology.MemoryPerNode))
-		// }
-
 		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = memoryToState(*topology.Size.Value)
-		}
-
-		if topology.NodeCountPerZone > 0 {
-			m["node_count_per_zone"] = topology.NodeCountPerZone
+			m["memory_per_node"] = deploymentstate.MemoryToState(*topology.Size.Value)
 		}
 
 		m["zone_count"] = topology.ZoneCount
@@ -97,7 +90,7 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 	return result
 }
 
-func isCurrentKibanaPlanEmpty(res *models.KibanaResourceInfo) bool {
+func isCurrentPlanEmpty(res *models.ApmResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }

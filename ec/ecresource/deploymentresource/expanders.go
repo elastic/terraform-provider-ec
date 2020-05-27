@@ -21,6 +21,9 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 )
 
 // TODO: EnterpriseSearch
@@ -38,7 +41,7 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 		},
 	}
 
-	esRes, err := expandElasticsearchResources(
+	esRes, err := elasticsearchstate.ExpandResources(
 		d.Get("elasticsearch").([]interface{}),
 		d.Get("deployment_template_id").(string),
 	)
@@ -47,13 +50,13 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := expandKibanaResources(d.Get("kibana").([]interface{}))
+	kibanaRes, err := kibanastate.ExpandResources(d.Get("kibana").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(d.Get("apm").([]interface{}))
+	apmRes, err := apmstate.ExpandResources(d.Get("apm").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +84,7 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 		},
 	}
 
-	esRes, err := expandElasticsearchResources(
+	esRes, err := elasticsearchstate.ExpandResources(
 		d.Get("elasticsearch").([]interface{}),
 		d.Get("deployment_template_id").(string),
 	)
@@ -90,13 +93,13 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := expandKibanaResources(d.Get("kibana").([]interface{}))
+	kibanaRes, err := kibanastate.ExpandResources(d.Get("kibana").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(d.Get("apm").([]interface{}))
+	apmRes, err := apmstate.ExpandResources(d.Get("apm").([]interface{}))
 	if err != nil {
 		return nil, err
 	}

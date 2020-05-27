@@ -15,22 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package elasticsearchstate
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deploymentsize"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-func expandElasticsearchResources(ess []interface{}, dt string) ([]*models.ElasticsearchPayload, error) {
+// ExpandResources expands Elasticsearch resources
+func ExpandResources(ess []interface{}, dt string) ([]*models.ElasticsearchPayload, error) {
 	if len(ess) == 0 {
 		return nil, nil
 	}
 
 	result := make([]*models.ElasticsearchPayload, 0, len(ess))
 	for _, raw := range ess {
-		resResource, err := expandElasticsearchResource(raw, dt)
+		resResource, err := ExpandResource(raw, dt)
 		if err != nil {
 			return nil, err
 		}
@@ -40,7 +41,8 @@ func expandElasticsearchResources(ess []interface{}, dt string) ([]*models.Elast
 	return result, nil
 }
 
-func expandElasticsearchResource(raw interface{}, dt string) (*models.ElasticsearchPayload, error) {
+// ExpandResource expands a single Elasticsearch resource
+func ExpandResource(raw interface{}, dt string) (*models.ElasticsearchPayload, error) {
 	var es = raw.(map[string]interface{})
 	var res = models.ElasticsearchPayload{
 		Plan: &models.ElasticsearchClusterPlan{
@@ -71,7 +73,7 @@ func expandElasticsearchResource(raw interface{}, dt string) (*models.Elasticsea
 	}
 
 	if rawTopology, ok := es["topology"]; ok {
-		topology, err := expandElasticsearchTopology(rawTopology)
+		topology, err := ExpandTopology(rawTopology)
 		if err != nil {
 			return nil, err
 		}
@@ -124,14 +126,15 @@ func expandElasticsearchResource(raw interface{}, dt string) (*models.Elasticsea
 	return &res, nil
 }
 
-func expandElasticsearchTopology(raw interface{}) ([]*models.ElasticsearchClusterTopologyElement, error) {
+// ExpandTopology expands a flattened topology
+func ExpandTopology(raw interface{}) ([]*models.ElasticsearchClusterTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.ElasticsearchClusterTopologyElement, 0, len(rawTopologies))
 	for _, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 		var nodeType = parseNodeType(topology)
 
-		size, err := parseTopologySize(topology)
+		size, err := deploymentstate.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}
@@ -157,23 +160,6 @@ func expandElasticsearchTopology(raw interface{}) ([]*models.ElasticsearchCluste
 	}
 
 	return res, nil
-}
-
-func parseTopologySize(topology map[string]interface{}) (models.TopologySize, error) {
-	if mem, ok := topology["memory_per_node"]; ok {
-		val, err := deploymentsize.Parse(mem.(string))
-		if err != nil {
-			return models.TopologySize{}, err
-		}
-
-		return models.TopologySize{
-			// TODO: For now the resource is assumed to be "memory". This can
-			// and will change in the future, we need to accommodate for this case.
-			Value: ec.Int32(val), Resource: ec.String("memory"),
-		}, nil
-	}
-
-	return models.TopologySize{}, nil
 }
 
 func parseNodeType(topology map[string]interface{}) models.ElasticsearchNodeType {

@@ -246,7 +246,7 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 					},
 				},
 			}},
-			err: errors.New("there are more than 1 deployment template specified on the deployment: \"someid, someotherid\""),
+			err: errors.New("there are more than 1 deployment templates specified on the deployment: \"someid, someotherid\""),
 		},
 		{
 			name: "single deployment template returns it",

@@ -15,19 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package elasticsearchstate
 
 import (
-	"fmt"
-
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-func flattenElasticsearchResource(in []*models.ElasticsearchResourceInfo, name string) []interface{} {
+// FlattenResources takes in Elasticsearch resoruce models and returns its
+// flattened form.
+func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentESPlanEmpty(res) {
+		if IsCurrentPlanEmpty(res) {
 			continue
 		}
 
@@ -52,7 +53,7 @@ func flattenElasticsearchResource(in []*models.ElasticsearchResourceInfo, name s
 			m["region"] = *res.Region
 		}
 
-		if topology := flattenElasticsearchTopology(plan); len(topology) > 0 {
+		if topology := flattenTopology(plan); len(topology) > 0 {
 			m["topology"] = topology
 		}
 
@@ -76,7 +77,7 @@ func flattenElasticsearchResource(in []*models.ElasticsearchResourceInfo, name s
 	return result
 }
 
-func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
+func flattenTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 	var result = make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
@@ -94,7 +95,7 @@ func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []inter
 		// }
 
 		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = memoryToState(*topology.Size.Value)
+			m["memory_per_node"] = deploymentstate.MemoryToState(*topology.Size.Value)
 		}
 
 		if nt := topology.NodeType; nt != nil {
@@ -149,14 +150,9 @@ func flattenElasticsearchSettings(info *models.ElasticsearchClusterInfo) map[str
 	return m
 }
 
-func memoryToState(mem int32) string {
-	if mem%1024 > 1 && mem%512 == 0 {
-		return fmt.Sprintf("%0.1fg", float32(mem)/1024)
-	}
-	return fmt.Sprintf("%dg", mem/1024)
-}
-
-func isCurrentESPlanEmpty(res *models.ElasticsearchResourceInfo) bool {
-	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
-	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
+// IsCurrentPlanEmpty checks the elasticsearch resource current plan is empty.
+func IsCurrentPlanEmpty(res *models.ElasticsearchResourceInfo) bool {
+	return res.Info == nil || res.Info.PlanInfo == nil ||
+		res.Info.PlanInfo.Current == nil ||
+		res.Info.PlanInfo.Current.Plan == nil
 }

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package elasticsearchstate
 
 import (
 	"testing"
@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_expandElasticsearchResources(t *testing.T) {
+func TestExpandResource(t *testing.T) {
 	type args struct {
 		ess []interface{}
 		dt  string
@@ -164,7 +164,7 @@ func Test_expandElasticsearchResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := expandElasticsearchResources(tt.args.ess, tt.args.dt)
+			got, err := ExpandResources(tt.args.ess, tt.args.dt)
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			}

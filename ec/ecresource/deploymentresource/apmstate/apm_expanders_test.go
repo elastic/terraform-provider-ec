@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package apmstate
 
 import (
 	"testing"
@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_expandApmResources(t *testing.T) {
+func TestExpandResources(t *testing.T) {
 	type args struct {
 		ess []interface{}
 	}
@@ -122,7 +122,7 @@ func Test_expandApmResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := expandApmResources(tt.args.ess)
+			got, err := ExpandResources(tt.args.ess)
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			}

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package kibanastate
 
 import (
 	"testing"
@@ -26,9 +26,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_flattenApmResource(t *testing.T) {
+func TestFlattenResources(t *testing.T) {
 	type args struct {
-		in   []*models.ApmResourceInfo
+		in   []*models.KibanaResourceInfo
 		name string
 	}
 	tests := []struct {
@@ -38,16 +38,16 @@ func Test_flattenApmResource(t *testing.T) {
 	}{
 		{
 			name: "empty resource list returns empty list",
-			args: args{in: []*models.ApmResourceInfo{}},
+			args: args{in: []*models.KibanaResourceInfo{}},
 			want: []interface{}{},
 		},
 		{
 			name: "empty current plan returns empty list",
-			args: args{in: []*models.ApmResourceInfo{
+			args: args{in: []*models.KibanaResourceInfo{
 				{
-					Info: &models.ApmInfo{
-						PlanInfo: &models.ApmPlansInfo{
-							Pending: &models.ApmPlanInfo{},
+					Info: &models.KibanaClusterInfo{
+						PlanInfo: &models.KibanaClusterPlansInfo{
+							Pending: &models.KibanaClusterPlanInfo{},
 						},
 					},
 				},
@@ -55,26 +55,26 @@ func Test_flattenApmResource(t *testing.T) {
 			want: []interface{}{},
 		},
 		{
-			name: "parses the apm resource",
-			args: args{in: []*models.ApmResourceInfo{
+			name: "parses the kibana resource",
+			args: args{in: []*models.KibanaResourceInfo{
 				{
 					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-apm"),
+					RefID:                     ec.String("main-kibana"),
 					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-					Info: &models.ApmInfo{
-						ID:     &mock.ValidClusterID,
-						Name:   ec.String("some-apm-name"),
-						Region: "some-region",
-						PlanInfo: &models.ApmPlansInfo{
-							Current: &models.ApmPlanInfo{
-								Plan: &models.ApmPlan{
-									Apm: &models.ApmConfiguration{
+					Info: &models.KibanaClusterInfo{
+						ClusterID:   &mock.ValidClusterID,
+						ClusterName: ec.String("some-kibana-name"),
+						Region:      "some-region",
+						PlanInfo: &models.KibanaClusterPlansInfo{
+							Current: &models.KibanaClusterPlanInfo{
+								Plan: &models.KibanaClusterPlan{
+									Kibana: &models.KibanaConfiguration{
 										Version: "7.7.0",
 									},
-									ClusterTopology: []*models.ApmTopologyElement{
+									ClusterTopology: []*models.KibanaClusterTopologyElement{
 										{
 											ZoneCount:               1,
-											InstanceConfigurationID: "aws.apm.r4",
+											InstanceConfigurationID: "aws.kibana.r4",
 											Size: &models.TopologySize{
 												Resource: ec.String("memory"),
 												Value:    ec.Int32(1024),
@@ -90,14 +90,14 @@ func Test_flattenApmResource(t *testing.T) {
 			want: []interface{}{
 				map[string]interface{}{
 					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"display_name":                 "some-apm-name",
-					"ref_id":                       "main-apm",
+					"display_name":                 "some-kibana-name",
+					"ref_id":                       "main-kibana",
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
 					"region":                       "some-region",
 					"topology": []interface{}{
 						map[string]interface{}{
-							"instance_configuration_id": "aws.apm.r4",
+							"instance_configuration_id": "aws.kibana.r4",
 							"memory_per_node":           "1g",
 							"zone_count":                int32(1),
 						},
@@ -108,7 +108,7 @@ func Test_flattenApmResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenApmResource(tt.args.in, tt.args.name)
+			got := FlattenResources(tt.args.in, tt.args.name)
 			assert.Equal(t, tt.want, got)
 		})
 	}

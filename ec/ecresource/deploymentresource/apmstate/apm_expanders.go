@@ -15,21 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package apmstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-func expandApmResources(ess []interface{}) ([]*models.ApmPayload, error) {
-	if len(ess) == 0 {
+// ExpandResources expands apm resources into their models.
+func ExpandResources(apms []interface{}) ([]*models.ApmPayload, error) {
+	if len(apms) == 0 {
 		return nil, nil
 	}
 
-	result := make([]*models.ApmPayload, 0, len(ess))
-	for _, raw := range ess {
-		resResource, err := expandApmResource(raw)
+	result := make([]*models.ApmPayload, 0, len(apms))
+	for _, raw := range apms {
+		resResource, err := expandResource(raw)
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +41,7 @@ func expandApmResources(ess []interface{}) ([]*models.ApmPayload, error) {
 	return result, nil
 }
 
-func expandApmResource(raw interface{}) (*models.ApmPayload, error) {
+func expandResource(raw interface{}) (*models.ApmPayload, error) {
 	var es = raw.(map[string]interface{})
 	var res = models.ApmPayload{
 		Plan: &models.ApmPlan{
@@ -71,7 +73,7 @@ func expandApmResource(raw interface{}) (*models.ApmPayload, error) {
 	}
 
 	if rawTopology, ok := es["topology"]; ok {
-		topology, err := expandApmTopology(rawTopology)
+		topology, err := expandTopology(rawTopology)
 		if err != nil {
 			return nil, err
 		}
@@ -81,13 +83,13 @@ func expandApmResource(raw interface{}) (*models.ApmPayload, error) {
 	return &res, nil
 }
 
-func expandApmTopology(raw interface{}) ([]*models.ApmTopologyElement, error) {
+func expandTopology(raw interface{}) ([]*models.ApmTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.ApmTopologyElement, 0, len(rawTopologies))
 	for _, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 
-		size, err := parseTopologySize(topology)
+		size, err := deploymentstate.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package elasticsearchstate
 
 import (
 	"testing"
@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_flattenElasticsearchResource(t *testing.T) {
+func TestFlattenResource(t *testing.T) {
 	type args struct {
 		in   []*models.ElasticsearchResourceInfo
 		name string
@@ -185,13 +185,13 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenElasticsearchResource(tt.args.in, tt.args.name)
+			got := FlattenResources(tt.args.in, tt.args.name)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func Test_flattenElasticsearchTopology(t *testing.T) {
+func TestFlattenTopology(t *testing.T) {
 	type args struct {
 		plan *models.ElasticsearchClusterPlan
 	}
@@ -239,35 +239,7 @@ func Test_flattenElasticsearchTopology(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenElasticsearchTopology(tt.args.plan)
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func Test_memoryToState(t *testing.T) {
-	type args struct {
-		mem int32
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "gigabytes",
-			args: args{mem: 4096},
-			want: "4g",
-		},
-		{
-			name: "512 megabytes turns into 0.5g",
-			args: args{mem: 512},
-			want: "0.5g",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := memoryToState(tt.args.mem)
+			got := flattenTopology(tt.args.plan)
 			assert.Equal(t, tt.want, got)
 		})
 	}

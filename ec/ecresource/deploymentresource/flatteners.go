@@ -25,6 +25,9 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 )
 
 func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) error {
@@ -42,17 +45,17 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 			return err
 		}
 
-		esFlattened := flattenElasticsearchResource(res.Resources.Elasticsearch, *res.Name)
+		esFlattened := elasticsearchstate.FlattenResources(res.Resources.Elasticsearch, *res.Name)
 		if err := d.Set("elasticsearch", esFlattened); err != nil {
 			return err
 		}
 
-		kibanaFlattened := flattenKibanaResource(res.Resources.Kibana, *res.Name)
+		kibanaFlattened := kibanastate.FlattenResources(res.Resources.Kibana, *res.Name)
 		if err := d.Set("kibana", kibanaFlattened); err != nil {
 			return err
 		}
 
-		apmFlattened := flattenApmResource(res.Resources.Apm, *res.Name)
+		apmFlattened := apmstate.FlattenResources(res.Resources.Apm, *res.Name)
 		if err := d.Set("apm", apmFlattened); err != nil {
 			return err
 		}
@@ -65,7 +68,7 @@ func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 	var deploymentTemplateID string
 	var foundTemplates []string
 	for _, esRes := range res.Elasticsearch {
-		if isCurrentESPlanEmpty(esRes) {
+		if elasticsearchstate.IsCurrentPlanEmpty(esRes) {
 			continue
 		}
 
@@ -89,7 +92,7 @@ func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 
 	if len(foundTemplates) > 1 {
 		return "", fmt.Errorf(
-			"there are more than 1 deployment template specified on the deployment: \"%s\"", strings.Join(foundTemplates, ", "),
+			"there are more than 1 deployment templates specified on the deployment: \"%s\"", strings.Join(foundTemplates, ", "),
 		)
 	}
 
