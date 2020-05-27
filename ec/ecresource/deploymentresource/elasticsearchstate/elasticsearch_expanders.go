@@ -31,7 +31,7 @@ func ExpandResources(ess []interface{}, dt string) ([]*models.ElasticsearchPaylo
 
 	result := make([]*models.ElasticsearchPayload, 0, len(ess))
 	for _, raw := range ess {
-		resResource, err := ExpandResource(raw, dt)
+		resResource, err := expandResource(raw, dt)
 		if err != nil {
 			return nil, err
 		}
@@ -41,8 +41,8 @@ func ExpandResources(ess []interface{}, dt string) ([]*models.ElasticsearchPaylo
 	return result, nil
 }
 
-// ExpandResource expands a single Elasticsearch resource
-func ExpandResource(raw interface{}, dt string) (*models.ElasticsearchPayload, error) {
+// expandResource expands a single Elasticsearch resource
+func expandResource(raw interface{}, dt string) (*models.ElasticsearchPayload, error) {
 	var es = raw.(map[string]interface{})
 	var res = models.ElasticsearchPayload{
 		Plan: &models.ElasticsearchClusterPlan{
