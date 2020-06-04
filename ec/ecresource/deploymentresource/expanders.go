@@ -22,6 +22,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 )
@@ -61,6 +62,12 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
+
+	appsearchRes, err := appsearchstate.ExpandResources(d.Get("appsearch").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+	result.Resources.Appsearch = append(result.Resources.Appsearch, appsearchRes...)
 
 	return &result, nil
 }
@@ -104,6 +111,12 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
+
+	appsearchRes, err := appsearchstate.ExpandResources(d.Get("appsearch").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+	result.Resources.Appsearch = append(result.Resources.Appsearch, appsearchRes...)
 
 	return &result, nil
 }

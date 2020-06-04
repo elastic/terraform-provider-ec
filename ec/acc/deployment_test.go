@@ -75,8 +75,58 @@ func TestAccDeployment_basic(t *testing.T) {
 	})
 }
 
+func TestAccDeployment_appsearch(t *testing.T) {
+	resName := "ec_deployment.testacc"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	cfg := testAccDeploymentResourceAppsearch(t, randomName, region, deploymentVersion)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDeploymentExists(resName),
+					resource.TestCheckResourceAttr(resName, "name", randomName),
+					resource.TestCheckResourceAttr(resName, "region", region),
+					resource.TestCheckResourceAttr(resName, "appsearch.#", "1"),
+					resource.TestCheckResourceAttr(resName, "appsearch.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(resName, "appsearch.0.region", region),
+					resource.TestCheckResourceAttr(resName, "appsearch.0.topology.0.memory_per_node", "2g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", region),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.memory_per_node", "1g"),
+					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(resName, "kibana.0.region", region),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.memory_per_node", "1g"),
+				),
+			},
+			// Ensure that no diff is generated.
+			{
+				Config:   cfg,
+				PlanOnly: true,
+			},
+			// TODO: Import case when import is ready.
+		},
+	})
+}
+
 func testAccDeploymentResourceBasic(t *testing.T, name, region, version string) string {
 	b, err := ioutil.ReadFile("testdata/deployment_basic.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		name, region, version,
+	)
+}
+
+func testAccDeploymentResourceAppsearch(t *testing.T, name, region, version string) string {
+	b, err := ioutil.ReadFile("testdata/deployment_appsearch.tf")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -22,7 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-// FlattenResources takes in Elasticsearch resoruce models and returns its
+// FlattenResources takes in Elasticsearch resource models and returns its
 // flattened form.
 func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []interface{} {
 	var result = make([]interface{}, 0, len(in))
