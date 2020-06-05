@@ -80,6 +80,11 @@ func testSweepDeployment(_ string) error {
 				sweep = true
 			}
 		}
+		for _, res := range d.Resources.EnterpriseSearch {
+			if *res.Info.Status != "stopped" {
+				sweep = true
+			}
+		}
 		for _, res := range d.Resources.Kibana {
 			if *res.Info.Status != "stopped" {
 				sweep = true

@@ -1,6 +1,6 @@
 # Deployment Example
 
-This examples shows how to deploy an Elastic Cloud deployment using Terraform only.
+This example shows how to deploy an Elastic Cloud deployment using Terraform only.
 The created resources are a single-node Elasticsearch cluster with a Kibana and APM instances.
 
 ## Running the example

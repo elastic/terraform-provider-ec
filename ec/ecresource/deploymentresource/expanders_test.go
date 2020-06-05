@@ -47,7 +47,6 @@ func Test_createResourceToModel(t *testing.T) {
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
 				Resources: &models.DeploymentCreateResources{
-					Appsearch:        make([]*models.AppSearchPayload, 0),
 					EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -127,6 +126,34 @@ func Test_createResourceToModel(t *testing.T) {
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(512),
+										},
+									},
+								},
+							},
+						},
+					},
+					Appsearch: []*models.AppSearchPayload{
+						{
+							DisplayName:               "some-appsearch-name",
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("some-region"),
+							RefID:                     ec.String("main-appsearch"),
+							Settings:                  &models.AppSearchSettings{},
+							Plan: &models.AppSearchPlan{
+								Appsearch: &models.AppSearchConfiguration{
+									Version: "7.7.0",
+								},
+								ClusterTopology: []*models.AppSearchTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.appsearch.m5",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.AppSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Worker:    ec.Bool(true),
 										},
 									},
 								},
@@ -171,7 +198,6 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(false),
 				Resources: &models.DeploymentUpdateResources{
-					Appsearch:        make([]*models.AppSearchPayload, 0),
 					EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -251,6 +277,34 @@ func Test_updateResourceToModel(t *testing.T) {
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(512),
+										},
+									},
+								},
+							},
+						},
+					},
+					Appsearch: []*models.AppSearchPayload{
+						{
+							DisplayName:               "some-appsearch-name",
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("some-region"),
+							RefID:                     ec.String("main-appsearch"),
+							Settings:                  &models.AppSearchSettings{},
+							Plan: &models.AppSearchPlan{
+								Appsearch: &models.AppSearchConfiguration{
+									Version: "7.7.0",
+								},
+								ClusterTopology: []*models.AppSearchTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.appsearch.m5",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.AppSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Worker:    ec.Bool(true),
 										},
 									},
 								},
