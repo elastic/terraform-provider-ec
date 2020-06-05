@@ -216,10 +216,6 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
-					"secret_token": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
 					"topology": appsearchTopologySchema(),
 
 					// TODO: Implement settings field.
