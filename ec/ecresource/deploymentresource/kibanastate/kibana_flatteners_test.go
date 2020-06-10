@@ -65,6 +65,13 @@ func TestFlattenResources(t *testing.T) {
 						ClusterID:   &mock.ValidClusterID,
 						ClusterName: ec.String("some-kibana-name"),
 						Region:      "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "kibanaresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
 						PlanInfo: &models.KibanaClusterPlansInfo{
 							Current: &models.KibanaClusterPlanInfo{
 								Plan: &models.KibanaClusterPlan{
@@ -95,6 +102,10 @@ func TestFlattenResources(t *testing.T) {
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
 					"region":                       "some-region",
+					"endpoint": []interface{}{map[string]interface{}{
+						"http":  "http://kibanaresource.cloud.elastic.co:9200",
+						"https": "https://kibanaresource.cloud.elastic.co:9243",
+					}},
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.kibana.r4",

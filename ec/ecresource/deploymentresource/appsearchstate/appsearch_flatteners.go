@@ -60,6 +60,10 @@ func FlattenResources(in []*models.AppSearchResourceInfo, name string) []interfa
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
+		if endpoint := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(endpoint) > 0 {
+			m["endpoint"] = endpoint
+		}
+
 		result = append(result, m)
 	}
 

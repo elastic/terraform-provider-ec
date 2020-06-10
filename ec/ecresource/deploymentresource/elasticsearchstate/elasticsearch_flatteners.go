@@ -66,7 +66,9 @@ func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []int
 			m["cloud_id"] = metadata.CloudID
 		}
 
-		// TODO: Save endpoint information
+		if endpoint := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(endpoint) > 0 {
+			m["endpoint"] = endpoint
+		}
 
 		// TODO: Flatten repository state.
 		// Determine what to do with the default snapshot repository.

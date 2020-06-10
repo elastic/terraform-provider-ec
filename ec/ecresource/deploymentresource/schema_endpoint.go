@@ -15,38 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentstate
+package deploymentresource
 
-import (
-	"testing"
+import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-	"github.com/stretchr/testify/assert"
-)
-
-func TestMemoryToState(t *testing.T) {
-	type args struct {
-		mem int32
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "gigabytes",
-			args: args{mem: 4096},
-			want: "4g",
+func endpointSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"http": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"https": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
 		},
-		{
-			name: "512 megabytes turns into 0.5g",
-			args: args{mem: 512},
-			want: "0.5g",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := MemoryToState(tt.args.mem)
-			assert.Equal(t, tt.want, got)
-		})
 	}
 }

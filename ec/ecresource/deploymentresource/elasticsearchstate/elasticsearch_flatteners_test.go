@@ -64,7 +64,12 @@ func TestFlattenResource(t *testing.T) {
 						ClusterID: &mock.ValidClusterID,
 						Region:    "some-region",
 						Metadata: &models.ClusterMetadataInfo{
-							CloudID: "some CLOUD ID",
+							CloudID:  "some CLOUD ID",
+							Endpoint: "somecluster.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
 						},
 						PlanInfo: &models.ElasticsearchClusterPlansInfo{
 							Current: &models.ElasticsearchClusterPlanInfo{
@@ -101,6 +106,10 @@ func TestFlattenResource(t *testing.T) {
 					"version":     "7.7.0",
 					"region":      "some-region",
 					"cloud_id":    "some CLOUD ID",
+					"endpoint": []interface{}{map[string]interface{}{
+						"http":  "http://somecluster.cloud.elastic.co:9200",
+						"https": "https://somecluster.cloud.elastic.co:9243",
+					}},
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
@@ -125,6 +134,13 @@ func TestFlattenResource(t *testing.T) {
 						ClusterID:   &mock.ValidClusterID,
 						ClusterName: ec.String("some-name"),
 						Region:      "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "othercluster.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
 						ElasticsearchMonitoringInfo: &models.ElasticsearchMonitoringInfo{
 							DestinationClusterIds: []string{
 								"some",
@@ -165,6 +181,10 @@ func TestFlattenResource(t *testing.T) {
 					"resource_id":  mock.ValidClusterID,
 					"version":      "7.7.0",
 					"region":       "some-region",
+					"endpoint": []interface{}{map[string]interface{}{
+						"http":  "http://othercluster.cloud.elastic.co:9200",
+						"https": "https://othercluster.cloud.elastic.co:9243",
+					}},
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",

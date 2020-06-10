@@ -65,6 +65,13 @@ func TestFlattenResource(t *testing.T) {
 						ID:     &mock.ValidClusterID,
 						Name:   ec.String("some-apm-name"),
 						Region: "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "apmresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
 						PlanInfo: &models.ApmPlansInfo{
 							Current: &models.ApmPlanInfo{
 								Plan: &models.ApmPlan{
@@ -95,6 +102,10 @@ func TestFlattenResource(t *testing.T) {
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
 					"region":                       "some-region",
+					"endpoint": []interface{}{map[string]interface{}{
+						"http":  "http://apmresource.cloud.elastic.co:9200",
+						"https": "https://apmresource.cloud.elastic.co:9243",
+					}},
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.apm.r4",

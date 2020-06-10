@@ -12,7 +12,7 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.6.2"
+  version                = "7.7.0"
   deployment_template_id = "aws-io-optimized"
 
   elasticsearch {

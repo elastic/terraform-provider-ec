@@ -91,6 +91,8 @@ func NewSchema() map[string]*schema.Schema {
 					// Sub-objects
 					"topology": elasticsearchTopologySchema(),
 
+					"endpoint": endpointSchema(),
+
 					// This setting hasn't been implemented.
 					"snapshot_settings": elasticsearchSnapshotSchema(),
 
@@ -136,6 +138,8 @@ func NewSchema() map[string]*schema.Schema {
 					},
 					"topology": kibanaTopologySchema(),
 
+					"endpoint": endpointSchema(),
+
 					// TODO: Implement settings field.
 					// "settings": interface{}
 				},
@@ -179,6 +183,8 @@ func NewSchema() map[string]*schema.Schema {
 					},
 					"topology": apmTopologySchema(),
 
+					"endpoint": endpointSchema(),
+
 					// TODO: Implement settings field.
 					// "settings": interface{}
 				},
@@ -217,6 +223,8 @@ func NewSchema() map[string]*schema.Schema {
 						Computed: true,
 					},
 					"topology": appsearchTopologySchema(),
+
+					"endpoint": endpointSchema(),
 
 					// TODO: Implement settings field.
 					// "settings": interface{}

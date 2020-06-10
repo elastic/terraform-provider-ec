@@ -18,35 +18,24 @@
 package deploymentstate
 
 import (
-	"testing"
+	"fmt"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-func TestMemoryToState(t *testing.T) {
-	type args struct {
-		mem int32
+func FlattenClusterEndpoint(metadata *models.ClusterMetadataInfo) []interface{} {
+	if metadata == nil || metadata.Endpoint == "" || metadata.Ports == nil {
+		return nil
 	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "gigabytes",
-			args: args{mem: 4096},
-			want: "4g",
-		},
-		{
-			name: "512 megabytes turns into 0.5g",
-			args: args{mem: 512},
-			want: "0.5g",
-		},
+
+	var m = make(map[string]interface{})
+	if metadata.Ports.HTTP != nil {
+		m["http"] = fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := MemoryToState(tt.args.mem)
-			assert.Equal(t, tt.want, got)
-		})
+
+	if metadata.Ports.HTTPS != nil {
+		m["https"] = fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS)
 	}
+
+	return []interface{}{m}
 }
