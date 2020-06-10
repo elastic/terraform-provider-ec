@@ -19,7 +19,9 @@ package acc
 
 import (
 	"strings"
+	"sync"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
@@ -97,16 +99,30 @@ func testSweepDeployment(_ string) error {
 	}
 
 	var merr = multierror.NewPrefixed("failed sweeping resources")
+	var wg sync.WaitGroup
 	for _, dep := range sweepDeployments {
-		_, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
-			API: client, DeploymentID: dep,
-		})
-		merr = merr.Append(err)
-
-		merr = merr.Append(planutil.Wait(plan.TrackChangeParams{
-			API: client,
-		}))
+		wg.Add(1)
+		go func(id string) {
+			if err := shutdownDeployment(client, id, wg.Done); err != nil {
+				merr = merr.Append(err)
+			}
+		}(dep)
 	}
+	wg.Wait()
 
 	return merr.ErrorOrNil()
+}
+
+func shutdownDeployment(c *api.API, dep string, done func()) error {
+	defer done()
+	_, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
+		API: c, DeploymentID: dep,
+	})
+	if err != nil {
+		return err
+	}
+
+	return planutil.Wait(plan.TrackChangeParams{
+		API: c, DeploymentID: dep,
+	})
 }
