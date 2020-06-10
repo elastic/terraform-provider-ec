@@ -102,10 +102,8 @@ func TestFlattenResource(t *testing.T) {
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
 					"region":                       "some-region",
-					"endpoint": []interface{}{map[string]interface{}{
-						"http":  "http://apmresource.cloud.elastic.co:9200",
-						"https": "https://apmresource.cloud.elastic.co:9243",
-					}},
+					"http_endpoint":                "http://apmresource.cloud.elastic.co:9200",
+					"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.apm.r4",

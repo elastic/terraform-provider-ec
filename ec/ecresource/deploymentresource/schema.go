@@ -87,11 +87,17 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 
 					// Sub-objects
 					"topology": elasticsearchTopologySchema(),
-
-					"endpoint": endpointSchema(),
 
 					// This setting hasn't been implemented.
 					"snapshot_settings": elasticsearchSnapshotSchema(),
@@ -136,9 +142,15 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 					"topology": kibanaTopologySchema(),
-
-					"endpoint": endpointSchema(),
 
 					// TODO: Implement settings field.
 					// "settings": interface{}
@@ -181,9 +193,15 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 					"topology": apmTopologySchema(),
-
-					"endpoint": endpointSchema(),
 
 					// TODO: Implement settings field.
 					// "settings": interface{}
@@ -222,9 +240,15 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 					"topology": appsearchTopologySchema(),
-
-					"endpoint": endpointSchema(),
 
 					// TODO: Implement settings field.
 					// "settings": interface{}

@@ -101,15 +101,13 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{
 				map[string]interface{}{
-					"ref_id":      "main-elasticsearch",
-					"resource_id": mock.ValidClusterID,
-					"version":     "7.7.0",
-					"region":      "some-region",
-					"cloud_id":    "some CLOUD ID",
-					"endpoint": []interface{}{map[string]interface{}{
-						"http":  "http://somecluster.cloud.elastic.co:9200",
-						"https": "https://somecluster.cloud.elastic.co:9243",
-					}},
+					"ref_id":         "main-elasticsearch",
+					"resource_id":    mock.ValidClusterID,
+					"version":        "7.7.0",
+					"region":         "some-region",
+					"cloud_id":       "some CLOUD ID",
+					"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
+					"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
@@ -176,15 +174,13 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{
 				map[string]interface{}{
-					"display_name": "some-name",
-					"ref_id":       "main-elasticsearch",
-					"resource_id":  mock.ValidClusterID,
-					"version":      "7.7.0",
-					"region":       "some-region",
-					"endpoint": []interface{}{map[string]interface{}{
-						"http":  "http://othercluster.cloud.elastic.co:9200",
-						"https": "https://othercluster.cloud.elastic.co:9243",
-					}},
+					"display_name":   "some-name",
+					"ref_id":         "main-elasticsearch",
+					"resource_id":    mock.ValidClusterID,
+					"version":        "7.7.0",
+					"region":         "some-region",
+					"http_endpoint":  "http://othercluster.cloud.elastic.co:9200",
+					"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",

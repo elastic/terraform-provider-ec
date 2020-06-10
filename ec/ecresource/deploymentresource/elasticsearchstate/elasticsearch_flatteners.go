@@ -66,8 +66,10 @@ func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []int
 			m["cloud_id"] = metadata.CloudID
 		}
 
-		if endpoint := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(endpoint) > 0 {
-			m["endpoint"] = endpoint
+		if urls := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
+			for k, v := range urls {
+				m[k] = v
+			}
 		}
 
 		// TODO: Flatten repository state.

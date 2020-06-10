@@ -32,7 +32,7 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want map[string]interface{}
 	}{
 		{
 			name: "returns nil when the endpoint info is empty",
@@ -47,10 +47,10 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 					HTTPS: ec.Int32(9243),
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"http":  "http://xyz.us-east-1.aws.found.io:9200",
-				"https": "https://xyz.us-east-1.aws.found.io:9243",
-			}},
+			want: map[string]interface{}{
+				"http_endpoint":  "http://xyz.us-east-1.aws.found.io:9200",
+				"https_endpoint": "https://xyz.us-east-1.aws.found.io:9243",
+			},
 		},
 		{
 			name: "parses the some more endpoint information",
@@ -61,10 +61,10 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 					HTTPS: ec.Int32(20000),
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"http":  "http://rst.us-east-1.aws.found.io:10000",
-				"https": "https://rst.us-east-1.aws.found.io:20000",
-			}},
+			want: map[string]interface{}{
+				"http_endpoint":  "http://rst.us-east-1.aws.found.io:10000",
+				"https_endpoint": "https://rst.us-east-1.aws.found.io:20000",
+			},
 		},
 	}
 	for _, tt := range tests {
