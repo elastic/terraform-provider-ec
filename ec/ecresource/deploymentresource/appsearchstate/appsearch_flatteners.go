@@ -60,6 +60,12 @@ func FlattenResources(in []*models.AppSearchResourceInfo, name string) []interfa
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
+		if urls := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
+			for k, v := range urls {
+				m[k] = v
+			}
+		}
+
 		result = append(result, m)
 	}
 

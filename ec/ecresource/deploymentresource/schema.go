@@ -87,6 +87,14 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 
 					// Sub-objects
 					"topology": elasticsearchTopologySchema(),
@@ -134,6 +142,14 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 					"topology": kibanaTopologySchema(),
 
 					// TODO: Implement settings field.
@@ -177,6 +193,14 @@ func NewSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 					"topology": apmTopologySchema(),
 
 					// TODO: Implement settings field.
@@ -213,6 +237,14 @@ func NewSchema() map[string]*schema.Schema {
 						Computed: true,
 					},
 					"region": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
 						Type:     schema.TypeString,
 						Computed: true,
 					},

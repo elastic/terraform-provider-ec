@@ -64,7 +64,12 @@ func TestFlattenResource(t *testing.T) {
 						ClusterID: &mock.ValidClusterID,
 						Region:    "some-region",
 						Metadata: &models.ClusterMetadataInfo{
-							CloudID: "some CLOUD ID",
+							CloudID:  "some CLOUD ID",
+							Endpoint: "somecluster.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
 						},
 						PlanInfo: &models.ElasticsearchClusterPlansInfo{
 							Current: &models.ElasticsearchClusterPlanInfo{
@@ -96,11 +101,13 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{
 				map[string]interface{}{
-					"ref_id":      "main-elasticsearch",
-					"resource_id": mock.ValidClusterID,
-					"version":     "7.7.0",
-					"region":      "some-region",
-					"cloud_id":    "some CLOUD ID",
+					"ref_id":         "main-elasticsearch",
+					"resource_id":    mock.ValidClusterID,
+					"version":        "7.7.0",
+					"region":         "some-region",
+					"cloud_id":       "some CLOUD ID",
+					"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
+					"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
@@ -125,6 +132,13 @@ func TestFlattenResource(t *testing.T) {
 						ClusterID:   &mock.ValidClusterID,
 						ClusterName: ec.String("some-name"),
 						Region:      "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "othercluster.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
 						ElasticsearchMonitoringInfo: &models.ElasticsearchMonitoringInfo{
 							DestinationClusterIds: []string{
 								"some",
@@ -160,11 +174,13 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{
 				map[string]interface{}{
-					"display_name": "some-name",
-					"ref_id":       "main-elasticsearch",
-					"resource_id":  mock.ValidClusterID,
-					"version":      "7.7.0",
-					"region":       "some-region",
+					"display_name":   "some-name",
+					"ref_id":         "main-elasticsearch",
+					"resource_id":    mock.ValidClusterID,
+					"version":        "7.7.0",
+					"region":         "some-region",
+					"http_endpoint":  "http://othercluster.cloud.elastic.co:9200",
+					"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
