@@ -1,5 +1,7 @@
 # Terraform Provider for Elastic Cloud
 
+#### This project is currently under active development. Source code is provided with no assurances, use at your own risk.
+
 Terraform provider for the Elastic Cloud API, including:
 
 * Elasticsearch Service (ESS).
