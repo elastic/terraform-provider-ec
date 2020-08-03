@@ -1,10 +1,10 @@
-resource "ec_deployment" "testacc" {
+resource "ec_deployment" "basic" {
   name                   = "%s"
   region                 = "%s"
   version                = "%s"
   
   # TODO: Make this template ID dependent on the region.
-  deployment_template_id = "aws-io-optimized"
+  deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
     topology {
@@ -15,13 +15,13 @@ resource "ec_deployment" "testacc" {
 
   kibana {
     topology {
-      instance_configuration_id = "aws.kibana.r4"
+      instance_configuration_id = "aws.kibana.r5d"
     }
   }
 
   apm {
     topology {
-      instance_configuration_id = "aws.apm.r4"
+      instance_configuration_id = "aws.apm.r5d"
     }
   }
 }

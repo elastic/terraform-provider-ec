@@ -21,8 +21,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ec/ec"
 )
 
@@ -30,14 +29,12 @@ const (
 	prefix = "terraform_acc_"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+var testAccProviderFactory = map[string]func() (*schema.Provider, error){
+	"ec": providerFactory,
+}
 
-func init() {
-	testAccProvider = ec.Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"ec": testAccProvider,
-	}
+func providerFactory() (*schema.Provider, error) {
+	return ec.Provider(), nil
 }
 
 func testAccPreCheck(t *testing.T) {

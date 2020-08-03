@@ -20,15 +20,17 @@ package acc
 import (
 	"fmt"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccDeploymentDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
-	client := testAccProvider.Meta().(*api.API)
+	client, err := NewAPI()
+	if err != nil {
+		return err
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ec_deployment" {

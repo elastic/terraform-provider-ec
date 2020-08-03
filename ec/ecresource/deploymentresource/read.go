@@ -22,7 +22,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Read queries the remote deployment state and updates the local state.
@@ -32,9 +32,10 @@ func Read(d *schema.ResourceData, meta interface{}) error {
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
 		API: client, DeploymentID: d.Id(),
 		QueryParams: deputil.QueryParams{
-			ShowSettings: true,
-			ShowPlans:    true,
-			ShowMetadata: true,
+			ShowSettings:     true,
+			ShowPlans:        true,
+			ShowMetadata:     true,
+			ShowPlanDefaults: true,
 		},
 	})
 
