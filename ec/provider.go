@@ -21,9 +21,8 @@ import (
 	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource"
 )
 
@@ -50,8 +49,8 @@ var (
 	validURLSchemes = []string{"http", "https"}
 )
 
-// Provider returns a terraform.ResourceProvider.
-func Provider() terraform.ResourceProvider {
+// Provider returns a schema.Provider.
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		ConfigureFunc: configureAPI,
 		Schema: map[string]*schema.Schema{

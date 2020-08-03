@@ -24,7 +24,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"

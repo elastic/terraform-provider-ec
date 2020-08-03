@@ -18,14 +18,25 @@
 package deploymentresource
 
 import (
+	"time"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/plan"
 	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
+)
+
+const (
+	defaultPollFrequency = time.Millisecond * 5
+	defaultMaxRetry      = 3
 )
 
 // WaitForPlanCompletion waits for a pending plan to finish.
 func WaitForPlanCompletion(client *api.API, id string) error {
 	return planutil.Wait(plan.TrackChangeParams{
 		API: client, DeploymentID: id,
+		Config: plan.TrackFrequencyConfig{
+			PollFrequency: defaultPollFrequency,
+			MaxRetries:    defaultMaxRetry,
+		},
 	})
 }

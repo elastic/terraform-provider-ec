@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type resDataParams struct {

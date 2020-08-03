@@ -22,12 +22,11 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const (
@@ -36,14 +35,14 @@ const (
 )
 
 func TestAccDeployment_basic(t *testing.T) {
-	resName := "ec_deployment.testacc"
+	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	cfg := testAccDeploymentResourceBasic(t, randomName, region, deploymentVersion)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccDeploymentDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactory,
+		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -82,14 +81,14 @@ func TestAccDeployment_basic(t *testing.T) {
 }
 
 func TestAccDeployment_appsearch(t *testing.T) {
-	resName := "ec_deployment.testacc"
+	resName := "ec_deployment.appsearch"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	cfg := testAccDeploymentResourceAppsearch(t, randomName, region, deploymentVersion)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccDeploymentDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactory,
+		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -157,9 +156,13 @@ func testAccCheckDeploymentExists(name string) resource.TestCheckFunc {
 		if saved.Primary.ID == "" {
 			return fmt.Errorf("no deployment id is set")
 		}
+		client, err := NewAPI()
+		if err != nil {
+			return err
+		}
 
 		res, err := deploymentapi.Get(deploymentapi.GetParams{
-			API:          testAccProvider.Meta().(*api.API),
+			API:          client,
 			DeploymentID: saved.Primary.ID,
 			QueryParams: deputil.QueryParams{
 				ShowSettings: true,
