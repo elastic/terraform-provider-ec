@@ -194,6 +194,42 @@ func Test_modelToState(t *testing.T) {
 								},
 							},
 						},
+						EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+							{
+								Region:                    ec.String("some-region"),
+								RefID:                     ec.String("main-enterprise_search"),
+								ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+								Info: &models.EnterpriseSearchInfo{
+									ID:     &mock.ValidClusterID,
+									Name:   ec.String("some-enterprise_search-name"),
+									Region: "some-region",
+									PlanInfo: &models.EnterpriseSearchPlansInfo{
+										Current: &models.EnterpriseSearchPlanInfo{
+											Plan: &models.EnterpriseSearchPlan{
+												EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+													Version: "7.7.0",
+												},
+												ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+													{
+														ZoneCount:               1,
+														InstanceConfigurationID: "aws.enterprisesearch.m5",
+														Size: &models.TopologySize{
+															Resource: ec.String("memory"),
+															Value:    ec.Int32(2048),
+														},
+														NodeType: &models.EnterpriseSearchNodeTypes{
+															Appserver: ec.Bool(true),
+															Connector: ec.Bool(true),
+															Worker:    ec.Bool(true),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},

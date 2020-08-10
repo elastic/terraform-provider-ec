@@ -47,7 +47,6 @@ func Test_createResourceToModel(t *testing.T) {
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
 				Resources: &models.DeploymentCreateResources{
-					EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
 							DisplayName: "some-name",
@@ -160,6 +159,35 @@ func Test_createResourceToModel(t *testing.T) {
 							},
 						},
 					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							DisplayName:               "some-enterprise_search-name",
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("some-region"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Settings:                  &models.EnterpriseSearchSettings{},
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+									Version: "7.7.0",
+								},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.enterprisesearch.m5",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -198,7 +226,6 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(false),
 				Resources: &models.DeploymentUpdateResources{
-					EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
 							DisplayName: "some-name",
@@ -304,6 +331,35 @@ func Test_updateResourceToModel(t *testing.T) {
 										},
 										NodeType: &models.AppSearchNodeTypes{
 											Appserver: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							DisplayName:               "some-enterprise_search-name",
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("some-region"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Settings:                  &models.EnterpriseSearchSettings{},
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+									Version: "7.7.0",
+								},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.enterprisesearch.m5",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
 											Worker:    ec.Bool(true),
 										},
 									},

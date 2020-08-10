@@ -30,8 +30,9 @@ import (
 )
 
 const (
-	deploymentVersion = "7.6.2"
-	region            = "us-east-1"
+	deploymentVersion          = "7.8.1"
+	deploymentVersionAppsearch = "7.6.2"
+	region                     = "us-east-1"
 )
 
 func TestAccDeployment_basic(t *testing.T) {
@@ -83,7 +84,7 @@ func TestAccDeployment_basic(t *testing.T) {
 func TestAccDeployment_appsearch(t *testing.T) {
 	resName := "ec_deployment.appsearch"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	cfg := testAccDeploymentResourceAppsearch(t, randomName, region, deploymentVersion)
+	cfg := testAccDeploymentResourceAppsearch(t, randomName, region, deploymentVersionAppsearch)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -97,11 +98,57 @@ func TestAccDeployment_appsearch(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "name", randomName),
 					resource.TestCheckResourceAttr(resName, "region", region),
 					resource.TestCheckResourceAttr(resName, "appsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "appsearch.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(resName, "appsearch.0.version", deploymentVersionAppsearch),
 					resource.TestCheckResourceAttr(resName, "appsearch.0.region", region),
 					resource.TestCheckResourceAttr(resName, "appsearch.0.topology.0.memory_per_node", "2g"),
 					resource.TestCheckResourceAttrSet(resName, "appsearch.0.http_endpoint"),
 					resource.TestCheckResourceAttrSet(resName, "appsearch.0.https_endpoint"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.version", deploymentVersionAppsearch),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", region),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.memory_per_node", "1g"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.http_endpoint"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.https_endpoint"),
+					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.version", deploymentVersionAppsearch),
+					resource.TestCheckResourceAttr(resName, "kibana.0.region", region),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.memory_per_node", "1g"),
+					resource.TestCheckResourceAttrSet(resName, "kibana.0.http_endpoint"),
+					resource.TestCheckResourceAttrSet(resName, "kibana.0.https_endpoint"),
+				),
+			},
+			// Ensure that no diff is generated.
+			{
+				Config:   cfg,
+				PlanOnly: true,
+			},
+			// TODO: Import case when import is ready.
+		},
+	})
+}
+
+func TestAccDeployment_enterpriseSearch(t *testing.T) {
+	resName := "ec_deployment.enterprise_search"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	cfg := testAccDeploymentResourceEnterpriseSearch(t, randomName, region, deploymentVersion)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactory,
+		CheckDestroy:      testAccDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDeploymentExists(resName),
+					resource.TestCheckResourceAttr(resName, "name", randomName),
+					resource.TestCheckResourceAttr(resName, "region", region),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.region", region),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.memory_per_node", "2g"),
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.http_endpoint"),
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.https_endpoint"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.version", deploymentVersion),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", region),
@@ -138,6 +185,16 @@ func testAccDeploymentResourceBasic(t *testing.T, name, region, version string) 
 
 func testAccDeploymentResourceAppsearch(t *testing.T, name, region, version string) string {
 	b, err := ioutil.ReadFile("testdata/deployment_appsearch.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		name, region, version,
+	)
+}
+
+func testAccDeploymentResourceEnterpriseSearch(t *testing.T, name, region, version string) string {
+	b, err := ioutil.ReadFile("testdata/deployment_enterprise_search.tf")
 	if err != nil {
 		t.Fatal(err)
 	}

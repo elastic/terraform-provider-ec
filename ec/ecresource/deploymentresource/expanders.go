@@ -24,12 +24,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 )
 
-// TODO: EnterpriseSearch
-// TODO: AppSearch ? EnterpriseSearch superseeds AppSearch, might not be worth spending time
-// on it.
 func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequest, error) {
 	var result = models.DeploymentCreateRequest{
 		Name: d.Get("name").(string),
@@ -69,12 +67,15 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 	}
 	result.Resources.Appsearch = append(result.Resources.Appsearch, appsearchRes...)
 
+	enterpriseSearchRes, err := enterprisesearchstate.ExpandResources(d.Get("enterprise_search").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
+
 	return &result, nil
 }
 
-// TODO: EnterpriseSearch
-// TODO: AppSearch ? EnterpriseSearch superseeds AppSearch, might not be worth spending time
-// on it.
 func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequest, error) {
 	var result = models.DeploymentUpdateRequest{
 		Name: d.Get("name").(string),
@@ -117,6 +118,12 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 		return nil, err
 	}
 	result.Resources.Appsearch = append(result.Resources.Appsearch, appsearchRes...)
+
+	enterpriseSearchRes, err := enterprisesearchstate.ExpandResources(d.Get("enterprise_search").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
 
 	return &result, nil
 }

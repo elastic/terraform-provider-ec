@@ -255,6 +255,53 @@ func NewSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"enterprise_search": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"elasticsearch_cluster_ref_id": {
+						Type:     schema.TypeString,
+						Default:  "main-elasticsearch",
+						Optional: true,
+					},
+					"display_name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"ref_id": {
+						Type:     schema.TypeString,
+						Default:  "main-enterprises_search",
+						Optional: true,
+					},
+					"resource_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"version": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"region": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"http_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"https_endpoint": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"topology": enterpriseSearchTopologySchema(),
+
+					// TODO: Implement settings field.
+					// "settings": interface{}
+				},
+			},
+		},
 	}
 }
 
@@ -433,6 +480,49 @@ func appsearchTopologySchema() *schema.Schema {
 				// Node types
 
 				"node_type_appserver": {
+					Type:     schema.TypeBool,
+					Default:  true,
+					Optional: true,
+				},
+				"node_type_worker": {
+					Type:     schema.TypeBool,
+					Default:  true,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func enterpriseSearchTopologySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"instance_configuration_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"memory_per_node": {
+					Type:     schema.TypeString,
+					Default:  "2g",
+					Optional: true,
+				},
+				"zone_count": {
+					Type:     schema.TypeInt,
+					Default:  1,
+					Optional: true,
+				},
+
+				// Node types
+
+				"node_type_appserver": {
+					Type:     schema.TypeBool,
+					Default:  true,
+					Optional: true,
+				},
+				"node_type_connector": {
 					Type:     schema.TypeBool,
 					Default:  true,
 					Optional: true,
