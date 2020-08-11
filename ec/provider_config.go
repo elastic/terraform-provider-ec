@@ -18,6 +18,7 @@
 package ec
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -32,11 +34,12 @@ const (
 	providerUserAgentFmt = "elastic-terraform-provider/%s (%s)"
 )
 
-// configureAPI implements schema.ConfigureFunc
-func configureAPI(d *schema.ResourceData) (interface{}, error) {
+// configureAPI implements schema.ConfigureContextFunc
+func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	timeout, err := time.ParseDuration(d.Get("timeout").(string))
+
 	if err != nil {
-		return nil, err
+		return nil, diag.FromErr(err)
 	}
 
 	authWriter, err := auth.NewAuthWriter(auth.Config{
@@ -44,11 +47,12 @@ func configureAPI(d *schema.ResourceData) (interface{}, error) {
 		Username: d.Get("username").(string),
 		Password: d.Get("password").(string),
 	})
+
 	if err != nil {
-		return nil, err
+		return nil, diag.FromErr(err)
 	}
 
-	return api.NewAPI(api.Config{
+	client, err := api.NewAPI(api.Config{
 		ErrorDevice:     os.Stdout,
 		Client:          &http.Client{},
 		VerboseSettings: verboseSettings(d.Get("verbose").(bool)),
@@ -58,6 +62,12 @@ func configureAPI(d *schema.ResourceData) (interface{}, error) {
 		Timeout:         timeout,
 		UserAgent:       userAgent(Version),
 	})
+
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	return client, nil
 }
 
 func userAgent(v string) string {

@@ -4,3 +4,5 @@ reports
 examples/*/*.log
 examples/*/*.tfstate
 examples/*/*.tfstate.backup
+.vscode
+.idea
