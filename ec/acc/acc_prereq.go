@@ -39,9 +39,6 @@ func providerFactory() (*schema.Provider, error) {
 
 func testAccPreCheck(t *testing.T) {
 	var apikey, username, password string
-	if k := os.Getenv("EC_APIKEY"); k != "" {
-		apikey = k
-	}
 	if k := os.Getenv("EC_API_KEY"); k != "" {
 		apikey = k
 	}

@@ -93,7 +93,7 @@ To generate an API key, follow these steps:
 After you've generated your API Key, you can make it available to the Terraform provider by exporting it as an environment variable:
 
 ```sh
-$ export EC_APIKEY="<apikey value>"
+$ export EC_API_KEY="<apikey value>"
 ```
 
 After doing so, you can navigate to any of our examples in `./examples` and try one.
