@@ -52,7 +52,7 @@ public version control system.
 
 API Keys are the recommended authentication method. They can be used when authenticating against the Elasticsearch Service (ESS) or Elastic Cloud Enterprise (ECE).
 
-They can either be harcoded in the provider `.tf` provider configuration (NOT RECOMMENDED). Or specified via environment variables: `EC_APIKEY` or `EC_API_KEY`.
+They can either be harcoded in the provider `.tf` provider configuration (NOT RECOMMENDED). Or specified via environment variables: `EC_API_KEY`.
 
 ```hcl
 provider "ec" {
@@ -91,8 +91,8 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 * `apikey` - (Optional) This is the EC API Key. Required when targetting the Elasticsearch
   Service (ESS) offering, but also valid when targetting an ECE installation. It must be
-  provided, but it can also be sourced from the `EC_APIKEY` or `EC_API_KEY` environment
-  variables. Conflicts with `username` and `password` authentication options.
+  provided, but it can also be sourced from the `EC_API_KEY` environment variable.
+  Conflicts with `username` and `password` authentication options.
 
 * `username` - (Optional) This is the EC username. It must be provided, but it can also
   be sourced from the `EC_USER` or `EC_USERNAME` environment variables. Conflicts with

@@ -70,7 +70,7 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_APIKEY", "EC_API_KEY"}, "",
+					[]string{"EC_API_KEY"}, "",
 				),
 			},
 			"username": {

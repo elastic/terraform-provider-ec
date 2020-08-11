@@ -41,9 +41,6 @@ func NewAPI() (*api.API, error) {
 	}
 
 	var apikey string
-	if k := os.Getenv("EC_APIKEY"); k != "" {
-		apikey = k
-	}
 	if k := os.Getenv("EC_API_KEY"); k != "" {
 		apikey = k
 	}
