@@ -52,7 +52,7 @@ var (
 // Provider returns a schema.Provider.
 func Provider() *schema.Provider {
 	return &schema.Provider{
-		ConfigureFunc: configureAPI,
+		ConfigureContextFunc: configureAPI,
 		Schema: map[string]*schema.Schema{
 			"endpoint": {
 				Description:  fmt.Sprintf(endpointDesc, DefaultEndpoint),
