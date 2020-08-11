@@ -44,6 +44,7 @@ func newSampleDeployment() map[string]interface{} {
 		"kibana":                 []interface{}{newKibanaSample()},
 		"apm":                    []interface{}{newApmSample()},
 		"appsearch":              []interface{}{newAppsearchSample()},
+		"enterprise_search":      []interface{}{newEnterpriseSearchSample()},
 	}
 }
 
@@ -121,6 +122,27 @@ func newAppsearchSample() map[string]interface{} {
 				"memory_per_node":           "2g",
 				"zone_count":                1,
 				"node_type_appserver":       true,
+				"node_type_worker":          true,
+			},
+		},
+	}
+}
+
+func newEnterpriseSearchSample() map[string]interface{} {
+	return map[string]interface{}{
+		"elasticsearch_cluster_ref_id": "main-elasticsearch",
+		"display_name":                 "some-enterprise_search-name",
+		"ref_id":                       "main-enterprise_search",
+		"resource_id":                  mock.ValidClusterID,
+		"version":                      "7.7.0",
+		"region":                       "some-region",
+		"topology": []interface{}{
+			map[string]interface{}{
+				"instance_configuration_id": "aws.enterprisesearch.m5",
+				"memory_per_node":           "2g",
+				"zone_count":                1,
+				"node_type_appserver":       true,
+				"node_type_connector":       true,
 				"node_type_worker":          true,
 			},
 		},

@@ -28,6 +28,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 )
 
@@ -63,6 +64,11 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 
 		appsearchFlattened := appsearchstate.FlattenResources(res.Resources.Appsearch, *res.Name)
 		if err := d.Set("appsearch", appsearchFlattened); err != nil {
+			return err
+		}
+
+		enterpriseSearchFlattened := enterprisesearchstate.FlattenResources(res.Resources.EnterpriseSearch, *res.Name)
+		if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
 			return err
 		}
 	}
