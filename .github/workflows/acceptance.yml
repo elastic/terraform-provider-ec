@@ -1,11 +1,11 @@
 name: Go
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  # Unit test run
-  unit:
-    name: Unit
+  # Acceptance tests run.
+  acceptance:
+    name: Acceptance
     runs-on: ubuntu-latest
     steps:
 
@@ -30,10 +30,8 @@ jobs:
       run: make vendor
       id: modules
 
-    - name: Linters
-      run: make lint
-      id: lint
-    
-    - name: Run unit tests
-      run: make unit
-      id: unit
+    - name: Run Acceptance tests
+      run: make testacc
+      id: testacc
+      env:
+        EC_API_KEY: ${{ secrets.EC_API_KEY }}
