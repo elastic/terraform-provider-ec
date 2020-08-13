@@ -12,8 +12,8 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.7.0"
-  deployment_template_id = "aws-io-optimized"
+  version                = "7.8.1"
+  deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
     topology {
@@ -23,13 +23,13 @@ resource "ec_deployment" "example_minimal" {
 
   kibana {
     topology {
-      instance_configuration_id = "aws.kibana.r4"
+      instance_configuration_id = "aws.kibana.r5d"
     }
   }
 
   apm {
     topology {
-      instance_configuration_id = "aws.apm.r4"
+      instance_configuration_id = "aws.apm.r5d"
     }
   }
 }
