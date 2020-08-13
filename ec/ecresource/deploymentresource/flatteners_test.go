@@ -362,11 +362,8 @@ func Test_parseCredentials(t *testing.T) {
 	})
 
 	rawData := newSampleDeployment()
-	esData := rawData["elasticsearch"].([]interface{})[0].(map[string]interface{})
-	esData["username"] = "my-username"
-	esData["password"] = "my-password"
-	apmData := rawData["apm"].([]interface{})[0].(map[string]interface{})
-	apmData["secret_token"] = "my-secret-token"
+	rawData["elasticsearch_username"] = "my-username"
+	rawData["elasticsearch_password"] = "my-password"
 
 	wantDeploymentRD := newResourceData(t, resDataParams{
 		ID:        mock.ValidClusterID,
@@ -387,16 +384,24 @@ func Test_parseCredentials(t *testing.T) {
 			name: "Parses credentials",
 			args: args{
 				d: deploymentRD,
+				resources: []*models.DeploymentResource{{
+					Credentials: &models.ClusterCredentials{
+						Username: ec.String("my-username"),
+						Password: ec.String("my-password"),
+					},
+				}},
+			},
+			want: wantDeploymentRD,
+		},
+		{
+			name: "when no credentials are passed, it doesn't overwrite them",
+			args: args{
+				d: newResourceData(t, resDataParams{
+					ID:        mock.ValidClusterID,
+					Resources: rawData,
+				}),
 				resources: []*models.DeploymentResource{
-					{
-						Credentials: &models.ClusterCredentials{
-							Username: ec.String("my-username"),
-							Password: ec.String("my-password"),
-						},
-					},
-					{
-						SecretToken: "my-secret-token",
-					},
+					{},
 				},
 			},
 			want: wantDeploymentRD,

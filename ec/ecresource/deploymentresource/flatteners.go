@@ -115,43 +115,21 @@ func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 // credential settings in the Terraform state if the keys are found, currently
 // poulates the following credentials in plain text:
 // * Elasticsearch username and Password
-// * Apm secret_token
 func parseCredentials(d *schema.ResourceData, resources []*models.DeploymentResource) error {
 	var merr = multierror.NewPrefixed("failed parsing credentials")
 	for _, res := range resources {
 		// Parse ES credentials
 		if creds := res.Credentials; creds != nil {
-			var ess = d.Get("elasticsearch").([]interface{})
-			if len(ess) == 0 {
-				return errors.New("failed parsing credentials: no elasticsearch state saved")
-			}
-
-			var es = ess[0].(map[string]interface{})
 			if creds.Username != nil && *creds.Username != "" {
-				es["username"] = *creds.Username
-				if err := d.Set("elasticsearch", ess); err != nil {
+				if err := d.Set("elasticsearch_username", *creds.Username); err != nil {
 					merr = merr.Append(err)
 				}
 			}
 
 			if creds.Password != nil && *creds.Password != "" {
-				es["password"] = *creds.Password
-				if err := d.Set("elasticsearch", ess); err != nil {
+				if err := d.Set("elasticsearch_password", *creds.Password); err != nil {
 					merr = merr.Append(err)
 				}
-			}
-		}
-
-		// Parse secret token for APM resources.
-		if res.SecretToken != "" {
-			var apms = d.Get("apm").([]interface{})
-			if len(apms) == 0 {
-				return errors.New("failed parsing credentials: no elasticsearch state saved")
-			}
-			var apm = apms[0].(map[string]interface{})
-			apm["secret_token"] = res.SecretToken
-			if err := d.Set("apm", apms); err != nil {
-				merr = merr.Append(err)
 			}
 		}
 	}
