@@ -18,6 +18,8 @@
 package apmstate
 
 import (
+	"reflect"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
@@ -72,6 +74,14 @@ func expandResource(raw interface{}) (*models.ApmPayload, error) {
 		}
 	}
 
+	if cfg, ok := es["config"]; ok {
+		if c := expandConfig(cfg); c != nil {
+			version := res.Plan.Apm.Version
+			res.Plan.Apm = c
+			res.Plan.Apm.Version = version
+		}
+	}
+
 	if rawTopology, ok := es["topology"]; ok {
 		topology, err := expandTopology(rawTopology)
 		if err != nil {
@@ -106,8 +116,81 @@ func expandTopology(raw interface{}) ([]*models.ApmTopologyElement, error) {
 			elem.ZoneCount = int32(zones.(int))
 		}
 
+		if c, ok := topology["config"]; ok {
+			elem.Apm = expandConfig(c)
+		}
+
 		res = append(res, &elem)
 	}
 
 	return res, nil
+}
+
+func expandConfig(raw interface{}) *models.ApmConfiguration {
+	var res = new(models.ApmConfiguration)
+	for _, rawCfg := range raw.([]interface{}) {
+		var cfg = rawCfg.(map[string]interface{})
+		if dockerImage, ok := cfg["docker_image"]; ok {
+			res.DockerImage = dockerImage.(string)
+		}
+
+		if debugEnabled, ok := cfg["debug_enabled"]; ok {
+			initSystemSettings(res)
+			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
+		}
+
+		if pass, ok := cfg["elasticsearch_password"]; ok {
+			initSystemSettings(res)
+			res.SystemSettings.ElasticsearchPassword = pass.(string)
+		}
+
+		if u, ok := cfg["elasticsearch_url"]; ok {
+			initSystemSettings(res)
+			res.SystemSettings.ElasticsearchURL = u.(string)
+		}
+
+		if user, ok := cfg["elasticsearch_username"]; ok {
+			initSystemSettings(res)
+			res.SystemSettings.ElasticsearchUsername = user.(string)
+		}
+
+		if u, ok := cfg["kibana_url"]; ok {
+			initSystemSettings(res)
+			res.SystemSettings.KibanaURL = u.(string)
+		}
+
+		if token, ok := cfg["secret_token"]; ok {
+			initSystemSettings(res)
+			res.SystemSettings.SecretToken = token.(string)
+		}
+
+		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsOverrideJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_yaml"]; ok {
+			res.UserSettingsYaml = settings.(string)
+		}
+		if settings, ok := cfg["user_settings_override_yaml"]; ok {
+			res.UserSettingsOverrideYaml = settings.(string)
+		}
+	}
+
+	if !reflect.DeepEqual(res, new(models.ApmConfiguration)) {
+		return res
+	}
+
+	return nil
+}
+
+func initSystemSettings(cfg *models.ApmConfiguration) {
+	if cfg.SystemSettings == nil {
+		cfg.SystemSettings = &models.ApmSystemSettings{}
+	}
 }
