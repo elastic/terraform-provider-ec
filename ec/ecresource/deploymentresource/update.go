@@ -18,19 +18,22 @@
 package deploymentresource
 
 import (
+	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Update syncs the remote state with the local.
-func Update(d *schema.ResourceData, meta interface{}) error {
+func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	req, err := updateResourceToModel(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	res, err := deploymentapi.Update(deploymentapi.UpdateParams{
@@ -44,16 +47,20 @@ func Update(d *schema.ResourceData, meta interface{}) error {
 	})
 
 	if err != nil {
-		return multierror.NewPrefixed("failed updating deployment", err)
+		return diag.FromErr(multierror.NewPrefixed("failed updating deployment", err))
 	}
 
 	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-		return multierror.NewPrefixed("failed tracking update progress", err)
+		return diag.FromErr(multierror.NewPrefixed("failed tracking update progress", err))
 	}
 
-	if err := Read(d, meta); err != nil {
-		return err
+	if diag := Read(ctx, d, meta); diag != nil {
+		return diag
 	}
 
-	return parseCredentials(d, res.Resources)
+	if err := parseCredentials(d, res.Resources); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
