@@ -127,7 +127,9 @@ func expandTopology(raw interface{}) ([]*models.ApmTopologyElement, error) {
 }
 
 func expandConfig(raw interface{}) *models.ApmConfiguration {
-	var res = new(models.ApmConfiguration)
+	var res = &models.ApmConfiguration{
+		SystemSettings: &models.ApmSystemSettings{},
+	}
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
 		if dockerImage, ok := cfg["docker_image"]; ok {
@@ -135,32 +137,26 @@ func expandConfig(raw interface{}) *models.ApmConfiguration {
 		}
 
 		if debugEnabled, ok := cfg["debug_enabled"]; ok {
-			initSystemSettings(res)
 			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
 		}
 
 		if pass, ok := cfg["elasticsearch_password"]; ok {
-			initSystemSettings(res)
 			res.SystemSettings.ElasticsearchPassword = pass.(string)
 		}
 
 		if u, ok := cfg["elasticsearch_url"]; ok {
-			initSystemSettings(res)
 			res.SystemSettings.ElasticsearchURL = u.(string)
 		}
 
 		if user, ok := cfg["elasticsearch_username"]; ok {
-			initSystemSettings(res)
 			res.SystemSettings.ElasticsearchUsername = user.(string)
 		}
 
 		if u, ok := cfg["kibana_url"]; ok {
-			initSystemSettings(res)
 			res.SystemSettings.KibanaURL = u.(string)
 		}
 
 		if token, ok := cfg["secret_token"]; ok {
-			initSystemSettings(res)
 			res.SystemSettings.SecretToken = token.(string)
 		}
 
@@ -187,10 +183,4 @@ func expandConfig(raw interface{}) *models.ApmConfiguration {
 	}
 
 	return nil
-}
-
-func initSystemSettings(cfg *models.ApmConfiguration) {
-	if cfg.SystemSettings == nil {
-		cfg.SystemSettings = &models.ApmSystemSettings{}
-	}
 }

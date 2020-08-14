@@ -128,37 +128,41 @@ func Test_modelToState(t *testing.T) {
 								},
 							},
 						},
-						Apm: []*models.ApmResourceInfo{
-							{
-								Region:                    ec.String("some-region"),
-								RefID:                     ec.String("main-apm"),
-								ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-								Info: &models.ApmInfo{
-									ID:     &mock.ValidClusterID,
-									Name:   ec.String("some-apm-name"),
-									Region: "some-region",
-									PlanInfo: &models.ApmPlansInfo{
-										Current: &models.ApmPlanInfo{
-											Plan: &models.ApmPlan{
-												Apm: &models.ApmConfiguration{
-													Version: "7.7.0",
-												},
-												ClusterTopology: []*models.ApmTopologyElement{
-													{
-														ZoneCount:               1,
-														InstanceConfigurationID: "aws.apm.r4",
-														Size: &models.TopologySize{
-															Resource: ec.String("memory"),
-															Value:    ec.Int32(512),
-														},
-													},
+						Apm: []*models.ApmResourceInfo{{
+							Region:                    ec.String("some-region"),
+							RefID:                     ec.String("main-apm"),
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Info: &models.ApmInfo{
+								ID:     &mock.ValidClusterID,
+								Name:   ec.String("some-apm-name"),
+								Region: "some-region",
+								PlanInfo: &models.ApmPlansInfo{
+									Current: &models.ApmPlanInfo{
+										Plan: &models.ApmPlan{
+											Apm: &models.ApmConfiguration{
+												Version: "7.7.0",
+												SystemSettings: &models.ApmSystemSettings{
+													DebugEnabled: ec.Bool(false),
 												},
 											},
+											ClusterTopology: []*models.ApmTopologyElement{{
+												ZoneCount:               1,
+												InstanceConfigurationID: "aws.apm.r4",
+												Size: &models.TopologySize{
+													Resource: ec.String("memory"),
+													Value:    ec.Int32(512),
+												},
+												Apm: &models.ApmConfiguration{
+													SystemSettings: &models.ApmSystemSettings{
+														DebugEnabled: ec.Bool(false),
+													},
+												},
+											}},
 										},
 									},
 								},
 							},
-						},
+						}},
 						Appsearch: []*models.AppSearchResourceInfo{
 							{
 								Region:                    ec.String("some-region"),
