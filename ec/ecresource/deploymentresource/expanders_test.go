@@ -117,17 +117,23 @@ func Test_createResourceToModel(t *testing.T) {
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									Version: "7.7.0",
-								},
-								ClusterTopology: []*models.ApmTopologyElement{
-									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.apm.r4",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(512),
-										},
+									SystemSettings: &models.ApmSystemSettings{
+										DebugEnabled: ec.Bool(false),
 									},
 								},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r4",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(512),
+									},
+									Apm: &models.ApmConfiguration{
+										SystemSettings: &models.ApmSystemSettings{
+											DebugEnabled: ec.Bool(false),
+										},
+									},
+								}},
 							},
 						},
 					},
@@ -296,17 +302,23 @@ func Test_updateResourceToModel(t *testing.T) {
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									Version: "7.7.0",
-								},
-								ClusterTopology: []*models.ApmTopologyElement{
-									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.apm.r4",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(512),
-										},
+									SystemSettings: &models.ApmSystemSettings{
+										DebugEnabled: ec.Bool(false),
 									},
 								},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r4",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(512),
+									},
+									Apm: &models.ApmConfiguration{
+										SystemSettings: &models.ApmSystemSettings{
+											DebugEnabled: ec.Bool(false),
+										},
+									},
+								}},
 							},
 						},
 					},

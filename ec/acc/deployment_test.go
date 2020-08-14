@@ -22,64 +22,9 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-const (
-	deploymentVersion          = "7.8.1"
-	deploymentVersionAppsearch = "7.6.2"
-	region                     = "us-east-1"
-)
-
-func TestAccDeployment_basic(t *testing.T) {
-	resName := "ec_deployment.basic"
-	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	cfg := testAccDeploymentResourceBasic(t, randomName, region, deploymentVersion)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: cfg,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDeploymentExists(resName),
-					resource.TestCheckResourceAttr(resName, "name", randomName),
-					resource.TestCheckResourceAttr(resName, "region", region),
-					resource.TestCheckResourceAttr(resName, "apm.#", "1"),
-					resource.TestCheckResourceAttr(resName, "apm.0.version", deploymentVersion),
-					resource.TestCheckResourceAttr(resName, "apm.0.region", region),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.memory_per_node", "0.5g"),
-					resource.TestCheckResourceAttrSet(resName, "apm.0.http_endpoint"),
-					resource.TestCheckResourceAttrSet(resName, "apm.0.https_endpoint"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.version", deploymentVersion),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", region),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.memory_per_node", "1g"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.http_endpoint"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.https_endpoint"),
-					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.version", deploymentVersion),
-					resource.TestCheckResourceAttr(resName, "kibana.0.region", region),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.memory_per_node", "1g"),
-					resource.TestCheckResourceAttrSet(resName, "kibana.0.http_endpoint"),
-					resource.TestCheckResourceAttrSet(resName, "kibana.0.https_endpoint"),
-				),
-			},
-			// Ensure that no diff is generated.
-			{
-				Config:   cfg,
-				PlanOnly: true,
-			},
-			// TODO: Import case when import is ready.
-		},
-	})
-}
 
 func TestAccDeployment_appsearch(t *testing.T) {
 	resName := "ec_deployment.appsearch"
@@ -173,16 +118,6 @@ func TestAccDeployment_enterpriseSearch(t *testing.T) {
 	})
 }
 
-func testAccDeploymentResourceBasic(t *testing.T, name, region, version string) string {
-	b, err := ioutil.ReadFile("testdata/deployment_basic.tf")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return fmt.Sprintf(string(b),
-		name, region, version,
-	)
-}
-
 func testAccDeploymentResourceAppsearch(t *testing.T, name, region, version string) string {
 	b, err := ioutil.ReadFile("testdata/deployment_appsearch.tf")
 	if err != nil {
@@ -201,40 +136,4 @@ func testAccDeploymentResourceEnterpriseSearch(t *testing.T, name, region, versi
 	return fmt.Sprintf(string(b),
 		name, region, version,
 	)
-}
-
-func testAccCheckDeploymentExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		saved, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("no deployment resource: %s", name)
-		}
-
-		if saved.Primary.ID == "" {
-			return fmt.Errorf("no deployment id is set")
-		}
-		client, err := NewAPI()
-		if err != nil {
-			return err
-		}
-
-		res, err := deploymentapi.Get(deploymentapi.GetParams{
-			API:          client,
-			DeploymentID: saved.Primary.ID,
-			QueryParams: deputil.QueryParams{
-				ShowSettings: true,
-				ShowPlans:    true,
-				ShowMetadata: true,
-			},
-		})
-		if err != nil {
-			return err
-		}
-
-		if !*res.Healthy {
-			return fmt.Errorf("created deployment is unhealthy: please check the configuration")
-		}
-
-		return nil
-	}
 }

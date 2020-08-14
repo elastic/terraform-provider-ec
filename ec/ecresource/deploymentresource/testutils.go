@@ -98,13 +98,18 @@ func newApmSample() map[string]interface{} {
 		"resource_id":                  mock.ValidClusterID,
 		"version":                      "7.7.0",
 		"region":                       "some-region",
-		"topology": []interface{}{
-			map[string]interface{}{
-				"instance_configuration_id": "aws.apm.r4",
-				"memory_per_node":           "0.5g",
-				"zone_count":                1,
-			},
-		},
+		// Reproduces the case where the default fields are set.
+		"config": []interface{}{map[string]interface{}{
+			"debug_enabled": false,
+		}},
+		"topology": []interface{}{map[string]interface{}{
+			"instance_configuration_id": "aws.apm.r4",
+			"memory_per_node":           "0.5g",
+			"zone_count":                1,
+			"config": []interface{}{map[string]interface{}{
+				"debug_enabled": false,
+			}},
+		}},
 	}
 }
 

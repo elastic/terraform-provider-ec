@@ -60,10 +60,12 @@ func FlattenResources(in []*models.ApmResourceInfo, name string) []interface{} {
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		if urls := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
-			for k, v := range urls {
-				m[k] = v
-			}
+		for k, v := range deploymentstate.FlattenClusterEndpoint(res.Info.Metadata) {
+			m[k] = v
+		}
+
+		if cfg := flattenConfig(plan.Apm); len(cfg) > 0 {
+			m["config"] = cfg
 		}
 
 		result = append(result, m)
@@ -90,10 +92,88 @@ func flattenTopology(plan *models.ApmPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
+		if c := flattenConfig(topology.Apm); len(c) > 0 {
+			m["config"] = c
+		}
+
 		result = append(result, m)
 	}
 
 	return result
+}
+
+func flattenConfig(cfg *models.ApmConfiguration) []interface{} {
+	var m = make(map[string]interface{})
+	if cfg == nil {
+		return nil
+	}
+
+	if cfg.DockerImage != "" {
+		m["docker_image"] = cfg.DockerImage
+	}
+
+	if cfg.UserSettingsYaml != "" {
+		m["user_settings_yaml"] = cfg.UserSettingsYaml
+	}
+
+	if cfg.UserSettingsOverrideYaml != "" {
+		m["user_settings_override_yaml"] = cfg.UserSettingsOverrideYaml
+	}
+
+	if cfg.UserSettingsJSON != nil {
+		m["user_settings_json"] = cfg.UserSettingsJSON
+	}
+
+	if cfg.UserSettingsOverrideJSON != nil {
+		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
+	}
+
+	for k, v := range flattenSystemConfig(cfg.SystemSettings) {
+		m[k] = v
+	}
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	return []interface{}{m}
+}
+
+func flattenSystemConfig(cfg *models.ApmSystemSettings) map[string]interface{} {
+	var m = make(map[string]interface{})
+	if cfg == nil {
+		return nil
+	}
+
+	if cfg.DebugEnabled != nil {
+		m["debug_enabled"] = *cfg.DebugEnabled
+	}
+
+	if cfg.ElasticsearchPassword != "" {
+		m["elasticsearch_password"] = cfg.ElasticsearchPassword
+	}
+
+	if cfg.ElasticsearchURL != "" {
+		m["elasticsearch_url"] = cfg.ElasticsearchURL
+	}
+
+	if cfg.ElasticsearchUsername != "" {
+		m["elasticsearch_username"] = cfg.ElasticsearchUsername
+	}
+
+	if cfg.KibanaURL != "" {
+		m["kibana_url"] = cfg.KibanaURL
+	}
+
+	if cfg.SecretToken != "" {
+		m["secret_token"] = cfg.SecretToken
+	}
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	return m
 }
 
 func isCurrentPlanEmpty(res *models.ApmResourceInfo) bool {

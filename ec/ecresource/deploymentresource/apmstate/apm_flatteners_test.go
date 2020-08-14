@@ -72,25 +72,23 @@ func TestFlattenResource(t *testing.T) {
 								HTTPS: ec.Int32(9243),
 							},
 						},
-						PlanInfo: &models.ApmPlansInfo{
-							Current: &models.ApmPlanInfo{
-								Plan: &models.ApmPlan{
-									Apm: &models.ApmConfiguration{
-										Version: "7.7.0",
-									},
-									ClusterTopology: []*models.ApmTopologyElement{
-										{
-											ZoneCount:               1,
-											InstanceConfigurationID: "aws.apm.r4",
-											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
-												Value:    ec.Int32(1024),
-											},
+						PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{
+									Version: "7.7.0",
+								},
+								ClusterTopology: []*models.ApmTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.apm.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
 										},
 									},
 								},
 							},
-						},
+						}},
 					},
 				},
 			}},
@@ -113,6 +111,263 @@ func TestFlattenResource(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			name: "parses the apm resource with config overrides",
+			args: args{in: []*models.ApmResourceInfo{
+				{
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-apm"),
+					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Info: &models.ApmInfo{
+						ID:     &mock.ValidClusterID,
+						Name:   ec.String("some-apm-name"),
+						Region: "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "apmresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
+						PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{
+									Version:                  "7.8.0",
+									DockerImage:              "some-docker-image",
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON:         `{"some.setting": "value"}`,
+									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									SystemSettings:           &models.ApmSystemSettings{},
+								},
+								ClusterTopology: []*models.ApmTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.apm.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						}},
+					},
+				},
+			}},
+			want: []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"display_name":                 "some-apm-name",
+				"ref_id":                       "main-apm",
+				"resource_id":                  mock.ValidClusterID,
+				"version":                      "7.8.0",
+				"region":                       "some-region",
+				"http_endpoint":                "http://apmresource.cloud.elastic.co:9200",
+				"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.apm.r4",
+					"memory_per_node":           "1g",
+					"zone_count":                int32(1),
+				}},
+				"config": []interface{}{map[string]interface{}{
+					"docker_image":                "some-docker-image",
+					"user_settings_yaml":          "some.setting: value",
+					"user_settings_override_yaml": "some.setting: value2",
+					"user_settings_json":          "{\"some.setting\": \"value\"}",
+					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+				}},
+			}},
+		},
+		{
+			name: "parses the apm resource with config overrides and system settings",
+			args: args{in: []*models.ApmResourceInfo{
+				{
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-apm"),
+					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Info: &models.ApmInfo{
+						ID:     &mock.ValidClusterID,
+						Name:   ec.String("some-apm-name"),
+						Region: "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "apmresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
+						PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{
+									Version:                  "7.8.0",
+									DockerImage:              "some-docker-image",
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON:         `{"some.setting": "value"}`,
+									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									SystemSettings: &models.ApmSystemSettings{
+										DebugEnabled:          ec.Bool(true),
+										ElasticsearchPassword: "somepass",
+										ElasticsearchURL:      "someURL",
+										ElasticsearchUsername: "someuser",
+										KibanaURL:             "someKibanaURL",
+										SecretToken:           "very_secret",
+									},
+								},
+								ClusterTopology: []*models.ApmTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.apm.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						}},
+					},
+				},
+			}},
+			want: []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"display_name":                 "some-apm-name",
+				"ref_id":                       "main-apm",
+				"resource_id":                  mock.ValidClusterID,
+				"version":                      "7.8.0",
+				"region":                       "some-region",
+				"http_endpoint":                "http://apmresource.cloud.elastic.co:9200",
+				"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.apm.r4",
+					"memory_per_node":           "1g",
+					"zone_count":                int32(1),
+				}},
+				"config": []interface{}{map[string]interface{}{
+					"docker_image":                "some-docker-image",
+					"user_settings_yaml":          "some.setting: value",
+					"user_settings_override_yaml": "some.setting: value2",
+					"user_settings_json":          "{\"some.setting\": \"value\"}",
+					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+
+					"debug_enabled":          true,
+					"elasticsearch_password": "somepass",
+					"elasticsearch_username": "someuser",
+					"elasticsearch_url":      "someURL",
+					"kibana_url":             "someKibanaURL",
+					"secret_token":           "very_secret",
+				}},
+			}},
+		},
+		{
+			name: "parses the apm resource with config overrides and system settings in topology",
+			args: args{in: []*models.ApmResourceInfo{
+				{
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-apm"),
+					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Info: &models.ApmInfo{
+						ID:     &mock.ValidClusterID,
+						Name:   ec.String("some-apm-name"),
+						Region: "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "apmresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
+						PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{
+									Version:                  "7.8.0",
+									DockerImage:              "some-docker-image",
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON:         `{"some.setting": "value"}`,
+									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									SystemSettings: &models.ApmSystemSettings{
+										DebugEnabled:          ec.Bool(true),
+										ElasticsearchPassword: "somepass",
+										ElasticsearchURL:      "someURL",
+										ElasticsearchUsername: "someuser",
+										KibanaURL:             "someKibanaURL",
+										SecretToken:           "very_secret",
+									},
+								},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									Apm: &models.ApmConfiguration{
+										DockerImage:              "some-other-image",
+										UserSettingsYaml:         `some.setting: value`,
+										UserSettingsOverrideYaml: `some.setting: value2`,
+										UserSettingsJSON:         `{"some.setting": "value"}`,
+										UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+										SystemSettings: &models.ApmSystemSettings{
+											DebugEnabled:          ec.Bool(true),
+											ElasticsearchPassword: "somepass",
+											ElasticsearchURL:      "someURL",
+											ElasticsearchUsername: "someuser",
+											KibanaURL:             "someKibanaURL",
+											SecretToken:           "very_secret",
+										},
+									},
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r4",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(1024),
+									},
+								},
+								},
+							},
+						}},
+					},
+				},
+			}},
+			want: []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"display_name":                 "some-apm-name",
+				"ref_id":                       "main-apm",
+				"resource_id":                  mock.ValidClusterID,
+				"version":                      "7.8.0",
+				"region":                       "some-region",
+				"http_endpoint":                "http://apmresource.cloud.elastic.co:9200",
+				"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.apm.r4",
+					"memory_per_node":           "1g",
+					"zone_count":                int32(1),
+					"config": []interface{}{map[string]interface{}{
+						"docker_image":                "some-other-image",
+						"user_settings_yaml":          "some.setting: value",
+						"user_settings_override_yaml": "some.setting: value2",
+						"user_settings_json":          "{\"some.setting\": \"value\"}",
+						"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+
+						"debug_enabled":          true,
+						"elasticsearch_password": "somepass",
+						"elasticsearch_username": "someuser",
+						"elasticsearch_url":      "someURL",
+						"kibana_url":             "someKibanaURL",
+						"secret_token":           "very_secret",
+					}},
+				}},
+				"config": []interface{}{map[string]interface{}{
+					"docker_image":                "some-docker-image",
+					"user_settings_yaml":          "some.setting: value",
+					"user_settings_override_yaml": "some.setting: value2",
+					"user_settings_json":          "{\"some.setting\": \"value\"}",
+					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+
+					"debug_enabled":          true,
+					"elasticsearch_password": "somepass",
+					"elasticsearch_username": "someuser",
+					"elasticsearch_url":      "someURL",
+					"kibana_url":             "someKibanaURL",
+					"secret_token":           "very_secret",
+				}},
+			}},
 		},
 	}
 	for _, tt := range tests {
