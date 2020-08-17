@@ -38,7 +38,7 @@ func Deployment() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 
-		Description: "",
+		Description: "EC Deployment Resource",
 
 		Timeouts: &schema.ResourceTimeout{
 			Default: schema.DefaultTimeout(40 * time.Minute),
