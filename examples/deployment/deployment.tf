@@ -1,9 +1,14 @@
 terraform {
-  required_version = ">= 0.12"
+  required_version = ">= 0.12.29"
+
+  required_providers {
+    ec = {
+      source = "elastic/ec"
+    }
+  }
 }
 
-provider "ec" {
-}
+provider "ec" {}
 
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
