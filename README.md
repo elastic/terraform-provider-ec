@@ -11,6 +11,15 @@ Terraform provider for the Elastic Cloud API, including:
 ## Example usage
 
 ```hcl
+terraform {
+  required_version = ">= 0.12.29"
+  required_providers {
+    ec = {
+      source = "elastic/ec"
+    }
+  }
+}
+
 provider "ec" {
   # ECE installation endpoint
   endpoint = "https://my.ece-environment.corp"
@@ -38,8 +47,8 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.6.2"
-  deployment_template_id = "aws-io-optimized"
+  version                = "7.8.1"
+  deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
     topology {
@@ -49,7 +58,7 @@ resource "ec_deployment" "example_minimal" {
 
   kibana {
     topology {
-      instance_configuration_id = "aws.kibana.r4"
+      instance_configuration_id = "aws.kibana.r5d"
     }
   }
 }
