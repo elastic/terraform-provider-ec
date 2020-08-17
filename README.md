@@ -1,5 +1,7 @@
 # Terraform Provider for Elastic Cloud
 
+![Go](https://github.com/elastic/terraform-provider-ec/workflows/Go/badge.svg?branch=master)
+
 #### This project is currently under active development. Source code is provided with no assurances, use at your own risk.
 
 Terraform provider for the Elastic Cloud API, including:
