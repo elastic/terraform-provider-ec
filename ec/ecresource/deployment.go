@@ -34,8 +34,10 @@ func Deployment() *schema.Resource {
 
 		Schema: deploymentresource.NewSchema(),
 
-		// TODO: write importer function.
-		Importer:    nil,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+
 		Description: "",
 
 		Timeouts: &schema.ResourceTimeout{
