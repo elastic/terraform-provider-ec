@@ -18,23 +18,26 @@
 package deploymentresource
 
 import (
+	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Delete shuts down and deletes the remote deployment.
-func Delete(d *schema.ResourceData, meta interface{}) error {
+func Delete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
 		API: client, DeploymentID: d.Id(),
 	}); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	// We don't particularly care if delete succeeds or not. It's better to

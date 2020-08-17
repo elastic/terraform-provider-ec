@@ -18,15 +18,17 @@
 package deploymentresource
 
 import (
+	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Read queries the remote deployment state and updates the local state.
-func Read(d *schema.ResourceData, meta interface{}) error {
+func Read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
@@ -40,8 +42,12 @@ func Read(d *schema.ResourceData, meta interface{}) error {
 	})
 
 	if err != nil {
-		return multierror.NewPrefixed("failed reading deployment", err)
+		return diag.FromErr(multierror.NewPrefixed("failed reading deployment", err))
 	}
 
-	return modelToState(d, res)
+	if err := modelToState(d, res); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }

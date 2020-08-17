@@ -18,22 +18,24 @@
 package deploymentresource
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Create will create a new deployment from the specified settings.
-func Create(d *schema.ResourceData, meta interface{}) error {
+func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 	reqID := deploymentapi.RequestID(d.Get("request_id").(string))
 
 	req, err := createResourceToModel(d)
 	if err != nil {
-		return err
+		diag.FromErr(err)
 	}
 
 	res, err := deploymentapi.Create(deploymentapi.CreateParams{
@@ -48,21 +50,25 @@ func Create(d *schema.ResourceData, meta interface{}) error {
 	})
 	if err != nil {
 		merr := multierror.NewPrefixed("failed creating deployment", err)
-		return merr.Append(newCreationError(reqID))
+		return diag.FromErr(merr.Append(newCreationError(reqID)))
 	}
 
 	if err := WaitForPlanCompletion(client, *res.ID); err != nil {
 		merr := multierror.NewPrefixed("failed tracking create progress", err)
-		return merr.Append(newCreationError(reqID))
+		return diag.FromErr(merr.Append(newCreationError(reqID)))
 	}
 
 	d.SetId(*res.ID)
 
-	if err := Read(d, meta); err != nil {
-		return err
+	if diag := Read(ctx, d, meta); diag != nil {
+		return diag
 	}
 
-	return parseCredentials(d, res.Resources)
+	if err := parseCredentials(d, res.Resources); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
 func newCreationError(reqID string) error {
