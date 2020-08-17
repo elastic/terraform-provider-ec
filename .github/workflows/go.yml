@@ -37,3 +37,7 @@ jobs:
     - name: Run unit tests
       run: make unit
       id: unit
+
+    - name: Validate the examples
+      run: make install validate-examples
+      id: validate-examples
