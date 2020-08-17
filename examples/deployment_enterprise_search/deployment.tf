@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 0.12.29"
+
   required_providers {
     ec = {
       source = "elastic/ec"
@@ -7,8 +8,7 @@ terraform {
   }
 }
 
-provider "ec" {
-}
+provider "ec" {}
 
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
@@ -23,7 +23,7 @@ resource "ec_deployment" "example_minimal" {
   elasticsearch {
     topology {
       instance_configuration_id = "aws.data.highcpu.m5d"
-      memory_per_node = "1g"
+      memory_per_node           = "1g"
     }
   }
 
