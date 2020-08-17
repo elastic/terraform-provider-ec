@@ -21,7 +21,7 @@ jobs:
     - name: Install terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 0.12.29
+        terraform_version: "0.12.29"
 
     - name: Cache Go Modules
       uses: actions/cache@v1
