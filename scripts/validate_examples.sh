@@ -7,6 +7,6 @@ BASEPATH=$(pwd)
 
 for example in ${EXAMPLES}; do
     cd ${BASEPATH}/${example}
-    terraform init 
+    terraform init
     terraform validate
 done
