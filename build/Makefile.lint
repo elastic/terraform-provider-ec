@@ -31,3 +31,7 @@ golint: deps
 terrafmt:
 	@ echo "-> Checking that the terraform docs codeblocks are formatted..."
 	@ find ./docs -type f -name "*.md" -exec $(GOBIN)/terrafmt diff -c -q {} \;
+
+## Validates all the terraform example files found in examples/
+validate-examples:
+	@ ./scripts/validate_examples.sh

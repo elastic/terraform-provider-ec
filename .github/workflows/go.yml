@@ -18,6 +18,11 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - name: Install terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: "0.12.29"
+
     - name: Cache Go Modules
       uses: actions/cache@v1
       with:
@@ -37,3 +42,7 @@ jobs:
     - name: Run unit tests
       run: make unit
       id: unit
+
+    - name: Validate the examples
+      run: make install validate-examples
+      id: validate-examples
