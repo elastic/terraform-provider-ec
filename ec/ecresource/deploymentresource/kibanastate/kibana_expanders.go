@@ -18,6 +18,8 @@
 package kibanastate
 
 import (
+	"reflect"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
@@ -72,6 +74,14 @@ func expandResource(raw interface{}) (*models.KibanaPayload, error) {
 		}
 	}
 
+	if cfg, ok := es["config"]; ok {
+		if c := expandConfig(cfg); c != nil {
+			version := res.Plan.Kibana.Version
+			res.Plan.Kibana = c
+			res.Plan.Kibana.Version = version
+		}
+	}
+
 	if rawTopology, ok := es["topology"]; ok {
 		topology, err := expandTopology(rawTopology)
 		if err != nil {
@@ -110,8 +120,41 @@ func expandTopology(raw interface{}) ([]*models.KibanaClusterTopologyElement, er
 			elem.NodeCountPerZone = int32(nodecount.(int))
 		}
 
+		if c, ok := topology["config"]; ok {
+			elem.Kibana = expandConfig(c)
+		}
+
 		res = append(res, &elem)
 	}
 
 	return res, nil
+}
+
+func expandConfig(raw interface{}) *models.KibanaConfiguration {
+	var res = &models.KibanaConfiguration{}
+	for _, rawCfg := range raw.([]interface{}) {
+		var cfg = rawCfg.(map[string]interface{})
+		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsOverrideJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_yaml"]; ok {
+			res.UserSettingsYaml = settings.(string)
+		}
+		if settings, ok := cfg["user_settings_override_yaml"]; ok {
+			res.UserSettingsOverrideYaml = settings.(string)
+		}
+	}
+
+	if !reflect.DeepEqual(res, &models.KibanaConfiguration{}) {
+		return res
+	}
+
+	return nil
 }
