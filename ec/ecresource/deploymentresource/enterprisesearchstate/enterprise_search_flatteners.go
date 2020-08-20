@@ -66,6 +66,10 @@ func FlattenResources(in []*models.EnterpriseSearchResourceInfo, name string) []
 			}
 		}
 
+		if c := flattenConfig(plan.EnterpriseSearch); len(c) > 0 {
+			m["config"] = c
+		}
+
 		result = append(result, m)
 	}
 
@@ -104,10 +108,64 @@ func flattenTopology(plan *models.EnterpriseSearchPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
+		if c := flattenConfig(topology.EnterpriseSearch); len(c) > 0 {
+			m["config"] = c
+		}
+
 		result = append(result, m)
 	}
 
 	return result
+}
+
+func flattenConfig(cfg *models.EnterpriseSearchConfiguration) []interface{} {
+	var m = make(map[string]interface{})
+	if cfg == nil {
+		return nil
+	}
+
+	if cfg.UserSettingsYaml != "" {
+		m["user_settings_yaml"] = cfg.UserSettingsYaml
+	}
+
+	if cfg.UserSettingsOverrideYaml != "" {
+		m["user_settings_override_yaml"] = cfg.UserSettingsOverrideYaml
+	}
+
+	if cfg.UserSettingsJSON != nil {
+		m["user_settings_json"] = cfg.UserSettingsJSON
+	}
+
+	if cfg.UserSettingsOverrideJSON != nil {
+		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
+	}
+
+	for k, v := range flattenSystemConfig(cfg.SystemSettings) {
+		m[k] = v
+	}
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	return []interface{}{m}
+}
+
+func flattenSystemConfig(cfg *models.EnterpriseSearchSystemSettings) map[string]interface{} {
+	var m = make(map[string]interface{})
+	if cfg == nil {
+		return nil
+	}
+
+	if cfg.SecretSessionKey != "" {
+		m["secret_session_key"] = cfg.SecretSessionKey
+	}
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	return m
 }
 
 func isCurrentPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {

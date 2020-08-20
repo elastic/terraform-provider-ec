@@ -76,22 +76,29 @@ func TestFlattenResource(t *testing.T) {
 							Current: &models.EnterpriseSearchPlanInfo{
 								Plan: &models.EnterpriseSearchPlan{
 									EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-										Version: "7.7.0",
+										Version:                  "7.7.0",
+										UserSettingsYaml:         "some.setting: some value",
+										UserSettingsOverrideYaml: "some.setting: some override",
+										UserSettingsJSON:         `{"some.setting": "some other value"}`,
+										UserSettingsOverrideJSON: `{"some.setting": "some other override"}`,
 									},
-									ClusterTopology: []*models.EnterpriseSearchTopologyElement{
-										{
-											ZoneCount:               1,
-											InstanceConfigurationID: "aws.enterprisesearch.r4",
-											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
-												Value:    ec.Int32(1024),
-											},
-											NodeType: &models.EnterpriseSearchNodeTypes{
-												Appserver: ec.Bool(true),
-												Worker:    ec.Bool(false),
+									ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+										EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+											SystemSettings: &models.EnterpriseSearchSystemSettings{
+												SecretSessionKey: "somekey secret key",
 											},
 										},
-									},
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.enterprisesearch.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Worker:    ec.Bool(false),
+										},
+									}},
 								},
 							},
 						},
@@ -108,15 +115,22 @@ func TestFlattenResource(t *testing.T) {
 					"region":                       "some-region",
 					"http_endpoint":                "http://enterprisesearchresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://enterprisesearchresource.cloud.elastic.co:9243",
-					"topology": []interface{}{
-						map[string]interface{}{
-							"instance_configuration_id": "aws.enterprisesearch.r4",
-							"memory_per_node":           "1g",
-							"zone_count":                int32(1),
-							"node_type_appserver":       true,
-							"node_type_worker":          false,
-						},
-					},
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_json":          "{\"some.setting\": \"some other value\"}",
+						"user_settings_override_json": "{\"some.setting\": \"some other override\"}",
+						"user_settings_override_yaml": "some.setting: some override",
+						"user_settings_yaml":          "some.setting: some value",
+					}},
+					"topology": []interface{}{map[string]interface{}{
+						"instance_configuration_id": "aws.enterprisesearch.r4",
+						"memory_per_node":           "1g",
+						"zone_count":                int32(1),
+						"node_type_appserver":       true,
+						"node_type_worker":          false,
+						"config": []interface{}{map[string]interface{}{
+							"secret_session_key": "somekey secret key",
+						}},
+					}},
 				},
 			},
 		},
