@@ -20,6 +20,7 @@ package acc
 import (
 	"fmt"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -41,7 +42,7 @@ func testAccCheckDeploymentExists(name string) resource.TestCheckFunc {
 			return err
 		}
 
-		res, err := deploymentapi.Get(deploymentapi.GetParams{
+		return api.ReturnErrOnly(deploymentapi.Get(deploymentapi.GetParams{
 			API:          client,
 			DeploymentID: saved.Primary.ID,
 			QueryParams: deputil.QueryParams{
@@ -49,15 +50,6 @@ func testAccCheckDeploymentExists(name string) resource.TestCheckFunc {
 				ShowPlans:    true,
 				ShowMetadata: true,
 			},
-		})
-		if err != nil {
-			return err
-		}
-
-		if !*res.Healthy {
-			return fmt.Errorf("created deployment is unhealthy: please check the configuration")
-		}
-
-		return nil
+		}))
 	}
 }
