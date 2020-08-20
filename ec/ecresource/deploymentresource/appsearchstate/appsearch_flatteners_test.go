@@ -43,27 +43,25 @@ func TestFlattenResource(t *testing.T) {
 		},
 		{
 			name: "empty current plan returns empty list",
-			args: args{in: []*models.AppSearchResourceInfo{
-				{
-					Info: &models.AppSearchInfo{
-						PlanInfo: &models.AppSearchPlansInfo{
-							Pending: &models.AppSearchPlanInfo{},
-						},
+			args: args{in: []*models.AppSearchResourceInfo{{
+				Info: &models.AppSearchInfo{
+					PlanInfo: &models.AppSearchPlansInfo{
+						Pending: &models.AppSearchPlanInfo{},
 					},
 				},
-			}},
+			}}},
 			want: []interface{}{},
 		},
 		{
-			name: "parses the apm resource",
+			name: "parses the appsearch resource",
 			args: args{in: []*models.AppSearchResourceInfo{
 				{
 					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-apm"),
+					RefID:                     ec.String("main-appsearch"),
 					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 					Info: &models.AppSearchInfo{
 						ID:     &mock.ValidClusterID,
-						Name:   ec.String("some-apm-name"),
+						Name:   ec.String("some-appsearch-name"),
 						Region: "some-region",
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "appsearchresource.cloud.elastic.co",
@@ -76,22 +74,29 @@ func TestFlattenResource(t *testing.T) {
 							Current: &models.AppSearchPlanInfo{
 								Plan: &models.AppSearchPlan{
 									Appsearch: &models.AppSearchConfiguration{
-										Version: "7.7.0",
+										Version:                  "7.6.2",
+										UserSettingsYaml:         "some.setting: some value",
+										UserSettingsOverrideYaml: "some.setting: some override",
+										UserSettingsJSON:         `{"some.setting": "some other value"}`,
+										UserSettingsOverrideJSON: `{"some.setting": "some other override"}`,
 									},
-									ClusterTopology: []*models.AppSearchTopologyElement{
-										{
-											ZoneCount:               1,
-											InstanceConfigurationID: "aws.apm.r4",
-											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
-												Value:    ec.Int32(1024),
-											},
-											NodeType: &models.AppSearchNodeTypes{
-												Appserver: ec.Bool(true),
-												Worker:    ec.Bool(false),
+									ClusterTopology: []*models.AppSearchTopologyElement{{
+										Appsearch: &models.AppSearchConfiguration{
+											SystemSettings: &models.AppSearchSystemSettings{
+												SecretSessionKey: "somekey secret key",
 											},
 										},
-									},
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.appsearch.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+										NodeType: &models.AppSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Worker:    ec.Bool(false),
+										},
+									}},
 								},
 							},
 						},
@@ -101,22 +106,29 @@ func TestFlattenResource(t *testing.T) {
 			want: []interface{}{
 				map[string]interface{}{
 					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"display_name":                 "some-apm-name",
-					"ref_id":                       "main-apm",
+					"display_name":                 "some-appsearch-name",
+					"ref_id":                       "main-appsearch",
 					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.7.0",
+					"version":                      "7.6.2",
 					"region":                       "some-region",
 					"http_endpoint":                "http://appsearchresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://appsearchresource.cloud.elastic.co:9243",
-					"topology": []interface{}{
-						map[string]interface{}{
-							"instance_configuration_id": "aws.apm.r4",
-							"memory_per_node":           "1g",
-							"zone_count":                int32(1),
-							"node_type_appserver":       true,
-							"node_type_worker":          false,
-						},
-					},
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_json":          "{\"some.setting\": \"some other value\"}",
+						"user_settings_override_json": "{\"some.setting\": \"some other override\"}",
+						"user_settings_override_yaml": "some.setting: some override",
+						"user_settings_yaml":          "some.setting: some value",
+					}},
+					"topology": []interface{}{map[string]interface{}{
+						"instance_configuration_id": "aws.appsearch.r4",
+						"memory_per_node":           "1g",
+						"zone_count":                int32(1),
+						"node_type_appserver":       true,
+						"node_type_worker":          false,
+						"config": []interface{}{map[string]interface{}{
+							"secret_session_key": "somekey secret key",
+						}},
+					}},
 				},
 			},
 		},

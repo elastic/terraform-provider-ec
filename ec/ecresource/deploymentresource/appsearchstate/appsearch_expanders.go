@@ -18,6 +18,8 @@
 package appsearchstate
 
 import (
+	"reflect"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
@@ -72,6 +74,14 @@ func expandResource(raw interface{}) (*models.AppSearchPayload, error) {
 		}
 	}
 
+	if cfg, ok := es["config"]; ok {
+		if c := expandConfig(cfg); c != nil {
+			version := res.Plan.Appsearch.Version
+			res.Plan.Appsearch = c
+			res.Plan.Appsearch.Version = version
+		}
+	}
+
 	if rawTopology, ok := es["topology"]; ok {
 		topology, err := expandTopology(rawTopology)
 		if err != nil {
@@ -108,6 +118,10 @@ func expandTopology(raw interface{}) ([]*models.AppSearchTopologyElement, error)
 			elem.ZoneCount = int32(zones.(int))
 		}
 
+		if c, ok := topology["config"]; ok {
+			elem.Appsearch = expandConfig(c)
+		}
+
 		res = append(res, &elem)
 	}
 
@@ -125,4 +139,40 @@ func parseNodeType(topology map[string]interface{}) models.AppSearchNodeTypes {
 	}
 
 	return result
+}
+
+func expandConfig(raw interface{}) *models.AppSearchConfiguration {
+	var res = &models.AppSearchConfiguration{}
+	for _, rawCfg := range raw.([]interface{}) {
+		var cfg = rawCfg.(map[string]interface{})
+		if key, ok := cfg["secret_session_key"]; ok {
+			if res.SystemSettings == nil {
+				res.SystemSettings = &models.AppSearchSystemSettings{}
+			}
+			res.SystemSettings.SecretSessionKey = key.(string)
+		}
+
+		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsOverrideJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_yaml"]; ok {
+			res.UserSettingsYaml = settings.(string)
+		}
+		if settings, ok := cfg["user_settings_override_yaml"]; ok {
+			res.UserSettingsOverrideYaml = settings.(string)
+		}
+	}
+
+	if !reflect.DeepEqual(res, &models.AppSearchConfiguration{}) {
+		return res
+	}
+
+	return nil
 }

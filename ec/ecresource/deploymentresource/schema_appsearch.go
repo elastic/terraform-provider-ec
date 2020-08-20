@@ -17,7 +17,9 @@
 
 package deploymentresource
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
 
 // NewSchema returns the schema for an "ec_deployment" resource.
 func newAppSearchResource() *schema.Resource {
@@ -59,6 +61,8 @@ func newAppSearchResource() *schema.Resource {
 			},
 			"topology": appsearchTopologySchema(),
 
+			"config": appSearchConfig(),
+
 			// TODO: Implement settings field.
 			// "settings": interface{}
 		},
@@ -71,6 +75,8 @@ func appsearchTopologySchema() *schema.Schema {
 		Required: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"config": appSearchConfig(),
+
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
 					Required: true,
@@ -97,6 +103,47 @@ func appsearchTopologySchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Default:  true,
 					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func appSearchConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:             schema.TypeList,
+		Optional:         true,
+		MaxItems:         1,
+		DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+		Description:      `Optionally define the AppSearch configuration options for the AppSearch Server`,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"secret_session_key": {
+					Type:        schema.TypeString,
+					Description: `Optionally override the secret session key within AppSearch - defaults to the previously existing secretSession`,
+					Computed:    true,
+				},
+
+				// User settings
+				"user_settings_json": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+					Optional:    true,
+				},
+				"user_settings_override_json": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+					Optional:    true,
+				},
+				"user_settings_yaml": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+					Optional:    true,
+				},
+				"user_settings_override_yaml": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+					Optional:    true,
 				},
 			},
 		},
