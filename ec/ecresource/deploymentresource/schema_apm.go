@@ -109,38 +109,12 @@ func apmConfig() *schema.Schema {
 		Description:      `Optionally define the Apm configuration options for the APM Server`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"docker_image": {
-					Type:        schema.TypeString,
-					Description: `A docker URI that allows overriding of the default docker image specified for this version`,
-					Optional:    true,
-				},
-
 				// APM System Settings
 				"debug_enabled": {
 					Type:        schema.TypeBool,
 					Description: `Optionally enable debug mode for APM servers - defaults to false`,
 					Optional:    true,
 					Default:     false,
-				},
-				"elasticsearch_password": {
-					Type:        schema.TypeString,
-					Description: `Optionally override the account within APM - defaults to a system account that always exists (if specified, the username must also be specified)`,
-					Optional:    true,
-				},
-				"elasticsearch_url": {
-					Type:        schema.TypeString,
-					Description: `Optionally override the URL to which to send data (for advanced users only, if unspecified the system selects an internal URL)`,
-					Optional:    true,
-				},
-				"elasticsearch_username": {
-					Type:        schema.TypeString,
-					Description: `Optionally override the account within APM - defaults to a system account that always exists (if specified, the password must also be specified)`,
-					Optional:    true,
-				},
-				"kibana_url": {
-					Type:        schema.TypeString,
-					Description: `Optionally override the URL to which to send data (for advanced users only, if unspecified the system selects an internal URL)`,
-					Optional:    true,
 				},
 				"secret_token": {
 					Type:        schema.TypeString,
