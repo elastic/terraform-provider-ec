@@ -21,6 +21,9 @@ resource "ec_deployment" "enterprise_search" {
 
   enterprise_search {
     topology {
+      config {
+        user_settings_yaml = "ent_search.auth.source: standard"
+      }
       instance_configuration_id = "aws.enterprisesearch.m5d"
     }
   }

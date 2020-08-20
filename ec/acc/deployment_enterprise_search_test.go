@@ -26,15 +26,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDeployment_basic(t *testing.T) {
-	resName := "ec_deployment.basic"
+func TestAccDeployment_enterpriseSearch(t *testing.T) {
+	resName := "ec_deployment.enterprise_search"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_basic.tf"
-	topologyConfig := "testdata/deployment_basic_topology_config.tf"
-	topConfig := "testdata/deployment_basic_top_config.tf"
-	cfg := testAccDeploymentResourceBasic(t, startCfg, randomName, region, deploymentVersion)
-	topologyConfigCfg := testAccDeploymentResourceBasic(t, topologyConfig, randomName, region, deploymentVersion)
-	topConfigCfg := testAccDeploymentResourceBasic(t, topConfig, randomName, region, deploymentVersion)
+	const startCfg = "testdata/deployment_enterprise_search.tf"
+	const topologyConfig = "testdata/deployment_enterprise_search_topology_config.tf"
+	const topConfig = "testdata/deployment_enterprise_search_top_config.tf"
+	cfg := testAccDeploymentResourceEnterpriseSearch(t, startCfg, randomName, region, deploymentVersion)
+	topologyConfigCfg := testAccDeploymentResourceEnterpriseSearch(t, topologyConfig, randomName, region, deploymentVersion)
+	topConfigCfg := testAccDeploymentResourceEnterpriseSearch(t, topConfig, randomName, region, deploymentVersion)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -43,44 +43,38 @@ func TestAccDeployment_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
-				Check: checkBasicDeploymentResource(resName, randomName,
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
+				Check: checkEnterpriseSearchDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
 			{Config: cfg, PlanOnly: true},
 			{
 				Config: topologyConfigCfg,
-				Check: checkBasicDeploymentResource(resName, randomName,
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "true"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
+				Check: checkEnterpriseSearchDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.0.user_settings_yaml", "ent_search.auth.source: standard"),
 				),
 			},
 			// Ensure that no diff is generated.
 			{Config: topologyConfigCfg, PlanOnly: true},
 			{
 				Config: topConfigCfg,
-				Check: checkBasicDeploymentResource(resName, randomName,
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "true"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "0"),
+				Check: checkEnterpriseSearchDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.user_settings_yaml", "ent_search.auth.source: standard"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
 			{Config: topConfigCfg, PlanOnly: true},
 			{
 				Config: cfg,
-				Check: checkBasicDeploymentResource(resName, randomName,
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "0"),
+				Check: checkEnterpriseSearchDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
@@ -90,7 +84,7 @@ func TestAccDeployment_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentResourceBasic(t *testing.T, fileName, name, region, version string) string {
+func testAccDeploymentResourceEnterpriseSearch(t *testing.T, fileName, name, region, version string) string {
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
@@ -100,19 +94,17 @@ func testAccDeploymentResourceBasic(t *testing.T, fileName, name, region, versio
 	)
 }
 
-func checkBasicDeploymentResource(resName, randomDeploymentName string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
+func checkEnterpriseSearchDeploymentResource(resName, randomDeploymentName string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testAccCheckDeploymentExists(resName),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
 		resource.TestCheckResourceAttr(resName, "region", region),
-		resource.TestCheckResourceAttr(resName, "apm.#", "1"),
-		resource.TestCheckResourceAttr(resName, "apm.0.version", deploymentVersion),
-		resource.TestCheckResourceAttr(resName, "apm.0.region", region),
-		resource.TestCheckResourceAttr(resName, "apm.0.topology.0.memory_per_node", "0.5g"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.config.0.secret_token"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.topology.0.config.0.secret_token"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.http_endpoint"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.https_endpoint"),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.0.version", deploymentVersion),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.0.region", region),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.memory_per_node", "2g"),
+		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.http_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.https_endpoint"),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.0.version", deploymentVersion),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", region),
