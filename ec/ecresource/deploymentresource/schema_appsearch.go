@@ -124,7 +124,6 @@ func appSearchConfig() *schema.Schema {
 					Computed:    true,
 				},
 
-				// User settings
 				"user_settings_json": {
 					Type:        schema.TypeString,
 					Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
