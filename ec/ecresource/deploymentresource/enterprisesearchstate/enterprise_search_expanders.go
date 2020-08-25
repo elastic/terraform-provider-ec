@@ -18,19 +18,21 @@
 package enterprisesearchstate
 
 import (
+	"reflect"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
 // ExpandResources expands appsearch resources into their models.
-func ExpandResources(apss []interface{}) ([]*models.EnterpriseSearchPayload, error) {
-	if len(apss) == 0 {
+func ExpandResources(ess []interface{}) ([]*models.EnterpriseSearchPayload, error) {
+	if len(ess) == 0 {
 		return nil, nil
 	}
 
-	result := make([]*models.EnterpriseSearchPayload, 0, len(apss))
-	for _, raw := range apss {
+	result := make([]*models.EnterpriseSearchPayload, 0, len(ess))
+	for _, raw := range ess {
 		resResource, err := expandResource(raw)
 		if err != nil {
 			return nil, err
@@ -72,6 +74,14 @@ func expandResource(raw interface{}) (*models.EnterpriseSearchPayload, error) {
 		}
 	}
 
+	if cfg, ok := es["config"]; ok {
+		if c := expandConfig(cfg); c != nil {
+			version := res.Plan.EnterpriseSearch.Version
+			res.Plan.EnterpriseSearch = c
+			res.Plan.EnterpriseSearch.Version = version
+		}
+	}
+
 	if rawTopology, ok := es["topology"]; ok {
 		topology, err := expandTopology(rawTopology)
 		if err != nil {
@@ -108,6 +118,10 @@ func expandTopology(raw interface{}) ([]*models.EnterpriseSearchTopologyElement,
 			elem.ZoneCount = int32(zones.(int))
 		}
 
+		if c, ok := topology["config"]; ok {
+			elem.EnterpriseSearch = expandConfig(c)
+		}
+
 		res = append(res, &elem)
 	}
 
@@ -129,4 +143,40 @@ func parseNodeType(topology map[string]interface{}) models.EnterpriseSearchNodeT
 	}
 
 	return result
+}
+
+func expandConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
+	var res = &models.EnterpriseSearchConfiguration{}
+	for _, rawCfg := range raw.([]interface{}) {
+		var cfg = rawCfg.(map[string]interface{})
+		if key, ok := cfg["secret_session_key"]; ok {
+			if res.SystemSettings == nil {
+				res.SystemSettings = &models.EnterpriseSearchSystemSettings{}
+			}
+			res.SystemSettings.SecretSessionKey = key.(string)
+		}
+
+		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsOverrideJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_yaml"]; ok {
+			res.UserSettingsYaml = settings.(string)
+		}
+		if settings, ok := cfg["user_settings_override_yaml"]; ok {
+			res.UserSettingsOverrideYaml = settings.(string)
+		}
+	}
+
+	if !reflect.DeepEqual(res, &models.EnterpriseSearchConfiguration{}) {
+		return res
+	}
+
+	return nil
 }

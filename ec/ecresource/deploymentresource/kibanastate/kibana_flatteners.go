@@ -64,6 +64,10 @@ func FlattenResources(in []*models.KibanaResourceInfo, name string) []interface{
 			m[k] = v
 		}
 
+		if c := flattenConfig(plan.Kibana); len(c) > 0 {
+			m["config"] = c
+		}
+
 		result = append(result, m)
 	}
 
@@ -97,10 +101,43 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
+		if c := flattenConfig(topology.Kibana); len(c) > 0 {
+			m["config"] = c
+		}
+
 		result = append(result, m)
 	}
 
 	return result
+}
+
+func flattenConfig(cfg *models.KibanaConfiguration) []interface{} {
+	var m = make(map[string]interface{})
+	if cfg == nil {
+		return nil
+	}
+
+	if cfg.UserSettingsYaml != "" {
+		m["user_settings_yaml"] = cfg.UserSettingsYaml
+	}
+
+	if cfg.UserSettingsOverrideYaml != "" {
+		m["user_settings_override_yaml"] = cfg.UserSettingsOverrideYaml
+	}
+
+	if cfg.UserSettingsJSON != nil {
+		m["user_settings_json"] = cfg.UserSettingsJSON
+	}
+
+	if cfg.UserSettingsOverrideJSON != nil {
+		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
+	}
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	return []interface{}{m}
 }
 
 func isCurrentPlanEmpty(res *models.KibanaResourceInfo) bool {

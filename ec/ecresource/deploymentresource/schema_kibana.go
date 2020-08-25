@@ -59,6 +59,8 @@ func newKibanaResource() *schema.Resource {
 			},
 			"topology": kibanaTopologySchema(),
 
+			"config": kibanaConfig(),
+
 			// TODO: Implement settings field.
 			// "settings": interface{}
 		},
@@ -71,6 +73,8 @@ func kibanaTopologySchema() *schema.Schema {
 		Required: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"config": kibanaConfig(),
+
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
 					Required: true,
@@ -88,6 +92,40 @@ func kibanaTopologySchema() *schema.Schema {
 					Type:     schema.TypeInt,
 					Default:  1,
 					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func kibanaConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:             schema.TypeList,
+		Optional:         true,
+		MaxItems:         1,
+		DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+		Description:      `Optionally define the Kibana configuration options for the Kibana Server`,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"user_settings_json": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+					Optional:    true,
+				},
+				"user_settings_override_json": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+					Optional:    true,
+				},
+				"user_settings_yaml": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+					Optional:    true,
+				},
+				"user_settings_override_yaml": {
+					Type:        schema.TypeString,
+					Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+					Optional:    true,
 				},
 			},
 		},

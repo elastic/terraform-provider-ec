@@ -1,14 +1,14 @@
-resource "ec_deployment" "basic" {
+resource "ec_deployment" "appsearch" {
   name    = "%s"
   region  = "%s"
   version = "%s"
 
   # TODO: Make this template ID dependent on the region.
-  deployment_template_id = "aws-io-optimized-v2"
+  deployment_template_id = "aws-appsearch-dedicated-v2"
 
   elasticsearch {
     topology {
-      instance_configuration_id = "aws.data.highio.i3"
+      instance_configuration_id = "aws.data.highcpu.m5d"
       memory_per_node           = "1g"
     }
   }
@@ -19,9 +19,12 @@ resource "ec_deployment" "basic" {
     }
   }
 
-  apm {
+  appsearch {
     topology {
-      instance_configuration_id = "aws.apm.r5d"
+      config {
+        user_settings_yaml = "app_search.auth.source: standard"
+      }
+      instance_configuration_id = "aws.appsearch.m5d"
     }
   }
 }

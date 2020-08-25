@@ -113,7 +113,7 @@ func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 
 // parseCredentials parses the Create or Update response Resources populating
 // credential settings in the Terraform state if the keys are found, currently
-// poulates the following credentials in plain text:
+// populates the following credentials in plain text:
 // * Elasticsearch username and Password
 func parseCredentials(d *schema.ResourceData, resources []*models.DeploymentResource) error {
 	var merr = multierror.NewPrefixed("failed parsing credentials")

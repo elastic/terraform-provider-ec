@@ -108,10 +108,6 @@ func flattenConfig(cfg *models.ApmConfiguration) []interface{} {
 		return nil
 	}
 
-	if cfg.DockerImage != "" {
-		m["docker_image"] = cfg.DockerImage
-	}
-
 	if cfg.UserSettingsYaml != "" {
 		m["user_settings_yaml"] = cfg.UserSettingsYaml
 	}
@@ -147,22 +143,6 @@ func flattenSystemConfig(cfg *models.ApmSystemSettings) map[string]interface{} {
 
 	if cfg.DebugEnabled != nil {
 		m["debug_enabled"] = *cfg.DebugEnabled
-	}
-
-	if cfg.ElasticsearchPassword != "" {
-		m["elasticsearch_password"] = cfg.ElasticsearchPassword
-	}
-
-	if cfg.ElasticsearchURL != "" {
-		m["elasticsearch_url"] = cfg.ElasticsearchURL
-	}
-
-	if cfg.ElasticsearchUsername != "" {
-		m["elasticsearch_username"] = cfg.ElasticsearchUsername
-	}
-
-	if cfg.KibanaURL != "" {
-		m["kibana_url"] = cfg.KibanaURL
 	}
 
 	if cfg.SecretToken != "" {

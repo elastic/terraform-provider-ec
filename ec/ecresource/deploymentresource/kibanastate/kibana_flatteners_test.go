@@ -93,6 +93,50 @@ func TestFlattenResources(t *testing.T) {
 						},
 					},
 				},
+				{
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-kibana"),
+					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Info: &models.KibanaClusterInfo{
+						ClusterID:   &mock.ValidClusterID,
+						ClusterName: ec.String("some-kibana-name"),
+						Region:      "some-region",
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "kibanaresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
+						PlanInfo: &models.KibanaClusterPlansInfo{
+							Current: &models.KibanaClusterPlanInfo{
+								Plan: &models.KibanaClusterPlan{
+									Kibana: &models.KibanaConfiguration{
+										Version:                  "7.7.0",
+										UserSettingsYaml:         "some.setting: value",
+										UserSettingsOverrideYaml: "some.setting: override",
+										UserSettingsJSON:         "{\"some.setting\": \"value\"}",
+										UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
+									},
+									ClusterTopology: []*models.KibanaClusterTopologyElement{{
+										Kibana: &models.KibanaConfiguration{
+											UserSettingsYaml:         "some.setting: value",
+											UserSettingsOverrideYaml: "some.setting: override",
+											UserSettingsJSON:         "{\"some.setting\": \"value\"}",
+											UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
+										},
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									}},
+								},
+							},
+						},
+					},
+				},
 			}},
 			want: []interface{}{
 				map[string]interface{}{
@@ -111,6 +155,33 @@ func TestFlattenResources(t *testing.T) {
 							"zone_count":                int32(1),
 						},
 					},
+				},
+				map[string]interface{}{
+					"elasticsearch_cluster_ref_id": "main-elasticsearch",
+					"display_name":                 "some-kibana-name",
+					"ref_id":                       "main-kibana",
+					"resource_id":                  mock.ValidClusterID,
+					"version":                      "7.7.0",
+					"region":                       "some-region",
+					"http_endpoint":                "http://kibanaresource.cloud.elastic.co:9200",
+					"https_endpoint":               "https://kibanaresource.cloud.elastic.co:9243",
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_yaml":          "some.setting: value",
+						"user_settings_override_yaml": "some.setting: override",
+						"user_settings_json":          `{"some.setting": "value"}`,
+						"user_settings_override_json": `{"some.setting": "override"}`,
+					}},
+					"topology": []interface{}{map[string]interface{}{
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml":          "some.setting: value",
+							"user_settings_override_yaml": "some.setting: override",
+							"user_settings_json":          `{"some.setting": "value"}`,
+							"user_settings_override_json": `{"some.setting": "override"}`,
+						}},
+						"instance_configuration_id": "aws.kibana.r4",
+						"memory_per_node":           "1g",
+						"zone_count":                int32(1),
+					}},
 				},
 			},
 		},

@@ -25,6 +25,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
+var emptyApmConfig = &models.ApmConfiguration{
+	SystemSettings: &models.ApmSystemSettings{},
+}
+
 // ExpandResources expands apm resources into their models.
 func ExpandResources(apms []interface{}) ([]*models.ApmPayload, error) {
 	if len(apms) == 0 {
@@ -132,28 +136,9 @@ func expandConfig(raw interface{}) *models.ApmConfiguration {
 	}
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
-		if dockerImage, ok := cfg["docker_image"]; ok {
-			res.DockerImage = dockerImage.(string)
-		}
 
 		if debugEnabled, ok := cfg["debug_enabled"]; ok {
 			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
-		}
-
-		if pass, ok := cfg["elasticsearch_password"]; ok {
-			res.SystemSettings.ElasticsearchPassword = pass.(string)
-		}
-
-		if u, ok := cfg["elasticsearch_url"]; ok {
-			res.SystemSettings.ElasticsearchURL = u.(string)
-		}
-
-		if user, ok := cfg["elasticsearch_username"]; ok {
-			res.SystemSettings.ElasticsearchUsername = user.(string)
-		}
-
-		if u, ok := cfg["kibana_url"]; ok {
-			res.SystemSettings.KibanaURL = u.(string)
 		}
 
 		if token, ok := cfg["secret_token"]; ok {
@@ -178,7 +163,7 @@ func expandConfig(raw interface{}) *models.ApmConfiguration {
 		}
 	}
 
-	if !reflect.DeepEqual(res, new(models.ApmConfiguration)) {
+	if !reflect.DeepEqual(res, emptyApmConfig) {
 		return res
 	}
 

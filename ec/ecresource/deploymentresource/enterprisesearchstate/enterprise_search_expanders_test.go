@@ -49,16 +49,14 @@ func TestExpandResources(t *testing.T) {
 						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
-						"topology": []interface{}{
-							map[string]interface{}{
-								"instance_configuration_id": "aws.enterprisesearch.m5",
-								"memory_per_node":           "2g",
-								"zone_count":                1,
-								"node_type_appserver":       true,
-								"node_type_connector":       true,
-								"node_type_worker":          false,
-							},
-						},
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.enterprisesearch.m5",
+							"memory_per_node":           "2g",
+							"zone_count":                1,
+							"node_type_appserver":       true,
+							"node_type_connector":       true,
+							"node_type_worker":          false,
+						}},
 					},
 					map[string]interface{}{
 						"display_name":                 "somename",
@@ -67,15 +65,39 @@ func TestExpandResources(t *testing.T) {
 						"resource_id":                  mock.ValidClusterID,
 						"version":                      "7.6.0",
 						"region":                       "some-region",
-						"topology": []interface{}{
-							map[string]interface{}{
-								"instance_configuration_id": "aws.enterprisesearch.m5",
-								"memory_per_node":           "4g",
-								"zone_count":                1,
-								"node_type_appserver":       false,
-								"node_type_connector":       true,
-								"node_type_worker":          true,
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.enterprisesearch.m5",
+							"memory_per_node":           "4g",
+							"zone_count":                1,
+							"node_type_appserver":       false,
+							"node_type_connector":       true,
+							"node_type_worker":          true,
+						}},
+					},
+					map[string]interface{}{
+						"display_name":                 "somename",
+						"ref_id":                       "secondary-enterprise_search",
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.7.0",
+						"region":                       "some-region",
+						"config": []interface{}{map[string]interface{}{
+							"secret_session_key": "somekey",
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"config": []interface{}{map[string]interface{}{
+								"user_settings_yaml":          "some.setting: value",
+								"user_settings_override_yaml": "some.setting: override",
+								"user_settings_json":          `{"some.setting": "value"}`,
+								"user_settings_override_json": `{"some.setting": "override"}`,
 							}},
+							"instance_configuration_id": "aws.enterprisesearch.m5",
+							"memory_per_node":           "4g",
+							"zone_count":                1,
+							"node_type_appserver":       false,
+							"node_type_connector":       true,
+							"node_type_worker":          true,
+						}},
 					},
 				},
 			},
@@ -89,21 +111,19 @@ func TestExpandResources(t *testing.T) {
 						EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 							Version: "7.7.0",
 						},
-						ClusterTopology: []*models.EnterpriseSearchTopologyElement{
-							{
-								ZoneCount:               1,
-								InstanceConfigurationID: "aws.enterprisesearch.m5",
-								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
-									Value:    ec.Int32(2048),
-								},
-								NodeType: &models.EnterpriseSearchNodeTypes{
-									Appserver: ec.Bool(true),
-									Connector: ec.Bool(true),
-									Worker:    ec.Bool(false),
-								},
+						ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.enterprisesearch.m5",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
 							},
-						},
+							NodeType: &models.EnterpriseSearchNodeTypes{
+								Appserver: ec.Bool(true),
+								Connector: ec.Bool(true),
+								Worker:    ec.Bool(false),
+							},
+						}},
 					},
 				},
 				{
@@ -116,21 +136,53 @@ func TestExpandResources(t *testing.T) {
 						EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 							Version: "7.6.0",
 						},
-						ClusterTopology: []*models.EnterpriseSearchTopologyElement{
-							{
-								ZoneCount:               1,
-								InstanceConfigurationID: "aws.enterprisesearch.m5",
-								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
-									Value:    ec.Int32(4096),
-								},
-								NodeType: &models.EnterpriseSearchNodeTypes{
-									Appserver: ec.Bool(false),
-									Connector: ec.Bool(true),
-									Worker:    ec.Bool(true),
-								},
+						ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.enterprisesearch.m5",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
+							},
+							NodeType: &models.EnterpriseSearchNodeTypes{
+								Appserver: ec.Bool(false),
+								Connector: ec.Bool(true),
+								Worker:    ec.Bool(true),
+							},
+						}},
+					},
+				},
+				{
+					ElasticsearchClusterRefID: ec.String("somerefid"),
+					DisplayName:               "somename",
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("secondary-enterprise_search"),
+					Settings:                  &models.EnterpriseSearchSettings{},
+					Plan: &models.EnterpriseSearchPlan{
+						EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+							Version: "7.7.0",
+							SystemSettings: &models.EnterpriseSearchSystemSettings{
+								SecretSessionKey: "somekey",
 							},
 						},
+						ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+							EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+								UserSettingsYaml:         "some.setting: value",
+								UserSettingsOverrideYaml: "some.setting: override",
+								UserSettingsJSON:         `{"some.setting": "value"}`,
+								UserSettingsOverrideJSON: `{"some.setting": "override"}`,
+							},
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.enterprisesearch.m5",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
+							},
+							NodeType: &models.EnterpriseSearchNodeTypes{
+								Appserver: ec.Bool(false),
+								Connector: ec.Bool(true),
+								Worker:    ec.Bool(true),
+							},
+						}},
 					},
 				},
 			},

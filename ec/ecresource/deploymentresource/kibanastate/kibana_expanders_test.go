@@ -49,13 +49,11 @@ func TestExpandResources(t *testing.T) {
 						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
-						"topology": []interface{}{
-							map[string]interface{}{
-								"instance_configuration_id": "aws.kibana.r4",
-								"memory_per_node":           "2g",
-								"zone_count":                1,
-							},
-						},
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.kibana.r4",
+							"memory_per_node":           "2g",
+							"zone_count":                1,
+						}},
 					},
 					map[string]interface{}{
 						"display_name":                 "somename",
@@ -64,12 +62,36 @@ func TestExpandResources(t *testing.T) {
 						"resource_id":                  mock.ValidClusterID,
 						"version":                      "7.6.0",
 						"region":                       "some-region",
-						"topology": []interface{}{
-							map[string]interface{}{
-								"instance_configuration_id": "aws.kibana.r4",
-								"memory_per_node":           "4g",
-								"zone_count":                1,
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.kibana.r4",
+							"memory_per_node":           "4g",
+							"zone_count":                1,
+						}},
+					},
+					map[string]interface{}{
+						"display_name":                 "somename",
+						"ref_id":                       "secondary-kibana",
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.8.0",
+						"region":                       "some-region",
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml":          "some.setting: value",
+							"user_settings_override_yaml": "some.setting: override",
+							"user_settings_json":          `{"some.setting": "value"}`,
+							"user_settings_override_json": `{"some.setting": "override"}`,
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"config": []interface{}{map[string]interface{}{
+								"user_settings_yaml":          "some.setting: value",
+								"user_settings_override_yaml": "some.setting: override",
+								"user_settings_json":          `{"some.setting": "value"}`,
+								"user_settings_override_json": `{"some.setting": "override"}`,
 							}},
+							"instance_configuration_id": "aws.kibana.r4",
+							"memory_per_node":           "4g",
+							"zone_count":                1,
+						}},
 					},
 				},
 			},
@@ -105,16 +127,44 @@ func TestExpandResources(t *testing.T) {
 						Kibana: &models.KibanaConfiguration{
 							Version: "7.6.0",
 						},
-						ClusterTopology: []*models.KibanaClusterTopologyElement{
-							{
-								ZoneCount:               1,
-								InstanceConfigurationID: "aws.kibana.r4",
-								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
-									Value:    ec.Int32(4096),
-								},
+						ClusterTopology: []*models.KibanaClusterTopologyElement{{
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.kibana.r4",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
 							},
+						}},
+					},
+				},
+				{
+					ElasticsearchClusterRefID: ec.String("somerefid"),
+					DisplayName:               "somename",
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("secondary-kibana"),
+					Settings:                  &models.KibanaClusterSettings{},
+					Plan: &models.KibanaClusterPlan{
+						Kibana: &models.KibanaConfiguration{
+							Version:                  "7.8.0",
+							UserSettingsYaml:         "some.setting: value",
+							UserSettingsOverrideYaml: "some.setting: override",
+							UserSettingsJSON:         "{\"some.setting\": \"value\"}",
+							UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
 						},
+						ClusterTopology: []*models.KibanaClusterTopologyElement{{
+							Kibana: &models.KibanaConfiguration{
+								UserSettingsYaml:         "some.setting: value",
+								UserSettingsOverrideYaml: "some.setting: override",
+								UserSettingsJSON:         "{\"some.setting\": \"value\"}",
+								UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
+							},
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.kibana.r4",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
+							},
+						}},
 					},
 				},
 			},

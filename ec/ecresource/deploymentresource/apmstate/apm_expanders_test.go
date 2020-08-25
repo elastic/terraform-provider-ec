@@ -80,22 +80,16 @@ func TestExpandResources(t *testing.T) {
 							"memory_per_node":           "4g",
 							"zone_count":                1,
 							"config": []interface{}{map[string]interface{}{
-								"docker_image":                "some-other-image",
 								"user_settings_yaml":          "some.setting: value",
 								"user_settings_override_yaml": "some.setting: value2",
 								"user_settings_json":          "{\"some.setting\": \"value\"}",
 								"user_settings_override_json": "{\"some.setting\": \"value2\"}",
 
-								"debug_enabled":          true,
-								"elasticsearch_password": "somepass",
-								"elasticsearch_username": "someuser",
-								"elasticsearch_url":      "someURL",
-								"kibana_url":             "someKibanaURL",
-								"secret_token":           "very_secret",
+								"debug_enabled": true,
+								"secret_token":  "very_secret",
 							}},
 						}},
 						"config": []interface{}{map[string]interface{}{
-							"docker_image":  "some-docker-image:version",
 							"debug_enabled": true,
 						}},
 					},
@@ -149,26 +143,20 @@ func TestExpandResources(t *testing.T) {
 					Settings:                  &models.ApmSettings{},
 					Plan: &models.ApmPlan{
 						Apm: &models.ApmConfiguration{
-							Version:     "7.8.0",
-							DockerImage: "some-docker-image:version",
+							Version: "7.8.0",
 							SystemSettings: &models.ApmSystemSettings{
 								DebugEnabled: ec.Bool(true),
 							},
 						},
 						ClusterTopology: []*models.ApmTopologyElement{{
 							Apm: &models.ApmConfiguration{
-								DockerImage:              "some-other-image",
 								UserSettingsYaml:         `some.setting: value`,
 								UserSettingsOverrideYaml: `some.setting: value2`,
 								UserSettingsJSON:         `{"some.setting": "value"}`,
 								UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
 								SystemSettings: &models.ApmSystemSettings{
-									DebugEnabled:          ec.Bool(true),
-									ElasticsearchPassword: "somepass",
-									ElasticsearchURL:      "someURL",
-									ElasticsearchUsername: "someuser",
-									KibanaURL:             "someKibanaURL",
-									SecretToken:           "very_secret",
+									DebugEnabled: ec.Bool(true),
+									SecretToken:  "very_secret",
 								},
 							},
 							ZoneCount:               1,
