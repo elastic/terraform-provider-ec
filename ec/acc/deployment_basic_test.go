@@ -46,6 +46,8 @@ func TestAccDeployment_basic(t *testing.T) {
 				Check: checkBasicDeploymentResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
@@ -58,6 +60,9 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.0.user_settings_yaml", "ent_search.auth.source: standard"),
 				),
 			},
 			// Ensure that no diff is generated.
@@ -70,6 +75,9 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.user_settings_yaml", "ent_search.auth.source: standard"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
@@ -81,6 +89,8 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
@@ -125,6 +135,12 @@ func checkBasicDeploymentResource(resName, randomDeploymentName string, checks .
 		resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.memory_per_node", "1g"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.0.http_endpoint"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.0.https_endpoint"),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.0.version", deploymentVersion),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.0.region", region),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.memory_per_node", "2g"),
+		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.http_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.https_endpoint"),
 		resource.ComposeAggregateTestCheckFunc(checks...),
 	)
 }

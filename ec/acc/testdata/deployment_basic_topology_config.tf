@@ -30,4 +30,13 @@ resource "ec_deployment" "basic" {
       instance_configuration_id = "aws.apm.r5d"
     }
   }
+
+  enterprise_search {
+    topology {
+      config {
+        user_settings_yaml = "ent_search.auth.source: standard"
+      }
+      instance_configuration_id = "aws.enterprisesearch.m5d"
+    }
+  }
 }

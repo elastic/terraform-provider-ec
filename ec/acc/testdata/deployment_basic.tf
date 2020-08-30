@@ -24,4 +24,10 @@ resource "ec_deployment" "basic" {
       instance_configuration_id = "aws.apm.r5d"
     }
   }
+
+  enterprise_search {
+    topology {
+      instance_configuration_id = "aws.enterprisesearch.m5d"
+    }
+  }
 }
