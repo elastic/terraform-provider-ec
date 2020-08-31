@@ -40,6 +40,10 @@ func Delete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Di
 		return diag.FromErr(err)
 	}
 
+	if err := handleTrafficFilterChange(d, client); err != nil {
+		return diag.FromErr(err)
+	}
+
 	// We don't particularly care if delete succeeds or not. It's better to
 	// remove it, but it might fail on ESS. For example, when user's aren't
 	// allowed to delete deployments, or on ECE when the cluster is "still

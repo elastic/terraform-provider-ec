@@ -20,23 +20,27 @@ package deploymentresource
 import (
 	"time"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/plan"
-	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	defaultPollFrequency = time.Millisecond * 500
-	defaultMaxRetry      = 5
-)
+// Resource returns the ec_deployment resource schema.
+func Resource() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: Create,
+		ReadContext:   Read,
+		UpdateContext: Update,
+		DeleteContext: Delete,
 
-// WaitForPlanCompletion waits for a pending plan to finish.
-func WaitForPlanCompletion(client *api.API, id string) error {
-	return planutil.Wait(plan.TrackChangeParams{
-		API: client, DeploymentID: id,
-		Config: plan.TrackFrequencyConfig{
-			PollFrequency: defaultPollFrequency,
-			MaxRetries:    defaultMaxRetry,
+		Schema: NewSchema(),
+
+		// TODO: write importer function.
+		Importer:    nil,
+		Description: "",
+
+		Timeouts: &schema.ResourceTimeout{
+			Default: schema.DefaultTimeout(40 * time.Minute),
+			Update:  schema.DefaultTimeout(60 * time.Minute),
+			Delete:  schema.DefaultTimeout(60 * time.Minute),
 		},
-	})
+	}
 }

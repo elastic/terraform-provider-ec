@@ -19,6 +19,7 @@ package deploymentresource
 
 import (
 	"context"
+	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
@@ -31,9 +32,23 @@ import (
 func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
+	if hasDeploymentChange(d) {
+		if err := updateDeployment(ctx, d, client); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if err := handleTrafficFilterChange(d, client); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return Read(ctx, d, meta)
+}
+
+func updateDeployment(_ context.Context, d *schema.ResourceData, client *api.API) error {
 	req, err := updateResourceToModel(d)
 	if err != nil {
-		return diag.FromErr(err)
+		return err
 	}
 
 	res, err := deploymentapi.Update(deploymentapi.UpdateParams{
@@ -47,20 +62,27 @@ func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	})
 
 	if err != nil {
-		return diag.FromErr(multierror.NewPrefixed("failed updating deployment", err))
+		return multierror.NewPrefixed("failed updating deployment", err)
 	}
 
 	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-		return diag.FromErr(multierror.NewPrefixed("failed tracking update progress", err))
+		return multierror.NewPrefixed("failed tracking update progress", err)
 	}
 
-	if diag := Read(ctx, d, meta); diag != nil {
-		return diag
-	}
+	return parseCredentials(d, res.Resources)
+}
 
-	if err := parseCredentials(d, res.Resources); err != nil {
-		return diag.FromErr(err)
+// hasDeploymentChange checks if there's any change in the resource attributes
+// except in the "traffic_filter" prefixed keys. If so, it returns true.
+func hasDeploymentChange(d *schema.ResourceData) bool {
+	for attr := range d.State().Attributes {
+		if strings.HasPrefix(attr, "traffic_filter") {
+			continue
+		}
+		// Check if any of the resource attributes has a change.
+		if d.HasChange(attr) {
+			return true
+		}
 	}
-
-	return nil
+	return false
 }
