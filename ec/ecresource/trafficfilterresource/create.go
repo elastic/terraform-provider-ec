@@ -15,33 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ecresource
+package trafficfilterresource
 
 import (
-	"time"
+	"context"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource"
 )
 
-// Deployment returns the ec_deployment resource schema.
-func Deployment() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: deploymentresource.Create,
-		ReadContext:   deploymentresource.Read,
-		UpdateContext: deploymentresource.Update,
-		DeleteContext: deploymentresource.Delete,
+// Create will create a new deployment traffic filter ruleset
+func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var client = meta.(*api.API)
 
-		Schema: deploymentresource.NewSchema(),
-
-		// TODO: write importer function.
-		Importer:    nil,
-		Description: "",
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(40 * time.Minute),
-			Update:  schema.DefaultTimeout(60 * time.Minute),
-			Delete:  schema.DefaultTimeout(60 * time.Minute),
-		},
+	res, err := client.V1API.DeploymentsTrafficFilter.CreateTrafficFilterRuleset(
+		deployments_traffic_filter.NewCreateTrafficFilterRulesetParams().
+			WithBody(expandModel(d)),
+		client.AuthWriter,
+	)
+	if err != nil {
+		return diag.FromErr(api.UnwrapError(err))
 	}
+
+	d.SetId(*res.Payload.ID)
+	return Read(ctx, d, meta)
 }
