@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -30,32 +30,27 @@ import (
 func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 
-	res, err := client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRulesetDeploymentAssociations(
-		deployments_traffic_filter.NewGetTrafficFilterRulesetDeploymentAssociationsParams().
-			WithRulesetID(d.Id()),
-		client.AuthWriter,
-	)
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: d.Id(), IncludeAssociations: true,
+	})
 	if err != nil {
-		return diag.FromErr(api.UnwrapError(err))
+		return diag.FromErr(err)
 	}
 
-	for _, assoc := range res.Payload.Associations {
-		if _, err := client.V1API.DeploymentsTrafficFilter.DeleteTrafficFilterRulesetAssociation(
-			deployments_traffic_filter.NewDeleteTrafficFilterRulesetAssociationParams().
-				WithRulesetID(d.Id()).
-				WithAssociatedEntityID(*assoc.ID).
-				WithAssociationType(*assoc.EntityType),
-			client.AuthWriter,
-		); err != nil {
-			return diag.FromErr(api.UnwrapError(err))
+	for _, assoc := range res.Associations {
+		if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+			API:        client,
+			ID:         d.Id(),
+			EntityID:   *assoc.ID,
+			EntityType: *assoc.EntityType,
+		}); err != nil {
+			return diag.FromErr(err)
 		}
 	}
 
-	if _, err := client.V1API.DeploymentsTrafficFilter.DeleteTrafficFilterRuleset(
-		deployments_traffic_filter.NewDeleteTrafficFilterRulesetParams().
-			WithRulesetID(d.Id()),
-		client.AuthWriter,
-	); err != nil {
+	if err := trafficfilterapi.Delete(trafficfilterapi.DeleteParams{
+		API: client, ID: d.Id(),
+	}); err != nil {
 		return diag.FromErr(api.UnwrapError(err))
 	}
 

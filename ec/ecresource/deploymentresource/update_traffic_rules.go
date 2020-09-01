@@ -19,9 +19,7 @@ package deploymentresource
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -62,47 +60,33 @@ func getChange(oldInterface, newInterface interface{}) (add, delete *schema.Set)
 }
 
 func associateRule(ruleID, deploymentID string, client *api.API) error {
-	res, err := client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRuleset(
-		deployments_traffic_filter.NewGetTrafficFilterRulesetParams().
-			WithRulesetID(ruleID).
-			WithIncludeAssociations(ec.Bool(true)),
-		client.AuthWriter,
-	)
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: ruleID, IncludeAssociations: true,
+	})
 	if err != nil {
-		return api.UnwrapError(err)
+		return err
 	}
 
 	// When the rule has already been associated, return.
-	for _, assoc := range res.Payload.Associations {
+	for _, assoc := range res.Associations {
 		if deploymentID == *assoc.ID {
 			return nil
 		}
 	}
 
 	// Create assignment.
-	if _, err := client.V1API.DeploymentsTrafficFilter.CreateTrafficFilterRulesetAssociation(
-		deployments_traffic_filter.NewCreateTrafficFilterRulesetAssociationParams().
-			WithRulesetID(ruleID).
-			WithBody(&models.FilterAssociation{
-				EntityType: ec.String("deployment"),
-				ID:         ec.String(deploymentID),
-			}),
-		client.AuthWriter,
-	// Due to an API bug where there's a mismatch between the spec'ed response
-	// status code and the real one, we need to do this.
-	); err != nil && err.Error() != "unknown error (status 201): {}" {
-		return api.UnwrapError(err)
+	if err := trafficfilterapi.CreateAssociation(trafficfilterapi.CreateAssociationParams{
+		API: client, ID: ruleID, EntityType: "deployment", EntityID: deploymentID,
+	}); err != nil {
+		return err
 	}
 	return nil
 }
 
 func removeRule(ruleID, deploymentID string, client *api.API) error {
-	res, err := client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRuleset(
-		deployments_traffic_filter.NewGetTrafficFilterRulesetParams().
-			WithRulesetID(ruleID).
-			WithIncludeAssociations(ec.Bool(true)),
-		client.AuthWriter,
-	)
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: ruleID, IncludeAssociations: true,
+	})
 
 	// Removal is a little bit more hairy, the rule might have already been
 	// destroyed and the associated Traffic Filter associations too, so if an
@@ -110,33 +94,27 @@ func removeRule(ruleID, deploymentID string, client *api.API) error {
 	// existing rules sets since the GET <rule id> returned with an error.
 	// If the rule set doesn't exist, then nil is returned.
 	if err != nil {
-		r, e := client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRulesets(
-			deployments_traffic_filter.NewGetTrafficFilterRulesetsParams(),
-			client.AuthWriter,
-		)
+		r, e := trafficfilterapi.List(trafficfilterapi.ListParams{API: client})
 		if e != nil {
-			return api.UnwrapError(e)
+			return e
 		}
-		for _, ruleSet := range r.Payload.Rulesets {
+		for _, ruleSet := range r.Rulesets {
 			if *ruleSet.ID == ruleID {
-				return api.UnwrapError(err)
+				return err
 			}
 		}
 		return nil
 	}
 
 	// If the rule is found, then delete the association.
-	for _, assoc := range res.Payload.Associations {
+	for _, assoc := range res.Associations {
 		if deploymentID == *assoc.ID {
-			return api.ReturnErrOnly(
-				client.V1API.DeploymentsTrafficFilter.DeleteTrafficFilterRulesetAssociation(
-					deployments_traffic_filter.NewDeleteTrafficFilterRulesetAssociationParams().
-						WithRulesetID(ruleID).
-						WithAssociatedEntityID(*assoc.ID).
-						WithAssociationType(*assoc.EntityType),
-					client.AuthWriter,
-				),
-			)
+			return trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+				API:        client,
+				ID:         ruleID,
+				EntityID:   *assoc.ID,
+				EntityType: *assoc.EntityType,
+			})
 		}
 	}
 

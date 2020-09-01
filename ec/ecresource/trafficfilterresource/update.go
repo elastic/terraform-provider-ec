@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -30,14 +30,12 @@ import (
 func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 
-	_, err := client.V1API.DeploymentsTrafficFilter.UpdateTrafficFilterRuleset(
-		deployments_traffic_filter.NewUpdateTrafficFilterRulesetParams().
-			WithRulesetID(d.Id()).
-			WithBody(expandModel(d)),
-		client.AuthWriter,
-	)
+	_, err := trafficfilterapi.Update(trafficfilterapi.UpdateParams{
+		API: client, ID: d.Id(),
+		Req: expandModel(d),
+	})
 	if err != nil {
-		return diag.FromErr(api.UnwrapError(err))
+		return diag.FromErr(err)
 	}
 
 	return Read(ctx, d, meta)

@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -29,16 +29,13 @@ import (
 // Create will create a new deployment traffic filter ruleset
 func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
-
-	res, err := client.V1API.DeploymentsTrafficFilter.CreateTrafficFilterRuleset(
-		deployments_traffic_filter.NewCreateTrafficFilterRulesetParams().
-			WithBody(expandModel(d)),
-		client.AuthWriter,
-	)
+	res, err := trafficfilterapi.Create(trafficfilterapi.CreateParams{
+		API: client, Req: expandModel(d),
+	})
 	if err != nil {
-		return diag.FromErr(api.UnwrapError(err))
+		return diag.FromErr(err)
 	}
 
-	d.SetId(*res.Payload.ID)
+	d.SetId(*res.ID)
 	return Read(ctx, d, meta)
 }
