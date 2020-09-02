@@ -27,7 +27,7 @@ import (
 )
 
 // Update will update an existing deployment traffic filter ruleset
-func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 
 	_, err := trafficfilterapi.Update(trafficfilterapi.UpdateParams{
@@ -38,5 +38,5 @@ func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(err)
 	}
 
-	return Read(ctx, d, meta)
+	return read(ctx, d, meta)
 }

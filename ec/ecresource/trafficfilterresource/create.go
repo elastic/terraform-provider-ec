@@ -27,7 +27,7 @@ import (
 )
 
 // Create will create a new deployment traffic filter ruleset
-func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 	res, err := trafficfilterapi.Create(trafficfilterapi.CreateParams{
 		API: client, Req: expandModel(d),
@@ -37,5 +37,5 @@ func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	}
 
 	d.SetId(*res.ID)
-	return Read(ctx, d, meta)
+	return read(ctx, d, meta)
 }

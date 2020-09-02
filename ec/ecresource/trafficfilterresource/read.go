@@ -28,7 +28,7 @@ import (
 
 // Read queries the remote deployment traffic filter ruleset state and update
 // the local state.
-func Read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{

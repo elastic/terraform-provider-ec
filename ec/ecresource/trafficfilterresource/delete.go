@@ -27,7 +27,7 @@ import (
 )
 
 // Delete will delete an existing deployment traffic filter ruleset
-func Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{

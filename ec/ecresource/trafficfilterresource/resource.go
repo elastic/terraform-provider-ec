@@ -29,10 +29,10 @@ func Resource() *schema.Resource {
 		Description: "Elastic Cloud deployment traffic filtering rules",
 		Schema:      NewSchema(),
 
-		CreateContext: Create,
-		ReadContext:   Read,
-		UpdateContext: Update,
-		DeleteContext: Delete,
+		CreateContext: create,
+		ReadContext:   read,
+		UpdateContext: update,
+		DeleteContext: delete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,

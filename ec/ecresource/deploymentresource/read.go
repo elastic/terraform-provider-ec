@@ -29,7 +29,7 @@ import (
 )
 
 // Read queries the remote deployment state and updates the local state.
-func Read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{

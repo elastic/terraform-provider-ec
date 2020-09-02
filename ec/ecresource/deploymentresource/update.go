@@ -29,7 +29,7 @@ import (
 )
 
 // Update syncs the remote state with the local.
-func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	if hasDeploymentChange(d) {
@@ -42,7 +42,7 @@ func Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		return diag.FromErr(err)
 	}
 
-	return Read(ctx, d, meta)
+	return read(ctx, d, meta)
 }
 
 func updateDeployment(_ context.Context, d *schema.ResourceData, client *api.API) error {

@@ -27,7 +27,7 @@ import (
 )
 
 // Delete shuts down and deletes the remote deployment.
-func Delete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func delete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
