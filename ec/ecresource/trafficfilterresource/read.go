@@ -15,28 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package trafficfilterresource
 
 import (
-	"time"
+	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/plan"
-	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	defaultPollFrequency = time.Millisecond * 500
-	defaultMaxRetry      = 5
-)
+// Read queries the remote deployment traffic filter ruleset state and update
+// the local state.
+func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var client = meta.(*api.API)
 
-// WaitForPlanCompletion waits for a pending plan to finish.
-func WaitForPlanCompletion(client *api.API, id string) error {
-	return planutil.Wait(plan.TrackChangeParams{
-		API: client, DeploymentID: id,
-		Config: plan.TrackFrequencyConfig{
-			PollFrequency: defaultPollFrequency,
-			MaxRetries:    defaultMaxRetry,
-		},
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: d.Id(),
 	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := modelToState(d, res); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }

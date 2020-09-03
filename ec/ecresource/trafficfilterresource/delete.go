@@ -15,43 +15,44 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package trafficfilterresource
 
 import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Delete shuts down and deletes the remote deployment.
-func delete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
+// Delete will delete an existing deployment traffic filter ruleset
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var client = meta.(*api.API)
 
-	if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
-		API: client, DeploymentID: d.Id(),
-	}); err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := handleTrafficFilterChange(d, client); err != nil {
-		return diag.FromErr(err)
-	}
-
-	// We don't particularly care if delete succeeds or not. It's better to
-	// remove it, but it might fail on ESS. For example, when user's aren't
-	// allowed to delete deployments, or on ECE when the cluster is "still
-	// being shutdown". Sumarizing, even if the call fails the deployment
-	// won't be there.
-	_, _ = deploymentapi.Delete(deploymentapi.DeleteParams{
-		API: client, DeploymentID: d.Id(),
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: d.Id(), IncludeAssociations: true,
 	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	for _, assoc := range res.Associations {
+		if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+			API:        client,
+			ID:         d.Id(),
+			EntityID:   *assoc.ID,
+			EntityType: *assoc.EntityType,
+		}); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if err := trafficfilterapi.Delete(trafficfilterapi.DeleteParams{
+		API: client, ID: d.Id(),
+	}); err != nil {
+		return diag.FromErr(api.UnwrapError(err))
+	}
 
 	d.SetId("")
 	return nil

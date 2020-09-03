@@ -28,8 +28,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Create will create a new deployment from the specified settings.
-func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// create will create a new deployment from the specified settings.
+func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 	reqID := deploymentapi.RequestID(d.Get("request_id").(string))
 
@@ -60,7 +60,7 @@ func Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	d.SetId(*res.ID)
 
-	if diag := Read(ctx, d, meta); diag != nil {
+	if diag := read(ctx, d, meta); diag != nil {
 		return diag
 	}
 

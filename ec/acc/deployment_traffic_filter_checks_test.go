@@ -15,28 +15,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package acc
 
 import (
-	"time"
+	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/plan"
-	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-const (
-	defaultPollFrequency = time.Millisecond * 500
-	defaultMaxRetry      = 5
-)
+func testAccCheckDeploymentTrafficFilterExists(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		saved, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("no deployment resource: %s", name)
+		}
 
-// WaitForPlanCompletion waits for a pending plan to finish.
-func WaitForPlanCompletion(client *api.API, id string) error {
-	return planutil.Wait(plan.TrackChangeParams{
-		API: client, DeploymentID: id,
-		Config: plan.TrackFrequencyConfig{
-			PollFrequency: defaultPollFrequency,
-			MaxRetries:    defaultMaxRetry,
-		},
-	})
+		if saved.Primary.ID == "" {
+			return fmt.Errorf("no deployment id is set")
+		}
+		client, err := NewAPI()
+		if err != nil {
+			return err
+		}
+
+		return api.ReturnErrOnly(client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRuleset(
+			deployments_traffic_filter.NewGetTrafficFilterRulesetParams().
+				WithRulesetID(saved.Primary.ID),
+			client.AuthWriter,
+		))
+	}
 }

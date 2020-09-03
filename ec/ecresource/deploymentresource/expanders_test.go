@@ -46,6 +46,11 @@ func Test_createResourceToModel(t *testing.T) {
 			args: args{d: deploymentRD},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{
+					TrafficFilterSettings: &models.TrafficFilterSettings{
+						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+					},
+				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{

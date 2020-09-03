@@ -30,9 +30,13 @@ func TestAccDeployment_basic(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic.tf"
+	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter.tf"
+	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_update.tf"
 	topologyConfig := "testdata/deployment_basic_topology_config.tf"
 	topConfig := "testdata/deployment_basic_top_config.tf"
 	cfg := testAccDeploymentResourceBasic(t, startCfg, randomName, region, deploymentVersion)
+	cfgWithTrafficFilter := testAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, region, deploymentVersion)
+	cfgWithTrafficFilterUpdate := testAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, region, deploymentVersion)
 	topologyConfigCfg := testAccDeploymentResourceBasic(t, topologyConfig, randomName, region, deploymentVersion)
 	topConfigCfg := testAccDeploymentResourceBasic(t, topConfig, randomName, region, deploymentVersion)
 
@@ -42,15 +46,45 @@ func TestAccDeployment_basic(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
+				Config:             cfg,
+				ExpectNonEmptyPlan: true,
 				Check: checkBasicDeploymentResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
 				),
 			},
 			// Ensure that no diff is generated.
+			{Config: cfg, PlanOnly: true},
+			{
+				Config:             cfgWithTrafficFilter,
+				ExpectNonEmptyPlan: true,
+				Check: checkBasicDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
+				),
+			},
+			// Ensure that no diff is generated.
+			{Config: cfgWithTrafficFilter, PlanOnly: true},
+			{
+				Config:             cfgWithTrafficFilterUpdate,
+				ExpectNonEmptyPlan: true,
+				Check: checkBasicDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
+				),
+			},
+			// Ensure that no diff is generated.
+			{Config: cfgWithTrafficFilterUpdate, PlanOnly: true},
+			// Remove traffic filter.
+			{
+				Config: cfg,
+				Check: checkBasicDeploymentResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
+					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
+					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
+				),
+			},
 			{Config: cfg, PlanOnly: true},
 			{
 				Config: topologyConfigCfg,
@@ -110,8 +144,18 @@ func testAccDeploymentResourceBasic(t *testing.T, fileName, name, region, versio
 	)
 }
 
+func testAccDeploymentResourceBasicWithTF(t *testing.T, fileName, name, region, version string) string {
+	b, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		name, region, version, name, region,
+	)
+}
+
 func checkBasicDeploymentResource(resName, randomDeploymentName string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
+	return resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
 		testAccCheckDeploymentExists(resName),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
 		resource.TestCheckResourceAttr(resName, "region", region),
@@ -141,6 +185,5 @@ func checkBasicDeploymentResource(resName, randomDeploymentName string, checks .
 		resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.memory_per_node", "2g"),
 		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.http_endpoint"),
 		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.https_endpoint"),
-		resource.ComposeAggregateTestCheckFunc(checks...),
-	)
+	}, checks...)...)
 }

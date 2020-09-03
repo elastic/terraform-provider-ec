@@ -54,6 +54,11 @@ func Test_modelToState(t *testing.T) {
 				d: deploymentSchemaArg,
 				res: &models.DeploymentGetResponse{
 					Name: ec.String("my_deployment_name"),
+					Settings: &models.DeploymentSettings{
+						TrafficFilterSettings: &models.TrafficFilterSettings{
+							Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+						},
+					},
 					Resources: &models.DeploymentResources{
 						Elasticsearch: []*models.ElasticsearchResourceInfo{
 							{

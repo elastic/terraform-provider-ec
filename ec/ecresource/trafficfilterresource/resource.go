@@ -15,33 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ecresource
+package trafficfilterresource
 
 import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource"
 )
 
-// Deployment returns the ec_deployment resource schema.
-func Deployment() *schema.Resource {
+// Resource returns the ec_deployment_traffic_filter resource schema.
+func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: deploymentresource.Create,
-		ReadContext:   deploymentresource.Read,
-		UpdateContext: deploymentresource.Update,
-		DeleteContext: deploymentresource.Delete,
+		Description: "Elastic Cloud deployment traffic filtering rules",
+		Schema:      NewSchema(),
 
-		Schema: deploymentresource.NewSchema(),
+		CreateContext: create,
+		ReadContext:   read,
+		UpdateContext: update,
+		DeleteContext: delete,
 
-		// TODO: write importer function.
-		Importer:    nil,
-		Description: "",
-
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(40 * time.Minute),
-			Update:  schema.DefaultTimeout(60 * time.Minute),
-			Delete:  schema.DefaultTimeout(60 * time.Minute),
+			Default: schema.DefaultTimeout(5 * time.Minute),
 		},
 	}
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
@@ -70,6 +71,12 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		enterpriseSearchFlattened := enterprisesearchstate.FlattenResources(res.Resources.EnterpriseSearch, *res.Name)
 		if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
 			return err
+		}
+
+		if settings := deploymentstate.FlattenTrafficFiltering(res.Settings); settings != nil {
+			if err := d.Set("traffic_filter", settings); err != nil {
+				return err
+			}
 		}
 	}
 

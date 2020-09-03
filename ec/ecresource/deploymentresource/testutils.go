@@ -30,7 +30,7 @@ type resDataParams struct {
 }
 
 func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
-	raw := schema.TestResourceDataRaw(t, NewSchema(), params.Resources)
+	raw := schema.TestResourceDataRaw(t, Resource().Schema, params.Resources)
 	raw.SetId(params.ID)
 
 	return raw
@@ -45,6 +45,7 @@ func newSampleDeployment() map[string]interface{} {
 		"apm":                    []interface{}{newApmSample()},
 		"appsearch":              []interface{}{newAppsearchSample()},
 		"enterprise_search":      []interface{}{newEnterpriseSearchSample()},
+		"traffic_filter":         []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
 	}
 }
 

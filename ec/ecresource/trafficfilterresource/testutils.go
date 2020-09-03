@@ -15,28 +15,39 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package trafficfilterresource
 
 import (
-	"time"
+	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/plan"
-	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	defaultPollFrequency = time.Millisecond * 500
-	defaultMaxRetry      = 5
-)
+type resDataParams struct {
+	Resources map[string]interface{}
+	ID        string
+}
 
-// WaitForPlanCompletion waits for a pending plan to finish.
-func WaitForPlanCompletion(client *api.API, id string) error {
-	return planutil.Wait(plan.TrackChangeParams{
-		API: client, DeploymentID: id,
-		Config: plan.TrackFrequencyConfig{
-			PollFrequency: defaultPollFrequency,
-			MaxRetries:    defaultMaxRetry,
+func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
+	raw := schema.TestResourceDataRaw(t, NewSchema(), params.Resources)
+	raw.SetId(params.ID)
+
+	return raw
+}
+
+func newSampleTrafficFilter() map[string]interface{} {
+	return map[string]interface{}{
+		"name":               "my traffic filter",
+		"type":               "ip",
+		"include_by_default": false,
+		"region":             "us-east-1",
+		"rule": []interface{}{
+			map[string]interface{}{
+				"source": "1.1.1.1",
+			},
+			map[string]interface{}{
+				"source": "0.0.0.0/0",
+			},
 		},
-	})
+	}
 }

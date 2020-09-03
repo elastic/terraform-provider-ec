@@ -23,7 +23,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
 
 const (
@@ -119,7 +120,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment": ecresource.Deployment(),
+			"ec_deployment":                deploymentresource.Resource(),
+			"ec_deployment_traffic_filter": trafficfilterresource.Resource(),
 		},
 	}
 }
