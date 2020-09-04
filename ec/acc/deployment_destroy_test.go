@@ -63,14 +63,6 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 						fmt.Errorf("resource apm (%s) still exists", *res.ID),
 					)
 				}
-				for _, res := range res.Resources.Appsearch {
-					if *res.Info.Status == stoppedStatus {
-						continue
-					}
-					merr = merr.Append(
-						fmt.Errorf("resource appsearch (%s) still exists", *res.ID),
-					)
-				}
 				for _, res := range res.Resources.Elasticsearch {
 					if *res.Info.Status == stoppedStatus {
 						continue

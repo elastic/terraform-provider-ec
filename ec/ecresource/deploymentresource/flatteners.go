@@ -26,7 +26,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
@@ -60,11 +59,6 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 
 		apmFlattened := apmstate.FlattenResources(res.Resources.Apm, *res.Name)
 		if err := d.Set("apm", apmFlattened); err != nil {
-			return err
-		}
-
-		appsearchFlattened := appsearchstate.FlattenResources(res.Resources.Appsearch, *res.Name)
-		if err := d.Set("appsearch", appsearchFlattened); err != nil {
 			return err
 		}
 
