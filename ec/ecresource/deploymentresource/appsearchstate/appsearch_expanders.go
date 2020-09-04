@@ -22,7 +22,8 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // ExpandResources expands appsearch resources into their models.
@@ -100,7 +101,7 @@ func expandTopology(raw interface{}) ([]*models.AppSearchTopologyElement, error)
 		var topology = rawTop.(map[string]interface{})
 		var nodeType = parseNodeType(topology)
 
-		size, err := deploymentstate.ParseTopologySize(topology)
+		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}

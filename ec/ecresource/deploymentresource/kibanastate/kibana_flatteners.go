@@ -19,7 +19,7 @@ package kibanastate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // FlattenResources takes the kibana resource models and returns them flattened.
@@ -60,7 +60,7 @@ func FlattenResources(in []*models.KibanaResourceInfo, name string) []interface{
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		for k, v := range deploymentstate.FlattenClusterEndpoint(res.Info.Metadata) {
+		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
 		}
 
@@ -92,7 +92,7 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 		// }
 
 		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = deploymentstate.MemoryToState(*topology.Size.Value)
+			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
 		}
 
 		if topology.NodeCountPerZone > 0 {

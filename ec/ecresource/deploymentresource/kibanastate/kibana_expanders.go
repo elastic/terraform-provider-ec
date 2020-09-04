@@ -22,7 +22,8 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // ExpandResources expands the flattened kibana resources into its models.
@@ -99,7 +100,7 @@ func expandTopology(raw interface{}) ([]*models.KibanaClusterTopologyElement, er
 	for _, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 
-		size, err := deploymentstate.ParseTopologySize(topology)
+		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}

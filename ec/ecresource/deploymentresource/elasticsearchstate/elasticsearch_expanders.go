@@ -20,7 +20,8 @@ package elasticsearchstate
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // ExpandResources expands Elasticsearch resources
@@ -134,7 +135,7 @@ func ExpandTopology(raw interface{}) ([]*models.ElasticsearchClusterTopologyElem
 		var topology = rawTop.(map[string]interface{})
 		var nodeType = parseNodeType(topology)
 
-		size, err := deploymentstate.ParseTopologySize(topology)
+		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}
