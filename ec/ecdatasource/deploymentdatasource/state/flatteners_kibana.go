@@ -30,25 +30,44 @@ func FlattenKibanaResources(in []*models.KibanaResourceInfo) []interface{} {
 	for _, res := range in {
 		var m = make(map[string]interface{})
 
-		m["healthy"] = *res.Info.Healthy
-
-		m["ref_id"] = *res.RefID
-
-		m["resource_id"] = *res.Info.ClusterID
-
-		var plan = res.Info.PlanInfo.Current.Plan
-		m["version"] = plan.Kibana.Version
-
-		m["topology"] = flattenKibanaTopology(plan)
-
-		m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
-
-		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
-			m[k] = v
+		if res.RefID != nil {
+			m["ref_id"] = *res.RefID
 		}
 
-		m["status"] = *res.Info.Status
+		if res.ElasticsearchClusterRefID != nil {
+			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
+		}
 
+		if res.Info != nil {
+			if res.Info.Healthy != nil {
+				m["healthy"] = *res.Info.Healthy
+			}
+
+			if res.Info.ClusterID != nil {
+				m["resource_id"] = *res.Info.ClusterID
+			}
+
+			if res.Info.Status != nil {
+				m["status"] = *res.Info.Status
+			}
+
+			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
+				res.Info.PlanInfo.Current.Plan != nil {
+				var plan = res.Info.PlanInfo.Current.Plan
+
+				if plan.Kibana != nil {
+					m["version"] = plan.Kibana.Version
+				}
+
+				m["topology"] = flattenKibanaTopology(plan)
+			}
+
+			if res.Info.Metadata != nil {
+				for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
+					m[k] = v
+				}
+			}
+		}
 		result = append(result, m)
 	}
 
@@ -62,7 +81,9 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
-		m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
+		if topology.Size != nil && topology.Size.Value != nil {
+			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
+		}
 
 		m["zone_count"] = topology.ZoneCount
 

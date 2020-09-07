@@ -30,25 +30,37 @@ func FlattenElasticsearchResources(in []*models.ElasticsearchResourceInfo) []int
 	for _, res := range in {
 		var m = make(map[string]interface{})
 
-		m["healthy"] = *res.Info.Healthy
-
-		m["cloud_id"] = res.Info.Metadata.CloudID
-
 		m["ref_id"] = *res.RefID
 
-		m["resource_id"] = *res.Info.ClusterID
+		if res.Info != nil {
+			if res.Info.Healthy != nil {
+				m["healthy"] = *res.Info.Healthy
+			}
 
-		var plan = res.Info.PlanInfo.Current.Plan
-		m["version"] = plan.Elasticsearch.Version
+			if res.Info.ClusterID != nil {
+				m["resource_id"] = *res.Info.ClusterID
+			}
 
-		m["topology"] = flattenElasticsearchTopology(plan)
+			if res.Info.Status != nil {
+				m["status"] = *res.Info.Status
+			}
 
-		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
-			m[k] = v
+			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
+				res.Info.PlanInfo.Current.Plan != nil {
+				var plan = res.Info.PlanInfo.Current.Plan
+				m["version"] = plan.Elasticsearch.Version
+
+				m["topology"] = flattenElasticsearchTopology(plan)
+			}
+
+			if res.Info.Metadata != nil {
+				m["cloud_id"] = res.Info.Metadata.CloudID
+
+				for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
+					m[k] = v
+				}
+			}
 		}
-
-		m["status"] = *res.Info.Status
-
 		result = append(result, m)
 	}
 
@@ -62,19 +74,31 @@ func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []inter
 
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
-		m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
+		if topology.Size != nil && topology.Size.Value != nil {
+			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
+		}
 
 		m["zone_count"] = topology.ZoneCount
 
 		m["node_count_per_zone"] = topology.NodeCountPerZone
 
-		m["node_type_data"] = *topology.NodeType.Data
+		if topology.NodeType != nil {
+			if topology.NodeType.Data != nil {
+				m["node_type_data"] = *topology.NodeType.Data
+			}
 
-		m["node_type_ingest"] = *topology.NodeType.Ingest
+			if topology.NodeType.Ingest != nil {
+				m["node_type_ingest"] = *topology.NodeType.Ingest
+			}
 
-		m["node_type_master"] = *topology.NodeType.Master
+			if topology.NodeType.Master != nil {
+				m["node_type_master"] = *topology.NodeType.Master
+			}
 
-		m["node_type_ml"] = *topology.NodeType.Ml
+			if topology.NodeType.Ml != nil {
+				m["node_type_ml"] = *topology.NodeType.Ml
+			}
+		}
 
 		result = append(result, m)
 	}
