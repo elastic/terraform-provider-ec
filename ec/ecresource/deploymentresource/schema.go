@@ -76,12 +76,6 @@ func NewSchema() map[string]*schema.Schema {
 			MaxItems: 1,
 			Elem:     newApmResource(),
 		},
-		"appsearch": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newAppSearchResource(),
-		},
 		"enterprise_search": {
 			Type:     schema.TypeList,
 			Optional: true,

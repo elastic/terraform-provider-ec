@@ -25,7 +25,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 )
 
-// ExpandResources expands appsearch resources into their models.
+// ExpandResources expands Enterprise Search resources into their models.
 func ExpandResources(ess []interface{}) ([]*models.EnterpriseSearchPayload, error) {
 	if len(ess) == 0 {
 		return nil, nil
