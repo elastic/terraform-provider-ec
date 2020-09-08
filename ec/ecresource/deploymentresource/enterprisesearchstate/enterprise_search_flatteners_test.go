@@ -83,11 +83,7 @@ func TestFlattenResource(t *testing.T) {
 										UserSettingsOverrideJSON: `{"some.setting": "some other override"}`,
 									},
 									ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
-										EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-											SystemSettings: &models.EnterpriseSearchSystemSettings{
-												SecretSessionKey: "somekey secret key",
-											},
-										},
+										EnterpriseSearch:        &models.EnterpriseSearchConfiguration{},
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.enterprisesearch.r4",
 										Size: &models.TopologySize{
@@ -127,9 +123,6 @@ func TestFlattenResource(t *testing.T) {
 						"zone_count":                int32(1),
 						"node_type_appserver":       true,
 						"node_type_worker":          false,
-						"config": []interface{}{map[string]interface{}{
-							"secret_session_key": "somekey secret key",
-						}},
 					}},
 				},
 			},

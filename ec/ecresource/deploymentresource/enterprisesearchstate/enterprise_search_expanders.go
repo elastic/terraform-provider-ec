@@ -150,13 +150,6 @@ func expandConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
 	var res = &models.EnterpriseSearchConfiguration{}
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
-		if key, ok := cfg["secret_session_key"]; ok {
-			if res.SystemSettings == nil {
-				res.SystemSettings = &models.EnterpriseSearchSystemSettings{}
-			}
-			res.SystemSettings.SecretSessionKey = key.(string)
-		}
-
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
 				res.UserSettingsJSON = settings

@@ -81,9 +81,7 @@ func TestExpandResources(t *testing.T) {
 						"resource_id":                  mock.ValidClusterID,
 						"version":                      "7.7.0",
 						"region":                       "some-region",
-						"config": []interface{}{map[string]interface{}{
-							"secret_session_key": "somekey",
-						}},
+						"config":                       []interface{}{map[string]interface{}{}},
 						"topology": []interface{}{map[string]interface{}{
 							"config": []interface{}{map[string]interface{}{
 								"user_settings_yaml":          "some.setting: value",
@@ -160,9 +158,6 @@ func TestExpandResources(t *testing.T) {
 					Plan: &models.EnterpriseSearchPlan{
 						EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 							Version: "7.7.0",
-							SystemSettings: &models.EnterpriseSearchSystemSettings{
-								SecretSessionKey: "somekey",
-							},
 						},
 						ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 							EnterpriseSearch: &models.EnterpriseSearchConfiguration{

@@ -140,32 +140,11 @@ func flattenConfig(cfg *models.EnterpriseSearchConfiguration) []interface{} {
 		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
 	}
 
-	for k, v := range flattenSystemConfig(cfg.SystemSettings) {
-		m[k] = v
-	}
-
 	if len(m) == 0 {
 		return nil
 	}
 
 	return []interface{}{m}
-}
-
-func flattenSystemConfig(cfg *models.EnterpriseSearchSystemSettings) map[string]interface{} {
-	var m = make(map[string]interface{})
-	if cfg == nil {
-		return nil
-	}
-
-	if cfg.SecretSessionKey != "" {
-		m["secret_session_key"] = cfg.SecretSessionKey
-	}
-
-	if len(m) == 0 {
-		return nil
-	}
-
-	return m
 }
 
 // IsCurrentPlanEmpty checks the enterprise search resource current plan is empty.
