@@ -146,10 +146,6 @@ func flattenSystemConfig(cfg *models.ApmSystemSettings) map[string]interface{} {
 		m["debug_enabled"] = *cfg.DebugEnabled
 	}
 
-	if cfg.SecretToken != "" {
-		m["secret_token"] = cfg.SecretToken
-	}
-
 	if len(m) == 0 {
 		return nil
 	}

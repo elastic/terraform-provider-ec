@@ -142,10 +142,6 @@ func expandConfig(raw interface{}) *models.ApmConfiguration {
 			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
 		}
 
-		if token, ok := cfg["secret_token"]; ok {
-			res.SystemSettings.SecretToken = token.(string)
-		}
-
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
 				res.UserSettingsJSON = settings

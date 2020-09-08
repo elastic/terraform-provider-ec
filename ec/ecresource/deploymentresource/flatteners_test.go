@@ -338,6 +338,7 @@ func Test_parseCredentials(t *testing.T) {
 	rawData := newSampleDeployment()
 	rawData["elasticsearch_username"] = "my-username"
 	rawData["elasticsearch_password"] = "my-password"
+	rawData["apm_secret_token"] = "some-secret-token"
 
 	wantDeploymentRD := newResourceData(t, resDataParams{
 		ID:        mock.ValidClusterID,
@@ -363,6 +364,7 @@ func Test_parseCredentials(t *testing.T) {
 						Username: ec.String("my-username"),
 						Password: ec.String("my-password"),
 					},
+					SecretToken: "some-secret-token",
 				}},
 			},
 			want: wantDeploymentRD,
