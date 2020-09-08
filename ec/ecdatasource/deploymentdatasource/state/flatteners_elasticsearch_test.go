@@ -28,8 +28,7 @@ import (
 
 func TestFlattenElasticsearchResources(t *testing.T) {
 	type args struct {
-		in   []*models.ElasticsearchResourceInfo
-		name string
+		in []*models.ElasticsearchResourceInfo
 	}
 	tests := []struct {
 		name string
