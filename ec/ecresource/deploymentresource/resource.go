@@ -33,9 +33,13 @@ func Resource() *schema.Resource {
 
 		Schema: NewSchema(),
 
-		// TODO: write importer function.
-		Importer:    nil,
-		Description: "",
+		Description: "Elastic Cloud Deployment resource",
+		Importer: &schema.ResourceImporter{
+			// It might be desired to provide the ability to import a deployment
+			// specifying key:value pairs of secrets to populate as part of the
+			// import with an implementation of schema.StateContextFunc.
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Default: schema.DefaultTimeout(40 * time.Minute),

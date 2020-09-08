@@ -129,7 +129,11 @@ func TestAccDeployment_basic(t *testing.T) {
 			},
 			// Ensure that no diff is generated.
 			{Config: cfg, PlanOnly: true},
-			// TODO: Import case when import is ready.
+			{
+				ResourceName:      resName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
