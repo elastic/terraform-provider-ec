@@ -27,7 +27,7 @@ func FlattenResources(in []*models.EnterpriseSearchResourceInfo, name string) []
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentPlanEmpty(res) {
+		if IsCurrentPlanEmpty(res) {
 			continue
 		}
 
@@ -168,7 +168,8 @@ func flattenSystemConfig(cfg *models.EnterpriseSearchSystemSettings) map[string]
 	return m
 }
 
-func isCurrentPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
+// IsCurrentPlanEmpty checks the enterprise search resource current plan is empty.
+func IsCurrentPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }

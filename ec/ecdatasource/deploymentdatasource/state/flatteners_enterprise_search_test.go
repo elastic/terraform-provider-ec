@@ -63,9 +63,6 @@ func TestFlattenEnterpriseSearchResource(t *testing.T) {
 								Plan: &models.EnterpriseSearchPlan{
 									EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 										Version: "7.7.0",
-										SystemSettings: &models.EnterpriseSearchSystemSettings{
-											SecretSessionKey: "somekey secret key",
-										},
 									},
 									ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 										ZoneCount:               1,
@@ -93,7 +90,6 @@ func TestFlattenEnterpriseSearchResource(t *testing.T) {
 					"version":                      "7.7.0",
 					"http_endpoint":                "http://enterprisesearchresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://enterprisesearchresource.cloud.elastic.co:9243",
-					"secret_session_key":           "somekey secret key",
 					"healthy":                      true,
 					"status":                       "started",
 					"topology": []interface{}{map[string]interface{}{

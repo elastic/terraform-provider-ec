@@ -20,6 +20,7 @@ package state
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
@@ -51,8 +52,7 @@ func FlattenKibanaResources(in []*models.KibanaResourceInfo) []interface{} {
 				m["status"] = *res.Info.Status
 			}
 
-			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
-				res.Info.PlanInfo.Current.Plan != nil {
+			if !kibanastate.IsCurrentPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.Kibana != nil {

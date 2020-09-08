@@ -20,6 +20,7 @@ package state
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
@@ -51,16 +52,11 @@ func FlattenApmResources(in []*models.ApmResourceInfo) []interface{} {
 				m["status"] = *res.Info.Status
 			}
 
-			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
-				res.Info.PlanInfo.Current.Plan != nil {
+			if !apmstate.IsCurrentPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.Apm != nil {
 					m["version"] = plan.Apm.Version
-				}
-
-				if plan.Apm != nil && plan.Apm.SystemSettings != nil {
-					m["secret_token"] = plan.Apm.SystemSettings.SecretToken
 				}
 
 				m["topology"] = flattenApmTopology(plan)

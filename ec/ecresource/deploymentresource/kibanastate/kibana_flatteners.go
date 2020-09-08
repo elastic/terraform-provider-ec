@@ -27,7 +27,7 @@ func FlattenResources(in []*models.KibanaResourceInfo, name string) []interface{
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentPlanEmpty(res) {
+		if IsCurrentPlanEmpty(res) {
 			continue
 		}
 
@@ -140,7 +140,8 @@ func flattenConfig(cfg *models.KibanaConfiguration) []interface{} {
 	return []interface{}{m}
 }
 
-func isCurrentPlanEmpty(res *models.KibanaResourceInfo) bool {
+// IsCurrentPlanEmpty checks the kibana resource current plan is empty.
+func IsCurrentPlanEmpty(res *models.KibanaResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }

@@ -61,9 +61,6 @@ func TestFlattenApmResource(t *testing.T) {
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									Version: "7.7.0",
-									SystemSettings: &models.ApmSystemSettings{
-										SecretToken: "shhh",
-									},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{
 									{
@@ -88,7 +85,6 @@ func TestFlattenApmResource(t *testing.T) {
 					"version":                      "7.7.0",
 					"http_endpoint":                "http://apmresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
-					"secret_token":                 "shhh",
 					"healthy":                      true,
 					"status":                       "started",
 					"topology": []interface{}{

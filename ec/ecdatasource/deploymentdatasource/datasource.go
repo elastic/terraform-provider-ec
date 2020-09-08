@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecdatasource/deploymentdatasource/state"
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 )
 
 // DataSource returns the ec_deployment data source schema.
@@ -83,8 +84,7 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		}
 	}
 
-	if es.Info != nil && es.Info.PlanInfo != nil &&
-		es.Info.PlanInfo.Current != nil && es.Info.PlanInfo.Current.Plan != nil {
+	if !elasticsearchstate.IsCurrentPlanEmpty(es) {
 		if err := d.Set("deployment_template_id",
 			*es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID); err != nil {
 			return err

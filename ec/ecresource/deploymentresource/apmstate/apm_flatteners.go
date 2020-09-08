@@ -28,7 +28,7 @@ func FlattenResources(in []*models.ApmResourceInfo, name string) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentPlanEmpty(res) {
+		if IsCurrentPlanEmpty(res) {
 			continue
 		}
 
@@ -157,7 +157,8 @@ func flattenSystemConfig(cfg *models.ApmSystemSettings) map[string]interface{} {
 	return m
 }
 
-func isCurrentPlanEmpty(res *models.ApmResourceInfo) bool {
+// IsCurrentPlanEmpty checks the apm resource current plan is empty.
+func IsCurrentPlanEmpty(res *models.ApmResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }

@@ -20,6 +20,7 @@ package state
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
@@ -47,8 +48,7 @@ func FlattenElasticsearchResources(in []*models.ElasticsearchResourceInfo) []int
 				m["status"] = *res.Info.Status
 			}
 
-			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
-				res.Info.PlanInfo.Current.Plan != nil {
+			if !elasticsearchstate.IsCurrentPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.Elasticsearch != nil {

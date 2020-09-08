@@ -48,10 +48,6 @@ func newApmResourceInfo() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"secret_token": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,

@@ -48,10 +48,6 @@ func newEnterpriseSearchResourceInfo() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"secret_session_key": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,

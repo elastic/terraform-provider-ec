@@ -20,6 +20,7 @@ package state
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
@@ -51,17 +52,11 @@ func FlattenEnterpriseSearchResources(in []*models.EnterpriseSearchResourceInfo)
 				m["status"] = *res.Info.Status
 			}
 
-			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
-				res.Info.PlanInfo.Current.Plan != nil {
+			if !enterprisesearchstate.IsCurrentPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.EnterpriseSearch != nil {
 					m["version"] = plan.EnterpriseSearch.Version
-				}
-
-				if plan.EnterpriseSearch != nil &&
-					plan.EnterpriseSearch.SystemSettings != nil {
-					m["secret_session_key"] = plan.EnterpriseSearch.SystemSettings.SecretSessionKey
 				}
 
 				m["topology"] = flattenEnterpriseSearchTopology(plan)
