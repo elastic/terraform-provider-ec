@@ -30,7 +30,9 @@ func FlattenElasticsearchResources(in []*models.ElasticsearchResourceInfo) []int
 	for _, res := range in {
 		var m = make(map[string]interface{})
 
-		m["ref_id"] = *res.RefID
+		if res.RefID != nil {
+			m["ref_id"] = *res.RefID
+		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
@@ -48,7 +50,10 @@ func FlattenElasticsearchResources(in []*models.ElasticsearchResourceInfo) []int
 			if res.Info.PlanInfo != nil && res.Info.PlanInfo.Current != nil &&
 				res.Info.PlanInfo.Current.Plan != nil {
 				var plan = res.Info.PlanInfo.Current.Plan
-				m["version"] = plan.Elasticsearch.Version
+
+				if plan.Elasticsearch != nil {
+					m["version"] = plan.Elasticsearch.Version
+				}
 
 				m["topology"] = flattenElasticsearchTopology(plan)
 			}

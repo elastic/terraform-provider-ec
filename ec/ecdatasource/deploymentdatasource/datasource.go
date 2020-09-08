@@ -75,6 +75,22 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		return err
 	}
 
+	es := res.Resources.Elasticsearch[0]
+
+	if es.Region != nil {
+		if err := d.Set("region", *es.Region); err != nil {
+			return err
+		}
+	}
+
+	if es.Info != nil && es.Info.PlanInfo != nil &&
+		es.Info.PlanInfo.Current != nil && es.Info.PlanInfo.Current.Plan != nil {
+		if err := d.Set("deployment_template_id",
+			*es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID); err != nil {
+			return err
+		}
+	}
+
 	elasticsearchFlattened := state.FlattenElasticsearchResources(res.Resources.Elasticsearch)
 	if err := d.Set("elasticsearch", elasticsearchFlattened); err != nil {
 		return err

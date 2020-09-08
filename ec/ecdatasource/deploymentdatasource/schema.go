@@ -35,6 +35,14 @@ func newSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"region": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"deployment_template_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 
 		// Deployment resources
 		"elasticsearch": {
