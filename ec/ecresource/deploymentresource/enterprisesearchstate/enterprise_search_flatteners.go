@@ -19,7 +19,7 @@ package enterprisesearchstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // FlattenResources flattens Enterprise Search resources into its flattened structure.
@@ -27,7 +27,7 @@ func FlattenResources(in []*models.EnterpriseSearchResourceInfo, name string) []
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentPlanEmpty(res) {
+		if IsCurrentPlanEmpty(res) {
 			continue
 		}
 
@@ -60,7 +60,7 @@ func FlattenResources(in []*models.EnterpriseSearchResourceInfo, name string) []
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		if urls := deploymentstate.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
+		if urls := util.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
 			for k, v := range urls {
 				m[k] = v
 			}
@@ -89,7 +89,7 @@ func flattenTopology(plan *models.EnterpriseSearchPlan) []interface{} {
 		}
 
 		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = deploymentstate.MemoryToState(*topology.Size.Value)
+			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
 		}
 
 		if nt := topology.NodeType; nt != nil {
@@ -168,7 +168,8 @@ func flattenSystemConfig(cfg *models.EnterpriseSearchSystemSettings) map[string]
 	return m
 }
 
-func isCurrentPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
+// IsCurrentPlanEmpty checks the enterprise search resource current plan is empty.
+func IsCurrentPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }

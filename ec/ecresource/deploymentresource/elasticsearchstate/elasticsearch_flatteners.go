@@ -19,7 +19,8 @@ package elasticsearchstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // FlattenResources takes in Elasticsearch resource models and returns its
@@ -66,7 +67,7 @@ func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []int
 			m["cloud_id"] = metadata.CloudID
 		}
 
-		for k, v := range deploymentstate.FlattenClusterEndpoint(res.Info.Metadata) {
+		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
 		}
 
@@ -97,7 +98,7 @@ func flattenTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 		// }
 
 		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = deploymentstate.MemoryToState(*topology.Size.Value)
+			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
 		}
 
 		if nt := topology.NodeType; nt != nil {

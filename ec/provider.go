@@ -23,6 +23,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/terraform-providers/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
@@ -118,6 +120,9 @@ func Provider() *schema.Provider {
 					[]string{"EC_VERBOSE"}, false,
 				),
 			},
+		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"ec_deployment": deploymentdatasource.DataSource(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ec_deployment":                deploymentresource.Resource(),

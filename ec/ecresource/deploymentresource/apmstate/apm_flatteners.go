@@ -19,7 +19,8 @@ package apmstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
+
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // FlattenResources flattens apm resources into its flattened structure.
@@ -27,7 +28,7 @@ func FlattenResources(in []*models.ApmResourceInfo, name string) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if isCurrentPlanEmpty(res) {
+		if IsCurrentPlanEmpty(res) {
 			continue
 		}
 
@@ -60,7 +61,7 @@ func FlattenResources(in []*models.ApmResourceInfo, name string) []interface{} {
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		for k, v := range deploymentstate.FlattenClusterEndpoint(res.Info.Metadata) {
+		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
 		}
 
@@ -87,7 +88,7 @@ func flattenTopology(plan *models.ApmPlan) []interface{} {
 		}
 
 		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = deploymentstate.MemoryToState(*topology.Size.Value)
+			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
 		}
 
 		m["zone_count"] = topology.ZoneCount
@@ -156,7 +157,8 @@ func flattenSystemConfig(cfg *models.ApmSystemSettings) map[string]interface{} {
 	return m
 }
 
-func isCurrentPlanEmpty(res *models.ApmResourceInfo) bool {
+// IsCurrentPlanEmpty checks the apm resource current plan is empty.
+func IsCurrentPlanEmpty(res *models.ApmResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }
