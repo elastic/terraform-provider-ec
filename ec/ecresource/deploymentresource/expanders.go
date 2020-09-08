@@ -22,7 +22,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/appsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
@@ -34,7 +33,6 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 		Name: d.Get("name").(string),
 		Resources: &models.DeploymentCreateResources{
 			Apm:              make([]*models.ApmPayload, 0),
-			Appsearch:        make([]*models.AppSearchPayload, 0),
 			Elasticsearch:    make([]*models.ElasticsearchPayload, 0),
 			EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
 			Kibana:           make([]*models.KibanaPayload, 0),
@@ -61,12 +59,6 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
-
-	appsearchRes, err := appsearchstate.ExpandResources(d.Get("appsearch").([]interface{}))
-	if err != nil {
-		return nil, err
-	}
-	result.Resources.Appsearch = append(result.Resources.Appsearch, appsearchRes...)
 
 	enterpriseSearchRes, err := enterprisesearchstate.ExpandResources(d.Get("enterprise_search").([]interface{}))
 	if err != nil {
@@ -88,7 +80,6 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 		PruneOrphans: ec.Bool(false),
 		Resources: &models.DeploymentUpdateResources{
 			Apm:              make([]*models.ApmPayload, 0),
-			Appsearch:        make([]*models.AppSearchPayload, 0),
 			Elasticsearch:    make([]*models.ElasticsearchPayload, 0),
 			EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
 			Kibana:           make([]*models.KibanaPayload, 0),
@@ -115,12 +106,6 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
-
-	appsearchRes, err := appsearchstate.ExpandResources(d.Get("appsearch").([]interface{}))
-	if err != nil {
-		return nil, err
-	}
-	result.Resources.Appsearch = append(result.Resources.Appsearch, appsearchRes...)
 
 	enterpriseSearchRes, err := enterprisesearchstate.ExpandResources(d.Get("enterprise_search").([]interface{}))
 	if err != nil {

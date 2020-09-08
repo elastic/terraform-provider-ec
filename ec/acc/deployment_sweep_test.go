@@ -72,11 +72,6 @@ func testSweepDeployment(_ string) error {
 				sweep = true
 			}
 		}
-		for _, res := range d.Resources.Appsearch {
-			if *res.Info.Status != "stopped" {
-				sweep = true
-			}
-		}
 		for _, res := range d.Resources.Elasticsearch {
 			if *res.Info.Status != "stopped" {
 				sweep = true

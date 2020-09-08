@@ -18,7 +18,6 @@
 package acc
 
 const (
-	deploymentVersion          = "7.9.0"
-	deploymentVersionAppsearch = "7.6.2"
-	region                     = "us-east-1"
+	deploymentVersion = "7.9.0"
+	region            = "us-east-1"
 )
