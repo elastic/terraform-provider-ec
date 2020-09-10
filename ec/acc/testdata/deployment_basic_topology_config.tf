@@ -8,6 +8,9 @@ resource "ec_deployment" "basic" {
 
   elasticsearch {
     topology {
+      config {
+        user_settings_yaml = "action.auto_create_index: true"
+      }
       instance_configuration_id = "aws.data.highio.i3"
       memory_per_node           = "1g"
     }
