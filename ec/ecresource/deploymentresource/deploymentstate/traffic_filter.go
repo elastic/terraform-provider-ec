@@ -20,6 +20,7 @@ package deploymentstate
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
 
 // FlattenTrafficFiltering parses a deployment's traffic filtering settings.
@@ -51,11 +52,6 @@ func ExpandTrafficFilterCreate(set *schema.Set, req *models.DeploymentCreateRequ
 		return
 	}
 
-	var ruleSets = make([]string, 0, set.Len())
-	for _, r := range set.List() {
-		ruleSets = append(ruleSets, r.(string))
-	}
-
 	if req.Settings == nil {
 		req.Settings = &models.DeploymentCreateSettings{}
 	}
@@ -65,6 +61,7 @@ func ExpandTrafficFilterCreate(set *schema.Set, req *models.DeploymentCreateRequ
 	}
 
 	req.Settings.TrafficFilterSettings.Rulesets = append(
-		req.Settings.TrafficFilterSettings.Rulesets, ruleSets...,
+		req.Settings.TrafficFilterSettings.Rulesets,
+		util.ItemsToString(set.List())...,
 	)
 }

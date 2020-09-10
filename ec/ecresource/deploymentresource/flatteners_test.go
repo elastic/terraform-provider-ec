@@ -80,22 +80,26 @@ func Test_modelToState(t *testing.T) {
 												DeploymentTemplate: &models.DeploymentTemplateReference{
 													ID: ec.String("aws-io-optimized"),
 												},
-												ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
-													{
-														ZoneCount:               1,
-														InstanceConfigurationID: "aws.data.highio.i3",
-														Size: &models.TopologySize{
-															Resource: ec.String("memory"),
-															Value:    ec.Int32(2048),
-														},
-														NodeType: &models.ElasticsearchNodeType{
-															Data:   ec.Bool(true),
-															Ingest: ec.Bool(true),
-															Master: ec.Bool(true),
-															Ml:     ec.Bool(false),
-														},
+												ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+													ZoneCount:               1,
+													InstanceConfigurationID: "aws.data.highio.i3",
+													Size: &models.TopologySize{
+														Resource: ec.String("memory"),
+														Value:    ec.Int32(2048),
 													},
-												},
+													NodeType: &models.ElasticsearchNodeType{
+														Data:   ec.Bool(true),
+														Ingest: ec.Bool(true),
+														Master: ec.Bool(true),
+														Ml:     ec.Bool(false),
+													},
+													Elasticsearch: &models.ElasticsearchConfiguration{
+														UserSettingsYaml:         `some.setting: value`,
+														UserSettingsOverrideYaml: `some.setting: value2`,
+														UserSettingsJSON:         `{"some.setting": "value"}`,
+														UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+													},
+												}},
 											},
 										},
 									},

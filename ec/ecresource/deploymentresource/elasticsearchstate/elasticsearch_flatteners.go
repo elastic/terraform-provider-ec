@@ -19,6 +19,7 @@ package elasticsearchstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
@@ -71,8 +72,9 @@ func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []int
 			m[k] = v
 		}
 
-		// TODO: Flatten repository state.
-		// Determine what to do with the default snapshot repository.
+		if c := flattenConfig(plan.Elasticsearch); len(c) > 0 {
+			m["config"] = c
+		}
 
 		result = append(result, m)
 	}
@@ -125,10 +127,49 @@ func flattenTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
+		if c := flattenConfig(topology.Elasticsearch); len(c) > 0 {
+			m["config"] = c
+		}
+
 		result = append(result, m)
 	}
 
 	return result
+}
+
+func flattenConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
+	var m = make(map[string]interface{})
+	if cfg == nil {
+		return nil
+	}
+
+	if len(cfg.EnabledBuiltInPlugins) > 0 {
+		m["plugins"] = schema.NewSet(schema.HashString,
+			util.StringItems(cfg.EnabledBuiltInPlugins...),
+		)
+	}
+
+	if cfg.UserSettingsYaml != "" {
+		m["user_settings_yaml"] = cfg.UserSettingsYaml
+	}
+
+	if cfg.UserSettingsOverrideYaml != "" {
+		m["user_settings_override_yaml"] = cfg.UserSettingsOverrideYaml
+	}
+
+	if cfg.UserSettingsJSON != nil {
+		m["user_settings_json"] = cfg.UserSettingsJSON
+	}
+
+	if cfg.UserSettingsOverrideJSON != nil {
+		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
+	}
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	return []interface{}{m}
 }
 
 func flattenElasticsearchSettings(info *models.ElasticsearchClusterInfo) map[string]interface{} {
