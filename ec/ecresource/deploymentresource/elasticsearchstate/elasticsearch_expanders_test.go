@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -154,6 +155,76 @@ func TestExpandResource(t *testing.T) {
 									Ingest: ec.Bool(true),
 									Master: ec.Bool(true),
 									Ml:     ec.Bool(false),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses an ES resource with config",
+			args: args{
+				dt: "deployment-template-id",
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.7.0",
+						"region":      "some-region",
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.data.highio.i3",
+							"memory_per_node":           "2g",
+							"node_type_data":            true,
+							"node_type_ingest":          true,
+							"node_type_master":          true,
+							"node_type_ml":              false,
+							"zone_count":                1,
+							"config": []interface{}{map[string]interface{}{
+								"user_settings_yaml":          "some.setting: value",
+								"user_settings_override_yaml": "some.setting: value2",
+								"user_settings_json":          "{\"some.setting\": \"value\"}",
+								"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+								"plugins": schema.NewSet(schema.HashString, []interface{}{
+									"plugin",
+								}),
+							}},
+						}},
+					},
+				},
+			},
+			want: []*models.ElasticsearchPayload{
+				{
+					Region:   ec.String("some-region"),
+					RefID:    ec.String("main-elasticsearch"),
+					Settings: &models.ElasticsearchClusterSettings{},
+					Plan: &models.ElasticsearchClusterPlan{
+						Elasticsearch: &models.ElasticsearchConfiguration{
+							Version: "7.7.0",
+						},
+						DeploymentTemplate: &models.DeploymentTemplateReference{
+							ID: ec.String("deployment-template-id"),
+						},
+						ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+							{
+								ZoneCount:               1,
+								InstanceConfigurationID: "aws.data.highio.i3",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(2048),
+								},
+								NodeType: &models.ElasticsearchNodeType{
+									Data:   ec.Bool(true),
+									Ingest: ec.Bool(true),
+									Master: ec.Bool(true),
+									Ml:     ec.Bool(false),
+								},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON:         `{"some.setting": "value"}`,
+									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									EnabledBuiltInPlugins:    []string{"plugin"},
 								},
 							},
 						},

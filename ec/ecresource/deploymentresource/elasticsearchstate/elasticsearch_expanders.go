@@ -18,8 +18,11 @@
 package elasticsearchstate
 
 import (
+	"reflect"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-ec/ec/util"
 )
@@ -79,6 +82,14 @@ func expandResource(raw interface{}, dt string) (*models.ElasticsearchPayload, e
 			return nil, err
 		}
 		res.Plan.ClusterTopology = topology
+	}
+
+	if cfg, ok := es["config"]; ok {
+		if c := expandConfig(cfg); c != nil {
+			version := res.Plan.Elasticsearch.Version
+			res.Plan.Elasticsearch = c
+			res.Plan.Elasticsearch.Version = version
+		}
 	}
 
 	if rawSettings, ok := es["monitoring_settings"]; ok {
@@ -157,6 +168,10 @@ func ExpandTopology(raw interface{}) ([]*models.ElasticsearchClusterTopologyElem
 			elem.NodeCountPerZone = int32(nodecount.(int))
 		}
 
+		if c, ok := topology["config"]; ok {
+			elem.Elasticsearch = expandConfig(c)
+		}
+
 		res = append(res, &elem)
 	}
 
@@ -182,4 +197,37 @@ func parseNodeType(topology map[string]interface{}) models.ElasticsearchNodeType
 	}
 
 	return result
+}
+
+func expandConfig(raw interface{}) *models.ElasticsearchConfiguration {
+	var res = &models.ElasticsearchConfiguration{}
+	for _, rawCfg := range raw.([]interface{}) {
+		var cfg = rawCfg.(map[string]interface{})
+		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
+			if s, ok := settings.(string); ok && s != "" {
+				res.UserSettingsOverrideJSON = settings
+			}
+		}
+		if settings, ok := cfg["user_settings_yaml"]; ok {
+			res.UserSettingsYaml = settings.(string)
+		}
+		if settings, ok := cfg["user_settings_override_yaml"]; ok {
+			res.UserSettingsOverrideYaml = settings.(string)
+		}
+
+		if v, ok := cfg["plugins"]; ok {
+			res.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
+		}
+	}
+
+	if !reflect.DeepEqual(res, &models.ElasticsearchConfiguration{}) {
+		return res
+	}
+
+	return nil
 }

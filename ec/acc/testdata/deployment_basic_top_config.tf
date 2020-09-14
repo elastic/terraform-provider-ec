@@ -7,6 +7,9 @@ resource "ec_deployment" "basic" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
+    config {
+      user_settings_yaml = "action.auto_create_index: true"
+    }
     topology {
       instance_configuration_id = "aws.data.highio.i3"
       memory_per_node           = "1g"

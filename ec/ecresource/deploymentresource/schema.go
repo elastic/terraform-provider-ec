@@ -25,35 +25,42 @@ import (
 func NewSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"version": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Description: "Required Elastic Stack version to use for all of the deployment resources",
+			Required:    true,
 		},
 		"region": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"request_id": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Description: `Required ESS region where to create the deployment, for ECE environments "ece-region" must be set`,
+			Required:    true,
 		},
 		"deployment_template_id": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:        schema.TypeString,
+			Description: "Required Deployment Template identifier to create the deployment from",
+			Required:    true,
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Description: "Optional name for the deployment",
+			Optional:    true,
+		},
+		"request_id": {
+			Type:        schema.TypeString,
+			Description: "Optional request_id to set on the create operation, only use when previous create attempts return with an error and a request_id is returned as part of the error",
+			Optional:    true,
 		},
 
 		// Computed ES Creds
 		"elasticsearch_username": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Description: "Computed username obtained upon creating the Elasticsearch resource",
+			Computed:    true,
 		},
 		"elasticsearch_password": {
-			Type:      schema.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Type:        schema.TypeString,
+			Description: "Computed password obtained upon creating the Elasticsearch resource",
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		// APM secret_token
@@ -65,11 +72,12 @@ func NewSchema() map[string]*schema.Schema {
 
 		// Resources
 		"elasticsearch": {
-			Type:     schema.TypeList,
-			MinItems: 1,
-			MaxItems: 1,
-			Required: true,
-			Elem:     newElasticsearchResource(),
+			Type:        schema.TypeList,
+			Description: "Required Elasticsearch resource definition",
+			MinItems:    1,
+			MaxItems:    1,
+			Required:    true,
+			Elem:        newElasticsearchResource(),
 		},
 		"kibana": {
 			Type:     schema.TypeList,

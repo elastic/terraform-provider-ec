@@ -55,17 +55,21 @@ func newElasticsearchSample() map[string]interface{} {
 		"resource_id":  mock.ValidClusterID,
 		"version":      "7.7.0",
 		"region":       "some-region",
-		"topology": []interface{}{
-			map[string]interface{}{
-				"instance_configuration_id": "aws.data.highio.i3",
-				"memory_per_node":           "2g",
-				"node_type_data":            true,
-				"node_type_ingest":          true,
-				"node_type_master":          true,
-				"node_type_ml":              false,
-				"zone_count":                1,
-			},
-		},
+		"topology": []interface{}{map[string]interface{}{
+			"instance_configuration_id": "aws.data.highio.i3",
+			"memory_per_node":           "2g",
+			"node_type_data":            true,
+			"node_type_ingest":          true,
+			"node_type_master":          true,
+			"node_type_ml":              false,
+			"zone_count":                1,
+			"config": []interface{}{map[string]interface{}{
+				"user_settings_yaml":          "some.setting: value",
+				"user_settings_override_yaml": "some.setting: value2",
+				"user_settings_json":          "{\"some.setting\": \"value\"}",
+				"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+			}},
+		}},
 		"monitoring_settings": []interface{}{
 			map[string]interface{}{"target_cluster_id": "some"},
 		},
