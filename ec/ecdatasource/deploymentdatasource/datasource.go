@@ -27,8 +27,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecdatasource/deploymentdatasource/state"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource/state"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 )
 
 // DataSource returns the ec_deployment data source schema.

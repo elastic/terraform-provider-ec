@@ -20,8 +20,8 @@ package state
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
-	"github.com/terraform-providers/terraform-provider-ec/ec/util"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
+	"github.com/elastic/terraform-provider-ec/ec/util"
 )
 
 // FlattenEnterpriseSearchResources takes in EnterpriseSearch resource models and returns its

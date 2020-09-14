@@ -24,9 +24,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/deploymentresource"
-	"github.com/terraform-providers/terraform-provider-ec/ec/ecresource/trafficfilterresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
 
 const (

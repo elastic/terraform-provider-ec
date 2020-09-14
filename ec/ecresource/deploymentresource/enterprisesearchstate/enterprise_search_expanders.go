@@ -23,7 +23,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
-	"github.com/terraform-providers/terraform-provider-ec/ec/util"
+	"github.com/elastic/terraform-provider-ec/ec/util"
 )
 
 // ExpandResources expands Enterprise Search resources into their models.
