@@ -133,6 +133,13 @@ func parseCredentials(d *schema.ResourceData, resources []*models.DeploymentReso
 				}
 			}
 		}
+
+		// Parse APM secret_token
+		if res.SecretToken != "" {
+			if err := d.Set("apm_secret_token", res.SecretToken); err != nil {
+				merr = merr.Append(err)
+			}
+		}
 	}
 
 	return merr.ErrorOrNil()

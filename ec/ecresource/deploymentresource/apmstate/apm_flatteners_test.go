@@ -205,7 +205,6 @@ func TestFlattenResource(t *testing.T) {
 									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(true),
-										SecretToken:  "very_secret",
 									},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{
@@ -244,7 +243,6 @@ func TestFlattenResource(t *testing.T) {
 					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
 
 					"debug_enabled": true,
-					"secret_token":  "very_secret",
 				}},
 			}},
 		},
@@ -276,7 +274,6 @@ func TestFlattenResource(t *testing.T) {
 									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(true),
-										SecretToken:  "very_secret",
 									},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{{
@@ -287,7 +284,6 @@ func TestFlattenResource(t *testing.T) {
 										UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
 										SystemSettings: &models.ApmSystemSettings{
 											DebugEnabled: ec.Bool(true),
-											SecretToken:  "very_secret",
 										},
 									},
 									ZoneCount:               1,
@@ -323,7 +319,6 @@ func TestFlattenResource(t *testing.T) {
 						"user_settings_override_json": "{\"some.setting\": \"value2\"}",
 
 						"debug_enabled": true,
-						"secret_token":  "very_secret",
 					}},
 				}},
 				"config": []interface{}{map[string]interface{}{
@@ -333,7 +328,6 @@ func TestFlattenResource(t *testing.T) {
 					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
 
 					"debug_enabled": true,
-					"secret_token":  "very_secret",
 				}},
 			}},
 		},

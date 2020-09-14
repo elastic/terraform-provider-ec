@@ -56,6 +56,13 @@ func NewSchema() map[string]*schema.Schema {
 			Sensitive: true,
 		},
 
+		// APM secret_token
+		"apm_secret_token": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
 		// Resources
 		"elasticsearch": {
 			Type:     schema.TypeList,

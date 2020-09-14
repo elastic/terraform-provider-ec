@@ -116,12 +116,6 @@ func apmConfig() *schema.Schema {
 					Optional:    true,
 					Default:     false,
 				},
-				"secret_token": {
-					Type:        schema.TypeString,
-					Description: `Optionally override the secret token within APM - defaults to the previously existing secretToken`,
-					Optional:    true,
-					Computed:    true,
-				},
 
 				"user_settings_json": {
 					Type:        schema.TypeString,
