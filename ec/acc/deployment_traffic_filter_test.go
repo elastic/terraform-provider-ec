@@ -40,8 +40,7 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             cfg,
-				ExpectNonEmptyPlan: true,
+				Config: cfg,
 				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
@@ -52,8 +51,7 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 			// Ensure that no diff is generated.
 			{Config: cfg, PlanOnly: true},
 			{
-				Config:             updateConfigCfg,
-				ExpectNonEmptyPlan: true,
+				Config: updateConfigCfg,
 				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
@@ -65,9 +63,10 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 			// Ensure that no diff is generated.
 			{Config: updateConfigCfg, PlanOnly: true},
 			{
-				ResourceName:      resName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
