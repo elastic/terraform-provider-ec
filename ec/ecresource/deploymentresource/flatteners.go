@@ -24,12 +24,12 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) error {

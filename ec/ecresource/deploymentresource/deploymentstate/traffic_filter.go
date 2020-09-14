@@ -19,8 +19,8 @@ package deploymentstate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/elastic/terraform-provider-ec/ec/util"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // FlattenTrafficFiltering parses a deployment's traffic filtering settings.
