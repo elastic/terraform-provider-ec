@@ -46,8 +46,7 @@ func TestAccDeployment_basic(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             cfg,
-				ExpectNonEmptyPlan: true,
+				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
@@ -62,8 +61,7 @@ func TestAccDeployment_basic(t *testing.T) {
 			// Ensure that no diff is generated.
 			{Config: cfg, PlanOnly: true},
 			{
-				Config:             cfgWithTrafficFilter,
-				ExpectNonEmptyPlan: true,
+				Config: cfgWithTrafficFilter,
 				Check: checkBasicDeploymentResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
@@ -71,8 +69,7 @@ func TestAccDeployment_basic(t *testing.T) {
 			// Ensure that no diff is generated.
 			{Config: cfgWithTrafficFilter, PlanOnly: true},
 			{
-				Config:             cfgWithTrafficFilterUpdate,
-				ExpectNonEmptyPlan: true,
+				Config: cfgWithTrafficFilterUpdate,
 				Check: checkBasicDeploymentResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
@@ -143,9 +140,10 @@ func TestAccDeployment_basic(t *testing.T) {
 			// Ensure that no diff is generated.
 			{Config: cfg, PlanOnly: true},
 			{
-				ResourceName:      resName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts", "elasticsearch_password", "elasticsearch_username", "region", "version"},
 			},
 		},
 	})
