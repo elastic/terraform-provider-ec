@@ -21,8 +21,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/elastic/terraform-provider-ec/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-ec/ec"
 )
 
 const (

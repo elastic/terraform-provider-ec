@@ -19,7 +19,7 @@ package kibanastate
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/terraform-providers/terraform-provider-ec/ec/util"
+	"github.com/elastic/terraform-provider-ec/ec/util"
 )
 
 // FlattenResources takes the kibana resource models and returns them flattened.

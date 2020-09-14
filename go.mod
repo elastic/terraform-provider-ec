@@ -1,4 +1,4 @@
-module github.com/terraform-providers/terraform-provider-ec
+module github.com/elastic/terraform-provider-ec
 
 go 1.13
 

@@ -3,7 +3,7 @@ SWEEP_DIR ?= $(TEST_ACC)
 TEST ?= ./...
 TEST_COUNT ?= 1
 TESTUNITARGS ?= -timeout 10s -p 4 -race -cover -coverprofile=reports/c.out
-TEST_ACC ?= github.com/terraform-providers/terraform-provider-ec/ec/acc
+TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc
 TEST_NAME ?= Test
 
 REPORT_PATH ?= ./reports

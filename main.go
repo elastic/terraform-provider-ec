@@ -18,8 +18,8 @@
 package main
 
 import (
+	"github.com/elastic/terraform-provider-ec/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/terraform-providers/terraform-provider-ec/ec"
 )
 
 //go:generate go run ./gen/gen.go
