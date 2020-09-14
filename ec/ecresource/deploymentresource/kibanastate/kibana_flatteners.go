@@ -31,10 +31,6 @@ func FlattenResources(in []*models.KibanaResourceInfo, name string) []interface{
 			continue
 		}
 
-		if res.Info.ClusterName != nil && *res.Info.ClusterName != name && *res.Info.ClusterName != "" {
-			m["display_name"] = *res.Info.ClusterName
-		}
-
 		if res.RefID != nil && *res.RefID != "" {
 			m["ref_id"] = *res.RefID
 		}

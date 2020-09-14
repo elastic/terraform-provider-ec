@@ -54,9 +54,8 @@ func Test_createResourceToModel(t *testing.T) {
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
-							DisplayName: "some-name",
-							Region:      ec.String("some-region"),
-							RefID:       ec.String("main-elasticsearch"),
+							Region: ec.String("some-region"),
+							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
 								Monitoring: &models.ManagedMonitoringSettings{
 									TargetClusterID: ec.String("some"),
@@ -94,7 +93,6 @@ func Test_createResourceToModel(t *testing.T) {
 					},
 					Kibana: []*models.KibanaPayload{
 						{
-							DisplayName:               "some-kibana-name",
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 							Region:                    ec.String("some-region"),
 							RefID:                     ec.String("main-kibana"),
@@ -118,7 +116,6 @@ func Test_createResourceToModel(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							DisplayName:               "some-apm-name",
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 							Region:                    ec.String("some-region"),
 							RefID:                     ec.String("main-apm"),
@@ -148,7 +145,6 @@ func Test_createResourceToModel(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							DisplayName:               "some-enterprise_search-name",
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 							Region:                    ec.String("some-region"),
 							RefID:                     ec.String("main-enterprise_search"),
@@ -215,9 +211,8 @@ func Test_updateResourceToModel(t *testing.T) {
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
-							DisplayName: "some-name",
-							Region:      ec.String("some-region"),
-							RefID:       ec.String("main-elasticsearch"),
+							Region: ec.String("some-region"),
+							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
 								Monitoring: &models.ManagedMonitoringSettings{
 									TargetClusterID: ec.String("some"),
@@ -255,7 +250,6 @@ func Test_updateResourceToModel(t *testing.T) {
 					},
 					Kibana: []*models.KibanaPayload{
 						{
-							DisplayName:               "some-kibana-name",
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 							Region:                    ec.String("some-region"),
 							RefID:                     ec.String("main-kibana"),
@@ -279,7 +273,6 @@ func Test_updateResourceToModel(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							DisplayName:               "some-apm-name",
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 							Region:                    ec.String("some-region"),
 							RefID:                     ec.String("main-apm"),
@@ -309,7 +302,6 @@ func Test_updateResourceToModel(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							DisplayName:               "some-enterprise_search-name",
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
 							Region:                    ec.String("some-region"),
 							RefID:                     ec.String("main-enterprise_search"),

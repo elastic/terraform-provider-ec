@@ -59,7 +59,6 @@ func TestExpandResources(t *testing.T) {
 						}},
 					},
 					map[string]interface{}{
-						"display_name":                 "somename",
 						"ref_id":                       "secondary-enterprise_search",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"resource_id":                  mock.ValidClusterID,
@@ -75,7 +74,6 @@ func TestExpandResources(t *testing.T) {
 						}},
 					},
 					map[string]interface{}{
-						"display_name":                 "somename",
 						"ref_id":                       "secondary-enterprise_search",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"resource_id":                  mock.ValidClusterID,
@@ -126,7 +124,6 @@ func TestExpandResources(t *testing.T) {
 				},
 				{
 					ElasticsearchClusterRefID: ec.String("somerefid"),
-					DisplayName:               "somename",
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("secondary-enterprise_search"),
 					Settings:                  &models.EnterpriseSearchSettings{},
@@ -151,7 +148,6 @@ func TestExpandResources(t *testing.T) {
 				},
 				{
 					ElasticsearchClusterRefID: ec.String("somerefid"),
-					DisplayName:               "somename",
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("secondary-enterprise_search"),
 					Settings:                  &models.EnterpriseSearchSettings{},

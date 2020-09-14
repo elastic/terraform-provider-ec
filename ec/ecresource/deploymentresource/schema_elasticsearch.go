@@ -25,11 +25,6 @@ import (
 func newElasticsearchResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			// Pending removal.
-			"display_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"ref_id": {
 				Type:        schema.TypeString,
 				Description: "Optional ref_id to set on the Elasticsearch resource",

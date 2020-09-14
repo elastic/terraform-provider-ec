@@ -57,11 +57,6 @@ func expandResource(raw interface{}, dt string) (*models.ElasticsearchPayload, e
 		},
 		Settings: &models.ElasticsearchClusterSettings{},
 	}
-
-	if name, ok := es["display_name"]; ok {
-		res.DisplayName = name.(string)
-	}
-
 	if refID, ok := es["ref_id"]; ok {
 		res.RefID = ec.String(refID.(string))
 	}

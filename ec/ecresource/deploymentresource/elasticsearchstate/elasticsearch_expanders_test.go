@@ -47,11 +47,10 @@ func TestExpandResource(t *testing.T) {
 				dt: "deployment-template-id",
 				ess: []interface{}{
 					map[string]interface{}{
-						"display_name": "somename",
-						"ref_id":       "secondary-elasticsearch",
-						"resource_id":  mock.ValidClusterID,
-						"version":      "7.6.0",
-						"region":       "some-region",
+						"ref_id":      "secondary-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.6.0",
+						"region":      "some-region",
 						"monitoring_settings": []interface{}{
 							map[string]interface{}{"target_cluster_id": "some"},
 						},
@@ -71,9 +70,8 @@ func TestExpandResource(t *testing.T) {
 			},
 			want: []*models.ElasticsearchPayload{
 				{
-					DisplayName: "somename",
-					Region:      ec.String("some-region"),
-					RefID:       ec.String("secondary-elasticsearch"),
+					Region: ec.String("some-region"),
+					RefID:  ec.String("secondary-elasticsearch"),
 					Settings: &models.ElasticsearchClusterSettings{
 						Monitoring: &models.ManagedMonitoringSettings{
 							TargetClusterID: ec.String("some"),

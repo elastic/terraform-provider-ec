@@ -141,7 +141,6 @@ func TestFlattenResources(t *testing.T) {
 			want: []interface{}{
 				map[string]interface{}{
 					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"display_name":                 "some-kibana-name",
 					"ref_id":                       "main-kibana",
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
@@ -158,7 +157,6 @@ func TestFlattenResources(t *testing.T) {
 				},
 				map[string]interface{}{
 					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"display_name":                 "some-kibana-name",
 					"ref_id":                       "main-kibana",
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",

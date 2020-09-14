@@ -50,11 +50,10 @@ func newSampleDeployment() map[string]interface{} {
 
 func newElasticsearchSample() map[string]interface{} {
 	return map[string]interface{}{
-		"display_name": "some-name",
-		"ref_id":       "main-elasticsearch",
-		"resource_id":  mock.ValidClusterID,
-		"version":      "7.7.0",
-		"region":       "some-region",
+		"ref_id":      "main-elasticsearch",
+		"resource_id": mock.ValidClusterID,
+		"version":     "7.7.0",
+		"region":      "some-region",
 		"topology": []interface{}{map[string]interface{}{
 			"instance_configuration_id": "aws.data.highio.i3",
 			"memory_per_node":           "2g",
@@ -79,7 +78,6 @@ func newElasticsearchSample() map[string]interface{} {
 func newKibanaSample() map[string]interface{} {
 	return map[string]interface{}{
 		"elasticsearch_cluster_ref_id": "main-elasticsearch",
-		"display_name":                 "some-kibana-name",
 		"ref_id":                       "main-kibana",
 		"resource_id":                  mock.ValidClusterID,
 		"version":                      "7.7.0",
@@ -97,7 +95,6 @@ func newKibanaSample() map[string]interface{} {
 func newApmSample() map[string]interface{} {
 	return map[string]interface{}{
 		"elasticsearch_cluster_ref_id": "main-elasticsearch",
-		"display_name":                 "some-apm-name",
 		"ref_id":                       "main-apm",
 		"resource_id":                  mock.ValidClusterID,
 		"version":                      "7.7.0",
@@ -120,7 +117,6 @@ func newApmSample() map[string]interface{} {
 func newEnterpriseSearchSample() map[string]interface{} {
 	return map[string]interface{}{
 		"elasticsearch_cluster_ref_id": "main-elasticsearch",
-		"display_name":                 "some-enterprise_search-name",
 		"ref_id":                       "main-enterprise_search",
 		"resource_id":                  mock.ValidClusterID,
 		"version":                      "7.7.0",
