@@ -28,6 +28,8 @@ These will not be available for interpolation.
 * `healthy` - Overall health status of the deployment.
 * `id` - The unique ID of the deployment.
 * `name` - The name of the deployment.
+* `region` - Region where the deployment can be found.
+* `deployment_template_id` - Deployment Template identifier from where the deployment is created.
 * `elasticsearch` - Instance configuration of the Elasticsearch resource kind.
   * `elasticsearch.#.healthy` - Resource kind health status.
   * `elasticsearch.#.cloud_id` - Unique ID to your hosted Elasticsearch cluster on Elasticsearch Service.
@@ -67,7 +69,6 @@ These will not be available for interpolation.
   * `apm.#.https_endpoint` - HTTPS endpoint for the resource kind.
   * `apm.#.ref_id` - User specified RefId for the resource kind.
   * `apm.#.resource_id` - Unique ID of the resource kind.
-  * `apm.#.secret_token` - The secret token for accessing the server.
   * `apm.#.status` - Resource kind status (e.g. "started", "stopped" etc).
   * `apm.#.version` - Elastic stack version.
   * `apm.#.topology` - Node topology element definition.
@@ -82,7 +83,6 @@ These will not be available for interpolation.
   * `enterprise_search.#.https_endpoint` - HTTPS endpoint for the resource kind.
   * `enterprise_search.#.ref_id` - User specified RefId for the resource kind.
   * `enterprise_search.#.resource_id` - Unique ID of the resource kind.
-  * `enterprise_search.#.secret_session_key` - The secret session key within Enterprise Search.
   * `enterprise_search.#.status` - Resource kind status (e.g. "started", "stopped" etc).
   * `enterprise_search.#.version` - Elastic stack version.
   * `enterprise_search.#.topology` - Node topology element definition.
