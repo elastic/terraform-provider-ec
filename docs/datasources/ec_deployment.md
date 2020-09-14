@@ -32,16 +32,16 @@ These will not be available for interpolation.
 * `deployment_template_id` - Deployment Template identifier from where the deployment is created.
 * `elasticsearch` - Instance configuration of the Elasticsearch resource kind.
   * `elasticsearch.#.healthy` - Resource kind health status.
-  * `elasticsearch.#.cloud_id` - Unique ID to your hosted Elasticsearch cluster on Elasticsearch Service.
+  * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash, [more information](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).
   * `elasticsearch.#.http_endpoint` - HTTP endpoint for the resource kind.
   * `elasticsearch.#.https_endpoint` - HTTPS endpoint for the resource kind.
-  * `elasticsearch.#.ref_id` - User specified RefId for the resource kind.
-  * `elasticsearch.#.resource_id` - Unique ID of the resource kind.
+  * `elasticsearch.#.ref_id` - User specified ref_id for the resource kind.
+  * `elasticsearch.#.resource_id` - The resource unique identifier.
   * `elasticsearch.#.status` - Resource kind status (e.g. "started", "stopped" etc).
   * `elasticsearch.#.version` - Elastic stack version.
-  * `elasticsearch.#.topology` - Node topology element definition.
+  * `elasticsearch.#.topology` - Topology element definition.
     * `elasticsearch.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `elasticsearch.#.topology.#.memory_per_node` - Memory (RAM) in GB that each of the resource kind instances has.
+    * `elasticsearch.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
     * `elasticsearch.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
     * `elasticsearch.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
     * `elasticsearch.#.topology.#.node_type_data` - Defines whether this node can hold data.
@@ -53,13 +53,13 @@ These will not be available for interpolation.
   * `kibana.#.healthy` - Resource kind health status.
   * `kibana.#.http_endpoint` - HTTP endpoint for the resource kind.
   * `kibana.#.https_endpoint` - HTTPS endpoint for the resource kind.
-  * `kibana.#.ref_id` - User specified RefId for the resource kind.
-  * `kibana.#.resource_id` - Unique ID of the resource kind.
+  * `kibana.#.ref_id` - User specified ref_id for the resource kind.
+  * `kibana.#.resource_id` - The resource unique identifier.
   * `kibana.#.status` - Resource kind status (e.g. "started", "stopped" etc).
   * `kibana.#.version` - Elastic stack version.
   * `kibana.#.topology` - Node topology element definition.
     * `kibana.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `kibana.#.topology.#.memory_per_node` - Memory (RAM) in GB that each of the resource kind instances has.
+    * `kibana.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
     * `kibana.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
     * `kibana.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
 * `apm` - Instance configuration of the APM type.
@@ -67,13 +67,13 @@ These will not be available for interpolation.
   * `apm.#.healthy` - Resource kind health status.
   * `apm.#.http_endpoint` - HTTP endpoint for the resource kind.
   * `apm.#.https_endpoint` - HTTPS endpoint for the resource kind.
-  * `apm.#.ref_id` - User specified RefId for the resource kind.
-  * `apm.#.resource_id` - Unique ID of the resource kind.
+  * `apm.#.ref_id` - User specified ref_id for the resource kind.
+  * `apm.#.resource_id` - The resource unique identifier.
   * `apm.#.status` - Resource kind status (e.g. "started", "stopped" etc).
   * `apm.#.version` - Elastic stack version.
   * `apm.#.topology` - Node topology element definition.
     * `apm.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `apm.#.topology.#.memory_per_node` - Memory (RAM) in GB that each of the resource kind instances has.
+    * `apm.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
     * `apm.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
     * `apm.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
 * `enterprise_search` - Instance configuration of the Enterprise Search type.
@@ -81,13 +81,13 @@ These will not be available for interpolation.
   * `enterprise_search.#.healthy` - Resource kind health status.
   * `enterprise_search.#.http_endpoint` - HTTP endpoint for the resource kind.
   * `enterprise_search.#.https_endpoint` - HTTPS endpoint for the resource kind.
-  * `enterprise_search.#.ref_id` - User specified RefId for the resource kind.
-  * `enterprise_search.#.resource_id` - Unique ID of the resource kind.
+  * `enterprise_search.#.ref_id` - User specified ref_id for the resource kind.
+  * `enterprise_search.#.resource_id` - The resource unique identifier.
   * `enterprise_search.#.status` - Resource kind status (e.g. "started", "stopped" etc).
   * `enterprise_search.#.version` - Elastic stack version.
   * `enterprise_search.#.topology` - Node topology element definition.
     * `enterprise_search.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `enterprise_search.#.topology.#.memory_per_node` - Memory (RAM) in GB that each of the resource kind instances has.
+    * `enterprise_search.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
     * `enterprise_search.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
     * `enterprise_search.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
     * `enterprise_search.#.topology.#.node_type_appserver` - Defines whether this instance should run as application/API server.

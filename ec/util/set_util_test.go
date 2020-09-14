@@ -43,7 +43,7 @@ func TestStringItems(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResult := StringItems(tt.args.elems...)
+			gotResult := StringToItems(tt.args.elems...)
 			assert.Equal(t, tt.wantResult, gotResult)
 		})
 	}

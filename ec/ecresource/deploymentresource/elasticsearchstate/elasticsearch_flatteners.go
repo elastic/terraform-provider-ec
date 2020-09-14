@@ -145,7 +145,7 @@ func flattenConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 
 	if len(cfg.EnabledBuiltInPlugins) > 0 {
 		m["plugins"] = schema.NewSet(schema.HashString,
-			util.StringItems(cfg.EnabledBuiltInPlugins...),
+			util.StringToItems(cfg.EnabledBuiltInPlugins...),
 		)
 	}
 

@@ -17,8 +17,8 @@
 
 package util
 
-// StringItems takes in a slice of strings and returns a []interface{}
-func StringItems(elems ...string) (result []interface{}) {
+// StringToItems takes in a slice of strings and returns a []interface{}.
+func StringToItems(elems ...string) (result []interface{}) {
 	for _, e := range elems {
 		result = append(result, e)
 	}
@@ -26,7 +26,7 @@ func StringItems(elems ...string) (result []interface{}) {
 	return result
 }
 
-// ItemsToString takes in a slice of strings and returns a []interface{}
+// ItemsToString takes in an []interface{} and returns a slice of strings.
 func ItemsToString(elems []interface{}) (result []string) {
 	for _, e := range elems {
 		result = append(result, e.(string))

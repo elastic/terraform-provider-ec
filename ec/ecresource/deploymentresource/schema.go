@@ -31,7 +31,7 @@ func NewSchema() map[string]*schema.Schema {
 		},
 		"region": {
 			Type:        schema.TypeString,
-			Description: "Required ESS region where to create the deployment, for ECE environments \"ece-region\" must be set",
+			Description: `Required ESS region where to create the deployment, for ECE environments "ece-region" must be set`,
 			Required:    true,
 		},
 		"deployment_template_id": {

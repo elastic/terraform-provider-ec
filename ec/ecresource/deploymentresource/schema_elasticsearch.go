@@ -25,10 +25,10 @@ import (
 func newElasticsearchResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			// This field is not very useful, it might be removed.
+			// Pending removal.
 			"display_name": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"ref_id": {
 				Type:        schema.TypeString,
@@ -40,7 +40,7 @@ func newElasticsearchResource() *schema.Resource {
 			// Computed attributes
 			"resource_id": {
 				Type:        schema.TypeString,
-				Description: "The Elasticsearch resource identifier",
+				Description: "The Elasticsearch resource unique identifier",
 				Computed:    true,
 			},
 			"version": {
@@ -55,17 +55,17 @@ func newElasticsearchResource() *schema.Resource {
 			},
 			"cloud_id": {
 				Type:        schema.TypeString,
-				Description: "The cloud_id credentials to use in Beats or Logstash",
+				Description: "The encoded Elasticsearch credentials to use in Beats or Logstash",
 				Computed:    true,
 			},
 			"http_endpoint": {
 				Type:        schema.TypeString,
-				Description: "The Elasticsearch resource HTTP endpoint to use to connect to the Elasticsearch cluster",
+				Description: "The Elasticsearch resource HTTP endpoint",
 				Computed:    true,
 			},
 			"https_endpoint": {
 				Type:        schema.TypeString,
-				Description: "The Elasticsearch resource HTTPs endpoint to use to connect to the Elasticsearch cluster",
+				Description: "The Elasticsearch resource HTTPs endpoint",
 				Computed:    true,
 			},
 
@@ -85,50 +85,58 @@ func newElasticsearchResource() *schema.Resource {
 
 func elasticsearchTopologySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		MinItems: 1,
-		Required: true,
+		Type:        schema.TypeList,
+		MinItems:    1,
+		Required:    true,
+		Description: `Required topology element which must be set once but can be set multiple times to compose complex topologies`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"instance_configuration_id": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:        schema.TypeString,
+					Description: `Required Instance Configuration ID from the deployment template`,
+					Required:    true,
 				},
 				"memory_per_node": {
-					Type:     schema.TypeString,
-					Default:  "4g",
-					Optional: true,
+					Type:        schema.TypeString,
+					Description: `Optional amount of memory per node in the "<size in GB>g" notation`,
+					Default:     "4g",
+					Optional:    true,
 				},
 				"node_count_per_zone": {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
 				"zone_count": {
-					Type:     schema.TypeInt,
-					Default:  1,
-					Optional: true,
+					Type:        schema.TypeInt,
+					Description: `Optional number of zones that the Elasticsearch cluster will span. This is used to set HA`,
+					Default:     1,
+					Optional:    true,
 				},
 
 				// Node types
 
 				"node_type_data": {
-					Type:     schema.TypeBool,
-					Default:  true,
-					Optional: true,
+					Type:        schema.TypeBool,
+					Description: `Optional node type (data) for the Elasticsearch Topology element`,
+					Default:     true,
+					Optional:    true,
 				},
 				"node_type_master": {
-					Type:     schema.TypeBool,
-					Default:  true,
-					Optional: true,
+					Type:        schema.TypeBool,
+					Description: `Optional node type (master) for the Elasticsearch Topology element`,
+					Default:     true,
+					Optional:    true,
 				},
 				"node_type_ingest": {
-					Type:     schema.TypeBool,
-					Default:  true,
-					Optional: true,
+					Type:        schema.TypeBool,
+					Description: `Optional node type (ingest) for the Elasticsearch Topology element`,
+					Default:     true,
+					Optional:    true,
 				},
 				"node_type_ml": {
-					Type:     schema.TypeBool,
-					Optional: true,
+					Type:        schema.TypeBool,
+					Description: `Optional node type (machine learning) for the Elasticsearch Topology element`,
+					Optional:    true,
 				},
 
 				"config": elasticsearchConfig(),
@@ -188,18 +196,21 @@ func elasticsearchConfig() *schema.Schema {
 		Optional:         true,
 		MaxItems:         1,
 		DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
-		Description:      `Optionally define the Elasticsearch configuration options for the Elasticsearch nodes`,
+		Description:      `Optional Elasticsearch settings which will be applied to all topologies unless overridden on the topology element`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				// Settings
 
-				// Ignored settings for now: [ user_bundles and user_bundles ].
+				// Ignored settings are: [ user_bundles and user_plugins ].
+				// Adding support for them will allow users to specify
+				// "Extensions" as it is possible in the UI today.
+				// The implementation would differ between ECE and ESS.
 
 				// plugins maps to the `enabled_built_in_plugins` API setting.
 				"plugins": {
 					Type:        schema.TypeSet,
 					Set:         schema.HashString,
-					Description: "A list of plugin names from the Elastic-supported subset that are bundled with the version images. NOTES: (Users should consult the Elastic stack objects to see what plugins are available, this is currently only available from the UI and ecctl)",
+					Description: "List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)",
 					Optional:    true,
 					MinItems:    1,
 					Elem: &schema.Schema{
@@ -211,22 +222,22 @@ func elasticsearchConfig() *schema.Schema {
 				// User settings
 				"user_settings_json": {
 					Type:        schema.TypeString,
-					Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+					Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
 				},
 				"user_settings_override_json": {
 					Type:        schema.TypeString,
-					Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+					Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
 				},
 				"user_settings_yaml": {
 					Type:        schema.TypeString,
-					Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+					Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
 				},
 				"user_settings_override_yaml": {
 					Type:        schema.TypeString,
-					Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+					Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
 				},
 			},
