@@ -74,9 +74,6 @@ func newElasticsearchResource() *schema.Resource {
 
 			"config": elasticsearchConfig(),
 
-			// This setting hasn't been implemented.
-			"snapshot_settings": elasticsearchSnapshotSchema(),
-
 			// This doesn't work properly. Deleting a monitoring setting doesn't work.
 			"monitoring_settings": elasticsearchMonitoringSchema(),
 		},
@@ -140,35 +137,6 @@ func elasticsearchTopologySchema() *schema.Schema {
 				},
 
 				"config": elasticsearchConfig(),
-			},
-		},
-	}
-}
-
-// TODO: This schema is missing quite a lot of properties compared to the API model.
-func elasticsearchSnapshotSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"enabled": {
-					Type:     schema.TypeBool,
-					Required: true,
-				},
-				"interval": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"retention_max_age": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"retention_snapshots": {
-					Type:     schema.TypeInt,
-					Required: true,
-				},
 			},
 		},
 	}
