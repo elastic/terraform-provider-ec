@@ -32,10 +32,6 @@ func FlattenResources(in []*models.ApmResourceInfo, name string) []interface{} {
 			continue
 		}
 
-		if res.Info.Name != nil && *res.Info.Name != name && *res.Info.Name != "" {
-			m["display_name"] = *res.Info.Name
-		}
-
 		if res.RefID != nil && *res.RefID != "" {
 			m["ref_id"] = *res.RefID
 		}

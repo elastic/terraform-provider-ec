@@ -56,7 +56,6 @@ func TestExpandResources(t *testing.T) {
 						}},
 					},
 					map[string]interface{}{
-						"display_name":                 "somename",
 						"ref_id":                       "secondary-kibana",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"resource_id":                  mock.ValidClusterID,
@@ -69,7 +68,6 @@ func TestExpandResources(t *testing.T) {
 						}},
 					},
 					map[string]interface{}{
-						"display_name":                 "somename",
 						"ref_id":                       "secondary-kibana",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"resource_id":                  mock.ValidClusterID,
@@ -119,7 +117,6 @@ func TestExpandResources(t *testing.T) {
 				},
 				{
 					ElasticsearchClusterRefID: ec.String("somerefid"),
-					DisplayName:               "somename",
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("secondary-kibana"),
 					Settings:                  &models.KibanaClusterSettings{},
@@ -139,7 +136,6 @@ func TestExpandResources(t *testing.T) {
 				},
 				{
 					ElasticsearchClusterRefID: ec.String("somerefid"),
-					DisplayName:               "somename",
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("secondary-kibana"),
 					Settings:                  &models.KibanaClusterSettings{},

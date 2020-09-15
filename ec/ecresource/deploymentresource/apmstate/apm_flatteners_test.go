@@ -95,7 +95,6 @@ func TestFlattenResource(t *testing.T) {
 			want: []interface{}{
 				map[string]interface{}{
 					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"display_name":                 "some-apm-name",
 					"ref_id":                       "main-apm",
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
@@ -157,7 +156,6 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{map[string]interface{}{
 				"elasticsearch_cluster_ref_id": "main-elasticsearch",
-				"display_name":                 "some-apm-name",
 				"ref_id":                       "main-apm",
 				"resource_id":                  mock.ValidClusterID,
 				"version":                      "7.8.0",
@@ -224,7 +222,6 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{map[string]interface{}{
 				"elasticsearch_cluster_ref_id": "main-elasticsearch",
-				"display_name":                 "some-apm-name",
 				"ref_id":                       "main-apm",
 				"resource_id":                  mock.ValidClusterID,
 				"version":                      "7.8.0",
@@ -301,7 +298,6 @@ func TestFlattenResource(t *testing.T) {
 			}},
 			want: []interface{}{map[string]interface{}{
 				"elasticsearch_cluster_ref_id": "main-elasticsearch",
-				"display_name":                 "some-apm-name",
 				"ref_id":                       "main-apm",
 				"resource_id":                  mock.ValidClusterID,
 				"version":                      "7.8.0",
