@@ -105,31 +105,6 @@ func expandResource(raw interface{}, dt string) (*models.ElasticsearchPayload, e
 		// }
 	}
 
-	// TODO: Verify that this works.
-	if rawSettings, ok := es["snapshot_settings"]; ok {
-		if settings := rawSettings.([]interface{}); len(settings) > 0 {
-			res.Settings.Snapshot = &models.ClusterSnapshotSettings{}
-			var ss = settings[0].((map[string]interface{}))
-			res.Settings.Snapshot.Retention = &models.ClusterSnapshotRetention{}
-
-			if enabled, ok := ss["enabled"].(bool); ok {
-				res.Settings.Snapshot.Enabled = ec.Bool(enabled)
-			}
-
-			if interval, ok := ss["interval"].(string); ok {
-				res.Settings.Snapshot.Interval = interval
-			}
-
-			if maxAge, ok := ss["retention_max_age"].(string); ok {
-				res.Settings.Snapshot.Retention.MaxAge = maxAge
-			}
-
-			if snapshotRetention, ok := ss["retention_snapshots"].(int); ok {
-				res.Settings.Snapshot.Retention.Snapshots = int32(snapshotRetention)
-			}
-		}
-	}
-
 	return &res, nil
 }
 
