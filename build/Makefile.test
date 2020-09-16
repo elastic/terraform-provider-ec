@@ -25,7 +25,7 @@ tests: unit
 
 .PHONY: testacc
 ## Runs the Terraform acceptance tests. Use TEST, TESTARGS and TEST_COUNT to control execution
-testacc: format
+testacc:
 	@ echo "-> Running terraform acceptance tests..."
 	@ TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel 20 $(TESTARGS) -timeout 120m -run $(TEST_NAME)
 
