@@ -35,3 +35,8 @@ sweep:
 	@ echo "-> WARNING: This will destroy infrastructure. Use only in development accounts."
 	@ read -r -p "do you wish to continue? [y/N]: " res && if [[ "$${res:0:1}" =~ ^([yY]) ]]; then echo "-> Continuing..."; else exit 1; fi
 	@ go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS) -timeout 60m
+
+.PHONY: testacc-ci
+testacc-ci:
+	@ $(MAKE) -C .ci .apikey
+	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc

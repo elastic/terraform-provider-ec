@@ -6,3 +6,4 @@ examples/*/*.tfstate
 examples/*/*.tfstate.backup
 .vscode
 .idea
+.apikey

@@ -1,0 +1,31 @@
+---
+- job:
+    name: elastic+terraform-provider-ec+master
+    display-name: elastic / terraform-provider-ec - master
+    description: Master branch testing
+    project-type: multijob
+    scm:
+    - git:
+        wipe-workspace: 'False'
+    triggers:
+    - github
+    axes:
+    - axis:
+        type: slave
+        name: label
+        values:
+        - docker&&virtual
+    builders:
+    - shell: |-
+        #!/usr/local/bin/runbld
+        set -euo pipefail
+
+        source /usr/local/bin/bash_standard_lib.sh
+
+        set +x
+        VAULT_TOKEN=$(retry 5 vault write -field=token auth/approle/login role_id="$VAULT_ROLE_ID" secret_id="$VAULT_SECRET_ID")
+        export VAULT_TOKEN
+        unset VAULT_ROLE_ID VAULT_SECRET_ID
+        set -x
+
+        make testacc-ci 
