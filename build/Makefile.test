@@ -38,5 +38,4 @@ sweep:
 
 .PHONY: testacc-ci
 testacc-ci:
-	@ $(MAKE) -C .ci .apikey
 	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc

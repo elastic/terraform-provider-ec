@@ -3,39 +3,20 @@
     name: elastic+terraform-provider-ec+pull-request
     display-name: elastic / terraform-provider-ec - pull-request
     description: Pull request testing
-    project-type: multijob
+    project-type: pipeline
     concurrent: true
-    scm:
-    - git:
-        branches:
-        - $ghprbActualCommit
-        refspec: +refs/pull/*:refs/remotes/origin/pr/*
-        wipe-workspace: 'False'
-    axes:
-    - axis:
-        type: slave
-        name: label
-        values:
-        - docker&&virtual
     triggers:
-    - github-pull-request:
-        github-hooks: true
-        org-list:
-        - elastic
-        allow-whitelist-orgs-as-admins: true
-        cancel-builds-on-update: true
-        status-context: acceptance
-    builders:
-    - shell: |-
-        #!/usr/local/bin/runbld
-        set -euo pipefail
-
-        source /usr/local/bin/bash_standard_lib.sh
-
-        set +x
-        VAULT_TOKEN=$(retry 5 vault write -field=token auth/approle/login role_id="$VAULT_ROLE_ID" secret_id="$VAULT_SECRET_ID")
-        export VAULT_TOKEN
-        unset VAULT_ROLE_ID VAULT_SECRET_ID
-        set -x
-
-        make testacc-ci
+        - github-pull-request:
+            github-hooks: true
+            org-list:
+                - elastic
+            allow-whitelist-orgs-as-admins: true
+            cancel-builds-on-update: true
+            status-context: acceptance
+    pipeline-scm:
+        scm:
+            - git:
+                branches:
+                    - $ghprbActualCommit
+                refspec: +refs/pull/*:refs/remotes/origin/pr/*
+                wipe-workspace: "False"
