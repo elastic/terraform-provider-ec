@@ -19,4 +19,3 @@
                 branches:
                     - $ghprbActualCommit
                 refspec: +refs/pull/*:refs/remotes/origin/pr/*
-                wipe-workspace: "False"
