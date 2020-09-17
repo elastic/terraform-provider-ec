@@ -26,13 +26,13 @@ func NewSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"deployment_id": {
 			Type:        schema.TypeString,
-			Description: `Required deployment identifier where the traffic filter will be associated`,
+			Description: `Required deployment ID where the traffic filter will be associated`,
 			Required:    true,
 			ForceNew:    true,
 		},
 		"traffic_filter_id": {
 			Type:        schema.TypeString,
-			Description: "Required traffic filter ruleset identifier to tie to a deployment",
+			Description: "Required traffic filter ruleset ID to tie to a deployment",
 			Required:    true,
 			ForceNew:    true,
 		},

@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Read queries the remote deployment traffic filter ruleset association and
+// read queries the remote deployment traffic filter ruleset association and
 // updates the local state.
 func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
