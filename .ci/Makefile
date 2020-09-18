@@ -18,4 +18,4 @@ clean: ## Delete credentials
 	@ rm -f .apikey
 
 .apikey:
-	@ $(vault) read -field=apikey secret/cloud-team/production/delivery-clients > .apikey
+	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=apikey secret/cloud-team/production/delivery-clients > .apikey
