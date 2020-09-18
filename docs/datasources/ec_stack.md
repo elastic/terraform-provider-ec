@@ -16,11 +16,16 @@ data "ec_stack" "latest" {
   region        = "us-east-1"
   lock          = true
 }
+
+data "ec_stack" "latest_patch" {
+  version_regex = "7.9.?"
+  region        = "us-east-1"
+}
 ```
 
 ## Argument Reference
 s
-* `version_regex` (Required) - Regex to filter the available stacks. Can be any valid regex expression, when multiple stacks are matched through a regex, the latest version is returned.
+* `version_regex` (Required) - Regex to filter the available stacks. Can be any valid regex expression, when multiple stacks are matched through a regex, the latest version is returned. `"latest"` is also accepted to obtain the latest available Stack version.
 * `region` (Required) - Region where the stack pack is, `"ece-region` needs to be used for ece.
 * `lock` (Optional) - Lock the `"latest"` `version_regex` obtained so that when there's a new stack release, the new release doesn't cascade the changes down to the deployments, can be changed at any time.
 
