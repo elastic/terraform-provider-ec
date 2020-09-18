@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 node('docker') {
-    String DOCKER_IMAGE = "golang:1.15-stretch"
+    String DOCKER_IMAGE = "golang:1.15"
     String APP_PATH = "/go/src/github.com/elastic/terraform-provider-ec"
 
     stage('Checkout from GitHub') {
