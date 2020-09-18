@@ -18,4 +18,4 @@ clean: ## Delete credentials
 	@ rm -f .apikey
 
 .apikey:
-	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=apikey secret/cloud-team/production/delivery-clients > .apikey
+	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=apikey secret/devops-ci/terraform-provider-ec > .apikey
