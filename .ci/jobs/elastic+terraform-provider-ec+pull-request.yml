@@ -12,7 +12,7 @@
                 - elastic
             allow-whitelist-orgs-as-admins: true
             cancel-builds-on-update: true
-            status-context: acceptance
+            status-context: "Terraform Acceptance"
     pipeline-scm:
         scm:
             - git:
