@@ -1,0 +1,5 @@
+---
+- view: 
+    name: 'terraform-provider-ec'
+    regex: '.*terraform-provider-ec.*'
+    view-type: list

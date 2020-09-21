@@ -1,0 +1,13 @@
+---
+- job:
+    name: elastic+terraform-provider-ec+master
+    display-name: elastic / terraform-provider-ec - master
+    description: Master branch testing
+    project-type: pipeline
+    triggers:
+        - github
+    pipeline-scm:
+        scm:
+            - git:
+                branches:
+                    - master

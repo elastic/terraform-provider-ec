@@ -30,10 +30,6 @@ func newApmResource() *schema.Resource {
 				Default:  "main-elasticsearch",
 				Optional: true,
 			},
-			"display_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"ref_id": {
 				Type:     schema.TypeString,
 				Default:  "main-apm",
@@ -48,10 +44,6 @@ func newApmResource() *schema.Resource {
 				Computed: true,
 			},
 			"region": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"secret_token": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},

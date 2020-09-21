@@ -26,7 +26,9 @@ import (
 
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
 
@@ -125,10 +127,12 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_deployment":  deploymentdatasource.DataSource(),
 			"ec_deployments": deploymentsdatasource.DataSource(),
+			"ec_stack":       stackdatasource.DataSource(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment":                deploymentresource.Resource(),
-			"ec_deployment_traffic_filter": trafficfilterresource.Resource(),
+			"ec_deployment":                            deploymentresource.Resource(),
+			"ec_deployment_traffic_filter":             trafficfilterresource.Resource(),
+			"ec_deployment_traffic_filter_association": trafficfilterassocresource.Resource(),
 		},
 	}
 }

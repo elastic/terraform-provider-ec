@@ -57,8 +57,6 @@ func newElasticsearchResourceInfo() *schema.Resource {
 				Computed: true,
 			},
 			"topology": elasticsearchTopologySchema(),
-
-			// TODO: Snapshot settings once they have been implemented in the resource
 		},
 	}
 }

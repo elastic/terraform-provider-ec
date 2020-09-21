@@ -61,10 +61,6 @@ func expandResource(raw interface{}) (*models.ApmPayload, error) {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
 	}
 
-	if name, ok := es["display_name"]; ok {
-		res.DisplayName = name.(string)
-	}
-
 	if refID, ok := es["ref_id"]; ok {
 		res.RefID = ec.String(refID.(string))
 	}

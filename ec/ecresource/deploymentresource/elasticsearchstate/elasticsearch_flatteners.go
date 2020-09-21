@@ -34,10 +34,6 @@ func FlattenResources(in []*models.ElasticsearchResourceInfo, name string) []int
 			continue
 		}
 
-		if res.Info.ClusterName != nil && *res.Info.ClusterName != name && *res.Info.ClusterName != "" {
-			m["display_name"] = *res.Info.ClusterName
-		}
-
 		if res.Info.ClusterID != nil && *res.Info.ClusterID != "" {
 			m["resource_id"] = *res.Info.ClusterID
 		}

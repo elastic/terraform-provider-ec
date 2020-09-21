@@ -1,6 +1,6 @@
 ## Lints all of the source files
 .PHONY: lint
-lint: golint golangci-lint check-license tfproviderlint tfproviderdocs terrafmt
+lint: golint golangci-lint check-license tfproviderlint tfproviderdocs terrafmt fmt
 
 .PHONY: tfproviderlint
 tfproviderlint: tools
@@ -35,3 +35,8 @@ terrafmt:
 ## Validates all the terraform example files found in examples/
 validate-examples:
 	@ ./scripts/validate_examples.sh
+
+## Formats all the terraform ".tf" files in the repository
+fmt:
+	@ echo "-> Checking that the terraform .tf files are formatted..."
+	@ terraform fmt -write=false -recursive
