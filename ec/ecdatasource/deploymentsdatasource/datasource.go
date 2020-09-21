@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -76,34 +75,34 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentsSearchResponse)
 		return err
 	}
 
-	if res.ReturnCount != ec.Int32(0) {
-		var result = make([]interface{}, 0, len(res.Deployments))
-		for _, deployment := range res.Deployments {
-			var m = make(map[string]interface{})
+	var result = make([]interface{}, 0, len(res.Deployments))
+	for _, deployment := range res.Deployments {
+		var m = make(map[string]interface{})
 
-			m["deployment_id"] = *deployment.ID
+		m["deployment_id"] = *deployment.ID
 
-			if len(deployment.Resources.Elasticsearch) > 0 {
-				m["elasticsearch_resource_id"] = *deployment.Resources.Elasticsearch[0].ID
-			}
-
-			if len(deployment.Resources.Kibana) > 0 {
-				m["kibana_resource_id"] = *deployment.Resources.Kibana[0].ID
-			}
-
-			if len(deployment.Resources.Apm) > 0 {
-				m["apm_resource_id"] = *deployment.Resources.Apm[0].ID
-			}
-
-			if len(deployment.Resources.EnterpriseSearch) > 0 {
-				m["enterprise_search_resource_id"] = *deployment.Resources.EnterpriseSearch[0].ID
-			}
-
-			result = append(result, m)
+		if len(deployment.Resources.Elasticsearch) > 0 {
+			m["elasticsearch_resource_id"] = *deployment.Resources.Elasticsearch[0].ID
 		}
 
-		if err := d.Set("deployments", result); err != nil {
-			return err
+		if len(deployment.Resources.Kibana) > 0 {
+			m["kibana_resource_id"] = *deployment.Resources.Kibana[0].ID
+		}
+
+		if len(deployment.Resources.Apm) > 0 {
+			m["apm_resource_id"] = *deployment.Resources.Apm[0].ID
+		}
+
+		if len(deployment.Resources.EnterpriseSearch) > 0 {
+			m["enterprise_search_resource_id"] = *deployment.Resources.EnterpriseSearch[0].ID
+		}
+
+		result = append(result, m)
+
+		if len(result) > 0 {
+			if err := d.Set("deployments", result); err != nil {
+				return err
+			}
 		}
 	}
 
