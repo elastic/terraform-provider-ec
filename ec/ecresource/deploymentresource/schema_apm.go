@@ -47,10 +47,6 @@ func newApmResource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"secret_token": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"http_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
