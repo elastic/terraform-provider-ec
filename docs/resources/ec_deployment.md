@@ -100,7 +100,7 @@ The required `kibana` block supports the following:
 
 * `topology` - (Required) Topology element which must be set once but can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the ref_id of the deployment Elasticsearch cluster, it is best left to the default value (Defaults to `main-elasticsearch`).
-* `ref_id` - (Optional) ref_id to set on the Kibana resource (Defaults to `main-kibana`).
+* `ref_id` - (Optional) ref_id to set on the Kibana resource. It is best left to the default value (Defaults to `main-kibana`).
 * `config` (Optional) Kibana settings which will be applied to all topologies unless overridden on the topology element. 
 
 ##### Topology
@@ -127,7 +127,7 @@ The required `apm` block supports the following:
 
 * `topology` - (Required) Topology element which must be set once but can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the ref_id of the deployment Elasticsearch cluster, it is best left to the default value (Defaults to `main-elasticsearch`).
-* `ref_id` - (Optional) ref_id to set on the APM resource (Defaults to `main-apm`).
+* `ref_id` - (Optional) ref_id to set on the APM resource. It is best left to the default value (Defaults to `main-apm`).
 * `config` (Optional) APM settings which will be applied to all topologies unless overridden on the topology element. 
 
 ##### Topology
@@ -155,7 +155,7 @@ The required `enterprise_search` block supports the following:
 
 * `topology` - (Required) Topology element which must be set once but can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the ref_id of the deployment Elasticsearch cluster, it is best left to the default value (Defaults to `main-elasticsearch`).
-* `ref_id` - (Optional) ref_id to set on the Enterprise Search resource (Defaults to `main-enterprise_search`).
+* `ref_id` - (Optional) ref_id to set on the Enterprise Search resource. It is best left to the default value (Defaults to `main-enterprise_search`).
 * `config` (Optional) Enterprise Search settings which will be applied to all topologies unless overridden on the topology element. 
 
 ##### Topology
