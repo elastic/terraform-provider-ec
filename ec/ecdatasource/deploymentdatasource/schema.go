@@ -43,6 +43,13 @@ func newSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"traffic_filter": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 
 		// Deployment resources
 		"elasticsearch": {

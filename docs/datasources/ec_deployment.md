@@ -30,6 +30,7 @@ These will not be available for interpolation.
 * `name` - The name of the deployment.
 * `region` - Region where the deployment can be found.
 * `deployment_template_id` - Deployment Template identifier from where the deployment is created.
+* `traffic_filter` - Traffic Filter block, which contains a list of traffic filter rule identifiers.
 * `elasticsearch` - Instance configuration of the Elasticsearch resource kind.
   * `elasticsearch.#.healthy` - Resource kind health status.
   * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash, [more information](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).
