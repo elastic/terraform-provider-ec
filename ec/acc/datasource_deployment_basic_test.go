@@ -18,6 +18,8 @@
 package acc
 
 import (
+	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -27,9 +29,10 @@ import (
 func TestAccDatasourceDeployment_basic(t *testing.T) {
 	resourceName := "ec_deployment.basic_datasource"
 	datasourceName := "data.ec_deployment.success"
+	depsDatasourceName := "data.ec_deployments.query"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfg := testAccDeploymentResourceBasic(t, depCfg, randomName, region, deploymentVersion)
+	cfg := testAccDeploymentDatasourceBasic(t, depCfg, randomName, region, deploymentVersion)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -100,6 +103,35 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.node_type_worker", resourceName, "enterprise_search.0.topology.0.node_type_worker"),
 				),
 			},
+			{
+				Config: cfg,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", "terraform_acc_"),
+					resource.TestCheckResourceAttr(depsDatasourceName, "deployment_template_id", "aws-compute-optimized-v2"),
+
+					// Deployment resources
+					resource.TestCheckResourceAttr(depsDatasourceName, "elasticsearch.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(depsDatasourceName, "kibana.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(depsDatasourceName, "apm.0.version", deploymentVersion),
+					resource.TestCheckResourceAttr(depsDatasourceName, "enterprise_search.0.version", deploymentVersion),
+
+					// Query results
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_resource_id", resourceName, "elasticsearch.0.resource_id"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.kibana_resource_id", resourceName, "kibana.0.resource_id"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.apm_resource_id", resourceName, "apm.0.resource_id"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.enterprise_search_resource_id", resourceName, "enterprise_search.0.resource_id"),
+				),
+			},
 		},
 	})
+}
+
+func testAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, version string) string {
+	b, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		name, region, version, version, version, version, version,
+	)
 }
