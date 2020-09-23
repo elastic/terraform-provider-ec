@@ -99,6 +99,12 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		}
 	}
 
+	if settings := state.FlattenTrafficFiltering(res.Settings); settings != nil {
+		if err := d.Set("traffic_filter", settings); err != nil {
+			return err
+		}
+	}
+
 	elasticsearchFlattened := state.FlattenElasticsearchResources(res.Resources.Elasticsearch)
 	if err := d.Set("elasticsearch", elasticsearchFlattened); err != nil {
 		return err
