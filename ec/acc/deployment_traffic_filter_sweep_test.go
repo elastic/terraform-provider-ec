@@ -22,7 +22,7 @@ import (
 	"sync"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -40,17 +40,16 @@ func testSweepDeploymentTrafficFilter(region string) error {
 		return err
 	}
 
-	res, err := client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRulesets(
-		deployments_traffic_filter.NewGetTrafficFilterRulesetsParams().
-			WithRegion(&region),
-		client.AuthWriter,
-	)
+	res, err := trafficfilterapi.List(trafficfilterapi.ListParams{
+		API:    client,
+		Region: region,
+	})
 	if err != nil {
 		return api.UnwrapError(err)
 	}
 
 	var sweepFilters []string
-	for _, d := range res.Payload.Rulesets {
+	for _, d := range res.Rulesets {
 		if strings.HasPrefix(*d.Name, prefix) {
 			sweepFilters = append(sweepFilters, *d.ID)
 		}
@@ -73,10 +72,8 @@ func testSweepDeploymentTrafficFilter(region string) error {
 
 func deleteTrafficFilter(c *api.API, filter string, done func()) error {
 	defer done()
-	_, err := c.V1API.DeploymentsTrafficFilter.DeleteTrafficFilterRuleset(
-		deployments_traffic_filter.NewDeleteTrafficFilterRulesetParams().
-			WithRulesetID(filter),
-		c.AuthWriter,
-	)
-	return api.UnwrapError(err)
+	return trafficfilterapi.Delete(trafficfilterapi.DeleteParams{
+		API: c,
+		ID:  filter,
+	})
 }
