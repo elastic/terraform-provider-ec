@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -41,10 +41,11 @@ func testAccCheckDeploymentTrafficFilterExists(name string) resource.TestCheckFu
 			return err
 		}
 
-		return api.ReturnErrOnly(client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRuleset(
-			deployments_traffic_filter.NewGetTrafficFilterRulesetParams().
-				WithRulesetID(saved.Primary.ID),
-			client.AuthWriter,
+		return api.ReturnErrOnly(trafficfilterapi.Get(
+			trafficfilterapi.GetParams{
+				API: client,
+				ID:  saved.Primary.ID,
+			},
 		))
 	}
 }

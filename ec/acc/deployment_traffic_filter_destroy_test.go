@@ -20,7 +20,7 @@ package acc
 import (
 	"fmt"
 
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -37,11 +37,10 @@ func testAccDeploymentTrafficFilterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		res, err := client.V1API.DeploymentsTrafficFilter.GetTrafficFilterRuleset(
-			deployments_traffic_filter.NewGetTrafficFilterRulesetParams().
-				WithRulesetID(rs.Primary.ID),
-			client.AuthWriter,
-		)
+		res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+			API: client,
+			ID:  rs.Primary.ID,
+		})
 
 		// The resource will only exist if it can be obtained via the API and
 		// the metadata status is not set to hidden. Currently ESS clients
