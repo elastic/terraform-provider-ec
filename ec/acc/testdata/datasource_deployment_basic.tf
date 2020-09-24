@@ -33,6 +33,20 @@ resource "ec_deployment" "basic_datasource" {
       instance_configuration_id = "aws.enterprisesearch.m5d"
     }
   }
+
+  traffic_filter = [
+    ec_deployment_traffic_filter.default.id,
+  ]
+}
+
+resource "ec_deployment_traffic_filter" "default" {
+  name   = "%s"
+  region = "%s"
+  type   = "ip"
+
+  rule {
+    source = "0.0.0.0/0"
+  }
 }
 
 data "ec_deployment" "success" {

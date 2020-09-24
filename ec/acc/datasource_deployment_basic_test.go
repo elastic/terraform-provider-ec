@@ -45,6 +45,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(datasourceName, "region", resourceName, "region"),
 					resource.TestCheckResourceAttrPair(datasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "traffic_filter.#", resourceName, "traffic_filter.#"),
 
 					// Elasticsearch
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.ref_id", resourceName, "elasticsearch.0.ref_id"),
@@ -132,6 +133,6 @@ func testAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, vers
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		name, region, version, version, version, version, version,
+		name, region, version, name, region, version, version, version, version,
 	)
 }
