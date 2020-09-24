@@ -12,9 +12,9 @@ Use this data source to retrieve a list of deployment and resource kind IDs base
 
 ```hcl
 data "ec_deployments" "example" {
-   name_prefix = "test"
-   deployment_template_id = "azure-compute-optimized"
-  
+  name_prefix            = "test"
+  deployment_template_id = "azure-compute-optimized"
+
   elasticsearch {
     healthy = "true"
   }

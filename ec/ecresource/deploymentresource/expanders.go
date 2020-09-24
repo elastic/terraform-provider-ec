@@ -20,11 +20,6 @@ package deploymentresource
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -39,7 +34,7 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 		},
 	}
 
-	esRes, err := elasticsearchstate.ExpandResources(
+	esRes, err := expandEsResources(
 		d.Get("elasticsearch").([]interface{}),
 		d.Get("deployment_template_id").(string),
 	)
@@ -48,25 +43,25 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := kibanastate.ExpandResources(d.Get("kibana").([]interface{}))
+	kibanaRes, err := expandKibanaResources(d.Get("kibana").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := apmstate.ExpandResources(d.Get("apm").([]interface{}))
+	apmRes, err := expandApmResources(d.Get("apm").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := enterprisesearchstate.ExpandResources(d.Get("enterprise_search").([]interface{}))
+	enterpriseSearchRes, err := expandEssResources(d.Get("enterprise_search").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
 
-	deploymentstate.ExpandTrafficFilterCreate(d.Get("traffic_filter").(*schema.Set), &result)
+	expandTrafficFilterCreate(d.Get("traffic_filter").(*schema.Set), &result)
 
 	return &result, nil
 }
@@ -86,7 +81,7 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 		},
 	}
 
-	esRes, err := elasticsearchstate.ExpandResources(
+	esRes, err := expandEsResources(
 		d.Get("elasticsearch").([]interface{}),
 		d.Get("deployment_template_id").(string),
 	)
@@ -95,19 +90,19 @@ func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequ
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := kibanastate.ExpandResources(d.Get("kibana").([]interface{}))
+	kibanaRes, err := expandKibanaResources(d.Get("kibana").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := apmstate.ExpandResources(d.Get("apm").([]interface{}))
+	apmRes, err := expandApmResources(d.Get("apm").([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := enterprisesearchstate.ExpandResources(d.Get("enterprise_search").([]interface{}))
+	enterpriseSearchRes, err := expandEssResources(d.Get("enterprise_search").([]interface{}))
 	if err != nil {
 		return nil, err
 	}

@@ -24,12 +24,9 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apmstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deploymentstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearchstate"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibanastate"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) error {
@@ -47,27 +44,27 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 			return err
 		}
 
-		esFlattened := elasticsearchstate.FlattenResources(res.Resources.Elasticsearch, *res.Name)
+		esFlattened := flattenEsResources(res.Resources.Elasticsearch, *res.Name)
 		if err := d.Set("elasticsearch", esFlattened); err != nil {
 			return err
 		}
 
-		kibanaFlattened := kibanastate.FlattenResources(res.Resources.Kibana, *res.Name)
+		kibanaFlattened := flattenKibanaResources(res.Resources.Kibana, *res.Name)
 		if err := d.Set("kibana", kibanaFlattened); err != nil {
 			return err
 		}
 
-		apmFlattened := apmstate.FlattenResources(res.Resources.Apm, *res.Name)
+		apmFlattened := flattenApmResources(res.Resources.Apm, *res.Name)
 		if err := d.Set("apm", apmFlattened); err != nil {
 			return err
 		}
 
-		enterpriseSearchFlattened := enterprisesearchstate.FlattenResources(res.Resources.EnterpriseSearch, *res.Name)
+		enterpriseSearchFlattened := flattenEssResources(res.Resources.EnterpriseSearch, *res.Name)
 		if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
 			return err
 		}
 
-		if settings := deploymentstate.FlattenTrafficFiltering(res.Settings); settings != nil {
+		if settings := flattenTrafficFiltering(res.Settings); settings != nil {
 			if err := d.Set("traffic_filter", settings); err != nil {
 				return err
 			}
@@ -81,7 +78,7 @@ func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 	var deploymentTemplateID string
 	var foundTemplates []string
 	for _, esRes := range res.Elasticsearch {
-		if elasticsearchstate.IsCurrentPlanEmpty(esRes) {
+		if util.IsCurrentEsPlanEmpty(esRes) {
 			continue
 		}
 
