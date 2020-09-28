@@ -26,5 +26,5 @@ resource "ec_deployment" "example_minimal" {
 
   apm {}
 
-  enterprise_seach {}
+  enterprise_search {}
 }
