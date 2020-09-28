@@ -29,8 +29,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource/state"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearchstate"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // DataSource returns the ec_deployment data source schema.
@@ -92,35 +91,35 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		}
 	}
 
-	if !elasticsearchstate.IsCurrentPlanEmpty(es) {
+	if !util.IsCurrentEsPlanEmpty(es) {
 		if err := d.Set("deployment_template_id",
 			*es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID); err != nil {
 			return err
 		}
 	}
 
-	if settings := state.FlattenTrafficFiltering(res.Settings); settings != nil {
+	if settings := flattenTrafficFiltering(res.Settings); settings != nil {
 		if err := d.Set("traffic_filter", settings); err != nil {
 			return err
 		}
 	}
 
-	elasticsearchFlattened := state.FlattenElasticsearchResources(res.Resources.Elasticsearch)
+	elasticsearchFlattened := flattenElasticsearchResources(res.Resources.Elasticsearch)
 	if err := d.Set("elasticsearch", elasticsearchFlattened); err != nil {
 		return err
 	}
 
-	kibanaFlattened := state.FlattenKibanaResources(res.Resources.Kibana)
+	kibanaFlattened := flattenKibanaResources(res.Resources.Kibana)
 	if err := d.Set("kibana", kibanaFlattened); err != nil {
 		return err
 	}
 
-	apmFlattened := state.FlattenApmResources(res.Resources.Apm)
+	apmFlattened := flattenApmResources(res.Resources.Apm)
 	if err := d.Set("apm", apmFlattened); err != nil {
 		return err
 	}
 
-	enterpriseSearchFlattened := state.FlattenEnterpriseSearchResources(res.Resources.EnterpriseSearch)
+	enterpriseSearchFlattened := flattenEnterpriseSearchResources(res.Resources.EnterpriseSearch)
 	if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
 		return err
 	}

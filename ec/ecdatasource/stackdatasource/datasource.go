@@ -30,8 +30,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource/state"
 )
 
 // DataSource returns the ec_deployment data source schema.
@@ -136,19 +134,19 @@ func modelToState(d *schema.ResourceData, stack *models.StackVersionConfig) erro
 		}
 	}
 
-	if err := d.Set("apm", state.FlattenApmResources(stack.Apm)); err != nil {
+	if err := d.Set("apm", flattenApmResources(stack.Apm)); err != nil {
 		return err
 	}
 
-	if err := d.Set("elasticsearch", state.FlattenElasticsearchResources(stack.Elasticsearch)); err != nil {
+	if err := d.Set("elasticsearch", flattenElasticsearchResources(stack.Elasticsearch)); err != nil {
 		return err
 	}
 
-	if err := d.Set("enterprise_search", state.FlattenEnterpriseSearchResources(stack.EnterpriseSearch)); err != nil {
+	if err := d.Set("enterprise_search", flattenEnterpriseSearchResources(stack.EnterpriseSearch)); err != nil {
 		return err
 	}
 
-	if err := d.Set("kibana", state.FlattenKibanaResources(stack.Kibana)); err != nil {
+	if err := d.Set("kibana", flattenKibanaResources(stack.Kibana)); err != nil {
 		return err
 	}
 
