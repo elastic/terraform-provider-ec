@@ -14,7 +14,7 @@ Contributions are very welcome, these can include documentation, bug reports, is
 
 ## Reporting Issues
 
-If you have found an issue or defect in `ecctl` or the latest documentation, use the GitHub [issue tracker](https://github.com/elastic/terraform-provider-ec/issues) to report the problem. Make sure to follow the template provided for you to provide all the useful details possible.
+If you have found an issue or defect in the `terraform-provider-ec` or the latest documentation, use the GitHub [issue tracker](https://github.com/elastic/terraform-provider-ec/issues) to report the problem. Make sure to follow the template provided for you to provide all the useful details possible.
 
 ## Code Contribution Guidelines
 

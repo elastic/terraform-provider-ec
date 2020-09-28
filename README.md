@@ -70,7 +70,7 @@ resource "ec_deployment" "example_minimal" {
 ## Developer Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.13+
-- [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.13+ (to build the provider plugin)
 
 ### Installing the provider via the source code
 
