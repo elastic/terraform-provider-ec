@@ -18,8 +18,13 @@
 package deploymentresource
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
+	"os"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -29,14 +34,38 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
+func fileAsResponseBody(t *testing.T, name string) io.ReadCloser {
+	t.Helper()
+	f, err := os.Open(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	var buf = new(bytes.Buffer)
+	buf.WriteString("[\n")
+	if _, err := io.Copy(buf, f); err != nil {
+		t.Fatal(err)
+	}
+	buf.WriteString("]\n")
+	buf.WriteString("\n")
+
+	return ioutil.NopCloser(buf)
+}
+
 func Test_createResourceToModel(t *testing.T) {
 	deploymentRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
 		Schema:    newSchema(),
 	})
+	var body = func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
+	}
+
 	type args struct {
-		d *schema.ResourceData
+		d      *schema.ResourceData
+		client *api.API
 	}
 	tests := []struct {
 		name string
@@ -46,7 +75,10 @@ func Test_createResourceToModel(t *testing.T) {
 	}{
 		{
 			name: "parses the resources",
-			args: args{d: deploymentRD},
+			args: args{
+				d:      deploymentRD,
+				client: api.NewMock(mock.New200Response(body())),
+			},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
 				Settings: &models.DeploymentCreateSettings{
@@ -57,19 +89,20 @@ func Test_createResourceToModel(t *testing.T) {
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
-							Region: ec.String("some-region"),
+							Region: ec.String("us-east-1"),
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
 								Monitoring: &models.ManagedMonitoringSettings{
 									TargetClusterID: ec.String("some"),
 								},
+								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
 								Elasticsearch: &models.ElasticsearchConfiguration{
 									Version: "7.7.0",
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
-									ID: ec.String("aws-io-optimized"),
+									ID: ec.String("aws-io-optimized-v2"),
 								},
 								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 									ZoneCount:               1,
@@ -82,7 +115,6 @@ func Test_createResourceToModel(t *testing.T) {
 										Data:   ec.Bool(true),
 										Ingest: ec.Bool(true),
 										Master: ec.Bool(true),
-										Ml:     ec.Bool(false),
 									},
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										UserSettingsYaml:         `some.setting: value`,
@@ -97,9 +129,8 @@ func Test_createResourceToModel(t *testing.T) {
 					Kibana: []*models.KibanaPayload{
 						{
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("some-region"),
+							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-kibana"),
-							Settings:                  &models.KibanaClusterSettings{},
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{
 									Version: "7.7.0",
@@ -107,7 +138,7 @@ func Test_createResourceToModel(t *testing.T) {
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
 									{
 										ZoneCount:               1,
-										InstanceConfigurationID: "aws.kibana.r4",
+										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
@@ -120,9 +151,8 @@ func Test_createResourceToModel(t *testing.T) {
 					Apm: []*models.ApmPayload{
 						{
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("some-region"),
+							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-apm"),
-							Settings:                  &models.ApmSettings{},
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									Version: "7.7.0",
@@ -132,7 +162,7 @@ func Test_createResourceToModel(t *testing.T) {
 								},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
-									InstanceConfigurationID: "aws.apm.r4",
+									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
 										Resource: ec.String("memory"),
 										Value:    ec.Int32(512),
@@ -149,9 +179,8 @@ func Test_createResourceToModel(t *testing.T) {
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("some-region"),
+							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-enterprise_search"),
-							Settings:                  &models.EnterpriseSearchSettings{},
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 									Version: "7.7.0",
@@ -159,7 +188,7 @@ func Test_createResourceToModel(t *testing.T) {
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
 									{
 										ZoneCount:               1,
-										InstanceConfigurationID: "aws.enterprisesearch.m5",
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(2048),
@@ -180,7 +209,7 @@ func Test_createResourceToModel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := createResourceToModel(tt.args.d)
+			got, err := createResourceToModel(tt.args.d, tt.args.client)
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			} else {
@@ -197,8 +226,12 @@ func Test_updateResourceToModel(t *testing.T) {
 		Resources: newSampleDeployment(),
 		Schema:    newSchema(),
 	})
+	var body = func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
+	}
 	type args struct {
-		d *schema.ResourceData
+		d      *schema.ResourceData
+		client *api.API
 	}
 	tests := []struct {
 		name string
@@ -208,26 +241,30 @@ func Test_updateResourceToModel(t *testing.T) {
 	}{
 		{
 			name: "parses the resources",
-			args: args{d: deploymentRD},
+			args: args{
+				d:      deploymentRD,
+				client: api.NewMock(mock.New200Response(body())),
+			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
-				PruneOrphans: ec.Bool(false),
+				PruneOrphans: ec.Bool(true),
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
-							Region: ec.String("some-region"),
+							Region: ec.String("us-east-1"),
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
 								Monitoring: &models.ManagedMonitoringSettings{
 									TargetClusterID: ec.String("some"),
 								},
+								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
 								Elasticsearch: &models.ElasticsearchConfiguration{
 									Version: "7.7.0",
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
-									ID: ec.String("aws-io-optimized"),
+									ID: ec.String("aws-io-optimized-v2"),
 								},
 								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 									ZoneCount:               1,
@@ -240,7 +277,6 @@ func Test_updateResourceToModel(t *testing.T) {
 										Data:   ec.Bool(true),
 										Ingest: ec.Bool(true),
 										Master: ec.Bool(true),
-										Ml:     ec.Bool(false),
 									},
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										UserSettingsYaml:         `some.setting: value`,
@@ -255,9 +291,8 @@ func Test_updateResourceToModel(t *testing.T) {
 					Kibana: []*models.KibanaPayload{
 						{
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("some-region"),
+							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-kibana"),
-							Settings:                  &models.KibanaClusterSettings{},
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{
 									Version: "7.7.0",
@@ -265,7 +300,7 @@ func Test_updateResourceToModel(t *testing.T) {
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
 									{
 										ZoneCount:               1,
-										InstanceConfigurationID: "aws.kibana.r4",
+										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
@@ -278,9 +313,8 @@ func Test_updateResourceToModel(t *testing.T) {
 					Apm: []*models.ApmPayload{
 						{
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("some-region"),
+							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-apm"),
-							Settings:                  &models.ApmSettings{},
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									Version: "7.7.0",
@@ -290,7 +324,7 @@ func Test_updateResourceToModel(t *testing.T) {
 								},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
-									InstanceConfigurationID: "aws.apm.r4",
+									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
 										Resource: ec.String("memory"),
 										Value:    ec.Int32(512),
@@ -307,9 +341,8 @@ func Test_updateResourceToModel(t *testing.T) {
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
 							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("some-region"),
+							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-enterprise_search"),
-							Settings:                  &models.EnterpriseSearchSettings{},
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 									Version: "7.7.0",
@@ -317,7 +350,7 @@ func Test_updateResourceToModel(t *testing.T) {
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
 									{
 										ZoneCount:               1,
-										InstanceConfigurationID: "aws.enterprisesearch.m5",
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(2048),
@@ -338,7 +371,7 @@ func Test_updateResourceToModel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := updateResourceToModel(tt.args.d)
+			got, err := updateResourceToModel(tt.args.d, tt.args.client)
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			} else {

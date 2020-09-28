@@ -50,20 +50,13 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.8.1"
+  version                = "7.9.2"
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
-    topology {
-      instance_configuration_id = "aws.data.highio.i3"
-    }
-  }
+  # Use the deployment template defaults
+  elasticsearch {}
 
-  kibana {
-    topology {
-      instance_configuration_id = "aws.kibana.r5d"
-    }
-  }
+  kibana {}
 }
 ```
 

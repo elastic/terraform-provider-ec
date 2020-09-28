@@ -46,7 +46,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 }
 
 func updateDeployment(_ context.Context, d *schema.ResourceData, client *api.API) error {
-	req, err := updateResourceToModel(d)
+	req, err := updateResourceToModel(d, client)
 	if err != nil {
 		return err
 	}

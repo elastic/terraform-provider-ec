@@ -33,7 +33,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	client := meta.(*api.API)
 	reqID := deploymentapi.RequestID(d.Get("request_id").(string))
 
-	req, err := createResourceToModel(d)
+	req, err := createResourceToModel(d, client)
 	if err != nil {
 		diag.FromErr(err)
 	}

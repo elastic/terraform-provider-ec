@@ -28,7 +28,7 @@ func flattenKibanaResources(in []*models.KibanaResourceInfo, name string) []inte
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentKibanaPlanEmpty(res) {
+		if util.IsCurrentKibanaPlanEmpty(res) || util.IsKibanaResourceStopped(res) {
 			continue
 		}
 

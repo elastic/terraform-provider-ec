@@ -18,6 +18,7 @@
 package deploymentresource
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -27,14 +28,14 @@ import (
 )
 
 // expandKibanaResources expands the flattened kibana resources into its models.
-func expandKibanaResources(kibanas []interface{}) ([]*models.KibanaPayload, error) {
+func expandKibanaResources(kibanas []interface{}, tpl *models.KibanaPayload) ([]*models.KibanaPayload, error) {
 	if len(kibanas) == 0 {
 		return nil, nil
 	}
 
 	result := make([]*models.KibanaPayload, 0, len(kibanas))
 	for _, raw := range kibanas {
-		resResource, err := expandKibanaResource(raw)
+		resResource, err := expandKibanaResource(raw, tpl)
 		if err != nil {
 			return nil, err
 		}
@@ -44,14 +45,8 @@ func expandKibanaResources(kibanas []interface{}) ([]*models.KibanaPayload, erro
 	return result, nil
 }
 
-func expandKibanaResource(raw interface{}) (*models.KibanaPayload, error) {
+func expandKibanaResource(raw interface{}, res *models.KibanaPayload) (*models.KibanaPayload, error) {
 	var es = raw.(map[string]interface{})
-	var res = models.KibanaPayload{
-		Plan: &models.KibanaClusterPlan{
-			Kibana: &models.KibanaConfiguration{},
-		},
-		Settings: &models.KibanaClusterSettings{},
-	}
 
 	if esRefID, ok := es["elasticsearch_cluster_ref_id"]; ok {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
@@ -79,35 +74,38 @@ func expandKibanaResource(raw interface{}) (*models.KibanaPayload, error) {
 		}
 	}
 
-	if rawTopology, ok := es["topology"]; ok {
-		topology, err := expandKibanaTopology(rawTopology)
+	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+		topology, err := expandKibanaTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
 		}
 		res.Plan.ClusterTopology = topology
+	} else {
+		res.Plan.ClusterTopology = defaultKibanaTopology(res.Plan.ClusterTopology)
 	}
 
-	return &res, nil
+	return res, nil
 }
 
-func expandKibanaTopology(raw interface{}) ([]*models.KibanaClusterTopologyElement, error) {
+func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTopologyElement) ([]*models.KibanaClusterTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.KibanaClusterTopologyElement, 0, len(rawTopologies))
 	for _, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
-
+		var icID string
+		if id, ok := topology["instance_configuration_id"]; ok {
+			icID = id.(string)
+		}
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}
 
-		var elem = models.KibanaClusterTopologyElement{
-			Size: &size,
+		elem, err := matchKibanaTopology(icID, topologies)
+		if err != nil {
+			return nil, err
 		}
-
-		if id, ok := topology["instance_configuration_id"]; ok {
-			elem.InstanceConfigurationID = id.(string)
-		}
+		elem.Size = &size
 
 		if zones, ok := topology["zone_count"]; ok {
 			elem.ZoneCount = int32(zones.(int))
@@ -121,7 +119,7 @@ func expandKibanaTopology(raw interface{}) ([]*models.KibanaClusterTopologyEleme
 			elem.Kibana = expandKibanaConfig(c)
 		}
 
-		res = append(res, &elem)
+		res = append(res, elem)
 	}
 
 	return res, nil
@@ -154,4 +152,29 @@ func expandKibanaConfig(raw interface{}) *models.KibanaConfiguration {
 	}
 
 	return nil
+}
+
+func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*models.KibanaClusterTopologyElement {
+	for _, t := range topology {
+		if *t.Size.Value > defaultKibanaSize {
+			t.Size.Value = ec.Int32(defaultKibanaSize)
+		}
+		if t.ZoneCount > 1 {
+			t.ZoneCount = 1
+		}
+	}
+
+	return topology
+}
+
+func matchKibanaTopology(id string, topologies []*models.KibanaClusterTopologyElement) (*models.KibanaClusterTopologyElement, error) {
+	for _, t := range topologies {
+		if t.InstanceConfigurationID == id {
+			return t, nil
+		}
+	}
+	return nil, fmt.Errorf(
+		`kibana topology: invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
+		id,
+	)
 }

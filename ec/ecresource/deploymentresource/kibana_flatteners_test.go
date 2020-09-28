@@ -65,6 +65,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 						ClusterID:   &mock.ValidClusterID,
 						ClusterName: ec.String("some-kibana-name"),
 						Region:      "some-region",
+						Status:      ec.String("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "kibanaresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -101,6 +102,44 @@ func Test_flattenKibanaResources(t *testing.T) {
 						ClusterID:   &mock.ValidClusterID,
 						ClusterName: ec.String("some-kibana-name"),
 						Region:      "some-region",
+						Status:      ec.String("stopped"),
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "kibanaresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
+						PlanInfo: &models.KibanaClusterPlansInfo{
+							Current: &models.KibanaClusterPlanInfo{
+								Plan: &models.KibanaClusterPlan{
+									Kibana: &models.KibanaConfiguration{
+										Version: "7.7.0",
+									},
+									ClusterTopology: []*models.KibanaClusterTopologyElement{
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.kibana.r4",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-kibana"),
+					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Info: &models.KibanaClusterInfo{
+						ClusterID:   &mock.ValidClusterID,
+						ClusterName: ec.String("some-kibana-name"),
+						Region:      "some-region",
+						Status:      ec.String("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "kibanaresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{

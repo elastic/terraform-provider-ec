@@ -17,7 +17,11 @@
 
 package deploymentresource
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+)
 
 func newKibanaResource() *schema.Resource {
 	return &schema.Resource{
@@ -65,18 +69,20 @@ func newKibanaResource() *schema.Resource {
 func kibanaTopologySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"config": kibanaConfig(),
 
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
-					Required: true,
+					Optional: true,
+					Computed: true,
 				},
 				"memory_per_node": {
 					Type:     schema.TypeString,
-					Default:  "1g",
+					Default:  util.MemoryToState(defaultKibanaSize),
 					Optional: true,
 				},
 				"node_count_per_zone": {

@@ -1,0 +1,309 @@
+{
+  "id": "aws-io-optimized-v2",
+  "name": "I/O Optimized",
+  "description": "New to Elasticsearch? This template is suitable for all-purpose workloads including time-series data like logs and metrics.",
+  "deployment_template": {
+    "resources": {
+      "elasticsearch": [
+        {
+          "ref_id": "es-ref-id",
+          "region": "us-east-1",
+          "plan": {
+            "cluster_topology": [
+              {
+                "node_type": {
+                  "master": false,
+                  "data": false,
+                  "ingest": true
+                },
+                "zone_count": 2,
+                "instance_configuration_id": "aws.coordinating.m5d",
+                "size": {
+                  "value": 0,
+                  "resource": "memory"
+                }
+              },
+              {
+                "node_type": {
+                  "master": true,
+                  "data": true,
+                  "ingest": true
+                },
+                "zone_count": 2,
+                "instance_configuration_id": "aws.data.highio.i3",
+                "size": {
+                  "value": 8192,
+                  "resource": "memory"
+                }
+              },
+              {
+                "node_type": {
+                  "master": true,
+                  "data": false,
+                  "ingest": false
+                },
+                "zone_count": 3,
+                "instance_configuration_id": "aws.master.r5d",
+                "size": {
+                  "value": 0,
+                  "resource": "memory"
+                }
+              },
+              {
+                "node_type": {
+                  "master": false,
+                  "data": false,
+                  "ingest": false,
+                  "ml": true
+                },
+                "zone_count": 1,
+                "instance_configuration_id": "aws.ml.m5d",
+                "size": {
+                  "value": 0,
+                  "resource": "memory"
+                }
+              }
+            ],
+            "elasticsearch": {}
+          },
+          "settings": {
+            "dedicated_masters_threshold": 6
+          }
+        }
+      ],
+      "kibana": [
+        {
+          "ref_id": "kibana-ref-id",
+          "elasticsearch_cluster_ref_id": "es-ref-id",
+          "region": "us-east-1",
+          "plan": {
+            "cluster_topology": [
+              {
+                "instance_configuration_id": "aws.kibana.r5d",
+                "size": {
+                  "value": 1024,
+                  "resource": "memory"
+                },
+                "zone_count": 1
+              }
+            ],
+            "kibana": {}
+          }
+        }
+      ],
+      "apm": [
+        {
+          "ref_id": "apm-ref-id",
+          "elasticsearch_cluster_ref_id": "es-ref-id",
+          "region": "us-east-1",
+          "plan": {
+            "cluster_topology": [
+              {
+                "instance_configuration_id": "aws.apm.r5d",
+                "size": {
+                  "value": 512,
+                  "resource": "memory"
+                },
+                "zone_count": 1
+              }
+            ],
+            "apm": {}
+          }
+        }
+      ],
+      "enterprise_search": [
+        {
+          "ref_id": "enterprise_search-ref-id",
+          "elasticsearch_cluster_ref_id": "es-ref-id",
+          "region": "us-east-1",
+          "plan": {
+            "cluster_topology": [
+              {
+                "node_type": {
+                  "appserver": true,
+                  "worker": true,
+                  "connector": true
+                },
+                "instance_configuration_id": "aws.enterprisesearch.m5d",
+                "size": {
+                  "value": 0,
+                  "resource": "memory"
+                },
+                "zone_count": 2
+              }
+            ],
+            "enterprise_search": {}
+          }
+        }
+      ]
+    }
+  },
+  "system_owned": true,
+  "metadata": [
+    {
+      "key": "trial-eligible",
+      "value": "true"
+    },
+    {
+      "key": "recommended",
+      "value": "true"
+    },
+    {
+      "key": "parent_solution",
+      "value": "stack"
+    },
+    {
+      "key": "hot_warm_template",
+      "value": "aws-hot-warm-v2"
+    }
+  ],
+  "instance_configurations": [
+    {
+      "id": "aws.coordinating.m5d",
+      "name": "aws.coordinating.m5d",
+      "description": "An Elasticsearch coordinating instance running on an AWS m5d.",
+      "instance_type": "elasticsearch",
+      "node_types": [
+        "ingest"
+      ],
+      "discrete_sizes": {
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192
+        ],
+        "default_size": 1024,
+        "resource": "memory"
+      },
+      "storage_multiplier": 2.0
+    },
+    {
+      "id": "aws.data.highio.i3",
+      "name": "aws.data.highio.i3",
+      "description": "An I/O optimized Elasticsearch instance running on an AWS i3.",
+      "instance_type": "elasticsearch",
+      "node_types": [
+        "master",
+        "data",
+        "ingest"
+      ],
+      "discrete_sizes": {
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192,
+          15360,
+          29696,
+          59392
+        ],
+        "default_size": 4096,
+        "resource": "memory"
+      },
+      "storage_multiplier": 30.0
+    },
+    {
+      "id": "aws.master.r5d",
+      "name": "aws.master.r5d",
+      "description": "An Elasticsearch master eligible instance running on an AWS r5d.",
+      "instance_type": "elasticsearch",
+      "node_types": [
+        "master"
+      ],
+      "discrete_sizes": {
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192,
+          15360
+        ],
+        "default_size": 1024,
+        "resource": "memory"
+      },
+      "storage_multiplier": 2.0
+    },
+    {
+      "id": "aws.ml.m5d",
+      "name": "aws.ml.m5d",
+      "description": "An Elasticsearch machine learning instance running on an AWS m5d.",
+      "instance_type": "elasticsearch",
+      "node_types": [
+        "ml"
+      ],
+      "discrete_sizes": {
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192,
+          15360,
+          30720,
+          61440
+        ],
+        "default_size": 1024,
+        "resource": "memory"
+      },
+      "storage_multiplier": 2.0
+    },
+    {
+      "id": "aws.kibana.r5d",
+      "name": "aws.kibana.r5d",
+      "description": "A Kibana instance running on an AWS r5d.",
+      "instance_type": "kibana",
+      "discrete_sizes": {
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192
+        ],
+        "default_size": 1024,
+        "resource": "memory"
+      },
+      "storage_multiplier": 2.0
+    },
+    {
+      "id": "aws.apm.r5d",
+      "name": "aws.apm.r5d",
+      "description": "An APM instance running on an AWS r5d.",
+      "instance_type": "apm",
+      "discrete_sizes": {
+        "sizes": [
+          512,
+          1024,
+          2048,
+          4096,
+          8192
+        ],
+        "default_size": 512,
+        "resource": "memory"
+      },
+      "storage_multiplier": 2.0
+    },
+    {
+      "id": "aws.enterprisesearch.m5d",
+      "name": "aws.enterprisesearch.m5d",
+      "description": "A CPU optimized Elastic Enterprise Search instance.",
+      "instance_type": "enterprise_search",
+      "node_types": [
+        "appserver",
+        "connector",
+        "worker"
+      ],
+      "discrete_sizes": {
+        "sizes": [
+          2048,
+          4096,
+          8192
+        ],
+        "default_size": 2048,
+        "resource": "memory"
+      },
+      "storage_multiplier": 2.0
+    }
+  ],
+  "order": 0,
+  "template_category_id": "io-optimized"
+}

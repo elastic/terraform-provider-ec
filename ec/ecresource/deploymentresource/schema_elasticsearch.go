@@ -19,6 +19,8 @@ package deploymentresource
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func newElasticsearchResource() *schema.Resource {
@@ -78,24 +80,27 @@ func elasticsearchTopologySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:        schema.TypeList,
 		MinItems:    1,
-		Required:    true,
-		Description: `Required topology element which must be set once but can be set multiple times to compose complex topologies`,
+		Optional:    true,
+		Computed:    true,
+		Description: `Optional topology element which must be set once but can be set multiple times to compose complex topologies`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"instance_configuration_id": {
 					Type:        schema.TypeString,
-					Description: `Required Instance Configuration ID from the deployment template`,
-					Required:    true,
+					Description: `Optional Instance Configuration ID from the deployment template`,
+					Computed:    true,
+					Optional:    true,
 				},
 				"memory_per_node": {
 					Type:        schema.TypeString,
 					Description: `Optional amount of memory per node in the "<size in GB>g" notation`,
-					Default:     "4g",
+					Default:     util.MemoryToState(defaultElasticsearchSize),
 					Optional:    true,
 				},
 				"node_count_per_zone": {
 					Type:     schema.TypeInt,
 					Computed: true,
+					Optional: true,
 				},
 				"zone_count": {
 					Type:        schema.TypeInt,
@@ -104,30 +109,27 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Optional:    true,
 				},
 
-				// Node types
+				// Computed node type attributes
 
 				"node_type_data": {
 					Type:        schema.TypeBool,
-					Description: `Optional node type (data) for the Elasticsearch Topology element`,
-					Default:     true,
-					Optional:    true,
+					Description: `Node type (data) for the Elasticsearch Topology element`,
+					Computed:    true,
 				},
 				"node_type_master": {
 					Type:        schema.TypeBool,
-					Description: `Optional node type (master) for the Elasticsearch Topology element`,
-					Default:     true,
-					Optional:    true,
+					Description: `Node type (master) for the Elasticsearch Topology element`,
+					Computed:    true,
 				},
 				"node_type_ingest": {
 					Type:        schema.TypeBool,
-					Description: `Optional node type (ingest) for the Elasticsearch Topology element`,
-					Default:     true,
-					Optional:    true,
+					Description: `Node type (ingest) for the Elasticsearch Topology element`,
+					Computed:    true,
 				},
 				"node_type_ml": {
 					Type:        schema.TypeBool,
-					Description: `Optional node type (machine learning) for the Elasticsearch Topology element`,
-					Optional:    true,
+					Description: `Node type (machine learning) for the Elasticsearch Topology element`,
+					Computed:    true,
 				},
 
 				"config": elasticsearchConfig(),

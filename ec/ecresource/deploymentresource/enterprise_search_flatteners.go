@@ -28,7 +28,7 @@ func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string)
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentEssPlanEmpty(res) {
+		if util.IsCurrentEssPlanEmpty(res) || util.IsEssResourceStopped(res) {
 			continue
 		}
 

@@ -18,17 +18,27 @@
 package deploymentresource
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_expandKibanaResources(t *testing.T) {
+	tplPath := "testdata/aws-io-optimized-v2.json"
+	tpl := func() *models.KibanaPayload {
+		return util.KibanaResource(util.ParseDeploymentTemplate(t,
+			tplPath,
+		))
+	}
 	type args struct {
 		ess []interface{}
+		tpl *models.KibanaPayload
 	}
 	tests := []struct {
 		name string
@@ -40,8 +50,9 @@ func Test_expandKibanaResources(t *testing.T) {
 			name: "returns nil when there's no resources",
 		},
 		{
-			name: "parses multiple resources",
+			name: "parses a kibana resource with topology",
 			args: args{
+				tpl: tpl(),
 				ess: []interface{}{
 					map[string]interface{}{
 						"ref_id":                       "main-kibana",
@@ -50,44 +61,8 @@ func Test_expandKibanaResources(t *testing.T) {
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
-							"instance_configuration_id": "aws.kibana.r4",
+							"instance_configuration_id": "aws.kibana.r5d",
 							"memory_per_node":           "2g",
-							"zone_count":                1,
-						}},
-					},
-					map[string]interface{}{
-						"ref_id":                       "secondary-kibana",
-						"elasticsearch_cluster_ref_id": "somerefid",
-						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.6.0",
-						"region":                       "some-region",
-						"topology": []interface{}{map[string]interface{}{
-							"instance_configuration_id": "aws.kibana.r4",
-							"memory_per_node":           "4g",
-							"zone_count":                1,
-						}},
-					},
-					map[string]interface{}{
-						"ref_id":                       "secondary-kibana",
-						"elasticsearch_cluster_ref_id": "somerefid",
-						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.8.0",
-						"region":                       "some-region",
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: override",
-							"user_settings_json":          `{"some.setting": "value"}`,
-							"user_settings_override_json": `{"some.setting": "override"}`,
-						}},
-						"topology": []interface{}{map[string]interface{}{
-							"config": []interface{}{map[string]interface{}{
-								"user_settings_yaml":          "some.setting: value",
-								"user_settings_override_yaml": "some.setting: override",
-								"user_settings_json":          `{"some.setting": "value"}`,
-								"user_settings_override_json": `{"some.setting": "override"}`,
-							}},
-							"instance_configuration_id": "aws.kibana.r4",
-							"memory_per_node":           "4g",
 							"zone_count":                1,
 						}},
 					},
@@ -98,7 +73,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					ElasticsearchClusterRefID: ec.String("somerefid"),
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-kibana"),
-					Settings:                  &models.KibanaClusterSettings{},
 					Plan: &models.KibanaClusterPlan{
 						Kibana: &models.KibanaConfiguration{
 							Version: "7.7.0",
@@ -106,7 +80,7 @@ func Test_expandKibanaResources(t *testing.T) {
 						ClusterTopology: []*models.KibanaClusterTopologyElement{
 							{
 								ZoneCount:               1,
-								InstanceConfigurationID: "aws.kibana.r4",
+								InstanceConfigurationID: "aws.kibana.r5d",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
 									Value:    ec.Int32(2048),
@@ -115,30 +89,100 @@ func Test_expandKibanaResources(t *testing.T) {
 						},
 					},
 				},
-				{
-					ElasticsearchClusterRefID: ec.String("somerefid"),
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("secondary-kibana"),
-					Settings:                  &models.KibanaClusterSettings{},
-					Plan: &models.KibanaClusterPlan{
-						Kibana: &models.KibanaConfiguration{
-							Version: "7.6.0",
-						},
-						ClusterTopology: []*models.KibanaClusterTopologyElement{{
-							ZoneCount:               1,
-							InstanceConfigurationID: "aws.kibana.r4",
-							Size: &models.TopologySize{
-								Resource: ec.String("memory"),
-								Value:    ec.Int32(4096),
-							},
+			},
+		},
+		{
+			name: "parses a kibana resource with incorrect instance_configuration_id",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":                       "main-kibana",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.7.0",
+						"region":                       "some-region",
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "gcp.some.config",
+							"memory_per_node":           "2g",
+							"zone_count":                1,
 						}},
 					},
 				},
+			},
+			err: errors.New(`kibana topology: invalid instance_configuration_id: "gcp.some.config" doesn't match any of the deployment template instance configurations`),
+		},
+		{
+			name: "parses a kibana resource without topology",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":                       "main-kibana",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.7.0",
+						"region":                       "some-region",
+						"elasticsearch_cluster_ref_id": "somerefid",
+					},
+				},
+			},
+			want: []*models.KibanaPayload{
+				{
+					ElasticsearchClusterRefID: ec.String("somerefid"),
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-kibana"),
+					Plan: &models.KibanaClusterPlan{
+						Kibana: &models.KibanaConfiguration{
+							Version: "7.7.0",
+						},
+						ClusterTopology: []*models.KibanaClusterTopologyElement{
+							{
+								ZoneCount:               1,
+								InstanceConfigurationID: "aws.kibana.r5d",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses a kibana resource with topology and settings",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{map[string]interface{}{
+					"ref_id":                       "secondary-kibana",
+					"elasticsearch_cluster_ref_id": "somerefid",
+					"resource_id":                  mock.ValidClusterID,
+					"version":                      "7.8.0",
+					"region":                       "some-region",
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_yaml":          "some.setting: value",
+						"user_settings_override_yaml": "some.setting: override",
+						"user_settings_json":          `{"some.setting": "value"}`,
+						"user_settings_override_json": `{"some.setting": "override"}`,
+					}},
+					"topology": []interface{}{map[string]interface{}{
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml":          "some.setting: value",
+							"user_settings_override_yaml": "some.setting: override",
+							"user_settings_json":          `{"some.setting": "value"}`,
+							"user_settings_override_json": `{"some.setting": "override"}`,
+						}},
+						"instance_configuration_id": "aws.kibana.r5d",
+						"memory_per_node":           "4g",
+						"zone_count":                1,
+					}},
+				}},
+			},
+			want: []*models.KibanaPayload{
 				{
 					ElasticsearchClusterRefID: ec.String("somerefid"),
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("secondary-kibana"),
-					Settings:                  &models.KibanaClusterSettings{},
 					Plan: &models.KibanaClusterPlan{
 						Kibana: &models.KibanaConfiguration{
 							Version:                  "7.8.0",
@@ -155,7 +199,7 @@ func Test_expandKibanaResources(t *testing.T) {
 								UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
 							},
 							ZoneCount:               1,
-							InstanceConfigurationID: "aws.kibana.r4",
+							InstanceConfigurationID: "aws.kibana.r5d",
 							Size: &models.TopologySize{
 								Resource: ec.String("memory"),
 								Value:    ec.Int32(4096),
@@ -168,7 +212,7 @@ func Test_expandKibanaResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := expandKibanaResources(tt.args.ess)
+			got, err := expandKibanaResources(tt.args.ess, tt.args.tpl)
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			}

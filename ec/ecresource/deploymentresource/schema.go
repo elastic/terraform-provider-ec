@@ -21,6 +21,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const (
+	defaultElasticsearchSize    = 4096
+	defaultKibanaSize           = 1024
+	defaultApmSize              = 512
+	defaultEnterpriseSearchSize = 2048
+)
+
 // newSchema returns the schema for an "ec_deployment" resource.
 func newSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
@@ -33,6 +40,7 @@ func newSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Description: `Required ESS region where to create the deployment, for ECE environments "ece-region" must be set`,
 			Required:    true,
+			ForceNew:    true,
 		},
 		"deployment_template_id": {
 			Type:        schema.TypeString,
@@ -74,7 +82,6 @@ func newSchema() map[string]*schema.Schema {
 		"elasticsearch": {
 			Type:        schema.TypeList,
 			Description: "Required Elasticsearch resource definition",
-			MinItems:    1,
 			MaxItems:    1,
 			Required:    true,
 			Elem:        newElasticsearchResource(),
@@ -86,10 +93,11 @@ func newSchema() map[string]*schema.Schema {
 			Elem:     newKibanaResource(),
 		},
 		"apm": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newApmResource(),
+			Type:         schema.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"kibana"},
+			Elem:         newApmResource(),
 		},
 		"enterprise_search": {
 			Type:     schema.TypeList,

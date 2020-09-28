@@ -17,7 +17,11 @@
 
 package deploymentresource
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+)
 
 func newEnterpriseSearchResource() *schema.Resource {
 	return &schema.Resource{
@@ -65,18 +69,20 @@ func newEnterpriseSearchResource() *schema.Resource {
 func enterpriseSearchTopologySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"config": enterpriseSearchConfig(),
 
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
-					Required: true,
+					Optional: true,
+					Computed: true,
 				},
 				"memory_per_node": {
 					Type:     schema.TypeString,
-					Default:  "2g",
+					Default:  util.MemoryToState(defaultEnterpriseSearchSize),
 					Optional: true,
 				},
 				"zone_count": {
@@ -89,18 +95,15 @@ func enterpriseSearchTopologySchema() *schema.Schema {
 
 				"node_type_appserver": {
 					Type:     schema.TypeBool,
-					Default:  true,
-					Optional: true,
+					Computed: true,
 				},
 				"node_type_connector": {
 					Type:     schema.TypeBool,
-					Default:  true,
-					Optional: true,
+					Computed: true,
 				},
 				"node_type_worker": {
 					Type:     schema.TypeBool,
-					Default:  true,
-					Optional: true,
+					Computed: true,
 				},
 			},
 		},

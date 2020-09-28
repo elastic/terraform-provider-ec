@@ -18,6 +18,7 @@
 package deploymentresource
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -31,14 +32,14 @@ var emptyApmConfig = &models.ApmConfiguration{
 }
 
 // expandApmResources expands apm resources into their models.
-func expandApmResources(apms []interface{}) ([]*models.ApmPayload, error) {
+func expandApmResources(apms []interface{}, tpl *models.ApmPayload) ([]*models.ApmPayload, error) {
 	if len(apms) == 0 {
 		return nil, nil
 	}
 
 	result := make([]*models.ApmPayload, 0, len(apms))
 	for _, raw := range apms {
-		resResource, err := expandApmResource(raw)
+		resResource, err := expandApmResource(raw, tpl)
 		if err != nil {
 			return nil, err
 		}
@@ -48,14 +49,8 @@ func expandApmResources(apms []interface{}) ([]*models.ApmPayload, error) {
 	return result, nil
 }
 
-func expandApmResource(raw interface{}) (*models.ApmPayload, error) {
+func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayload, error) {
 	var es = raw.(map[string]interface{})
-	var res = models.ApmPayload{
-		Plan: &models.ApmPlan{
-			Apm: &models.ApmConfiguration{},
-		},
-		Settings: &models.ApmSettings{},
-	}
 
 	if esRefID, ok := es["elasticsearch_cluster_ref_id"]; ok {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
@@ -83,35 +78,38 @@ func expandApmResource(raw interface{}) (*models.ApmPayload, error) {
 		}
 	}
 
-	if rawTopology, ok := es["topology"]; ok {
-		topology, err := expandApmTopology(rawTopology)
+	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+		topology, err := expandApmTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
 		}
 		res.Plan.ClusterTopology = topology
+	} else {
+		res.Plan.ClusterTopology = defaultApmTopology(res.Plan.ClusterTopology)
 	}
 
-	return &res, nil
+	return res, nil
 }
 
-func expandApmTopology(raw interface{}) ([]*models.ApmTopologyElement, error) {
+func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement) ([]*models.ApmTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.ApmTopologyElement, 0, len(rawTopologies))
 	for _, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
-
+		var icID string
+		if id, ok := topology["instance_configuration_id"]; ok {
+			icID = id.(string)
+		}
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}
 
-		var elem = models.ApmTopologyElement{
-			Size: &size,
+		elem, err := matchApmTopology(icID, topologies)
+		if err != nil {
+			return nil, err
 		}
-
-		if id, ok := topology["instance_configuration_id"]; ok {
-			elem.InstanceConfigurationID = id.(string)
-		}
+		elem.Size = &size
 
 		if zones, ok := topology["zone_count"]; ok {
 			elem.ZoneCount = int32(zones.(int))
@@ -121,7 +119,7 @@ func expandApmTopology(raw interface{}) ([]*models.ApmTopologyElement, error) {
 			elem.Apm = expandApmConfig(c)
 		}
 
-		res = append(res, &elem)
+		res = append(res, elem)
 	}
 
 	return res, nil
@@ -161,4 +159,29 @@ func expandApmConfig(raw interface{}) *models.ApmConfiguration {
 	}
 
 	return nil
+}
+
+func defaultApmTopology(topology []*models.ApmTopologyElement) []*models.ApmTopologyElement {
+	for _, t := range topology {
+		if *t.Size.Value > defaultApmSize {
+			t.Size.Value = ec.Int32(defaultApmSize)
+		}
+		if t.ZoneCount > 1 {
+			t.ZoneCount = 1
+		}
+	}
+
+	return topology
+}
+
+func matchApmTopology(id string, topologies []*models.ApmTopologyElement) (*models.ApmTopologyElement, error) {
+	for _, t := range topologies {
+		if t.InstanceConfigurationID == id {
+			return t, nil
+		}
+	}
+	return nil, fmt.Errorf(
+		`apm topology: invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
+		id,
+	)
 }
