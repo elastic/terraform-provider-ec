@@ -2,6 +2,16 @@
 
 Contributions are very welcome, these can include documentation, bug reports, issues, feature requests, feature implementations or tutorials.
 
+- [Reporting Issues](#reporting-issues)
+- [Code Contribution Guidelines](#code-contribution-guidelines)
+  - [Workflow](#workflow)
+  - [Commit Messages](#commit-messages)
+- [Setting up a dev environment](#setting-up-a-dev-environment)
+  - [Environment prerequisites](#environment-prerequisites)
+- [Development](#development)
+  - [Running tests](#running-tests)
+  - [Build terraform-provider-ec locally with your changes](#build-terraform-provider-ec-locally-with-your-changes)
+
 ## Reporting Issues
 
 If you have found an issue or defect in `ecctl` or the latest documentation, use the GitHub [issue tracker](https://github.com/elastic/terraform-provider-ec/issues) to report the problem. Make sure to follow the template provided for you to provide all the useful details possible.
@@ -87,7 +97,7 @@ Before running the acceptance tests make sure you have exported your API key to 
 - `TESTARGS` controls any additional flags you may want to pass to `go test`.
 - `TEST_COUNT` controls how many times each test is run. Defaults to 1.
 
-Additionally, there is a `make sweep` target which destroys any dangling infrastructure created by the acceptance tests.
+Additionally, there is a `make sweep` target which destroys any dangling infrastructure created by the acceptance tests. For more information on acceptance testing, check out the official Terraform [documentation](https://www.terraform.io/docs/extend/testing/acceptance-tests/index.html).
 
 _Note: Acceptance tests may incur in charges for the deployments that are created. If you do not wish to run acceptance tests locally, you can rely on the acceptance tests which are run automatically on every pull request._
 
