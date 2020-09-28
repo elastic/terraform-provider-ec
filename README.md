@@ -69,18 +69,12 @@ resource "ec_deployment" "example_minimal" {
 
 ## Developer Requirements
 
-- [Terraform](https://www.terraform.io/downloads.html) 0.12+
-- [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
-
-## Developing the Provider
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine.
-
-*Note:* This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). The instructions that follow assume a directory in your home directory outside of the standard GOPATH (i.e `$HOME/development/terraform-providers/`).
+- [Terraform](https://www.terraform.io/downloads.html) 0.13+
+- [Go](https://golang.org/doc/install) 1.13+ (to build the provider plugin)
 
 ### Installing the provider via the source code
 
-First, clone the repository to a folder on your machine, for example:
+Clone the repository to a folder on your machine and run `make install`:
 
 ```sh
 $ mkdir -p ~/development; cd ~/development
