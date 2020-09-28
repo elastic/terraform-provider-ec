@@ -18,6 +18,6 @@
 package acc
 
 const (
-	deploymentVersion = "7.9.1"
+	deploymentVersion = "7.9.2"
 	region            = "us-east-1"
 )
