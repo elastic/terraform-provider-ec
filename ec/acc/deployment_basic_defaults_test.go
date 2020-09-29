@@ -74,11 +74,12 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// changed
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.memory_per_node", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.memory_per_node", "2g"),
+					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.memory_per_node", "1g"),
 
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.memory_per_node", "4g"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
@@ -92,7 +93,6 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.#", "1"),
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.#", "1"),
 					resource.TestCheckResourceAttrSet(resName, "apm.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.memory_per_node", "0.5g"),
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.#", "1"),

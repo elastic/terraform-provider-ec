@@ -148,6 +148,46 @@ func Test_expandKibanaResources(t *testing.T) {
 			},
 		},
 		{
+			name: "parses a kibana resource with a topology but no instance_configuration_id",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":                       "main-kibana",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.7.0",
+						"region":                       "some-region",
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"topology": []interface{}{map[string]interface{}{
+							"memory_per_node": "4g",
+						}},
+					},
+				},
+			},
+			want: []*models.KibanaPayload{
+				{
+					ElasticsearchClusterRefID: ec.String("somerefid"),
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-kibana"),
+					Plan: &models.KibanaClusterPlan{
+						Kibana: &models.KibanaConfiguration{
+							Version: "7.7.0",
+						},
+						ClusterTopology: []*models.KibanaClusterTopologyElement{
+							{
+								ZoneCount:               1,
+								InstanceConfigurationID: "aws.kibana.r5d",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(4096),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "parses a kibana resource with topology and settings",
 			args: args{
 				tpl: tpl(),

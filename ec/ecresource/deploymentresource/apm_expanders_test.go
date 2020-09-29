@@ -144,6 +144,44 @@ func Test_expandApmResources(t *testing.T) {
 			},
 		},
 		{
+			name: "parses an APM resource with a topology element but no instance_configuration_id",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":                       "main-apm",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.7.0",
+						"region":                       "some-region",
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"topology": []interface{}{map[string]interface{}{
+							"memory_per_node": "2g",
+						}},
+					},
+				},
+			},
+			want: []*models.ApmPayload{
+				{
+					ElasticsearchClusterRefID: ec.String("somerefid"),
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-apm"),
+					Plan: &models.ApmPlan{
+						Apm: &models.ApmConfiguration{
+							Version: "7.7.0",
+						},
+						ClusterTopology: []*models.ApmTopologyElement{{
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.apm.r5d",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
+							},
+						}},
+					},
+				},
+			},
+		},
+		{
 			name: "parses an APM resource with explicit topology and some config",
 			args: args{
 				tpl: tpl(),

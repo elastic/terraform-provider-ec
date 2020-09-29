@@ -94,12 +94,22 @@ func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayl
 func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement) ([]*models.ApmTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.ApmTopologyElement, 0, len(rawTopologies))
-	for _, rawTop := range rawTopologies {
+	for i, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 		var icID string
 		if id, ok := topology["instance_configuration_id"]; ok {
 			icID = id.(string)
 		}
+		// When a topology element is set but no instance_configuration_id
+		// is set, then obtain the instance_configuration_id from the topology
+		// element.
+		if icID == "" {
+			defaultTop := defaultApmTopology(topologies)
+			if len(defaultTop) >= i {
+				icID = defaultTop[i].InstanceConfigurationID
+			}
+		}
+
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err

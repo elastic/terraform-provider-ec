@@ -90,11 +90,20 @@ func expandEssResource(raw interface{}, res *models.EnterpriseSearchPayload) (*m
 func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTopologyElement) ([]*models.EnterpriseSearchTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.EnterpriseSearchTopologyElement, 0, len(rawTopologies))
-	for _, rawTop := range rawTopologies {
+	for i, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 		var icID string
 		if id, ok := topology["instance_configuration_id"]; ok {
 			icID = id.(string)
+		}
+		// When a topology element is set but no instance_configuration_id
+		// is set, then obtain the instance_configuration_id from the topology
+		// element.
+		if icID == "" {
+			defaultTop := defaultEssTopology(topologies)
+			if len(defaultTop) >= i {
+				icID = defaultTop[i].InstanceConfigurationID
+			}
 		}
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {

@@ -107,11 +107,20 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchClusterTopologyElement) ([]*models.ElasticsearchClusterTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.ElasticsearchClusterTopologyElement, 0)
-	for _, rawTop := range rawTopologies {
+	for i, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
 		var icID string
 		if id, ok := topology["instance_configuration_id"]; ok {
 			icID = id.(string)
+		}
+		// When a topology element is set but no instance_configuration_id
+		// is set, then obtain the instance_configuration_id from the topology
+		// element.
+		if icID == "" {
+			defaultTop := defaultEsTopology(topologies)
+			if len(defaultTop) >= i {
+				icID = defaultTop[i].InstanceConfigurationID
+			}
 		}
 
 		size, err := util.ParseTopologySize(topology)
