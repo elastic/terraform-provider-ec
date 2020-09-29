@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,14 +31,14 @@ import (
 func Test_expandEsResource(t *testing.T) {
 	tplPath := "testdata/aws-io-optimized-v2.json"
 	tpl := func() *models.ElasticsearchPayload {
-		return util.ElasticsearchResource(util.ParseDeploymentTemplate(t,
+		return esResource(parseDeploymentTemplate(t,
 			tplPath,
 		))
 	}
 
 	hotWarmTplPath := "testdata/aws-hot-warm-v2.json"
 	hotWarmTpl := func() *models.ElasticsearchPayload {
-		return util.ElasticsearchResource(util.ParseDeploymentTemplate(t,
+		return esResource(parseDeploymentTemplate(t,
 			hotWarmTplPath,
 		))
 	}

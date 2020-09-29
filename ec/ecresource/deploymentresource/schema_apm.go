@@ -87,7 +87,7 @@ func apmTopologySchema() *schema.Schema {
 				},
 				"zone_count": {
 					Type:     schema.TypeInt,
-					Default:  1,
+					Default:  defaultZoneCount,
 					Optional: true,
 				},
 			},

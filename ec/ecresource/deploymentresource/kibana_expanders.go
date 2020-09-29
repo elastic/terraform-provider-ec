@@ -154,13 +154,16 @@ func expandKibanaConfig(raw interface{}) *models.KibanaConfiguration {
 	return nil
 }
 
+// defaultApmTopology iterates over all the templated topology elements and
+// sets the size to the default when the template size is greater than the
+// local terraform default, the same is done on the ZoneCount.
 func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*models.KibanaClusterTopologyElement {
 	for _, t := range topology {
 		if *t.Size.Value > defaultKibanaSize {
 			t.Size.Value = ec.Int32(defaultKibanaSize)
 		}
-		if t.ZoneCount > 1 {
-			t.ZoneCount = 1
+		if t.ZoneCount > defaultZoneCount {
+			t.ZoneCount = defaultZoneCount
 		}
 	}
 

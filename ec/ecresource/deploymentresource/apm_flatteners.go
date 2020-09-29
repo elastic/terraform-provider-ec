@@ -28,7 +28,7 @@ func flattenApmResources(in []*models.ApmResourceInfo, name string) []interface{
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentApmPlanEmpty(res) || util.IsApmResourceStopped(res) {
+		if util.IsCurrentApmPlanEmpty(res) || isApmResourceStopped(res) {
 			continue
 		}
 

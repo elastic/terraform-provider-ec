@@ -28,7 +28,7 @@ func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string)
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentEssPlanEmpty(res) || util.IsEssResourceStopped(res) {
+		if util.IsCurrentEssPlanEmpty(res) || isEssResourceStopped(res) {
 			continue
 		}
 
@@ -57,7 +57,7 @@ func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string)
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		if urls := util.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
+		if urls := flattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
 			for k, v := range urls {
 				m[k] = v
 			}

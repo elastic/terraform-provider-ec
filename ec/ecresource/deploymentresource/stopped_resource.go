@@ -15,30 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package util
+package deploymentresource
 
 import "github.com/elastic/cloud-sdk-go/pkg/models"
 
-// IsApmResourceStopped returns true if the resource is stopped.
-func IsApmResourceStopped(res *models.ApmResourceInfo) bool {
+// isApmResourceStopped returns true if the resource is stopped.
+func isApmResourceStopped(res *models.ApmResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
 }
 
-// IsEsResourceStopped returns true if the resource is stopped.
-func IsEsResourceStopped(res *models.ElasticsearchResourceInfo) bool {
+// isEsResourceStopped returns true if the resource is stopped.
+func isEsResourceStopped(res *models.ElasticsearchResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
 }
 
-// IsEssResourceStopped returns true if the resource is stopped.
-func IsEssResourceStopped(res *models.EnterpriseSearchResourceInfo) bool {
+// isEssResourceStopped returns true if the resource is stopped.
+func isEssResourceStopped(res *models.EnterpriseSearchResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
 }
 
-// IsKibanaResourceStopped returns true if the resource is stopped.
-func IsKibanaResourceStopped(res *models.KibanaResourceInfo) bool {
+// isKibanaResourceStopped returns true if the resource is stopped.
+func isKibanaResourceStopped(res *models.KibanaResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
 }

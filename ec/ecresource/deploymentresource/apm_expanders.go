@@ -161,13 +161,16 @@ func expandApmConfig(raw interface{}) *models.ApmConfiguration {
 	return nil
 }
 
+// defaultApmTopology iterates over all the templated topology elements and
+// sets the size to the default when the template size is greater than the
+// local terraform default, the same is done on the ZoneCount.
 func defaultApmTopology(topology []*models.ApmTopologyElement) []*models.ApmTopologyElement {
 	for _, t := range topology {
 		if *t.Size.Value > defaultApmSize {
 			t.Size.Value = ec.Int32(defaultApmSize)
 		}
-		if t.ZoneCount > 1 {
-			t.ZoneCount = 1
+		if t.ZoneCount > defaultZoneCount {
+			t.ZoneCount = defaultZoneCount
 		}
 	}
 

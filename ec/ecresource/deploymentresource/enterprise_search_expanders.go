@@ -154,13 +154,16 @@ func expandEssConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
 	return nil
 }
 
+// defaultApmTopology iterates over all the templated topology elements and
+// sets the size to the default when the template size is greater than the
+// local terraform default or zero, the same is done on the ZoneCount.
 func defaultEssTopology(topology []*models.EnterpriseSearchTopologyElement) []*models.EnterpriseSearchTopologyElement {
 	for _, t := range topology {
 		if *t.Size.Value > defaultEnterpriseSearchSize || *t.Size.Value == 0 {
 			t.Size.Value = ec.Int32(defaultEnterpriseSearchSize)
 		}
-		if t.ZoneCount > 1 {
-			t.ZoneCount = 1
+		if t.ZoneCount > defaultZoneCount {
+			t.ZoneCount = defaultZoneCount
 		}
 	}
 

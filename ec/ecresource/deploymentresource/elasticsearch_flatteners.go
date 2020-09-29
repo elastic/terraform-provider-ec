@@ -30,7 +30,7 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string) []i
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentEsPlanEmpty(res) || util.IsEsResourceStopped(res) {
+		if util.IsCurrentEsPlanEmpty(res) || isEsResourceStopped(res) {
 			continue
 		}
 
@@ -64,7 +64,7 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string) []i
 			m["cloud_id"] = metadata.CloudID
 		}
 
-		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
+		for k, v := range flattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
 		}
 

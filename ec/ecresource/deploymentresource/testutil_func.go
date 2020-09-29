@@ -15,19 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package util
+package deploymentresource
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// ParseDeploymentTemplate is a test helper which parse a file by path and
+// parseDeploymentTemplate is a test helper which parse a file by path and
 // returns a models.DeploymentTemplateInfoV2.
-func ParseDeploymentTemplate(t *testing.T, name string) *models.DeploymentTemplateInfoV2 {
+func parseDeploymentTemplate(t *testing.T, name string) *models.DeploymentTemplateInfoV2 {
 	t.Helper()
 	f, err := os.Open(name)
 	if err != nil {
@@ -50,26 +51,46 @@ func ParseDeploymentTemplate(t *testing.T, name string) *models.DeploymentTempla
 	return &res
 }
 
-// ElasticsearchResource returns the ElaticsearchPayload from a deployment
+// esResource returns the ElaticsearchPayload from a deployment
 // template.
-func ElasticsearchResource(res *models.DeploymentTemplateInfoV2) *models.ElasticsearchPayload {
+func esResource(res *models.DeploymentTemplateInfoV2) *models.ElasticsearchPayload {
 	return res.DeploymentTemplate.Resources.Elasticsearch[0]
 }
 
-// KibanaResource returns the KibanaPayload from a deployment
+// kibanaResource returns the KibanaPayload from a deployment
 // template.
-func KibanaResource(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
+func kibanaResource(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
 	return res.DeploymentTemplate.Resources.Kibana[0]
 }
 
-// ApmResource returns the ApmPayload from a deployment
+// apmResource returns the ApmPayload from a deployment
 // template.
-func ApmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
+func apmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
 	return res.DeploymentTemplate.Resources.Apm[0]
 }
 
-// EnterpriseSearchResource returns the EnterpriseSearchPayload from a deployment
+// essResource returns the EnterpriseSearchPayload from a deployment
 // template.
-func EnterpriseSearchResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
+func essResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
 	return res.DeploymentTemplate.Resources.EnterpriseSearch[0]
+}
+
+// flattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
+// https endpoints and returns a map with two keys: `http_endpoint` and
+// `https_endpoint`
+func flattenClusterEndpoint(metadata *models.ClusterMetadataInfo) map[string]interface{} {
+	if metadata == nil || metadata.Endpoint == "" || metadata.Ports == nil {
+		return nil
+	}
+
+	var m = make(map[string]interface{})
+	if metadata.Ports.HTTP != nil {
+		m["http_endpoint"] = fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP)
+	}
+
+	if metadata.Ports.HTTPS != nil {
+		m["https_endpoint"] = fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS)
+	}
+
+	return m
 }

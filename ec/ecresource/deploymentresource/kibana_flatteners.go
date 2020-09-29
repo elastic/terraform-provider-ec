@@ -28,7 +28,7 @@ func flattenKibanaResources(in []*models.KibanaResourceInfo, name string) []inte
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentKibanaPlanEmpty(res) || util.IsKibanaResourceStopped(res) {
+		if util.IsCurrentKibanaPlanEmpty(res) || isKibanaResourceStopped(res) {
 			continue
 		}
 
@@ -57,7 +57,7 @@ func flattenKibanaResources(in []*models.KibanaResourceInfo, name string) []inte
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
+		for k, v := range flattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
 		}
 

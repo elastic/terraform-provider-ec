@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package util
+package deploymentresource
 
 import (
 	"io/ioutil"
@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseDeploymentTemplate(t *testing.T) {
+func Test_parseDeploymentTemplate(t *testing.T) {
 	var contents = `{"id": "deployment-template-name","deployment_template": 
 	{"resources": {
 		"elasticsearch": [{
@@ -60,7 +60,7 @@ func TestParseDeploymentTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ParseDeploymentTemplate(t, tt.args.name)
+			got := parseDeploymentTemplate(t, tt.args.name)
 			assert.Equal(t, tt.want, got)
 		})
 	}

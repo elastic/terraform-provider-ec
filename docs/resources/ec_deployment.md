@@ -21,7 +21,7 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.9.1"
+  version                = "7.9.2"
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
@@ -29,6 +29,8 @@ resource "ec_deployment" "example_minimal" {
   kibana {}
 
   apm {}
+
+  enterprise_search {}
 }
 ```
 
@@ -180,10 +182,10 @@ In addition to all arguments above, the following attributes are exported:
 * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash, [more information](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).
 * `elasticsearch.#.http_endpoint` - The Elasticsearch resource HTTP endpoint.
 * `elasticsearch.#.https_endpoint` - The Elasticsearch resource HTTPs endpoint.
-* `elasticsearch.#.topology.#.node_type_data` - (Optional) Node type (data) for the Elasticsearch Topology element.
-* `elasticsearch.#.topology.#.node_type_master` - (Optional) Node type (master) for the Elasticsearch Topology element.
-* `elasticsearch.#.topology.#.node_type_ingest` - (Optional) Node type (ingest) for the Elasticsearch Topology element.
-* `elasticsearch.#.topology.#.node_type_ml` - (Optional) Node type (machine learning) for the Elasticsearch Topology element.
+* `elasticsearch.#.topology.#.node_type_data` - Node type (data) for the Elasticsearch Topology element.
+* `elasticsearch.#.topology.#.node_type_master` - Node type (master) for the Elasticsearch Topology element.
+* `elasticsearch.#.topology.#.node_type_ingest` - Node type (ingest) for the Elasticsearch Topology element.
+* `elasticsearch.#.topology.#.node_type_ml` - Node type (machine learning) for the Elasticsearch Topology element.
 * `kibana.#.resource_id` - The Kibana resource unique identifier.
 * `kibana.#.version` - The Kibana current version.
 * `kibana.#.region` - The Kibana region.
@@ -199,9 +201,9 @@ In addition to all arguments above, the following attributes are exported:
 * `enterprise_search.#.region` - The Enterprise Search region.
 * `enterprise_search.#.http_endpoint` - The Enterprise Search resource HTTP endpoint.
 * `enterprise_search.#.https_endpoint` - The Enterprise Search resource HTTPs endpoint.
-* `enterprise_search.#.topology.#.node_type_appserver` - (Optional) Node type (Appserver) for the Enterprise Search Topology element.
-* `enterprise_search.#.topology.#.node_type_connector` - (Optional) Node type (Connector) for the Enterprise Search Topology element.
-* `enterprise_search.#.topology.#.node_type_worker` - (Optional) Node type (worker) for the Enterprise Search Topology element.
+* `enterprise_search.#.topology.#.node_type_appserver` - Node type (Appserver) for the Enterprise Search Topology element.
+* `enterprise_search.#.topology.#.node_type_connector` - Node type (Connector) for the Enterprise Search Topology element.
+* `enterprise_search.#.topology.#.node_type_worker` - Node type (worker) for the Enterprise Search Topology element.
 
 ## Import
 

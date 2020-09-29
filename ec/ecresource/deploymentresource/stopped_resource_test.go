@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package util
+package deploymentresource
 
 import (
 	"testing"
@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsApmResourceStopped(t *testing.T) {
+func Test_isApmResourceStopped(t *testing.T) {
 	type args struct {
 		res *models.ApmResourceInfo
 	}
@@ -51,13 +51,13 @@ func TestIsApmResourceStopped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsApmResourceStopped(tt.args.res)
+			got := isApmResourceStopped(tt.args.res)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestIsEsResourceStopped(t *testing.T) {
+func Test_isEsResourceStopped(t *testing.T) {
 	type args struct {
 		res *models.ElasticsearchResourceInfo
 	}
@@ -83,13 +83,13 @@ func TestIsEsResourceStopped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsEsResourceStopped(tt.args.res)
+			got := isEsResourceStopped(tt.args.res)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestIsEssResourceStopped(t *testing.T) {
+func Test_isEssResourceStopped(t *testing.T) {
 	type args struct {
 		res *models.EnterpriseSearchResourceInfo
 	}
@@ -115,13 +115,13 @@ func TestIsEssResourceStopped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsEssResourceStopped(tt.args.res)
+			got := isEssResourceStopped(tt.args.res)
 			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestIsKibanaResourceStopped(t *testing.T) {
+func Test_isKibanaResourceStopped(t *testing.T) {
 	type args struct {
 		res *models.KibanaResourceInfo
 	}
@@ -147,7 +147,7 @@ func TestIsKibanaResourceStopped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsKibanaResourceStopped(tt.args.res)
+			got := isKibanaResourceStopped(tt.args.res)
 			assert.Equal(t, tt.want, got)
 		})
 	}

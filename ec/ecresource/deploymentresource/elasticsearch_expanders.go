@@ -186,14 +186,20 @@ func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement)
 	return result
 }
 
+// defaultEsTopology iterates over all the templated topology elements and
+// sets the size to the default when the template size is greater than the
+// local terraform default, the same is done on the ZoneCount. It discards any
+// elements where the size is == 0, since it means that different Instance
+// configurations are available to configure but are not included in the
+// default deployment template.
 func defaultEsTopology(topology []*models.ElasticsearchClusterTopologyElement) []*models.ElasticsearchClusterTopologyElement {
 	topology = discardEsZeroSize(topology)
 	for _, t := range topology {
 		if *t.Size.Value > defaultElasticsearchSize {
 			t.Size.Value = ec.Int32(defaultElasticsearchSize)
 		}
-		if t.ZoneCount > 1 {
-			t.ZoneCount = 1
+		if t.ZoneCount > defaultZoneCount {
+			t.ZoneCount = defaultZoneCount
 		}
 	}
 

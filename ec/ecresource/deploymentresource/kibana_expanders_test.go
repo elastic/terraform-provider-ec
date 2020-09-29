@@ -25,14 +25,12 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_expandKibanaResources(t *testing.T) {
 	tplPath := "testdata/aws-io-optimized-v2.json"
 	tpl := func() *models.KibanaPayload {
-		return util.KibanaResource(util.ParseDeploymentTemplate(t,
+		return kibanaResource(parseDeploymentTemplate(t,
 			tplPath,
 		))
 	}

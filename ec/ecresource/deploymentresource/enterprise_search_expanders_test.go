@@ -21,18 +21,16 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_expandEssResources(t *testing.T) {
 	tplPath := "testdata/aws-io-optimized-v2.json"
 	tpl := func() *models.EnterpriseSearchPayload {
-		return util.EnterpriseSearchResource(util.ParseDeploymentTemplate(t,
+		return essResource(parseDeploymentTemplate(t,
 			tplPath,
 		))
 	}

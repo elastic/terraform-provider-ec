@@ -105,7 +105,7 @@ func elasticsearchTopologySchema() *schema.Schema {
 				"zone_count": {
 					Type:        schema.TypeInt,
 					Description: `Optional number of zones that the Elasticsearch cluster will span. This is used to set HA`,
-					Default:     1,
+					Default:     defaultZoneCount,
 					Optional:    true,
 				},
 

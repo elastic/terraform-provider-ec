@@ -24,14 +24,13 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_expandApmResources(t *testing.T) {
 	tplPath := "testdata/aws-io-optimized-v2.json"
 	tpl := func() *models.ApmPayload {
-		return util.ApmResource(util.ParseDeploymentTemplate(t,
+		return apmResource(parseDeploymentTemplate(t,
 			tplPath,
 		))
 	}
