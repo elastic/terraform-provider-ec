@@ -6,11 +6,7 @@ resource "ec_deployment" "defaults" {
   # TODO: Make this template ID dependent on the region.
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
-    topology {
-      memory_per_node = "1g"
-    }
-  }
+  elasticsearch {}
 
   kibana {
     topology {
@@ -18,7 +14,11 @@ resource "ec_deployment" "defaults" {
     }
   }
 
-  apm {}
+  apm {
+    topology {
+      memory_per_node = "1g"
+    }
+  }
 
   enterprise_search {}
 }
