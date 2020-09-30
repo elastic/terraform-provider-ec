@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	resource.TestMain(m)
 }
 
-func NewAPI() (*api.API, error) {
+func newAPI() (*api.API, error) {
 	var host = api.ESSEndpoint
 	if h := os.Getenv("EC_HOST"); h != "" {
 		host = h

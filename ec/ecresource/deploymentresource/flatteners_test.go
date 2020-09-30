@@ -29,7 +29,7 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	deploymentSchemaArg := schema.TestResourceDataRaw(t, NewSchema(), nil)
+	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
 
 	wantDeployment := newResourceData(t, resDataParams{

@@ -35,7 +35,7 @@ func init() {
 }
 
 func testSweepDeploymentTrafficFilter(region string) error {
-	client, err := NewAPI()
+	client, err := newAPI()
 	if err != nil {
 		return err
 	}

@@ -27,7 +27,7 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	trafficFilterSchemaArg := schema.TestResourceDataRaw(t, NewSchema(), nil)
+	trafficFilterSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	trafficFilterSchemaArg.SetId("some-random-id")
 
 	remoteState := models.TrafficFilterRulesetInfo{

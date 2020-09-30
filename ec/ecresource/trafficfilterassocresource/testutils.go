@@ -32,7 +32,7 @@ type resDataParams struct {
 }
 
 func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
-	raw := schema.TestResourceDataRaw(t, NewSchema(), params.Resources)
+	raw := schema.TestResourceDataRaw(t, newSchema(), params.Resources)
 	raw.SetId(params.ID)
 
 	return raw

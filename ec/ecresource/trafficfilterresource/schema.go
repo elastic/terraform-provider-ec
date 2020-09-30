@@ -21,8 +21,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// NewSchema returns the schema for an "ec_deployment_traffic_filter" resource.
-func NewSchema() map[string]*schema.Schema {
+// newSchema returns the schema for an "ec_deployment_traffic_filter" resource.
+func newSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,

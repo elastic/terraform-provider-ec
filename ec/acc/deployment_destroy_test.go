@@ -27,7 +27,7 @@ import (
 
 func testAccDeploymentDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
-	client, err := NewAPI()
+	client, err := newAPI()
 	if err != nil {
 		return err
 	}
