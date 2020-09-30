@@ -27,7 +27,7 @@ import (
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		Description: "Elastic Cloud deployment traffic filtering association",
-		Schema:      NewSchema(),
+		Schema:      newSchema(),
 
 		CreateContext: create,
 		ReadContext:   read,

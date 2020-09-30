@@ -36,7 +36,7 @@ func testAccCheckDeploymentTrafficFilterExists(name string) resource.TestCheckFu
 		if saved.Primary.ID == "" {
 			return fmt.Errorf("no deployment id is set")
 		}
-		client, err := NewAPI()
+		client, err := newAPI()
 		if err != nil {
 			return err
 		}

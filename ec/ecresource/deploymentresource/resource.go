@@ -31,7 +31,7 @@ func Resource() *schema.Resource {
 		UpdateContext: update,
 		DeleteContext: delete,
 
-		Schema: NewSchema(),
+		Schema: newSchema(),
 
 		Description: "Elastic Cloud Deployment resource",
 		Importer: &schema.ResourceImporter{

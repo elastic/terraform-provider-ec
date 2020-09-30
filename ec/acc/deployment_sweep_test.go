@@ -39,7 +39,7 @@ func init() {
 }
 
 func testSweepDeployment(_ string) error {
-	client, err := NewAPI()
+	client, err := newAPI()
 	if err != nil {
 		return err
 	}
