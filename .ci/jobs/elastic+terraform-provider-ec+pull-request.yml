@@ -11,7 +11,7 @@
             org-list:
                 - elastic
             allow-whitelist-orgs-as-admins: true
-            cancel-builds-on-update: true
+            cancel-builds-on-update: false
             status-context: acceptance
     pipeline-scm:
         scm:
