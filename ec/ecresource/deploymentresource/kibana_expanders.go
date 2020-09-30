@@ -99,11 +99,8 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
 		// element.
-		if icID == "" {
-			defaultTop := defaultKibanaTopology(topologies)
-			if len(defaultTop) >= i {
-				icID = defaultTop[i].InstanceConfigurationID
-			}
+		if t := defaultKibanaTopology(topologies); icID == "" && len(t) >= i {
+			icID = t[i].InstanceConfigurationID
 		}
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {
@@ -114,10 +111,14 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 		if err != nil {
 			return nil, err
 		}
-		elem.Size = &size
+		if size != nil {
+			elem.Size = size
+		}
 
 		if zones, ok := topology["zone_count"]; ok {
-			elem.ZoneCount = int32(zones.(int))
+			if z := zones.(int); z > 0 {
+				elem.ZoneCount = int32(z)
+			}
 		}
 
 		if nodecount, ok := topology["node_count_per_zone"]; ok {
@@ -168,11 +169,11 @@ func expandKibanaConfig(raw interface{}) *models.KibanaConfiguration {
 // local terraform default, the same is done on the ZoneCount.
 func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*models.KibanaClusterTopologyElement {
 	for _, t := range topology {
-		if *t.Size.Value > defaultKibanaSize {
-			t.Size.Value = ec.Int32(defaultKibanaSize)
+		if *t.Size.Value > minimumKibanaSize {
+			t.Size.Value = ec.Int32(minimumKibanaSize)
 		}
-		if t.ZoneCount > defaultZoneCount {
-			t.ZoneCount = defaultZoneCount
+		if t.ZoneCount > minimumZoneCount {
+			t.ZoneCount = minimumZoneCount
 		}
 	}
 

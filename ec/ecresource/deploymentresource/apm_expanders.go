@@ -103,11 +103,8 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
 		// element.
-		if icID == "" {
-			defaultTop := defaultApmTopology(topologies)
-			if len(defaultTop) >= i {
-				icID = defaultTop[i].InstanceConfigurationID
-			}
+		if t := defaultApmTopology(topologies); icID == "" && len(t) >= i {
+			icID = t[i].InstanceConfigurationID
 		}
 
 		size, err := util.ParseTopologySize(topology)
@@ -119,10 +116,15 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 		if err != nil {
 			return nil, err
 		}
-		elem.Size = &size
+		if size != nil {
+			elem.Size = size
+		}
 
 		if zones, ok := topology["zone_count"]; ok {
-			elem.ZoneCount = int32(zones.(int))
+			if z := zones.(int); z > 0 {
+				elem.ZoneCount = int32(z)
+			}
+
 		}
 
 		if c, ok := topology["config"]; ok {
@@ -172,15 +174,15 @@ func expandApmConfig(raw interface{}) *models.ApmConfiguration {
 }
 
 // defaultApmTopology iterates over all the templated topology elements and
-// sets the size to the default when the template size is greater than the
-// local terraform default, the same is done on the ZoneCount.
+// sets the size to the default when the template size is smaller than the
+// deployment template default, the same is done on the ZoneCount.
 func defaultApmTopology(topology []*models.ApmTopologyElement) []*models.ApmTopologyElement {
 	for _, t := range topology {
-		if *t.Size.Value > defaultApmSize {
-			t.Size.Value = ec.Int32(defaultApmSize)
+		if *t.Size.Value < minimumApmSize {
+			t.Size.Value = ec.Int32(minimumApmSize)
 		}
-		if t.ZoneCount > defaultZoneCount {
-			t.ZoneCount = defaultZoneCount
+		if t.ZoneCount < minimumZoneCount {
+			t.ZoneCount = minimumZoneCount
 		}
 	}
 

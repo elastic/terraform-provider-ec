@@ -34,6 +34,88 @@ func newSampleDeployment() map[string]interface{} {
 	}
 }
 
+func newSampleDeploymentEmptyRD() map[string]interface{} {
+	return map[string]interface{}{
+		"name":                   "my_deployment_name",
+		"deployment_template_id": "aws-io-optimized-v2",
+		"region":                 "us-east-1",
+		"version":                "7.7.0",
+		"elasticsearch":          []interface{}{map[string]interface{}{}},
+		"kibana":                 []interface{}{map[string]interface{}{}},
+		"apm":                    []interface{}{map[string]interface{}{}},
+		"enterprise_search":      []interface{}{map[string]interface{}{}},
+		"traffic_filter":         []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
+	}
+}
+
+func newSampleDeploymentOverrides() map[string]interface{} {
+	return map[string]interface{}{
+		"name":                   "my_deployment_name",
+		"deployment_template_id": "aws-io-optimized-v2",
+		"region":                 "us-east-1",
+		"version":                "7.7.0",
+		"elasticsearch": []interface{}{map[string]interface{}{
+			"ref_id": "main-elasticsearch",
+			"topology": []interface{}{map[string]interface{}{
+				"memory_per_node": "4g",
+			}}},
+		},
+		"kibana": []interface{}{map[string]interface{}{
+			"ref_id": "main-kibana",
+			"topology": []interface{}{map[string]interface{}{
+				"memory_per_node": "2g",
+			}}},
+		},
+		"apm": []interface{}{map[string]interface{}{
+			"ref_id": "main-apm",
+			"topology": []interface{}{map[string]interface{}{
+				"memory_per_node": "1g",
+			}}},
+		},
+		"enterprise_search": []interface{}{map[string]interface{}{
+			"ref_id": "main-enterprise_search",
+			"topology": []interface{}{map[string]interface{}{
+				"memory_per_node": "4g",
+			}}},
+		},
+		"traffic_filter": []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
+	}
+}
+
+func newSampleDeploymentOverridesIC() map[string]interface{} {
+	return map[string]interface{}{
+		"name":                   "my_deployment_name",
+		"deployment_template_id": "aws-io-optimized-v2",
+		"region":                 "us-east-1",
+		"version":                "7.7.0",
+		"elasticsearch": []interface{}{map[string]interface{}{
+			"ref_id": "main-elasticsearch",
+			"topology": []interface{}{map[string]interface{}{
+				"instance_configuration_id": "aws.data.highio.i3",
+			}}},
+		},
+		"kibana": []interface{}{map[string]interface{}{
+			"ref_id": "main-kibana",
+			"topology": []interface{}{map[string]interface{}{
+				"instance_configuration_id": "aws.kibana.r5d",
+			}}},
+		},
+		"apm": []interface{}{map[string]interface{}{
+			"ref_id": "main-apm",
+			"topology": []interface{}{map[string]interface{}{
+				"instance_configuration_id": "aws.apm.r5d",
+			}}},
+		},
+		"enterprise_search": []interface{}{map[string]interface{}{
+			"ref_id": "main-enterprise_search",
+			"topology": []interface{}{map[string]interface{}{
+				"instance_configuration_id": "aws.enterprisesearch.m5d",
+			}}},
+		},
+		"traffic_filter": []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
+	}
+}
+
 func newElasticsearchSample() map[string]interface{} {
 	return map[string]interface{}{
 		"ref_id":      "main-elasticsearch",

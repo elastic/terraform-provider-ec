@@ -19,8 +19,6 @@ package deploymentresource
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func newElasticsearchResource() *schema.Resource {
@@ -94,7 +92,7 @@ func elasticsearchTopologySchema() *schema.Schema {
 				"memory_per_node": {
 					Type:        schema.TypeString,
 					Description: `Optional amount of memory per node in the "<size in GB>g" notation`,
-					Default:     util.MemoryToState(defaultElasticsearchSize),
+					Computed:    true,
 					Optional:    true,
 				},
 				"node_count_per_zone": {
@@ -105,7 +103,7 @@ func elasticsearchTopologySchema() *schema.Schema {
 				"zone_count": {
 					Type:        schema.TypeInt,
 					Description: `Optional number of zones that the Elasticsearch cluster will span. This is used to set HA`,
-					Default:     defaultZoneCount,
+					Computed:    true,
 					Optional:    true,
 				},
 

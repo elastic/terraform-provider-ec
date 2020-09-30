@@ -96,32 +96,40 @@ func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTop
 		if id, ok := topology["instance_configuration_id"]; ok {
 			icID = id.(string)
 		}
+
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
 		// element.
-		if icID == "" {
-			defaultTop := defaultEssTopology(topologies)
-			if len(defaultTop) >= i {
-				icID = defaultTop[i].InstanceConfigurationID
-			}
+		if t := defaultEssTopology(topologies); icID == "" && len(t) >= i {
+			icID = t[i].InstanceConfigurationID
 		}
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}
 
+		// Since Enterprise Search is not enabled by default in the template,
+		// if the size == nil, it means that the size hasn't been specified in
+		// the definition.
+		if size == nil {
+			size = &models.TopologySize{
+				Resource: ec.String("memory"),
+				Value:    ec.Int32(minimumEnterpriseSearchSize),
+			}
+		}
+
 		elem, err := matchEssTopology(icID, topologies)
 		if err != nil {
 			return nil, err
 		}
-		elem.Size = &size
-
-		if id, ok := topology["instance_configuration_id"]; ok {
-			elem.InstanceConfigurationID = id.(string)
+		if size != nil {
+			elem.Size = size
 		}
 
 		if zones, ok := topology["zone_count"]; ok {
-			elem.ZoneCount = int32(zones.(int))
+			if z := zones.(int); z > 0 {
+				elem.ZoneCount = int32(z)
+			}
 		}
 
 		if c, ok := topology["config"]; ok {
@@ -164,15 +172,15 @@ func expandEssConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
 }
 
 // defaultApmTopology iterates over all the templated topology elements and
-// sets the size to the default when the template size is greater than the
-// local terraform default or zero, the same is done on the ZoneCount.
+// sets the size to the default when the template size is smaller than the
+// deployment template default, the same is done on the ZoneCount.
 func defaultEssTopology(topology []*models.EnterpriseSearchTopologyElement) []*models.EnterpriseSearchTopologyElement {
 	for _, t := range topology {
-		if *t.Size.Value > defaultEnterpriseSearchSize || *t.Size.Value == 0 {
-			t.Size.Value = ec.Int32(defaultEnterpriseSearchSize)
+		if *t.Size.Value < minimumEnterpriseSearchSize || *t.Size.Value == 0 {
+			t.Size.Value = ec.Int32(minimumEnterpriseSearchSize)
 		}
-		if t.ZoneCount > defaultZoneCount {
-			t.ZoneCount = defaultZoneCount
+		if t.ZoneCount < minimumZoneCount {
+			t.ZoneCount = minimumZoneCount
 		}
 	}
 

@@ -215,11 +215,11 @@ func Test_expandEsResource(t *testing.T) {
 						},
 						ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 							{
-								ZoneCount:               1,
+								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
-									Value:    ec.Int32(4096),
+									Value:    ec.Int32(8192),
 								},
 								NodeType: &models.ElasticsearchNodeType{
 									Data:   ec.Bool(true),
@@ -262,7 +262,7 @@ func Test_expandEsResource(t *testing.T) {
 						},
 						ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 							{
-								ZoneCount:               1,
+								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
@@ -435,7 +435,7 @@ func Test_expandEsResource(t *testing.T) {
 										"data": "hot",
 									},
 								},
-								ZoneCount:               1,
+								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
@@ -453,7 +453,7 @@ func Test_expandEsResource(t *testing.T) {
 										"data": "warm",
 									},
 								},
-								ZoneCount:               1,
+								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highstorage.d2",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
@@ -530,7 +530,7 @@ func Test_expandEsResource(t *testing.T) {
 										"data": "hot",
 									},
 								},
-								ZoneCount:               1,
+								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
@@ -548,7 +548,7 @@ func Test_expandEsResource(t *testing.T) {
 										"data": "warm",
 									},
 								},
-								ZoneCount:               1,
+								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highstorage.d2",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),

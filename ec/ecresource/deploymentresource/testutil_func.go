@@ -19,7 +19,6 @@ package deploymentresource
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -73,24 +72,4 @@ func apmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
 // template.
 func essResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
 	return res.DeploymentTemplate.Resources.EnterpriseSearch[0]
-}
-
-// flattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
-// https endpoints and returns a map with two keys: `http_endpoint` and
-// `https_endpoint`
-func flattenClusterEndpoint(metadata *models.ClusterMetadataInfo) map[string]interface{} {
-	if metadata == nil || metadata.Endpoint == "" || metadata.Ports == nil {
-		return nil
-	}
-
-	var m = make(map[string]interface{})
-	if metadata.Ports.HTTP != nil {
-		m["http_endpoint"] = fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP)
-	}
-
-	if metadata.Ports.HTTPS != nil {
-		m["https_endpoint"] = fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS)
-	}
-
-	return m
 }

@@ -26,10 +26,10 @@ import (
 // Resource returns the ec_deployment resource schema.
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: create,
-		ReadContext:   read,
-		UpdateContext: update,
-		DeleteContext: deleteFunc,
+		CreateContext: createResource,
+		ReadContext:   readResource,
+		UpdateContext: updateResource,
+		DeleteContext: deleteResource,
 
 		Schema: newSchema(),
 

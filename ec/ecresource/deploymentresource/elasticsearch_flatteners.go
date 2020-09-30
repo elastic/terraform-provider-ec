@@ -64,7 +64,7 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string) []i
 			m["cloud_id"] = metadata.CloudID
 		}
 
-		for k, v := range flattenClusterEndpoint(res.Info.Metadata) {
+		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
 		}
 

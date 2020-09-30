@@ -66,8 +66,8 @@ The required `elasticsearch` block supports the following:
 The optional `elasticsearch.topology` block supports the following:
 
 * `instance_configuration_id` - (Optional) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed. See top level note on `regions and deployment templates`.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation (Defaults to `4g`).
-* `zone_count` - (Optional) Number of zones that the Elasticsearch cluster will span. This is used to set HA (Defaults to `1`).
+* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
+* `zone_count` - (Optional) Number of zones that the Elasticsearch cluster will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
 * `config` (Optional) Elasticsearch settings which will be applied at the topology level. 
 
 ##### Config
@@ -94,8 +94,8 @@ The optional `kibana` block supports the following:
 The required `kibana.topology` block supports the following:
 
 * `instance_configuration_id` - (Required) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation (Defaults to `1g`).
-* `zone_count` - (Optional) Number of zones that the Kibana deployment will span. This is used to set HA (Defaults to `1`).
+* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
+* `zone_count` - (Optional) Number of zones that the Kibana deployment will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
 * `config` (Optional) Kibana settings which will be applied at the topology level. 
 
 ##### Config
@@ -121,8 +121,8 @@ The required `apm` block supports the following:
 The required `apm.topology` block supports the following:
 
 * `instance_configuration_id` - (Required) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation (Defaults to `0.5g`).
-* `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA (Defaults to `1`).
+* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
+* `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
 * `config` (Optional) APM settings which will be applied at the topology level. 
 
 ##### Config
@@ -149,8 +149,8 @@ The required `enterprise_search` block supports the following:
 The required `enterprise_search.topology` block supports the following:
 
 * `instance_configuration_id` - (Required) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation (Defaults to `2g`).
-* `zone_count` - (Optional) Number of zones that the Enterprise Search deployment will span. This is used to set HA (Defaults to `1`).
+* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
+* `zone_count` - (Optional) Number of zones that the Enterprise Search deployment will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
 * `config` (Optional) Enterprise Search settings which will be applied at the topology level. 
 
 ##### Config

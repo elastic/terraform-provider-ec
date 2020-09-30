@@ -62,6 +62,18 @@ func Test_createResourceToModel(t *testing.T) {
 	var body = func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
 	}
+	deploymentEmptyRD := newResourceData(t, resDataParams{
+		ID:        mock.ValidClusterID,
+		Resources: newSampleDeploymentEmptyRD(),
+	})
+	deploymentOverrideRd := newResourceData(t, resDataParams{
+		ID:        mock.ValidClusterID,
+		Resources: newSampleDeploymentOverrides(),
+	})
+	deploymentOverrideICRd := newResourceData(t, resDataParams{
+		ID:        mock.ValidClusterID,
+		Resources: newSampleDeploymentOverridesIC(),
+	})
 
 	type args struct {
 		d      *schema.ResourceData
@@ -206,6 +218,330 @@ func Test_createResourceToModel(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "parses the resources with empty declarations",
+			args: args{
+				d:      deploymentEmptyRD,
+				client: api.NewMock(mock.New200Response(body())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name: "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{
+					TrafficFilterSettings: &models.TrafficFilterSettings{
+						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+					},
+				},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(8192),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+					Apm: []*models.ApmPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-apm"),
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r5d",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(512),
+									},
+								}},
+							},
+						},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with topology overrides (size)",
+			args: args{
+				d:      deploymentOverrideRd,
+				client: api.NewMock(mock.New200Response(body())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name: "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{
+					TrafficFilterSettings: &models.TrafficFilterSettings{
+						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+					},
+				},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(4096),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+									},
+								},
+							},
+						},
+					},
+					Apm: []*models.ApmPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-apm"),
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r5d",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(1024),
+									},
+								}},
+							},
+						},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with topology overrides (IC)",
+			args: args{
+				d:      deploymentOverrideICRd,
+				client: api.NewMock(mock.New200Response(body())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name: "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{
+					TrafficFilterSettings: &models.TrafficFilterSettings{
+						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+					},
+				},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(8192),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+					Apm: []*models.ApmPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-apm"),
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r5d",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(512),
+									},
+								}},
+							},
+						},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -229,6 +565,15 @@ func Test_updateResourceToModel(t *testing.T) {
 	var body = func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
 	}
+	deploymentEmptyRD := newResourceData(t, resDataParams{
+		ID:        mock.ValidClusterID,
+		Resources: newSampleDeploymentEmptyRD(),
+	})
+	deploymentOverrideRd := newResourceData(t, resDataParams{
+		ID:        mock.ValidClusterID,
+		Resources: newSampleDeploymentOverrides(),
+	})
+
 	type args struct {
 		d      *schema.ResourceData
 		client *api.API
@@ -354,6 +699,214 @@ func Test_updateResourceToModel(t *testing.T) {
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with empty declarations",
+			args: args{
+				d:      deploymentEmptyRD,
+				client: api.NewMock(mock.New200Response(body())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(8192),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+					Apm: []*models.ApmPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-apm"),
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r5d",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(512),
+									},
+								}},
+							},
+						},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+										NodeType: &models.EnterpriseSearchNodeTypes{
+											Appserver: ec.Bool(true),
+											Connector: ec.Bool(true),
+											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with topology overrides",
+			args: args{
+				d:      deploymentOverrideRd,
+				client: api.NewMock(mock.New200Response(body())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(4096),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(2048),
+										},
+									},
+								},
+							},
+						},
+					},
+					Apm: []*models.ApmPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-apm"),
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{},
+								ClusterTopology: []*models.ApmTopologyElement{{
+									ZoneCount:               1,
+									InstanceConfigurationID: "aws.apm.r5d",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(1024),
+									},
+								}},
+							},
+						},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Plan: &models.EnterpriseSearchPlan{
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.enterprisesearch.m5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
 											Appserver: ec.Bool(true),

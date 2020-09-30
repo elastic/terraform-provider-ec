@@ -20,5 +20,9 @@ resource "ec_deployment" "defaults" {
     }
   }
 
-  enterprise_search {}
+  enterprise_search {
+    topology {
+      zone_count = 1
+    }
+  }
 }

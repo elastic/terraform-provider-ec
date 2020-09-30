@@ -19,8 +19,6 @@ package deploymentresource
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func newApmResource() *schema.Resource {
@@ -82,12 +80,12 @@ func apmTopologySchema() *schema.Schema {
 				},
 				"memory_per_node": {
 					Type:     schema.TypeString,
-					Default:  util.MemoryToState(defaultApmSize),
+					Computed: true,
 					Optional: true,
 				},
 				"zone_count": {
 					Type:     schema.TypeInt,
-					Default:  defaultZoneCount,
+					Computed: true,
 					Optional: true,
 				},
 			},

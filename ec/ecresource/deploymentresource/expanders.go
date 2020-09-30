@@ -44,9 +44,8 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 
 	esRes, err := expandEsResources(
-		d.Get("elasticsearch").([]interface{}), enrichWithDeploymentTemplate(
-			res.DeploymentTemplate.Resources.Elasticsearch[0], dtID,
-		),
+		d.Get("elasticsearch").([]interface{}),
+		enrichWithDeploymentTemplate(esResource(res), dtID),
 	)
 	if err != nil {
 		return nil, err
@@ -54,8 +53,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
 	kibanaRes, err := expandKibanaResources(
-		d.Get("kibana").([]interface{}),
-		res.DeploymentTemplate.Resources.Kibana[0],
+		d.Get("kibana").([]interface{}), kibanaResource(res),
 	)
 	if err != nil {
 		return nil, err
@@ -63,8 +61,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
 	apmRes, err := expandApmResources(
-		d.Get("apm").([]interface{}),
-		res.DeploymentTemplate.Resources.Apm[0],
+		d.Get("apm").([]interface{}), apmResource(res),
 	)
 	if err != nil {
 		return nil, err
@@ -72,8 +69,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
 	enterpriseSearchRes, err := expandEssResources(
-		d.Get("enterprise_search").([]interface{}),
-		res.DeploymentTemplate.Resources.EnterpriseSearch[0],
+		d.Get("enterprise_search").([]interface{}), essResource(res),
 	)
 	if err != nil {
 		return nil, err
@@ -120,35 +116,26 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 
 	esRes, err := expandEsResources(
-		es, enrichWithDeploymentTemplate(
-			res.DeploymentTemplate.Resources.Elasticsearch[0], dtID,
-		),
+		es, enrichWithDeploymentTemplate(esResource(res), dtID),
 	)
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := expandKibanaResources(
-		kibana, res.DeploymentTemplate.Resources.Kibana[0],
-	)
+	kibanaRes, err := expandKibanaResources(kibana, kibanaResource(res))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(
-		apm, res.DeploymentTemplate.Resources.Apm[0],
-	)
+	apmRes, err := expandApmResources(apm, apmResource(res))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := expandEssResources(
-		enterpriseSearch,
-		res.DeploymentTemplate.Resources.EnterpriseSearch[0],
-	)
+	enterpriseSearchRes, err := expandEssResources(enterpriseSearch, essResource(res))
 	if err != nil {
 		return nil, err
 	}

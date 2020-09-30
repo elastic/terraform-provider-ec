@@ -89,7 +89,7 @@ func Test_expandEssResources(t *testing.T) {
 			}},
 		},
 		{
-			name: "parses an enterprise_search resource with no topology",
+			name: "parses an enterprise_search resource with no topology takes the minimum size",
 			args: args{
 				tpl: tpl(),
 				ess: []interface{}{map[string]interface{}{
@@ -109,7 +109,7 @@ func Test_expandEssResources(t *testing.T) {
 						Version: "7.7.0",
 					},
 					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
-						ZoneCount:               1,
+						ZoneCount:               2,
 						InstanceConfigurationID: "aws.enterprisesearch.m5d",
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
@@ -148,11 +148,50 @@ func Test_expandEssResources(t *testing.T) {
 						Version: "7.7.0",
 					},
 					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
-						ZoneCount:               1,
+						ZoneCount:               2,
 						InstanceConfigurationID: "aws.enterprisesearch.m5d",
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(4096),
+						},
+						NodeType: &models.EnterpriseSearchNodeTypes{
+							Appserver: ec.Bool(true),
+							Connector: ec.Bool(true),
+							Worker:    ec.Bool(true),
+						},
+					}},
+				},
+			}},
+		},
+		{
+			name: "parses an enterprise_search resource with topology but instance_configuration_id",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{map[string]interface{}{
+					"ref_id":                       "main-enterprise_search",
+					"resource_id":                  mock.ValidClusterID,
+					"version":                      "7.7.0",
+					"region":                       "some-region",
+					"elasticsearch_cluster_ref_id": "somerefid",
+					"topology": []interface{}{map[string]interface{}{
+						"instance_configuration_id": "aws.enterprisesearch.m5d",
+					}},
+				}},
+			},
+			want: []*models.EnterpriseSearchPayload{{
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-enterprise_search"),
+				Plan: &models.EnterpriseSearchPlan{
+					EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+						Version: "7.7.0",
+					},
+					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+						ZoneCount:               2,
+						InstanceConfigurationID: "aws.enterprisesearch.m5d",
+						Size: &models.TopologySize{
+							Resource: ec.String("memory"),
+							Value:    ec.Int32(2048),
 						},
 						NodeType: &models.EnterpriseSearchNodeTypes{
 							Appserver: ec.Bool(true),

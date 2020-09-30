@@ -22,12 +22,12 @@ import (
 )
 
 const (
-	defaultElasticsearchSize    = 4096
-	defaultKibanaSize           = 1024
-	defaultApmSize              = 512
-	defaultEnterpriseSearchSize = 2048
+	minimumElasticsearchSize    = 1024
+	minimumKibanaSize           = 1024
+	minimumApmSize              = 512
+	minimumEnterpriseSearchSize = 2048
 
-	defaultZoneCount = 1
+	minimumZoneCount = 1
 )
 
 // newSchema returns the schema for an "ec_deployment" resource.

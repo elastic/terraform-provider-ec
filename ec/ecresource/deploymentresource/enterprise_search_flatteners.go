@@ -57,7 +57,7 @@ func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string)
 			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
 		}
 
-		if urls := flattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
+		if urls := util.FlattenClusterEndpoint(res.Info.Metadata); len(urls) > 0 {
 			for k, v := range urls {
 				m[k] = v
 			}

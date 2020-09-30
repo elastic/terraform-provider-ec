@@ -116,11 +116,8 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
 		// element.
-		if icID == "" {
-			defaultTop := defaultEsTopology(topologies)
-			if len(defaultTop) >= i {
-				icID = defaultTop[i].InstanceConfigurationID
-			}
+		if t := defaultEsTopology(topologies); icID == "" && len(t) >= i {
+			icID = t[i].InstanceConfigurationID
 		}
 
 		size, err := util.ParseTopologySize(topology)
@@ -132,10 +129,14 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if err != nil {
 			return nil, err
 		}
-		elem.Size = &size
+		if size != nil {
+			elem.Size = size
+		}
 
 		if zones, ok := topology["zone_count"]; ok {
-			elem.ZoneCount = int32(zones.(int))
+			if z := zones.(int); z > 0 {
+				elem.ZoneCount = int32(z)
+			}
 		}
 
 		if nodecount, ok := topology["node_count_per_zone"]; ok {
@@ -196,19 +197,19 @@ func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement)
 }
 
 // defaultEsTopology iterates over all the templated topology elements and
-// sets the size to the default when the template size is greater than the
-// local terraform default, the same is done on the ZoneCount. It discards any
-// elements where the size is == 0, since it means that different Instance
+// sets the size to the default when the template size is smaller than the
+// deployment template default, the same is done on the ZoneCount. It discards
+// any elements where the size is == 0, since it means that different Instance
 // configurations are available to configure but are not included in the
 // default deployment template.
 func defaultEsTopology(topology []*models.ElasticsearchClusterTopologyElement) []*models.ElasticsearchClusterTopologyElement {
 	topology = discardEsZeroSize(topology)
 	for _, t := range topology {
-		if *t.Size.Value > defaultElasticsearchSize {
-			t.Size.Value = ec.Int32(defaultElasticsearchSize)
+		if *t.Size.Value < minimumElasticsearchSize {
+			t.Size.Value = ec.Int32(minimumElasticsearchSize)
 		}
-		if t.ZoneCount > defaultZoneCount {
-			t.ZoneCount = defaultZoneCount
+		if t.ZoneCount < minimumZoneCount {
+			t.ZoneCount = minimumZoneCount
 		}
 	}
 
