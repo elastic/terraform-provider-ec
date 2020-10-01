@@ -25,15 +25,18 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
 
-	wantDeployment := newResourceData(t, resDataParams{
+	wantDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
+		Schema:    newSchema(),
 	})
 
 	type args struct {
@@ -109,18 +112,6 @@ func Test_modelToState(t *testing.T) {
 			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
 		})
 	}
-}
-
-type resDataParams struct {
-	Resources map[string]interface{}
-	ID        string
-}
-
-func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
-	raw := schema.TestResourceDataRaw(t, DataSource().Schema, params.Resources)
-	raw.SetId(params.ID)
-
-	return raw
 }
 
 func newSampleDeployment() map[string]interface{} {

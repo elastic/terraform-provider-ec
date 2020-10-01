@@ -24,12 +24,15 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_expand(t *testing.T) {
-	rd := newResourceData(t, resDataParams{
+	rd := util.NewResourceData(t, util.ResDataParams{
 		Resources: newSampleTrafficFilterAssociation(),
 		ID:        "123451",
+		Schema:    newSchema(),
 	})
 	type args struct {
 		d *schema.ResourceData

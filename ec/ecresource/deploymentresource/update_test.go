@@ -23,28 +23,34 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_hasDeploymentChange(t *testing.T) {
-	unchanged := Resource().Data(newResourceData(t, resDataParams{
+	unchanged := Resource().Data(util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
+		Schema:    newSchema(),
 		Resources: newSampleDeployment(),
 	}).State())
 
-	changesToTrafficFilter := newResourceData(t, resDataParams{
-		ID: mock.ValidClusterID,
+	changesToTrafficFilter := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
 		Resources: map[string]interface{}{
 			"traffic_filter": []interface{}{"1.1.1.1"},
 		},
 	})
 
-	changesToName := newResourceData(t, resDataParams{
+	changesToName := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
+		Schema:    newSchema(),
 		Resources: map[string]interface{}{"name": "some name"},
 	})
 
-	changesToRegion := newResourceData(t, resDataParams{
-		ID: mock.ValidClusterID,
+	changesToRegion := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
 		Resources: map[string]interface{}{
 			"name":   "some name",
 			"region": "some-region",

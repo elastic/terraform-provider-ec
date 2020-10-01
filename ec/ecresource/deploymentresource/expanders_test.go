@@ -25,12 +25,15 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_createResourceToModel(t *testing.T) {
-	deploymentRD := newResourceData(t, resDataParams{
+	deploymentRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
+		Schema:    newSchema(),
 	})
 	type args struct {
 		d *schema.ResourceData
@@ -189,9 +192,10 @@ func Test_createResourceToModel(t *testing.T) {
 }
 
 func Test_updateResourceToModel(t *testing.T) {
-	deploymentRD := newResourceData(t, resDataParams{
+	deploymentRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
+		Schema:    newSchema(),
 	})
 	type args struct {
 		d *schema.ResourceData

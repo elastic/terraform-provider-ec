@@ -18,23 +18,8 @@
 package deploymentresource
 
 import (
-	"testing"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-type resDataParams struct {
-	Resources map[string]interface{}
-	ID        string
-}
-
-func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
-	raw := schema.TestResourceDataRaw(t, Resource().Schema, params.Resources)
-	raw.SetId(params.ID)
-
-	return raw
-}
 
 func newSampleDeployment() map[string]interface{} {
 	return map[string]interface{}{

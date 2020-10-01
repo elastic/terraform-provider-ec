@@ -26,15 +26,18 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
 
-	wantDeployment := newResourceData(t, resDataParams{
+	wantDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
+		Schema:    newSchema(),
 	})
 
 	type args struct {
@@ -334,9 +337,10 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 }
 
 func Test_parseCredentials(t *testing.T) {
-	deploymentRD := newResourceData(t, resDataParams{
+	deploymentRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
+		Schema:    newSchema(),
 	})
 
 	rawData := newSampleDeployment()
@@ -344,9 +348,10 @@ func Test_parseCredentials(t *testing.T) {
 	rawData["elasticsearch_password"] = "my-password"
 	rawData["apm_secret_token"] = "some-secret-token"
 
-	wantDeploymentRD := newResourceData(t, resDataParams{
+	wantDeploymentRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: rawData,
+		Schema:    newSchema(),
 	})
 
 	type args struct {
@@ -376,9 +381,10 @@ func Test_parseCredentials(t *testing.T) {
 		{
 			name: "when no credentials are passed, it doesn't overwrite them",
 			args: args{
-				d: newResourceData(t, resDataParams{
+				d: util.NewResourceData(t, util.ResDataParams{
 					ID:        mock.ValidClusterID,
 					Resources: rawData,
+					Schema:    newSchema(),
 				}),
 				resources: []*models.DeploymentResource{
 					{},

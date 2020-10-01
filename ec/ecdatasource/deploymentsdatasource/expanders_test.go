@@ -25,16 +25,20 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_expandFilters(t *testing.T) {
-	deploymentsDS := newResourceData(t, resDataParams{
+	deploymentsDS := util.NewResourceData(t, util.ResDataParams{
 		ID:        "myID",
 		Resources: newSampleFilters(),
+		Schema:    newSchema(),
 	})
-	invalidDS := newResourceData(t, resDataParams{
+	invalidDS := util.NewResourceData(t, util.ResDataParams{
 		ID:        "myID",
 		Resources: newInvalidFilters(),
+		Schema:    newSchema(),
 	})
 	type args struct {
 		d *schema.ResourceData
