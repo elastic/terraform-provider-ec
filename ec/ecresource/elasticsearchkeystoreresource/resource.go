@@ -29,7 +29,7 @@ func Resource() *schema.Resource {
 		Description: "Elastic Cloud deployment Elasticsearch keystore",
 		Schema:      newSchema(),
 
-		CreateContext: update,
+		CreateContext: create,
 		ReadContext:   read,
 		UpdateContext: update,
 		DeleteContext: update,
