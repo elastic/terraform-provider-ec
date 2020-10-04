@@ -161,6 +161,10 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
 	}
 
+	if cfg.NodeAttributes != nil {
+		m["node_attributes"] = cfg.NodeAttributes
+	}
+
 	if len(m) == 0 {
 		return nil
 	}

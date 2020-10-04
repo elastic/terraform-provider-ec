@@ -172,6 +172,11 @@ func parseEsNodeType(topology map[string]interface{}) models.ElasticsearchNodeTy
 func expandEsConfig(raw interface{}) *models.ElasticsearchConfiguration {
 	var res = &models.ElasticsearchConfiguration{}
 	for _, rawCfg := range raw.([]interface{}) {
+
+		if rawCfg == nil {
+			return res
+		}
+
 		var cfg = rawCfg.(map[string]interface{})
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
@@ -192,6 +197,15 @@ func expandEsConfig(raw interface{}) *models.ElasticsearchConfiguration {
 
 		if v, ok := cfg["plugins"]; ok {
 			res.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
+		}
+
+		if v, ok := cfg["node_attributes"]; ok {
+			var attributes = make(map[string]string)
+			var m = v.(map[string]interface{})
+			for key, value := range m {
+				attributes[key] = value.(string)
+			}
+			res.NodeAttributes = attributes
 		}
 	}
 

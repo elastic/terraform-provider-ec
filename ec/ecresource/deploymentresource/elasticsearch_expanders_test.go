@@ -186,6 +186,7 @@ func Test_expandEsResource(t *testing.T) {
 								"plugins": schema.NewSet(schema.HashString, []interface{}{
 									"plugin",
 								}),
+								"node_attributes": map[string]interface{}{"data": "hot"},
 							}},
 						}},
 					},
@@ -222,6 +223,7 @@ func Test_expandEsResource(t *testing.T) {
 									UserSettingsOverrideYaml: `some.setting: value2`,
 									UserSettingsJSON:         `{"some.setting": "value"}`,
 									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									NodeAttributes:           map[string]string{"data": "hot"},
 									EnabledBuiltInPlugins:    []string{"plugin"},
 								},
 							},

@@ -129,7 +129,6 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Description: `Optional node type (machine learning) for the Elasticsearch Topology element`,
 					Optional:    true,
 				},
-
 				"config": elasticsearchConfig(),
 			},
 		},
@@ -201,6 +200,13 @@ func elasticsearchConfig() *schema.Schema {
 					Type:        schema.TypeString,
 					Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
+				},
+
+				// node attributes
+				"node_attributes": {
+					Type: schema.TypeMap,
+					Description: `Optional node attributes assigned to nodes for Hot/Warm architecture and other cases`,
+					Optional: true,
 				},
 			},
 		},
