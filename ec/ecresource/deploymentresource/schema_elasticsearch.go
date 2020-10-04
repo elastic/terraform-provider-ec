@@ -204,9 +204,9 @@ func elasticsearchConfig() *schema.Schema {
 
 				// node attributes
 				"node_attributes": {
-					Type: schema.TypeMap,
+					Type:        schema.TypeMap,
 					Description: `Optional node attributes assigned to nodes for Hot/Warm architecture and other cases`,
-					Optional: true,
+					Optional:    true,
 				},
 			},
 		},
