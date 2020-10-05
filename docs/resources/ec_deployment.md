@@ -44,6 +44,60 @@ resource "ec_deployment" "example_minimal" {
 }
 ```
 
+#### For Hot Warm architecture
+
+```hcl
+resource "ec_deployment" "hot_warm_deployment" {
+  # Optional name.
+  name = "hot-warm-deployment"
+
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = "7.9.2"
+  deployment_template_id = "aws-hot-warm-v2"
+
+  elasticsearch {
+
+    topology {
+      instance_configuration_id = "aws.data.highio.i3"
+      zone_count                = 1
+      memory_per_node           = "2g"
+      node_type_master          = true
+      node_type_ingest          = true
+      node_type_data            = true
+      config  {
+        node_attributes = {
+          data = "hot"
+          type = "io"
+        }
+      }
+    }
+    topology {
+      instance_configuration_id = "aws.data.highstorage.d2"
+      zone_count                = 1
+      memory_per_node           = "2g"
+      node_type_master          = false
+      node_type_ingest          = true
+      node_type_data            = true
+      config  {
+        node_attributes = {
+          data = "warm"
+          type = "capacity"
+        }
+      }
+    }
+  }
+
+  kibana {
+    topology {
+      instance_configuration_id = "aws.kibana.r5d"
+      memory_per_node           = "1g"
+      zone_count                = 1
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -93,6 +147,7 @@ The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks s
 * `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `elasticsearch.yml` setting overrides.
 * `user_settings_yaml` - (Optional) YAML-formatted user level `elasticsearch.yml` setting overrides.
 * `user_settings_override_yaml` - (Optional) YAML-formatted admin (ECE) level `elasticsearch.yml` setting overrides.
+* `node_attributes` - (Optional) Key Value Map specifying the Node attributes to be applied to Elasticsearch nodes, required especially in case of Hot Warm Architecture.
 
 #### Kibana
 
