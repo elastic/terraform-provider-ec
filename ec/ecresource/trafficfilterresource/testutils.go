@@ -17,24 +17,6 @@
 
 package trafficfilterresource
 
-import (
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-)
-
-type resDataParams struct {
-	Resources map[string]interface{}
-	ID        string
-}
-
-func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
-	raw := schema.TestResourceDataRaw(t, newSchema(), params.Resources)
-	raw.SetId(params.ID)
-
-	return raw
-}
-
 func newSampleTrafficFilter() map[string]interface{} {
 	return map[string]interface{}{
 		"name":               "my traffic filter",

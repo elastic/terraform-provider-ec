@@ -25,17 +25,21 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flatten(t *testing.T) {
-	rd := newResourceData(t, resDataParams{
+	rd := util.NewResourceData(t, util.ResDataParams{
 		Resources: newSampleTrafficFilterAssociation(),
 		ID:        "123451",
+		Schema:    newSchema(),
 	})
 
-	wantNotFoundRd := newResourceData(t, resDataParams{
+	wantNotFoundRd := util.NewResourceData(t, util.ResDataParams{
 		Resources: newSampleTrafficFilterAssociation(),
 		ID:        "123451",
+		Schema:    newSchema(),
 	})
 
 	_ = wantNotFoundRd.Set("deployment_id", "")

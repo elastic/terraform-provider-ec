@@ -15,17 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package trafficfilterassocresource
+package util
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var mockTrafficFilterID = "420b7b540dfc967a7a649c18e2fce4e4"
+// ResDataParams holds the raw configuration for NewResourceData to consume
+type ResDataParams struct {
+	ID        string
+	Resources map[string]interface{}
+	Schema    map[string]*schema.Schema
+}
 
-func newSampleTrafficFilterAssociation() map[string]interface{} {
-	return map[string]interface{}{
-		"deployment_id":     mock.ValidClusterID,
-		"traffic_filter_id": mockTrafficFilterID,
-	}
+// NewResourceData creates a ResourceData from a raw configuration map and schema.
+func NewResourceData(t *testing.T, params ResDataParams) *schema.ResourceData {
+	rd := schema.TestResourceDataRaw(t, params.Schema, params.Resources)
+	rd.SetId(params.ID)
+
+	return rd
 }
