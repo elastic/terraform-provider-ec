@@ -9,4 +9,10 @@ resource "ec_deployment" "defaults" {
   elasticsearch {}
 
   kibana {}
+
+  enterprise_search {
+    topology {
+      zone_count = 1
+    }
+  }
 }

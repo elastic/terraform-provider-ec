@@ -24,7 +24,15 @@ resource "ec_deployment" "example_minimal" {
 
   kibana {}
 
-  apm {}
+  apm {
+    topology {
+      memory_per_node = "1g"
+    }
+  }
 
-  enterprise_search {}
+  enterprise_search {
+    topology {
+      zone_count = 1
+    }
+  }
 }

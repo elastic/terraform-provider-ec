@@ -66,11 +66,15 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.memory_per_node", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.memory_per_node", "2g"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.zone_count", "1"),
 				),
 			},
 			{
-				// Add an APM and EnterpriseSearch resource.
+				// Add an APM resource.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// changed
