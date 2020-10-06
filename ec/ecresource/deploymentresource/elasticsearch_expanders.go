@@ -75,11 +75,8 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	}
 
 	if cfg, ok := es["config"]; ok {
-		if c := expandEsConfig(cfg); c != nil {
-			version := res.Plan.Elasticsearch.Version
-			res.Plan.Elasticsearch = c
-			res.Plan.Elasticsearch.Version = version
-		}
+		// This will never be nil since it contains the version.
+		expandEsConfig(cfg, res.Plan.Elasticsearch)
 	}
 
 	if rawSettings, ok := es["monitoring_settings"]; ok {
@@ -144,7 +141,7 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		}
 
 		if c, ok := topology["config"]; ok {
-			elem.Elasticsearch = expandEsConfig(c)
+			elem.Elasticsearch = expandEsConfig(c, elem.Elasticsearch)
 		}
 
 		res = append(res, elem)
@@ -153,34 +150,36 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 	return res, nil
 }
 
-func expandEsConfig(raw interface{}) *models.ElasticsearchConfiguration {
-	var res = &models.ElasticsearchConfiguration{}
+func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) *models.ElasticsearchConfiguration {
+	if esCfg == nil {
+		esCfg = &models.ElasticsearchConfiguration{}
+	}
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsJSON = settings
+				esCfg.UserSettingsJSON = settings
 			}
 		}
 		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsOverrideJSON = settings
+				esCfg.UserSettingsOverrideJSON = settings
 			}
 		}
 		if settings, ok := cfg["user_settings_yaml"]; ok {
-			res.UserSettingsYaml = settings.(string)
+			esCfg.UserSettingsYaml = settings.(string)
 		}
 		if settings, ok := cfg["user_settings_override_yaml"]; ok {
-			res.UserSettingsOverrideYaml = settings.(string)
+			esCfg.UserSettingsOverrideYaml = settings.(string)
 		}
 
 		if v, ok := cfg["plugins"]; ok {
-			res.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
+			esCfg.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
 		}
 	}
 
-	if !reflect.DeepEqual(res, &models.ElasticsearchConfiguration{}) {
-		return res
+	if !reflect.DeepEqual(esCfg, &models.ElasticsearchConfiguration{}) {
+		return esCfg
 	}
 
 	return nil
