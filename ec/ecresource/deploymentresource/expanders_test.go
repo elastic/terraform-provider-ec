@@ -62,17 +62,20 @@ func Test_createResourceToModel(t *testing.T) {
 	var body = func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
 	}
-	deploymentEmptyRD := newResourceData(t, resDataParams{
+	deploymentEmptyRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeploymentEmptyRD(),
+		Schema:    newSchema(),
 	})
-	deploymentOverrideRd := newResourceData(t, resDataParams{
+	deploymentOverrideRd := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeploymentOverrides(),
+		Schema:    newSchema(),
 	})
-	deploymentOverrideICRd := newResourceData(t, resDataParams{
+	deploymentOverrideICRd := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeploymentOverridesIC(),
+		Schema:    newSchema(),
 	})
 
 	type args struct {
@@ -565,13 +568,15 @@ func Test_updateResourceToModel(t *testing.T) {
 	var body = func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
 	}
-	deploymentEmptyRD := newResourceData(t, resDataParams{
+	deploymentEmptyRD := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeploymentEmptyRD(),
+		Schema:    newSchema(),
 	})
-	deploymentOverrideRd := newResourceData(t, resDataParams{
+	deploymentOverrideRd := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeploymentOverrides(),
+		Schema:    newSchema(),
 	})
 
 	type args struct {
