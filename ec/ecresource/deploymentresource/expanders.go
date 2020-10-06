@@ -18,44 +18,59 @@
 package deploymentresource
 
 import (
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequest, error) {
+func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentCreateRequest, error) {
 	var result = models.DeploymentCreateRequest{
-		Name: d.Get("name").(string),
-		Resources: &models.DeploymentCreateResources{
-			Apm:              make([]*models.ApmPayload, 0),
-			Elasticsearch:    make([]*models.ElasticsearchPayload, 0),
-			EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
-			Kibana:           make([]*models.KibanaPayload, 0),
-		},
+		Name:      d.Get("name").(string),
+		Resources: &models.DeploymentCreateResources{},
+	}
+
+	dtID := d.Get("deployment_template_id").(string)
+	res, err := deptemplateapi.Get(deptemplateapi.GetParams{
+		API:                        client,
+		TemplateID:                 dtID,
+		Region:                     d.Get("region").(string),
+		AsList:                     true,
+		HideInstanceConfigurations: true,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	esRes, err := expandEsResources(
 		d.Get("elasticsearch").([]interface{}),
-		d.Get("deployment_template_id").(string),
+		enrichWithDeploymentTemplate(esResource(res), dtID),
 	)
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := expandKibanaResources(d.Get("kibana").([]interface{}))
+	kibanaRes, err := expandKibanaResources(
+		d.Get("kibana").([]interface{}), kibanaResource(res),
+	)
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(d.Get("apm").([]interface{}))
+	apmRes, err := expandApmResources(
+		d.Get("apm").([]interface{}), apmResource(res),
+	)
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := expandEssResources(d.Get("enterprise_search").([]interface{}))
+	enterpriseSearchRes, err := expandEssResources(
+		d.Get("enterprise_search").([]interface{}), essResource(res),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -66,47 +81,83 @@ func createResourceToModel(d *schema.ResourceData) (*models.DeploymentCreateRequ
 	return &result, nil
 }
 
-func updateResourceToModel(d *schema.ResourceData) (*models.DeploymentUpdateRequest, error) {
+func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentUpdateRequest, error) {
 	var result = models.DeploymentUpdateRequest{
-		Name: d.Get("name").(string),
-		// Setting this to false since we might not support all API resources in
-		// the provivider, setting to true, might cause some resources to be set
-		// incorrectly to "[]", which will cause the resources to be deleted.
-		PruneOrphans: ec.Bool(false),
-		Resources: &models.DeploymentUpdateResources{
-			Apm:              make([]*models.ApmPayload, 0),
-			Elasticsearch:    make([]*models.ElasticsearchPayload, 0),
-			EnterpriseSearch: make([]*models.EnterpriseSearchPayload, 0),
-			Kibana:           make([]*models.KibanaPayload, 0),
-		},
+		Name:         d.Get("name").(string),
+		PruneOrphans: ec.Bool(true),
+		Resources:    &models.DeploymentUpdateResources{},
+	}
+
+	dtID := d.Get("deployment_template_id").(string)
+	res, err := deptemplateapi.Get(deptemplateapi.GetParams{
+		API:                        client,
+		TemplateID:                 dtID,
+		Region:                     d.Get("region").(string),
+		AsList:                     true,
+		HideInstanceConfigurations: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	es := d.Get("elasticsearch").([]interface{})
+	kibana := d.Get("kibana").([]interface{})
+	apm := d.Get("apm").([]interface{})
+	enterpriseSearch := d.Get("enterprise_search").([]interface{})
+
+	// When the deployment template is changed, we need to unset all the
+	// resources topologies to account for a new instance_configuration_id.
+	dtChange := d.HasChange("deployment_template_id")
+	if o, _ := d.GetChange("deployment_template_id"); dtChange && o.(string) != "" {
+		unsetTopology(es, d)
+		unsetTopology(kibana, d)
+		unsetTopology(apm, d)
+		unsetTopology(enterpriseSearch, d)
 	}
 
 	esRes, err := expandEsResources(
-		d.Get("elasticsearch").([]interface{}),
-		d.Get("deployment_template_id").(string),
+		es, enrichWithDeploymentTemplate(esResource(res), dtID),
 	)
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := expandKibanaResources(d.Get("kibana").([]interface{}))
+	kibanaRes, err := expandKibanaResources(kibana, kibanaResource(res))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(d.Get("apm").([]interface{}))
+	apmRes, err := expandApmResources(apm, apmResource(res))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := expandEssResources(d.Get("enterprise_search").([]interface{}))
+	enterpriseSearchRes, err := expandEssResources(enterpriseSearch, essResource(res))
 	if err != nil {
 		return nil, err
 	}
 	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
 
 	return &result, nil
+}
+
+func enrichWithDeploymentTemplate(tpl *models.ElasticsearchPayload, dt string) *models.ElasticsearchPayload {
+	if tpl.Plan.DeploymentTemplate == nil {
+		tpl.Plan.DeploymentTemplate = &models.DeploymentTemplateReference{}
+	}
+
+	if tpl.Plan.DeploymentTemplate.ID == nil || *tpl.Plan.DeploymentTemplate.ID == "" {
+		tpl.Plan.DeploymentTemplate.ID = ec.String(dt)
+	}
+
+	return tpl
+}
+
+func unsetTopology(rawRes []interface{}, d *schema.ResourceData) {
+	for _, r := range rawRes {
+		delete(r.(map[string]interface{}), "topology")
+	}
 }

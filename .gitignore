@@ -1,6 +1,7 @@
 bin
 reports
 .terraform
+examples/*/.terraform.tfstate.lock.info
 examples/*/*.log
 examples/*/*.tfstate
 examples/*/*.tfstate.backup

@@ -17,30 +17,22 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.9.1"
+  version                = "7.9.2"
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
-    topology {
-      instance_configuration_id = "aws.data.highio.i3"
-    }
-  }
+  elasticsearch {}
 
-  kibana {
-    topology {
-      instance_configuration_id = "aws.kibana.r5d"
-    }
-  }
+  kibana {}
 
   apm {
     topology {
-      instance_configuration_id = "aws.apm.r5d"
+      memory_per_node = "1g"
     }
   }
 
   enterprise_search {
     topology {
-      instance_configuration_id = "aws.enterprisesearch.m5d"
+      zone_count = 1
     }
   }
 }

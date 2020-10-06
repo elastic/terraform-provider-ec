@@ -30,7 +30,7 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string) []i
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
-		if util.IsCurrentEsPlanEmpty(res) {
+		if util.IsCurrentEsPlanEmpty(res) || isEsResourceStopped(res) {
 			continue
 		}
 

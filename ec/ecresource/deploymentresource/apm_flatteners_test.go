@@ -65,6 +65,7 @@ func Test_flattenApmResource(t *testing.T) {
 						ID:     &mock.ValidClusterID,
 						Name:   ec.String("some-apm-name"),
 						Region: "some-region",
+						Status: ec.String("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "apmresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -112,7 +113,7 @@ func Test_flattenApmResource(t *testing.T) {
 			},
 		},
 		{
-			name: "parses the apm resource with config overrides",
+			name: "parses the apm resource with config overrides, ignoring a stopped resource",
 			args: args{in: []*models.ApmResourceInfo{
 				{
 					Region:                    ec.String("some-region"),
@@ -122,6 +123,47 @@ func Test_flattenApmResource(t *testing.T) {
 						ID:     &mock.ValidClusterID,
 						Name:   ec.String("some-apm-name"),
 						Region: "some-region",
+						Status: ec.String("started"),
+						Metadata: &models.ClusterMetadataInfo{
+							Endpoint: "apmresource.cloud.elastic.co",
+							Ports: &models.ClusterMetadataPortInfo{
+								HTTP:  ec.Int32(9200),
+								HTTPS: ec.Int32(9243),
+							},
+						},
+						PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
+							Plan: &models.ApmPlan{
+								Apm: &models.ApmConfiguration{
+									Version:                  "7.8.0",
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON:         `{"some.setting": "value"}`,
+									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									SystemSettings:           &models.ApmSystemSettings{},
+								},
+								ClusterTopology: []*models.ApmTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.apm.r4",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						}},
+					},
+				},
+				{
+					Region:                    ec.String("some-region"),
+					RefID:                     ec.String("main-apm"),
+					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Info: &models.ApmInfo{
+						ID:     &mock.ValidClusterID,
+						Name:   ec.String("some-apm-name"),
+						Region: "some-region",
+						Status: ec.String("stopped"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "apmresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -186,6 +228,7 @@ func Test_flattenApmResource(t *testing.T) {
 						ID:     &mock.ValidClusterID,
 						Name:   ec.String("some-apm-name"),
 						Region: "some-region",
+						Status: ec.String("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "apmresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -254,6 +297,7 @@ func Test_flattenApmResource(t *testing.T) {
 						ID:     &mock.ValidClusterID,
 						Name:   ec.String("some-apm-name"),
 						Region: "some-region",
+						Status: ec.String("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "apmresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{

@@ -67,23 +67,25 @@ func newApmResource() *schema.Resource {
 func apmTopologySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"config": apmConfig(),
 
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
-					Required: true,
+					Optional: true,
+					Computed: true,
 				},
 				"memory_per_node": {
 					Type:     schema.TypeString,
-					Default:  "0.5g",
+					Computed: true,
 					Optional: true,
 				},
 				"zone_count": {
 					Type:     schema.TypeInt,
-					Default:  1,
+					Computed: true,
 					Optional: true,
 				},
 			},

@@ -18,6 +18,7 @@
 package deploymentresource
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -27,14 +28,14 @@ import (
 )
 
 // expandEssResources expands Enterprise Search resources into their models.
-func expandEssResources(ess []interface{}) ([]*models.EnterpriseSearchPayload, error) {
+func expandEssResources(ess []interface{}, tpl *models.EnterpriseSearchPayload) ([]*models.EnterpriseSearchPayload, error) {
 	if len(ess) == 0 {
 		return nil, nil
 	}
 
 	result := make([]*models.EnterpriseSearchPayload, 0, len(ess))
 	for _, raw := range ess {
-		resResource, err := expandEssResource(raw)
+		resResource, err := expandEssResource(raw, tpl)
 		if err != nil {
 			return nil, err
 		}
@@ -44,14 +45,8 @@ func expandEssResources(ess []interface{}) ([]*models.EnterpriseSearchPayload, e
 	return result, nil
 }
 
-func expandEssResource(raw interface{}) (*models.EnterpriseSearchPayload, error) {
+func expandEssResource(raw interface{}, res *models.EnterpriseSearchPayload) (*models.EnterpriseSearchPayload, error) {
 	var es = raw.(map[string]interface{})
-	var res = models.EnterpriseSearchPayload{
-		Plan: &models.EnterpriseSearchPlan{
-			EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
-		},
-		Settings: &models.EnterpriseSearchSettings{},
-	}
 
 	if esRefID, ok := es["elasticsearch_cluster_ref_id"]; ok {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
@@ -79,67 +74,72 @@ func expandEssResource(raw interface{}) (*models.EnterpriseSearchPayload, error)
 		}
 	}
 
-	if rawTopology, ok := es["topology"]; ok {
-		topology, err := expandEssTopology(rawTopology)
+	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+		topology, err := expandEssTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
 		}
 		res.Plan.ClusterTopology = topology
+	} else {
+		res.Plan.ClusterTopology = defaultEssTopology(res.Plan.ClusterTopology)
 	}
 
-	return &res, nil
+	return res, nil
 }
 
-func expandEssTopology(raw interface{}) ([]*models.EnterpriseSearchTopologyElement, error) {
+func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTopologyElement) ([]*models.EnterpriseSearchTopologyElement, error) {
 	var rawTopologies = raw.([]interface{})
 	var res = make([]*models.EnterpriseSearchTopologyElement, 0, len(rawTopologies))
-	for _, rawTop := range rawTopologies {
+	for i, rawTop := range rawTopologies {
 		var topology = rawTop.(map[string]interface{})
-		var nodeType = parseEssNodeType(topology)
+		var icID string
+		if id, ok := topology["instance_configuration_id"]; ok {
+			icID = id.(string)
+		}
 
+		// When a topology element is set but no instance_configuration_id
+		// is set, then obtain the instance_configuration_id from the topology
+		// element.
+		if t := defaultEssTopology(topologies); icID == "" && len(t) >= i {
+			icID = t[i].InstanceConfigurationID
+		}
 		size, err := util.ParseTopologySize(topology)
 		if err != nil {
 			return nil, err
 		}
 
-		var elem = models.EnterpriseSearchTopologyElement{
-			Size:     &size,
-			NodeType: &nodeType,
+		// Since Enterprise Search is not enabled by default in the template,
+		// if the size == nil, it means that the size hasn't been specified in
+		// the definition.
+		if size == nil {
+			size = &models.TopologySize{
+				Resource: ec.String("memory"),
+				Value:    ec.Int32(minimumEnterpriseSearchSize),
+			}
 		}
 
-		if id, ok := topology["instance_configuration_id"]; ok {
-			elem.InstanceConfigurationID = id.(string)
+		elem, err := matchEssTopology(icID, topologies)
+		if err != nil {
+			return nil, err
+		}
+		if size != nil {
+			elem.Size = size
 		}
 
 		if zones, ok := topology["zone_count"]; ok {
-			elem.ZoneCount = int32(zones.(int))
+			if z := zones.(int); z > 0 {
+				elem.ZoneCount = int32(z)
+			}
 		}
 
 		if c, ok := topology["config"]; ok {
 			elem.EnterpriseSearch = expandEssConfig(c)
 		}
 
-		res = append(res, &elem)
+		res = append(res, elem)
 	}
 
 	return res, nil
-}
-
-func parseEssNodeType(topology map[string]interface{}) models.EnterpriseSearchNodeTypes {
-	var result models.EnterpriseSearchNodeTypes
-	if val, ok := topology["node_type_appserver"]; ok {
-		result.Appserver = ec.Bool(val.(bool))
-	}
-
-	if val, ok := topology["node_type_connector"]; ok {
-		result.Connector = ec.Bool(val.(bool))
-	}
-
-	if val, ok := topology["node_type_worker"]; ok {
-		result.Worker = ec.Bool(val.(bool))
-	}
-
-	return result
 }
 
 func expandEssConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
@@ -169,4 +169,32 @@ func expandEssConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
 	}
 
 	return nil
+}
+
+// defaultApmTopology iterates over all the templated topology elements and
+// sets the size to the default when the template size is smaller than the
+// deployment template default, the same is done on the ZoneCount.
+func defaultEssTopology(topology []*models.EnterpriseSearchTopologyElement) []*models.EnterpriseSearchTopologyElement {
+	for _, t := range topology {
+		if *t.Size.Value < minimumEnterpriseSearchSize || *t.Size.Value == 0 {
+			t.Size.Value = ec.Int32(minimumEnterpriseSearchSize)
+		}
+		if t.ZoneCount < minimumZoneCount {
+			t.ZoneCount = minimumZoneCount
+		}
+	}
+
+	return topology
+}
+
+func matchEssTopology(id string, topologies []*models.EnterpriseSearchTopologyElement) (*models.EnterpriseSearchTopologyElement, error) {
+	for _, t := range topologies {
+		if t.InstanceConfigurationID == id {
+			return t, nil
+		}
+	}
+	return nil, fmt.Errorf(
+		`enterprise_search topology: invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
+		id,
+	)
 }

@@ -28,14 +28,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create will create a new deployment from the specified settings.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// createResource will createResource a new deployment from the specified settings.
+func createResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 	reqID := deploymentapi.RequestID(d.Get("request_id").(string))
 
-	req, err := createResourceToModel(d)
+	req, err := createResourceToModel(d, client)
 	if err != nil {
-		diag.FromErr(err)
+		return diag.FromErr(err)
 	}
 
 	res, err := deploymentapi.Create(deploymentapi.CreateParams{
@@ -60,7 +60,7 @@ func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 
 	d.SetId(*res.ID)
 
-	if diag := read(ctx, d, meta); diag != nil {
+	if diag := readResource(ctx, d, meta); diag != nil {
 		return diag
 	}
 
