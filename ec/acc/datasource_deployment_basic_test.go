@@ -40,7 +40,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
+				Config:             cfg,
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(datasourceName, "region", resourceName, "region"),
@@ -105,7 +106,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: cfg,
+				Config:             cfg,
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", "terraform_acc_"),
 					resource.TestCheckResourceAttr(depsDatasourceName, "deployment_template_id", "aws-compute-optimized-v2"),
