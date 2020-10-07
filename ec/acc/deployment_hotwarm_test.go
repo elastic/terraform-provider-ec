@@ -50,7 +50,9 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.1.instance_configuration_id"),
 					// Hot Warm defaults to 4g.
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "4g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size", "4g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size_resource", "memory"),
 
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
@@ -73,8 +75,10 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size", "2g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.zone_count", "1"),
 
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
