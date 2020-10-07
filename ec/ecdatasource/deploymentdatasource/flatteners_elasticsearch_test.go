@@ -100,8 +100,8 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
-							"memory_per_node":           "2g",
-							"node_count_per_zone":       int32(1),
+							"size":                      "2g",
+							"size_resource":             "memory",
 							"node_type_data":            true,
 							"node_type_ingest":          true,
 							"node_type_master":          true,

@@ -12,7 +12,7 @@ resource "ec_deployment" "basic_datasource" {
   elasticsearch {
     topology {
       instance_configuration_id = "aws.data.highcpu.m5d"
-      memory_per_node           = "1g"
+      size                      = "1g"
     }
   }
 

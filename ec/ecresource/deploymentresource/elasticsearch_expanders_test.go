@@ -72,7 +72,7 @@ func Test_expandEsResource(t *testing.T) {
 						"topology": []interface{}{
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highio.i3",
-								"memory_per_node":           "4g",
+								"size":                      "4g",
 								"zone_count":                1,
 							},
 						},
@@ -127,7 +127,7 @@ func Test_expandEsResource(t *testing.T) {
 						"region":      "some-region",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
 							"zone_count":                1,
 						}},
 					},
@@ -178,7 +178,7 @@ func Test_expandEsResource(t *testing.T) {
 						"region":      "some-region",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "gcp.some.config",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
 							"zone_count":                1,
 						}},
 					},
@@ -242,7 +242,7 @@ func Test_expandEsResource(t *testing.T) {
 					"version":     "7.7.0",
 					"region":      "some-region",
 					"topology": []interface{}{map[string]interface{}{
-						"memory_per_node": "1g",
+						"size": "1g",
 					}},
 				}},
 			},
@@ -293,12 +293,12 @@ func Test_expandEsResource(t *testing.T) {
 						"topology": []interface{}{
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highio.i3",
-								"memory_per_node":           "2g",
+								"size":                      "2g",
 								"zone_count":                1,
 							},
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highstorage.d2",
-								"memory_per_node":           "2g",
+								"size":                      "2g",
 								"zone_count":                1,
 							},
 						},
@@ -395,7 +395,7 @@ func Test_expandEsResource(t *testing.T) {
 						"topology": []interface{}{
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highio.i3",
-								"memory_per_node":           "2g",
+								"size":                      "2g",
 								"zone_count":                1,
 								"config": []interface{}{map[string]interface{}{
 									"user_settings_yaml": "somesetting: true",
@@ -403,7 +403,7 @@ func Test_expandEsResource(t *testing.T) {
 							},
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highstorage.d2",
-								"memory_per_node":           "2g",
+								"size":                      "2g",
 								"zone_count":                1,
 								"config": []interface{}{map[string]interface{}{
 									"user_settings_yaml": "someothersetting: true",
@@ -591,10 +591,10 @@ func Test_expandEsResource(t *testing.T) {
 					"region":      "some-region",
 					"topology": []interface{}{
 						map[string]interface{}{
-							"memory_per_node": "2g",
+							"size": "2g",
 						},
 						map[string]interface{}{
-							"memory_per_node": "2g",
+							"size": "2g",
 						},
 					},
 				}},
@@ -687,7 +687,7 @@ func Test_expandEsResource(t *testing.T) {
 						"region":      "some-region",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
 							"zone_count":                1,
 							"config": []interface{}{map[string]interface{}{
 								"user_settings_yaml":          "some.setting: value",

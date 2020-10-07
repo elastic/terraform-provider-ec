@@ -12,7 +12,7 @@ resource "ec_deployment" "basic" {
     }
     topology {
       instance_configuration_id = "aws.data.highio.i3"
-      memory_per_node           = "1g"
+      size                      = "1g"
     }
   }
 

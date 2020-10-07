@@ -105,7 +105,8 @@ func Test_flattenApmResource(t *testing.T) {
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.apm.r4",
-							"memory_per_node":           "1g",
+							"size":                      "1g",
+							"size_resource":             "memory",
 							"zone_count":                int32(1),
 						},
 					},
@@ -206,7 +207,8 @@ func Test_flattenApmResource(t *testing.T) {
 				"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.apm.r4",
-					"memory_per_node":           "1g",
+					"size":                      "1g",
+					"size_resource":             "memory",
 					"zone_count":                int32(1),
 				}},
 				"config": []interface{}{map[string]interface{}{
@@ -273,7 +275,8 @@ func Test_flattenApmResource(t *testing.T) {
 				"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.apm.r4",
-					"memory_per_node":           "1g",
+					"size":                      "1g",
+					"size_resource":             "memory",
 					"zone_count":                int32(1),
 				}},
 				"config": []interface{}{map[string]interface{}{
@@ -350,7 +353,8 @@ func Test_flattenApmResource(t *testing.T) {
 				"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.apm.r4",
-					"memory_per_node":           "1g",
+					"size":                      "1g",
+					"size_resource":             "memory",
 					"zone_count":                int32(1),
 					"config": []interface{}{map[string]interface{}{
 						"user_settings_yaml":          "some.setting: value",

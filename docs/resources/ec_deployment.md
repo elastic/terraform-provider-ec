@@ -10,7 +10,7 @@ Provides an Elastic Cloud deployment resource. This allows deployments to be cre
 
 ~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will assume management over the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
 
-~> **Note on regions and deployment templates** For a full list of regions and deployment templates available in the ESS, [please read this document](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html).
+-> **Note on regions and deployment templates** For a full list of regions and deployment templates available in the ESS, [please read this document](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html). You can also familiarize yourself with [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html).
 
 ## Example Usage
 
@@ -38,20 +38,29 @@ resource "ec_deployment" "example_minimal" {
 
 The following arguments are supported:
 
-* `region` - (Required) ESS region where to create the deployment. For ECE environments "ece-region" must be set. Changing the region will cause the resource to be tainted.
-* `deployment_template_id` - (Required) Deployment Template identifier to create the deployment from.
+* `region` - (Required) ESS region where to create the deployment. For ECE environments "ece-region" must be set.
+
+-> Changing the `region` will cause the resource to be destroyed and re-created.
+
+* `deployment_template_id` - (Required) Deployment Template identifier to create the deployment from. See the full list of available deployment templates on the top level note on regions and deployment templates.
 * `version` - (Required) Elastic Stack version to use for all of the deployment resources.
 * `name` - (Optional) Name for the deployment.
-* `request_id` - (Optional) Request ID to set on the create operation. only use when previous create attempts return with an error and a request_id is returned as part of the error.
-* `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once.
+* `request_id` - (Optional) Request ID to set on the create operation. Only use when previous create attempts return with an error and a request_id is returned as part of the error.
+* `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
 * `kibana` (Optional) Kibana instance definition, can only be specified once.
 * `apm` (Optional) APM instance definition, can only be specified once.
-* `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once.
-* `traffic_filter` (Optional) Traffic Filter block, which contains a list of traffic filter rule identifiers.
+* `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
+* `traffic_filter` (Optional) Traffic Filters to apply to the deployment as a list of traffic filter rule identifiers.
 
 ### Resources
 
-In order to be able to create a valid deployment at least one resource type must be specified, below are the supported resources.
+In order to create a valid deployment at least one resource type (`elasticsearch`) must be specified, below are the supported resources.
+
+When empty blocks are specified (`elasticsearch {}`, `kibana {}`, `apm {}`, `enterprise_search {}`), a default topology from the deployment template will be used, for each of the blocks. When a block is not set, the resource kind will not be enabled in the deployment.
+
+The `ec_deployment` resource, will opt-out all the resources except Elasticsearch, which as mentioned, will inherit the default topology from the deployment template, for example the [I/O Optimized template includes an Elasticsearch cluster 8 GB memory x 2 availability zones](https://www.elastic.co/guide/en/cloud/current/ec-getting-started-profiles.html#ec-getting-started-profiles-io).
+
+To customize any of the deployment resource sizes or settings, use the `topology` block within.
 
 #### Elasticsearch
 
@@ -63,12 +72,18 @@ The required `elasticsearch` block supports the following:
 
 ##### Topology
 
+To set up multi-node Elasticsearch clusters, single or multiple topology blocks can be set, each with a `instance_configuration_id` different set. This is particularly relevant for Elasticsearch clusters with Hot / Warm topologies, Machine learning, etc.
+
 The optional `elasticsearch.topology` block supports the following:
 
 * `instance_configuration_id` - (Optional) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed. See top level note on `regions and deployment templates`.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
-* `zone_count` - (Optional) Number of zones that the Elasticsearch cluster will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
-* `config` (Optional) Elasticsearch settings which will be applied at the topology level. 
+
+-> Instance Configurations can be a little cryptic when getting started, make sure to read our documentation on the [ESS hardware and Instance Configurations](https://www.elastic.co/guide/en/cloud/current/ec-reference-hardware.html#ec-instance-configuration-names).
+
+* `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it will default to the deployment template value.
+* `size_resource` - (Optional) Type of resource the size is being assigned to. (Defaults to `"memory"`).
+* `zone_count` - (Optional) Number of zones that the instance type on the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it will default to the deployment template value.
+* `config` (Optional) Elasticsearch settings which will be applied at the topology level.
 
 ##### Config
 
@@ -84,18 +99,19 @@ The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks s
 
 The optional `kibana` block supports the following:
 
-* `topology` - (Required) Topology element which can be set multiple times to compose complex topologies.
+* `topology` - (Optional) Topology element which can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the ref_id of the deployment Elasticsearch cluster, it is best left to the default value (Defaults to `main-elasticsearch`).
 * `ref_id` - (Optional) ref_id to set on the Kibana resource. It is best left to the default value (Defaults to `main-kibana`).
 * `config` (Optional) Kibana settings which will be applied to all topologies unless overridden on the topology element. 
 
 ##### Topology
 
-The required `kibana.topology` block supports the following:
+The optional `kibana.topology` block supports the following:
 
-* `instance_configuration_id` - (Required) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
-* `zone_count` - (Optional) Number of zones that the Kibana deployment will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
+* `instance_configuration_id` - (Optional) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed. See top level note on `regions and deployment templates`. There's no need to change this value since Kibana only has one _instance type_.
+* `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it will default to the deployment template value.
+* `size_resource` - (Optional) Type of resource the size is being assigned to. (Defaults to `"memory"`).
+* `zone_count` - (Optional) Number of zones that the Kibana deployment will span. This is used to set HA. When omitted, it will default to the deployment template value.
 * `config` (Optional) Kibana settings which will be applied at the topology level. 
 
 ##### Config
@@ -109,20 +125,21 @@ The optional `kibana.config` and `kibana.topology.config` blocks support the fol
 
 #### APM
 
-The required `apm` block supports the following:
+The optional `apm` block supports the following:
 
-* `topology` - (Required) Topology element which can be set multiple times to compose complex topologies.
+* `topology` - (Optional) Topology element which can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the ref_id of the deployment Elasticsearch cluster, it is best left to the default value (Defaults to `main-elasticsearch`).
 * `ref_id` - (Optional) ref_id to set on the APM resource. It is best left to the default value (Defaults to `main-apm`).
 * `config` (Optional) APM settings which will be applied to all topologies unless overridden on the topology element. 
 
 ##### Topology
 
-The required `apm.topology` block supports the following:
+The optional `apm.topology` block supports the following:
 
-* `instance_configuration_id` - (Required) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
-* `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
+* `instance_configuration_id` - (Optional) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed. See top level note on `regions and deployment templates`. There's no need to change this value since Kibana only has one _instance type_.
+* `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it will default to the deployment template value.
+* `size_resource` - (Optional) Type of resource the size is being assigned to. (Defaults to `"memory"`).
+* `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA. When omitted, it will default to the deployment template value.
 * `config` (Optional) APM settings which will be applied at the topology level. 
 
 ##### Config
@@ -137,20 +154,21 @@ The optional `apm.config` and `apm.topology.config` blocks support the following
 
 #### Enterprise Search
 
-The required `enterprise_search` block supports the following:
+The optional `enterprise_search` block supports the following:
 
-* `topology` - (Required) Topology element which can be set multiple times to compose complex topologies.
+* `topology` - (Optional) Topology element which can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the ref_id of the deployment Elasticsearch cluster, it is best left to the default value (Defaults to `main-elasticsearch`).
 * `ref_id` - (Optional) ref_id to set on the Enterprise Search resource. It is best left to the default value (Defaults to `main-enterprise_search`).
 * `config` (Optional) Enterprise Search settings which will be applied to all topologies unless overridden on the topology element. 
 
 ##### Topology
 
-The required `enterprise_search.topology` block supports the following:
+The optional `enterprise_search.topology` block supports the following:
 
-* `instance_configuration_id` - (Required) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed.
-* `memory_per_node` - (Optional) Amount of memory (RAM) per node in the "<size in GB>g" notation. When omitted, it will default to the amount set in the deployment template.
-* `zone_count` - (Optional) Number of zones that the Enterprise Search deployment will span. This is used to set HA. When omitted, it will default to the amount set in the deployment template.
+* `instance_configuration_id` - (Optional) Instance Configuration ID from the deployment template. By default, it will use the deployment template default instance configuration, but it can be changed. See top level note on `regions and deployment templates`.
+* `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it will default to the deployment template value.
+* `size_resource` - (Optional) Type of resource the size is being assigned to. (Defaults to `"memory"`).
+* `zone_count` - (Optional) Number of zones that the Enterprise Search deployment will span. This is used to set HA. When omitted, it will default to the deployment template value.
 * `config` (Optional) Enterprise Search settings which will be applied at the topology level. 
 
 ##### Config

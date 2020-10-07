@@ -71,7 +71,7 @@ func enterpriseSearchTopologySchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"memory_per_node": {
+				"size": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},

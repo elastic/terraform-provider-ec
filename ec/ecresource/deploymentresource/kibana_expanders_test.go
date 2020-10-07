@@ -60,7 +60,7 @@ func Test_expandKibanaResources(t *testing.T) {
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "aws.kibana.r5d",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
 							"zone_count":                1,
 						}},
 					},
@@ -102,7 +102,7 @@ func Test_expandKibanaResources(t *testing.T) {
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "gcp.some.config",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
 							"zone_count":                1,
 						}},
 					},
@@ -159,7 +159,7 @@ func Test_expandKibanaResources(t *testing.T) {
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
-							"memory_per_node": "4g",
+							"size": "4g",
 						}},
 					},
 				},
@@ -211,7 +211,7 @@ func Test_expandKibanaResources(t *testing.T) {
 							"user_settings_override_json": `{"some.setting": "override"}`,
 						}},
 						"instance_configuration_id": "aws.kibana.r5d",
-						"memory_per_node":           "4g",
+						"size":                      "4g",
 						"zone_count":                1,
 					}},
 				}},
