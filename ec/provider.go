@@ -36,15 +36,11 @@ const (
 	eceOnlyText      = "Available only when targeting ECE Installations or Elasticsearch Service Private"
 	saasRequiredText = "The only valid authentication mechanism for the Elasticsearch Service"
 
-	endpointDesc = "Endpoint where the terraform provider will point to. Defaults to \"%s\"."
-	insecureDesc = "Allow the provider to skip TLS validation on its outgoing HTTP calls."
-	timeoutDesc  = "Timeout used for individual HTTP calls. Defaults to \"1m\"."
-	verboseDesc  = "When set, a \"request.log\" file will be written with all outgoing HTTP requests. Defaults to \"false\"."
-)
-
-var (
-	// DefaultEndpoint is the default provider endpoint.
-	DefaultEndpoint = api.ESSEndpoint
+	endpointDesc     = "Endpoint where the terraform provider will point to. Defaults to \"%s\"."
+	insecureDesc     = "Allow the provider to skip TLS validation on its outgoing HTTP calls."
+	timeoutDesc      = "Timeout used for individual HTTP calls. Defaults to \"1m\"."
+	verboseDesc      = "When set, a \"request.log\" file will be written with all outgoing HTTP requests. Defaults to \"false\"."
+	verboseCredsDesc = "When set with verbose, the contents of the Authorization header will not be redacted. Defaults to \"false\"."
 )
 
 var (
@@ -59,71 +55,7 @@ var (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		ConfigureContextFunc: configureAPI,
-		Schema: map[string]*schema.Schema{
-			"endpoint": {
-				Description:  fmt.Sprintf(endpointDesc, DefaultEndpoint),
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsURLWithScheme(validURLSchemes),
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_ENDPOINT", "EC_HOST"},
-					DefaultEndpoint,
-				),
-			},
-			"apikey": {
-				Description: apikeyDesc,
-				Type:        schema.TypeString,
-				Optional:    true,
-				Sensitive:   true,
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_API_KEY"}, "",
-				),
-			},
-			"username": {
-				Description: usernameDesc,
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_USER", "EC_USERNAME"}, "",
-				),
-			},
-			"password": {
-				Description: passwordDesc,
-				Type:        schema.TypeString,
-				Optional:    true,
-				Sensitive:   true,
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_PASS", "EC_PASSWORD"}, "",
-				),
-			},
-			"insecure": {
-				Description: insecureDesc,
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"},
-					false,
-				),
-			},
-			"timeout": {
-				Description: timeoutDesc,
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     false,
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_TIMEOUT"}, "1m",
-				),
-			},
-			"verbose": {
-				Description: verboseDesc,
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc(
-					[]string{"EC_VERBOSE"}, false,
-				),
-			},
-		},
+		Schema:               newSchema(),
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_deployment":  deploymentdatasource.DataSource(),
 			"ec_deployments": deploymentsdatasource.DataSource(),
@@ -133,6 +65,91 @@ func Provider() *schema.Provider {
 			"ec_deployment":                            deploymentresource.Resource(),
 			"ec_deployment_traffic_filter":             trafficfilterresource.Resource(),
 			"ec_deployment_traffic_filter_association": trafficfilterassocresource.Resource(),
+		},
+	}
+}
+
+func newSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"endpoint": {
+			Description:  fmt.Sprintf(endpointDesc, api.ESSEndpoint),
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithScheme(validURLSchemes),
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_ENDPOINT", "EC_HOST"},
+				api.ESSEndpoint,
+			),
+		},
+		"apikey": {
+			Description:   apikeyDesc,
+			Type:          schema.TypeString,
+			Optional:      true,
+			Sensitive:     true,
+			ConflictsWith: []string{"username", "password"},
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_API_KEY"}, "",
+			),
+		},
+		"username": {
+			Description:   usernameDesc,
+			Type:          schema.TypeString,
+			Optional:      true,
+			ConflictsWith: []string{"apikey"},
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_USER", "EC_USERNAME"}, "",
+			),
+		},
+		"password": {
+			Description: passwordDesc,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Sensitive:   true,
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_PASS", "EC_PASSWORD"}, "",
+			),
+		},
+		"insecure": {
+			Description: insecureDesc,
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"},
+				false,
+			),
+		},
+		"timeout": {
+			Description: timeoutDesc,
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_TIMEOUT"}, "1m",
+			),
+		},
+		"verbose": {
+			Description: verboseDesc,
+			Type:        schema.TypeBool,
+			Optional:    true,
+			DefaultFunc: schema.MultiEnvDefaultFunc(
+				[]string{"EC_VERBOSE"}, false,
+			),
+		},
+		"verbose_credentials": {
+			Description: verboseCredsDesc,
+			Type:        schema.TypeBool,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc(
+				"EC_VERBOSE_CREDENTIALS", false,
+			),
+		},
+		"verbose_file": {
+			Description: timeoutDesc,
+			Type:        schema.TypeString,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc(
+				"EC_VERBOSE_FILE", "request.log",
+			),
 		},
 	}
 }
