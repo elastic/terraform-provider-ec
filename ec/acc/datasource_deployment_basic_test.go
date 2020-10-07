@@ -33,6 +33,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
 	cfg := testAccDeploymentDatasourceBasic(t, depCfg, randomName, region, deploymentVersion)
+	var namePrefix = randomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -109,7 +110,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				Config:             cfg,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", "terraform_acc_"),
+					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", namePrefix),
 					resource.TestCheckResourceAttr(depsDatasourceName, "deployment_template_id", "aws-compute-optimized-v2"),
 
 					// Deployment resources
