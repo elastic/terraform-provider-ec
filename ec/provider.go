@@ -82,20 +82,18 @@ func newSchema() map[string]*schema.Schema {
 			),
 		},
 		"apikey": {
-			Description:   apikeyDesc,
-			Type:          schema.TypeString,
-			Optional:      true,
-			Sensitive:     true,
-			ConflictsWith: []string{"username", "password"},
+			Description: apikeyDesc,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 			DefaultFunc: schema.MultiEnvDefaultFunc(
 				[]string{"EC_API_KEY"}, "",
 			),
 		},
 		"username": {
-			Description:   usernameDesc,
-			Type:          schema.TypeString,
-			Optional:      true,
-			ConflictsWith: []string{"apikey"},
+			Description: usernameDesc,
+			Type:        schema.TypeString,
+			Optional:    true,
 			DefaultFunc: schema.MultiEnvDefaultFunc(
 				[]string{"EC_USER", "EC_USERNAME"}, "",
 			),
