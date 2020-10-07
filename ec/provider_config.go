@@ -61,6 +61,7 @@ func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.
 		SkipTLSVerify:   d.Get("insecure").(bool),
 		Timeout:         timeout,
 		UserAgent:       userAgent(Version),
+		Retries:         2,
 	})
 
 	if err != nil {
