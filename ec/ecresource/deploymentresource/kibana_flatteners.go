@@ -89,10 +89,6 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 
 		}
 
-		if topology.NodeCountPerZone > 0 {
-			m["node_count_per_zone"] = topology.NodeCountPerZone
-		}
-
 		m["zone_count"] = topology.ZoneCount
 
 		if c := flattenKibanaConfig(topology.Kibana); len(c) > 0 {

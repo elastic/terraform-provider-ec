@@ -75,8 +75,8 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"node_count_per_zone": {
-					Type:     schema.TypeInt,
+				"size_resource": {
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 				"zone_count": {

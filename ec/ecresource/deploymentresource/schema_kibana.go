@@ -89,10 +89,6 @@ func kibanaTopologySchema() *schema.Schema {
 					Default:     "memory",
 					Optional:    true,
 				},
-				"node_count_per_zone": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
 				"zone_count": {
 					Type:     schema.TypeInt,
 					Computed: true,
