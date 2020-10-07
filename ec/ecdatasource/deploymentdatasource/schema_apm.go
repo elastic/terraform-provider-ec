@@ -75,6 +75,10 @@ func apmTopologySchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+				"size_resource": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 				"zone_count": {
 					Type:     schema.TypeInt,
 					Computed: true,
