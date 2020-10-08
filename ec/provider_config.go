@@ -36,34 +36,12 @@ const (
 
 // configureAPI implements schema.ConfigureContextFunc
 func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	timeout, err := time.ParseDuration(d.Get("timeout").(string))
-
+	cfg, err := newAPIConfig(d)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
 
-	authWriter, err := auth.NewAuthWriter(auth.Config{
-		APIKey:   d.Get("apikey").(string),
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
-	})
-
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	client, err := api.NewAPI(api.Config{
-		ErrorDevice:     os.Stdout,
-		Client:          &http.Client{},
-		VerboseSettings: verboseSettings(d.Get("verbose").(bool)),
-		AuthWriter:      authWriter,
-		Host:            d.Get("endpoint").(string),
-		SkipTLSVerify:   d.Get("insecure").(bool),
-		Timeout:         timeout,
-		UserAgent:       userAgent(Version),
-		Retries:         2,
-	})
-
+	client, err := api.NewAPI(cfg)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
@@ -71,21 +49,63 @@ func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.
 	return client, nil
 }
 
-func userAgent(v string) string {
-	return fmt.Sprintf(providerUserAgentFmt, v, api.DefaultUserAgent)
-}
+func newAPIConfig(d *schema.ResourceData) (api.Config, error) {
+	var cfg api.Config
 
-func verboseSettings(verbose bool) api.VerboseSettings {
-	if !verbose {
-		return api.VerboseSettings{}
+	timeout, err := time.ParseDuration(d.Get("timeout").(string))
+	if err != nil {
+		return cfg, err
 	}
 
-	f, err := os.Create("request.log")
+	authWriter, err := auth.NewAuthWriter(auth.Config{
+		APIKey:   d.Get("apikey").(string),
+		Username: d.Get("username").(string),
+		Password: d.Get("password").(string),
+	})
 	if err != nil {
-		return api.VerboseSettings{}
+		return cfg, err
+	}
+
+	verboseCfg, err := verboseSettings(
+		d.Get("verbose_file").(string),
+		d.Get("verbose").(bool),
+		!d.Get("verbose_credentials").(bool),
+	)
+	if err != nil {
+		return cfg, err
+	}
+
+	return api.Config{
+		ErrorDevice:     os.Stdout,
+		Client:          &http.Client{},
+		VerboseSettings: verboseCfg,
+		AuthWriter:      authWriter,
+		Host:            d.Get("endpoint").(string),
+		SkipTLSVerify:   d.Get("insecure").(bool),
+		Timeout:         timeout,
+		UserAgent:       userAgent(Version),
+		Retries:         2,
+	}, nil
+}
+
+func verboseSettings(name string, verbose, redactAuth bool) (api.VerboseSettings, error) {
+	var cfg api.VerboseSettings
+	if !verbose {
+		return cfg, nil
+	}
+
+	f, err := os.Create(name)
+	if err != nil {
+		return cfg, fmt.Errorf(`failed creating verbose file "%s": %w`, name, err)
 	}
 
 	return api.VerboseSettings{
-		Verbose: true, Device: f,
-	}
+		Verbose:    true,
+		RedactAuth: redactAuth,
+		Device:     f,
+	}, nil
+}
+
+func userAgent(v string) string {
+	return fmt.Sprintf(providerUserAgentFmt, v, api.DefaultUserAgent)
 }
