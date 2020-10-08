@@ -34,7 +34,7 @@ var templateFormat = `
 package ec
 
 // Version contains the current terraform provider version.
-const Version = {{ .Version }}
+const Version = "{{ .Version }}"
 `[1:]
 
 type format struct {
