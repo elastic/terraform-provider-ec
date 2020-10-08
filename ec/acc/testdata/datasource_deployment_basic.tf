@@ -54,7 +54,7 @@ data "ec_deployment" "success" {
 }
 
 data "ec_deployments" "query" {
-  name_prefix            = "terraform_acc_"
+  name_prefix            = substr(ec_deployment.basic_datasource.name, 0, 22) 
   deployment_template_id = "aws-compute-optimized-v2"
 
   elasticsearch {
