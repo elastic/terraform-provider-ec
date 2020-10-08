@@ -57,8 +57,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.https_endpoint_id", resourceName, "elasticsearch.0.https_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.version", resourceName, "elasticsearch.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.instance_configuration_id", resourceName, "elasticsearch.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.memory_per_node", resourceName, "elasticsearch.0.topology.0.memory_per_node"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_count_per_zone", resourceName, "elasticsearch.0.topology.0.node_count_per_zone"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size", resourceName, "elasticsearch.0.topology.0.size"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size_resource", resourceName, "elasticsearch.0.topology.0.size_resource"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.zone_count", resourceName, "elasticsearch.0.topology.0.zone_count"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_type_data", resourceName, "elasticsearch.0.topology.0.node_type_data"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_type_master", resourceName, "elasticsearch.0.topology.0.node_type_master"),
@@ -74,7 +74,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.https_endpoint_id", resourceName, "kibana.0.https_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.version", resourceName, "kibana.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.instance_configuration_id", resourceName, "kibana.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.memory_per_node", resourceName, "kibana.0.topology.0.memory_per_node"),
+					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.size", resourceName, "kibana.0.topology.0.size"),
+					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.size_resource", resourceName, "kibana.0.topology.0.size_resource"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.zone_count", resourceName, "kibana.0.topology.0.zone_count"),
 
 					// APM
@@ -86,7 +87,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.https_endpoint_id", resourceName, "apm.0.https_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.version", resourceName, "apm.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.instance_configuration_id", resourceName, "apm.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.memory_per_node", resourceName, "apm.0.topology.0.memory_per_node"),
+					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.size", resourceName, "apm.0.topology.0.size"),
+					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.size_resource", resourceName, "apm.0.topology.0.size_resource"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.zone_count", resourceName, "apm.0.topology.0.zone_count"),
 
 					// Enterprise Search
@@ -98,8 +100,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.https_endpoint_id", resourceName, "enterprise_search.0.https_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.version", resourceName, "enterprise_search.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.instance_configuration_id", resourceName, "enterprise_search.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.memory_per_node", resourceName, "enterprise_search.0.topology.0.memory_per_node"),
-					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.node_count_per_zone", resourceName, "enterprise_search.0.topology.0.node_count_per_zone"),
+					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.size", resourceName, "enterprise_search.0.topology.0.size"),
+					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.size_resource", resourceName, "enterprise_search.0.topology.0.size_resource"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.zone_count", resourceName, "enterprise_search.0.topology.0.zone_count"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.node_type_appserver", resourceName, "enterprise_search.0.topology.0.node_type_appserver"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.node_type_connector", resourceName, "enterprise_search.0.topology.0.node_type_connector"),

@@ -79,12 +79,11 @@ func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []inter
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
 		if topology.Size != nil && topology.Size.Value != nil {
-			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
+			m["size"] = util.MemoryToState(*topology.Size.Value)
+			m["size_resource"] = *topology.Size.Resource
 		}
 
 		m["zone_count"] = topology.ZoneCount
-
-		m["node_count_per_zone"] = topology.NodeCountPerZone
 
 		if topology.NodeType != nil {
 			if topology.NodeType.Data != nil {

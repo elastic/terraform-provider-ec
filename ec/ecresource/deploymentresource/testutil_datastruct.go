@@ -57,25 +57,25 @@ func newSampleDeploymentOverrides() map[string]interface{} {
 		"elasticsearch": []interface{}{map[string]interface{}{
 			"ref_id": "main-elasticsearch",
 			"topology": []interface{}{map[string]interface{}{
-				"memory_per_node": "4g",
+				"size": "4g",
 			}}},
 		},
 		"kibana": []interface{}{map[string]interface{}{
 			"ref_id": "main-kibana",
 			"topology": []interface{}{map[string]interface{}{
-				"memory_per_node": "2g",
+				"size": "2g",
 			}}},
 		},
 		"apm": []interface{}{map[string]interface{}{
 			"ref_id": "main-apm",
 			"topology": []interface{}{map[string]interface{}{
-				"memory_per_node": "1g",
+				"size": "1g",
 			}}},
 		},
 		"enterprise_search": []interface{}{map[string]interface{}{
 			"ref_id": "main-enterprise_search",
 			"topology": []interface{}{map[string]interface{}{
-				"memory_per_node": "4g",
+				"size": "4g",
 			}}},
 		},
 		"traffic_filter": []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
@@ -124,7 +124,7 @@ func newElasticsearchSample() map[string]interface{} {
 		"region":      "us-east-1",
 		"topology": []interface{}{map[string]interface{}{
 			"instance_configuration_id": "aws.data.highio.i3",
-			"memory_per_node":           "2g",
+			"size":                      "2g",
 			"node_type_data":            true,
 			"node_type_ingest":          true,
 			"node_type_master":          true,
@@ -153,7 +153,7 @@ func newKibanaSample() map[string]interface{} {
 		"topology": []interface{}{
 			map[string]interface{}{
 				"instance_configuration_id": "aws.kibana.r5d",
-				"memory_per_node":           "1g",
+				"size":                      "1g",
 				"zone_count":                1,
 			},
 		},
@@ -173,7 +173,7 @@ func newApmSample() map[string]interface{} {
 		}},
 		"topology": []interface{}{map[string]interface{}{
 			"instance_configuration_id": "aws.apm.r5d",
-			"memory_per_node":           "0.5g",
+			"size":                      "0.5g",
 			"zone_count":                1,
 			"config": []interface{}{map[string]interface{}{
 				"debug_enabled": false,
@@ -192,7 +192,7 @@ func newEnterpriseSearchSample() map[string]interface{} {
 		"topology": []interface{}{
 			map[string]interface{}{
 				"instance_configuration_id": "aws.enterprisesearch.m5d",
-				"memory_per_node":           "2g",
+				"size":                      "2g",
 				"zone_count":                1,
 				"node_type_appserver":       true,
 				"node_type_connector":       true,

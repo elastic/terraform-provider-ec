@@ -18,8 +18,11 @@
 package util
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,6 +49,74 @@ func TestMemoryToState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := MemoryToState(tt.args.mem)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestParseTopologySize(t *testing.T) {
+	type args struct {
+		topology map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want *models.TopologySize
+		err  error
+	}{
+		{
+			name: "has no size returns nil",
+		},
+		{
+			name: "has empty size returns nil",
+			args: args{topology: map[string]interface{}{
+				"size": "",
+			}},
+		},
+		{
+			name: "has badly formatted size returns error",
+			args: args{topology: map[string]interface{}{
+				"size": "asdasd",
+			}},
+			err: errors.New(`failed to convert "asdasd" to <size><g>`),
+		},
+		{
+			name: "has size but no size_resource",
+			args: args{topology: map[string]interface{}{
+				"size": "15g",
+			}},
+			want: &models.TopologySize{
+				Value:    ec.Int32(15360),
+				Resource: ec.String("memory"),
+			},
+		},
+		{
+			name: "has size and explicit size_resource (memory)",
+			args: args{topology: map[string]interface{}{
+				"size":          "8g",
+				"size_resource": "memory",
+			}},
+			want: &models.TopologySize{
+				Value:    ec.Int32(8192),
+				Resource: ec.String("memory"),
+			},
+		},
+		{
+			name: "has size and explicit size_resource (storage)",
+			args: args{topology: map[string]interface{}{
+				"size":          "4g",
+				"size_resource": "storage",
+			}},
+			want: &models.TopologySize{
+				Value:    ec.Int32(4096),
+				Resource: ec.String("storage"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseTopologySize(tt.args.topology)
+			assert.Equal(t, tt.err, err)
 			assert.Equal(t, tt.want, got)
 		})
 	}

@@ -60,7 +60,8 @@ func Test_expandApmResources(t *testing.T) {
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "aws.apm.r5d",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
+							"size_resource":             "memory",
 							"zone_count":                1,
 						}},
 					},
@@ -100,7 +101,8 @@ func Test_expandApmResources(t *testing.T) {
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "so invalid",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
+							"size_resource":             "memory",
 							"zone_count":                1,
 						}},
 					},
@@ -155,7 +157,8 @@ func Test_expandApmResources(t *testing.T) {
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
-							"memory_per_node": "2g",
+							"size":          "2g",
+							"size_resource": "memory",
 						}},
 					},
 				},
@@ -193,7 +196,8 @@ func Test_expandApmResources(t *testing.T) {
 					"region":                       "some-region",
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.apm.r5d",
-						"memory_per_node":           "4g",
+						"size":                      "4g",
+						"size_resource":             "memory",
 						"zone_count":                1,
 						"config": []interface{}{map[string]interface{}{
 							"user_settings_yaml":          "some.setting: value",

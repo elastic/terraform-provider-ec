@@ -59,7 +59,7 @@ func Test_expandEssResources(t *testing.T) {
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.enterprisesearch.m5d",
-						"memory_per_node":           "2g",
+						"size":                      "2g",
 						"zone_count":                1,
 					}},
 				}},
@@ -135,7 +135,7 @@ func Test_expandEssResources(t *testing.T) {
 					"region":                       "some-region",
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"topology": []interface{}{map[string]interface{}{
-						"memory_per_node": "4g",
+						"size": "4g",
 					}},
 				}},
 			},
@@ -260,7 +260,7 @@ func Test_expandEssResources(t *testing.T) {
 							"user_settings_override_json": `{"some.setting": "override"}`,
 						}},
 						"instance_configuration_id": "aws.enterprisesearch.m5d",
-						"memory_per_node":           "4g",
+						"size":                      "4g",
 						"zone_count":                1,
 						"node_type_appserver":       true,
 						"node_type_connector":       true,
@@ -310,7 +310,7 @@ func Test_expandEssResources(t *testing.T) {
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.enterprisesearch.m5",
-						"memory_per_node":           "2g",
+						"size":                      "2g",
 						"zone_count":                1,
 					}},
 				}},

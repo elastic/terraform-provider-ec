@@ -121,10 +121,6 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 			}
 		}
 
-		if nodecount, ok := topology["node_count_per_zone"]; ok {
-			elem.NodeCountPerZone = int32(nodecount.(int))
-		}
-
 		if c, ok := topology["config"]; ok {
 			elem.Kibana = expandKibanaConfig(c)
 		}

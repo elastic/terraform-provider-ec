@@ -10,12 +10,12 @@ resource "ec_deployment" "hotwarm" {
     topology {
       instance_configuration_id = "aws.data.highio.i3"
       zone_count                = 1
-      memory_per_node           = "1g"
+      size                      = "1g"
     }
     topology {
       instance_configuration_id = "aws.data.highstorage.d2"
       zone_count                = 1
-      memory_per_node           = "2g"
+      size                      = "2g"
     }
   }
 }

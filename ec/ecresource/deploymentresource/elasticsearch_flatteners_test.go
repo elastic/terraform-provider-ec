@@ -155,7 +155,8 @@ func Test_flattenEsResource(t *testing.T) {
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
+							"size_resource":             "memory",
 							"node_type_data":            true,
 							"node_type_ingest":          true,
 							"node_type_master":          true,
@@ -228,7 +229,8 @@ func Test_flattenEsResource(t *testing.T) {
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
-							"memory_per_node":           "2g",
+							"size":                      "2g",
+							"size_resource":             "memory",
 							"node_type_data":            true,
 							"node_type_ingest":          true,
 							"node_type_master":          true,
@@ -301,7 +303,8 @@ func Test_flattenEsResource(t *testing.T) {
 				"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.data.highio.i3",
-					"memory_per_node":           "2g",
+					"size":                      "2g",
+					"size_resource":             "memory",
 					"node_type_data":            true,
 					"node_type_ingest":          true,
 					"node_type_master":          true,
@@ -362,7 +365,8 @@ func Test_flattenEsTopology(t *testing.T) {
 			want: []interface{}{
 				map[string]interface{}{
 					"instance_configuration_id": "aws.data.highio.i3",
-					"memory_per_node":           "4g",
+					"size":                      "4g",
+					"size_resource":             "memory",
 					"zone_count":                int32(1),
 					"node_type_data":            true,
 					"node_type_ingest":          true,

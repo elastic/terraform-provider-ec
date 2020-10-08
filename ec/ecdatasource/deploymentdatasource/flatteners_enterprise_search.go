@@ -83,7 +83,8 @@ func flattenEnterpriseSearchTopology(plan *models.EnterpriseSearchPlan) []interf
 		m["zone_count"] = topology.ZoneCount
 
 		if topology.Size != nil && topology.Size.Value != nil {
-			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
+			m["size"] = util.MemoryToState(*topology.Size.Value)
+			m["size_resource"] = *topology.Size.Resource
 		}
 
 		if topology.NodeType != nil {

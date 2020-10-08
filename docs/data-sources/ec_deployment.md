@@ -42,8 +42,7 @@ These will not be available for interpolation.
   * `elasticsearch.#.version` - Elastic stack version.
   * `elasticsearch.#.topology` - Topology element definition.
     * `elasticsearch.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `elasticsearch.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
-    * `elasticsearch.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
+    * `elasticsearch.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
     * `elasticsearch.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
     * `elasticsearch.#.topology.#.node_type_data` - Defines whether this node can hold data.
     * `elasticsearch.#.topology.#.node_type_master` - Defines whether this node can be elected master.
@@ -60,8 +59,7 @@ These will not be available for interpolation.
   * `kibana.#.version` - Elastic stack version.
   * `kibana.#.topology` - Node topology element definition.
     * `kibana.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `kibana.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
-    * `kibana.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
+    * `kibana.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
     * `kibana.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
 * `apm` - Instance configuration of the APM type.
   * `apm.#.elasticsearch_cluster_ref_id` - The user-specified id of the Elasticsearch cluster that this resource kind will link to.
@@ -74,8 +72,7 @@ These will not be available for interpolation.
   * `apm.#.version` - Elastic stack version.
   * `apm.#.topology` - Node topology element definition.
     * `apm.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `apm.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
-    * `apm.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
+    * `apm.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
     * `apm.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
 * `enterprise_search` - Instance configuration of the Enterprise Search type.
   * `enterprise_search.#.elasticsearch_cluster_ref_id` - The user-specified id of the Elasticsearch cluster that this resource kind will link to.
@@ -88,8 +85,7 @@ These will not be available for interpolation.
   * `enterprise_search.#.version` - Elastic stack version.
   * `enterprise_search.#.topology` - Node topology element definition.
     * `enterprise_search.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the id of an existing instance configuration.
-    * `enterprise_search.#.topology.#.memory_per_node` - Amount of memory (RAM) per node in the "<size in GB>g" notation.
-    * `enterprise_search.#.topology.#.node_count_per_zone` - Number of nodes of this resource kind that are allocated within each zone.
+    * `enterprise_search.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
     * `enterprise_search.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
     * `enterprise_search.#.topology.#.node_type_appserver` - Defines whether this instance should run as application/API server.
     * `enterprise_search.#.topology.#.node_type_connector` - Defines whether this instance should run as connector.

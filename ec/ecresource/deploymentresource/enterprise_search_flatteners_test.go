@@ -163,7 +163,8 @@ func Test_flattenEssResource(t *testing.T) {
 					}},
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.enterprisesearch.r4",
-						"memory_per_node":           "1g",
+						"size":                      "1g",
+						"size_resource":             "memory",
 						"zone_count":                int32(1),
 						"node_type_appserver":       true,
 						"node_type_worker":          false,

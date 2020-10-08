@@ -26,7 +26,7 @@ resource "ec_deployment" "example_minimal" {
 
   apm {
     topology {
-      memory_per_node = "1g"
+      size = "0.5g"
     }
   }
 

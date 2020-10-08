@@ -25,6 +25,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
+const defaultSizeResource = "memory"
+
 // MemoryToState parses a megabyte int notation to a gigabyte notation.
 func MemoryToState(mem int32) string {
 	if mem%1024 > 1 && mem%512 == 0 {
@@ -35,17 +37,21 @@ func MemoryToState(mem int32) string {
 
 // ParseTopologySize parses a flattened topology into its model.
 func ParseTopologySize(topology map[string]interface{}) (*models.TopologySize, error) {
-	if mem, ok := topology["memory_per_node"]; ok {
+	if mem, ok := topology["size"]; ok {
 		if m := mem.(string); m != "" {
 			val, err := deploymentsize.ParseGb(m)
 			if err != nil {
 				return nil, err
 			}
 
+			var sizeResource = defaultSizeResource
+			if sr, ok := topology["size_resource"]; ok {
+				sizeResource = sr.(string)
+			}
+
 			return &models.TopologySize{
-				// TODO: For now the resource is assumed to be "memory". This can
-				// and will change in the future, we need to accommodate for this case.
-				Value: ec.Int32(val), Resource: ec.String("memory"),
+				Value:    ec.Int32(val),
+				Resource: ec.String(sizeResource),
 			}, nil
 		}
 	}

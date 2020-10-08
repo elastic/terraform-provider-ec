@@ -78,10 +78,16 @@ func enterpriseSearchTopologySchema() *schema.Schema {
 					Optional: true,
 					Computed: true,
 				},
-				"memory_per_node": {
+				"size": {
 					Type:     schema.TypeString,
 					Computed: true,
 					Optional: true,
+				},
+				"size_resource": {
+					Type:        schema.TypeString,
+					Description: `Optional size type, defaults to "memory".`,
+					Default:     "memory",
+					Optional:    true,
 				},
 				"zone_count": {
 					Type:     schema.TypeInt,

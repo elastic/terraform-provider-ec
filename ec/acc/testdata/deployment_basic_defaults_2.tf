@@ -10,13 +10,13 @@ resource "ec_deployment" "defaults" {
 
   kibana {
     topology {
-      memory_per_node = "2g"
+      size = "2g"
     }
   }
 
   apm {
     topology {
-      memory_per_node = "1g"
+      size = "1g"
     }
   }
 

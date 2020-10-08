@@ -83,17 +83,10 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 			m["instance_configuration_id"] = topology.InstanceConfigurationID
 		}
 
-		// TODO: Check legacy plans.
-		// if topology.MemoryPerNode > 0 {
-		// 	m["memory_per_node"] = strconv.Itoa(int(topology.MemoryPerNode))
-		// }
+		if topology.Size != nil {
+			m["size"] = util.MemoryToState(*topology.Size.Value)
+			m["size_resource"] = *topology.Size.Resource
 
-		if *topology.Size.Resource == "memory" {
-			m["memory_per_node"] = util.MemoryToState(*topology.Size.Value)
-		}
-
-		if topology.NodeCountPerZone > 0 {
-			m["node_count_per_zone"] = topology.NodeCountPerZone
 		}
 
 		m["zone_count"] = topology.ZoneCount

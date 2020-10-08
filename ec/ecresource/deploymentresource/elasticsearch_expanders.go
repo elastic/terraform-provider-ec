@@ -136,10 +136,6 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			}
 		}
 
-		if nodecount, ok := topology["node_count_per_zone"]; ok {
-			elem.NodeCountPerZone = int32(nodecount.(int))
-		}
-
 		if c, ok := topology["config"]; ok {
 			elem.Elasticsearch = expandEsConfig(c, elem.Elasticsearch)
 		}

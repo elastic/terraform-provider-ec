@@ -8,7 +8,7 @@ resource "ec_deployment" "defaults" {
 
   elasticsearch {
     topology {
-      memory_per_node = "1g"
+      size = "1g"
     }
   }
 }

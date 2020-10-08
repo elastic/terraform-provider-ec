@@ -12,7 +12,7 @@ resource "ec_deployment" "basic" {
         user_settings_yaml = "action.auto_create_index: true"
       }
       instance_configuration_id = "aws.data.highio.i3"
-      memory_per_node           = "1g"
+      size                      = "1g"
     }
   }
 

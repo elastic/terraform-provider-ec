@@ -189,7 +189,8 @@ func Test_flattenKibanaResources(t *testing.T) {
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.kibana.r4",
-							"memory_per_node":           "1g",
+							"size":                      "1g",
+							"size_resource":             "memory",
 							"zone_count":                int32(1),
 						},
 					},
@@ -216,7 +217,8 @@ func Test_flattenKibanaResources(t *testing.T) {
 							"user_settings_override_json": `{"some.setting": "override"}`,
 						}},
 						"instance_configuration_id": "aws.kibana.r4",
-						"memory_per_node":           "1g",
+						"size":                      "1g",
+						"size_resource":             "memory",
 						"zone_count":                int32(1),
 					}},
 				},
