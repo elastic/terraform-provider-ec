@@ -18,6 +18,8 @@
 package acc
 
 import (
+	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -32,8 +34,8 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_hotwarm_1.tf"
 	secondCfg := "testdata/deployment_hotwarm_2.tf"
-	cfg := testAccDeploymentResourceBasic(t, startCfg, randomName, region, deploymentVersion)
-	secondConfigCfg := testAccDeploymentResourceBasic(t, secondCfg, randomName, region, deploymentVersion)
+	cfg := testAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
+	secondConfigCfg := testAccDeploymentResourceBasicHW(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -100,4 +102,21 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccDeploymentResourceBasicHW(t *testing.T, fileName, name, region, depTpl string) string {
+	deploymentTpl := setDefaultTemplate(region, depTpl)
+
+	esIC, esIC2, err := setInstanceConfigurationsHW(deploymentTpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		region, name, region, deploymentTpl, esIC, esIC2,
+	)
 }

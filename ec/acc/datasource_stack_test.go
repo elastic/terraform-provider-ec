@@ -28,7 +28,7 @@ import (
 func TestAccDatasourceStack_latest(t *testing.T) {
 	datasourceName := "data.ec_stack.latest"
 	depCfg := "testdata/datasource_stack_latest.tf"
-	cfg := testAccStackDataSource(t, depCfg, region)
+	cfg := testAccStackDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -40,7 +40,7 @@ func TestAccDatasourceStack_latest(t *testing.T) {
 				Check: checkDataSourceStack(datasourceName,
 					resource.TestCheckResourceAttr(datasourceName, "version_regex", "latest"),
 					resource.TestCheckResourceAttr(datasourceName, "lock", "true"),
-					resource.TestCheckResourceAttr(datasourceName, "region", region),
+					resource.TestCheckResourceAttr(datasourceName, "region", getRegion()),
 				),
 			},
 		},
@@ -50,7 +50,7 @@ func TestAccDatasourceStack_latest(t *testing.T) {
 func TestAccDatasourceStack_regex(t *testing.T) {
 	datasourceName := "data.ec_stack.regex"
 	depCfg := "testdata/datasource_stack_regex.tf"
-	cfg := testAccStackDataSource(t, depCfg, region)
+	cfg := testAccStackDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -61,7 +61,7 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 				PreventDiskCleanup: true,
 				Check: checkDataSourceStack(datasourceName,
 					resource.TestCheckResourceAttr(datasourceName, "version_regex", "7.0.?"),
-					resource.TestCheckResourceAttr(datasourceName, "region", region),
+					resource.TestCheckResourceAttr(datasourceName, "region", getRegion()),
 				),
 			},
 		},

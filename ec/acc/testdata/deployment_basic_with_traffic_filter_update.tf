@@ -1,35 +1,25 @@
-resource "ec_deployment" "basic" {
-  name    = "%s"
-  region  = "%s"
-  version = "%s"
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "%s"
+}
 
-  # TODO: Make this template ID dependent on the region.
-  deployment_template_id = "aws-io-optimized-v2"
+resource "ec_deployment" "basic" {
+  name                   = "%s"
+  region                 = "%s"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "%s"
 
   elasticsearch {
     topology {
-      instance_configuration_id = "aws.data.highio.i3"
-      size                      = "1g"
+      size = "1g"
     }
   }
 
-  kibana {
-    topology {
-      instance_configuration_id = "aws.kibana.r5d"
-    }
-  }
+  kibana {}
 
-  apm {
-    topology {
-      instance_configuration_id = "aws.apm.r5d"
-    }
-  }
+  apm {}
 
-  enterprise_search {
-    topology {
-      instance_configuration_id = "aws.enterprisesearch.m5d"
-    }
-  }
+  enterprise_search {}
 
   traffic_filter = [
     ec_deployment_traffic_filter.second.id,

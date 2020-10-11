@@ -31,8 +31,8 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_traffic_filter_basic.tf"
 	updateCfg := "testdata/deployment_traffic_filter_basic_update.tf"
-	cfg := testAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, region)
-	updateConfigCfg := testAccDeploymentTrafficFilterResourceBasic(t, updateCfg, randomName, region)
+	cfg := testAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
+	updateConfigCfg := testAccDeploymentTrafficFilterResourceBasic(t, updateCfg, randomName, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -86,6 +86,6 @@ func checkBasicDeploymentTrafficFilterResource(resName, randomDeploymentName str
 	return resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
 		testAccCheckDeploymentTrafficFilterExists(resName),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
-		resource.TestCheckResourceAttr(resName, "region", region)}, checks...)...,
+		resource.TestCheckResourceAttr(resName, "region", getRegion())}, checks...)...,
 	)
 }

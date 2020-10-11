@@ -18,6 +18,8 @@
 package acc
 
 import (
+	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -36,10 +38,10 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 	secondCfg := "testdata/deployment_basic_defaults_2.tf"
 	thirdCfg := "testdata/deployment_basic_defaults_3.tf"
 	fourthCfg := "testdata/deployment_basic_defaults_4.tf"
-	cfg := testAccDeploymentResourceBasic(t, startCfg, randomName, region, deploymentVersion)
-	secondConfigCfg := testAccDeploymentResourceBasic(t, secondCfg, randomName, region, deploymentVersion)
-	thirdConfigCfg := testAccDeploymentResourceBasic(t, thirdCfg, randomName, region, deploymentVersion)
-	hotWarmCfg := testAccDeploymentResourceBasic(t, fourthCfg, randomName, region, deploymentVersion)
+	cfg := testAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
+	secondConfigCfg := testAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), defaultTemplate)
+	thirdConfigCfg := testAccDeploymentResourceBasicDefaults(t, thirdCfg, randomName, getRegion(), defaultTemplate)
+	hotWarmCfg := testAccDeploymentResourceBasicDefaults(t, fourthCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -163,4 +165,16 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccDeploymentResourceBasicDefaults(t *testing.T, fileName, name, region, depTpl string) string {
+	deploymentTpl := setDefaultTemplate(region, depTpl)
+
+	b, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		region, name, region, deploymentTpl,
+	)
 }
