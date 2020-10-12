@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -36,8 +34,8 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 	randomNameSecond := acctest.RandomWithPrefix(prefix)
 	startCfg := "testdata/deployment_traffic_filter_association_basic.tf"
 	updateCfg := "testdata/deployment_traffic_filter_association_basic_update.tf"
-	cfg := testAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
-	updateConfigCfg := testAccDeploymentTrafficFilterResourceAssociationBasic(t, updateCfg, randomNameSecond, getRegion(), defaultTemplate)
+	cfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
+	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, updateCfg, randomNameSecond, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -74,7 +72,7 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentTrafficFilterResourceAssociationBasic(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t *testing.T, fileName, name, region, depTpl string) string {
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 
 	b, err := ioutil.ReadFile(fileName)

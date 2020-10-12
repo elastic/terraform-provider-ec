@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -34,7 +32,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	depsDatasourceName := "data.ec_deployments.query"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfg := testAccDeploymentDatasourceBasic(t, depCfg, randomName, getRegion(), depsDSTemplate)
+	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, getRegion(), depsDSTemplate)
 	var namePrefix = randomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -134,7 +132,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {

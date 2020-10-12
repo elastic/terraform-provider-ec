@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -158,6 +156,6 @@ func setInstanceConfigurationsHW(deploymentTemplate string) (esIC, esIC2 string,
 
 	return "", "", fmt.Errorf(
 		"%v, is not a valid Hot/Warm deployment template, (elements: %v)",
-		deploymentTemplate,  esICs
+		deploymentTemplate, esICs,
 	)
 }

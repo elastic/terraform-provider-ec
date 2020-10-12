@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -36,8 +34,8 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_hotwarm_1.tf"
 	secondCfg := "testdata/deployment_hotwarm_2.tf"
-	cfg := testAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
-	secondConfigCfg := testAccDeploymentResourceBasicHW(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
+	secondConfigCfg := fixtureAccDeploymentResourceBasicHW(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -106,7 +104,7 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 	})
 }
 
-func testAccDeploymentResourceBasicHW(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentResourceBasicHW(t *testing.T, fileName, name, region, depTpl string) string {
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 
 	esIC, esIC2, err := setInstanceConfigurationsHW(deploymentTpl)

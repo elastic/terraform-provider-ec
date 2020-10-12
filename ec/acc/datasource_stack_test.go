@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -30,7 +28,7 @@ import (
 func TestAccDatasourceStack_latest(t *testing.T) {
 	datasourceName := "data.ec_stack.latest"
 	depCfg := "testdata/datasource_stack_latest.tf"
-	cfg := testAccStackDataSource(t, depCfg, getRegion())
+	cfg := fixtureAccStackDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -52,7 +50,7 @@ func TestAccDatasourceStack_latest(t *testing.T) {
 func TestAccDatasourceStack_regex(t *testing.T) {
 	datasourceName := "data.ec_stack.regex"
 	depCfg := "testdata/datasource_stack_regex.tf"
-	cfg := testAccStackDataSource(t, depCfg, getRegion())
+	cfg := fixtureAccStackDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -70,7 +68,7 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 	})
 }
 
-func testAccStackDataSource(t *testing.T, fileName, region string) string {
+func fixtureAccStackDataSource(t *testing.T, fileName, region string) string {
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)

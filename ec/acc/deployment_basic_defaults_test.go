@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -40,10 +38,10 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 	secondCfg := "testdata/deployment_basic_defaults_2.tf"
 	thirdCfg := "testdata/deployment_basic_defaults_3.tf"
 	fourthCfg := "testdata/deployment_basic_defaults_4.tf"
-	cfg := testAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
-	secondConfigCfg := testAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), defaultTemplate)
-	thirdConfigCfg := testAccDeploymentResourceBasicDefaults(t, thirdCfg, randomName, getRegion(), defaultTemplate)
-	hotWarmCfg := testAccDeploymentResourceBasicDefaults(t, fourthCfg, randomName, getRegion(), hotWarmTemplate)
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
+	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), defaultTemplate)
+	thirdConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, thirdCfg, randomName, getRegion(), defaultTemplate)
+	hotWarmCfg := fixtureAccDeploymentResourceBasicDefaults(t, fourthCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -169,7 +167,7 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 	})
 }
 
-func testAccDeploymentResourceBasicDefaults(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentResourceBasicDefaults(t *testing.T, fileName, name, region, depTpl string) string {
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 
 	b, err := ioutil.ReadFile(fileName)

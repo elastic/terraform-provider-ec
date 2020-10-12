@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -36,11 +34,11 @@ func TestAccDeployment_basic(t *testing.T) {
 	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_update.tf"
 	topologyConfig := "testdata/deployment_basic_topology_config.tf"
 	topConfig := "testdata/deployment_basic_top_config.tf"
-	cfg := testAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
-	cfgWithTrafficFilter := testAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
-	cfgWithTrafficFilterUpdate := testAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
-	topologyConfigCfg := testAccDeploymentResourceBasicDefaults(t, topologyConfig, randomName, getRegion(), defaultTemplate)
-	topConfigCfg := testAccDeploymentResourceBasic(t, topConfig, randomName, getRegion(), defaultTemplate)
+	cfg := fixtureAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
+	cfgWithTrafficFilter := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
+	cfgWithTrafficFilterUpdate := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
+	topologyConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, topologyConfig, randomName, getRegion(), defaultTemplate)
+	topConfigCfg := fixtureAccDeploymentResourceBasic(t, topConfig, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
 	if err != nil {
 		t.Fatal(err)
@@ -153,7 +151,7 @@ func TestAccDeployment_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentResourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentResourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 
 	esIC, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
@@ -170,7 +168,7 @@ func testAccDeploymentResourceBasic(t *testing.T, fileName, name, region, depTpl
 	)
 }
 
-func testAccDeploymentResourceBasicWithTF(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentResourceBasicWithTF(t *testing.T, fileName, name, region, depTpl string) string {
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 
 	b, err := ioutil.ReadFile(fileName)
