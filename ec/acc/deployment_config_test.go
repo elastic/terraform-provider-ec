@@ -152,16 +152,12 @@ func setInstanceConfigurationsHW(deploymentTemplate string) (esIC, esIC2 string,
 		}
 	}
 
-	if len(esICs) != 2 {
-		return "", "",
-			fmt.Errorf(
-				"%v, is not a valid Hot/Warm deployment template",
-				deploymentTemplate)
+	if len(esICs) == 2 {
+		return esICs[0], esICs[1], nil
 	}
 
-	esIC = esICs[0]
-
-	esIC2 = esICs[1]
-
-	return esIC, esIC2, nil
+	return "", "", fmt.Errorf(
+		"%v, is not a valid Hot/Warm deployment template, (elements: %v)",
+		deploymentTemplate,  esICs
+	)
 }
