@@ -15,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// +build acceptance
+
 package acc
 
 import (
@@ -34,8 +36,8 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 	randomNameSecond := acctest.RandomWithPrefix(prefix)
 	startCfg := "testdata/deployment_traffic_filter_association_basic.tf"
 	updateCfg := "testdata/deployment_traffic_filter_association_basic_update.tf"
-	cfg := testAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, region, deploymentVersion)
-	updateConfigCfg := testAccDeploymentTrafficFilterResourceAssociationBasic(t, updateCfg, randomNameSecond, region, deploymentVersion)
+	cfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
+	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, updateCfg, randomNameSecond, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -72,13 +74,15 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentTrafficFilterResourceAssociationBasic(t *testing.T, fileName, name, region, version string) string {
+func fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t *testing.T, fileName, name, region, depTpl string) string {
+	deploymentTpl := setDefaultTemplate(region, depTpl)
+
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		name, region, version, name, region,
+		region, name, region, deploymentTpl, name, region,
 	)
 }
 
@@ -88,6 +92,6 @@ func checkBasicDeploymentTrafficFilterAssociationResource(resName, assocName, ra
 		resource.TestCheckResourceAttrSet(assocName, "deployment_id"),
 		resource.TestCheckResourceAttrSet(assocName, "traffic_filter_id"),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
-		resource.TestCheckResourceAttr(resName, "region", region)}, checks...)...,
+		resource.TestCheckResourceAttr(resName, "region", getRegion())}, checks...)...,
 	)
 }

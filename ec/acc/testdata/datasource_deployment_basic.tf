@@ -1,38 +1,25 @@
-resource "ec_deployment" "basic_datasource" {
-  name    = "%s"
-  region  = "%s"
-  version = "%s"
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "%s"
+}
 
-  # TODO: Make this template ID dependent on the region.
-  # This test should be the only one which uses the 
-  # "aws-compute-optimized-v2" template in order to have
-  # consistent query results.
-  deployment_template_id = "aws-compute-optimized-v2"
+resource "ec_deployment" "basic_datasource" {
+  name                   = "%s"
+  region                 = "%s"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "%s"
 
   elasticsearch {
     topology {
-      instance_configuration_id = "aws.data.highcpu.m5d"
-      size                      = "1g"
+      size = "1g"
     }
   }
 
-  kibana {
-    topology {
-      instance_configuration_id = "aws.kibana.r5d"
-    }
-  }
+  kibana {}
 
-  apm {
-    topology {
-      instance_configuration_id = "aws.apm.r5d"
-    }
-  }
+  apm {}
 
-  enterprise_search {
-    topology {
-      instance_configuration_id = "aws.enterprisesearch.m5d"
-    }
-  }
+  enterprise_search {}
 
   traffic_filter = [
     ec_deployment_traffic_filter.default.id,
@@ -54,22 +41,22 @@ data "ec_deployment" "success" {
 }
 
 data "ec_deployments" "query" {
-  name_prefix            = substr(ec_deployment.basic_datasource.name, 0, 22) 
-  deployment_template_id = "aws-compute-optimized-v2"
+  name_prefix            = substr(ec_deployment.basic_datasource.name, 0, 22)
+  deployment_template_id = "%s"
 
   elasticsearch {
-    version = "%s"
+    version = data.ec_stack.latest.version
   }
 
   kibana {
-    version = "%s"
+    version = data.ec_stack.latest.version
   }
 
   apm {
-    version = "%s"
+    version = data.ec_stack.latest.version
   }
 
   enterprise_search {
-    version = "%s"
+    version = data.ec_stack.latest.version
   }
 }

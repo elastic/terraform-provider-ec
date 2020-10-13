@@ -15,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// +build acceptance
+
 package acc
 
 import (
@@ -32,7 +34,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	depsDatasourceName := "data.ec_deployments.query"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfg := testAccDeploymentDatasourceBasic(t, depCfg, randomName, region, deploymentVersion)
+	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, getRegion(), depsDSTemplate)
 	var namePrefix = randomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -113,13 +115,13 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", namePrefix),
-					resource.TestCheckResourceAttr(depsDatasourceName, "deployment_template_id", "aws-compute-optimized-v2"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 
 					// Deployment resources
-					resource.TestCheckResourceAttr(depsDatasourceName, "elasticsearch.0.version", deploymentVersion),
-					resource.TestCheckResourceAttr(depsDatasourceName, "kibana.0.version", deploymentVersion),
-					resource.TestCheckResourceAttr(depsDatasourceName, "apm.0.version", deploymentVersion),
-					resource.TestCheckResourceAttr(depsDatasourceName, "enterprise_search.0.version", deploymentVersion),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "elasticsearch.0.version", resourceName, "elasticsearch.0.version"),
+					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.version", resourceName, "kibana.0.version"),
+					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.version", resourceName, "apm.0.version"),
+					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.version", resourceName, "enterprise_search.0.version"),
 
 					// Query results
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_resource_id", resourceName, "elasticsearch.0.resource_id"),
@@ -132,12 +134,13 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, version string) string {
+func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
+	deploymentTpl := setDefaultTemplate(region, depTpl)
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		name, region, version, name, region, version, version, version, version,
+		region, name, region, deploymentTpl, name, region, deploymentTpl,
 	)
 }

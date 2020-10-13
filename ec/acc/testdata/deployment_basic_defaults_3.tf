@@ -1,10 +1,13 @@
-resource "ec_deployment" "defaults" {
-  name    = "%s"
-  region  = "%s"
-  version = "%s"
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "%s"
+}
 
-  # TODO: Make this template ID dependent on the region.
-  deployment_template_id = "aws-io-optimized-v2"
+resource "ec_deployment" "defaults" {
+  name                   = "%s"
+  region                 = "%s"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "%s"
 
   elasticsearch {
     topology {
