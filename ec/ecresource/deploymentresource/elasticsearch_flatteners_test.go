@@ -417,3 +417,94 @@ func Test_flattenEsConfig(t *testing.T) {
 		})
 	}
 }
+
+func Test_skipEsTopologyElement(t *testing.T) {
+	type args struct {
+		t          *models.ElasticsearchClusterTopologyElement
+		tiebreaker *models.TiebreakerTopologyElement
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "skip when tiebreaker is unset and topology is empty",
+			args: args{t: &models.ElasticsearchClusterTopologyElement{}},
+			want: true,
+		},
+		{
+			name: "skip when tiebreaker is not set and size is 0",
+			args: args{
+				t: &models.ElasticsearchClusterTopologyElement{
+					NodeType: &models.ElasticsearchNodeType{
+						Master: ec.Bool(true),
+						Ingest: ec.Bool(false),
+						Data:   ec.Bool(false),
+					},
+					Size: &models.TopologySize{
+						Value: ec.Int32(0),
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "skip when tiebreaker is not set and size is 0",
+			args: args{
+				t: &models.ElasticsearchClusterTopologyElement{
+					NodeType: &models.ElasticsearchNodeType{
+						Master: ec.Bool(false),
+						Ingest: ec.Bool(false),
+						Data:   ec.Bool(false),
+					},
+					Size: &models.TopologySize{
+						Value: ec.Int32(0),
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "do not skip when tiebreaker is set and topology master is too (Legacy tiebreaker case)",
+			args: args{
+				t: &models.ElasticsearchClusterTopologyElement{
+					InstanceConfigurationID: "aws.master.classic",
+					NodeType: &models.ElasticsearchNodeType{
+						Master: ec.Bool(true),
+						Ingest: ec.Bool(false),
+						Data:   ec.Bool(false),
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "do not skip when size is > 0 (General case)",
+			args: args{
+				t: &models.ElasticsearchClusterTopologyElement{
+					Size: &models.TopologySize{
+						Value: ec.Int32(4096),
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "do not skip when memory_per_node is > 0 (Legacy case)",
+			args: args{
+				t: &models.ElasticsearchClusterTopologyElement{
+					MemoryPerNode: 2048,
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := skipEsTopologyElement(tt.args.t); got != tt.want {
+				t.Errorf("skipEsTopologyElement() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

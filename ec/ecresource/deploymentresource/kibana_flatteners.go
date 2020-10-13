@@ -75,7 +75,7 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 	var result = make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
-		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
+		if skipKibanaTopologyElement(topology) {
 			continue
 		}
 
@@ -83,13 +83,31 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 			m["instance_configuration_id"] = topology.InstanceConfigurationID
 		}
 
+		m["zone_count"] = topology.ZoneCount
+
+		// handles legacy plans where node_count_per_zone and memory_per_node
+		// is set, and "converts" it to the current way of handling sizes.
+		if topology.MemoryPerNode > 0 {
+			nodeCount := topology.NodeCountPerZone
+			if nodeCount == 0 {
+				nodeCount = 1
+			}
+			m["size_resource"] = "memory"
+
+			// The total size is the memory_per_node * node_count_per_zone.
+			m["size"] = util.MemoryToState(topology.MemoryPerNode * nodeCount)
+
+			// ZoneCount needs to be set to the parent (not element) current
+			// plan.ZoneCount since that's how legacy plans have the ZoneCounts
+			// defined.
+			m["zone_count"] = plan.ZoneCount
+		}
+
 		if topology.Size != nil {
 			m["size"] = util.MemoryToState(*topology.Size.Value)
 			m["size_resource"] = *topology.Size.Resource
 
 		}
-
-		m["zone_count"] = topology.ZoneCount
 
 		if c := flattenKibanaConfig(topology.Kibana); len(c) > 0 {
 			m["config"] = c
@@ -128,4 +146,17 @@ func flattenKibanaConfig(cfg *models.KibanaConfiguration) []interface{} {
 	}
 
 	return []interface{}{m}
+}
+
+func skipKibanaTopologyElement(t *models.KibanaClusterTopologyElement) bool {
+	// Legacy plans are composed by MemoryPerNode and NodeCountPerZone, when 0
+	// the plan is not a legacy plan.
+	notLegacy := t.MemoryPerNode == 0 && t.NodeCountPerZone == 0
+
+	// When size is empty or the value of the size is 0, the topology element
+	// needs to be ignored, since it's probably coming from the default
+	// deployment template and can be ignored (0 Size.Value means disabled).
+	emptySize := t.Size == nil || t.Size.Value == nil || *t.Size.Value == 0
+
+	return emptySize && notLegacy
 }

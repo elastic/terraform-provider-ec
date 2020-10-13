@@ -33,12 +33,185 @@ import (
 func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
-	_ = deploymentSchemaArg.Set("region", "us-east-1")
 
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
 		Schema:    newSchema(),
+	})
+
+	legacyRes := openDeploymentGet(t, "testdata/deployment_legacy_response.json")
+	legacyRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	legacyRD.SetId(mock.ValidClusterID)
+	wantLegacyDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "default",
+			"id":                     "320b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "ear",
+			"region":                 "us-east-1",
+			"version":                "2.4.5",
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "ear:somecloudID",
+				"http_endpoint":  "http://122c96c491b3d5e10e147463927a5349.us-east-1.aws.found.io:9200",
+				"https_endpoint": "https://122c96c491b3d5e10e147463927a5349.us-east-1.aws.found.io:9243",
+				"ref_id":         "elasticsearch",
+				"region":         "us-east-1",
+				"resource_id":    "122c96c491b3d5e10e147463927a5349",
+				"version":        "2.4.5",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "",
+					"node_type_data":            true,
+					"node_type_ingest":          false,
+					"node_type_master":          true,
+					"size":                      "2g",
+					"size_resource":             "memory",
+					"zone_count":                2,
+				}},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "elasticsearch",
+				"ref_id":                       "kibana",
+				"region":                       "us-east-1",
+				"resource_id":                  "b211f9ef4af84d78851ddf79f439ad8d",
+				"version":                      "4.6.6",
+				"topology": []interface{}{map[string]interface{}{
+					"size":          "1g",
+					"size_resource": "memory",
+					"zone_count":    1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	legacyConvertedRes := openDeploymentGet(t, "testdata/deployment_legacy_converted_response.json")
+	legacyConvertedRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	legacyConvertedRD.SetId(mock.ValidClusterID)
+	wantLegacyConvertedDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "default",
+			"id":                     "320b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "ear",
+			"region":                 "us-east-1",
+			"version":                "2.4.5",
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "ear:somecloudID",
+				"http_endpoint":  "http://122c96c491b3d5e10e147463927a5349.us-east-1.aws.found.io:9200",
+				"https_endpoint": "https://122c96c491b3d5e10e147463927a5349.us-east-1.aws.found.io:9243",
+				"ref_id":         "elasticsearch",
+				"region":         "us-east-1",
+				"resource_id":    "122c96c491b3d5e10e147463927a5349",
+				"version":        "2.4.5",
+				"topology": []interface{}{
+					map[string]interface{}{
+						"instance_configuration_id": "aws.highio.classic",
+						"node_type_data":            true,
+						"node_type_ingest":          false,
+						"node_type_master":          true,
+						"size":                      "2g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+					},
+					map[string]interface{}{
+						"instance_configuration_id": "aws.master.classic",
+						"node_type_data":            false,
+						"node_type_ingest":          false,
+						"node_type_master":          true,
+						"size":                      "1g",
+						"size_resource":             "memory",
+						"zone_count":                1,
+					},
+				},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "elasticsearch",
+				"ref_id":                       "kibana",
+				"region":                       "us-east-1",
+				"resource_id":                  "b211f9ef4af84d78851ddf79f439ad8d",
+				"version":                      "4.6.6",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.kibana.classic",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	azureIOOptimizedRes := openDeploymentGet(t, "testdata/deployment-azure-io-optimized.json")
+	azureIOOptimizedRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	azureIOOptimizedRD.SetId(mock.ValidClusterID)
+	wantAzureIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "azure-io-optimized",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d",
+			"region":                 "azure-eastus2",
+			"version":                "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "azure-eastus2",
+				"resource_id":                  "1235d8c911b74dd6a03c2a7b37fd68ab",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://1235d8c911b74dd6a03c2a7b37fd68ab.apm.eastus2.azure.elastic-cloud.com:9200",
+				"https_endpoint":               "https://1235d8c911b74dd6a03c2a7b37fd68ab.apm.eastus2.azure.elastic-cloud.com:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "azure.apm.e32sv3",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+					"config": []interface{}{map[string]interface{}{
+						"debug_enabled":               false,
+						"user_settings_json":          "",
+						"user_settings_override_json": "",
+						"user_settings_override_yaml": "",
+						"user_settings_yaml":          "",
+					}},
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d:somecloudID",
+				"http_endpoint":  "http://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9200",
+				"https_endpoint": "https://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "azure-eastus2",
+				"resource_id":    "1238f19957874af69306787dca662154",
+				"version":        "7.9.2",
+				"topology": []interface{}{
+					map[string]interface{}{
+						"instance_configuration_id": "azure.data.highio.l32sv2",
+						"node_type_data":            true,
+						"node_type_ingest":          true,
+						"node_type_master":          true,
+						"size":                      "4g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+					},
+				},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "azure-eastus2",
+				"resource_id":                  "1235cd4a4c7f464bbcfd795f3638b769",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://1235cd4a4c7f464bbcfd795f3638b769.eastus2.azure.elastic-cloud.com:9200",
+				"https_endpoint":               "https://1235cd4a4c7f464bbcfd795f3638b769.eastus2.azure.elastic-cloud.com:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "azure.kibana.e32sv3",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
 	})
 
 	type args struct {
@@ -220,6 +393,21 @@ func Test_modelToState(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "flattens a legacy plan (non converted)",
+			args: args{d: legacyRD, res: legacyRes},
+			want: wantLegacyDeployment,
+		},
+		{
+			name: "flattens a legacy plan (converted)",
+			args: args{d: legacyConvertedRD, res: legacyConvertedRes},
+			want: wantLegacyConvertedDeployment,
+		},
+		{
+			name: "flattens an azure plan (io-optimized)",
+			args: args{d: legacyConvertedRD, res: azureIOOptimizedRes},
+			want: wantAzureIOOptimizedDeployment,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -230,7 +418,12 @@ func Test_modelToState(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
+			var wantState interface{}
+			if tt.want != nil {
+				wantState = tt.want.State().Attributes
+			}
+
+			assert.Equal(t, wantState, tt.args.d.State().Attributes)
 		})
 	}
 }

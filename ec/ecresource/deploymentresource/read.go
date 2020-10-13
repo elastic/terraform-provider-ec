@@ -34,6 +34,7 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
 		API: client, DeploymentID: d.Id(),
+		ConvertLegacyPlans: true,
 		QueryParams: deputil.QueryParams{
 			ShowSettings:     true,
 			ShowPlans:        true,

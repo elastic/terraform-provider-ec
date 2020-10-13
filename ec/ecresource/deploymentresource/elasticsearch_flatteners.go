@@ -18,6 +18,8 @@
 package deploymentresource
 
 import (
+	"strings"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -82,7 +84,7 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 	var result = make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
-		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
+		if skipEsTopologyElement(topology) {
 			continue
 		}
 
@@ -90,13 +92,43 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 			m["instance_configuration_id"] = topology.InstanceConfigurationID
 		}
 
-		// TODO: Check legacy plans.
-		// if topology.MemoryPerNode > 0 {
-		// 	m["size"] = strconv.Itoa(int(topology.MemoryPerNode))
-		// }
+		m["zone_count"] = topology.ZoneCount
+
+		// handles legacy plans where node_count_per_zone and memory_per_node
+		// is set, and "converts" it to the current way of handling sizes.
+		if topology.MemoryPerNode > 0 {
+			nodeCount := topology.NodeCountPerZone
+			if nodeCount == 0 {
+				nodeCount = 1
+			}
+			m["size_resource"] = "memory"
+
+			// The total size is the memory_per_node * node_count_per_zone.
+			m["size"] = util.MemoryToState(topology.MemoryPerNode * nodeCount)
+
+			// ZoneCount needs to be set to the parent (not element) current
+			// plan.ZoneCount since that's how legacy plans have the ZoneCounts
+			// defined.
+			m["zone_count"] = plan.ZoneCount
+		}
 
 		if topology.Size != nil {
-			m["size"] = util.MemoryToState(*topology.Size.Value)
+			// This is the common case.
+			size := util.MemoryToState(*topology.Size.Value)
+
+			// Handles the case where the element is a legacy tiebreaker which
+			// has size 0. Size is set in the parent TiebreakerTopology.
+			if plan.TiebreakerTopology != nil && *topology.Size.Value == 0 {
+				// Tiebreakers are always in 1 zone.
+				m["zone_count"] = 1
+
+				// The size is defined in the parent TiebreakerTopology.
+				// No need to multiply by any node_count_per_zone since the
+				// master instance will never be > 58g or 64g.
+				size = util.MemoryToState(*plan.TiebreakerTopology.MemoryPerNode)
+			}
+
+			m["size"] = size
 			m["size_resource"] = *topology.Size.Resource
 		}
 
@@ -117,8 +149,6 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 				m["node_type_ml"] = *nt.Ml
 			}
 		}
-
-		m["zone_count"] = topology.ZoneCount
 
 		if c := flattenEsConfig(topology.Elasticsearch); len(c) > 0 {
 			m["config"] = c
@@ -185,4 +215,20 @@ func flattenEsSettings(info *models.ElasticsearchClusterInfo) map[string]interfa
 	}
 
 	return m
+}
+
+func skipEsTopologyElement(t *models.ElasticsearchClusterTopologyElement) bool {
+	// Legacy plans are composed by MemoryPerNode and NodeCountPerZone, when 0
+	// the plan is not a legacy plan.
+	emptyLegacySize := t.MemoryPerNode == 0 && t.NodeCountPerZone == 0
+
+	// Legacy plans where the master node need to be handled end in "classic".
+	isNotClassic := !strings.HasSuffix(t.InstanceConfigurationID, "classic")
+
+	// When size is empty or the value of the size is 0, the topology element
+	// needs to be ignored, since it's probably coming from the default
+	// deployment template and can be ignored (0 Size.Value means disabled).
+	emptySize := t.Size == nil || t.Size.Value == nil || *t.Size.Value == 0
+
+	return emptySize && emptyLegacySize && isNotClassic
 }

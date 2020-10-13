@@ -1,0 +1,293 @@
+{
+    "id": "122c96c491b3d5e10e147463927a5349",
+    "name": "ear",
+    "healthy": true,
+    "resources": {
+        "elasticsearch": [
+            {
+                "ref_id": "elasticsearch",
+                "id": "122c96c491b3d5e10e147463927a5349",
+                "region": "us-east-1",
+                "info": {
+                    "cluster_id": "122c96c491b3d5e10e147463927a5349",
+                    "cluster_name": "ear",
+                    "deployment_id": "122c96c491b3d5e10e147463927a5349",
+                    "healthy": true,
+                    "status": "started",
+                    "plan_info": {
+                        "healthy": true,
+                        "current": {
+                            "plan_attempt_id": "59257aa7-4ebf-4ad8-a885-2fe2a93e2511",
+                            "healthy": true,
+                            "attempt_start_time": "2020-06-09T18:52:29.958Z",
+                            "attempt_end_time": "2020-06-09T18:54:01.958Z",
+                            "plan": {
+                                "zone_count": 2,
+                                "tiebreaker_topology": {
+                                    "memory_per_node": 1024
+                                },
+                                "cluster_topology": [
+                                    {
+                                        "node_type": {
+                                            "master": true,
+                                            "data": true,
+                                            "ingest": false,
+                                            "ml": false
+                                        },
+                                        "memory_per_node": 2048,
+                                        "node_count_per_zone": 1,
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "scripting": {
+                                                    "stored": {
+                                                        "enabled": true,
+                                                        "sandbox_mode": true
+                                                    },
+                                                    "file": {
+                                                        "enabled": true,
+                                                        "sandbox_mode": true
+                                                    },
+                                                    "inline": {
+                                                        "enabled": true,
+                                                        "sandbox_mode": true
+                                                    }
+                                                },
+                                                "http": {
+                                                    "compression": true,
+                                                    "cors_enabled": false,
+                                                    "cors_max_age": 1728000,
+                                                    "cors_allow_credentials": false
+                                                },
+                                                "reindex_whitelist": [],
+                                                "use_disk_threshold": false,
+                                                "auto_create_index": true,
+                                                "enable_close_index": false,
+                                                "destructive_requires_name": false,
+                                                "watcher_trigger_engine": "scheduler",
+                                                "default_shards_per_index": 1,
+                                                "monitoring_collection_interval": -1
+                                            },
+                                            "enabled_built_in_plugins": [],
+                                            "user_plugins": [],
+                                            "user_bundles": []
+                                        },
+                                        "instance_configuration_id": "aws.highio.classic"
+                                    },
+                                    {
+                                        "node_type": {
+                                            "master": true,
+                                            "data": false,
+                                            "ingest": false
+                                        },
+                                        "zone_count": 3,
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "scripting": {
+                                                    "stored": {
+                                                        "enabled": true,
+                                                        "sandbox_mode": true
+                                                    },
+                                                    "file": {
+                                                        "enabled": true,
+                                                        "sandbox_mode": true
+                                                    },
+                                                    "inline": {
+                                                        "enabled": true,
+                                                        "sandbox_mode": true
+                                                    }
+                                                },
+                                                "http": {
+                                                    "compression": true,
+                                                    "cors_enabled": false,
+                                                    "cors_max_age": 1728000,
+                                                    "cors_allow_credentials": false
+                                                },
+                                                "reindex_whitelist": [],
+                                                "use_disk_threshold": false,
+                                                "auto_create_index": true,
+                                                "enable_close_index": false,
+                                                "destructive_requires_name": false,
+                                                "watcher_trigger_engine": "scheduler",
+                                                "default_shards_per_index": 1,
+                                                "monitoring_collection_interval": -1
+                                            },
+                                            "enabled_built_in_plugins": [],
+                                            "user_plugins": [],
+                                            "user_bundles": []
+                                        },
+                                        "instance_configuration_id": "aws.master.classic",
+                                        "size": {
+                                            "value": 0,
+                                            "resource": "memory"
+                                        }
+                                    }
+                                ],
+                                "elasticsearch": {
+                                    "version": "2.4.5"
+                                },
+                                "deployment_template": {
+                                    "id": "default"
+                                },
+                                "transient": {
+                                    "strategy": {
+                                        "grow_and_shrink": {}
+                                    },
+                                    "plan_configuration": {
+                                        "timeout": 8192,
+                                        "calm_wait_time": 5,
+                                        "move_instances": [],
+                                        "move_allocators": [
+                                            {
+                                                "from": "i-xxy"
+                                            }
+                                        ],
+                                        "move_only": true,
+                                        "reallocate_instances": false,
+                                        "preferred_allocators": [],
+                                        "skip_snapshot": true,
+                                        "max_snapshot_attempts": 3,
+                                        "max_snapshot_age": 300,
+                                        "extended_maintenance": false,
+                                        "override_failsafe": true,
+                                        "skip_data_migration": true,
+                                        "skip_upgrade_checker": false,
+                                        "skip_post_upgrade_steps": false,
+                                        "skip_snapshot_post_major_upgrade": false
+                                    }
+                                }
+                            },
+                            "plan_attempt_log": []
+                        },
+                        "history": []
+                    },
+                    "elasticsearch": {
+                        "healthy": true,
+                        "blocking_issues": {
+                            "healthy": true,
+                            "cluster_level": [],
+                            "index_level": []
+                        }
+                    },
+                    "metadata": {
+                        "version": 260,
+                        "last_modified": "2020-08-21T00:38:32.137Z",
+                        "endpoint": "122c96c491b3d5e10e147463927a5349.us-east-1.aws.found.io",
+                        "service_url": "https://122c96c491b3d5e10e147463927a5349.us-east-1.aws.found.io:9243",
+                        "sso_deep_linking_supported": false,
+                        "cloud_id": "ear:somecloudID",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        }
+                    },
+                    "topology": {
+                        "healthy": true
+                    },
+                    "system_alerts": [],
+                    "associated_kibana_clusters": [
+                        {
+                            "kibana_id": "b211f9ef4af84d78851ddf79f439ad8d",
+                            "enabled": true,
+                            "links": {}
+                        }
+                    ],
+                    "associated_apm_clusters": [],
+                    "associated_appsearch_clusters": [],
+                    "associated_enterprise_search_clusters": [],
+                    "external_links": [],
+                    "links": {},
+                    "settings": {
+                        "metadata": {
+                            "name": "ear",
+                            "owner_id": "1231313212",
+                            "subscription_level": "standard",
+                            "resources": {
+                                "cpu": {
+                                    "boost": true,
+                                    "hard_limit": true
+                                }
+                            }
+                        },
+                        "curation": {
+                            "specs": []
+                        }
+                    },
+                    "region": "us-east-1",
+                    "locked": false
+                }
+            }
+        ],
+        "kibana": [
+            {
+                "ref_id": "kibana",
+                "elasticsearch_cluster_ref_id": "elasticsearch",
+                "id": "b211f9ef4af84d78851ddf79f439ad8d",
+                "region": "us-east-1",
+                "info": {
+                    "cluster_id": "b211f9ef4af84d78851ddf79f439ad8d",
+                    "cluster_name": "b211f9ef4af84d78851ddf79f439ad8d",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "122c96c491b3d5e10e147463927a5349",
+                        "links": {}
+                    },
+                    "deployment_id": "122c96c491b3d5e10e147463927a5349",
+                    "healthy": true,
+                    "status": "started",
+                    "plan_info": {
+                        "healthy": true,
+                        "current": {
+                            "plan_attempt_id": "93a7ecbc-2cc3-46bd-834b-4107d1ecc8e6",
+                            "healthy": true,
+                            "attempt_start_time": "2019-02-15T03:33:46.365Z",
+                            "attempt_end_time": "2019-02-15T03:34:17.998Z",
+                            "plan": {
+                                "zone_count": 1,
+                                "cluster_topology": [
+                                    {
+                                        "memory_per_node": 1024,
+                                        "node_count_per_zone": 1,
+                                        "instance_configuration_id": "aws.kibana.classic",
+                                        "kibana": {
+                                            "system_settings": {}
+                                        }
+                                    }
+                                ],
+                                "kibana": {
+                                    "version": "4.6.6",
+                                    "system_settings": {}
+                                }
+                            },
+                            "plan_attempt_log": []
+                        },
+                        "history": []
+                    },
+                    "metadata": {
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        }
+                    },
+                    "external_links": [],
+                    "links": {},
+                    "settings": {
+                        "metadata": {
+                            "resources": {
+                                "cpu": {
+                                    "boost": true,
+                                    "hard_limit": true
+                                }
+                            }
+                        }
+                    },
+                    "region": "us-east-1"
+                }
+            }
+        ],
+        "apm": [],
+        "appsearch": [],
+        "enterprise_search": []
+    },
+    "metadata": {}
+}
