@@ -8,16 +8,16 @@ resource "ec_deployment" "example_minimal" {
   region                 = "us-east-1"
   version                = "7.9.2"
   deployment_template_id = "aws-io-optimized-v2"
-  traffic_filter = [ec_deployment_traffic_filter.allow_all.id]
+  traffic_filter         = [ec_deployment_traffic_filter.allow_all.id]
   elasticsearch {
     topology {
-      size="8g"
+      size = "8g"
     }
   }
 
   kibana {
     topology {
-      size="1g"
+      size = "1g"
     }
   }
 }
