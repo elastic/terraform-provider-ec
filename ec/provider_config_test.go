@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 	"syscall"
 	"testing"
-	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
@@ -103,6 +102,19 @@ func Test_verboseSettings(t *testing.T) {
 }
 
 func Test_newAPIConfig(t *testing.T) {
+	// This is necessary to avoid any EC_API_KEY which might be set to cause
+	// test flakyness.
+	if k := os.Getenv("EC_API_KEY"); k != "" {
+		if err := os.Unsetenv("EC_API_KEY"); err != nil {
+			t.Fatal(err)
+		}
+		defer func() {
+			if err := os.Setenv("EC_API_KEY", k); err != nil {
+				t.Fatal(err)
+			}
+		}()
+	}
+
 	defaultCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:        "whocares",
 		Schema:    newSchema(),
@@ -229,7 +241,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:        api.ESSEndpoint,
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
-				Timeout:     time.Minute,
+				Timeout:     defaultTimeout,
 				Retries:     2,
 			},
 		},
@@ -242,7 +254,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:        api.ESSEndpoint,
 				AuthWriter:  &userPassObj,
 				Client:      &http.Client{},
-				Timeout:     time.Minute,
+				Timeout:     defaultTimeout,
 				Retries:     2,
 			},
 		},
@@ -255,7 +267,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:          api.ESSEndpoint,
 				AuthWriter:    &apiKeyObj,
 				Client:        &http.Client{},
-				Timeout:       time.Minute,
+				Timeout:       defaultTimeout,
 				Retries:       2,
 				SkipTLSVerify: true,
 			},
@@ -269,7 +281,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:          api.ESSEndpoint,
 				AuthWriter:    &apiKeyObj,
 				Client:        &http.Client{},
-				Timeout:       time.Minute,
+				Timeout:       defaultTimeout,
 				Retries:       2,
 				SkipTLSVerify: true,
 			},
@@ -283,7 +295,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:        api.ESSEndpoint,
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
-				Timeout:     time.Minute,
+				Timeout:     defaultTimeout,
 				Retries:     2,
 				VerboseSettings: api.VerboseSettings{
 					Verbose:    true,
@@ -301,7 +313,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:        api.ESSEndpoint,
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
-				Timeout:     time.Minute,
+				Timeout:     defaultTimeout,
 				Retries:     2,
 				VerboseSettings: api.VerboseSettings{
 					Verbose:    true,
@@ -319,7 +331,7 @@ func Test_newAPIConfig(t *testing.T) {
 				Host:        api.ESSEndpoint,
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
-				Timeout:     time.Minute,
+				Timeout:     defaultTimeout,
 				Retries:     2,
 				VerboseSettings: api.VerboseSettings{
 					Verbose:    true,
