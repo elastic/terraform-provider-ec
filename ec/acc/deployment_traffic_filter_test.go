@@ -15,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// +build acceptance
+
 package acc
 
 import (
@@ -31,8 +33,8 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_traffic_filter_basic.tf"
 	updateCfg := "testdata/deployment_traffic_filter_basic_update.tf"
-	cfg := testAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, region)
-	updateConfigCfg := testAccDeploymentTrafficFilterResourceBasic(t, updateCfg, randomName, region)
+	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
+	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateCfg, randomName, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -72,7 +74,7 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentTrafficFilterResourceBasic(t *testing.T, fileName, name, region string) string {
+func fixtureAccDeploymentTrafficFilterResourceBasic(t *testing.T, fileName, name, region string) string {
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
@@ -86,6 +88,6 @@ func checkBasicDeploymentTrafficFilterResource(resName, randomDeploymentName str
 	return resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
 		testAccCheckDeploymentTrafficFilterExists(resName),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
-		resource.TestCheckResourceAttr(resName, "region", region)}, checks...)...,
+		resource.TestCheckResourceAttr(resName, "region", getRegion())}, checks...)...,
 	)
 }

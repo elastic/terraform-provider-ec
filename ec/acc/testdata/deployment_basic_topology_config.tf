@@ -1,18 +1,20 @@
-resource "ec_deployment" "basic" {
-  name    = "%s"
-  region  = "%s"
-  version = "%s"
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "%s"
+}
 
-  # TODO: Make this template ID dependent on the region.
-  deployment_template_id = "aws-io-optimized-v2"
+resource "ec_deployment" "basic" {
+  name                   = "%s"
+  region                 = "%s"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "%s"
 
   elasticsearch {
     topology {
       config {
         user_settings_yaml = "action.auto_create_index: true"
       }
-      instance_configuration_id = "aws.data.highio.i3"
-      size                      = "1g"
+      size = "1g"
     }
   }
 
@@ -21,7 +23,6 @@ resource "ec_deployment" "basic" {
       config {
         user_settings_yaml = "csp.warnLegacyBrowsers: true"
       }
-      instance_configuration_id = "aws.kibana.r5d"
     }
   }
 
@@ -30,7 +31,6 @@ resource "ec_deployment" "basic" {
       config {
         debug_enabled = true
       }
-      instance_configuration_id = "aws.apm.r5d"
     }
   }
 
@@ -39,7 +39,6 @@ resource "ec_deployment" "basic" {
       config {
         user_settings_yaml = "ent_search.login_assistance_message: somemessage"
       }
-      instance_configuration_id = "aws.enterprisesearch.m5d"
     }
   }
 }
