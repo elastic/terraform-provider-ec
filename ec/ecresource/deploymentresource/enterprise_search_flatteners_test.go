@@ -80,8 +80,12 @@ func Test_flattenEssResource(t *testing.T) {
 										Version:                  "7.7.0",
 										UserSettingsYaml:         "some.setting: some value",
 										UserSettingsOverrideYaml: "some.setting: some override",
-										UserSettingsJSON:         `{"some.setting": "some other value"}`,
-										UserSettingsOverrideJSON: `{"some.setting": "some other override"}`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "some other value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "some other override",
+										},
 									},
 									ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 										EnterpriseSearch:        &models.EnterpriseSearchConfiguration{},
@@ -124,8 +128,12 @@ func Test_flattenEssResource(t *testing.T) {
 										Version:                  "7.7.0",
 										UserSettingsYaml:         "some.setting: some value",
 										UserSettingsOverrideYaml: "some.setting: some override",
-										UserSettingsJSON:         `{"some.setting": "some other value"}`,
-										UserSettingsOverrideJSON: `{"some.setting": "some other override"}`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "some other value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "some other override",
+										},
 									},
 									ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 										EnterpriseSearch:        &models.EnterpriseSearchConfiguration{},
@@ -156,8 +164,8 @@ func Test_flattenEssResource(t *testing.T) {
 					"http_endpoint":                "http://enterprisesearchresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://enterprisesearchresource.cloud.elastic.co:9243",
 					"config": []interface{}{map[string]interface{}{
-						"user_settings_json":          "{\"some.setting\": \"some other value\"}",
-						"user_settings_override_json": "{\"some.setting\": \"some other override\"}",
+						"user_settings_json":          "{\"some.setting\":\"some other value\"}",
+						"user_settings_override_json": "{\"some.setting\":\"some other override\"}",
 						"user_settings_override_yaml": "some.setting: some override",
 						"user_settings_yaml":          "some.setting: some value",
 					}},

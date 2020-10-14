@@ -284,8 +284,12 @@ func Test_flattenEsResource(t *testing.T) {
 										Elasticsearch: &models.ElasticsearchConfiguration{
 											UserSettingsYaml:         `some.setting: value`,
 											UserSettingsOverrideYaml: `some.setting: value2`,
-											UserSettingsJSON:         `{"some.setting": "value"}`,
-											UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+											UserSettingsJSON: map[string]interface{}{
+												"some.setting": "value",
+											},
+											UserSettingsOverrideJSON: map[string]interface{}{
+												"some.setting": "value2",
+											},
 										},
 									}},
 								},
@@ -313,8 +317,8 @@ func Test_flattenEsResource(t *testing.T) {
 					"config": []interface{}{map[string]interface{}{
 						"user_settings_yaml":          "some.setting: value",
 						"user_settings_override_yaml": "some.setting: value2",
-						"user_settings_json":          "{\"some.setting\": \"value\"}",
-						"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+						"user_settings_json":          "{\"some.setting\":\"value\"}",
+						"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 					}},
 				}},
 			}},

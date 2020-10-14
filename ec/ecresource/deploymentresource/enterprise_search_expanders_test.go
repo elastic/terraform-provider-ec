@@ -256,8 +256,8 @@ func Test_expandEssResources(t *testing.T) {
 						"config": []interface{}{map[string]interface{}{
 							"user_settings_yaml":          "some.setting: value",
 							"user_settings_override_yaml": "some.setting: override",
-							"user_settings_json":          `{"some.setting": "value"}`,
-							"user_settings_override_json": `{"some.setting": "override"}`,
+							"user_settings_json":          `{"some.setting":"value"}`,
+							"user_settings_override_json": `{"some.setting":"override"}`,
 						}},
 						"instance_configuration_id": "aws.enterprisesearch.m5d",
 						"size":                      "4g",
@@ -280,8 +280,12 @@ func Test_expandEssResources(t *testing.T) {
 						EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 							UserSettingsYaml:         "some.setting: value",
 							UserSettingsOverrideYaml: "some.setting: override",
-							UserSettingsJSON:         `{"some.setting": "value"}`,
-							UserSettingsOverrideJSON: `{"some.setting": "override"}`,
+							UserSettingsJSON: map[string]interface{}{
+								"some.setting": "value",
+							},
+							UserSettingsOverrideJSON: map[string]interface{}{
+								"some.setting": "override",
+							},
 						},
 						ZoneCount:               1,
 						InstanceConfigurationID: "aws.enterprisesearch.m5d",

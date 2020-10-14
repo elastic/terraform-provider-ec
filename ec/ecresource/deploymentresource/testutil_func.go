@@ -73,3 +73,18 @@ func apmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
 func essResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
 	return res.DeploymentTemplate.Resources.EnterpriseSearch[0]
 }
+
+func openDeploymentGet(t *testing.T, name string) *models.DeploymentGetResponse {
+	t.Helper()
+	f, err := os.Open(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	var res models.DeploymentGetResponse
+	if err := json.NewDecoder(f).Decode(&res); err != nil {
+		t.Fatal(err)
+	}
+	return &res
+}

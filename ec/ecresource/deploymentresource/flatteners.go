@@ -44,24 +44,38 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 			return err
 		}
 
+		if err := d.Set("region", getRegion(res.Resources)); err != nil {
+			return err
+		}
+
+		if err := d.Set("version", getVersion(res.Resources)); err != nil {
+			return err
+		}
+
 		esFlattened := flattenEsResources(res.Resources.Elasticsearch, *res.Name)
 		if err := d.Set("elasticsearch", esFlattened); err != nil {
 			return err
 		}
 
 		kibanaFlattened := flattenKibanaResources(res.Resources.Kibana, *res.Name)
-		if err := d.Set("kibana", kibanaFlattened); err != nil {
-			return err
+		if len(kibanaFlattened) > 0 {
+			if err := d.Set("kibana", kibanaFlattened); err != nil {
+				return err
+			}
 		}
 
 		apmFlattened := flattenApmResources(res.Resources.Apm, *res.Name)
-		if err := d.Set("apm", apmFlattened); err != nil {
-			return err
+		if len(apmFlattened) > 0 {
+			if err := d.Set("apm", apmFlattened); err != nil {
+				return err
+			}
 		}
 
 		enterpriseSearchFlattened := flattenEssResources(res.Resources.EnterpriseSearch, *res.Name)
-		if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
-			return err
+		if len(enterpriseSearchFlattened) > 0 {
+			if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
+				return err
+			}
 		}
 
 		if settings := flattenTrafficFiltering(res.Settings); settings != nil {
@@ -140,4 +154,24 @@ func parseCredentials(d *schema.ResourceData, resources []*models.DeploymentReso
 	}
 
 	return merr.ErrorOrNil()
+}
+
+func getRegion(res *models.DeploymentResources) (region string) {
+	for _, r := range res.Elasticsearch {
+		if r.Region != nil && *r.Region != "" {
+			return *r.Region
+		}
+	}
+
+	return region
+}
+
+func getVersion(res *models.DeploymentResources) (version string) {
+	for _, r := range res.Elasticsearch {
+		if !util.IsCurrentEsPlanEmpty(r) {
+			return r.Info.PlanInfo.Current.Plan.Elasticsearch.Version
+		}
+	}
+
+	return version
 }

@@ -59,7 +59,7 @@ func Test_createResourceToModel(t *testing.T) {
 		Resources: newSampleDeployment(),
 		Schema:    newSchema(),
 	})
-	var body = func() io.ReadCloser {
+	ioOptimizedTpl := func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
 	}
 	deploymentEmptyRD := util.NewResourceData(t, util.ResDataParams{
@@ -77,6 +77,21 @@ func Test_createResourceToModel(t *testing.T) {
 		Resources: newSampleDeploymentOverridesIC(),
 		Schema:    newSchema(),
 	})
+	hotWarmTpl := func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/aws-hot-warm-v2.json")
+	}
+	deploymentHotWarm := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		Resources: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-hot-warm-v2",
+			"region":                 "us-east-1",
+			"version":                "7.9.2",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
 
 	type args struct {
 		d      *schema.ResourceData
@@ -92,7 +107,7 @@ func Test_createResourceToModel(t *testing.T) {
 			name: "parses the resources",
 			args: args{
 				d:      deploymentRD,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
@@ -134,8 +149,12 @@ func Test_createResourceToModel(t *testing.T) {
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										UserSettingsYaml:         `some.setting: value`,
 										UserSettingsOverrideYaml: `some.setting: value2`,
-										UserSettingsJSON:         `{"some.setting": "value"}`,
-										UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "value2",
+										},
 									},
 								}},
 							},
@@ -222,10 +241,10 @@ func Test_createResourceToModel(t *testing.T) {
 			},
 		},
 		{
-			name: "parses the resources with empty declarations",
+			name: "parses the resources with empty declarations (IO Optimized)",
 			args: args{
 				d:      deploymentEmptyRD,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
@@ -333,7 +352,7 @@ func Test_createResourceToModel(t *testing.T) {
 			name: "parses the resources with topology overrides (size)",
 			args: args{
 				d:      deploymentOverrideRd,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
@@ -441,7 +460,7 @@ func Test_createResourceToModel(t *testing.T) {
 			name: "parses the resources with topology overrides (IC)",
 			args: args{
 				d:      deploymentOverrideICRd,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
@@ -545,6 +564,112 @@ func Test_createResourceToModel(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "parses the resources with empty declarations (Hot Warm)",
+			args: args{
+				d:      deploymentHotWarm,
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name: "my_deployment_name",
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+								Curation: &models.ClusterCurationSettings{
+									Specs: []*models.ClusterCurationSpec{
+										{
+											IndexPattern:           ec.String("logstash-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("filebeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("metricbeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+									},
+								},
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Curation: &models.ElasticsearchCuration{
+										FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
+										ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
+									},
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "hot",
+											},
+										},
+									},
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(false),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -565,7 +690,7 @@ func Test_updateResourceToModel(t *testing.T) {
 		Resources: newSampleDeployment(),
 		Schema:    newSchema(),
 	})
-	var body = func() io.ReadCloser {
+	var ioOptimizedTpl = func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-io-optimized-v2.json")
 	}
 	deploymentEmptyRD := util.NewResourceData(t, util.ResDataParams{
@@ -577,6 +702,22 @@ func Test_updateResourceToModel(t *testing.T) {
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeploymentOverrides(),
 		Schema:    newSchema(),
+	})
+
+	hotWarmTpl := func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/aws-hot-warm-v2.json")
+	}
+	deploymentHotWarm := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		Resources: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-hot-warm-v2",
+			"region":                 "us-east-1",
+			"version":                "7.9.2",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
 	})
 
 	type args struct {
@@ -593,7 +734,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			name: "parses the resources",
 			args: args{
 				d:      deploymentRD,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -631,8 +772,12 @@ func Test_updateResourceToModel(t *testing.T) {
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										UserSettingsYaml:         `some.setting: value`,
 										UserSettingsOverrideYaml: `some.setting: value2`,
-										UserSettingsJSON:         `{"some.setting": "value"}`,
-										UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "value2",
+										},
 									},
 								}},
 							},
@@ -722,7 +867,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			name: "parses the resources with empty declarations",
 			args: args{
 				d:      deploymentEmptyRD,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -826,7 +971,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			name: "parses the resources with topology overrides",
 			args: args{
 				d:      deploymentOverrideRd,
-				client: api.NewMock(mock.New200Response(body())),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -917,6 +1062,113 @@ func Test_updateResourceToModel(t *testing.T) {
 											Appserver: ec.Bool(true),
 											Connector: ec.Bool(true),
 											Worker:    ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with empty declarations (Hot Warm)",
+			args: args{
+				d:      deploymentHotWarm,
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+								Curation: &models.ClusterCurationSettings{
+									Specs: []*models.ClusterCurationSpec{
+										{
+											IndexPattern:           ec.String("logstash-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("filebeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("metricbeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+									},
+								},
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Curation: &models.ElasticsearchCuration{
+										FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
+										ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
+									},
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "hot",
+											},
+										},
+									},
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(false),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
 										},
 									},
 								},

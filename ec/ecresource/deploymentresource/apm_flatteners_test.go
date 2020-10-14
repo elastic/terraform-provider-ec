@@ -138,9 +138,13 @@ func Test_flattenApmResource(t *testing.T) {
 									Version:                  "7.8.0",
 									UserSettingsYaml:         `some.setting: value`,
 									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON:         `{"some.setting": "value"}`,
-									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
-									SystemSettings:           &models.ApmSystemSettings{},
+									UserSettingsJSON: map[string]interface{}{
+										"some.setting": "value",
+									},
+									UserSettingsOverrideJSON: map[string]interface{}{
+										"some.setting": "value2",
+									},
+									SystemSettings: &models.ApmSystemSettings{},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{
 									{
@@ -178,9 +182,13 @@ func Test_flattenApmResource(t *testing.T) {
 									Version:                  "7.8.0",
 									UserSettingsYaml:         `some.setting: value`,
 									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON:         `{"some.setting": "value"}`,
-									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
-									SystemSettings:           &models.ApmSystemSettings{},
+									UserSettingsJSON: map[string]interface{}{
+										"some.setting": "value",
+									},
+									UserSettingsOverrideJSON: map[string]interface{}{
+										"some.setting": "value2",
+									},
+									SystemSettings: &models.ApmSystemSettings{},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{
 									{
@@ -214,8 +222,8 @@ func Test_flattenApmResource(t *testing.T) {
 				"config": []interface{}{map[string]interface{}{
 					"user_settings_yaml":          "some.setting: value",
 					"user_settings_override_yaml": "some.setting: value2",
-					"user_settings_json":          "{\"some.setting\": \"value\"}",
-					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+					"user_settings_json":          "{\"some.setting\":\"value\"}",
+					"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 				}},
 			}},
 		},
@@ -244,8 +252,12 @@ func Test_flattenApmResource(t *testing.T) {
 									Version:                  "7.8.0",
 									UserSettingsYaml:         `some.setting: value`,
 									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON:         `{"some.setting": "value"}`,
-									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									UserSettingsJSON: map[string]interface{}{
+										"some.setting": "value",
+									},
+									UserSettingsOverrideJSON: map[string]interface{}{
+										"some.setting": "value2",
+									},
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(true),
 									},
@@ -282,8 +294,8 @@ func Test_flattenApmResource(t *testing.T) {
 				"config": []interface{}{map[string]interface{}{
 					"user_settings_yaml":          "some.setting: value",
 					"user_settings_override_yaml": "some.setting: value2",
-					"user_settings_json":          "{\"some.setting\": \"value\"}",
-					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+					"user_settings_json":          "{\"some.setting\":\"value\"}",
+					"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 
 					"debug_enabled": true,
 				}},
@@ -314,8 +326,12 @@ func Test_flattenApmResource(t *testing.T) {
 									Version:                  "7.8.0",
 									UserSettingsYaml:         `some.setting: value`,
 									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON:         `{"some.setting": "value"}`,
-									UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+									UserSettingsJSON: map[string]interface{}{
+										"some.setting": "value",
+									},
+									UserSettingsOverrideJSON: map[string]interface{}{
+										"some.setting": "value2",
+									},
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(true),
 									},
@@ -324,8 +340,12 @@ func Test_flattenApmResource(t *testing.T) {
 									Apm: &models.ApmConfiguration{
 										UserSettingsYaml:         `some.setting: value`,
 										UserSettingsOverrideYaml: `some.setting: value2`,
-										UserSettingsJSON:         `{"some.setting": "value"}`,
-										UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "value2",
+										},
 										SystemSettings: &models.ApmSystemSettings{
 											DebugEnabled: ec.Bool(true),
 										},
@@ -359,8 +379,8 @@ func Test_flattenApmResource(t *testing.T) {
 					"config": []interface{}{map[string]interface{}{
 						"user_settings_yaml":          "some.setting: value",
 						"user_settings_override_yaml": "some.setting: value2",
-						"user_settings_json":          "{\"some.setting\": \"value\"}",
-						"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+						"user_settings_json":          "{\"some.setting\":\"value\"}",
+						"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 
 						"debug_enabled": true,
 					}},
@@ -368,10 +388,9 @@ func Test_flattenApmResource(t *testing.T) {
 				"config": []interface{}{map[string]interface{}{
 					"user_settings_yaml":          "some.setting: value",
 					"user_settings_override_yaml": "some.setting: value2",
-					"user_settings_json":          "{\"some.setting\": \"value\"}",
-					"user_settings_override_json": "{\"some.setting\": \"value2\"}",
-
-					"debug_enabled": true,
+					"user_settings_json":          "{\"some.setting\":\"value\"}",
+					"user_settings_override_json": "{\"some.setting\":\"value2\"}",
+					"debug_enabled":               true,
 				}},
 			}},
 		},

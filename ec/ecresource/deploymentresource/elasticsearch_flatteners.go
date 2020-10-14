@@ -18,6 +18,9 @@
 package deploymentresource
 
 import (
+	"bytes"
+	"encoding/json"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -150,12 +153,16 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 		m["user_settings_override_yaml"] = cfg.UserSettingsOverrideYaml
 	}
 
-	if cfg.UserSettingsJSON != nil {
-		m["user_settings_json"] = cfg.UserSettingsJSON
+	if o := cfg.UserSettingsJSON; o != nil {
+		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
+			m["user_settings_json"] = string(b)
+		}
 	}
 
-	if cfg.UserSettingsOverrideJSON != nil {
-		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
+	if o := cfg.UserSettingsOverrideJSON; o != nil {
+		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
+			m["user_settings_override_json"] = string(b)
+		}
 	}
 
 	if len(m) == 0 {

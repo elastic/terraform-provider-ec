@@ -1,0 +1,341 @@
+{
+    "healthy": true,
+    "id": "123e79d8109c4a0790b0b333110bf715",
+    "name": "up2d",
+    "resources": {
+        "apm": [
+            {
+                "elasticsearch_cluster_ref_id": "main-elasticsearch",
+                "id": "1235d8c911b74dd6a03c2a7b37fd68ab",
+                "info": {
+                    "deployment_id": "123e79d8109c4a0790b0b333110bf715",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "1238f19957874af69306787dca662154"
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "id": "1235d8c911b74dd6a03c2a7b37fd68ab",
+                    "metadata": {
+                        "endpoint": "1235d8c911b74dd6a03c2a7b37fd68ab.apm.eastus2.azure.elastic-cloud.com",
+                        "last_modified": "2020-10-13T10:34:05.358Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 443,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 10
+                    },
+                    "name": "up2d",
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-13T10:36:43.919Z",
+                            "attempt_start_time": "2020-10-13T10:34:05.085Z",
+                            "healthy": true,
+                            "plan": {
+                                "apm": {
+                                    "system_settings": {},
+                                    "version": "7.9.2"
+                                },
+                                "cluster_topology": [
+                                    {
+                                        "apm": {
+                                            "system_settings": {
+                                                "debug_enabled": false
+                                            }
+                                        },
+                                        "instance_configuration_id": "azure.apm.e32sv3",
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 512
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ]
+                            },
+                            "plan_attempt_id": "8c25b69a-17d8-4e42-aaeb-03d60688a4e0",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "azure-eastus2",
+                    "status": "started"
+                },
+                "ref_id": "main-apm",
+                "region": "azure-eastus2"
+            }
+        ],
+        "appsearch": [],
+        "elasticsearch": [
+            {
+                "id": "1238f19957874af69306787dca662154",
+                "info": {
+                    "associated_apm_clusters": [
+                        {
+                            "apm_id": "1235d8c911b74dd6a03c2a7b37fd68ab",
+                            "enabled": true
+                        }
+                    ],
+                    "associated_appsearch_clusters": [],
+                    "associated_enterprise_search_clusters": [],
+                    "associated_kibana_clusters": [
+                        {
+                            "enabled": true,
+                            "kibana_id": "1235cd4a4c7f464bbcfd795f3638b769"
+                        }
+                    ],
+                    "cluster_id": "1238f19957874af69306787dca662154",
+                    "cluster_name": "up2d",
+                    "deployment_id": "123e79d8109c4a0790b0b333110bf715",
+                    "elasticsearch": {
+                        "blocking_issues": {
+                            "cluster_level": [],
+                            "healthy": true,
+                            "index_level": []
+                        },
+                        "healthy": true
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "locked": false,
+                    "metadata": {
+                        "cloud_id": "up2d:somecloudID",
+                        "endpoint": "1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com",
+                        "last_modified": "2020-10-13T10:36:44.444Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 27
+                    },
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-13T10:35:28.216Z",
+                            "attempt_start_time": "2020-10-13T10:34:03.551Z",
+                            "healthy": true,
+                            "plan": {
+                                "cluster_topology": [
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "azure.data.highio.l32sv2",
+                                        "node_type": {
+                                            "data": true,
+                                            "ingest": true,
+                                            "master": true,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 4096
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "azure.coordinating.d64sv3",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": true,
+                                            "master": false,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "azure.master.e32sv3",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": false,
+                                            "master": true,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 3
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "azure.ml.d64sv3",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": false,
+                                            "master": false,
+                                            "ml": true
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ],
+                                "deployment_template": {
+                                    "id": "azure-io-optimized"
+                                },
+                                "elasticsearch": {
+                                    "version": "7.9.2"
+                                },
+                                "tiebreaker_topology": {
+                                    "memory_per_node": 1024
+                                }
+                            },
+                            "plan_attempt_id": "81a1c482-2068-4b93-b1f6-5b47c077eb14",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "azure-eastus2",
+                    "status": "started",
+                    "system_alerts": []
+                },
+                "ref_id": "main-elasticsearch",
+                "region": "azure-eastus2"
+            }
+        ],
+        "enterprise_search": [],
+        "kibana": [
+            {
+                "elasticsearch_cluster_ref_id": "main-elasticsearch",
+                "id": "1235cd4a4c7f464bbcfd795f3638b769",
+                "info": {
+                    "cluster_id": "1235cd4a4c7f464bbcfd795f3638b769",
+                    "cluster_name": "up2d",
+                    "deployment_id": "123e79d8109c4a0790b0b333110bf715",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "1238f19957874af69306787dca662154"
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "metadata": {
+                        "endpoint": "1235cd4a4c7f464bbcfd795f3638b769.eastus2.azure.elastic-cloud.com",
+                        "last_modified": "2020-10-13T10:36:44.425Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 16
+                    },
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-13T10:38:11.726Z",
+                            "attempt_start_time": "2020-10-13T10:36:44.049Z",
+                            "healthy": true,
+                            "plan": {
+                                "cluster_topology": [
+                                    {
+                                        "instance_configuration_id": "azure.kibana.e32sv3",
+                                        "kibana": {
+                                            "system_settings": {}
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 1024
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ],
+                                "kibana": {
+                                    "system_settings": {},
+                                    "version": "7.9.2"
+                                }
+                            },
+                            "plan_attempt_id": "14a0e4a9-5511-4cd3-abdd-f95c3a87ea03",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "azure-eastus2",
+                    "status": "started"
+                },
+                "ref_id": "main-kibana",
+                "region": "azure-eastus2"
+            }
+        ]
+    }
+}
