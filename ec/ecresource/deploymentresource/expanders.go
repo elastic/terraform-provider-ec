@@ -60,22 +60,25 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(
-		d.Get("apm").([]interface{}), apmResource(res),
-	)
-	if err != nil {
-		return nil, err
+	if res.DeploymentTemplate.Resources.Apm != nil {
+		apmRes, err := expandApmResources(
+			d.Get("apm").([]interface{}), apmResource(res),
+		)
+		if err != nil {
+			return nil, err
+		}
+		result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 	}
-	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := expandEssResources(
-		d.Get("enterprise_search").([]interface{}), essResource(res),
-	)
-	if err != nil {
-		return nil, err
+	if res.DeploymentTemplate.Resources.EnterpriseSearch != nil {
+		enterpriseSearchRes, err := expandEssResources(
+			d.Get("enterprise_search").([]interface{}), essResource(res),
+		)
+		if err != nil {
+			return nil, err
+		}
+		result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
 	}
-	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
-
 	expandTrafficFilterCreate(d.Get("traffic_filter").(*schema.Set), &result)
 
 	return &result, nil
