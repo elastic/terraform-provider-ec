@@ -102,18 +102,7 @@ func Test_verboseSettings(t *testing.T) {
 }
 
 func Test_newAPIConfig(t *testing.T) {
-	// This is necessary to avoid any EC_API_KEY which might be set to cause
-	// test flakyness.
-	if k := os.Getenv("EC_API_KEY"); k != "" {
-		if err := os.Unsetenv("EC_API_KEY"); err != nil {
-			t.Fatal(err)
-		}
-		defer func() {
-			if err := os.Setenv("EC_API_KEY", k); err != nil {
-				t.Fatal(err)
-			}
-		}()
-	}
+	defer unsetECAPIKey(t)()
 
 	defaultCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:        "whocares",
@@ -369,4 +358,21 @@ func Test_newAPIConfig(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func unsetECAPIKey(t *testing.T) func() {
+	t.Helper()
+	// This is necessary to avoid any EC_API_KEY which might be set to cause
+	// test flakyness.
+	if k := os.Getenv("EC_API_KEY"); k != "" {
+		if err := os.Unsetenv("EC_API_KEY"); err != nil {
+			t.Fatal(err)
+		}
+		return func() {
+			if err := os.Setenv("EC_API_KEY", k); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	return func() {}
 }
