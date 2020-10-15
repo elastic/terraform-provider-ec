@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "defaults" {
+resource "ec_deployment" "ccs" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
