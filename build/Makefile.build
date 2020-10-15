@@ -1,8 +1,10 @@
 BINARY_LOCATION ?= bin/$(BINARY)
 PLUGIN_LOCATION ?= ~/.terraform.d/plugins/
+UNIX_PLUGIN_LOCATION ?= ~/.local/share/terraform/plugins
+OS = $(shell uname -s|tr '[:upper:]' '[:lower:]')
 # Removes any of "-suffix" the version might have
 STRIPPED_V = $(shell echo $${VERSION%%-*})
-PLUGIN_0.13 = registry.terraform.io/elastic/ec/$(STRIPPED_V)/$(shell uname -s|tr '[:upper:]' '[:lower:]')_amd64/terraform-provider-ec_v$(STRIPPED_V)
+PLUGIN_0.13 = registry.terraform.io/elastic/ec/$(STRIPPED_V)/$(OS)_amd64/terraform-provider-ec_v$(STRIPPED_V)
 
 ### Build targets
 
@@ -28,3 +30,7 @@ install: build
 	@ cp $(BINARY_LOCATION) $(PLUGIN_LOCATION)
 	@ mkdir -p $(shell dirname $(PLUGIN_LOCATION)/$(PLUGIN_0.13))
 	@ cp $(BINARY_LOCATION) $(PLUGIN_LOCATION)/$(PLUGIN_0.13)
+ifeq ($(OS),linux)
+	@ mkdir -p $(shell dirname $(UNIX_PLUGIN_LOCATION)/$(PLUGIN_0.13))
+	@ cp $(BINARY_LOCATION) $(UNIX_PLUGIN_LOCATION)/$(PLUGIN_0.13)
+endif
