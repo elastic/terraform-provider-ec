@@ -19,6 +19,7 @@ package ec
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -49,6 +50,11 @@ var (
 	passwordDesc = fmt.Sprint("Password to use for API authentication. ", eceOnlyText, ".")
 
 	validURLSchemes = []string{"http", "https"}
+
+	// defaultTimeout used for all outgoing HTTP requests, keeping it low-ish
+	// since any requests which timeout due to network factors are retried
+	// automatically by the SDK 2 times.
+	defaultTimeout = 40 * time.Second
 )
 
 // Provider returns a schema.Provider.
@@ -122,7 +128,7 @@ func newSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			DefaultFunc: schema.MultiEnvDefaultFunc(
-				[]string{"EC_TIMEOUT"}, "1m",
+				[]string{"EC_TIMEOUT"}, defaultTimeout.String(),
 			),
 		},
 		"verbose": {
