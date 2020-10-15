@@ -93,6 +93,38 @@ func Test_createResourceToModel(t *testing.T) {
 		},
 	})
 
+	ccsTpl := func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/aws-cross-cluster-search-v2.json")
+	}
+	deploymentCCS := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		Resources: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-cross-cluster-search-v2",
+			"region":                 "us-east-1",
+			"version":                "7.9.2",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
+
+	emptyTpl := func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/empty-deployment_template.json")
+	}
+	deploymentEmptyTemplate := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		Resources: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "empty-deployment-template",
+			"region":                 "us-east-1",
+			"version":                "7.9.2",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
+
 	type args struct {
 		d      *schema.ResourceData
 		client *api.API
@@ -664,6 +696,101 @@ func Test_createResourceToModel(t *testing.T) {
 										},
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with empty declarations (Cross Cluster Search)",
+			args: args{
+				d:      deploymentCCS,
+				client: api.NewMock(mock.New200Response(ccsTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name: "my_deployment_name",
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region:   ec.String("us-east-1"),
+							RefID:    ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-cross-cluster-search-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.ccs.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// This case is unlikely a very valid case, but it ensures that we're handling
+		// an empty deployment_template part of a deployment template correctly.
+		{
+			name: "parses the resources with empty explicit declarations (Empty deployment template)",
+			args: args{
+				d:      deploymentEmptyTemplate,
+				client: api.NewMock(mock.New200Response(emptyTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name: "my_deployment_name",
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							RefID:    ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("empty-deployment-template"),
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
 							},
 						},
 					},
