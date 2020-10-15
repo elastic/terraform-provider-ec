@@ -225,6 +225,8 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
+~> **Note on legacy (pre-slider) deployments** If your deployment was created prior to the addition of sliders in both ECE or ESS, and has not been migrated to use sliders, importing it is not supported and will result in erroneous behavior.
+
 Deployments can be imported using the `id`, e.g.
 
 ```
