@@ -18,6 +18,7 @@
 package deploymentresource
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -26,10 +27,6 @@ import (
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
-
-var emptyApmConfig = &models.ApmConfiguration{
-	SystemSettings: &models.ApmSystemSettings{},
-}
 
 // expandApmResources expands apm resources into their models.
 func expandApmResources(apms []interface{}, tpl *models.ApmPayload) ([]*models.ApmPayload, error) {
@@ -71,10 +68,8 @@ func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayl
 	}
 
 	if cfg, ok := es["config"]; ok {
-		if c := expandApmConfig(cfg); c != nil {
-			version := res.Plan.Apm.Version
-			res.Plan.Apm = c
-			res.Plan.Apm.Version = version
+		if err := expandApmConfig(cfg, res.Plan.Apm); err != nil {
+			return nil, err
 		}
 	}
 
@@ -128,7 +123,15 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 		}
 
 		if c, ok := topology["config"]; ok {
-			elem.Apm = expandApmConfig(c)
+			if elem.Apm == nil {
+				elem.Apm = &models.ApmConfiguration{}
+			}
+			if err = expandApmConfig(c, elem.Apm); err != nil {
+				return nil, err
+			}
+			if reflect.DeepEqual(elem.Apm, &models.ApmConfiguration{}) {
+				elem.Apm = nil
+			}
 		}
 
 		res = append(res, elem)
@@ -137,25 +140,29 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 	return res, nil
 }
 
-func expandApmConfig(raw interface{}) *models.ApmConfiguration {
-	var res = &models.ApmConfiguration{
-		SystemSettings: &models.ApmSystemSettings{},
-	}
+func expandApmConfig(raw interface{}, res *models.ApmConfiguration) error {
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
 
 		if debugEnabled, ok := cfg["debug_enabled"]; ok {
+			if res.SystemSettings == nil {
+				res.SystemSettings = &models.ApmSystemSettings{}
+			}
 			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
 		}
 
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsJSON = settings
+				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
+					return fmt.Errorf("failed expanding apm user_settings_json: %w", err)
+				}
 			}
 		}
 		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsOverrideJSON = settings
+				if err := json.Unmarshal([]byte(s), &res.UserSettingsOverrideJSON); err != nil {
+					return fmt.Errorf("failed expanding apm user_settings_override_json: %w", err)
+				}
 			}
 		}
 		if settings, ok := cfg["user_settings_yaml"]; ok {
@@ -164,10 +171,6 @@ func expandApmConfig(raw interface{}) *models.ApmConfiguration {
 		if settings, ok := cfg["user_settings_override_yaml"]; ok {
 			res.UserSettingsOverrideYaml = settings.(string)
 		}
-	}
-
-	if !reflect.DeepEqual(res, emptyApmConfig) {
-		return res
 	}
 
 	return nil

@@ -228,8 +228,12 @@ func Test_expandApmResources(t *testing.T) {
 						Apm: &models.ApmConfiguration{
 							UserSettingsYaml:         `some.setting: value`,
 							UserSettingsOverrideYaml: `some.setting: value2`,
-							UserSettingsJSON:         `{"some.setting": "value"}`,
-							UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+							UserSettingsJSON: map[string]interface{}{
+								"some.setting": "value",
+							},
+							UserSettingsOverrideJSON: map[string]interface{}{
+								"some.setting": "value2",
+							},
 							SystemSettings: &models.ApmSystemSettings{
 								DebugEnabled: ec.Bool(true),
 							},

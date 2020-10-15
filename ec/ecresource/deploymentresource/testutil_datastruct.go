@@ -26,6 +26,7 @@ func newSampleDeployment() map[string]interface{} {
 		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-io-optimized-v2",
 		"region":                 "us-east-1",
+		"version":                "7.7.0",
 		"elasticsearch":          []interface{}{newElasticsearchSample()},
 		"kibana":                 []interface{}{newKibanaSample()},
 		"apm":                    []interface{}{newApmSample()},
@@ -133,8 +134,8 @@ func newElasticsearchSample() map[string]interface{} {
 			"config": []interface{}{map[string]interface{}{
 				"user_settings_yaml":          "some.setting: value",
 				"user_settings_override_yaml": "some.setting: value2",
-				"user_settings_json":          "{\"some.setting\": \"value\"}",
-				"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+				"user_settings_json":          "{\"some.setting\":\"value\"}",
+				"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 			}},
 		}},
 		"monitoring_settings": []interface{}{

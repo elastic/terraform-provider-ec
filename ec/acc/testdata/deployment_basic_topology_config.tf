@@ -30,6 +30,7 @@ resource "ec_deployment" "basic" {
     topology {
       config {
         debug_enabled = true
+        user_settings_json = jsonencode({"apm-server.rum.enabled"= true})
       }
     }
   }

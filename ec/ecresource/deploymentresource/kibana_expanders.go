@@ -18,6 +18,7 @@
 package deploymentresource
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -67,10 +68,8 @@ func expandKibanaResource(raw interface{}, res *models.KibanaPayload) (*models.K
 	}
 
 	if cfg, ok := es["config"]; ok {
-		if c := expandKibanaConfig(cfg); c != nil {
-			version := res.Plan.Kibana.Version
-			res.Plan.Kibana = c
-			res.Plan.Kibana.Version = version
+		if err := expandKibanaConfig(cfg, res.Plan.Kibana); err != nil {
+			return nil, err
 		}
 	}
 
@@ -122,7 +121,15 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 		}
 
 		if c, ok := topology["config"]; ok {
-			elem.Kibana = expandKibanaConfig(c)
+			if elem.Kibana == nil {
+				elem.Kibana = &models.KibanaConfiguration{}
+			}
+			if err := expandKibanaConfig(c, elem.Kibana); err != nil {
+				return nil, err
+			}
+			if reflect.DeepEqual(elem.Kibana, &models.KibanaConfiguration{}) {
+				elem.Kibana = nil
+			}
 		}
 
 		res = append(res, elem)
@@ -131,18 +138,21 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 	return res, nil
 }
 
-func expandKibanaConfig(raw interface{}) *models.KibanaConfiguration {
-	var res = &models.KibanaConfiguration{}
+func expandKibanaConfig(raw interface{}, res *models.KibanaConfiguration) error {
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsJSON = settings
+				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
+					return fmt.Errorf("failed expanding kibana user_settings_json: %w", err)
+				}
 			}
 		}
 		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsOverrideJSON = settings
+				if err := json.Unmarshal([]byte(s), &res.UserSettingsOverrideJSON); err != nil {
+					return fmt.Errorf("failed expanding kibana user_settings_override_json: %w", err)
+				}
 			}
 		}
 		if settings, ok := cfg["user_settings_yaml"]; ok {
@@ -151,10 +161,6 @@ func expandKibanaConfig(raw interface{}) *models.KibanaConfiguration {
 		if settings, ok := cfg["user_settings_override_yaml"]; ok {
 			res.UserSettingsOverrideYaml = settings.(string)
 		}
-	}
-
-	if !reflect.DeepEqual(res, &models.KibanaConfiguration{}) {
-		return res
 	}
 
 	return nil

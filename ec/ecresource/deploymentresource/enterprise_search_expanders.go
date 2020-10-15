@@ -18,6 +18,7 @@
 package deploymentresource
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -67,10 +68,8 @@ func expandEssResource(raw interface{}, res *models.EnterpriseSearchPayload) (*m
 	}
 
 	if cfg, ok := es["config"]; ok {
-		if c := expandEssConfig(cfg); c != nil {
-			version := res.Plan.EnterpriseSearch.Version
-			res.Plan.EnterpriseSearch = c
-			res.Plan.EnterpriseSearch.Version = version
+		if err := expandEssConfig(cfg, res.Plan.EnterpriseSearch); err != nil {
+			return nil, err
 		}
 	}
 
@@ -133,7 +132,15 @@ func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTop
 		}
 
 		if c, ok := topology["config"]; ok {
-			elem.EnterpriseSearch = expandEssConfig(c)
+			if elem.EnterpriseSearch == nil {
+				elem.EnterpriseSearch = &models.EnterpriseSearchConfiguration{}
+			}
+			if err := expandEssConfig(c, elem.EnterpriseSearch); err != nil {
+				return nil, err
+			}
+			if reflect.DeepEqual(elem.EnterpriseSearch, &models.EnterpriseSearchConfiguration{}) {
+				elem.EnterpriseSearch = nil
+			}
 		}
 
 		res = append(res, elem)
@@ -142,18 +149,21 @@ func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTop
 	return res, nil
 }
 
-func expandEssConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
-	var res = &models.EnterpriseSearchConfiguration{}
+func expandEssConfig(raw interface{}, res *models.EnterpriseSearchConfiguration) error {
 	for _, rawCfg := range raw.([]interface{}) {
 		var cfg = rawCfg.(map[string]interface{})
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsJSON = settings
+				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
+					return fmt.Errorf("failed expanding enterprise_search user_settings_json: %w", err)
+				}
 			}
 		}
 		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
-				res.UserSettingsOverrideJSON = settings
+				if err := json.Unmarshal([]byte(s), &res.UserSettingsOverrideJSON); err != nil {
+					return fmt.Errorf("failed expanding enterprise_search user_settings_override_json: %w", err)
+				}
 			}
 		}
 		if settings, ok := cfg["user_settings_yaml"]; ok {
@@ -162,10 +172,6 @@ func expandEssConfig(raw interface{}) *models.EnterpriseSearchConfiguration {
 		if settings, ok := cfg["user_settings_override_yaml"]; ok {
 			res.UserSettingsOverrideYaml = settings.(string)
 		}
-	}
-
-	if !reflect.DeepEqual(res, &models.EnterpriseSearchConfiguration{}) {
-		return res
 	}
 
 	return nil

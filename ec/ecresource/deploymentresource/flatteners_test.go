@@ -33,12 +33,350 @@ import (
 func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
-	_ = deploymentSchemaArg.Set("region", "us-east-1")
 
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID:        mock.ValidClusterID,
 		Resources: newSampleDeployment(),
 		Schema:    newSchema(),
+	})
+
+	azureIOOptimizedRes := openDeploymentGet(t, "testdata/deployment-azure-io-optimized.json")
+	azureIOOptimizedRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	azureIOOptimizedRD.SetId(mock.ValidClusterID)
+	wantAzureIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "azure-io-optimized",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d",
+			"region":                 "azure-eastus2",
+			"version":                "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "azure-eastus2",
+				"resource_id":                  "1235d8c911b74dd6a03c2a7b37fd68ab",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://1235d8c911b74dd6a03c2a7b37fd68ab.apm.eastus2.azure.elastic-cloud.com:9200",
+				"https_endpoint":               "https://1235d8c911b74dd6a03c2a7b37fd68ab.apm.eastus2.azure.elastic-cloud.com:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "azure.apm.e32sv3",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+					"config": []interface{}{map[string]interface{}{
+						"debug_enabled":               false,
+						"user_settings_json":          "",
+						"user_settings_override_json": "",
+						"user_settings_override_yaml": "",
+						"user_settings_yaml":          "",
+					}},
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d:somecloudID",
+				"http_endpoint":  "http://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9200",
+				"https_endpoint": "https://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "azure-eastus2",
+				"resource_id":    "1238f19957874af69306787dca662154",
+				"version":        "7.9.2",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "azure.data.highio.l32sv2",
+					"node_type_data":            true,
+					"node_type_ingest":          true,
+					"node_type_master":          true,
+					"size":                      "4g",
+					"size_resource":             "memory",
+					"zone_count":                2,
+				}},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "azure-eastus2",
+				"resource_id":                  "1235cd4a4c7f464bbcfd795f3638b769",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://1235cd4a4c7f464bbcfd795f3638b769.eastus2.azure.elastic-cloud.com:9200",
+				"https_endpoint":               "https://1235cd4a4c7f464bbcfd795f3638b769.eastus2.azure.elastic-cloud.com:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "azure.kibana.e32sv3",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	awsIOOptimizedRes := openDeploymentGet(t, "testdata/deployment-aws-io-optimized.json")
+	awsIOOptimizedRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	awsIOOptimizedRD.SetId(mock.ValidClusterID)
+	wantAwsIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "aws-io-optimized-v2",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d",
+			"region":                 "aws-eu-central-1",
+			"version":                "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "aws-eu-central-1",
+				"resource_id":                  "12328579b3bf40c8b58c1a0ed5a4bd8b",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12328579b3bf40c8b58c1a0ed5a4bd8b.apm.eu-central-1.aws.cloud.es.io:80",
+				"https_endpoint":               "https://12328579b3bf40c8b58c1a0ed5a4bd8b.apm.eu-central-1.aws.cloud.es.io:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.apm.r5d",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+					"config": []interface{}{map[string]interface{}{
+						"debug_enabled":               false,
+						"user_settings_json":          "",
+						"user_settings_override_json": "",
+						"user_settings_override_yaml": "",
+						"user_settings_yaml":          "",
+					}},
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d:someCloudID",
+				"http_endpoint":  "http://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9200",
+				"https_endpoint": "https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "aws-eu-central-1",
+				"resource_id":    "1239f7ee7196439ba2d105319ac5eba7",
+				"version":        "7.9.2",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.data.highio.i3",
+					"node_type_data":            true,
+					"node_type_ingest":          true,
+					"node_type_master":          true,
+					"size":                      "8g",
+					"size_resource":             "memory",
+					"zone_count":                2,
+				}},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "aws-eu-central-1",
+				"resource_id":                  "123dcfda06254ca789eb287e8b73ff4c",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://123dcfda06254ca789eb287e8b73ff4c.eu-central-1.aws.cloud.es.io:9200",
+				"https_endpoint":               "https://123dcfda06254ca789eb287e8b73ff4c.eu-central-1.aws.cloud.es.io:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.kibana.r5d",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	gcpIOOptimizedRes := openDeploymentGet(t, "testdata/deployment-gcp-io-optimized.json")
+	gcpIOOptimizedRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	gcpIOOptimizedRD.SetId(mock.ValidClusterID)
+	wantGcpIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "gcp-io-optimized",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d",
+			"region":                 "gcp-asia-east1",
+			"version":                "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "gcp-asia-east1",
+				"resource_id":                  "12307c6c304949b8a9f3682b80900879",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com:80",
+				"https_endpoint":               "https://12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.apm.1",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+					"config": []interface{}{map[string]interface{}{
+						"debug_enabled":               false,
+						"user_settings_json":          "",
+						"user_settings_override_json": "",
+						"user_settings_override_yaml": "",
+						"user_settings_yaml":          "",
+					}},
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d:someCloudID",
+				"http_endpoint":  "http://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9200",
+				"https_endpoint": "https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "gcp-asia-east1",
+				"resource_id":    "123695e76d914005bf90b717e668ad4b",
+				"version":        "7.9.2",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.data.highio.1",
+					"node_type_data":            true,
+					"node_type_ingest":          true,
+					"node_type_master":          true,
+					"size":                      "8g",
+					"size_resource":             "memory",
+					"zone_count":                2,
+				}},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "gcp-asia-east1",
+				"resource_id":                  "12365046781e4d729a07df64fe67c8c6",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com:9200",
+				"https_endpoint":               "https://12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.kibana.1",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	gcpHotWarmRes := openDeploymentGet(t, "testdata/deployment-gcp-hot-warm.json")
+	gcpHotWarmRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	gcpHotWarmRD.SetId(mock.ValidClusterID)
+	wantGcpHotWarmDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "gcp-hot-warm",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d-hot-warm",
+			"region":                 "gcp-us-central1",
+			"version":                "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "gcp-us-central1",
+				"resource_id":                  "1234b68b0b9347f1b49b1e01b33bf4a4",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io:80",
+				"https_endpoint":               "https://1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.apm.1",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+					"config": []interface{}{map[string]interface{}{
+						"debug_enabled":               false,
+						"user_settings_json":          "",
+						"user_settings_override_json": "",
+						"user_settings_override_yaml": "",
+						"user_settings_yaml":          "",
+					}},
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d-hot-warm:someCloudID",
+				"http_endpoint":  "http://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9200",
+				"https_endpoint": "https://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "gcp-us-central1",
+				"resource_id":    "123e837db6ee4391bb74887be35a7a91",
+				"version":        "7.9.2",
+				"topology": []interface{}{
+					map[string]interface{}{
+						"instance_configuration_id": "gcp.data.highio.1",
+						"node_type_data":            true,
+						"node_type_ingest":          true,
+						"node_type_master":          true,
+						"size":                      "4g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+					},
+					map[string]interface{}{
+						"instance_configuration_id": "gcp.data.highstorage.1",
+						"node_type_data":            true,
+						"node_type_ingest":          true,
+						"node_type_master":          false,
+						"size":                      "4g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+					},
+				},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "gcp-us-central1",
+				"resource_id":                  "12372cc60d284e7e96b95ad14727c23d",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io:9200",
+				"https_endpoint":               "https://12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.kibana.1",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	awsCCSRes := openDeploymentGet(t, "testdata/deployment-aws-ccs.json")
+	awsCCSRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	awsCCSRD.SetId(mock.ValidClusterID)
+	wantAWSCCSDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		Resources: map[string]interface{}{
+			"deployment_template_id": "aws-cross-cluster-search-v2",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "ccs",
+			"region":                 "eu-west-1",
+			"version":                "7.9.2",
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "ccs:someCloudID",
+				"http_endpoint":  "http://1230b3ae633b4f51a432d50971f7f1c1.eu-west-1.aws.found.io:9200",
+				"https_endpoint": "https://1230b3ae633b4f51a432d50971f7f1c1.eu-west-1.aws.found.io:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "eu-west-1",
+				"resource_id":    "1230b3ae633b4f51a432d50971f7f1c1",
+				"version":        "7.9.2",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.ccs.r5d",
+					"node_type_data":            true,
+					"node_type_ingest":          true,
+					"node_type_master":          true,
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "eu-west-1",
+				"resource_id":                  "12317425e9e14491b74ee043db3402eb",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12317425e9e14491b74ee043db3402eb.eu-west-1.aws.found.io:9200",
+				"https_endpoint":               "https://12317425e9e14491b74ee043db3402eb.eu-west-1.aws.found.io:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.kibana.r5d",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
 	})
 
 	type args struct {
@@ -101,8 +439,12 @@ func Test_modelToState(t *testing.T) {
 													Elasticsearch: &models.ElasticsearchConfiguration{
 														UserSettingsYaml:         `some.setting: value`,
 														UserSettingsOverrideYaml: `some.setting: value2`,
-														UserSettingsJSON:         `{"some.setting": "value"}`,
-														UserSettingsOverrideJSON: `{"some.setting": "value2"}`,
+														UserSettingsJSON: map[string]interface{}{
+															"some.setting": "value",
+														},
+														UserSettingsOverrideJSON: map[string]interface{}{
+															"some.setting": "value2",
+														},
 													},
 												}},
 											},
@@ -220,6 +562,31 @@ func Test_modelToState(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "flattens an azure plan (io-optimized)",
+			args: args{d: azureIOOptimizedRD, res: azureIOOptimizedRes},
+			want: wantAzureIOOptimizedDeployment,
+		},
+		{
+			name: "flattens an aws plan (io-optimized)",
+			args: args{d: awsIOOptimizedRD, res: awsIOOptimizedRes},
+			want: wantAwsIOOptimizedDeployment,
+		},
+		{
+			name: "flattens a gcp plan (io-optimized)",
+			args: args{d: gcpIOOptimizedRD, res: gcpIOOptimizedRes},
+			want: wantGcpIOOptimizedDeployment,
+		},
+		{
+			name: "flattens a gcp plan (hot-warm)",
+			args: args{d: gcpHotWarmRD, res: gcpHotWarmRes},
+			want: wantGcpHotWarmDeployment,
+		},
+		{
+			name: "flattens an aws plan (Cross Cluster Search)",
+			args: args{d: awsCCSRD, res: awsCCSRes},
+			want: wantAWSCCSDeployment,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -230,7 +597,12 @@ func Test_modelToState(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
+			var wantState interface{}
+			if tt.want != nil {
+				wantState = tt.want.State().Attributes
+			}
+
+			assert.Equal(t, wantState, tt.args.d.State().Attributes)
 		})
 	}
 }

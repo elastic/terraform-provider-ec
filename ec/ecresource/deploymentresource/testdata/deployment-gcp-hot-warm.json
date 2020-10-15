@@ -1,0 +1,383 @@
+{
+    "healthy": true,
+    "id": "123d148423864552aa57b59929d4bf4d",
+    "name": "up2d-hot-warm",
+    "resources": {
+        "apm": [
+            {
+                "elasticsearch_cluster_ref_id": "main-elasticsearch",
+                "id": "1234b68b0b9347f1b49b1e01b33bf4a4",
+                "info": {
+                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "123e837db6ee4391bb74887be35a7a91"
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "id": "1234b68b0b9347f1b49b1e01b33bf4a4",
+                    "metadata": {
+                        "endpoint": "1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io",
+                        "last_modified": "2020-10-14T05:43:58.834Z",
+                        "ports": {
+                            "http": 80,
+                            "https": 443,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 10
+                    },
+                    "name": "up2d-hot-warm",
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-14T05:47:03.036Z",
+                            "attempt_start_time": "2020-10-14T05:43:58.142Z",
+                            "healthy": true,
+                            "plan": {
+                                "apm": {
+                                    "system_settings": {
+                                        "secret_token": "al0DOoO2S8MKswdJ7W"
+                                    },
+                                    "version": "7.9.2"
+                                },
+                                "cluster_topology": [
+                                    {
+                                        "apm": {
+                                            "system_settings": {
+                                                "debug_enabled": false,
+                                                "secret_token": "al0DOoO2S8MKswdJ7W"
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.apm.1",
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 512
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ]
+                            },
+                            "plan_attempt_id": "95240adf-9776-4d41-9cca-a54e3d2ee353",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "gcp-us-central1",
+                    "status": "started"
+                },
+                "ref_id": "main-apm",
+                "region": "gcp-us-central1"
+            }
+        ],
+        "appsearch": [],
+        "elasticsearch": [
+            {
+                "id": "123e837db6ee4391bb74887be35a7a91",
+                "info": {
+                    "associated_apm_clusters": [
+                        {
+                            "apm_id": "1234b68b0b9347f1b49b1e01b33bf4a4",
+                            "enabled": true
+                        }
+                    ],
+                    "associated_appsearch_clusters": [],
+                    "associated_enterprise_search_clusters": [],
+                    "associated_kibana_clusters": [
+                        {
+                            "enabled": true,
+                            "kibana_id": "12372cc60d284e7e96b95ad14727c23d"
+                        }
+                    ],
+                    "cluster_id": "123e837db6ee4391bb74887be35a7a91",
+                    "cluster_name": "up2d-hot-warm",
+                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
+                    "elasticsearch": {
+                        "blocking_issues": {
+                            "cluster_level": [],
+                            "healthy": true,
+                            "index_level": []
+                        },
+                        "healthy": true
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "locked": false,
+                    "metadata": {
+                        "cloud_id": "up2d-hot-warm:someCloudID",
+                        "endpoint": "123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io",
+                        "last_modified": "2020-10-14T05:47:04.058Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 26
+                    },
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-14T05:45:53.057Z",
+                            "attempt_start_time": "2020-10-14T05:43:55.416Z",
+                            "healthy": true,
+                            "plan": {
+                                "cluster_topology": [
+                                    {
+                                        "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "hot"
+                                            },
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.data.highio.1",
+                                        "node_type": {
+                                            "data": true,
+                                            "ingest": true,
+                                            "master": true,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 4096
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "warm"
+                                            },
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.data.highstorage.1",
+                                        "node_type": {
+                                            "data": true,
+                                            "ingest": true,
+                                            "master": false,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 4096
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.coordinating.1",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": true,
+                                            "master": false,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.master.1",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": false,
+                                            "master": true,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 3
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.ml.1",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": false,
+                                            "master": false,
+                                            "ml": true
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ],
+                                "deployment_template": {
+                                    "id": "gcp-hot-warm"
+                                },
+                                "elasticsearch": {
+                                    "version": "7.9.2"
+                                },
+                                "tiebreaker_topology": {
+                                    "memory_per_node": 1024
+                                }
+                            },
+                            "plan_attempt_id": "152d8c3c-f4f0-4144-8691-8375ab58f4ac",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "gcp-us-central1",
+                    "status": "started",
+                    "system_alerts": []
+                },
+                "ref_id": "main-elasticsearch",
+                "region": "gcp-us-central1"
+            }
+        ],
+        "enterprise_search": [],
+        "kibana": [
+            {
+                "elasticsearch_cluster_ref_id": "main-elasticsearch",
+                "id": "12372cc60d284e7e96b95ad14727c23d",
+                "info": {
+                    "cluster_id": "12372cc60d284e7e96b95ad14727c23d",
+                    "cluster_name": "up2d-hot-warm",
+                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "123e837db6ee4391bb74887be35a7a91"
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "metadata": {
+                        "endpoint": "12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io",
+                        "last_modified": "2020-10-14T05:47:04.007Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 19
+                    },
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-14T05:48:37.424Z",
+                            "attempt_start_time": "2020-10-14T05:47:03.205Z",
+                            "healthy": true,
+                            "plan": {
+                                "cluster_topology": [
+                                    {
+                                        "instance_configuration_id": "gcp.kibana.1",
+                                        "kibana": {
+                                            "system_settings": {}
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 1024
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ],
+                                "kibana": {
+                                    "system_settings": {},
+                                    "version": "7.9.2"
+                                }
+                            },
+                            "plan_attempt_id": "3fed0879-2493-49b4-b4e2-45d856056efb",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "gcp-us-central1",
+                    "status": "started"
+                },
+                "ref_id": "main-kibana",
+                "region": "gcp-us-central1"
+            }
+        ]
+    }
+}

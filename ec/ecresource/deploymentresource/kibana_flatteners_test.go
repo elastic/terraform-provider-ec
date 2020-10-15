@@ -154,15 +154,23 @@ func Test_flattenKibanaResources(t *testing.T) {
 										Version:                  "7.7.0",
 										UserSettingsYaml:         "some.setting: value",
 										UserSettingsOverrideYaml: "some.setting: override",
-										UserSettingsJSON:         "{\"some.setting\": \"value\"}",
-										UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "override",
+										},
 									},
 									ClusterTopology: []*models.KibanaClusterTopologyElement{{
 										Kibana: &models.KibanaConfiguration{
 											UserSettingsYaml:         "some.setting: value",
 											UserSettingsOverrideYaml: "some.setting: override",
-											UserSettingsJSON:         "{\"some.setting\": \"value\"}",
-											UserSettingsOverrideJSON: "{\"some.setting\": \"override\"}",
+											UserSettingsJSON: map[string]interface{}{
+												"some.setting": "value",
+											},
+											UserSettingsOverrideJSON: map[string]interface{}{
+												"some.setting": "override",
+											},
 										},
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r4",
@@ -206,15 +214,15 @@ func Test_flattenKibanaResources(t *testing.T) {
 					"config": []interface{}{map[string]interface{}{
 						"user_settings_yaml":          "some.setting: value",
 						"user_settings_override_yaml": "some.setting: override",
-						"user_settings_json":          `{"some.setting": "value"}`,
-						"user_settings_override_json": `{"some.setting": "override"}`,
+						"user_settings_json":          `{"some.setting":"value"}`,
+						"user_settings_override_json": `{"some.setting":"override"}`,
 					}},
 					"topology": []interface{}{map[string]interface{}{
 						"config": []interface{}{map[string]interface{}{
 							"user_settings_yaml":          "some.setting: value",
 							"user_settings_override_yaml": "some.setting: override",
-							"user_settings_json":          `{"some.setting": "value"}`,
-							"user_settings_override_json": `{"some.setting": "override"}`,
+							"user_settings_json":          `{"some.setting":"value"}`,
+							"user_settings_override_json": `{"some.setting":"override"}`,
 						}},
 						"instance_configuration_id": "aws.kibana.r4",
 						"size":                      "1g",

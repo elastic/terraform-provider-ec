@@ -18,6 +18,9 @@
 package deploymentresource
 
 import (
+	"bytes"
+	"encoding/json"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -114,12 +117,16 @@ func flattenApmConfig(cfg *models.ApmConfiguration) []interface{} {
 		m["user_settings_override_yaml"] = cfg.UserSettingsOverrideYaml
 	}
 
-	if cfg.UserSettingsJSON != nil {
-		m["user_settings_json"] = cfg.UserSettingsJSON
+	if o := cfg.UserSettingsJSON; o != nil {
+		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
+			m["user_settings_json"] = string(b)
+		}
 	}
 
-	if cfg.UserSettingsOverrideJSON != nil {
-		m["user_settings_override_json"] = cfg.UserSettingsOverrideJSON
+	if o := cfg.UserSettingsOverrideJSON; o != nil {
+		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
+			m["user_settings_override_json"] = string(b)
+		}
 	}
 
 	for k, v := range flattenApmSystemConfig(cfg.SystemSettings) {
