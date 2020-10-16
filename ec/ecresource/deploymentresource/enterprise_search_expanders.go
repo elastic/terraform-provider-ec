@@ -204,3 +204,16 @@ func matchEssTopology(id string, topologies []*models.EnterpriseSearchTopologyEl
 		id,
 	)
 }
+
+// essResource returns the EnterpriseSearchPayload from a deployment
+// template or an empty version of the payload.
+func essResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
+	if len(res.DeploymentTemplate.Resources.EnterpriseSearch) == 0 {
+		return &models.EnterpriseSearchPayload{
+			Plan: &models.EnterpriseSearchPlan{
+				EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+			},
+		}
+	}
+	return res.DeploymentTemplate.Resources.EnterpriseSearch[0]
+}

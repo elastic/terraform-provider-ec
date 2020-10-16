@@ -233,3 +233,17 @@ func matchEsTopology(id string, topologies []*models.ElasticsearchClusterTopolog
 		id,
 	)
 }
+
+// esResource returns the ElaticsearchPayload from a deployment
+// template or an empty version of the payload.
+func esResource(res *models.DeploymentTemplateInfoV2) *models.ElasticsearchPayload {
+	if len(res.DeploymentTemplate.Resources.Elasticsearch) == 0 {
+		return &models.ElasticsearchPayload{
+			Plan: &models.ElasticsearchClusterPlan{
+				Elasticsearch: &models.ElasticsearchConfiguration{},
+			},
+			Settings: &models.ElasticsearchClusterSettings{},
+		}
+	}
+	return res.DeploymentTemplate.Resources.Elasticsearch[0]
+}

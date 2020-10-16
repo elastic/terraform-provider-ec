@@ -203,3 +203,16 @@ func matchApmTopology(id string, topologies []*models.ApmTopologyElement) (*mode
 		id,
 	)
 }
+
+// apmResource returns the ApmPayload from a deployment
+// template or an empty version of the payload.
+func apmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
+	if len(res.DeploymentTemplate.Resources.Apm) == 0 {
+		return &models.ApmPayload{
+			Plan: &models.ApmPlan{
+				Apm: &models.ApmConfiguration{},
+			},
+		}
+	}
+	return res.DeploymentTemplate.Resources.Apm[0]
+}
