@@ -193,3 +193,16 @@ func matchKibanaTopology(id string, topologies []*models.KibanaClusterTopologyEl
 		id,
 	)
 }
+
+// kibanaResource returns the KibanaPayload from a deployment
+// template or an empty version of the payload.
+func kibanaResource(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
+	if len(res.DeploymentTemplate.Resources.Kibana) == 0 {
+		return &models.KibanaPayload{
+			Plan: &models.KibanaClusterPlan{
+				Kibana: &models.KibanaConfiguration{},
+			},
+		}
+	}
+	return res.DeploymentTemplate.Resources.Kibana[0]
+}
