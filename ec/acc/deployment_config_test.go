@@ -32,6 +32,7 @@ import (
 const (
 	defaultTemplate = "io-optimized"
 	hotWarmTemplate = "hot-warm"
+	ccsTemplate     = "cross-cluster-search"
 
 	// This deployment template is only used for the
 	// TestAccDatasourceDeployment_basic test.

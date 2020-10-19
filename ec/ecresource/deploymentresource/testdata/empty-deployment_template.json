@@ -1,0 +1,43 @@
+{
+    "deployment_template": {
+        "resources": {
+            "apm": null,
+            "appsearch": null,
+            "elasticsearch": null,
+            "enterprise_search": null,
+            "kibana": null
+        }
+    },
+    "description": "Search data across one or more associated remote deployments.",
+    "id": "empty-deployment-template",
+    "instance_configurations": [
+        {
+            "description": "A Kibana instance running on an AWS r5d.",
+            "discrete_sizes": {
+                "default_size": 1024,
+                "resource": "memory",
+                "sizes": [
+                    1024,
+                    2048,
+                    4096,
+                    8192
+                ]
+            },
+            "id": "aws.kibana.r5d",
+            "instance_type": "kibana",
+            "name": "aws.kibana.r5d",
+            "node_types": null,
+            "storage_multiplier": 2
+        }
+    ],
+    "metadata": [
+        {
+            "key": "parent_solution",
+            "value": "stack"
+        }
+    ],
+    "min_version": "6.7.0",
+    "name": "Kibana only",
+    "order": 5,
+    "system_owned": true
+}
