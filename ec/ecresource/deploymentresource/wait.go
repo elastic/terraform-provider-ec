@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	defaultPollFrequency = time.Millisecond * 500
-	defaultMaxRetry      = 5
+	defaultPollFrequency = time.Second * 2
+	defaultMaxRetry      = 1
 )
 
 // WaitForPlanCompletion waits for a pending plan to finish.

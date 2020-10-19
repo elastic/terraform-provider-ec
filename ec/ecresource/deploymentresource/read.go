@@ -23,6 +23,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -46,7 +48,15 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		return diag.FromErr(multierror.NewPrefixed("failed reading deployment", err))
 	}
 
-	if err := modelToState(d, res); err != nil {
+	remotes, _ := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
+		API: client, DeploymentID: d.Id(),
+		RefID: d.Get("elasticsearch.0.ref_id").(string),
+	})
+	if remotes == nil {
+		remotes = &models.RemoteResources{}
+	}
+
+	if err := modelToState(d, res, *remotes); err != nil {
 		return diag.FromErr(err)
 	}
 

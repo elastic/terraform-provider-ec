@@ -9,5 +9,24 @@ resource "ec_deployment" "ccs" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {}
+  elasticsearch {
+    remote_cluster {
+      deployment_id = ec_deployment.source_ccs.id
+      alias         = "my_source_ccs"
+    }
+  }
+}
+
+resource "ec_deployment" "source_ccs" {
+  name                   = "%s"
+  region                 = "%s"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "%s"
+
+  elasticsearch {
+    topology {
+      zone_count = 1
+      size       = "1g"
+    }
+  }
 }
