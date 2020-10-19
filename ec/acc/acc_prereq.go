@@ -117,7 +117,7 @@ func newAPI() (*api.API, error) {
 		AuthWriter:    authWriter,
 		Host:          host,
 		SkipTLSVerify: insecure,
-		Retries:       provider.DefaultHTTPRetries,
+		Retries:       ec.DefaultHTTPRetries,
 	})
 }
 
