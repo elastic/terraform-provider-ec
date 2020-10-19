@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -65,5 +63,11 @@ func testAccPreCheck(t *testing.T) {
 
 	if apikey != "" && (username != "" || password != "") {
 		t.Fatal("Only one of API Key or Username / Password can be specified to execute acceptance tests")
+	}
+}
+
+func requiresAPIConn(t *testing.T) {
+	if os.Getenv("TF_ACC") != "1" {
+		t.Skip()
 	}
 }

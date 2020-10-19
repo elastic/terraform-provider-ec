@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -63,24 +61,18 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: cfg, PlanOnly: true},
 			{
 				Config: cfgWithTrafficFilter,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: cfgWithTrafficFilter, PlanOnly: true},
 			{
 				Config: cfgWithTrafficFilterUpdate,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: cfgWithTrafficFilterUpdate, PlanOnly: true},
 			// Remove traffic filter.
 			{
 				Config: cfg,
@@ -92,7 +84,6 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
 				),
 			},
-			{Config: cfg, PlanOnly: true},
 			{
 				Config: topologyConfigCfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
@@ -109,8 +100,6 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.0.user_settings_yaml", "ent_search.login_assistance_message: somemessage"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: topologyConfigCfg, PlanOnly: true},
 			{
 				Config: topConfigCfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
@@ -127,8 +116,6 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: topConfigCfg, PlanOnly: true},
 			{
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
@@ -143,8 +130,7 @@ func TestAccDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: cfg, PlanOnly: true},
+			// Import resource without complex ID
 			{
 				ResourceName:            resName,
 				ImportState:             true,
@@ -156,8 +142,10 @@ func TestAccDeployment_basic(t *testing.T) {
 }
 
 func fixtureAccDeploymentResourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
-	deploymentTpl := setDefaultTemplate(region, depTpl)
+	t.Helper()
+	requiresAPIConn(t)
 
+	deploymentTpl := setDefaultTemplate(region, depTpl)
 	esIC, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
@@ -173,8 +161,9 @@ func fixtureAccDeploymentResourceBasic(t *testing.T, fileName, name, region, dep
 }
 
 func fixtureAccDeploymentResourceBasicWithTF(t *testing.T, fileName, name, region, depTpl string) string {
-	deploymentTpl := setDefaultTemplate(region, depTpl)
+	t.Helper()
 
+	deploymentTpl := setDefaultTemplate(region, depTpl)
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)

@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -71,6 +69,8 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 }
 
 func fixtureAccStackDataSource(t *testing.T, fileName, region string) string {
+	t.Helper()
+
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)

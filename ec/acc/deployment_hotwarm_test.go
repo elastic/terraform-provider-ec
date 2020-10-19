@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -107,8 +105,10 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 }
 
 func fixtureAccDeploymentResourceBasicHW(t *testing.T, fileName, name, region, depTpl string) string {
-	deploymentTpl := setDefaultTemplate(region, depTpl)
+	t.Helper()
+	requiresAPIConn(t)
 
+	deploymentTpl := setDefaultTemplate(region, depTpl)
 	esIC, esIC2, err := setInstanceConfigurationsHW(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
