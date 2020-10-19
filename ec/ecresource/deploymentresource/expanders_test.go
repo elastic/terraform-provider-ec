@@ -738,7 +738,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(ccsTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -800,7 +801,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(emptyTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{

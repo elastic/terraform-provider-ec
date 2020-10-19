@@ -65,7 +65,8 @@ func TestAccDeployment_observability(t *testing.T) {
 				),
 			},
 			{
-				Config: thirdCfg,
+				Config:             thirdCfg,
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", secondResName, "id"),
 					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "true"),

@@ -11,7 +11,7 @@ resource "ec_deployment" "basic" {
 
   elasticsearch {
     topology {
-      size = "1g"
+      size       = "1g"
       zone_count = 1
     }
   }
@@ -25,7 +25,7 @@ resource "ec_deployment" "observability" {
 
   elasticsearch {
     topology {
-      size = "1g"
+      size       = "1g"
       zone_count = 1
     }
   }
