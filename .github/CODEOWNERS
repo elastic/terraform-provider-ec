@@ -1,3 +1,4 @@
 # These owners will be the default owners for everything in
 # the repository.
 *       @elastic/cloud-delivery
+docs/   @alaudazzi @nrichers @elastic/cloud-delivery
