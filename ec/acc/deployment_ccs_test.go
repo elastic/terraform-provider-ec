@@ -122,6 +122,8 @@ func TestAccDeployment_ccs(t *testing.T) {
 }
 
 func fixtureAccDeploymentResourceBasicCcs(t *testing.T, fileName, name, region, ccsTplName, sourceName, sourceRegion, sourceTplName string) string {
+	t.Helper()
+
 	ccsTpl := setDefaultTemplate(region, ccsTplName)
 	sourceTpl := setDefaultTemplate(region, sourceTplName)
 
