@@ -108,7 +108,7 @@ func newSchema() map[string]*schema.Schema {
 			Elem:     newEnterpriseSearchResource(),
 		},
 
-		// Optional Traffic filters
+		// Settings
 		"traffic_filter": {
 			Description: "Optional list of traffic filters to apply to this deployment.",
 			// This field is a TypeSet since the order of the items isn't
@@ -121,6 +121,34 @@ func newSchema() map[string]*schema.Schema {
 			Elem: &schema.Schema{
 				MinItems: 1,
 				Type:     schema.TypeString,
+			},
+		},
+		"observability": {
+			Type:        schema.TypeList,
+			Description: "Optional observability settings. Ship logs and metrics to a dedicated deployment.",
+			Optional:    true,
+			MaxItems:    1,
+			Elem:        newObservabilitySettings(),
+		},
+	}
+}
+
+func newObservabilitySettings() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"deployment_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"logs": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+			"metrics": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 		},
 	}

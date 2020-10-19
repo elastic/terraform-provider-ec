@@ -1,0 +1,97 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package deploymentresource
+
+import (
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+)
+
+// flattenObservability parses a deployment's observability settings.
+func flattenObservability(settings *models.DeploymentSettings) []interface{} {
+	if settings == nil || settings.Observability == nil {
+		return nil
+	}
+
+	var m = make(map[string]interface{})
+
+	// We are only accepting a single deployment ID for both logs and metrics.
+	// If either of them is not nil the deployment ID will be filled.
+	if settings.Observability.Metrics != nil {
+		m["deployment_id"] = settings.Observability.Metrics.Destination.DeploymentID
+		m["metrics"] = true
+	}
+
+	if settings.Observability.Logging != nil {
+		m["deployment_id"] = settings.Observability.Logging.Destination.DeploymentID
+		m["logs"] = true
+	}
+
+	return []interface{}{m}
+}
+
+func expandObservability(raw []interface{}, client *api.API) (*models.DeploymentObservabilitySettings, error) {
+	if len(raw) == 0 {
+		return nil, nil
+	}
+
+	req := models.DeploymentObservabilitySettings{}
+
+	for _, rawObs := range raw {
+		var obs = rawObs.(map[string]interface{})
+
+		depID, ok := obs["deployment_id"]
+		if !ok {
+			return nil, nil
+		}
+
+		params := deploymentapi.PopulateRefIDParams{
+			Kind:         util.Elasticsearch,
+			API:          client,
+			DeploymentID: depID.(string),
+			RefID:        ec.String(""),
+		}
+
+		if err := deploymentapi.PopulateRefID(params); err != nil {
+			return nil, err
+		}
+
+		if logging := obs["logs"]; logging.(bool) {
+			req.Logging = &models.DeploymentLoggingSettings{
+				Destination: &models.AbsoluteRefID{
+					DeploymentID: ec.String(depID.(string)),
+					RefID:        params.RefID,
+				},
+			}
+		}
+
+		if metrics := obs["metrics"]; metrics.(bool) {
+			req.Metrics = &models.DeploymentMetricsSettings{
+				Destination: &models.AbsoluteRefID{
+					DeploymentID: ec.String(depID.(string)),
+					RefID:        params.RefID,
+				},
+			}
+		}
+	}
+
+	return &req, nil
+}

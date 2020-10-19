@@ -24,15 +24,8 @@ resource "ec_deployment" "example_minimal" {
 
   kibana {}
 
-  apm {
-    topology {
-      size = "0.5g"
-    }
-  }
-
-  enterprise_search {
-    topology {
-      zone_count = 1
-    }
+  observability {
+    deployment_id = "f759065e5e64e9f3546f6c44f2743893"
+    metrics = "false"
   }
 }

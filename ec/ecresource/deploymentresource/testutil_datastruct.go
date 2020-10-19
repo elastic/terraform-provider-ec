@@ -31,6 +31,7 @@ func newSampleDeployment() map[string]interface{} {
 		"kibana":                 []interface{}{newKibanaSample()},
 		"apm":                    []interface{}{newApmSample()},
 		"enterprise_search":      []interface{}{newEnterpriseSearchSample()},
+		"observability":          []interface{}{newObservabilitySample()},
 		"traffic_filter":         []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
 	}
 }
@@ -200,5 +201,13 @@ func newEnterpriseSearchSample() map[string]interface{} {
 				"node_type_worker":          true,
 			},
 		},
+	}
+}
+
+func newObservabilitySample() map[string]interface{} {
+	return map[string]interface{}{
+		"deployment_id": mock.ValidClusterID,
+		"logs":          true,
+		"metrics":       true,
 	}
 }
