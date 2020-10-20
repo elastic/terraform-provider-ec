@@ -67,9 +67,6 @@ func newElasticsearchResource() *schema.Resource {
 			"topology": elasticsearchTopologySchema(),
 
 			"config": elasticsearchConfig(),
-
-			// This doesn't work properly. Deleting a monitoring setting doesn't work.
-			"monitoring_settings": elasticsearchMonitoringSchema(),
 		},
 	}
 }
@@ -132,22 +129,6 @@ func elasticsearchTopologySchema() *schema.Schema {
 				},
 
 				"config": elasticsearchConfig(),
-			},
-		},
-	}
-}
-
-func elasticsearchMonitoringSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"target_cluster_id": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
 			},
 		},
 	}

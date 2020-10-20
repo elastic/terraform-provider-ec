@@ -57,65 +57,6 @@ func Test_expandEsResource(t *testing.T) {
 			name: "returns nil when there's no resources",
 		},
 		{
-			name: "parses an ES resource with monitoring",
-			args: args{
-				dt: tpl(),
-				ess: []interface{}{
-					map[string]interface{}{
-						"ref_id":      "secondary-elasticsearch",
-						"resource_id": mock.ValidClusterID,
-						"version":     "7.6.0",
-						"region":      "some-region",
-						"monitoring_settings": []interface{}{
-							map[string]interface{}{"target_cluster_id": "some"},
-						},
-						"topology": []interface{}{
-							map[string]interface{}{
-								"instance_configuration_id": "aws.data.highio.i3",
-								"size":                      "4g",
-								"zone_count":                1,
-							},
-						},
-					},
-				},
-			},
-			want: []*models.ElasticsearchPayload{
-				{
-					Region: ec.String("some-region"),
-					RefID:  ec.String("secondary-elasticsearch"),
-					Settings: &models.ElasticsearchClusterSettings{
-						Monitoring: &models.ManagedMonitoringSettings{
-							TargetClusterID: ec.String("some"),
-						},
-						DedicatedMastersThreshold: 6,
-					},
-					Plan: &models.ElasticsearchClusterPlan{
-						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version: "7.6.0",
-						},
-						DeploymentTemplate: &models.DeploymentTemplateReference{
-							ID: ec.String("aws-io-optimized-v2"),
-						},
-						ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
-							{
-								ZoneCount:               1,
-								InstanceConfigurationID: "aws.data.highio.i3",
-								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
-									Value:    ec.Int32(4096),
-								},
-								NodeType: &models.ElasticsearchNodeType{
-									Data:   ec.Bool(true),
-									Ingest: ec.Bool(true),
-									Master: ec.Bool(true),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		{
 			name: "parses an ES resource",
 			args: args{
 				dt: tpl(),

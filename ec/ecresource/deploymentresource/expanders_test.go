@@ -182,9 +182,6 @@ func Test_createResourceToModel(t *testing.T) {
 							Region: ec.String("us-east-1"),
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
-								Monitoring: &models.ManagedMonitoringSettings{
-									TargetClusterID: ec.String("some"),
-								},
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
@@ -933,9 +930,6 @@ func Test_updateResourceToModel(t *testing.T) {
 							Region: ec.String("us-east-1"),
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
-								Monitoring: &models.ManagedMonitoringSettings{
-									TargetClusterID: ec.String("some"),
-								},
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{

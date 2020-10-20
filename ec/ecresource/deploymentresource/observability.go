@@ -18,6 +18,8 @@
 package deploymentresource
 
 import (
+	"fmt"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -33,15 +35,17 @@ func flattenObservability(settings *models.DeploymentSettings) []interface{} {
 
 	var m = make(map[string]interface{})
 
-	// We are only accepting a single deployment ID for both logs and metrics.
-	// If either of them is not nil the deployment ID will be filled.
+	// We are only accepting a single deployment ID and refID for both logs and metrics.
+	// If either of them is not nil the deployment ID and refID will be filled.
 	if settings.Observability.Metrics != nil {
 		m["deployment_id"] = settings.Observability.Metrics.Destination.DeploymentID
+		m["ref_id"] = settings.Observability.Metrics.Destination.RefID
 		m["metrics"] = true
 	}
 
 	if settings.Observability.Logging != nil {
 		m["deployment_id"] = settings.Observability.Logging.Destination.DeploymentID
+		m["ref_id"] = settings.Observability.Logging.Destination.RefID
 		m["logs"] = true
 	}
 
@@ -63,22 +67,27 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 			return nil, nil
 		}
 
-		params := deploymentapi.PopulateRefIDParams{
-			Kind:         util.Elasticsearch,
-			API:          client,
-			DeploymentID: depID.(string),
-			RefID:        ec.String(""),
-		}
+		refID, ok := obs["ref_id"]
+		if !ok || refID == "" {
+			params := deploymentapi.PopulateRefIDParams{
+				Kind:         util.Elasticsearch,
+				API:          client,
+				DeploymentID: depID.(string),
+				RefID:        ec.String(""),
+			}
 
-		if err := deploymentapi.PopulateRefID(params); err != nil {
-			return nil, err
+			if err := deploymentapi.PopulateRefID(params); err != nil {
+				return nil, fmt.Errorf("observability ref_id auto discovery: %w", err)
+			}
+
+			refID = *params.RefID
 		}
 
 		if logging := obs["logs"]; logging.(bool) {
 			req.Logging = &models.DeploymentLoggingSettings{
 				Destination: &models.AbsoluteRefID{
 					DeploymentID: ec.String(depID.(string)),
-					RefID:        params.RefID,
+					RefID:        ec.String(refID.(string)),
 				},
 			}
 		}
@@ -87,7 +96,7 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 			req.Metrics = &models.DeploymentMetricsSettings{
 				Destination: &models.AbsoluteRefID{
 					DeploymentID: ec.String(depID.(string)),
-					RefID:        params.RefID,
+					RefID:        ec.String(refID.(string)),
 				},
 			}
 		}

@@ -153,7 +153,16 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	if err != nil {
 		return nil, err
 	}
-	result.Settings.Observability = observability
+
+	// In order to stop shipping logs and metrics, an empty Observability
+	// object must be passed, as opposed to a nil object when creating a
+	// deployment without observability settings.
+	old, new := d.GetChange("observability")
+	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+		result.Settings.Observability = &models.DeploymentObservabilitySettings{}
+	} else {
+		result.Settings.Observability = observability
+	}
 
 	return &result, nil
 }

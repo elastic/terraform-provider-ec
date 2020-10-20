@@ -58,6 +58,7 @@ func TestFlattenObservability(t *testing.T) {
 			}},
 			want: []interface{}{map[string]interface{}{
 				"deployment_id": &mock.ValidClusterID,
+				"ref_id":        ec.String("main-elasticsearch"),
 				"logs":          true,
 			}},
 		},
@@ -75,6 +76,7 @@ func TestFlattenObservability(t *testing.T) {
 			}},
 			want: []interface{}{map[string]interface{}{
 				"deployment_id": &mock.ValidClusterID,
+				"ref_id":        ec.String("main-elasticsearch"),
 				"metrics":       true,
 			}},
 		},
@@ -98,6 +100,7 @@ func TestFlattenObservability(t *testing.T) {
 			}},
 			want: []interface{}{map[string]interface{}{
 				"deployment_id": &mock.ValidClusterID,
+				"ref_id":        ec.String("main-elasticsearch"),
 				"logs":          true,
 				"metrics":       true,
 			}},
@@ -124,6 +127,31 @@ func TestExpandObservability(t *testing.T) {
 		{
 			name: "empty returns an empty request",
 			args: args{},
+		},
+		{
+			name: "expands all observability settings with given refID",
+			args: args{
+				v: []interface{}{map[string]interface{}{
+					"deployment_id": mock.ValidClusterID,
+					"ref_id":        "main-elasticsearch",
+					"metrics":       true,
+					"logs":          true,
+				}},
+			},
+			want: &models.DeploymentObservabilitySettings{
+				Logging: &models.DeploymentLoggingSettings{
+					Destination: &models.AbsoluteRefID{
+						DeploymentID: &mock.ValidClusterID,
+						RefID:        ec.String("main-elasticsearch"),
+					},
+				},
+				Metrics: &models.DeploymentMetricsSettings{
+					Destination: &models.AbsoluteRefID{
+						DeploymentID: &mock.ValidClusterID,
+						RefID:        ec.String("main-elasticsearch"),
+					},
+				},
+			},
 		},
 		{
 			name: "expands all observability settings",
@@ -193,9 +221,6 @@ func TestExpandObservability(t *testing.T) {
 						RefID:        ec.String("main-elasticsearch"),
 					},
 				},
-				//	Metrics: &models.DeploymentMetricsSettings{
-				//	Destination: &models.AbsoluteRefID{},
-				//	},
 			},
 		},
 		{
@@ -222,9 +247,6 @@ func TestExpandObservability(t *testing.T) {
 				}},
 			},
 			want: &models.DeploymentObservabilitySettings{
-				//	Logging: &models.DeploymentLoggingSettings{
-				//	Destination: &models.AbsoluteRefID{},
-				//	},
 				Metrics: &models.DeploymentMetricsSettings{
 					Destination: &models.AbsoluteRefID{
 						DeploymentID: &mock.ValidClusterID,

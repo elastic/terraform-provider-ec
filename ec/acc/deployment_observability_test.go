@@ -28,9 +28,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// This test case takes that on a hot/warm "ec_deployment", a select number of
-// topology settings can be changed without affecting the underlying Deployment
-// Template.
 func TestAccDeployment_observability(t *testing.T) {
 	resName := "ec_deployment.observability"
 	secondResName := "ec_deployment.basic"
@@ -38,9 +35,11 @@ func TestAccDeployment_observability(t *testing.T) {
 	startCfg := "testdata/deployment_observability_1.tf"
 	updateCfg := "testdata/deployment_observability_2.tf"
 	secondUpdateCfg := "testdata/deployment_observability_3.tf"
+	removeObsCfg := "testdata/deployment_observability_4.tf"
 	cfg := fixtureAccDeploymentResourceBasicObs(t, startCfg, randomName, getRegion(), defaultTemplate)
 	secondCfg := fixtureAccDeploymentResourceBasicObs(t, updateCfg, randomName, getRegion(), defaultTemplate)
 	thirdCfg := fixtureAccDeploymentResourceBasicObs(t, secondUpdateCfg, randomName, getRegion(), defaultTemplate)
+	fourthCfg := fixtureAccDeploymentResourceBasicObs(t, removeObsCfg, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -48,8 +47,7 @@ func TestAccDeployment_observability(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             cfg,
-				ExpectNonEmptyPlan: true,
+				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", secondResName, "id"),
 					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "true"),
@@ -65,12 +63,21 @@ func TestAccDeployment_observability(t *testing.T) {
 				),
 			},
 			{
-				Config:             thirdCfg,
-				ExpectNonEmptyPlan: true,
+				Config: thirdCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", secondResName, "id"),
 					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "true"),
 					resource.TestCheckResourceAttr(resName, "observability.0.logs", "false"),
+				),
+			},
+			{
+				Config:             fourthCfg,
+				ExpectNonEmptyPlan: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resName, "observability.0.deployment_id"),
+					resource.TestCheckNoResourceAttr(resName, "observability.0.metrics"),
+					resource.TestCheckNoResourceAttr(resName, "observability.0.logs"),
+					resource.TestCheckNoResourceAttr(resName, "observability.0.ref_id"),
 				),
 			},
 		},

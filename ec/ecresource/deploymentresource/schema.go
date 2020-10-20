@@ -140,6 +140,11 @@ func newObservabilitySettings() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"ref_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+				Optional: true,
+			},
 			"logs": {
 				Type:     schema.TypeBool,
 				Optional: true,
