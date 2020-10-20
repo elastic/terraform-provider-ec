@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -71,7 +69,10 @@ func TestAccDeployment_observability(t *testing.T) {
 				),
 			},
 			{
-				Config:             fourthCfg,
+				Config: fourthCfg,
+				// This is expected as an empty observability object needs to be passed
+				// to unset observability settings, as opposed to a nil object when the
+				// deployment is first created.
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckNoResourceAttr(resName, "observability.0.deployment_id"),
@@ -85,6 +86,8 @@ func TestAccDeployment_observability(t *testing.T) {
 }
 
 func fixtureAccDeploymentResourceBasicObs(t *testing.T, fileName, name, region, depTpl string) string {
+	t.Helper()
+
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 
 	b, err := ioutil.ReadFile(fileName)
