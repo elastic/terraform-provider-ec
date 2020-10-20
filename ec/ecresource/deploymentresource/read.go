@@ -48,17 +48,22 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		return diag.FromErr(multierror.NewPrefixed("failed reading deployment", err))
 	}
 
-	remotes, _ := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
+	var diags diag.Diagnostics
+	remotes, err := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
 		API: client, DeploymentID: d.Id(),
 		RefID: d.Get("elasticsearch.0.ref_id").(string),
 	})
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if remotes == nil {
 		remotes = &models.RemoteResources{}
 	}
 
 	if err := modelToState(d, res, *remotes); err != nil {
-		return diag.FromErr(err)
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diags
 }

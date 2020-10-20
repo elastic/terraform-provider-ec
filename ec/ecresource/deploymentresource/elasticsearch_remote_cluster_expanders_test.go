@@ -111,7 +111,6 @@ func Test_expandRemoteClusters(t *testing.T) {
 		name string
 		args args
 		want *models.RemoteResources
-		err  error
 	}{
 		{
 			name: "wants no error or empty res",
@@ -147,8 +146,7 @@ func Test_expandRemoteClusters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := expandRemoteClusters(tt.args.raw)
-			assert.Equal(t, tt.err, err)
+			got := expandRemoteClusters(tt.args.raw)
 			assert.Equal(t, tt.want, got)
 		})
 	}
