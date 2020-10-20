@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -135,6 +133,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 }
 
 func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
+	t.Helper()
+
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {

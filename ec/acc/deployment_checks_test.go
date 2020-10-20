@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -39,6 +37,7 @@ func testAccCheckDeploymentExists(name string) resource.TestCheckFunc {
 		if saved.Primary.ID == "" {
 			return fmt.Errorf("no deployment id is set")
 		}
+
 		client, err := newAPI()
 		if err != nil {
 			return err

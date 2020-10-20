@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -75,8 +73,9 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 }
 
 func fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t *testing.T, fileName, name, region, depTpl string) string {
-	deploymentTpl := setDefaultTemplate(region, depTpl)
+	t.Helper()
 
+	deploymentTpl := setDefaultTemplate(region, depTpl)
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
