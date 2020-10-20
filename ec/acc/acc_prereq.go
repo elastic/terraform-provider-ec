@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build acceptance
-
 package acc
 
 import (
@@ -65,5 +63,14 @@ func testAccPreCheck(t *testing.T) {
 
 	if apikey != "" && (username != "" || password != "") {
 		t.Fatal("Only one of API Key or Username / Password can be specified to execute acceptance tests")
+	}
+}
+
+// requiresAPIConn should be called in functions which would be executed by the
+// Go testing framework and require external HTTP access, said functions should
+// call this one to avoid the tests errorring because of failing prequisites.
+func requiresAPIConn(t *testing.T) {
+	if os.Getenv("TF_ACC") != "1" {
+		t.Skip()
 	}
 }
