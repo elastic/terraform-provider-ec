@@ -66,6 +66,9 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
+// requiresAPIConn should be called in functions which would be executed by the
+// Go testing framework and require external HTTP access, said functions should
+// call this one to avoid the tests errorring because of failing prequisites.
 func requiresAPIConn(t *testing.T) {
 	if os.Getenv("TF_ACC") != "1" {
 		t.Skip()
