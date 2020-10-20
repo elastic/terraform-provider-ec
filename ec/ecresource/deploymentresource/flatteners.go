@@ -84,7 +84,7 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 			}
 		}
 
-		if observability := flattenObservability(res.Settings); observability != nil {
+		if observability := flattenObservability(res.Settings); len(observability) > 0 {
 			if err := d.Set("observability", observability); err != nil {
 				return err
 			}

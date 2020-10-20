@@ -49,6 +49,10 @@ func flattenObservability(settings *models.DeploymentSettings) []interface{} {
 		m["logs"] = true
 	}
 
+	if len(m) == 0 {
+		return nil
+	}
+
 	return []interface{}{m}
 }
 
@@ -57,7 +61,7 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 		return nil, nil
 	}
 
-	req := models.DeploymentObservabilitySettings{}
+	var req models.DeploymentObservabilitySettings
 
 	for _, rawObs := range raw {
 		var obs = rawObs.(map[string]interface{})

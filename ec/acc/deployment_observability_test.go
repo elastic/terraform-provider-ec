@@ -70,11 +70,8 @@ func TestAccDeployment_observability(t *testing.T) {
 			},
 			{
 				Config: fourthCfg,
-				// This is expected as an empty observability object needs to be passed
-				// to unset observability settings, as opposed to a nil object when the
-				// deployment is first created.
-				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "observability.#", "0"),
 					resource.TestCheckNoResourceAttr(resName, "observability.0.deployment_id"),
 					resource.TestCheckNoResourceAttr(resName, "observability.0.metrics"),
 					resource.TestCheckNoResourceAttr(resName, "observability.0.logs"),

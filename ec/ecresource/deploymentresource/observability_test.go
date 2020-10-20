@@ -45,6 +45,10 @@ func TestFlattenObservability(t *testing.T) {
 			args: args{settings: &models.DeploymentSettings{}},
 		},
 		{
+			name: "flattens no observability settings when empty",
+			args: args{settings: &models.DeploymentSettings{Observability: &models.DeploymentObservabilitySettings{}}},
+		},
+		{
 			name: "flattens observability settings",
 			args: args{settings: &models.DeploymentSettings{
 				Observability: &models.DeploymentObservabilitySettings{
