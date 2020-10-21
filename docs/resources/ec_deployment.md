@@ -34,6 +34,29 @@ resource "ec_deployment" "example_minimal" {
 }
 ```
 
+### With observability settings
+
+```hcl
+resource "ec_deployment" "example_observability" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = "7.9.2"
+  deployment_template_id = "aws-io-optimized-v2"
+
+  elasticsearch {}
+  
+  kibana {}
+
+  # Optional observability settings
+  observability {
+    deployment_id = ec_deployment.example_minimal.id
+  }
+}
+```
+
 ### With Cross Cluster Search settings
 
 ```hcl
@@ -87,6 +110,7 @@ The following arguments are supported:
 * `apm` (Optional) APM instance definition, can only be specified once.
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
 * `traffic_filter` (Optional) Traffic Filters to apply to the deployment as a list of traffic filter rule identifiers.
+* `observability` (Optional) Observability settings. Ship logs and metrics to a dedicated deployment.
 
 ### Resources
 
@@ -268,6 +292,10 @@ In addition to all arguments above, the following attributes are exported:
 * `enterprise_search.#.topology.#.node_type_appserver` - Node type (Appserver) for the Enterprise Search Topology element.
 * `enterprise_search.#.topology.#.node_type_connector` - Node type (Connector) for the Enterprise Search Topology element.
 * `enterprise_search.#.topology.#.node_type_worker` - Node type (worker) for the Enterprise Search Topology element.
+* `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics.
+* `observability.#.logs` - Enables or disables shipping logs (defaults to true).
+* `observability.#.metrics` - Enables or disables shipping metrics (defaults to true).
+
 
 ## Import
 

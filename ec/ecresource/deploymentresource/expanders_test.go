@@ -138,14 +138,42 @@ func Test_createResourceToModel(t *testing.T) {
 		{
 			name: "parses the resources",
 			args: args{
-				d:      deploymentRD,
-				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+				d: deploymentRD,
+				client: api.NewMock(
+					mock.New200Response(ioOptimizedTpl()),
+					mock.New200Response(
+						mock.NewStructBody(models.DeploymentGetResponse{
+							Healthy: ec.Bool(true),
+							ID:      ec.String(mock.ValidClusterID),
+							Resources: &models.DeploymentResources{
+								Elasticsearch: []*models.ElasticsearchResourceInfo{{
+									ID:    ec.String(mock.ValidClusterID),
+									RefID: ec.String("main-elasticsearch"),
+								}},
+							},
+						}),
+					),
+				),
 			},
 			want: &models.DeploymentCreateRequest{
 				Name: "my_deployment_name",
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+					},
+					Observability: &models.DeploymentObservabilitySettings{
+						Logging: &models.DeploymentLoggingSettings{
+							Destination: &models.AbsoluteRefID{
+								DeploymentID: &mock.ValidClusterID,
+								RefID:        ec.String("main-elasticsearch"),
+							},
+						},
+						Metrics: &models.DeploymentMetricsSettings{
+							Destination: &models.AbsoluteRefID{
+								DeploymentID: &mock.ValidClusterID,
+								RefID:        ec.String("main-elasticsearch"),
+							},
+						},
 					},
 				},
 				Resources: &models.DeploymentCreateResources{
@@ -154,9 +182,6 @@ func Test_createResourceToModel(t *testing.T) {
 							Region: ec.String("us-east-1"),
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
-								Monitoring: &models.ManagedMonitoringSettings{
-									TargetClusterID: ec.String("some"),
-								},
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
@@ -603,7 +628,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(hotWarmTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -709,7 +735,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(ccsTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -771,7 +798,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(emptyTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -860,21 +888,48 @@ func Test_updateResourceToModel(t *testing.T) {
 		{
 			name: "parses the resources",
 			args: args{
-				d:      deploymentRD,
-				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+				d: deploymentRD,
+				client: api.NewMock(
+					mock.New200Response(ioOptimizedTpl()),
+					mock.New200Response(
+						mock.NewStructBody(models.DeploymentGetResponse{
+							Healthy: ec.Bool(true),
+							ID:      ec.String(mock.ValidClusterID),
+							Resources: &models.DeploymentResources{
+								Elasticsearch: []*models.ElasticsearchResourceInfo{{
+									ID:    ec.String(mock.ValidClusterID),
+									RefID: ec.String("main-elasticsearch"),
+								}},
+							},
+						}),
+					),
+				),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
+				Settings: &models.DeploymentUpdateSettings{
+					Observability: &models.DeploymentObservabilitySettings{
+						Logging: &models.DeploymentLoggingSettings{
+							Destination: &models.AbsoluteRefID{
+								DeploymentID: &mock.ValidClusterID,
+								RefID:        ec.String("main-elasticsearch"),
+							},
+						},
+						Metrics: &models.DeploymentMetricsSettings{
+							Destination: &models.AbsoluteRefID{
+								DeploymentID: &mock.ValidClusterID,
+								RefID:        ec.String("main-elasticsearch"),
+							},
+						},
+					},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
 							Region: ec.String("us-east-1"),
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
-								Monitoring: &models.ManagedMonitoringSettings{
-									TargetClusterID: ec.String("some"),
-								},
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
@@ -999,6 +1054,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -1103,6 +1159,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -1207,6 +1264,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{

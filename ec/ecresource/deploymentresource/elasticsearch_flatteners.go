@@ -58,10 +58,6 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 			m["topology"] = topology
 		}
 
-		for k, v := range flattenEsSettings(res.Info) {
-			m[k] = v
-		}
-
 		var metadata = res.Info.Metadata
 		if metadata != nil && metadata.CloudID != "" {
 			m["cloud_id"] = metadata.CloudID
@@ -174,28 +170,6 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 	}
 
 	return []interface{}{m}
-}
-
-func flattenEsSettings(info *models.ElasticsearchClusterInfo) map[string]interface{} {
-	// TODO Check if this is set in ECE; if not, remove entirely.
-	// var validMonitoringSettings = info.Settings != nil && info.Settings.Monitoring != nil
-	// validMonitoringSettings = validMonitoringSettings && info.Settings.Monitoring.TargetClusterID != nil
-	// if validMonitoringSettings {
-	// 	m["monitoring_settings"] = []interface{}{map[string]interface{}{
-	// 		"target_cluster_id": *info.Settings.Monitoring.TargetClusterID,
-	// 	}}
-	// }
-
-	var m = make(map[string]interface{})
-	var monitoringInfo = info.ElasticsearchMonitoringInfo != nil
-	monitoringInfo = monitoringInfo && info.ElasticsearchMonitoringInfo != nil
-	if monitoringInfo && len(info.ElasticsearchMonitoringInfo.DestinationClusterIds) > 0 {
-		m["monitoring_settings"] = []interface{}{map[string]interface{}{
-			"target_cluster_id": info.ElasticsearchMonitoringInfo.DestinationClusterIds[0],
-		}}
-	}
-
-	return m
 }
 
 func flattenEsRemotes(in models.RemoteResources) []interface{} {

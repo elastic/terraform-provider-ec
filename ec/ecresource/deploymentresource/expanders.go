@@ -29,6 +29,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	var result = models.DeploymentCreateRequest{
 		Name:      d.Get("name").(string),
 		Resources: &models.DeploymentCreateResources{},
+		Settings:  &models.DeploymentCreateSettings{},
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
@@ -78,6 +79,12 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 
 	expandTrafficFilterCreate(d.Get("traffic_filter").(*schema.Set), &result)
 
+	observability, err := expandObservability(d.Get("observability").([]interface{}), client)
+	if err != nil {
+		return nil, err
+	}
+	result.Settings.Observability = observability
+
 	return &result, nil
 }
 
@@ -86,6 +93,7 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		Name:         d.Get("name").(string),
 		PruneOrphans: ec.Bool(true),
 		Resources:    &models.DeploymentUpdateResources{},
+		Settings:     &models.DeploymentUpdateSettings{},
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
@@ -140,6 +148,21 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		return nil, err
 	}
 	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
+
+	observability, err := expandObservability(d.Get("observability").([]interface{}), client)
+	if err != nil {
+		return nil, err
+	}
+
+	// In order to stop shipping logs and metrics, an empty Observability
+	// object must be passed, as opposed to a nil object when creating a
+	// deployment without observability settings.
+	old, new := d.GetChange("observability")
+	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+		result.Settings.Observability = &models.DeploymentObservabilitySettings{}
+	} else {
+		result.Settings.Observability = observability
+	}
 
 	return &result, nil
 }

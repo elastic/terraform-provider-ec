@@ -81,24 +81,6 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
-	if rawSettings, ok := es["monitoring_settings"]; ok {
-		if settings := rawSettings.([]interface{}); len(settings) > 0 {
-			ms := settings[0].((map[string]interface{}))
-			res.Settings.Monitoring = &models.ManagedMonitoringSettings{
-				TargetClusterID: ec.String(ms["target_cluster_id"].(string)),
-			}
-		}
-		// } else {
-		// if monitoring_settings isn't present, then setting the Monitoring
-		// property to the object without an ID, which should stop the monitoring.
-		// FIXME: This doesn't currently work, reported in a cloud issue:
-		// https://github.com/elastic/cloud/issues/57821.
-		// res.Settings.Monitoring = &models.ManagedMonitoringSettings{
-		// 	TargetClusterID: nil,
-		// }
-		// }
-	}
-
 	return res, nil
 }
 

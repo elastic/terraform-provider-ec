@@ -425,6 +425,20 @@ func Test_modelToState(t *testing.T) {
 						TrafficFilterSettings: &models.TrafficFilterSettings{
 							Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
 						},
+						Observability: &models.DeploymentObservabilitySettings{
+							Logging: &models.DeploymentLoggingSettings{
+								Destination: &models.AbsoluteRefID{
+									DeploymentID: &mock.ValidClusterID,
+									RefID:        ec.String("main-elasticsearch"),
+								},
+							},
+							Metrics: &models.DeploymentMetricsSettings{
+								Destination: &models.AbsoluteRefID{
+									DeploymentID: &mock.ValidClusterID,
+									RefID:        ec.String("main-elasticsearch"),
+								},
+							},
+						},
 					},
 					Resources: &models.DeploymentResources{
 						Elasticsearch: []*models.ElasticsearchResourceInfo{

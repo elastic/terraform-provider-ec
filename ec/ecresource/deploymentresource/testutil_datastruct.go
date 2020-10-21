@@ -31,6 +31,7 @@ func newSampleDeployment() map[string]interface{} {
 		"kibana":                 []interface{}{newKibanaSample()},
 		"apm":                    []interface{}{newApmSample()},
 		"enterprise_search":      []interface{}{newEnterpriseSearchSample()},
+		"observability":          []interface{}{newObservabilitySample()},
 		"traffic_filter":         []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
 	}
 }
@@ -138,9 +139,6 @@ func newElasticsearchSample() map[string]interface{} {
 				"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 			}},
 		}},
-		"monitoring_settings": []interface{}{
-			map[string]interface{}{"target_cluster_id": "some"},
-		},
 	}
 }
 
@@ -200,5 +198,14 @@ func newEnterpriseSearchSample() map[string]interface{} {
 				"node_type_worker":          true,
 			},
 		},
+	}
+}
+
+func newObservabilitySample() map[string]interface{} {
+	return map[string]interface{}{
+		"deployment_id": mock.ValidClusterID,
+		"ref_id":        "main-elasticsearch",
+		"logs":          true,
+		"metrics":       true,
 	}
 }
