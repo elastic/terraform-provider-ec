@@ -86,11 +86,11 @@ func setDefaultTemplate(region, template string) string {
 }
 
 func buildAwsTemplate(template string) string {
-	legacyTemplates := []string{defaultTemplate, hotWarmTemplate, ccsTemplate,
+	v2Templates := []string{defaultTemplate, hotWarmTemplate, ccsTemplate,
 		computeOpTemplate, memoryOpTemplate, enterpriseSearchTemplate,
 	}
 
-	if slice.HasString(legacyTemplates, template) {
+	if slice.HasString(v2Templates, template) {
 		return "aws-" + template + "-v2"
 	}
 
