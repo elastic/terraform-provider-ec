@@ -47,11 +47,49 @@ resource "ec_deployment" "example_observability" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
+  
+  kibana {}
 
   # Optional observability settings
   observability {
     deployment_id = ec_deployment.example_minimal.id
   }
+}
+```
+
+### With Cross Cluster Search settings
+
+```hcl
+resource "ec_deployment" "source_deployment" {
+  name = "my_ccs_source"
+
+  region                 = "us-east-1"
+  version                = "7.9.2"
+  deployment_template_id = "aws-io-optimized-v2"
+
+  elasticsearch {
+    topology {
+      size = "1g"
+    }
+  }
+}
+
+resource "ec_deployment" "ccs" {
+  name = "ccs deployment"
+
+  region                 = "us-east-1"
+  version                = "7.9.2"
+  deployment_template_id = "aws-cross-cluster-search-v2"
+
+  elasticsearch {
+    remote_cluster {
+      deployment_id = ec_deployment.source_deployment.id
+      alias         = ec_deployment.source_deployment.name
+      ref_id        = ec_deployment.source_deployment.elasticsearch.0.ref_id
+    }
+  }
+
+  kibana {}
 }
 ```
 
@@ -91,6 +129,7 @@ The required `elasticsearch` block supports the following:
 * `topology` - (Optional) Topology element which can be set multiple times to compose complex topologies.
 * `ref_id` - (Optional) ref_id to set on the Elasticsearch resource, it is best left to the default value (Defaults to `main-elasticsearch`).
 * `config` (Optional) Elasticsearch settings which will be applied to all topologies unless overridden on the topology element. 
+* `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times.
 
 ##### Topology
 
@@ -116,6 +155,15 @@ The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks s
 * `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `elasticsearch.yml` setting overrides.
 * `user_settings_yaml` - (Optional) YAML-formatted user level `elasticsearch.yml` setting overrides.
 * `user_settings_override_yaml` - (Optional) YAML-formatted admin (ECE) level `elasticsearch.yml` setting overrides.
+
+##### Remote Cluster
+
+The optional `elasticsearch.remote_cluster` block can be set multiple times to represent multiple remote clusters the local Elasticsearch cluster connects to for Cross Cluster Search, supporting the following:
+
+* `deployment_id` (Required) Remote deployment ID.
+* `alias` (Optional) Alias for this Cross Cluster Search binding.
+* `ref_id` (Optional) Remote elasticsearch `ref_id`, it is best left to the default value (Defaults to `main-elasticsearch`).
+* `ignore_unavailable` (Optional) If true, skip the cluster during search when disconnected (Defaults to `false`).
 
 #### Kibana
 

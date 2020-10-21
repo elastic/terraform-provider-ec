@@ -350,6 +350,18 @@ func Test_modelToState(t *testing.T) {
 				"region":         "eu-west-1",
 				"resource_id":    "1230b3ae633b4f51a432d50971f7f1c1",
 				"version":        "7.9.2",
+				"remote_cluster": []interface{}{
+					map[string]interface{}{
+						"alias":            "alias",
+						"deployment_id":    "someid",
+						"ref_id":           "main-elasticsearch",
+						"skip_unavailable": true,
+					},
+					map[string]interface{}{
+						"deployment_id": "some other id",
+						"ref_id":        "main-elasticsearch",
+					},
+				},
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.ccs.r5d",
 					"node_type_data":            true,
@@ -378,10 +390,23 @@ func Test_modelToState(t *testing.T) {
 		},
 		Schema: newSchema(),
 	})
+	argCCSRemotes := models.RemoteResources{Resources: []*models.RemoteResourceRef{
+		{
+			Alias:              ec.String("alias"),
+			DeploymentID:       ec.String("someid"),
+			ElasticsearchRefID: ec.String("main-elasticsearch"),
+			SkipUnavailable:    ec.Bool(true),
+		},
+		{
+			DeploymentID:       ec.String("some other id"),
+			ElasticsearchRefID: ec.String("main-elasticsearch"),
+		},
+	}}
 
 	type args struct {
-		d   *schema.ResourceData
-		res *models.DeploymentGetResponse
+		d       *schema.ResourceData
+		res     *models.DeploymentGetResponse
+		remotes models.RemoteResources
 	}
 	tests := []struct {
 		name string
@@ -598,13 +623,13 @@ func Test_modelToState(t *testing.T) {
 		},
 		{
 			name: "flattens an aws plan (Cross Cluster Search)",
-			args: args{d: awsCCSRD, res: awsCCSRes},
+			args: args{d: awsCCSRD, res: awsCCSRes, remotes: argCCSRemotes},
 			want: wantAWSCCSDeployment,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := modelToState(tt.args.d, tt.args.res)
+			err := modelToState(tt.args.d, tt.args.res, tt.args.remotes)
 			if tt.err != nil {
 				assert.EqualError(t, err, tt.err.Error())
 			} else {

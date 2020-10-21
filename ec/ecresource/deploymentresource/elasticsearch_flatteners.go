@@ -29,7 +29,7 @@ import (
 
 // flattenEsResources takes in Elasticsearch resource models and returns its
 // flattened form.
-func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string) []interface{} {
+func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, remotes models.RemoteResources) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})
@@ -69,6 +69,10 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string) []i
 
 		if c := flattenEsConfig(plan.Elasticsearch); len(c) > 0 {
 			m["config"] = c
+		}
+
+		if r := flattenEsRemotes(remotes); len(r) > 0 {
+			m["remote_cluster"] = r
 		}
 
 		result = append(result, m)
@@ -166,4 +170,29 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 	}
 
 	return []interface{}{m}
+}
+
+func flattenEsRemotes(in models.RemoteResources) []interface{} {
+	var res []interface{}
+	for _, r := range in.Resources {
+		var m = make(map[string]interface{})
+		if r.DeploymentID != nil && *r.DeploymentID != "" {
+			m["deployment_id"] = *r.DeploymentID
+		}
+
+		if r.ElasticsearchRefID != nil && *r.ElasticsearchRefID != "" {
+			m["ref_id"] = *r.ElasticsearchRefID
+		}
+
+		if r.Alias != nil && *r.Alias != "" {
+			m["alias"] = *r.Alias
+		}
+
+		if r.SkipUnavailable != nil {
+			m["skip_unavailable"] = *r.SkipUnavailable
+		}
+		res = append(res, m)
+	}
+
+	return res
 }

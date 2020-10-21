@@ -60,15 +60,23 @@ func createResource(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	d.SetId(*res.ID)
 
+	// Since before the deployment has been read, there's no real state
+	// persisted, it'd better to handle each of the errors by appending
+	// it to the `diag.Diagnostics` since it has support for it.
+	var diags diag.Diagnostics
+	if err := handleRemoteClusters(d, client); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
 	if diag := readResource(ctx, d, meta); diag != nil {
-		return diag
+		diags = append(diags, diags...)
 	}
 
 	if err := parseCredentials(d, res.Resources); err != nil {
-		return diag.FromErr(err)
+		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	return nil
+	return diags
 }
 
 func newCreationError(reqID string) error {

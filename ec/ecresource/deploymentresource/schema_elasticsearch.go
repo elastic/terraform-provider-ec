@@ -19,6 +19,7 @@ package deploymentresource
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func newElasticsearchResource() *schema.Resource {
@@ -67,6 +68,8 @@ func newElasticsearchResource() *schema.Resource {
 			"topology": elasticsearchTopologySchema(),
 
 			"config": elasticsearchConfig(),
+
+			"remote_cluster": elasticsearchRemoteCluster(),
 		},
 	}
 }
@@ -182,6 +185,43 @@ func elasticsearchConfig() *schema.Schema {
 				"user_settings_override_yaml": {
 					Type:        schema.TypeString,
 					Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
+					Optional:    true,
+				},
+			},
+		},
+	}
+}
+
+func elasticsearchRemoteCluster() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeList,
+		Optional:    true,
+		MinItems:    1,
+		Description: "Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"deployment_id": {
+					Description:  "Remote deployment ID",
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringLenBetween(32, 32),
+					Required:     true,
+				},
+				"alias": {
+					Description:  "Alias for this Cross Cluster Search binding",
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Optional:     true,
+				},
+				"ref_id": {
+					Description: `Remote elasticsearch "ref_id", it is best left to the default value`,
+					Type:        schema.TypeString,
+					Default:     "main-elasticsearch",
+					Optional:    true,
+				},
+				"skip_unavailable": {
+					Description: "If true, skip the cluster during search when disconnected",
+					Type:        schema.TypeBool,
+					Default:     false,
 					Optional:    true,
 				},
 			},

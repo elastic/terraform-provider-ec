@@ -29,7 +29,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) error {
+func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, remotes models.RemoteResources) error {
 	if err := d.Set("name", res.Name); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 			return err
 		}
 
-		esFlattened := flattenEsResources(res.Resources.Elasticsearch, *res.Name)
+		esFlattened := flattenEsResources(res.Resources.Elasticsearch, *res.Name, remotes)
 		if err := d.Set("elasticsearch", esFlattened); err != nil {
 			return err
 		}

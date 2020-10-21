@@ -42,6 +42,10 @@ func updateResource(ctx context.Context, d *schema.ResourceData, meta interface{
 		return diag.FromErr(err)
 	}
 
+	if err := handleRemoteClusters(d, client); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return readResource(ctx, d, meta)
 }
 
@@ -60,7 +64,6 @@ func updateDeployment(_ context.Context, d *schema.ResourceData, client *api.API
 			Region:  d.Get("region").(string),
 		},
 	})
-
 	if err != nil {
 		return multierror.NewPrefixed("failed updating deployment", err)
 	}

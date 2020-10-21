@@ -231,7 +231,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
 				Timeout:     defaultTimeout,
-				Retries:     2,
+				Retries:     DefaultHTTPRetries,
 			},
 		},
 		{
@@ -244,7 +244,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:  &userPassObj,
 				Client:      &http.Client{},
 				Timeout:     defaultTimeout,
-				Retries:     2,
+				Retries:     DefaultHTTPRetries,
 			},
 		},
 		{
@@ -257,7 +257,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:    &apiKeyObj,
 				Client:        &http.Client{},
 				Timeout:       defaultTimeout,
-				Retries:       2,
+				Retries:       DefaultHTTPRetries,
 				SkipTLSVerify: true,
 			},
 		},
@@ -271,7 +271,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:    &apiKeyObj,
 				Client:        &http.Client{},
 				Timeout:       defaultTimeout,
-				Retries:       2,
+				Retries:       DefaultHTTPRetries,
 				SkipTLSVerify: true,
 			},
 		},
@@ -285,7 +285,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
 				Timeout:     defaultTimeout,
-				Retries:     2,
+				Retries:     DefaultHTTPRetries,
 				VerboseSettings: api.VerboseSettings{
 					Verbose:    true,
 					RedactAuth: true,
@@ -303,7 +303,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
 				Timeout:     defaultTimeout,
-				Retries:     2,
+				Retries:     DefaultHTTPRetries,
 				VerboseSettings: api.VerboseSettings{
 					Verbose:    true,
 					RedactAuth: true,
@@ -321,7 +321,7 @@ func Test_newAPIConfig(t *testing.T) {
 				AuthWriter:  &apiKeyObj,
 				Client:      &http.Client{},
 				Timeout:     defaultTimeout,
-				Retries:     2,
+				Retries:     DefaultHTTPRetries,
 				VerboseSettings: api.VerboseSettings{
 					Verbose:    true,
 					RedactAuth: false,
