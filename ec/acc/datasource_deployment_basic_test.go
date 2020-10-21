@@ -32,7 +32,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	depsDatasourceName := "data.ec_deployments.query"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, getRegion(), depsDSTemplate)
+	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, getRegion(), computeOpTemplate)
 	var namePrefix = randomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{

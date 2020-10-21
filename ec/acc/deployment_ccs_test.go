@@ -90,7 +90,7 @@ func TestAccDeployment_ccs(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch toplogy size and remove the remote_cluster..
+				// Change the Elasticsearch topology size and node count.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
