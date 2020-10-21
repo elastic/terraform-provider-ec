@@ -24,11 +24,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDeployment_observability(t *testing.T) {
-	resName := "ec_deployment.observability"
+func TestAccDeployment_observabilityTpl(t *testing.T) {
+	resName := "ec_deployment.observability_tpl"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_observability_1.tf"
-	secondCfg := "testdata/deployment_observability_2.tf"
+	startCfg := "testdata/deployment_observability_tpl_1.tf"
+	secondCfg := "testdata/deployment_observability_tpl_2.tf"
 	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), observabilityTemplate)
 	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), observabilityTemplate)
 

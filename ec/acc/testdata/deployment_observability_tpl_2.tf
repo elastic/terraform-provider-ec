@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "observability" {
+resource "ec_deployment" "observability_tpl" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
