@@ -34,6 +34,11 @@ const (
 	providerUserAgentFmt = "elastic-terraform-provider/%s (%s)"
 )
 
+var (
+	// DefaultHTTPRetries to use for the provider's HTTP client.
+	DefaultHTTPRetries = 2
+)
+
 // configureAPI implements schema.ConfigureContextFunc
 func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	cfg, err := newAPIConfig(d)
@@ -84,7 +89,7 @@ func newAPIConfig(d *schema.ResourceData) (api.Config, error) {
 		SkipTLSVerify:   d.Get("insecure").(bool),
 		Timeout:         timeout,
 		UserAgent:       userAgent(Version),
-		Retries:         2,
+		Retries:         DefaultHTTPRetries,
 	}, nil
 }
 

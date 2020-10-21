@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	defaultPollFrequency = time.Millisecond * 500
-	defaultMaxRetry      = 5
+	defaultPollPlanFrequency = 2 * time.Second
+	defaultMaxPlanRetry      = 4
 )
 
 // WaitForPlanCompletion waits for a pending plan to finish.
@@ -35,8 +35,8 @@ func WaitForPlanCompletion(client *api.API, id string) error {
 	return planutil.Wait(plan.TrackChangeParams{
 		API: client, DeploymentID: id,
 		Config: plan.TrackFrequencyConfig{
-			PollFrequency: defaultPollFrequency,
-			MaxRetries:    defaultMaxRetry,
+			PollFrequency: defaultPollPlanFrequency,
+			MaxRetries:    defaultMaxPlanRetry,
 		},
 	})
 }
