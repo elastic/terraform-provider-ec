@@ -25,16 +25,18 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/stackapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 )
 
 const (
-	defaultTemplate = "io-optimized"
-	hotWarmTemplate = "hot-warm"
-	ccsTemplate     = "cross-cluster-search"
-
-	// This deployment template is only used for the
-	// TestAccDatasourceDeployment_basic test.
-	depsDSTemplate = "compute-optimized"
+	defaultTemplate          = "io-optimized"
+	hotWarmTemplate          = "hot-warm"
+	ccsTemplate              = "cross-cluster-search"
+	computeOpTemplate        = "compute-optimized"
+	memoryOpTemplate         = "memory-optimized"
+	enterpriseSearchTemplate = "enterprise-search-dedicated"
+	observabilityTemplate    = "observability"
+	securityTemplate         = "security"
 )
 
 func getRegion() string {
@@ -79,8 +81,20 @@ func setDefaultTemplate(region, template string) string {
 	case "gcp":
 		return "gcp-" + template
 	default:
+		return buildAwsTemplate(template)
+	}
+}
+
+func buildAwsTemplate(template string) string {
+	legacyTemplates := []string{defaultTemplate, hotWarmTemplate, ccsTemplate,
+		computeOpTemplate, memoryOpTemplate, enterpriseSearchTemplate,
+	}
+
+	if slice.HasString(legacyTemplates, template) {
 		return "aws-" + template + "-v2"
 	}
+
+	return "aws-" + template
 }
 
 func getResources(deploymentTemplate string) (*models.DeploymentCreateResources, error) {

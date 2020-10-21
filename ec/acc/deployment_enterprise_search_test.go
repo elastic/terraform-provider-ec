@@ -24,16 +24,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// This test case takes that on a hot/warm "ec_deployment", a select number of
-// topology settings can be changed without affecting the underlying Deployment
-// Template.
-func TestAccDeployment_ccs(t *testing.T) {
-	resName := "ec_deployment.ccs"
+func TestAccDeployment_enterpriseSearch(t *testing.T) {
+	resName := "ec_deployment.enterprise_search"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_ccs_1.tf"
-	secondCfg := "testdata/deployment_ccs_2.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), ccsTemplate)
-	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), ccsTemplate)
+	startCfg := "testdata/deployment_enterprise_search_1.tf"
+	secondCfg := "testdata/deployment_enterprise_search_2.tf"
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), enterpriseSearchTemplate)
+	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), enterpriseSearchTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -41,42 +38,19 @@ func TestAccDeployment_ccs(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create a CCS deployment with the default settings.
+				// Create an Enterprise Search deployment with the default settings.
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
-					// CCS defaults to 1g.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "4g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
-
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
-					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
-				),
-			},
-			{
-				// Change the Elasticsearch topology size and node count.
-				Config: secondConfigCfg,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					// Changes.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "2g"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
-
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "2"),
 					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.#", "1"),
@@ -84,7 +58,41 @@ func TestAccDeployment_ccs(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.zone_count", "2"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.size", "2g"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.size_resource", "memory"),
+				),
+			},
+			{
+				// Change the Elasticsearch topology size.
+				Config: secondConfigCfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "2g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "2"),
+					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "kibana.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.zone_count", "2"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.size", "2g"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.size_resource", "memory"),
 				),
 			},
 		},
