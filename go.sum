@@ -113,8 +113,8 @@ github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZm
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/docker/go-units v0.3.3/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/docker/go-units v0.4.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
-github.com/elastic/cloud-sdk-go v1.0.1-0.20201021033654-13f03d938751 h1:8D4lDhAyg+rILMUFh+MsFP9VfTH+dhiBSTCpGkMmFZM=
-github.com/elastic/cloud-sdk-go v1.0.1-0.20201021033654-13f03d938751/go.mod h1:pQ1irKPT2mEvRL3TZrg0bCNCnuo1+k6wgQEtVxOz9SA=
+github.com/elastic/cloud-sdk-go v1.0.1-0.20201022043812-171d06d2cd12 h1:C559NJ1N1yWrQBFpI0XUbPdi9iTgQm+QArVeoeYE7CY=
+github.com/elastic/cloud-sdk-go v1.0.1-0.20201022043812-171d06d2cd12/go.mod h1:pQ1irKPT2mEvRL3TZrg0bCNCnuo1+k6wgQEtVxOz9SA=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
