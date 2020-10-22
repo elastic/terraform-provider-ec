@@ -38,7 +38,7 @@ func Resource() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(5 * time.Minute),
+			Default: schema.DefaultTimeout(10 * time.Minute),
 		},
 	}
 }
