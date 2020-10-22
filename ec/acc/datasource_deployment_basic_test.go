@@ -31,9 +31,10 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	datasourceName := "data.ec_deployment.success"
 	depsDatasourceName := "data.ec_deployments.query"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	secondRandomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, getRegion(), computeOpTemplate)
-	var namePrefix = randomName[:22]
+	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, secondRandomName, getRegion(), computeOpTemplate)
+	var namePrefix = secondRandomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -132,7 +133,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	})
 }
 
-func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, secondName, region, depTpl string) string {
 	t.Helper()
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
@@ -141,6 +142,6 @@ func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, region, d
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, name, region, deploymentTpl, name, region, deploymentTpl,
+		region, name, region, deploymentTpl, secondName, region, deploymentTpl, secondName, region, deploymentTpl,
 	)
 }
