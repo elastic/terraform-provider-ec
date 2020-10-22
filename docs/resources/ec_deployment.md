@@ -47,7 +47,7 @@ resource "ec_deployment" "example_observability" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
-  
+
   kibana {}
 
   # Optional observability settings
