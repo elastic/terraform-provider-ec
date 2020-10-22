@@ -50,6 +50,11 @@ func newSchema() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"observability": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem:     newObservabilitySettings(),
+		},
 
 		// Deployment resources
 		"elasticsearch": {
@@ -71,6 +76,29 @@ func newSchema() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Computed: true,
 			Elem:     newEnterpriseSearchResourceInfo(),
+		},
+	}
+}
+
+func newObservabilitySettings() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"deployment_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ref_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"logs": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }

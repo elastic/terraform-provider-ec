@@ -47,7 +47,7 @@ resource "ec_deployment" "example_observability" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
-  
+
   kibana {}
 
   # Optional observability settings
@@ -293,6 +293,7 @@ In addition to all arguments above, the following attributes are exported:
 * `enterprise_search.#.topology.#.node_type_connector` - Node type (Connector) for the Enterprise Search Topology element.
 * `enterprise_search.#.topology.#.node_type_worker` - Node type (worker) for the Enterprise Search Topology element.
 * `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics.
+* `observability.#.ref_id` - (Optional) Elasticsearch resource kind ref_id of the destination deployment.
 * `observability.#.logs` - Enables or disables shipping logs (defaults to true).
 * `observability.#.metrics` - Enables or disables shipping metrics (defaults to true).
 

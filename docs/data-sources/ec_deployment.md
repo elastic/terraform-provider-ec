@@ -31,6 +31,11 @@ These will not be available for interpolation.
 * `region` - Region where the deployment can be found.
 * `deployment_template_id` - Deployment Template identifier from where the deployment is created.
 * `traffic_filter` - Traffic Filter block, which contains a list of traffic filter rule identifiers.
+* `observability` Observability settings. Information about logs and metrics shipped to a dedicated deployment.
+  * `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics.
+  * `observability.#.ref_id` - Elasticsearch resource kind ref_id of the destination deployment.
+  * `observability.#.logs` - Defines whether logs are enabled or disabled.
+  * `observability.#.metrics` - Defines whether metrics are enabled or disabled.
 * `elasticsearch` - Instance configuration of the Elasticsearch resource kind.
   * `elasticsearch.#.healthy` - Resource kind health status.
   * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash, [more information](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).

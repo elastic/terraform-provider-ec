@@ -58,6 +58,25 @@ func Test_modelToState(t *testing.T) {
 					ID:      &mock.ValidClusterID,
 					Healthy: ec.Bool(true),
 					Name:    ec.String("my_deployment_name"),
+					Settings: &models.DeploymentSettings{
+						TrafficFilterSettings: &models.TrafficFilterSettings{
+							Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+						},
+						Observability: &models.DeploymentObservabilitySettings{
+							Logging: &models.DeploymentLoggingSettings{
+								Destination: &models.AbsoluteRefID{
+									DeploymentID: &mock.ValidClusterID,
+									RefID:        ec.String("main-elasticsearch"),
+								},
+							},
+							Metrics: &models.DeploymentMetricsSettings{
+								Destination: &models.AbsoluteRefID{
+									DeploymentID: &mock.ValidClusterID,
+									RefID:        ec.String("main-elasticsearch"),
+								},
+							},
+						},
+					},
 					Resources: &models.DeploymentResources{
 						Elasticsearch: []*models.ElasticsearchResourceInfo{
 							{
@@ -121,6 +140,8 @@ func newSampleDeployment() map[string]interface{} {
 		"deployment_template_id": "aws-io-optimized",
 		"healthy":                true,
 		"region":                 "us-east-1",
+		"traffic_filter":         []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
+		"observability":          []interface{}{newObservabilitySample()},
 		"elasticsearch": []interface{}{map[string]interface{}{
 			"healthy": true,
 		}},
@@ -133,5 +154,14 @@ func newSampleDeployment() map[string]interface{} {
 		"enterprise_search": []interface{}{map[string]interface{}{
 			"healthy": true,
 		}},
+	}
+}
+
+func newObservabilitySample() map[string]interface{} {
+	return map[string]interface{}{
+		"deployment_id": mock.ValidClusterID,
+		"ref_id":        "main-elasticsearch",
+		"logs":          true,
+		"metrics":       true,
 	}
 }

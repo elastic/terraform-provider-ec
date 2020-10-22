@@ -3,6 +3,20 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
+resource "ec_deployment" "basic_observability" {
+  name                   = "%s"
+  region                 = "%s"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "%s"
+
+  elasticsearch {
+    topology {
+      size       = "1g"
+      zone_count = 1
+    }
+  }
+}
+
 resource "ec_deployment" "basic_datasource" {
   name                   = "%s"
   region                 = "%s"
@@ -20,6 +34,10 @@ resource "ec_deployment" "basic_datasource" {
   apm {}
 
   enterprise_search {}
+
+  observability {
+    deployment_id = ec_deployment.basic_observability.id
+  }
 
   traffic_filter = [
     ec_deployment_traffic_filter.default.id,
