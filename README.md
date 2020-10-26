@@ -60,6 +60,8 @@ resource "ec_deployment" "example_minimal" {
 }
 ```
 
+Full resource documentation can be [found here](https://github.com/elastic/terraform-provider-ec/tree/master/docs)
+
 ## Developer Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.13+
