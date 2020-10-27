@@ -18,22 +18,56 @@
 package util
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // ResDataParams holds the raw configuration for NewResourceData to consume
 type ResDataParams struct {
-	ID        string
-	Resources map[string]interface{}
-	Schema    map[string]*schema.Schema
+	// ID to set for the resource.
+	ID string
+
+	// The resource's schema.
+	Schema map[string]*schema.Schema
+
+	// The current resource state, to simulate a create or a case where no
+	// previous state has been persisted, only State should be specified.
+	State map[string]interface{}
+
+	// The desired resource configuration, this is useful to simulate "update"
+	// changes on a given resource.
+	Change map[string]interface{}
+}
+
+// Validate the parameters
+func (params ResDataParams) Validate() error {
+	merr := multierror.NewPrefixed("invalid NewResourceData parameters")
+	if params.ID == "" {
+		merr = merr.Append(errors.New("id cannot be empty"))
+	}
+
+	if len(params.Schema) == 0 {
+		merr = merr.Append(errors.New("schema cannot be empty"))
+	}
+
+	if params.State == nil {
+		merr = merr.Append(errors.New("state cannot be empty"))
+	}
+
+	return merr.ErrorOrNil()
 }
 
 // NewResourceData creates a ResourceData from a raw configuration map and schema.
 func NewResourceData(t *testing.T, params ResDataParams) *schema.ResourceData {
-	rd := schema.TestResourceDataRaw(t, params.Schema, params.Resources)
-	rd.SetId(params.ID)
+	t.Helper()
+	if err := params.Validate(); err != nil {
+		t.Fatal(err)
+	}
 
-	return rd
+	return TestResourceDataRaw(t,
+		params.ID, params.Schema, params.State, params.Change,
+	)
 }

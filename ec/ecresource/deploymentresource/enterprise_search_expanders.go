@@ -19,6 +19,7 @@ package deploymentresource
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -32,6 +33,10 @@ import (
 func expandEssResources(ess []interface{}, tpl *models.EnterpriseSearchPayload) ([]*models.EnterpriseSearchPayload, error) {
 	if len(ess) == 0 {
 		return nil, nil
+	}
+
+	if tpl == nil {
+		return nil, errors.New("enterprise_search specified but deployment template does not allow it")
 	}
 
 	result := make([]*models.EnterpriseSearchPayload, 0, len(ess))
@@ -87,10 +92,10 @@ func expandEssResource(raw interface{}, res *models.EnterpriseSearchPayload) (*m
 }
 
 func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTopologyElement) ([]*models.EnterpriseSearchTopologyElement, error) {
-	var rawTopologies = raw.([]interface{})
-	var res = make([]*models.EnterpriseSearchTopologyElement, 0, len(rawTopologies))
+	rawTopologies := raw.([]interface{})
+	res := make([]*models.EnterpriseSearchTopologyElement, 0, len(rawTopologies))
 	for i, rawTop := range rawTopologies {
-		var topology = rawTop.(map[string]interface{})
+		topology := rawTop.(map[string]interface{})
 		var icID string
 		if id, ok := topology["instance_configuration_id"]; ok {
 			icID = id.(string)
@@ -151,7 +156,7 @@ func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTop
 
 func expandEssConfig(raw interface{}, res *models.EnterpriseSearchConfiguration) error {
 	for _, rawCfg := range raw.([]interface{}) {
-		var cfg = rawCfg.(map[string]interface{})
+		cfg := rawCfg.(map[string]interface{})
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
 				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
@@ -209,11 +214,7 @@ func matchEssTopology(id string, topologies []*models.EnterpriseSearchTopologyEl
 // template or an empty version of the payload.
 func essResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
 	if len(res.DeploymentTemplate.Resources.EnterpriseSearch) == 0 {
-		return &models.EnterpriseSearchPayload{
-			Plan: &models.EnterpriseSearchPlan{
-				EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
-			},
-		}
+		return nil
 	}
 	return res.DeploymentTemplate.Resources.EnterpriseSearch[0]
 }

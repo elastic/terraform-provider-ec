@@ -19,6 +19,7 @@ package deploymentresource
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -32,6 +33,11 @@ import (
 func expandKibanaResources(kibanas []interface{}, tpl *models.KibanaPayload) ([]*models.KibanaPayload, error) {
 	if len(kibanas) == 0 {
 		return nil, nil
+	}
+
+	if tpl == nil {
+		fmt.Printf("%+v, %+v", len(kibanas), kibanas)
+		return nil, errors.New("kibana specified but deployment template does not allow it")
 	}
 
 	result := make([]*models.KibanaPayload, 0, len(kibanas))
@@ -198,11 +204,7 @@ func matchKibanaTopology(id string, topologies []*models.KibanaClusterTopologyEl
 // template or an empty version of the payload.
 func kibanaResource(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
 	if len(res.DeploymentTemplate.Resources.Kibana) == 0 {
-		return &models.KibanaPayload{
-			Plan: &models.KibanaClusterPlan{
-				Kibana: &models.KibanaConfiguration{},
-			},
-		}
+		return nil
 	}
 	return res.DeploymentTemplate.Resources.Kibana[0]
 }

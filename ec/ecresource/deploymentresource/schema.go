@@ -89,17 +89,17 @@ func newSchema() map[string]*schema.Schema {
 			Elem:        newElasticsearchResource(),
 		},
 		"kibana": {
+			Type:        schema.TypeList,
+			Description: "Optional Kibana resource definition",
+			Optional:    true,
+			MaxItems:    1,
+			Elem:        newKibanaResource(),
+		},
+		"apm": {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
-			Elem:     newKibanaResource(),
-		},
-		"apm": {
-			Type:         schema.TypeList,
-			Optional:     true,
-			MaxItems:     1,
-			RequiredWith: []string{"kibana"},
-			Elem:         newApmResource(),
+			Elem:     newApmResource(),
 		},
 		"enterprise_search": {
 			Type:     schema.TypeList,

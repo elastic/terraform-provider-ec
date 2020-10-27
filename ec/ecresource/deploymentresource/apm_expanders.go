@@ -19,6 +19,7 @@ package deploymentresource
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -32,6 +33,10 @@ import (
 func expandApmResources(apms []interface{}, tpl *models.ApmPayload) ([]*models.ApmPayload, error) {
 	if len(apms) == 0 {
 		return nil, nil
+	}
+
+	if tpl == nil {
+		return nil, errors.New("apm specified but deployment template does not allow it")
 	}
 
 	result := make([]*models.ApmPayload, 0, len(apms))
@@ -87,10 +92,11 @@ func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayl
 }
 
 func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement) ([]*models.ApmTopologyElement, error) {
-	var rawTopologies = raw.([]interface{})
-	var res = make([]*models.ApmTopologyElement, 0, len(rawTopologies))
+	rawTopologies := raw.([]interface{})
+	res := make([]*models.ApmTopologyElement, 0, len(rawTopologies))
+
 	for i, rawTop := range rawTopologies {
-		var topology = rawTop.(map[string]interface{})
+		topology := rawTop.(map[string]interface{})
 		var icID string
 		if id, ok := topology["instance_configuration_id"]; ok {
 			icID = id.(string)
@@ -208,11 +214,7 @@ func matchApmTopology(id string, topologies []*models.ApmTopologyElement) (*mode
 // template or an empty version of the payload.
 func apmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
 	if len(res.DeploymentTemplate.Resources.Apm) == 0 {
-		return &models.ApmPayload{
-			Plan: &models.ApmPlan{
-				Apm: &models.ApmConfiguration{},
-			},
-		}
+		return nil
 	}
 	return res.DeploymentTemplate.Resources.Apm[0]
 }

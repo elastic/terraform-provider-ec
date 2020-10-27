@@ -105,14 +105,14 @@ func Test_newAPIConfig(t *testing.T) {
 	defer unsetECAPIKey(t)()
 
 	defaultCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:        "whocares",
-		Schema:    newSchema(),
-		Resources: map[string]interface{}{},
+		ID:     "whocares",
+		Schema: newSchema(),
+		State:  map[string]interface{}{},
 	})
 	invalidTimeoutCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"timeout": "invalid",
 		},
 	})
@@ -120,7 +120,7 @@ func Test_newAPIConfig(t *testing.T) {
 	apiKeyCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"apikey": "blih",
 		},
 	})
@@ -129,7 +129,7 @@ func Test_newAPIConfig(t *testing.T) {
 	userPassCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"username": "my-user",
 			"password": "my-pass",
 		},
@@ -143,7 +143,7 @@ func Test_newAPIConfig(t *testing.T) {
 	insecureCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"apikey":   "blih",
 			"insecure": true,
 		},
@@ -152,7 +152,7 @@ func Test_newAPIConfig(t *testing.T) {
 	verboseCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"apikey":  "blih",
 			"verbose": true,
 		},
@@ -172,7 +172,7 @@ func Test_newAPIConfig(t *testing.T) {
 	verboseCustomFileCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"apikey":       "blih",
 			"verbose":      true,
 			"verbose_file": customFile.Name(),
@@ -181,7 +181,7 @@ func Test_newAPIConfig(t *testing.T) {
 	verboseAndCredsCustomFileCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"apikey":              "blih",
 			"verbose":             true,
 			"verbose_file":        customFile.Name(),
@@ -192,7 +192,7 @@ func Test_newAPIConfig(t *testing.T) {
 	verboseInvalidFileCfg := util.NewResourceData(t, util.ResDataParams{
 		ID:     "whocares",
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"apikey":              "blih",
 			"verbose":             true,
 			"verbose_file":        invalidPath,

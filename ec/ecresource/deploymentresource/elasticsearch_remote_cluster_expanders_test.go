@@ -32,13 +32,13 @@ import (
 
 func Test_handleRemoteClusters(t *testing.T) {
 	deploymentEmptyRD := util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Resources: newSampleDeploymentEmptyRD(),
-		Schema:    newSchema(),
+		ID:     mock.ValidClusterID,
+		State:  newSampleDeploymentEmptyRD(),
+		Schema: newSchema(),
 	})
 	deploymentWithRemotesRD := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"name":                   "my_deployment_name",
 			"deployment_template_id": "aws-io-optimized-v2",
 			"region":                 "us-east-1",
