@@ -139,7 +139,7 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 	resName := "ec_deployment.defaults"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic_defaults_3.tf"
-	secondCfg := "testdata/deployment_basic_defaults_4.tf"
+	secondCfg := "testdata/deployment_basic_defaults_hw.tf"
 	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
 	hotWarmCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
 

@@ -30,8 +30,8 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic.tf"
-	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter.tf"
-	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_update.tf"
+	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter_2.tf"
+	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_3.tf"
 	cfg := fixtureAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilter := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilterUpdate := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
@@ -88,8 +88,8 @@ func TestAccDeployment_basic_config(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic.tf"
-	topologyConfig := "testdata/deployment_basic_topology_config.tf"
-	topConfig := "testdata/deployment_basic_top_config.tf"
+	topologyConfig := "testdata/deployment_basic_topology_config_2.tf"
+	topConfig := "testdata/deployment_basic_topology_config_3.tf"
 	cfg := fixtureAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
 	topologyConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, topologyConfig, randomName, getRegion(), defaultTemplate)
 	topConfigCfg := fixtureAccDeploymentResourceBasic(t, topConfig, randomName, getRegion(), defaultTemplate)
