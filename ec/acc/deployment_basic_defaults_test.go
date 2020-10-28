@@ -37,11 +37,9 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 	startCfg := "testdata/deployment_basic_defaults_1.tf"
 	secondCfg := "testdata/deployment_basic_defaults_2.tf"
 	thirdCfg := "testdata/deployment_basic_defaults_3.tf"
-	fourthCfg := "testdata/deployment_basic_defaults_4.tf"
 	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
 	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), defaultTemplate)
 	thirdConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, thirdCfg, randomName, getRegion(), defaultTemplate)
-	hotWarmCfg := fixtureAccDeploymentResourceBasicDefaults(t, fourthCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -117,6 +115,42 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 			{
 				// Remove all resources except Elasticsearch.
 				Config: thirdConfigCfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "2"),
+					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
+					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDeployment_basic_defaults_hw(t *testing.T) {
+	resName := "ec_deployment.defaults"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	startCfg := "testdata/deployment_basic_defaults_3.tf"
+	secondCfg := "testdata/deployment_basic_defaults_hw.tf"
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
+	hotWarmCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactory,
+		CheckDestroy:      testAccDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg,
+				// Create a deployment which only uses Elasticsearch resources
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
