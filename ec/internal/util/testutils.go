@@ -18,11 +18,13 @@
 package util
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 // ResDataParams holds the raw configuration for NewResourceData to consume
@@ -70,4 +72,37 @@ func NewResourceData(t *testing.T, params ResDataParams) *schema.ResourceData {
 	return resourceDataRaw(t,
 		params.ID, params.Schema, params.State, params.Change,
 	)
+}
+
+// resourceDataRaw creates a ResourceData from a raw configuration map.
+// Setting the ID to the specified value, and using the desired map as diff
+// to be applied, if not specified, then the current is used as the desired
+// configuration starting off from an empty state.
+func resourceDataRaw(t *testing.T, id string, schemaMap map[string]*schema.Schema, current, desired map[string]interface{}) *schema.ResourceData {
+	t.Helper()
+
+	result := generateRD(t, schemaMap, current, nil)
+	result.SetId(id)
+	if len(desired) == 0 {
+		return result
+	}
+
+	return generateRD(t, schemaMap, desired, result.State())
+}
+
+func generateRD(t *testing.T, schemaMap map[string]*schema.Schema, rawAttr map[string]interface{}, state *terraform.InstanceState) *schema.ResourceData {
+	resCfg := terraform.NewResourceConfigRaw(rawAttr)
+	sm := schema.InternalMap(schemaMap)
+
+	diff, err := sm.Diff(context.Background(), state, resCfg, nil, nil, true)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	result, err := sm.Data(state, diff)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	return result
 }
