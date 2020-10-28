@@ -114,8 +114,7 @@ The following arguments are supported:
 
 ### Resources
 
--> **Note on removing explicit topology objects** Due to current limitations, if a previously set topology object is removed from the configuration, the removal won't trigger any changes since the field is optional and computed, there is no way to determine that the block is being removed, resulting in _"sticky"_ topology configuration.
-This  applies to all `ec_deployment` resources (`elasticsearch`, `kibana`, `apm` and `enterprise_search`).
+!> **Warning on removing explicit topology objects** Due to current limitations, if a previously set topology object is removed from the configuration, the removal won't trigger any changes since the field is optional and computed, there is no way to determine that the block is being removed, resulting in _"sticky"_ topology configuration.
 
 In order to create a valid deployment at least one resource type (`elasticsearch`) must be specified, below are the supported resources.
 

@@ -19,10 +19,10 @@ package util
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-// RemovesObject takes in a ResourceData and a key string, returning whether
+// ObjectRemoved takes in a ResourceData and a key string, returning whether
 // or not the object ([]intreface{} type) is being removed in the current
 // change.
-func RemovesObject(d *schema.ResourceData, key string) bool {
+func ObjectRemoved(d *schema.ResourceData, key string) bool {
 	old, new := d.GetChange(key)
 	return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
 }

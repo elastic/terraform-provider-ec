@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestRemovesObject(t *testing.T) {
+func TestObjectRemoved(t *testing.T) {
 	schemaMap := map[string]*schema.Schema{
 		"object": {
 			Type: schema.TypeList,
@@ -78,8 +78,8 @@ func TestRemovesObject(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := RemovesObject(tt.args.d, tt.args.key); got != tt.want {
-				t.Errorf("RemovesObject() = %v, want %v", got, tt.want)
+			if got := ObjectRemoved(tt.args.d, tt.args.key); got != tt.want {
+				t.Errorf("ObjectRemoved() = %v, want %v", got, tt.want)
 			}
 		})
 	}

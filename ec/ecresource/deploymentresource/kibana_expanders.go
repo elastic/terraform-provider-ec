@@ -36,8 +36,7 @@ func expandKibanaResources(kibanas []interface{}, tpl *models.KibanaPayload) ([]
 	}
 
 	if tpl == nil {
-		fmt.Printf("%+v, %+v", len(kibanas), kibanas)
-		return nil, errors.New("kibana specified but deployment template does not allow it")
+		return nil, errors.New("kibana specified but deployment template is not configured for it. Use a different template if you wish to add kibana")
 	}
 
 	result := make([]*models.KibanaPayload, 0, len(kibanas))

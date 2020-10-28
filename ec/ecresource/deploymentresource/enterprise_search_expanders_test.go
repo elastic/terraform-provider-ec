@@ -345,7 +345,7 @@ func Test_expandEssResources(t *testing.T) {
 					}},
 				}},
 			},
-			err: errors.New("enterprise_search specified but deployment template does not allow it"),
+			err: errors.New("enterprise_search specified but deployment template is not configured for it. Use a different template if you wish to add enterprise_search"),
 		},
 	}
 	for _, tt := range tests {

@@ -25,11 +25,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// TestResourceDataRaw creates a ResourceData from a raw configuration map.
+// resourceDataRaw creates a ResourceData from a raw configuration map.
 // Setting the ID to the specified value, and using the desired map as diff
 // to be applied, if not specified, then the current is used as the desired
 // configuration starting off from an empty state.
-func TestResourceDataRaw(t *testing.T, id string, schemaMap map[string]*schema.Schema, current, desired map[string]interface{}) *schema.ResourceData {
+func resourceDataRaw(t *testing.T, id string, schemaMap map[string]*schema.Schema, current, desired map[string]interface{}) *schema.ResourceData {
 	t.Helper()
 
 	result := generateRD(t, schemaMap, current, nil)

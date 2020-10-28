@@ -67,7 +67,7 @@ func NewResourceData(t *testing.T, params ResDataParams) *schema.ResourceData {
 		t.Fatal(err)
 	}
 
-	return TestResourceDataRaw(t,
+	return resourceDataRaw(t,
 		params.ID, params.Schema, params.State, params.Change,
 	)
 }

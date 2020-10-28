@@ -96,16 +96,18 @@ func newSchema() map[string]*schema.Schema {
 			Elem:        newKibanaResource(),
 		},
 		"apm": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newApmResource(),
+			Type:        schema.TypeList,
+			Description: "Optional APM resource definition",
+			Optional:    true,
+			MaxItems:    1,
+			Elem:        newApmResource(),
 		},
 		"enterprise_search": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newEnterpriseSearchResource(),
+			Type:        schema.TypeList,
+			Description: "Optional Enterprise Search resource definition",
+			Optional:    true,
+			MaxItems:    1,
+			Elem:        newEnterpriseSearchResource(),
 		},
 
 		// Settings

@@ -36,7 +36,7 @@ func expandApmResources(apms []interface{}, tpl *models.ApmPayload) ([]*models.A
 	}
 
 	if tpl == nil {
-		return nil, errors.New("apm specified but deployment template does not allow it")
+		return nil, errors.New("apm specified but deployment template is not configured for it. Use a different template if you wish to add apm")
 	}
 
 	result := make([]*models.ApmPayload, 0, len(apms))

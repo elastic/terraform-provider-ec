@@ -36,7 +36,7 @@ func expandEssResources(ess []interface{}, tpl *models.EnterpriseSearchPayload) 
 	}
 
 	if tpl == nil {
-		return nil, errors.New("enterprise_search specified but deployment template does not allow it")
+		return nil, errors.New("enterprise_search specified but deployment template is not configured for it. Use a different template if you wish to add enterprise_search")
 	}
 
 	result := make([]*models.EnterpriseSearchPayload, 0, len(ess))
