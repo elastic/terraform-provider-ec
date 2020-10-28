@@ -35,9 +35,9 @@ func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
 
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Resources: newSampleDeployment(),
-		Schema:    newSchema(),
+		ID:     mock.ValidClusterID,
+		State:  newSampleDeployment(),
+		Schema: newSchema(),
 	})
 
 	azureIOOptimizedRes := openDeploymentGet(t, "testdata/deployment-azure-io-optimized.json")
@@ -45,7 +45,7 @@ func Test_modelToState(t *testing.T) {
 	azureIOOptimizedRD.SetId(mock.ValidClusterID)
 	wantAzureIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"deployment_template_id": "azure-io-optimized",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -115,7 +115,7 @@ func Test_modelToState(t *testing.T) {
 	awsIOOptimizedRD.SetId(mock.ValidClusterID)
 	wantAwsIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"deployment_template_id": "aws-io-optimized-v2",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -185,7 +185,7 @@ func Test_modelToState(t *testing.T) {
 	gcpIOOptimizedRD.SetId(mock.ValidClusterID)
 	wantGcpIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"deployment_template_id": "gcp-io-optimized",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -255,7 +255,7 @@ func Test_modelToState(t *testing.T) {
 	gcpHotWarmRD.SetId(mock.ValidClusterID)
 	wantGcpHotWarmDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"deployment_template_id": "gcp-hot-warm",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d-hot-warm",
@@ -336,7 +336,7 @@ func Test_modelToState(t *testing.T) {
 	awsCCSRD.SetId(mock.ValidClusterID)
 	wantAWSCCSDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"deployment_template_id": "aws-cross-cluster-search-v2",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "ccs",
@@ -754,9 +754,9 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 
 func Test_parseCredentials(t *testing.T) {
 	deploymentRD := util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Resources: newSampleDeployment(),
-		Schema:    newSchema(),
+		ID:     mock.ValidClusterID,
+		State:  newSampleDeployment(),
+		Schema: newSchema(),
 	})
 
 	rawData := newSampleDeployment()
@@ -765,9 +765,9 @@ func Test_parseCredentials(t *testing.T) {
 	rawData["apm_secret_token"] = "some-secret-token"
 
 	wantDeploymentRD := util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Resources: rawData,
-		Schema:    newSchema(),
+		ID:     mock.ValidClusterID,
+		State:  rawData,
+		Schema: newSchema(),
 	})
 
 	type args struct {
@@ -798,9 +798,9 @@ func Test_parseCredentials(t *testing.T) {
 			name: "when no credentials are passed, it doesn't overwrite them",
 			args: args{
 				d: util.NewResourceData(t, util.ResDataParams{
-					ID:        mock.ValidClusterID,
-					Resources: rawData,
-					Schema:    newSchema(),
+					ID:     mock.ValidClusterID,
+					State:  rawData,
+					Schema: newSchema(),
 				}),
 				resources: []*models.DeploymentResource{
 					{},

@@ -21,8 +21,11 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentCreateRequest, error) {
@@ -33,7 +36,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
-	res, err := deptemplateapi.Get(deptemplateapi.GetParams{
+	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 dtID,
 		Region:                     d.Get("region").(string),
@@ -44,38 +47,43 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		return nil, err
 	}
 
+	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
 		d.Get("elasticsearch").([]interface{}),
-		enrichWithDeploymentTemplate(esResource(res), dtID),
+		enrichWithDeploymentTemplate(esResource(template), dtID),
 	)
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
 	kibanaRes, err := expandKibanaResources(
-		d.Get("kibana").([]interface{}), kibanaResource(res),
+		d.Get("kibana").([]interface{}), kibanaResource(template),
 	)
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
 	apmRes, err := expandApmResources(
-		d.Get("apm").([]interface{}), apmResource(res),
+		d.Get("apm").([]interface{}), apmResource(template),
 	)
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
 	enterpriseSearchRes, err := expandEssResources(
-		d.Get("enterprise_search").([]interface{}), essResource(res),
+		d.Get("enterprise_search").([]interface{}), essResource(template),
 	)
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
+
+	if err := merr.ErrorOrNil(); err != nil {
+		return nil, err
+	}
 
 	expandTrafficFilterCreate(d.Get("traffic_filter").(*schema.Set), &result)
 
@@ -97,7 +105,7 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
-	res, err := deptemplateapi.Get(deptemplateapi.GetParams{
+	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 dtID,
 		Region:                     d.Get("region").(string),
@@ -113,55 +121,62 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	apm := d.Get("apm").([]interface{})
 	enterpriseSearch := d.Get("enterprise_search").([]interface{})
 
-	// When the deployment template is changed, we need to unset all the
-	// resources topologies to account for a new instance_configuration_id.
-	dtChange := d.HasChange("deployment_template_id")
-	if o, _ := d.GetChange("deployment_template_id"); dtChange && o.(string) != "" {
-		unsetTopology(es, d)
-		unsetTopology(kibana, d)
-		unsetTopology(apm, d)
-		unsetTopology(enterpriseSearch, d)
+	// When the deployment template is changed, we need to unset the missing
+	// resource topologies to account for a new instance_configuration_id and
+	// a different default value.
+	prevDT, _ := d.GetChange("deployment_template_id")
+	if d.HasChange("deployment_template_id") && prevDT.(string) != "" {
+		// If the deployment_template_id is changed, then we unset the
+		// Elasticsearch topology to account for the case where the
+		// instance_configuration_id changes, i.e. Hot / Warm, etc.
+
+		// This might not be necessary going forward as we move to
+		// tiered Elasticsearch nodes.
+		unsetTopology(es)
 	}
 
+	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
-		es, enrichWithDeploymentTemplate(esResource(res), dtID),
+		es, enrichWithDeploymentTemplate(esResource(template), dtID),
 	)
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
-	kibanaRes, err := expandKibanaResources(kibana, kibanaResource(res))
+	kibanaRes, err := expandKibanaResources(kibana, kibanaResource(template))
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(apm, apmResource(res))
+	apmRes, err := expandApmResources(apm, apmResource(template))
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	enterpriseSearchRes, err := expandEssResources(enterpriseSearch, essResource(res))
+	enterpriseSearchRes, err := expandEssResources(enterpriseSearch, essResource(template))
 	if err != nil {
-		return nil, err
+		merr = merr.Append(err)
 	}
 	result.Resources.EnterpriseSearch = append(result.Resources.EnterpriseSearch, enterpriseSearchRes...)
+
+	if err := merr.ErrorOrNil(); err != nil {
+		return nil, err
+	}
 
 	observability, err := expandObservability(d.Get("observability").([]interface{}), client)
 	if err != nil {
 		return nil, err
 	}
+	result.Settings.Observability = observability
 
 	// In order to stop shipping logs and metrics, an empty Observability
 	// object must be passed, as opposed to a nil object when creating a
 	// deployment without observability settings.
-	old, new := d.GetChange("observability")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+	if util.ObjectRemoved(d, "observability") {
 		result.Settings.Observability = &models.DeploymentObservabilitySettings{}
-	} else {
-		result.Settings.Observability = observability
 	}
 
 	return &result, nil
@@ -179,7 +194,7 @@ func enrichWithDeploymentTemplate(tpl *models.ElasticsearchPayload, dt string) *
 	return tpl
 }
 
-func unsetTopology(rawRes []interface{}, d *schema.ResourceData) {
+func unsetTopology(rawRes []interface{}) {
 	for _, r := range rawRes {
 		delete(r.(map[string]interface{}), "topology")
 	}

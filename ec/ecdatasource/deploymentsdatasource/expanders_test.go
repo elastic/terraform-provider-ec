@@ -31,14 +31,14 @@ import (
 
 func Test_expandFilters(t *testing.T) {
 	deploymentsDS := util.NewResourceData(t, util.ResDataParams{
-		ID:        "myID",
-		Resources: newSampleFilters(),
-		Schema:    newSchema(),
+		ID:     "myID",
+		State:  newSampleFilters(),
+		Schema: newSchema(),
 	})
 	invalidDS := util.NewResourceData(t, util.ResDataParams{
-		ID:        "myID",
-		Resources: newInvalidFilters(),
-		Schema:    newSchema(),
+		ID:     "myID",
+		State:  newInvalidFilters(),
+		Schema: newSchema(),
 	})
 	type args struct {
 		d *schema.ResourceData

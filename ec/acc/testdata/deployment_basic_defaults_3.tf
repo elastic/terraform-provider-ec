@@ -14,4 +14,6 @@ resource "ec_deployment" "defaults" {
       size = "1g"
     }
   }
+
+  kibana {}
 }

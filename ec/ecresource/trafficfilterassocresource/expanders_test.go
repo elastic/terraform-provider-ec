@@ -30,9 +30,9 @@ import (
 
 func Test_expand(t *testing.T) {
 	rd := util.NewResourceData(t, util.ResDataParams{
-		Resources: newSampleTrafficFilterAssociation(),
-		ID:        "123451",
-		Schema:    newSchema(),
+		State:  newSampleTrafficFilterAssociation(),
+		ID:     "123451",
+		Schema: newSchema(),
 	})
 	type args struct {
 		d *schema.ResourceData

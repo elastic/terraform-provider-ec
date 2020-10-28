@@ -36,9 +36,9 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentsSchemaArg.Set("deployment_template_id", "azure-compute-optimized")
 
 	wantDeployments := util.NewResourceData(t, util.ResDataParams{
-		ID:        "myID",
-		Resources: newSampleDeployments(),
-		Schema:    newSchema(),
+		ID:     "myID",
+		State:  newSampleDeployments(),
+		Schema: newSchema(),
 	})
 
 	type args struct {

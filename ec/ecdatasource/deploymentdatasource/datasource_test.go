@@ -34,9 +34,9 @@ func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
 
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Resources: newSampleDeployment(),
-		Schema:    newSchema(),
+		ID:     mock.ValidClusterID,
+		State:  newSampleDeployment(),
+		Schema: newSchema(),
 	})
 
 	type args struct {

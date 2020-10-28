@@ -10,4 +10,6 @@ resource "ec_deployment" "defaults" {
   deployment_template_id = "%s"
 
   elasticsearch {}
+
+  kibana {}
 }

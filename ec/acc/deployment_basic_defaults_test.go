@@ -113,7 +113,7 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 				),
 			},
 			{
-				// Remove all resources except Elasticsearch.
+				// Remove all resources except Elasticsearch and Kibana.
 				Config: thirdConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
@@ -126,7 +126,18 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "2"),
-					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
+					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "kibana.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size_resource", "memory"),
+
+					// In this test we're verifying that the topology for Kibana is not reset.
+					// This is due to the terraform SDK stickyness where a removed computed block
+					// with a previous value is the same as an empty block, so previous computed
+					// values are used.
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size", "2g"),
+
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
 				),
@@ -182,6 +193,11 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size", "4g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size_resource", "memory"),
 
+					// In this test we're verifying that the topology for Kibana is not reset again.
+					// Even when the deployment_template_id is changed, the configuration retains its
+					// previously stored value, due to terraform computed / optional stickyness.
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size", "2g"),
+
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
@@ -192,7 +208,11 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_master", "false"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_ml", "false"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.zone_count", "2"),
-					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
+					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "kibana.0.topology.0.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
 				),

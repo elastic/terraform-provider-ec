@@ -114,6 +114,8 @@ The following arguments are supported:
 
 ### Resources
 
+!> **Warning on removing explicit topology objects** Due to current limitations, if a previously set topology object is removed from the configuration, the removal won't trigger any changes since the field is optional and computed, there is no way to determine that the block is being removed, resulting in _"sticky"_ topology configuration.
+
 In order to create a valid deployment at least one resource type (`elasticsearch`) must be specified, below are the supported resources.
 
 When empty blocks are specified (`elasticsearch {}`, `kibana {}`, `apm {}`, `enterprise_search {}`), a default topology from the deployment template will be used, for each of the blocks. When a block is not set, the resource kind will not be enabled in the deployment.

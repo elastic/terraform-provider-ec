@@ -31,15 +31,15 @@ import (
 
 func Test_flatten(t *testing.T) {
 	rd := util.NewResourceData(t, util.ResDataParams{
-		Resources: newSampleTrafficFilterAssociation(),
-		ID:        "123451",
-		Schema:    newSchema(),
+		State:  newSampleTrafficFilterAssociation(),
+		ID:     "123451",
+		Schema: newSchema(),
 	})
 
 	wantNotFoundRd := util.NewResourceData(t, util.ResDataParams{
-		Resources: newSampleTrafficFilterAssociation(),
-		ID:        "123451",
-		Schema:    newSchema(),
+		State:  newSampleTrafficFilterAssociation(),
+		ID:     "123451",
+		Schema: newSchema(),
 	})
 
 	_ = wantNotFoundRd.Set("deployment_id", "")

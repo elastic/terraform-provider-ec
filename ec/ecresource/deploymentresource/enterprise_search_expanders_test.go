@@ -321,12 +321,38 @@ func Test_expandEssResources(t *testing.T) {
 			},
 			err: errors.New(`enterprise_search topology: invalid instance_configuration_id: "aws.enterprisesearch.m5" doesn't match any of the deployment template instance configurations`),
 		},
+		{
+			name: "tries to parse an enterprise_search resource when the template doesn't have an Enterprise Search instance set.",
+			args: args{
+				tpl: nil,
+				ess: []interface{}{map[string]interface{}{
+					"ref_id":                       "tertiary-enterprise_search",
+					"elasticsearch_cluster_ref_id": "somerefid",
+					"resource_id":                  mock.ValidClusterID,
+					"version":                      "7.8.0",
+					"region":                       "some-region",
+					"topology": []interface{}{map[string]interface{}{
+						"instance_configuration_id": "aws.enterprise_search.r5d",
+						"size":                      "4g",
+						"size_resource":             "memory",
+						"zone_count":                1,
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml":          "some.setting: value",
+							"user_settings_override_yaml": "some.setting: value2",
+							"user_settings_json":          "{\"some.setting\": \"value\"}",
+							"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+						}},
+					}},
+				}},
+			},
+			err: errors.New("enterprise_search specified but deployment template is not configured for it. Use a different template if you wish to add enterprise_search"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := expandEssResources(tt.args.ess, tt.args.tpl)
-			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
+			if !assert.Equal(t, tt.err, err) {
+				t.Error(err)
 			}
 
 			assert.Equal(t, tt.want, got)

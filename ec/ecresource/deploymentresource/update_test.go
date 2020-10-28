@@ -29,29 +29,29 @@ import (
 
 func Test_hasDeploymentChange(t *testing.T) {
 	unchanged := Resource().Data(util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Schema:    newSchema(),
-		Resources: newSampleDeployment(),
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		State:  newSampleDeployment(),
 	}).State())
 
 	changesToTrafficFilter := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"traffic_filter": []interface{}{"1.1.1.1"},
 		},
 	})
 
 	changesToName := util.NewResourceData(t, util.ResDataParams{
-		ID:        mock.ValidClusterID,
-		Schema:    newSchema(),
-		Resources: map[string]interface{}{"name": "some name"},
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		State:  map[string]interface{}{"name": "some name"},
 	})
 
 	changesToRegion := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
 		Schema: newSchema(),
-		Resources: map[string]interface{}{
+		State: map[string]interface{}{
 			"name":   "some name",
 			"region": "some-region",
 		},

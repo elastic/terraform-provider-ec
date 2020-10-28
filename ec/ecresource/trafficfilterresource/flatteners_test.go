@@ -45,9 +45,9 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	wantTrafficFilter := util.NewResourceData(t, util.ResDataParams{
-		ID:        "some-random-id",
-		Resources: newSampleTrafficFilter(),
-		Schema:    newSchema(),
+		ID:     "some-random-id",
+		State:  newSampleTrafficFilter(),
+		Schema: newSchema(),
 	})
 	type args struct {
 		d   *schema.ResourceData

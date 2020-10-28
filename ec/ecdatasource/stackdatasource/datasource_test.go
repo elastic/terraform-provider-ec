@@ -38,9 +38,9 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentSchemaArg.Set("version_regex", "latest")
 
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
-		ID:        "someid",
-		Resources: newSampleStack(),
-		Schema:    newSchema(),
+		ID:     "someid",
+		State:  newSampleStack(),
+		Schema: newSchema(),
 	})
 
 	type args struct {

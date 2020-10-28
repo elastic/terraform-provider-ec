@@ -57,9 +57,6 @@ func newKibanaResource() *schema.Resource {
 			"topology": kibanaTopologySchema(),
 
 			"config": kibanaConfig(),
-
-			// TODO: Implement settings field.
-			// "settings": interface{}
 		},
 	}
 }
