@@ -16,3 +16,4 @@ fake-sdk:
 .PHONY: remove-fake-sdk
 remove-fake-sdk:
 	@ go mod edit -dropreplace=github.com/elastic/cloud-sdk-go
+	
