@@ -107,7 +107,6 @@ func getResources(deploymentTemplate string) (*models.DeploymentCreateResources,
 		API:        client,
 		TemplateID: deploymentTemplate,
 		Region:     getRegion(),
-		AsList:     true,
 	})
 	if err != nil {
 		return nil, err

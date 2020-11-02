@@ -45,11 +45,9 @@ func fileAsResponseBody(t *testing.T, name string) io.ReadCloser {
 	defer f.Close()
 
 	var buf = new(bytes.Buffer)
-	buf.WriteString("[\n")
 	if _, err := io.Copy(buf, f); err != nil {
 		t.Fatal(err)
 	}
-	buf.WriteString("]\n")
 	buf.WriteString("\n")
 
 	return ioutil.NopCloser(buf)
