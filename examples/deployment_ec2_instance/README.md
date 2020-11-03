@@ -7,4 +7,5 @@ Such communication can also be done through this terraform provider using an AWS
 ## Running the example
 Build the provider using `make install` from the main folder
 run `terrafrom init` to initialize your terraform cli
+modify the `variables.tf` file to contain your aws profile and elastic cloud key.
 run `terraform apply` to see it work.
