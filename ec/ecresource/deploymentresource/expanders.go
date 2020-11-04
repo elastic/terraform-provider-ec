@@ -93,6 +93,11 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 	result.Settings.Observability = observability
 
+	if d.Get("disable_curation").(bool) && len(result.Resources.Elasticsearch) > 0 {
+		result.Resources.Elasticsearch[0].Plan.Elasticsearch.Curation = nil
+		result.Resources.Elasticsearch[0].Settings.Curation = nil
+	}
+
 	return &result, nil
 }
 
@@ -179,6 +184,10 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		result.Settings.Observability = &models.DeploymentObservabilitySettings{}
 	}
 
+	if d.Get("disable_curation").(bool) && len(result.Resources.Elasticsearch) > 0 {
+		result.Resources.Elasticsearch[0].Plan.Elasticsearch.Curation = nil
+		result.Resources.Elasticsearch[0].Settings.Curation = nil
+	}
 	return &result, nil
 }
 
