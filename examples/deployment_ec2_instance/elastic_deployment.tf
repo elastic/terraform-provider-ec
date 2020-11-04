@@ -17,12 +17,12 @@ resource "ec_deployment" "deployment" {
 # Create a traffic filter to allow the instance's public IP address to access our deployment.
 # This can also be done using a VPC private link connection.
 resource "ec_deployment_traffic_filter" "allow_my_instance" {
-  name   = format("Allow %s", aws_instance.inst.id)
+  name   = format("Allow %s", aws_instance.web.id)
   region = var.region
   type   = "ip"
 
   rule {
     # Render the IP address with an additional /32 for full CIDR address.
-    source = format("%s/32", aws_instance.inst.public_ip)
+    source = format("%s/32", aws_instance.web.public_ip)
   }
 }

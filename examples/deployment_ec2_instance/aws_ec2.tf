@@ -1,4 +1,4 @@
-resource "aws_instance" "inst" {
+resource "aws_instance" "web" {
   ami                    = var.ubuntu18_ami
   instance_type          = "t2.large"
   vpc_security_group_ids = [aws_security_group.group.id]
@@ -32,5 +32,5 @@ resource "aws_security_group" "group" {
 }
 
 output "instance" {
-  value = aws_instance.inst.public_ip
+  value = aws_instance.web.public_ip
 }
