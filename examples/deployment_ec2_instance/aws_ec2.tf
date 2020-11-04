@@ -13,7 +13,7 @@ resource "aws_default_subnet" "default" {
   availability_zone = format("%sa", var.region)
 }
 
-# Creating a security group to allow all outbound(egress) and ssh inbound (ingress)
+# Create a security group to allow all outbound (egress) and SSH inbound (ingress) traffic.
 resource "aws_security_group" "group" {
   vpc_id = aws_default_vpc.default.id
   egress {
