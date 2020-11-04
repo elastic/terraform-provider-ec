@@ -6,7 +6,7 @@ resource "aws_instance" "inst" {
   subnet_id              = aws_default_subnet.default.id
 }
 
-# Using the default vpc & subnet
+# Use the default VPC and subnet
 resource "aws_default_vpc" "default" {}
 resource "aws_default_subnet" "default" {
 
