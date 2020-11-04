@@ -9,7 +9,7 @@ resource "ec_deployment" "deployment" {
   deployment_template_id = "aws-io-optimized-v2"
   traffic_filter         = [ec_deployment_traffic_filter.allow_my_instance.id]
 
-  # Noting the deploymnet will contain elasticsearch and kibana with default configurations
+  # Note the deployment will contain Elasticsearch and Kibana resources with default configurations.
   elasticsearch {}
   kibana {}
 }
