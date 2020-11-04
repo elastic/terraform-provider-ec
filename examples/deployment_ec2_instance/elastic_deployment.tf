@@ -3,7 +3,7 @@ resource "ec_deployment" "deployment" {
   # Optional name.
   name = "elasticsearch_deployment"
 
-  # Mandatory fields
+  # Mandatory fields.
   region                 = var.region
   version                = var.deployment_version
   deployment_template_id = "aws-io-optimized-v2"
