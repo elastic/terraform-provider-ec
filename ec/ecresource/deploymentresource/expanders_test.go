@@ -94,7 +94,19 @@ func Test_createResourceToModel(t *testing.T) {
 			"kibana":                 []interface{}{map[string]interface{}{}},
 		},
 	})
-
+	deploymentHotWarmILM := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		State: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-hot-warm-v2",
+			"region":                 "us-east-1",
+			"version":                "7.9.2",
+			"disable_curation":       true,
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
 	ccsTpl := func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-cross-cluster-search-v2.json")
 	}
@@ -733,6 +745,95 @@ func Test_createResourceToModel(t *testing.T) {
 			},
 		},
 		{
+			name: "parses the resources with empty declarations (Hot Warm) and curation disabled",
+			args: args{
+				d:      deploymentHotWarmILM,
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+								Curation:                  nil,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Curation: nil,
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "hot",
+											},
+										},
+									},
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(false),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "parses the resources with empty declarations (Cross Cluster Search)",
 			args: args{
 				d:      deploymentCCS,
@@ -853,6 +954,19 @@ func Test_updateResourceToModel(t *testing.T) {
 			"deployment_template_id": "aws-hot-warm-v2",
 			"region":                 "us-east-1",
 			"version":                "7.9.2",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
+	deploymentHotWarmILM := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		State: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-hot-warm-v2",
+			"region":                 "us-east-1",
+			"version":                "7.9.2",
+			"disable_curation":       true,
 			"elasticsearch":          []interface{}{map[string]interface{}{}},
 			"kibana":                 []interface{}{map[string]interface{}{}},
 		},
@@ -1446,6 +1560,96 @@ func Test_updateResourceToModel(t *testing.T) {
 										FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
 										ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
 									},
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "hot",
+											},
+										},
+									},
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(false),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with empty declarations (Hot Warm) and curation disabled",
+			args: args{
+				d:      deploymentHotWarmILM,
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+								Curation:                  nil,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Curation: nil,
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-hot-warm-v2"),
