@@ -63,7 +63,7 @@ func newSchema() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Description: "Optional disable curation settings in case of hot-warm to enable ILM settings",
 			Optional:    true,
-			Default: 	 false,
+			Default:     false,
 		},
 
 		// Computed ES Creds
