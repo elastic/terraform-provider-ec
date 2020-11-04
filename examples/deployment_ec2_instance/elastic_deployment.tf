@@ -22,7 +22,7 @@ resource "ec_deployment_traffic_filter" "allow_my_instance" {
   type   = "ip"
 
   rule {
-    # Rendering the ip address with an additioanl /32 for full CIDR address
+    # Render the IP address with an additional /32 for full CIDR address.
     source = format("%s/32", aws_instance.inst.public_ip)
   }
 }
