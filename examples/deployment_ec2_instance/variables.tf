@@ -19,6 +19,6 @@ variable "keypair" {
 }
 
 variable "ubuntu18_ami" {
-  # This AMI id is only valid for us-east-1
+  # This AMI ID is only valid for us-east-1.
   default = "ami-0817d428a6fb68645"
 }
