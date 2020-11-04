@@ -9,7 +9,6 @@ resource "aws_instance" "inst" {
 # Use the default VPC and subnet
 resource "aws_default_vpc" "default" {}
 resource "aws_default_subnet" "default" {
-
   # Using zone A for convinience (this would render as us-east-1a, in case us-east-1 is the region variable)
   availability_zone = format("%sa", var.region)
 }
