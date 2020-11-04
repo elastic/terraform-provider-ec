@@ -14,7 +14,7 @@ resource "ec_deployment" "deployment" {
   kibana {}
 }
 
-# Creating a traffic filter to allow the instance's public IP address to access our deployment.
+# Create a traffic filter to allow the instance's public IP address to access our deployment.
 # This can also be done using a VPC private link connection.
 resource "ec_deployment_traffic_filter" "allow_my_instance" {
   name   = format("Allow %s", aws_instance.inst.id)
