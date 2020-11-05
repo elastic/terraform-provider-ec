@@ -59,12 +59,6 @@ func newSchema() map[string]*schema.Schema {
 			Description: "Optional request_id to set on the create operation, only use when previous create attempts return with an error and a request_id is returned as part of the error",
 			Optional:    true,
 		},
-		"disable_curation": {
-			Type:        schema.TypeBool,
-			Description: "Optional disable curation settings in case of hot-warm to enable ILM settings",
-			Optional:    true,
-			Default:     false,
-		},
 
 		// Computed ES Creds
 		"elasticsearch_username": {

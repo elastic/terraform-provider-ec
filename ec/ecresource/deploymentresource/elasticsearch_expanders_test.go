@@ -252,30 +252,12 @@ func Test_expandEsResource(t *testing.T) {
 					RefID:  ec.String("main-elasticsearch"),
 					Settings: &models.ElasticsearchClusterSettings{
 						DedicatedMastersThreshold: 6,
-						Curation: &models.ClusterCurationSettings{
-							Specs: []*models.ClusterCurationSpec{
-								{
-									IndexPattern:           ec.String("logstash-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("filebeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("metricbeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-							},
-						},
+						Curation:                  nil,
 					},
 					Plan: &models.ElasticsearchClusterPlan{
 						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version: "7.7.0",
-							Curation: &models.ElasticsearchCuration{
-								FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
-								ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
-							},
+							Version:  "7.7.0",
+							Curation: nil,
 						},
 						DeploymentTemplate: &models.DeploymentTemplateReference{
 							ID: ec.String("aws-hot-warm-v2"),
@@ -360,30 +342,12 @@ func Test_expandEsResource(t *testing.T) {
 					RefID:  ec.String("main-elasticsearch"),
 					Settings: &models.ElasticsearchClusterSettings{
 						DedicatedMastersThreshold: 6,
-						Curation: &models.ClusterCurationSettings{
-							Specs: []*models.ClusterCurationSpec{
-								{
-									IndexPattern:           ec.String("logstash-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("filebeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("metricbeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-							},
-						},
+						Curation:                  nil,
 					},
 					Plan: &models.ElasticsearchClusterPlan{
 						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version: "7.7.0",
-							Curation: &models.ElasticsearchCuration{
-								FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
-								ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
-							},
+							Version:  "7.7.0",
+							Curation: nil,
 						},
 						DeploymentTemplate: &models.DeploymentTemplateReference{
 							ID: ec.String("aws-hot-warm-v2"),
@@ -451,30 +415,12 @@ func Test_expandEsResource(t *testing.T) {
 					RefID:  ec.String("main-elasticsearch"),
 					Settings: &models.ElasticsearchClusterSettings{
 						DedicatedMastersThreshold: 6,
-						Curation: &models.ClusterCurationSettings{
-							Specs: []*models.ClusterCurationSpec{
-								{
-									IndexPattern:           ec.String("logstash-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("filebeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("metricbeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-							},
-						},
+						Curation:                  nil,
 					},
 					Plan: &models.ElasticsearchClusterPlan{
 						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version: "7.7.0",
-							Curation: &models.ElasticsearchCuration{
-								FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
-								ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
-							},
+							Version:  "7.7.0",
+							Curation: nil,
 						},
 						DeploymentTemplate: &models.DeploymentTemplateReference{
 							ID: ec.String("aws-hot-warm-v2"),
@@ -546,30 +492,12 @@ func Test_expandEsResource(t *testing.T) {
 					RefID:  ec.String("main-elasticsearch"),
 					Settings: &models.ElasticsearchClusterSettings{
 						DedicatedMastersThreshold: 6,
-						Curation: &models.ClusterCurationSettings{
-							Specs: []*models.ClusterCurationSpec{
-								{
-									IndexPattern:           ec.String("logstash-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("filebeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-								{
-									IndexPattern:           ec.String("metricbeat-*"),
-									TriggerIntervalSeconds: ec.Int32(86400),
-								},
-							},
-						},
+						Curation:                  nil,
 					},
 					Plan: &models.ElasticsearchClusterPlan{
 						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version: "7.7.0",
-							Curation: &models.ElasticsearchCuration{
-								FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
-								ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
-							},
+							Version:  "7.7.0",
+							Curation: nil,
 						},
 						DeploymentTemplate: &models.DeploymentTemplateReference{
 							ID: ec.String("aws-hot-warm-v2"),
