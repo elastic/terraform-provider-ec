@@ -86,7 +86,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 * `endpoint` - (Optional) This is the target endpoint. It must be provided only when
    you use the Elastic Cloud provider with an ECE installation or ESS Private.
 
-* `apikey` - (Optional) This is the EC API Key. It is required with ESS, but it is also valid with ECE. It must be
+* `apikey` - (Optional) This is the Elastic Cloud API key. It is required with ESS, but it is also valid with ECE. It must be
   provided, but it can also be sourced from the `EC_API_KEY` environment variable.
   Conflicts with `username` and `password` authentication options.
 
