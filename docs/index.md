@@ -4,7 +4,7 @@ page_title: "Provider: Elastic Cloud (EC)"
 
 # Elastic Cloud Provider
 
-The Elastic Cloud provider can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
+The Elastic Cloud Terraform provider can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
 APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider.
 
 ## Example Usage
