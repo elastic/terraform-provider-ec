@@ -1,5 +1,5 @@
 ---
-page_title: "Provider: Elastic Cloud (EC)"
+page_title: "Provider: Elastic Cloud"
 ---
 
 # Elastic Cloud Provider
@@ -81,7 +81,7 @@ provider "ec" {
 ## Argument Reference
 
 In addition to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html)
-(for ex. `alias` and `version`), the following arguments are supported in the Elastic Cloud (EC) `provider` block:
+(for ex. `alias` and `version`), the following arguments are supported in the Elastic Cloud `provider` block:
 
 * `endpoint` - (Optional) This is the target endpoint. It must be provided only when
    you use the Elastic Cloud provider with an ECE installation or ESS Private.
@@ -90,11 +90,11 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   provided, but it can also be sourced from the `EC_API_KEY` environment variable.
   Conflicts with `username` and `password` authentication options.
 
-* `username` - (Optional) This is the EC username. It must be provided, but it can also
+* `username` - (Optional) This is the Elastic Cloud username. It must be provided, but it can also
   be sourced from the `EC_USER` or `EC_USERNAME` environment variables. Conflicts with
   `apikey`. Not recommended.
 
-* `password` - (Optional) This is the EC password. It must be provided, but it can also
+* `password` - (Optional) This is the Elastic Cloud password. It must be provided, but it can also
   be sourced from the `EC_PASS` or `EC_PASSWORD` environment variables. Conflicts with 
   `apikey`. Not recommended.
 
@@ -103,14 +103,14 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   targeting ESS.
 
 * `insecure` - (Optional) This setting allows the user to set a custom timeout in the
-  individual HTTP request level. Defaults to 1 minute, but might need to be tweaked if timeouts
+  individual HTTP request level. Defaults to 1 minute (`1m`), but might need to be tweaked if timeouts
   are experienced.
 
 * `verbose` - (Optional) When set to `true`, it writes a `requests.json` file in the folder
   where Terraform runs with all the outgoing HTTP requests and responses. Defaults to `false`.
 
 * `verbose_credentials` - (Optional) When set with `verbose`, the contents of the Authorization
-header is not written. Defaults to `false`.
+header will not be redacted. Defaults to `false`.
 
 * `verbose_file` - (Optional) Sets the file where the verbose request and response HTTP flow will
 be written to. Defaults to `request.log`.
