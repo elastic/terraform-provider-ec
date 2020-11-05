@@ -50,7 +50,7 @@ public version control system.
 
 API keys are the recommended authentication method. They can be used to authenticate against Elasticsearch Service or Elastic Cloud Enterprise.
 
-They can either be hardcoded in the provider `.tf` configuration (not recommended), or specified with the environment variable `EC_API_KEY`.
+They can either be specified with the `EC_API_KEY` environment variable (recommended) or hardcoded in the provider `.tf` configuration file (supported but not recommended).
 
 ```hcl
 provider "ec" {
