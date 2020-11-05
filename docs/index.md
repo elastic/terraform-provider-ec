@@ -38,7 +38,7 @@ resource "ec_deployment" "my_deployment" {
 
 ## Authentication
 
-The Elastic Cloud (EC) provider offers two methods of authentication against the remote API: `apikey` or a combination of `username` and `password`. Depending on the environment, one or both can be used. The Public API of Elasticsearch Service (ESS) is the default `endpoint` that the provider will target.
+The Elastic Cloud Terraform provider offers two methods of authentication against the remote API: `apikey` or a combination of `username` and `password`. Depending on the environment, one or both can be used. The Public API of Elasticsearch Service (ESS) is the default `endpoint` that the provider will target.
 
 Elasticsearch Service (ESS) only supports `apikey`. Elastic Cloud Enterprise (ECE) supports both `apikey` and a combination of `username` and `password`.
 
