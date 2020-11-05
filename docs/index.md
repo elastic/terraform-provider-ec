@@ -48,7 +48,7 @@ public version control system.
 
 ### API Key authentication (recommended)
 
-API Keys are the recommended authentication method. They can be used to authenticate against Elasticsearch Service or Elastic Cloud Enterprise.
+API keys are the recommended authentication method. They can be used to authenticate against Elasticsearch Service or Elastic Cloud Enterprise.
 
 They can either be hardcoded in the provider `.tf` configuration (not recommended), or specified with the environment variable `EC_API_KEY`.
 
