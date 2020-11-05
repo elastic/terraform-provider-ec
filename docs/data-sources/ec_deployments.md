@@ -39,19 +39,19 @@ data "ec_deployments" "example" {
 * `deployment_template_id` - Deployment Template identifier from where the deployment is created.
 * `healthy` - Overall health status of the deployment.
 * `elasticsearch` - Filter by Elasticsearch resource kind status or configuration.
-  * `elasticsearch.#.status` - Resource kind status (e.g. "started", "stopped" etc).
+  * `elasticsearch.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring and started).
   * `elasticsearch.#.version` - Elastic stack version.
   * `elasticsearch.#.healthy` - Overall health status of the Elasticsearch instances.
 * `kibana` - Filter by Kibana resource kind status or configuration.
-  * `kibana.#.status` - Resource kind status (e.g. "started", "stopped" etc).
+  * `kibana.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring and started).
   * `kibana.#.version` - Elastic stack version.
   * `kibana.#.healthy` - Overall health status of the Kibana instances.
 * `apm` - Filter by APM resource kind status or configuration.
-  * `apm.#.status` - Resource kind status (e.g. "started", "stopped" etc).
+  * `apm.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring and started).
   * `apm.#.version` - Elastic stack version.
   * `apm.#.healthy` - Overall health status of the APM instances.
 * `enterprise_search` - Filter by Enterprise Search resource kind status or configuration.
-  * `enterprise_search.#.status` - Resource kind status (e.g. "started", "stopped" etc).
+  * `enterprise_search.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring and started).
   * `enterprise_search.#.version` - Elastic stack version.
   * `enterprise_search.#.healthy` - Overall health status of the Enterprise Search instances.
 
