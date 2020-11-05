@@ -46,7 +46,7 @@ Elasticsearch Service (ESS) only supports `apikey`. Elastic Cloud Enterprise (EC
 recommended, and risks secret leakage should this file ever be committed to a
 public version control system.
 
-### API Key authentication (recommended)
+### API key authentication (recommended)
 
 API keys are the recommended authentication method. They can be used to authenticate against Elasticsearch Service or Elastic Cloud Enterprise.
 
