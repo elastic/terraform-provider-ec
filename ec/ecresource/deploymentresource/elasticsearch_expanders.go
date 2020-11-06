@@ -81,6 +81,15 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
+	if snap, ok := es["snapshot_source"]; ok && len(snap.([]interface{})) > 0 {
+		res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
+			RestoreSnapshot: &models.RestoreSnapshotConfiguration{},
+		}
+		if err := expandSnapshotSource(snap, res.Plan.Transient.RestoreSnapshot); err != nil {
+			return nil, err
+		}
+	}
+
 	return res, nil
 }
 
@@ -169,6 +178,22 @@ func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) e
 		if v, ok := cfg["plugins"]; ok {
 			esCfg.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
 		}
+	}
+
+	return nil
+}
+
+func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfiguration) error {
+	for _, rawRestore := range raw.([]interface{}) {
+		var rs = rawRestore.(map[string]interface{})
+		if clusterID, ok := rs["source_cluster_id"]; ok {
+			restore.SourceClusterID = clusterID.(string)
+		}
+
+		if snapshotName, ok := rs["snapshot_name"]; ok {
+			restore.SnapshotName = ec.String(snapshotName.(string))
+		}
+
 	}
 
 	return nil

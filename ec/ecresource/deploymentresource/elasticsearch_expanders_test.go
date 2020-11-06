@@ -687,6 +687,67 @@ func Test_expandEsResource(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "parses an ES resource with snapshot settings",
+			args: args{
+				dt: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.7.0",
+						"region":      "some-region",
+						"snapshot_source": []interface{}{map[string]interface{}{
+							"snapshot_name":     "__latest_success__",
+							"source_cluster_id": mock.ValidClusterID,
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.data.highio.i3",
+							"size":                      "2g",
+							"zone_count":                1,
+						}},
+					},
+				},
+			},
+			want: []*models.ElasticsearchPayload{
+				{
+					Region: ec.String("some-region"),
+					RefID:  ec.String("main-elasticsearch"),
+					Settings: &models.ElasticsearchClusterSettings{
+						DedicatedMastersThreshold: 6,
+					},
+					Plan: &models.ElasticsearchClusterPlan{
+						Elasticsearch: &models.ElasticsearchConfiguration{
+							Version: "7.7.0",
+						},
+						DeploymentTemplate: &models.DeploymentTemplateReference{
+							ID: ec.String("aws-io-optimized-v2"),
+						},
+						Transient: &models.TransientElasticsearchPlanConfiguration{
+							RestoreSnapshot: &models.RestoreSnapshotConfiguration{
+								SnapshotName:    ec.String("__latest_success__"),
+								SourceClusterID: mock.ValidClusterID,
+							},
+						},
+						ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+							{
+								ZoneCount:               1,
+								InstanceConfigurationID: "aws.data.highio.i3",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(2048),
+								},
+								NodeType: &models.ElasticsearchNodeType{
+									Data:   ec.Bool(true),
+									Ingest: ec.Bool(true),
+									Master: ec.Bool(true),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
