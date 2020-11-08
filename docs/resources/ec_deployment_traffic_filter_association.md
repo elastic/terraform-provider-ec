@@ -1,14 +1,14 @@
 ---
 page_title: "Elastic Cloud: ec_deployment_traffic_filter_association"
 description: |-
-  Provides an Elastic Cloud traffic filter association resource. Allowing traffic filter rules to be associated to an Elastic Cloud deployment outside of the  control of Terraform, allowing associations to be created and deleted.
+  Provides an Elastic Cloud traffic filter association resource. Traffic filter rules are associated to an Elastic Cloud deployment outside of the control of Terraform, allowing associations to be created and deleted.
 ---
 
 # Resource: ec_deployment_traffic_filter_association
 
-Provides an Elastic Cloud traffic filter association resource. Allowing traffic filter rules to be associated to an Elastic Cloud deployment outside of the  control of Terraform, allowing associations to be created and deleted.
+Provides an Elastic Cloud traffic filter association resource. Traffic filter rules are associated to an Elastic Cloud deployment outside of the control of Terraform, allowing associations to be created and deleted.
 
-~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will assume management over the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
+~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
 
 
 ## Example Usage
@@ -39,7 +39,7 @@ resource "ec_deployment_traffic_filter_association" "example" {
 The following arguments are supported:
 
 * `traffic_filter_id` - (Required) Traffic filter ID of the rule to use for the attachment.
-* `deployment_id` - (Required) Deployment ID of the deployment to which attach the traffic filter rule.
+* `deployment_id` - (Required) Deployment ID of the deployment to which the traffic filter rule is attached.
 
 ## Attributes Reference
 
