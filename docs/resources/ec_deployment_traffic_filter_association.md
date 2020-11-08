@@ -1,12 +1,12 @@
 ---
 page_title: "Elastic Cloud: ec_deployment_traffic_filter_association"
 description: |-
-  Provides an Elastic Cloud traffic filter association resource. Traffic filter rules are associated to an Elastic Cloud deployment outside of the control of Terraform, allowing associations to be created and deleted.
+  Provides an Elastic Cloud traffic filter association resource. This allows traffic filter rules to be associated to an Elastic Cloud deployment outside of the control of Terraform. Associations can be created and deleted.
 ---
 
 # Resource: ec_deployment_traffic_filter_association
 
-Provides an Elastic Cloud traffic filter association resource. Traffic filter rules are associated to an Elastic Cloud deployment outside of the control of Terraform, allowing associations to be created and deleted.
+Provides an Elastic Cloud traffic filter association resource. This allows traffic filter rules to be associated to an Elastic Cloud deployment outside of the control of Terraform. Associations can be created and deleted.
 
 ~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
 
