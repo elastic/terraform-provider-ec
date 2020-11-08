@@ -1,12 +1,12 @@
 ---
 page_title: "Elastic Cloud: ec_deployment"
 description: |-
-  Provides an Elastic Cloud deployment resource. This allows deployments to be created, updated, and deleted.
+  Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.
 ---
 
 # Resource: ec_deployment
 
-Provides an Elastic Cloud deployment resource. This allows deployments to be created, updated, and deleted.
+Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.
 
 ~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
 
