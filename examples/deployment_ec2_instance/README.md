@@ -5,7 +5,8 @@ The code creates an ec2 instance in your default vpc & subnet, but uses the inst
 Such communication can also be done through this Terraform provider using AWS PrivateLink.
 
 ## Running the example
-Build the provider using `make install` from the main folder
-run `terrafrom init` to initialize your terraform cli
-modify the `variables.tf` file to contain your aws profile and elastic cloud key.
-run `terraform apply` to see it work.
+To run the example, follow these steps:
+1. Build the provider by running `make install` from the main folder.
+2. Run `terrafrom init` to initialize your Terraform CLI.
+3. Modify the `variables.tf` file to add your AWS profile and Elastic cloud key.
+4. Run `terraform apply` to check if it works.
