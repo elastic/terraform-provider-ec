@@ -1,12 +1,12 @@
 ---
 page_title: "Elastic Cloud: ec_deployment_traffic_filter"
 description: |-
-  Provides an Elastic Cloud traffic filter resource. Allowing traffic filter rules intended to limit inbound traffic to a deployment resources to be created, updated, and deleted.
+  Provides an Elastic Cloud traffic filter resource, which allows traffic filter rules to be created, updated, and deleted. Traffic filter rules are used to limit inbound traffic to deployment resources.
 ---
 
 # Resource: ec_deployment_traffic_filter
 
-Provides an Elastic Cloud traffic filter resource. Traffic filter rules are used to limit inbound traffic to deployment resources to be created, updated, and deleted.
+Provides an Elastic Cloud traffic filter resource, which allows traffic filter rules to be created, updated, and deleted. Traffic filter rules are used to limit inbound traffic to deployment resources.
 
 ## Example Usage
 
