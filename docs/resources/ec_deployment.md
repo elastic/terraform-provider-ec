@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `region` - (Required) Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE) installations, set `"ece-region"`.
 
--> If you change the `region`, the resource is destroyed and re-created.
+-> If you change the `region`, the resource will be destroyed and re-created.
 
 * `deployment_template_id` - (Required) Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 * `version` - (Required) Elastic Stack version to use for all the deployment resources.
