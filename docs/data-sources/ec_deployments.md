@@ -6,7 +6,7 @@ description: |-
 
 # Data Source: ec_deployments
 
-Use this data source to retrieve a list of deployment and resource kind IDs based on a supplied query.
+Use this data source to retrieve a list of IDs for the deployment and resource kind, based on the specified query.
 
 ## Example Usage
 
@@ -36,24 +36,24 @@ data "ec_deployments" "example" {
 ## Argument Reference
 
 * `name_prefix` - Prefix that one or several deployment names have in common.
-* `deployment_template_id` - Deployment Template identifier from where the deployment is created.
-* `healthy` - Overall health status of the deployment.
+* `deployment_template_id` - ID of the deployment template used to create the deployment.
+* `healthy` - Global health status of the deployment.
 * `elasticsearch` - Filter by Elasticsearch resource kind status or configuration.
-  * `elasticsearch.#.status` - Resource kind status (e.g. "started", "stopped" etc).
-  * `elasticsearch.#.version` - Elastic stack version.
-  * `elasticsearch.#.healthy` - Overall health status of the Elasticsearch instances.
+  * `elasticsearch.#.status` - Resource kind status (for example, "started", "stopped", etc).
+  * `elasticsearch.#.version` - Elastic Stack version.
+  * `elasticsearch.#.healthy` - Global health status of the Elasticsearch instances.
 * `kibana` - Filter by Kibana resource kind status or configuration.
-  * `kibana.#.status` - Resource kind status (e.g. "started", "stopped" etc).
-  * `kibana.#.version` - Elastic stack version.
-  * `kibana.#.healthy` - Overall health status of the Kibana instances.
+  * `kibana.#.status` - Resource kind status (for example, "started", "stopped", etc).
+  * `kibana.#.version` - Elastic Stack version.
+  * `kibana.#.healthy` - Global health status of the Kibana instances.
 * `apm` - Filter by APM resource kind status or configuration.
-  * `apm.#.status` - Resource kind status (e.g. "started", "stopped" etc).
-  * `apm.#.version` - Elastic stack version.
-  * `apm.#.healthy` - Overall health status of the APM instances.
+  * `apm.#.status` - Resource kind status (for example, "started", "stopped", etc).
+  * `apm.#.version` - Elastic Stack version.
+  * `apm.#.healthy` - Global health status of the APM instances.
 * `enterprise_search` - Filter by Enterprise Search resource kind status or configuration.
-  * `enterprise_search.#.status` - Resource kind status (e.g. "started", "stopped" etc).
-  * `enterprise_search.#.version` - Elastic stack version.
-  * `enterprise_search.#.healthy` - Overall health status of the Enterprise Search instances.
+  * `enterprise_search.#.status` - Resource kind status (for example, "started", "stopped", etc).
+  * `enterprise_search.#.version` - Elastic Stack version.
+  * `enterprise_search.#.healthy` - Global health status of the Enterprise Search instances.
 
 ## Attributes Reference
 
