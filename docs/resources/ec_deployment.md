@@ -162,7 +162,7 @@ The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks s
 
 ##### Remote Cluster
 
-The optional `elasticsearch.remote_cluster` block can be set multiple times. It represents multiple remote clusters to which the local Elasticsearch cluster connects for Cross Cluster Search and supports the following settings:
+The optional `elasticsearch.remote_cluster` block can be set multiple times. It represents one or multiple remote clusters to which the local Elasticsearch cluster connects for Cross Cluster Search and supports the following settings:
 
 * `deployment_id` (Required) Remote deployment ID.
 * `alias` (Optional) Alias for the Cross Cluster Search binding.
