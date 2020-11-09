@@ -99,7 +99,7 @@ resource "ec_deployment" "ccs" {
 
 The following arguments are supported:
 
-* `region` - (Required) Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE), set the `"ece-region"` environment.
+* `region` - (Required) Elasticsearch Service (ESS) region where to create the deployment. For Elastic Cloud Enterprise (ECE) installations, set `"ece-region"`.
 
 -> If you change the `region`, the resource is destroyed and re-created.
 
