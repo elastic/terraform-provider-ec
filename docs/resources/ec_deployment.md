@@ -180,7 +180,7 @@ The optional `kibana` block supports the following arguments:
 
 ##### Topology
 
-The optional `kibana.topology` block supports the following settings:
+The optional `kibana.topology` block supports the following arguments:
 
 * `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since Kibana has only one _instance type_.
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
