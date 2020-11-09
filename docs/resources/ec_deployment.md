@@ -128,7 +128,7 @@ To customize the size or settings of the deployment resource, use the `topology`
 
 #### Elasticsearch
 
-The required `elasticsearch` block supports the following settings:
+The required `elasticsearch` block supports the following arguments:
 
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `ref_id` - (Optional) Can be set on the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
