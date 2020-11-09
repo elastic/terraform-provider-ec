@@ -228,7 +228,7 @@ The optional `apm.config` and `apm.topology.config` blocks support the following
 
 #### Enterprise Search
 
-The optional `enterprise_search` block supports the following settings:
+The optional `enterprise_search` block supports the following arguments:
 
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
