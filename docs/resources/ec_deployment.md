@@ -247,7 +247,7 @@ The optional `enterprise_search.topology` block supports the following settings:
 
 ##### Config
 
-The optional `enterprise_search.config` and `enterprise_search.topology.config` blocks support the following settings:
+The optional `enterprise_search.config` and `enterprise_search.topology.config` blocks support the following arguments:
 
 * `user_settings_json` - (Optional) JSON-formatted user level `enterprise_search.yml` setting overrides.
 * `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `enterprise_search.yml` setting overrides.
