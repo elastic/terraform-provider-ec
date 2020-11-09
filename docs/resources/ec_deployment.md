@@ -152,7 +152,7 @@ The optional `elasticsearch.topology` block supports the following settings:
 
 ##### Config
 
-The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks support the following settings:
+The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks support the following arguments:
 
 * `plugins` - (Optional) List of Elasticsearch supported plugins. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html).
 * `user_settings_json` - (Optional) JSON-formatted user level `elasticsearch.yml` setting overrides.
