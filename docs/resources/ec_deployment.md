@@ -199,7 +199,7 @@ The optional `kibana.config` and `kibana.topology.config` blocks support the fol
 
 #### APM
 
-The optional `apm` block supports the following settings:
+The optional `apm` block supports the following arguments:
 
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
