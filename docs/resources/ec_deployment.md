@@ -132,7 +132,7 @@ The required `elasticsearch` block supports the following settings:
 
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `ref_id` - (Optional) Can be set on the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
-* `config` (Optional) Applied to all topologies unless overridden in the `topology` element. 
+* `config` (Optional) Applied Elasticsearch settings to all topologies unless overridden in the `topology` element. 
 * `remote_cluster` (Optional) Elasticsearch remote clusters that can be set multiple times.
 
 ##### Topology
