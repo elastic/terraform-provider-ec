@@ -124,7 +124,7 @@ A default topology from the deployment template is used for empty blocks: `elast
 
 The `ec_deployment` resource will opt-out all the resources except Elasticsearch, which inherits the default topology from the deployment template. For example, the [I/O Optimized template includes an Elasticsearch cluster 8 GB memory x 2 availability zones](https://www.elastic.co/guide/en/cloud/current/ec-getting-started-profiles.html#ec-getting-started-profiles-io).
 
-To customize the size or settings of the deployment resource, use the `topology` block.
+To customize the size or settings of the deployment resource, use the `topology` block within each resource kind block.
 
 #### Elasticsearch
 
