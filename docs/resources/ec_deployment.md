@@ -210,7 +210,7 @@ The optional `apm` block supports the following settings:
 
 The optional `apm.topology` block supports the following settings:
 
-* `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since Kibana has only one _instance type_.
+* `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since APM has only one _instance type_.
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA. When omitted, it defaults to the deployment template value.
