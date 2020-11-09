@@ -1,7 +1,7 @@
 ---
 page_title: "Elastic Cloud: ec_stack"
 description: |-
-  Retrieves information about Elastic Cloud stacks.
+  Retrieves information about an Elastic Cloud stack.
 ---
 
 # Data Source: ec_deployment
