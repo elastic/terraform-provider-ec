@@ -139,7 +139,7 @@ The required `elasticsearch` block supports the following arguments:
 
 To set up multi-node Elasticsearch clusters, you can set single or multiple topology blocks, each one with a different `instance_configuration_id`. This is particularly relevant for Elasticsearch clusters with hot-warm topologies or Machine Learning.
 
-The optional `elasticsearch.topology` block supports the following settings:
+The optional `elasticsearch.topology` block supports the following arguments:
 
 * `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. To change it, use the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 
