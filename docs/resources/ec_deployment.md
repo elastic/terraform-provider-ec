@@ -218,7 +218,7 @@ The optional `apm.topology` block supports the following settings:
 
 ##### Config
 
-The optional `apm.config` and `apm.topology.config` blocks support the following settings:
+The optional `apm.config` and `apm.topology.config` blocks support the following arguments:
 
 * `debug_enabled` - (Optional) Enable debug mode for APM servers. Defaults to `false`.
 * `user_settings_json` - (Optional) JSON-formatted user level `apm.yml` setting overrides.
