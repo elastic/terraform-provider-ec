@@ -38,7 +38,7 @@ These will not be available for interpolation.
   * `observability.#.metrics` - Defines whether metrics are enabled or disabled.
 * `elasticsearch` - Instance configuration of the Elasticsearch resource kind.
   * `elasticsearch.#.healthy` - Resource kind health status.
-  * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash, [more information](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).
+  * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash. See [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html) for more information.
   * `elasticsearch.#.http_endpoint` - HTTP endpoint for the resource kind.
   * `elasticsearch.#.https_endpoint` - HTTPS endpoint for the resource kind.
   * `elasticsearch.#.ref_id` - User specified ref_id for the resource kind.
