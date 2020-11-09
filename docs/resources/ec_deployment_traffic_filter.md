@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ### Rules
 
-The `rule` supports the following configuration options:
+The `rule` block supports the following configuration options:
 
 * `source` - (Required) Source type, IP or VPC endpoint, from which the ruleset accepts traffic.
 * `description` - (Optional) Description of this individual rule.
