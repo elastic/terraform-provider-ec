@@ -71,10 +71,6 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 			m["config"] = c
 		}
 
-		if s := flattenSnapshotSource(plan); len(s) > 0 {
-			m["snapshot_source"] = s
-		}
-
 		if r := flattenEsRemotes(remotes); len(r) > 0 {
 			m["remote_cluster"] = r
 		}
@@ -167,28 +163,6 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
 			m["user_settings_override_json"] = string(b)
 		}
-	}
-
-	if len(m) == 0 {
-		return nil
-	}
-
-	return []interface{}{m}
-}
-
-func flattenSnapshotSource(plan *models.ElasticsearchClusterPlan) []interface{} {
-	var m = make(map[string]interface{})
-	if plan.Transient == nil || plan.Transient.RestoreSnapshot == nil {
-		return nil
-	}
-
-	restore := plan.Transient.RestoreSnapshot
-	if restore.SourceClusterID != "" {
-		m["source_cluster_id"] = restore.SourceClusterID
-	}
-
-	if *restore.SnapshotName != "" {
-		m["snapshot_name"] = restore.SnapshotName
 	}
 
 	if len(m) == 0 {

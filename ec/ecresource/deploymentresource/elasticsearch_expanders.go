@@ -85,9 +85,7 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
 			RestoreSnapshot: &models.RestoreSnapshotConfiguration{},
 		}
-		if err := expandSnapshotSource(snap, res.Plan.Transient.RestoreSnapshot); err != nil {
-			return nil, err
-		}
+		expandSnapshotSource(snap, res.Plan.Transient.RestoreSnapshot)
 	}
 
 	return res, nil
@@ -183,7 +181,7 @@ func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) e
 	return nil
 }
 
-func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfiguration) error {
+func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfiguration) {
 	for _, rawRestore := range raw.([]interface{}) {
 		var rs = rawRestore.(map[string]interface{})
 		if clusterID, ok := rs["source_cluster_id"]; ok {
@@ -195,8 +193,6 @@ func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfig
 		}
 
 	}
-
-	return nil
 }
 
 func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement) (result []*models.ElasticsearchClusterTopologyElement) {
