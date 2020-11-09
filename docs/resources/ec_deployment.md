@@ -106,7 +106,7 @@ The following arguments are supported:
 * `deployment_template_id` - (Required) Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 * `version` - (Required) Elastic Stack version to use for all the deployment resources.
 * `name` - (Optional) Name of the deployment.
-* `request_id` - (Optional) Request ID to set when you create the deployment. Use it when previous attempts return an error and `request_id` is returned as part of the error.
+* `request_id` - (Optional) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 * `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
 * `kibana` (Optional) Kibana instance definition, can only be specified once.
 * `apm` (Optional) APM instance definition, can only be specified once.
