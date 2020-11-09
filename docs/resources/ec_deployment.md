@@ -190,7 +190,7 @@ The optional `kibana.topology` block supports the following settings:
 
 ##### Config
 
-The optional `kibana.config` and `kibana.topology.config` blocks support the following settings:
+The optional `kibana.config` and `kibana.topology.config` blocks support the following arguments:
 
 * `user_settings_json` - (Optional) JSON-formatted user level `kibana.yml` setting overrides.
 * `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `kibana.yml` setting overrides.
