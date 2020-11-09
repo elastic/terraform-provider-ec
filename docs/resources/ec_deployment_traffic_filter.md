@@ -65,7 +65,7 @@ The following arguments are supported:
 
 The `rule` block supports the following configuration options:
 
-* `source` - (Required) Source type, IP or VPC endpoint, from which the ruleset accepts traffic.
+* `source` - (Required) Source type, `"ip"` or `"vpce"`, from which the ruleset accepts traffic.
 * `description` - (Optional) Description of this individual rule.
 
 ## Attributes Reference
