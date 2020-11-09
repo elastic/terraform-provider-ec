@@ -112,7 +112,7 @@ The following arguments are supported:
 * `apm` (Optional) APM instance definition, can only be specified once.
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
-* `observability` (Optional) Observability settings that you can set to ship logs and metrics to the deployment.
+* `observability` (Optional) Observability settings that you can set to ship logs and metrics to a separate deployment.
 
 ### Resources
 
