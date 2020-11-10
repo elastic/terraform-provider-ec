@@ -37,7 +37,7 @@ data "ec_stack" "latest_patch" {
 * `accessible` - To have this version accessible/not accessible by the calling user. This is only relevant for Elasticsearch Service (ESS), not for ECE.
 * `min_upgradable_from` - The minimum stack version recommended.
 * `upgradable_to` - The stack version you can upgrade to.
-* `allowlisted` - To include/not include this version in the `allowlist`. This is only relevant for Elastic Cloud ESS, not for ECE.
+* `allowlisted` - To include/not include this version in the `allowlist`. This is only relevant for Elasticsearch Service (ESS), not for ECE.
 * `apm` - Information for APM workloads on this stack version.
   * `apm.#.denylist` - List of configuration options that cannot be overridden by user settings.
   * `apm.#.capacity_constraints_min` - Minimum size of the instances.
