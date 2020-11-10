@@ -184,7 +184,7 @@ func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) e
 func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfiguration) {
 	for _, rawRestore := range raw.([]interface{}) {
 		var rs = rawRestore.(map[string]interface{})
-		if clusterID, ok := rs["source_cluster_id"]; ok {
+		if clusterID, ok := rs["source_elasticsearch_cluster_id"]; ok {
 			restore.SourceClusterID = clusterID.(string)
 		}
 

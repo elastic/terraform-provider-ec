@@ -239,7 +239,7 @@ func newSnapshotSourceSettings() *schema.Schema {
 		MaxItems:    1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"source_cluster_id": {
+				"source_elasticsearch_cluster_id": {
 					Description: "ID of the Elasticsearch cluster that will be used as the source of the snapshot",
 					Type:        schema.TypeString,
 					Required:    true,

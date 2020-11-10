@@ -698,8 +698,8 @@ func Test_expandEsResource(t *testing.T) {
 						"version":     "7.7.0",
 						"region":      "some-region",
 						"snapshot_source": []interface{}{map[string]interface{}{
-							"snapshot_name":     "__latest_success__",
-							"source_cluster_id": mock.ValidClusterID,
+							"snapshot_name":                   "__latest_success__",
+							"source_elasticsearch_cluster_id": mock.ValidClusterID,
 						}},
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
