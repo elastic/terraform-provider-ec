@@ -132,8 +132,9 @@ The required `elasticsearch` block supports the following arguments:
 
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `ref_id` - (Optional) Can be set on the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
-* `config` (Optional) Applied Elasticsearch settings to all topologies unless overridden in the `topology` element. 
-* `remote_cluster` (Optional) Elasticsearch remote clusters that can be set multiple times.
+* `config` (Optional) Elasticsearch settings applied to all topologies unless overridden in the `topology` element. 
+* `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
+* `snapshot_source` (Optional) Restores data from a snapshot of another deployment.
 
 ##### Topology
 
@@ -168,6 +169,15 @@ The optional `elasticsearch.remote_cluster` block can be set multiple times. It 
 * `alias` (Optional) Alias for the Cross Cluster Search binding.
 * `ref_id` (Optional) Remote Elasticsearch `ref_id`. The default value `main-elasticsearch` is recommended.
 * `ignore_unavailable` (Optional) If true, skip the cluster during search when disconnected. Defaults to `false`.
+
+##### Snapshot source
+
+The optional `elasticsearch.snapshot_source` block, which restores data from a snapshot of another deployment, supports the following arguments:
+
+* `source_elasticsearch_cluster_id` (Required) ID of the Elasticsearch cluster, not to be confused with the deployment ID, that will be used as the source of the snapshot. The Elasticsearch cluster must be in the same region and must have a compatible version of the Elastic Stack.
+* `snapshot_name` (Optional) Name of the snapshot to restore. Use `__latest_success__` to get the most recent successful snapshot (Defaults to `__latest_success__`).
+
+~> **Note on behavior** The `snapshot_source` block will not be saved in the Terraform state due to its transient nature. This means that whenever the `snapshot_source` block is set, a snapshot will **always be restored**, unless removed before running `terraform apply`.
 
 #### Kibana
 
@@ -278,6 +288,8 @@ In addition to all the arguments above, the following attributes are exported:
 * `elasticsearch.#.topology.#.node_type_master` - Node type (master) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_type_ingest` - Node type (ingest) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_type_ml` - Node type (machine learning) for the Elasticsearch topology element.
+* `elasticsearch.#.snapshot_source.#.source_elasticsearch_cluster_id` - ID of the Elasticsearch cluster that will be used as the source of the snapshot.
+* `elasticsearch.#.snapshot_source.#.snapshot_name` - Name of the snapshot to restore.
 * `kibana.#.resource_id` - Kibana resource unique identifier.
 * `kibana.#.version` - Kibana current version.
 * `kibana.#.region` - Kibana region.
@@ -300,7 +312,6 @@ In addition to all the arguments above, the following attributes are exported:
 * `observability.#.ref_id` - (Optional) Elasticsearch resource kind ref_id of the destination deployment.
 * `observability.#.logs` - Enables or disables shipping logs. Defaults to true.
 * `observability.#.metrics` - Enables or disables shipping metrics. Defaults to true.
-
 
 ## Import
 

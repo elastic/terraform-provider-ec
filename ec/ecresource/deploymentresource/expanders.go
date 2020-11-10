@@ -40,7 +40,6 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		API:                        client,
 		TemplateID:                 dtID,
 		Region:                     d.Get("region").(string),
-		AsList:                     true,
 		HideInstanceConfigurations: true,
 	})
 	if err != nil {
@@ -109,7 +108,6 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		API:                        client,
 		TemplateID:                 dtID,
 		Region:                     d.Get("region").(string),
-		AsList:                     true,
 		HideInstanceConfigurations: true,
 	})
 	if err != nil {
