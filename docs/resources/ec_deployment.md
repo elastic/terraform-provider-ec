@@ -132,6 +132,7 @@ The required `elasticsearch` block supports the following:
 * `ref_id` - (Optional) ref_id to set on the Elasticsearch resource, it is best left to the default value (Defaults to `main-elasticsearch`).
 * `config` (Optional) Elasticsearch settings which will be applied to all topologies unless overridden on the topology element. 
 * `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times.
+* `snapshot_source` (Optional) Snapshot source settings. Restore data from a snapshot of another deployment.
 
 ##### Topology
 
@@ -166,6 +167,15 @@ The optional `elasticsearch.remote_cluster` block can be set multiple times to r
 * `alias` (Optional) Alias for this Cross Cluster Search binding.
 * `ref_id` (Optional) Remote elasticsearch `ref_id`, it is best left to the default value (Defaults to `main-elasticsearch`).
 * `ignore_unavailable` (Optional) If true, skip the cluster during search when disconnected (Defaults to `false`).
+
+##### Snapshot source
+
+The optional `elasticsearch.snapshot_source` block, which restores data from a snapshot of another deployment, supports the following arguments:
+
+* `source_elasticsearch_cluster_id` (Required) ID of the Elasticsearch cluster, not to be confused with the deployment ID, that will be used as the source of the snapshot. The Elasticsearch cluster must be in the same region and must have a compatible version of the Elastic Stack.
+* `snapshot_name` (Optional) Name of the snapshot to restore. Use `__latest_success__` to get the most recent successful snapshot (Defaults to `__latest_success__`).
+
+~> **Note on behavior** The `snapshot_source` block will not be saved in the Terraform state due to its transient nature. This means that whenever the `snapshot_source` block is set, a snapshot will **always be restored**, unless removed before running `terraform apply`.
 
 #### Kibana
 
@@ -276,6 +286,8 @@ In addition to all arguments above, the following attributes are exported:
 * `elasticsearch.#.topology.#.node_type_master` - Node type (master) for the Elasticsearch Topology element.
 * `elasticsearch.#.topology.#.node_type_ingest` - Node type (ingest) for the Elasticsearch Topology element.
 * `elasticsearch.#.topology.#.node_type_ml` - Node type (machine learning) for the Elasticsearch Topology element.
+* `elasticsearch.#.snapshot_source.#.source_elasticsearch_cluster_id` - ID of the Elasticsearch cluster that will be used as the source of the snapshot.
+* `elasticsearch.#.snapshot_source.#.snapshot_name` - Name of the snapshot to restore.
 * `kibana.#.resource_id` - The Kibana resource unique identifier.
 * `kibana.#.version` - The Kibana current version.
 * `kibana.#.region` - The Kibana region.

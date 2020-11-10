@@ -70,6 +70,8 @@ func newElasticsearchResource() *schema.Resource {
 			"config": elasticsearchConfig(),
 
 			"remote_cluster": elasticsearchRemoteCluster(),
+
+			"snapshot_source": newSnapshotSourceSettings(),
 		},
 	}
 }
@@ -222,6 +224,30 @@ func elasticsearchRemoteCluster() *schema.Schema {
 					Description: "If true, skip the cluster during search when disconnected",
 					Type:        schema.TypeBool,
 					Default:     false,
+					Optional:    true,
+				},
+			},
+		},
+	}
+}
+
+func newSnapshotSourceSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeList,
+		Description: "Optional snapshot source settings. Restore data from a snapshot of another deployment.",
+		Optional:    true,
+		MaxItems:    1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"source_elasticsearch_cluster_id": {
+					Description: "ID of the Elasticsearch cluster that will be used as the source of the snapshot",
+					Type:        schema.TypeString,
+					Required:    true,
+				},
+				"snapshot_name": {
+					Description: "Name of the snapshot to restore. Use '__latest_success__' to get the most recent successful snapshot.",
+					Type:        schema.TypeString,
+					Default:     "__latest_success__",
 					Optional:    true,
 				},
 			},
