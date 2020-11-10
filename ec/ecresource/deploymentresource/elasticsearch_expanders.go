@@ -87,6 +87,13 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
+	if snap, ok := es["snapshot_source"]; ok && len(snap.([]interface{})) > 0 {
+		res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
+			RestoreSnapshot: &models.RestoreSnapshotConfiguration{},
+		}
+		expandSnapshotSource(snap, res.Plan.Transient.RestoreSnapshot)
+	}
+
 	return res, nil
 }
 
@@ -178,6 +185,20 @@ func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) e
 	}
 
 	return nil
+}
+
+func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfiguration) {
+	for _, rawRestore := range raw.([]interface{}) {
+		var rs = rawRestore.(map[string]interface{})
+		if clusterID, ok := rs["source_elasticsearch_cluster_id"]; ok {
+			restore.SourceClusterID = clusterID.(string)
+		}
+
+		if snapshotName, ok := rs["snapshot_name"]; ok {
+			restore.SnapshotName = ec.String(snapshotName.(string))
+		}
+
+	}
 }
 
 func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement) (result []*models.ElasticsearchClusterTopologyElement) {
