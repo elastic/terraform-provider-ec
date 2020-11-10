@@ -105,6 +105,9 @@ The following arguments are supported:
 
 * `deployment_template_id` - (Required) Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 * `version` - (Required) Elastic Stack version to use for all the deployment resources.
+
+~> Using an Elastic Stack version prior to `6.6.0` is not supported.
+
 * `name` - (Optional) Name of the deployment.
 * `request_id` - (Optional) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 * `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
@@ -316,6 +319,8 @@ In addition to all the arguments above, the following attributes are exported:
 ## Import
 
 ~> **Note on legacy (pre-slider) deployments** Importing deployments created prior to the addition of sliders in ECE or ESS, without being migrated to use sliders, is not supported.
+
+~> **Note on pre 6.6.0 deployments** Importing deployments with a version lower than `6.6.0` is not supported.
 
 Deployments can be imported using the `id`, for example:
 
