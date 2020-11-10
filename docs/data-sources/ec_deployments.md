@@ -6,7 +6,7 @@ description: |-
 
 # Data Source: ec_deployments
 
-Use this data source to retrieve a list of IDs for the deployment and resource kind, based on the specified query.
+Use this data source to retrieve a list of IDs for the deployment and resource kinds, based on the specified query.
 
 ## Example Usage
 
