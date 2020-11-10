@@ -1,11 +1,11 @@
 ---
-page_title: "Provider: Elastic Cloud (EC)"
+page_title: "Provider: Elastic Cloud"
 ---
 
 # Elastic Cloud Provider
 
-The Elastic Cloud can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
-APIs. Documentation regarding the Data Sources and Resources supported by the Elastic Cloud provider can be found in the navigation to the left.
+The Elastic Cloud Terraform provider can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
+APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider.
 
 ## Example Usage
 
@@ -38,20 +38,19 @@ resource "ec_deployment" "my_deployment" {
 
 ## Authentication
 
-The Elastic Cloud provider offers two methods of authentication against the remote API. Depending on the target environment, one or all can be used. By default the `endpoint` which the provider will target is the Public API of the Elasticsearch Service (ESS) offering.
+The Elastic Cloud Terraform provider offers two methods of authentication against the remote API: `apikey` or a combination of `username` and `password`. Depending on the environment, one or both can be used. The Public API of Elasticsearch Service (ESS) is the default `endpoint` that the provider will target.
 
-Only one of `apikey` or `username` and `password`  can be specified at one time. The Elasticsearch Service (ESS) offering, only supports API Keys as the authentication mechanism. When targeting an ECE
-Installation, `username` and `password` can be used.
+Elasticsearch Service (ESS) only supports `apikey`. Elastic Cloud Enterprise (ECE) supports both `apikey` and a combination of `username` and `password`.
 
 !> **Warning:** Hard-coding credentials into any Terraform configuration is not
 recommended, and risks secret leakage should this file ever be committed to a
 public version control system.
 
-### API Key authentication (Recommended)
+### API key authentication (recommended)
 
-API Keys are the recommended authentication method. They can be used when authenticating against the Elasticsearch Service (ESS) or Elastic Cloud Enterprise (ECE).
+API keys are the recommended authentication method. They can be used to authenticate against Elasticsearch Service or Elastic Cloud Enterprise.
 
-They can either be hardcoded in the provider `.tf` provider configuration (NOT RECOMMENDED). Or specified via environment variables: `EC_API_KEY`.
+They can either be specified with the `EC_API_KEY` environment variable (recommended) or hardcoded in the provider `.tf` configuration file (supported but not recommended).
 
 ```hcl
 provider "ec" {
@@ -59,12 +58,11 @@ provider "ec" {
 }
 ```
 
-### Username and Password login (ECE)
+### Username and password login (ECE)
 
-A `username` and `password` combination can be used to authenticate when targeting an ECE environment. 
-Note that `username` and `password` is not a supported method when 
+If you are targeting an ECE environment, you can also use a combination of `username` and `password` as authentication method. 
 
-They can either be hardcoded in the provider `.tf` provider configuration (NOT RECOMMENDED). Or specified via environment variables: `EC_USERNAME` or `EC_USER` and `EC_PASSWORD` or `EC_PASS`.
+They can either be hardcoded in the provider `.tf` configuration (not recommended), or specified with the following environment variables: `EC_USERNAME` or `EC_USER` and `EC_PASSWORD` or `EC_PASS`.
 
 ```hcl
 provider "ec" {
@@ -72,7 +70,7 @@ provider "ec" {
   endpoint = "https://my.ece-environment.corp"
 
   # If the ECE installation has a self-signed certificate
-  # setting "insecure" to true is required.
+  # you must set insecure to true.
   insecure = true
 
   username = "my-username"
@@ -83,37 +81,36 @@ provider "ec" {
 ## Argument Reference
 
 In addition to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html)
-(e.g. `alias` and `version`), the following arguments are supported in the Elastic Cloud (EC) `provider` block:
+(for ex. `alias` and `version`), the following arguments are supported in the Elastic Cloud `provider` block:
 
 * `endpoint` - (Optional) This is the target endpoint. It must be provided only when
-  aiming to use the Elastic Cloud provider against an ECE installation or ESS Private.
+   you use the Elastic Cloud provider with an ECE installation or ESS Private.
 
-* `apikey` - (Optional) This is the EC API Key. Required when targeting the Elasticsearch
-  Service (ESS) offering, but also valid when targeting an ECE installation. It must be
+* `apikey` - (Optional) This is the Elastic Cloud API key. It is required with ESS, but it is also valid with ECE. It must be
   provided, but it can also be sourced from the `EC_API_KEY` environment variable.
   Conflicts with `username` and `password` authentication options.
 
-* `username` - (Optional) This is the EC username. It must be provided, but it can also
+* `username` - (Optional) This is the Elastic Cloud username. It must be provided, but it can also
   be sourced from the `EC_USER` or `EC_USERNAME` environment variables. Conflicts with
   `apikey`. Not recommended.
 
-* `password` - (Optional) This is the EC password. It must be provided, but it can also
+* `password` - (Optional) This is the Elastic Cloud password. It must be provided, but it can also
   be sourced from the `EC_PASS` or `EC_PASSWORD` environment variables. Conflicts with 
   `apikey`. Not recommended.
 
 * `insecure` - (Optional) This setting allows the provider to skip TLS verification.
   Useful when targeting installation with self-signed certificates. Not recommended when
-  targeting the Elasticsearch Service (ESS).
+  targeting ESS.
 
 * `insecure` - (Optional) This setting allows the user to set a custom timeout in the
-  individual HTTP request level. Defaults to "1m" but might need to be tweaked if timeouts
+  individual HTTP request level. Defaults to 1 minute (`"1m"`), but might need to be tweaked if timeouts
   are experienced.
 
-* `verbose` - (Optional) When set to true, it'll write a "requests.json" file in the folder
-  where terraform is executed with all outgoing HTTP requests and responses. Defaults to "false".
+* `verbose` - (Optional) When set to `true`, it writes a `requests.json` file in the folder
+  where Terraform runs with all the outgoing HTTP requests and responses. Defaults to `false`.
 
 * `verbose_credentials` - (Optional) When set with `verbose`, the contents of the Authorization
-header will not be redacted. Defaults to `"false"`.
+header will not be redacted. Defaults to `false`.
 
-* `verbose_file` - (Optional) Sets the file where the verbose request / response http flow will
-be written to. Defaults to `"request.log"`.
+* `verbose_file` - (Optional) Sets the file where the verbose request and response HTTP flow will
+be written to. Defaults to `request.log`.
