@@ -34,7 +34,7 @@ data "ec_stack" "latest_patch" {
 ~> **NOTE:** Depending on the stack version, some values may not be set. These will not be available for interpolation.
 
 * `version` - The stack version.
-* `accessible` - To have this version accessible/not accessible by the calling user. This is only relevant for Elastic Cloud ESS, not for ECE.
+* `accessible` - To have this version accessible/not accessible by the calling user. This is only relevant for Elasticsearch Service (ESS), not for ECE.
 * `min_upgradable_from` - The minimum stack version recommended.
 * `upgradable_to` - The stack version you can upgrade to.
 * `allowlisted` - To include/not include this version in the `allowlist`. This is only relevant for Elastic Cloud ESS, not for ECE.
