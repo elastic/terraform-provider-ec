@@ -31,16 +31,16 @@ import (
 func Test_expandEsResource(t *testing.T) {
 	tplPath := "testdata/aws-io-optimized-v2.json"
 	tpl := func() *models.ElasticsearchPayload {
-		return esResource(parseDeploymentTemplate(t,
-			tplPath,
-		))
+		es := esResource(parseDeploymentTemplate(t, tplPath))
+		es.Plan.Elasticsearch.Version = "7.9.3"
+		return es
 	}
 
 	hotWarmTplPath := "testdata/aws-hot-warm-v2.json"
 	hotWarmTpl := func() *models.ElasticsearchPayload {
-		return esResource(parseDeploymentTemplate(t,
-			hotWarmTplPath,
-		))
+		es := esResource(parseDeploymentTemplate(t, hotWarmTplPath))
+		es.Plan.Elasticsearch.Version = "7.9.3"
+		return es
 	}
 
 	type args struct {

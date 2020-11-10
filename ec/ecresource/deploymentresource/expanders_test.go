@@ -92,6 +92,18 @@ func Test_createResourceToModel(t *testing.T) {
 			"kibana":                 []interface{}{map[string]interface{}{}},
 		},
 	})
+	deploymentHotWarmPreILM := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		State: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-hot-warm-v2",
+			"region":                 "us-east-1",
+			"version":                "6.5.1",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
 
 	ccsTpl := func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/aws-cross-cluster-search-v2.json")
@@ -321,7 +333,9 @@ func Test_createResourceToModel(t *testing.T) {
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
-								Elasticsearch: &models.ElasticsearchConfiguration{},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.7.0",
+								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
 								},
@@ -429,7 +443,9 @@ func Test_createResourceToModel(t *testing.T) {
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
-								Elasticsearch: &models.ElasticsearchConfiguration{},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.7.0",
+								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
 								},
@@ -537,7 +553,9 @@ func Test_createResourceToModel(t *testing.T) {
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
-								Elasticsearch: &models.ElasticsearchConfiguration{},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.7.0",
+								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
 								},
@@ -639,11 +657,118 @@ func Test_createResourceToModel(t *testing.T) {
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
 								DedicatedMastersThreshold: 6,
-								Curation:                  nil,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
 								Elasticsearch: &models.ElasticsearchConfiguration{
-									Curation: nil,
+									Version: "7.9.2",
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "hot",
+											},
+										},
+									},
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(false),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with empty declarations and keeps curation settings < 6.6.x (Hot Warm)",
+			args: args{
+				d:      deploymentHotWarmPreILM,
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+								Curation: &models.ClusterCurationSettings{
+									Specs: []*models.ClusterCurationSpec{
+										{
+											IndexPattern:           ec.String("logstash-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("filebeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("metricbeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+									},
+								},
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "6.5.1",
+									Curation: &models.ElasticsearchCuration{
+										FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
+										ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
+									},
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-hot-warm-v2"),
@@ -728,7 +853,9 @@ func Test_createResourceToModel(t *testing.T) {
 							RefID:    ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{},
 							Plan: &models.ElasticsearchClusterPlan{
-								Elasticsearch: &models.ElasticsearchConfiguration{},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.9.2",
+								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-cross-cluster-search-v2"),
 								},
@@ -833,6 +960,18 @@ func Test_updateResourceToModel(t *testing.T) {
 			"deployment_template_id": "aws-hot-warm-v2",
 			"region":                 "us-east-1",
 			"version":                "7.9.2",
+			"elasticsearch":          []interface{}{map[string]interface{}{}},
+			"kibana":                 []interface{}{map[string]interface{}{}},
+		},
+	})
+	deploymentHotWarmPreILM := util.NewResourceData(t, util.ResDataParams{
+		ID:     mock.ValidClusterID,
+		Schema: newSchema(),
+		State: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-hot-warm-v2",
+			"region":                 "us-east-1",
+			"version":                "6.5.1",
 			"elasticsearch":          []interface{}{map[string]interface{}{}},
 			"kibana":                 []interface{}{map[string]interface{}{}},
 		},
@@ -1195,7 +1334,9 @@ func Test_updateResourceToModel(t *testing.T) {
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
-								Elasticsearch: &models.ElasticsearchConfiguration{},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.7.0",
+								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
 								},
@@ -1300,7 +1441,9 @@ func Test_updateResourceToModel(t *testing.T) {
 								DedicatedMastersThreshold: 6,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
-								Elasticsearch: &models.ElasticsearchConfiguration{},
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.7.0",
+								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
 								},
@@ -1403,11 +1546,119 @@ func Test_updateResourceToModel(t *testing.T) {
 							RefID:  ec.String("main-elasticsearch"),
 							Settings: &models.ElasticsearchClusterSettings{
 								DedicatedMastersThreshold: 6,
-								Curation:                  nil,
 							},
 							Plan: &models.ElasticsearchClusterPlan{
 								Elasticsearch: &models.ElasticsearchConfiguration{
-									Curation: nil,
+									Version: "7.9.2",
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(true),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "hot",
+											},
+										},
+									},
+									{
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeType: &models.ElasticsearchNodeType{
+											Data:   ec.Bool(true),
+											Ingest: ec.Bool(true),
+											Master: ec.Bool(false),
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaPayload{
+						{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							Region:                    ec.String("us-east-1"),
+							RefID:                     ec.String("main-kibana"),
+							Plan: &models.KibanaClusterPlan{
+								Kibana: &models.KibanaConfiguration{},
+								ClusterTopology: []*models.KibanaClusterTopologyElement{
+									{
+										ZoneCount:               1,
+										InstanceConfigurationID: "aws.kibana.r5d",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with empty declarations and keeps curation settings < 6.6.x (Hot Warm)",
+			args: args{
+				d:      deploymentHotWarmPreILM,
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+								Curation: &models.ClusterCurationSettings{
+									Specs: []*models.ClusterCurationSpec{
+										{
+											IndexPattern:           ec.String("logstash-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("filebeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+										{
+											IndexPattern:           ec.String("metricbeat-*"),
+											TriggerIntervalSeconds: ec.Int32(86400),
+										},
+									},
+								},
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "6.5.1",
+									Curation: &models.ElasticsearchCuration{
+										FromInstanceConfigurationID: ec.String("aws.data.highio.i3"),
+										ToInstanceConfigurationID:   ec.String("aws.data.highstorage.d2"),
+									},
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-hot-warm-v2"),
@@ -1558,7 +1809,9 @@ func Test_updateResourceToModel(t *testing.T) {
 						RefID:    ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{},
 						Plan: &models.ElasticsearchClusterPlan{
-							Elasticsearch: &models.ElasticsearchConfiguration{},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version: "7.9.2",
+							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
 								ID: ec.String("aws-cross-cluster-search-v2"),
 							},
@@ -1602,7 +1855,7 @@ func Test_updateResourceToModel(t *testing.T) {
 		// The behavior of this change should be:
 		// * Keeps all topology sizes as they were defined (saved value persists).
 		{
-			name: "topology change with sizes not default from io optimized to cross cluster search",
+			name: "topology change with sizes not default from io optimized to cross cluster search (sticky)",
 			args: args{
 				d:      deploymentChangeFromExplicitSizingToEmpty,
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -1619,7 +1872,9 @@ func Test_updateResourceToModel(t *testing.T) {
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							Elasticsearch: &models.ElasticsearchConfiguration{},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version: "7.9.2",
+							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
 								ID: ec.String("aws-io-optimized-v2"),
 							},

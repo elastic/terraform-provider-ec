@@ -21,14 +21,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 
+	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
+
+// Setting this variable here so that it is parsed at compile time in case
+// any errors are thrown, they are at compile time not when the user runs it.
+var ilmVersion = semver.MustParse("6.6.0")
 
 // expandEsResources expands Elasticsearch resources
 func expandEsResources(ess []interface{}, tpl *models.ElasticsearchPayload) ([]*models.ElasticsearchPayload, error) {
@@ -57,7 +61,9 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	}
 
 	if version, ok := es["version"]; ok {
-		res.Plan.Elasticsearch.Version = version.(string)
+		if v := version.(string); v != "" {
+			res.Plan.Elasticsearch.Version = v
+		}
 	}
 
 	if region, ok := es["region"]; ok {
@@ -66,10 +72,10 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
-	// This is necessary as the default Elasticsearch payload
-	// for hot warm deployments still enables curation based
-	// settings which will soon be deprecated.
-	res = setEmptyCuration(*res.Plan.DeploymentTemplate.ID, res)
+	// Unsetting the curation properties is needed when the deployment version
+	// is >= 6.6.0 which is when ILM is introduced in Elasticsearch. If the
+	// deployment is lower than 6.6.0, the curation settings are not unset.
+	unsetCurationForILM(res)
 
 	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
 		topology, err := expandEsTopology(rt, res.Plan.ClusterTopology)
@@ -236,10 +242,14 @@ func esResource(res *models.DeploymentTemplateInfoV2) *models.ElasticsearchPaylo
 	return res.DeploymentTemplate.Resources.Elasticsearch[0]
 }
 
-func setEmptyCuration(template string, esPayload *models.ElasticsearchPayload) *models.ElasticsearchPayload {
-	if strings.Contains(template, "hot-warm") {
-		esPayload.Plan.Elasticsearch.Curation = nil
-		esPayload.Settings.Curation = nil
+func unsetCurationForILM(payload *models.ElasticsearchPayload) {
+	v, err := semver.New(payload.Plan.Elasticsearch.Version)
+	if err != nil {
+		return
 	}
-	return esPayload
+
+	if v.GE(ilmVersion) {
+		payload.Plan.Elasticsearch.Curation = nil
+		payload.Settings.Curation = nil
+	}
 }

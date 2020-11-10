@@ -29,7 +29,7 @@ import (
 )
 
 func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentCreateRequest, error) {
-	var result = models.DeploymentCreateRequest{
+	result := models.DeploymentCreateRequest{
 		Name:      d.Get("name").(string),
 		Resources: &models.DeploymentCreateResources{},
 		Settings:  &models.DeploymentCreateSettings{},
@@ -49,7 +49,9 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
 		d.Get("elasticsearch").([]interface{}),
-		enrichWithDeploymentTemplate(esResource(template), dtID),
+		enrichWithDeploymentTemplate(
+			esResource(template), dtID, d.Get("version").(string),
+		),
 	)
 	if err != nil {
 		merr = merr.Append(err)
@@ -133,10 +135,15 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		unsetTopology(es)
 	}
 
+	// TODO: There's potential for problems when a user upgrades a deployment
+	// with Elasticsearch curation settings (Pre-ILM) to a version >= 6.6.0,
+	// the Elasticsearch curation settings are removed without migrating these
+	// calling the "enable-deployment-resource-ilm" API. This needs improvement.
+
 	merr := multierror.NewPrefixed("invalid configuration")
-	esRes, err := expandEsResources(
-		es, enrichWithDeploymentTemplate(esResource(template), dtID),
-	)
+	esRes, err := expandEsResources(es, enrichWithDeploymentTemplate(
+		esResource(template), dtID, d.Get("version").(string),
+	))
 	if err != nil {
 		merr = merr.Append(err)
 	}
@@ -180,7 +187,7 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	return &result, nil
 }
 
-func enrichWithDeploymentTemplate(tpl *models.ElasticsearchPayload, dt string) *models.ElasticsearchPayload {
+func enrichWithDeploymentTemplate(tpl *models.ElasticsearchPayload, dt, version string) *models.ElasticsearchPayload {
 	if tpl.Plan.DeploymentTemplate == nil {
 		tpl.Plan.DeploymentTemplate = &models.DeploymentTemplateReference{}
 	}
@@ -188,6 +195,8 @@ func enrichWithDeploymentTemplate(tpl *models.ElasticsearchPayload, dt string) *
 	if tpl.Plan.DeploymentTemplate.ID == nil || *tpl.Plan.DeploymentTemplate.ID == "" {
 		tpl.Plan.DeploymentTemplate.ID = ec.String(dt)
 	}
+
+	tpl.Plan.Elasticsearch.Version = version
 
 	return tpl
 }
