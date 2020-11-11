@@ -8,6 +8,8 @@ description: |-
 
 Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.
 
+~> **Note on Elastic Stack versions** Using a version prior to `6.6.0` is not supported.
+
 ~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
 
 -> **Note on regions and deployment templates** Before you start, you might want to read about [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html) and check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in Elasticsearch Service (ESS).
@@ -105,9 +107,6 @@ The following arguments are supported:
 
 * `deployment_template_id` - (Required) Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 * `version` - (Required) Elastic Stack version to use for all the deployment resources.
-
-~> Using an Elastic Stack version prior to `6.6.0` is not supported.
-
 * `name` - (Optional) Name of the deployment.
 * `request_id` - (Optional) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 * `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
