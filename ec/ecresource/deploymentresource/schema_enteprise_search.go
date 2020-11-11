@@ -71,8 +71,6 @@ func enterpriseSearchTopologySchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"config": enterpriseSearchConfig(),
-
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
 					Optional: true,

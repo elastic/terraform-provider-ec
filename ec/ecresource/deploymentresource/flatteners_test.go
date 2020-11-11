@@ -64,13 +64,6 @@ func Test_modelToState(t *testing.T) {
 					"size":                      "0.5g",
 					"size_resource":             "memory",
 					"zone_count":                1,
-					"config": []interface{}{map[string]interface{}{
-						"debug_enabled":               false,
-						"user_settings_json":          "",
-						"user_settings_override_json": "",
-						"user_settings_override_yaml": "",
-						"user_settings_yaml":          "",
-					}},
 				}},
 			}},
 			"elasticsearch": []interface{}{map[string]interface{}{
@@ -134,13 +127,6 @@ func Test_modelToState(t *testing.T) {
 					"size":                      "0.5g",
 					"size_resource":             "memory",
 					"zone_count":                1,
-					"config": []interface{}{map[string]interface{}{
-						"debug_enabled":               false,
-						"user_settings_json":          "",
-						"user_settings_override_json": "",
-						"user_settings_override_yaml": "",
-						"user_settings_yaml":          "",
-					}},
 				}},
 			}},
 			"elasticsearch": []interface{}{map[string]interface{}{
@@ -204,13 +190,6 @@ func Test_modelToState(t *testing.T) {
 					"size":                      "0.5g",
 					"size_resource":             "memory",
 					"zone_count":                1,
-					"config": []interface{}{map[string]interface{}{
-						"debug_enabled":               false,
-						"user_settings_json":          "",
-						"user_settings_override_json": "",
-						"user_settings_override_yaml": "",
-						"user_settings_yaml":          "",
-					}},
 				}},
 			}},
 			"elasticsearch": []interface{}{map[string]interface{}{
@@ -274,13 +253,6 @@ func Test_modelToState(t *testing.T) {
 					"size":                      "0.5g",
 					"size_resource":             "memory",
 					"zone_count":                1,
-					"config": []interface{}{map[string]interface{}{
-						"debug_enabled":               false,
-						"user_settings_json":          "",
-						"user_settings_override_json": "",
-						"user_settings_override_yaml": "",
-						"user_settings_yaml":          "",
-					}},
 				}},
 			}},
 			"elasticsearch": []interface{}{map[string]interface{}{
@@ -457,7 +429,15 @@ func Test_modelToState(t *testing.T) {
 										Current: &models.ElasticsearchClusterPlanInfo{
 											Plan: &models.ElasticsearchClusterPlan{
 												Elasticsearch: &models.ElasticsearchConfiguration{
-													Version: "7.7.0",
+													Version:                  "7.7.0",
+													UserSettingsYaml:         `some.setting: value`,
+													UserSettingsOverrideYaml: `some.setting: value2`,
+													UserSettingsJSON: map[string]interface{}{
+														"some.setting": "value",
+													},
+													UserSettingsOverrideJSON: map[string]interface{}{
+														"some.setting": "value2",
+													},
 												},
 												DeploymentTemplate: &models.DeploymentTemplateReference{
 													ID: ec.String("aws-io-optimized-v2"),
@@ -474,16 +454,6 @@ func Test_modelToState(t *testing.T) {
 														Ingest: ec.Bool(true),
 														Master: ec.Bool(true),
 														Ml:     ec.Bool(false),
-													},
-													Elasticsearch: &models.ElasticsearchConfiguration{
-														UserSettingsYaml:         `some.setting: value`,
-														UserSettingsOverrideYaml: `some.setting: value2`,
-														UserSettingsJSON: map[string]interface{}{
-															"some.setting": "value",
-														},
-														UserSettingsOverrideJSON: map[string]interface{}{
-															"some.setting": "value2",
-														},
 													},
 												}},
 											},
@@ -548,11 +518,6 @@ func Test_modelToState(t *testing.T) {
 												Size: &models.TopologySize{
 													Resource: ec.String("memory"),
 													Value:    ec.Int32(512),
-												},
-												Apm: &models.ApmConfiguration{
-													SystemSettings: &models.ApmSystemSettings{
-														DebugEnabled: ec.Bool(false),
-													},
 												},
 											}},
 										},

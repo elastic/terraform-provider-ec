@@ -194,22 +194,18 @@ func Test_expandApmResources(t *testing.T) {
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.8.0",
 					"region":                       "some-region",
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_yaml":          "some.setting: value",
+						"user_settings_override_yaml": "some.setting: value2",
+						"user_settings_json":          "{\"some.setting\": \"value\"}",
+						"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+						"debug_enabled":               true,
+					}},
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.apm.r5d",
 						"size":                      "4g",
 						"size_resource":             "memory",
 						"zone_count":                1,
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: value2",
-							"user_settings_json":          "{\"some.setting\": \"value\"}",
-							"user_settings_override_json": "{\"some.setting\": \"value2\"}",
-
-							"debug_enabled": true,
-						}},
-					}},
-					"config": []interface{}{map[string]interface{}{
-						"debug_enabled": true,
 					}},
 				}},
 			},
@@ -219,25 +215,20 @@ func Test_expandApmResources(t *testing.T) {
 				RefID:                     ec.String("tertiary-apm"),
 				Plan: &models.ApmPlan{
 					Apm: &models.ApmConfiguration{
-						Version: "7.8.0",
+						Version:                  "7.8.0",
+						UserSettingsYaml:         `some.setting: value`,
+						UserSettingsOverrideYaml: `some.setting: value2`,
+						UserSettingsJSON: map[string]interface{}{
+							"some.setting": "value",
+						},
+						UserSettingsOverrideJSON: map[string]interface{}{
+							"some.setting": "value2",
+						},
 						SystemSettings: &models.ApmSystemSettings{
 							DebugEnabled: ec.Bool(true),
 						},
 					},
 					ClusterTopology: []*models.ApmTopologyElement{{
-						Apm: &models.ApmConfiguration{
-							UserSettingsYaml:         `some.setting: value`,
-							UserSettingsOverrideYaml: `some.setting: value2`,
-							UserSettingsJSON: map[string]interface{}{
-								"some.setting": "value",
-							},
-							UserSettingsOverrideJSON: map[string]interface{}{
-								"some.setting": "value2",
-							},
-							SystemSettings: &models.ApmSystemSettings{
-								DebugEnabled: ec.Bool(true),
-							},
-						},
 						ZoneCount:               1,
 						InstanceConfigurationID: "aws.apm.r5d",
 						Size: &models.TopologySize{
@@ -263,14 +254,6 @@ func Test_expandApmResources(t *testing.T) {
 						"size":                      "4g",
 						"size_resource":             "memory",
 						"zone_count":                1,
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: value2",
-							"user_settings_json":          "{\"some.setting\": \"value\"}",
-							"user_settings_override_json": "{\"some.setting\": \"value2\"}",
-
-							"debug_enabled": true,
-						}},
 					}},
 					"config": []interface{}{map[string]interface{}{
 						"debug_enabled": true,

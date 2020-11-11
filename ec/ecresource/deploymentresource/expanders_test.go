@@ -188,7 +188,15 @@ func Test_createResourceToModel(t *testing.T) {
 							},
 							Plan: &models.ElasticsearchClusterPlan{
 								Elasticsearch: &models.ElasticsearchConfiguration{
-									Version: "7.7.0",
+									Version:                  "7.7.0",
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON: map[string]interface{}{
+										"some.setting": "value",
+									},
+									UserSettingsOverrideJSON: map[string]interface{}{
+										"some.setting": "value2",
+									},
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
@@ -204,16 +212,6 @@ func Test_createResourceToModel(t *testing.T) {
 										Data:   ec.Bool(true),
 										Ingest: ec.Bool(true),
 										Master: ec.Bool(true),
-									},
-									Elasticsearch: &models.ElasticsearchConfiguration{
-										UserSettingsYaml:         `some.setting: value`,
-										UserSettingsOverrideYaml: `some.setting: value2`,
-										UserSettingsJSON: map[string]interface{}{
-											"some.setting": "value",
-										},
-										UserSettingsOverrideJSON: map[string]interface{}{
-											"some.setting": "value2",
-										},
 									},
 								}},
 							},
@@ -259,11 +257,6 @@ func Test_createResourceToModel(t *testing.T) {
 									Size: &models.TopologySize{
 										Resource: ec.String("memory"),
 										Value:    ec.Int32(512),
-									},
-									Apm: &models.ApmConfiguration{
-										SystemSettings: &models.ApmSystemSettings{
-											DebugEnabled: ec.Bool(false),
-										},
 									},
 								}},
 							},
@@ -1065,7 +1058,15 @@ func Test_updateResourceToModel(t *testing.T) {
 							},
 							Plan: &models.ElasticsearchClusterPlan{
 								Elasticsearch: &models.ElasticsearchConfiguration{
-									Version: "7.7.0",
+									Version:                  "7.7.0",
+									UserSettingsYaml:         `some.setting: value`,
+									UserSettingsOverrideYaml: `some.setting: value2`,
+									UserSettingsJSON: map[string]interface{}{
+										"some.setting": "value",
+									},
+									UserSettingsOverrideJSON: map[string]interface{}{
+										"some.setting": "value2",
+									},
 								},
 								DeploymentTemplate: &models.DeploymentTemplateReference{
 									ID: ec.String("aws-io-optimized-v2"),
@@ -1081,16 +1082,6 @@ func Test_updateResourceToModel(t *testing.T) {
 										Data:   ec.Bool(true),
 										Ingest: ec.Bool(true),
 										Master: ec.Bool(true),
-									},
-									Elasticsearch: &models.ElasticsearchConfiguration{
-										UserSettingsYaml:         `some.setting: value`,
-										UserSettingsOverrideYaml: `some.setting: value2`,
-										UserSettingsJSON: map[string]interface{}{
-											"some.setting": "value",
-										},
-										UserSettingsOverrideJSON: map[string]interface{}{
-											"some.setting": "value2",
-										},
 									},
 								}},
 							},
@@ -1136,11 +1127,6 @@ func Test_updateResourceToModel(t *testing.T) {
 									Size: &models.TopologySize{
 										Resource: ec.String("memory"),
 										Value:    ec.Int32(512),
-									},
-									Apm: &models.ApmConfiguration{
-										SystemSettings: &models.ApmSystemSettings{
-											DebugEnabled: ec.Bool(false),
-										},
 									},
 								}},
 							},

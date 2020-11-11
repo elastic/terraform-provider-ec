@@ -204,12 +204,6 @@ func Test_expandKibanaResources(t *testing.T) {
 						"user_settings_override_json": `{"some.setting":"override"}`,
 					}},
 					"topology": []interface{}{map[string]interface{}{
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: override",
-							"user_settings_json":          `{"some.setting":"value"}`,
-							"user_settings_override_json": `{"some.setting":"override"}`,
-						}},
 						"instance_configuration_id": "aws.kibana.r5d",
 						"size":                      "4g",
 						"zone_count":                1,
@@ -234,16 +228,6 @@ func Test_expandKibanaResources(t *testing.T) {
 							},
 						},
 						ClusterTopology: []*models.KibanaClusterTopologyElement{{
-							Kibana: &models.KibanaConfiguration{
-								UserSettingsYaml:         "some.setting: value",
-								UserSettingsOverrideYaml: "some.setting: override",
-								UserSettingsJSON: map[string]interface{}{
-									"some.setting": "value",
-								},
-								UserSettingsOverrideJSON: map[string]interface{}{
-									"some.setting": "override",
-								},
-							},
 							ZoneCount:               1,
 							InstanceConfigurationID: "aws.kibana.r5d",
 							Size: &models.TopologySize{
@@ -270,12 +254,6 @@ func Test_expandKibanaResources(t *testing.T) {
 						"size":                      "1g",
 						"size_resource":             "memory",
 						"zone_count":                1,
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: value2",
-							"user_settings_json":          "{\"some.setting\": \"value\"}",
-							"user_settings_override_json": "{\"some.setting\": \"value2\"}",
-						}},
 					}},
 				}},
 			},

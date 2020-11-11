@@ -68,8 +68,6 @@ func kibanaTopologySchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"config": kibanaConfig(),
-
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
 					Optional: true,

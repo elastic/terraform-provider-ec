@@ -190,7 +190,15 @@ func Test_flattenEsResource(t *testing.T) {
 							Current: &models.ElasticsearchClusterPlanInfo{
 								Plan: &models.ElasticsearchClusterPlan{
 									Elasticsearch: &models.ElasticsearchConfiguration{
-										Version: "7.7.0",
+										Version:                  "7.7.0",
+										UserSettingsYaml:         `some.setting: value`,
+										UserSettingsOverrideYaml: `some.setting: value2`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "value2",
+										},
 									},
 									ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 										ZoneCount:               1,
@@ -204,16 +212,6 @@ func Test_flattenEsResource(t *testing.T) {
 											Ingest: ec.Bool(true),
 											Master: ec.Bool(true),
 											Ml:     ec.Bool(false),
-										},
-										Elasticsearch: &models.ElasticsearchConfiguration{
-											UserSettingsYaml:         `some.setting: value`,
-											UserSettingsOverrideYaml: `some.setting: value2`,
-											UserSettingsJSON: map[string]interface{}{
-												"some.setting": "value",
-											},
-											UserSettingsOverrideJSON: map[string]interface{}{
-												"some.setting": "value2",
-											},
 										},
 									}},
 								},
@@ -229,6 +227,12 @@ func Test_flattenEsResource(t *testing.T) {
 				"region":         "some-region",
 				"http_endpoint":  "http://othercluster.cloud.elastic.co:9200",
 				"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
+				"config": []interface{}{map[string]interface{}{
+					"user_settings_yaml":          "some.setting: value",
+					"user_settings_override_yaml": "some.setting: value2",
+					"user_settings_json":          "{\"some.setting\":\"value\"}",
+					"user_settings_override_json": "{\"some.setting\":\"value2\"}",
+				}},
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.data.highio.i3",
 					"size":                      "2g",
@@ -238,12 +242,6 @@ func Test_flattenEsResource(t *testing.T) {
 					"node_type_master":          true,
 					"node_type_ml":              false,
 					"zone_count":                int32(1),
-					"config": []interface{}{map[string]interface{}{
-						"user_settings_yaml":          "some.setting: value",
-						"user_settings_override_yaml": "some.setting: value2",
-						"user_settings_json":          "{\"some.setting\":\"value\"}",
-						"user_settings_override_json": "{\"some.setting\":\"value2\"}",
-					}},
 				}},
 			}},
 		},
@@ -283,16 +281,6 @@ func Test_flattenEsResource(t *testing.T) {
 											Ingest: ec.Bool(true),
 											Master: ec.Bool(true),
 											Ml:     ec.Bool(false),
-										},
-										Elasticsearch: &models.ElasticsearchConfiguration{
-											UserSettingsYaml:         `some.setting: value`,
-											UserSettingsOverrideYaml: `some.setting: value2`,
-											UserSettingsJSON: map[string]interface{}{
-												"some.setting": "value",
-											},
-											UserSettingsOverrideJSON: map[string]interface{}{
-												"some.setting": "value2",
-											},
 										},
 									}},
 								},
@@ -341,12 +329,6 @@ func Test_flattenEsResource(t *testing.T) {
 					"node_type_master":          true,
 					"node_type_ml":              false,
 					"zone_count":                int32(1),
-					"config": []interface{}{map[string]interface{}{
-						"user_settings_yaml":          "some.setting: value",
-						"user_settings_override_yaml": "some.setting: value2",
-						"user_settings_json":          "{\"some.setting\":\"value\"}",
-						"user_settings_override_json": "{\"some.setting\":\"value2\"}",
-					}},
 				}},
 			}},
 		},

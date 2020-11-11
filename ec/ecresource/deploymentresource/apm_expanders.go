@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -126,18 +125,6 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 				elem.ZoneCount = int32(z)
 			}
 
-		}
-
-		if c, ok := topology["config"]; ok {
-			if elem.Apm == nil {
-				elem.Apm = &models.ApmConfiguration{}
-			}
-			if err = expandApmConfig(c, elem.Apm); err != nil {
-				return nil, err
-			}
-			if reflect.DeepEqual(elem.Apm, &models.ApmConfiguration{}) {
-				elem.Apm = nil
-			}
 		}
 
 		res = append(res, elem)

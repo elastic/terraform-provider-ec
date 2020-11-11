@@ -124,6 +124,12 @@ func newElasticsearchSample() map[string]interface{} {
 		"resource_id": mock.ValidClusterID,
 		"version":     "7.7.0",
 		"region":      "us-east-1",
+		"config": []interface{}{map[string]interface{}{
+			"user_settings_yaml":          "some.setting: value",
+			"user_settings_override_yaml": "some.setting: value2",
+			"user_settings_json":          "{\"some.setting\":\"value\"}",
+			"user_settings_override_json": "{\"some.setting\":\"value2\"}",
+		}},
 		"topology": []interface{}{map[string]interface{}{
 			"instance_configuration_id": "aws.data.highio.i3",
 			"size":                      "2g",
@@ -132,12 +138,6 @@ func newElasticsearchSample() map[string]interface{} {
 			"node_type_master":          true,
 			"node_type_ml":              false,
 			"zone_count":                1,
-			"config": []interface{}{map[string]interface{}{
-				"user_settings_yaml":          "some.setting: value",
-				"user_settings_override_yaml": "some.setting: value2",
-				"user_settings_json":          "{\"some.setting\":\"value\"}",
-				"user_settings_override_json": "{\"some.setting\":\"value2\"}",
-			}},
 		}},
 	}
 }
@@ -174,9 +174,6 @@ func newApmSample() map[string]interface{} {
 			"instance_configuration_id": "aws.apm.r5d",
 			"size":                      "0.5g",
 			"zone_count":                1,
-			"config": []interface{}{map[string]interface{}{
-				"debug_enabled": false,
-			}},
 		}},
 	}
 }

@@ -20,7 +20,6 @@ package deploymentresource
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -130,18 +129,6 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if zones, ok := topology["zone_count"]; ok {
 			if z := zones.(int); z > 0 {
 				elem.ZoneCount = int32(z)
-			}
-		}
-
-		if c, ok := topology["config"]; ok {
-			if elem.Elasticsearch == nil && c != nil {
-				elem.Elasticsearch = &models.ElasticsearchConfiguration{}
-			}
-			if err = expandEsConfig(c, elem.Elasticsearch); err != nil {
-				return nil, err
-			}
-			if reflect.DeepEqual(elem.Elasticsearch, &models.ElasticsearchConfiguration{}) {
-				elem.Elasticsearch = nil
 			}
 		}
 

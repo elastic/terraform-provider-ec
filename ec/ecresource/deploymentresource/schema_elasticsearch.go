@@ -132,8 +132,6 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Description: `Node type (machine learning) for the Elasticsearch Topology element`,
 					Computed:    true,
 				},
-
-				"config": elasticsearchConfig(),
 			},
 		},
 	}

@@ -315,22 +315,19 @@ func Test_expandEsResource(t *testing.T) {
 						"version":                "7.7.0",
 						"region":                 "some-region",
 						"deployment_template_id": "aws-hot-warm-v2",
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml": "somesetting: true",
+						}},
 						"topology": []interface{}{
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highio.i3",
 								"size":                      "2g",
 								"zone_count":                1,
-								"config": []interface{}{map[string]interface{}{
-									"user_settings_yaml": "somesetting: true",
-								}},
 							},
 							map[string]interface{}{
 								"instance_configuration_id": "aws.data.highstorage.d2",
 								"size":                      "2g",
 								"zone_count":                1,
-								"config": []interface{}{map[string]interface{}{
-									"user_settings_yaml": "someothersetting: true",
-								}},
 							},
 						},
 					},
@@ -346,8 +343,9 @@ func Test_expandEsResource(t *testing.T) {
 					},
 					Plan: &models.ElasticsearchClusterPlan{
 						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version:  "7.7.0",
-							Curation: nil,
+							Version:          "7.7.0",
+							Curation:         nil,
+							UserSettingsYaml: "somesetting: true",
 						},
 						DeploymentTemplate: &models.DeploymentTemplateReference{
 							ID: ec.String("aws-hot-warm-v2"),
@@ -358,7 +356,6 @@ func Test_expandEsResource(t *testing.T) {
 									NodeAttributes: map[string]string{
 										"data": "hot",
 									},
-									UserSettingsYaml: "somesetting: true",
 								},
 								ZoneCount:               1,
 								InstanceConfigurationID: "aws.data.highio.i3",
@@ -377,7 +374,6 @@ func Test_expandEsResource(t *testing.T) {
 									NodeAttributes: map[string]string{
 										"data": "warm",
 									},
-									UserSettingsYaml: "someothersetting: true",
 								},
 								ZoneCount:               1,
 								InstanceConfigurationID: "aws.data.highstorage.d2",
@@ -554,19 +550,19 @@ func Test_expandEsResource(t *testing.T) {
 						"resource_id": mock.ValidClusterID,
 						"version":     "7.7.0",
 						"region":      "some-region",
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml":          "some.setting: value",
+							"user_settings_override_yaml": "some.setting: value2",
+							"user_settings_json":          "{\"some.setting\":\"value\"}",
+							"user_settings_override_json": "{\"some.setting\":\"value2\"}",
+							"plugins": schema.NewSet(schema.HashString, []interface{}{
+								"plugin",
+							}),
+						}},
 						"topology": []interface{}{map[string]interface{}{
 							"instance_configuration_id": "aws.data.highio.i3",
 							"size":                      "2g",
 							"zone_count":                1,
-							"config": []interface{}{map[string]interface{}{
-								"user_settings_yaml":          "some.setting: value",
-								"user_settings_override_yaml": "some.setting: value2",
-								"user_settings_json":          "{\"some.setting\":\"value\"}",
-								"user_settings_override_json": "{\"some.setting\":\"value2\"}",
-								"plugins": schema.NewSet(schema.HashString, []interface{}{
-									"plugin",
-								}),
-							}},
 						}},
 					},
 				},
@@ -580,7 +576,16 @@ func Test_expandEsResource(t *testing.T) {
 					},
 					Plan: &models.ElasticsearchClusterPlan{
 						Elasticsearch: &models.ElasticsearchConfiguration{
-							Version: "7.7.0",
+							Version:                  "7.7.0",
+							UserSettingsYaml:         `some.setting: value`,
+							UserSettingsOverrideYaml: `some.setting: value2`,
+							UserSettingsJSON: map[string]interface{}{
+								"some.setting": "value",
+							},
+							UserSettingsOverrideJSON: map[string]interface{}{
+								"some.setting": "value2",
+							},
+							EnabledBuiltInPlugins: []string{"plugin"},
 						},
 						DeploymentTemplate: &models.DeploymentTemplateReference{
 							ID: ec.String("aws-io-optimized-v2"),
@@ -597,17 +602,6 @@ func Test_expandEsResource(t *testing.T) {
 									Data:   ec.Bool(true),
 									Ingest: ec.Bool(true),
 									Master: ec.Bool(true),
-								},
-								Elasticsearch: &models.ElasticsearchConfiguration{
-									UserSettingsYaml:         `some.setting: value`,
-									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON: map[string]interface{}{
-										"some.setting": "value",
-									},
-									UserSettingsOverrideJSON: map[string]interface{}{
-										"some.setting": "value2",
-									},
-									EnabledBuiltInPlugins: []string{"plugin"},
 								},
 							},
 						},

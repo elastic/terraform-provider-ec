@@ -251,14 +251,13 @@ func Test_expandEssResources(t *testing.T) {
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.7.0",
 					"region":                       "some-region",
-					"config":                       []interface{}{map[string]interface{}{}},
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_yaml":          "some.setting: value",
+						"user_settings_override_yaml": "some.setting: override",
+						"user_settings_json":          `{"some.setting":"value"}`,
+						"user_settings_override_json": `{"some.setting":"override"}`,
+					}},
 					"topology": []interface{}{map[string]interface{}{
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: override",
-							"user_settings_json":          `{"some.setting":"value"}`,
-							"user_settings_override_json": `{"some.setting":"override"}`,
-						}},
 						"instance_configuration_id": "aws.enterprisesearch.m5d",
 						"size":                      "4g",
 						"zone_count":                1,
@@ -274,19 +273,17 @@ func Test_expandEssResources(t *testing.T) {
 				RefID:                     ec.String("secondary-enterprise_search"),
 				Plan: &models.EnterpriseSearchPlan{
 					EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-						Version: "7.7.0",
+						Version:                  "7.7.0",
+						UserSettingsYaml:         "some.setting: value",
+						UserSettingsOverrideYaml: "some.setting: override",
+						UserSettingsJSON: map[string]interface{}{
+							"some.setting": "value",
+						},
+						UserSettingsOverrideJSON: map[string]interface{}{
+							"some.setting": "override",
+						},
 					},
 					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
-						EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-							UserSettingsYaml:         "some.setting: value",
-							UserSettingsOverrideYaml: "some.setting: override",
-							UserSettingsJSON: map[string]interface{}{
-								"some.setting": "value",
-							},
-							UserSettingsOverrideJSON: map[string]interface{}{
-								"some.setting": "override",
-							},
-						},
 						ZoneCount:               1,
 						InstanceConfigurationID: "aws.enterprisesearch.m5d",
 						Size: &models.TopologySize{
@@ -331,17 +328,17 @@ func Test_expandEssResources(t *testing.T) {
 					"resource_id":                  mock.ValidClusterID,
 					"version":                      "7.8.0",
 					"region":                       "some-region",
+					"config": []interface{}{map[string]interface{}{
+						"user_settings_yaml":          "some.setting: value",
+						"user_settings_override_yaml": "some.setting: value2",
+						"user_settings_json":          "{\"some.setting\": \"value\"}",
+						"user_settings_override_json": "{\"some.setting\": \"value2\"}",
+					}},
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.enterprise_search.r5d",
 						"size":                      "4g",
 						"size_resource":             "memory",
 						"zone_count":                1,
-						"config": []interface{}{map[string]interface{}{
-							"user_settings_yaml":          "some.setting: value",
-							"user_settings_override_yaml": "some.setting: value2",
-							"user_settings_json":          "{\"some.setting\": \"value\"}",
-							"user_settings_override_json": "{\"some.setting\": \"value2\"}",
-						}},
 					}},
 				}},
 			},

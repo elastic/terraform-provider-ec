@@ -109,10 +109,6 @@ func flattenEssTopology(plan *models.EnterpriseSearchPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
-		if c := flattenEssConfig(topology.EnterpriseSearch); len(c) > 0 {
-			m["config"] = c
-		}
-
 		result = append(result, m)
 	}
 

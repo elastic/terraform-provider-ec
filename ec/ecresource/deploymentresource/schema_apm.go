@@ -71,8 +71,6 @@ func apmTopologySchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"config": apmConfig(),
-
 				"instance_configuration_id": {
 					Type:     schema.TypeString,
 					Optional: true,

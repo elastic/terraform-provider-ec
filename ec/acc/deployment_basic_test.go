@@ -88,11 +88,9 @@ func TestAccDeployment_basic_config(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic.tf"
-	topologyConfig := "testdata/deployment_basic_topology_config_2.tf"
-	topConfig := "testdata/deployment_basic_topology_config_3.tf"
+	settingsConfig := "testdata/deployment_basic_settings_config_2.tf"
 	cfg := fixtureAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
-	topologyConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, topologyConfig, randomName, getRegion(), defaultTemplate)
-	topConfigCfg := fixtureAccDeploymentResourceBasic(t, topConfig, randomName, getRegion(), defaultTemplate)
+	settingsConfigCfg := fixtureAccDeploymentResourceBasic(t, settingsConfig, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
 	if err != nil {
 		t.Fatal(err)
@@ -104,35 +102,15 @@ func TestAccDeployment_basic_config(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: topologyConfigCfg,
+				Config: settingsConfigCfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.config.0.user_settings_yaml", "action.auto_create_index: true"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "true"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.user_settings_json", `{"apm-server.rum.enabled":true}`),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.0.user_settings_yaml", "ent_search.login_assistance_message: somemessage"),
-				),
-			},
-			{
-				Config: topConfigCfg,
-				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.0.user_settings_yaml", "action.auto_create_index: true"),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "true"),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.0.user_settings_json", `{"apm-server.rum.enabled":true}`),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.user_settings_yaml", "ent_search.login_assistance_message: somemessage"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.config.#", "0"),
 				),
 			},
 			{
@@ -142,7 +120,6 @@ func TestAccDeployment_basic_config(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
