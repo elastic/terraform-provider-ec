@@ -8,6 +8,8 @@ description: |-
 
 Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.
 
+~> **Note on Elastic Stack versions** Using a version prior to `6.6.0` is not supported.
+
 ~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
 
 -> **Note on regions and deployment templates** Before you start, you might want to read about [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html) and check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in Elasticsearch Service (ESS).
@@ -312,6 +314,8 @@ In addition to all the arguments above, the following attributes are exported:
 ## Import
 
 ~> **Note on legacy (pre-slider) deployments** Importing deployments created prior to the addition of sliders in ECE or ESS, without being migrated to use sliders, is not supported.
+
+~> **Note on pre 6.6.0 deployments** Importing deployments with a version lower than `6.6.0` is not supported.
 
 Deployments can be imported using the `id`, for example:
 
