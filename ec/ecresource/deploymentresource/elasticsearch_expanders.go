@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -66,10 +65,9 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
-	// This is necessary as the default Elasticsearch payload
-	// for hot warm deployments still enables curation based
-	// settings which will soon be deprecated.
-	res = setEmptyCuration(*res.Plan.DeploymentTemplate.ID, res)
+	// Unsetting the curation properties is since they're deprecated since
+	// >= 6.6.0 which is when ILM is introduced in Elasticsearch.
+	unsetElasticsearchCuration(res)
 
 	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
 		topology, err := expandEsTopology(rt, res.Plan.ClusterTopology)
@@ -257,10 +255,12 @@ func esResource(res *models.DeploymentTemplateInfoV2) *models.ElasticsearchPaylo
 	return res.DeploymentTemplate.Resources.Elasticsearch[0]
 }
 
-func setEmptyCuration(template string, esPayload *models.ElasticsearchPayload) *models.ElasticsearchPayload {
-	if strings.Contains(template, "hot-warm") {
-		esPayload.Plan.Elasticsearch.Curation = nil
-		esPayload.Settings.Curation = nil
+func unsetElasticsearchCuration(payload *models.ElasticsearchPayload) {
+	if payload.Plan.Elasticsearch != nil {
+		payload.Plan.Elasticsearch.Curation = nil
 	}
-	return esPayload
+
+	if payload.Settings != nil {
+		payload.Settings.Curation = nil
+	}
 }
