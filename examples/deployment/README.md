@@ -5,4 +5,4 @@ The created resources are a single-node Elasticsearch cluster with a Kibana, APM
 
 ## Running the example
 
-run `terraform apply` to see it work.
+run `terraform init && terraform apply` to see it work.

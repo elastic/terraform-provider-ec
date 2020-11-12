@@ -5,4 +5,4 @@ The created resources are: two single node Elasticsearch clusters acting as sour
 
 ## Running the example
 
-run `terraform apply` to see it work.
+run `terraform init && terraform apply` to see it work.
