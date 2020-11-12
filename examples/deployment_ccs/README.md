@@ -5,4 +5,4 @@ The created resources are: two single node Elasticsearch clusters acting as sour
 
 ## Running the example
 
-run `terraform init && terraform apply` to see it work.
+Build the provider using `make install` from the main folder. From within the example's directory run `terrafrom init` to initialize Terrafrom, and `terraform apply` to see it work.
