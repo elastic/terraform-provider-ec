@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -133,18 +132,6 @@ func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTop
 		if zones, ok := topology["zone_count"]; ok {
 			if z := zones.(int); z > 0 {
 				elem.ZoneCount = int32(z)
-			}
-		}
-
-		if c, ok := topology["config"]; ok {
-			if elem.EnterpriseSearch == nil {
-				elem.EnterpriseSearch = &models.EnterpriseSearchConfiguration{}
-			}
-			if err := expandEssConfig(c, elem.EnterpriseSearch); err != nil {
-				return nil, err
-			}
-			if reflect.DeepEqual(elem.EnterpriseSearch, &models.EnterpriseSearchConfiguration{}) {
-				elem.EnterpriseSearch = nil
 			}
 		}
 

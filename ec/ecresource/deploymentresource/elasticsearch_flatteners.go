@@ -123,10 +123,6 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
-		if c := flattenEsConfig(topology.Elasticsearch); len(c) > 0 {
-			m["config"] = c
-		}
-
 		result = append(result, m)
 	}
 

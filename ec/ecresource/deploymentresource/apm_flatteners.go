@@ -93,10 +93,6 @@ func flattenApmTopology(plan *models.ApmPlan) []interface{} {
 
 		m["zone_count"] = topology.ZoneCount
 
-		if c := flattenApmConfig(topology.Apm); len(c) > 0 {
-			m["config"] = c
-		}
-
 		result = append(result, m)
 	}
 

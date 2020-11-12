@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -122,18 +121,6 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 		if zones, ok := topology["zone_count"]; ok {
 			if z := zones.(int); z > 0 {
 				elem.ZoneCount = int32(z)
-			}
-		}
-
-		if c, ok := topology["config"]; ok {
-			if elem.Kibana == nil {
-				elem.Kibana = &models.KibanaConfiguration{}
-			}
-			if err := expandKibanaConfig(c, elem.Kibana); err != nil {
-				return nil, err
-			}
-			if reflect.DeepEqual(elem.Kibana, &models.KibanaConfiguration{}) {
-				elem.Kibana = nil
 			}
 		}
 

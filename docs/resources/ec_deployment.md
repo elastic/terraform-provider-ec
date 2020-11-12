@@ -151,11 +151,10 @@ The optional `elasticsearch.topology` block supports the following arguments:
 * `size` - (Optional) Amount of memory (RAM) per topology element in the `"<size in GB>g"` notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
-* `config` (Optional) Elasticsearch settings applied at the topology level.
 
 ##### Config
 
-The optional `elasticsearch.config` and `elasticsearch.topology.config` blocks support the following arguments:
+The optional `elasticsearch.config` block supports the following arguments:
 
 * `plugins` - (Optional) List of Elasticsearch supported plugins. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html).
 * `user_settings_json` - (Optional) JSON-formatted user level `elasticsearch.yml` setting overrides.
@@ -198,11 +197,10 @@ The optional `kibana.topology` block supports the following arguments:
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones that the Kibana deployment will span. This is used to set HA. When omitted, it defaults to the deployment template value.
-* `config` (Optional) Kibana settings applied at the topology level. 
 
 ##### Config
 
-The optional `kibana.config` and `kibana.topology.config` blocks support the following arguments:
+The optional `kibana.config` block supports the following arguments:
 
 * `user_settings_json` - (Optional) JSON-formatted user level `kibana.yml` setting overrides.
 * `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `kibana.yml` setting overrides.
@@ -226,11 +224,10 @@ The optional `apm.topology` block supports the following arguments:
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA. When omitted, it defaults to the deployment template value.
-* `config` (Optional) APM settings applied at the topology level. 
 
 ##### Config
 
-The optional `apm.config` and `apm.topology.config` blocks support the following arguments:
+The optional `apm.config` block supports the following arguments:
 
 * `debug_enabled` - (Optional) Enable debug mode for APM servers. Defaults to `false`.
 * `user_settings_json` - (Optional) JSON-formatted user level `apm.yml` setting overrides.
@@ -255,11 +252,10 @@ The optional `enterprise_search.topology` block supports the following settings:
 * `size` - (Optional) Amount of memory (RAM) per `topology` element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones that the Enterprise Search deployment will span. This is used to set HA. When omitted, it defaults to the deployment template value.
-* `config` (Optional) Enterprise Search settings applied at the topology level. 
 
 ##### Config
 
-The optional `enterprise_search.config` and `enterprise_search.topology.config` blocks support the following arguments:
+The optional `enterprise_search.config` block supports the following arguments:
 
 * `user_settings_json` - (Optional) JSON-formatted user level `enterprise_search.yml` setting overrides.
 * `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `enterprise_search.yml` setting overrides.
