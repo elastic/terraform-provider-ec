@@ -1,5 +1,5 @@
-# Elastic Cloud (EC) Provider Examples
+# Elastic Cloud provider examples
 
-This directory contains a set of examples of using various Elastic Cloud resources with Terraform. The examples each have their own README containing more details on what the example does.
+This directory contains a set of examples that show you how to use Elastic Cloud resources with Terraform. For each example there is a README file with a detailed description.
 
-To run any example, clone the repository and run `terraform apply` within the example's own directory.
+To run any example, clone the repository and run `terraform apply` within the example directory.
