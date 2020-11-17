@@ -5,4 +5,4 @@ The created resources are a single-node Elasticsearch cluster with a Kibana, APM
 
 ## Running the example
 
-Build the provider using `make install` from the main folder. From within the example's directory, run `terraform init` to initialize Terraform, and `terraform apply` to see if it works.
+Build the provider using `make install` from the main folder. From within the example's directory, run `terraform init` to initialize Terraform, and `terraform apply` to apply the changes.
