@@ -1,11 +1,13 @@
-# Deployment Example
+# Deployment example
 
 This example shows how to deploy an Elastic Cloud deployment using Terraform.
-Secondly, it will show you how to initialize the instance. This is done by using some of the outputs as string variables within a very simple bash script to create a user and an index.
-
-Lastly, it will create a traffic filter (which allows all traffic) and attach it to the deployment.
+First, you initialize the instance by using some of the outputs as string variables within a bash script to create a user and an index.
+Then, you create a traffic filter (which allows all traffic) and attach it to the deployment.
 
 ## Running the example
-Build the provider using `make install` from the main folder
-run `terrafrom init` to initialize your terraform cli
-run `terraform apply` to see it work.
+
+To run the example, follow these steps:
+
+1. Build the provider by running `make install` from the main folder.
+2. Run `terrafrom init` to initialize your Terraform CLI.
+3. Run `terraform apply` to see how it works.
