@@ -317,6 +317,8 @@ In addition to all the arguments above, the following attributes are exported:
 
 ~> **Note on pre 6.6.0 deployments** Importing deployments with a version lower than `6.6.0` is not supported.
 
+~> **Note on deployments with per topology user settings** Only deployments with global user settings (config) are supported. Make sure to migrate to global settings before importing.
+
 Deployments can be imported using the `id`, for example:
 
 ```
