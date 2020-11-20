@@ -151,10 +151,10 @@ The optional `elasticsearch.topology` block supports the following arguments:
 * `size` - (Optional) Amount of memory (RAM) per topology element in the `"<size in GB>g"` notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
-* `node_type_data` - (Optional) Node type (data) for the Elasticsearch cluster.
-* `node_type_master` - (Optional) Node type (master) for the Elasticsearch cluster.
-* `node_type_ingest` - (Optional) Node type (ingest) for the Elasticsearch cluster.
-* `node_type_ml` - (Optional) Node type (machine learning) for the Elasticsearch cluster.
+* `node_type_data` - (Optional) The node type for the Elasticsearch cluster (data node).
+* `node_type_master` - (Optional) The node type for the Elasticsearch cluster (master node).
+* `node_type_ingest` - (Optional) The node type for the Elasticsearch cluster (ingest node).
+* `node_type_ml` - (Optional) The node type for the Elasticsearch cluster (machine learning node).
 
 ##### Config
 
