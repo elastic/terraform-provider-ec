@@ -134,7 +134,7 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if ntData, ok := topology["node_type_data"]; ok && ntData.(string) != "" {
 			nt, err := strconv.ParseBool(ntData.(string))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed parsing node_type_data value: %w", err)
 			}
 			elem.NodeType.Data = ec.Bool(nt)
 		}
@@ -142,7 +142,7 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if ntMaster, ok := topology["node_type_master"]; ok && ntMaster.(string) != "" {
 			nt, err := strconv.ParseBool(ntMaster.(string))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed parsing node_type_master value: %w", err)
 			}
 			elem.NodeType.Master = ec.Bool(nt)
 		}
@@ -150,7 +150,7 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if ntIngest, ok := topology["node_type_ingest"]; ok && ntIngest.(string) != "" {
 			nt, err := strconv.ParseBool(ntIngest.(string))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed parsing node_type_ingest value: %w", err)
 			}
 			elem.NodeType.Ingest = ec.Bool(nt)
 		}
@@ -158,7 +158,7 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if ntMl, ok := topology["node_type_ml"]; ok && ntMl.(string) != "" {
 			nt, err := strconv.ParseBool(ntMl.(string))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed parsing node_type_ml value: %w", err)
 			}
 			elem.NodeType.Ml = ec.Bool(nt)
 		}
