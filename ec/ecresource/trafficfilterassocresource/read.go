@@ -19,9 +19,12 @@ package trafficfilterassocresource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -36,6 +39,10 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 		IncludeAssociations: true,
 	})
 	if err != nil {
+		if ruleAssocNotFound(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
@@ -44,4 +51,16 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 	}
 
 	return nil
+}
+
+func ruleAssocNotFound(err error) bool {
+	// We're using the As() call since we do not care about the error value
+	// but do care about the error type since it's an implicit 404.
+	var ruleNotFound *deployments_traffic_filter.GetTrafficFilterRulesetNotFound
+	if errors.As(err, &ruleNotFound) {
+		return true
+	}
+
+	// We also check for the case where a 403 is thrown for ESS.
+	return apierror.IsRuntimeStatusCode(err, 403)
 }

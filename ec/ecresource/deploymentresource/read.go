@@ -19,11 +19,14 @@ package deploymentresource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -43,9 +46,17 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 			ShowPlanDefaults: true,
 		},
 	})
-
 	if err != nil {
+		if deploymentNotFound(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(multierror.NewPrefixed("failed reading deployment", err))
+	}
+
+	if !hasRunningResources(res) {
+		d.SetId("")
+		return nil
 	}
 
 	var diags diag.Diagnostics
@@ -54,7 +65,9 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		RefID: d.Get("elasticsearch.0.ref_id").(string),
 	})
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		diags = append(diags, diag.FromErr(
+			multierror.NewPrefixed("failed reading remote clusters", err),
+		)...)
 	}
 
 	if remotes == nil {
@@ -66,4 +79,16 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 	}
 
 	return diags
+}
+
+func deploymentNotFound(err error) bool {
+	// We're using the As() call since we do not care about the error value
+	// but do care about the error type since it's an implicit 404.
+	var notDeploymentNotFound *deployments.GetDeploymentNotFound
+	if errors.As(err, &notDeploymentNotFound) {
+		return true
+	}
+
+	// We also check for the case where a 403 is thrown for ESS.
+	return apierror.IsRuntimeStatusCode(err, 403)
 }

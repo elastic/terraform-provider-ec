@@ -19,9 +19,11 @@ package trafficfilterassocresource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -34,9 +36,18 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	params.API = client
 
 	if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams(params)); err != nil {
+		if associationDeleted(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 	return nil
+}
+
+func associationDeleted(err error) bool {
+	var notFound *deployments_traffic_filter.DeleteTrafficFilterRulesetAssociationNotFound
+	return errors.As(err, &notFound)
 }
