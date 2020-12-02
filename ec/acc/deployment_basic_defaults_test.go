@@ -113,7 +113,7 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 				),
 			},
 			{
-				// Remove all resources except Elasticsearch and Kibana.
+				// Remove all resources except Elasticsearch and Kibana and set a node type override
 				Config: thirdConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
@@ -122,7 +122,7 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "false"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "2"),

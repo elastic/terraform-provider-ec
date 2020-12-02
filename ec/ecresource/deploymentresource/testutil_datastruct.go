@@ -133,10 +133,10 @@ func newElasticsearchSample() map[string]interface{} {
 		"topology": []interface{}{map[string]interface{}{
 			"instance_configuration_id": "aws.data.highio.i3",
 			"size":                      "2g",
-			"node_type_data":            true,
-			"node_type_ingest":          true,
-			"node_type_master":          true,
-			"node_type_ml":              false,
+			"node_type_data":            "true",
+			"node_type_ingest":          "true",
+			"node_type_master":          "true",
+			"node_type_ml":              "false",
 			"zone_count":                1,
 		}},
 	}

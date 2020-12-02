@@ -541,6 +541,87 @@ func Test_expandEsResource(t *testing.T) {
 			},
 		},
 		{
+			name: "parses an ES resource with node type overrides (HotWarm)",
+			args: args{
+				dt: hotWarmTpl(),
+				ess: []interface{}{map[string]interface{}{
+					"ref_id":      "main-elasticsearch",
+					"resource_id": mock.ValidClusterID,
+					"version":     "7.7.0",
+					"region":      "some-region",
+					"topology": []interface{}{
+						map[string]interface{}{
+							"node_type_data":   "false",
+							"node_type_master": "false",
+							"node_type_ingest": "false",
+							"node_type_ml":     "true",
+						},
+						map[string]interface{}{
+							"node_type_master": "true",
+						},
+					},
+				}},
+			},
+			want: []*models.ElasticsearchPayload{
+				{
+					Region: ec.String("some-region"),
+					RefID:  ec.String("main-elasticsearch"),
+					Settings: &models.ElasticsearchClusterSettings{
+						DedicatedMastersThreshold: 6,
+						Curation:                  nil,
+					},
+					Plan: &models.ElasticsearchClusterPlan{
+						Elasticsearch: &models.ElasticsearchConfiguration{
+							Version:  "7.7.0",
+							Curation: nil,
+						},
+						DeploymentTemplate: &models.DeploymentTemplateReference{
+							ID: ec.String("aws-hot-warm-v2"),
+						},
+						ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+							{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									NodeAttributes: map[string]string{
+										"data": "hot",
+									},
+								},
+								ZoneCount:               2,
+								InstanceConfigurationID: "aws.data.highio.i3",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(4096),
+								},
+								NodeType: &models.ElasticsearchNodeType{
+									Data:   ec.Bool(false),
+									Ingest: ec.Bool(false),
+									Master: ec.Bool(false),
+									Ml:     ec.Bool(true),
+								},
+							},
+							{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									NodeAttributes: map[string]string{
+										"data": "warm",
+									},
+								},
+								ZoneCount:               2,
+								InstanceConfigurationID: "aws.data.highstorage.d2",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(4096),
+								},
+								NodeType: &models.ElasticsearchNodeType{
+									Data:   ec.Bool(true),
+									Ingest: ec.Bool(true),
+									Master: ec.Bool(true),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "parses an ES resource with config",
 			args: args{
 				dt: tpl(),

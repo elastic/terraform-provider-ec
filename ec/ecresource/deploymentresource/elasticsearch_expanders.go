@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -128,6 +129,38 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			if z := zones.(int); z > 0 {
 				elem.ZoneCount = int32(z)
 			}
+		}
+
+		if ntData, ok := topology["node_type_data"]; ok && ntData.(string) != "" {
+			nt, err := strconv.ParseBool(ntData.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed parsing node_type_data value: %w", err)
+			}
+			elem.NodeType.Data = ec.Bool(nt)
+		}
+
+		if ntMaster, ok := topology["node_type_master"]; ok && ntMaster.(string) != "" {
+			nt, err := strconv.ParseBool(ntMaster.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed parsing node_type_master value: %w", err)
+			}
+			elem.NodeType.Master = ec.Bool(nt)
+		}
+
+		if ntIngest, ok := topology["node_type_ingest"]; ok && ntIngest.(string) != "" {
+			nt, err := strconv.ParseBool(ntIngest.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed parsing node_type_ingest value: %w", err)
+			}
+			elem.NodeType.Ingest = ec.Bool(nt)
+		}
+
+		if ntMl, ok := topology["node_type_ml"]; ok && ntMl.(string) != "" {
+			nt, err := strconv.ParseBool(ntMl.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed parsing node_type_ml value: %w", err)
+			}
+			elem.NodeType.Ml = ec.Bool(nt)
 		}
 
 		res = append(res, elem)

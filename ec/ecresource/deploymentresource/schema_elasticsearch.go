@@ -109,28 +109,29 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Computed:    true,
 					Optional:    true,
 				},
-
-				// Computed node type attributes
-
 				"node_type_data": {
-					Type:        schema.TypeBool,
-					Description: `Node type (data) for the Elasticsearch Topology element`,
+					Type:        schema.TypeString,
+					Description: `The node type for the Elasticsearch Topology element (data node)`,
 					Computed:    true,
+					Optional:    true,
 				},
 				"node_type_master": {
-					Type:        schema.TypeBool,
-					Description: `Node type (master) for the Elasticsearch Topology element`,
+					Type:        schema.TypeString,
+					Description: `The node type for the Elasticsearch Topology element (master node)`,
 					Computed:    true,
+					Optional:    true,
 				},
 				"node_type_ingest": {
-					Type:        schema.TypeBool,
-					Description: `Node type (ingest) for the Elasticsearch Topology element`,
+					Type:        schema.TypeString,
+					Description: `The node type for the Elasticsearch Topology element (ingest node)`,
 					Computed:    true,
+					Optional:    true,
 				},
 				"node_type_ml": {
-					Type:        schema.TypeBool,
-					Description: `Node type (machine learning) for the Elasticsearch Topology element`,
+					Type:        schema.TypeString,
+					Description: `The node type for the Elasticsearch Topology element (machine learning node)`,
 					Computed:    true,
+					Optional:    true,
 				},
 			},
 		},

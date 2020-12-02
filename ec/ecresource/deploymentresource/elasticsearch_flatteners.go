@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"bytes"
 	"encoding/json"
+	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -105,19 +106,19 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 
 		if nt := topology.NodeType; nt != nil {
 			if nt.Data != nil {
-				m["node_type_data"] = *nt.Data
+				m["node_type_data"] = strconv.FormatBool(*nt.Data)
 			}
 
 			if nt.Ingest != nil {
-				m["node_type_ingest"] = *nt.Ingest
+				m["node_type_ingest"] = strconv.FormatBool(*nt.Ingest)
 			}
 
 			if nt.Master != nil {
-				m["node_type_master"] = *nt.Master
+				m["node_type_master"] = strconv.FormatBool(*nt.Master)
 			}
 
 			if nt.Ml != nil {
-				m["node_type_ml"] = *nt.Ml
+				m["node_type_ml"] = strconv.FormatBool(*nt.Ml)
 			}
 		}
 
