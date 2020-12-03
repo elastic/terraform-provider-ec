@@ -20,6 +20,7 @@ package trafficfilterassocresource
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
@@ -62,5 +63,5 @@ func ruleAssocNotFound(err error) bool {
 	}
 
 	// We also check for the case where a 403 is thrown for ESS.
-	return apierror.IsRuntimeStatusCode(err, 403)
+	return apierror.IsRuntimeStatusCode(err, http.StatusForbidden)
 }
