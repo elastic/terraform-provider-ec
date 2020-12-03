@@ -41,6 +41,57 @@ func Test_modelToState(t *testing.T) {
 		Schema: newSchema(),
 	})
 
+	searchResponse := &models.DeploymentsSearchResponse{
+		ReturnCount: ec.Int32(1),
+		Deployments: []*models.DeploymentSearchResponse{
+			{
+				Healthy: ec.Bool(true),
+				ID:      ec.String("a8f22a9b9e684a7f94a89df74aa14331"),
+				Name:    ec.String("test-hello"),
+				Resources: &models.DeploymentResources{
+					Elasticsearch: []*models.ElasticsearchResourceInfo{
+						{
+							ID: ec.String("a98dd0dac15a48d5b3953384c7e571b9"),
+							Info: &models.ElasticsearchClusterInfo{
+								Healthy: ec.Bool(true),
+								PlanInfo: &models.ElasticsearchClusterPlansInfo{
+									Current: &models.ElasticsearchClusterPlanInfo{
+										Plan: &models.ElasticsearchClusterPlan{
+											DeploymentTemplate: &models.DeploymentTemplateReference{
+												ID: ec.String("azure-compute-optimized"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Kibana: []*models.KibanaResourceInfo{
+						{ID: ec.String("c75297d672b54da68faecededf372f87")},
+					},
+					Apm: []*models.ApmResourceInfo{
+						{ID: ec.String("9884c76ae1cd4521a0d9918a454a700d")},
+					},
+					EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+						{ID: ec.String("f17e4d8a61b14c12b020d85b723357ba")},
+					},
+				},
+			},
+		},
+	}
+
+	deploymentsSchemaArgNoID := schema.TestResourceDataRaw(t, newSchema(), nil)
+	deploymentsSchemaArgNoID.SetId("")
+	_ = deploymentsSchemaArgNoID.Set("name_prefix", "test")
+	_ = deploymentsSchemaArgNoID.Set("healthy", "true")
+	_ = deploymentsSchemaArgNoID.Set("deployment_template_id", "azure-compute-optimized")
+
+	wantDeploymentsNoID := util.NewResourceData(t, util.ResDataParams{
+		ID:     "1648957651",
+		State:  newSampleDeployments(),
+		Schema: newSchema(),
+	})
+
 	type args struct {
 		d   *schema.ResourceData
 		res *models.DeploymentsSearchResponse
@@ -55,52 +106,17 @@ func Test_modelToState(t *testing.T) {
 			name: "flattens deployment resources",
 			want: wantDeployments,
 			args: args{
-				d: deploymentsSchemaArg,
-				res: &models.DeploymentsSearchResponse{
-					ReturnCount: ec.Int32(1),
-					Deployments: []*models.DeploymentSearchResponse{
-						{
-							Healthy: ec.Bool(true),
-							ID:      ec.String("a8f22a9b9e684a7f94a89df74aa14331"),
-							Name:    ec.String("test-hello"),
-							Resources: &models.DeploymentResources{
-								Elasticsearch: []*models.ElasticsearchResourceInfo{
-									{
-										ID: ec.String("a98dd0dac15a48d5b3953384c7e571b9"),
-										Info: &models.ElasticsearchClusterInfo{
-											Healthy: ec.Bool(true),
-											PlanInfo: &models.ElasticsearchClusterPlansInfo{
-												Current: &models.ElasticsearchClusterPlanInfo{
-													Plan: &models.ElasticsearchClusterPlan{
-														DeploymentTemplate: &models.DeploymentTemplateReference{
-															ID: ec.String("azure-compute-optimized"),
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-								Kibana: []*models.KibanaResourceInfo{
-									{
-										ID: ec.String("c75297d672b54da68faecededf372f87"),
-									},
-								},
-								Apm: []*models.ApmResourceInfo{
-									{
-										ID: ec.String("9884c76ae1cd4521a0d9918a454a700d"),
-									},
-								},
-								EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
-									{
-										ID: ec.String("f17e4d8a61b14c12b020d85b723357ba"),
-									},
-								},
-							},
-						},
-					},
-				},
+				d:   deploymentsSchemaArg,
+				res: searchResponse,
 			},
+		},
+		{
+			name: "flattens deployment resources and sets the ID",
+			args: args{
+				d:   deploymentsSchemaArgNoID,
+				res: searchResponse,
+			},
+			want: wantDeploymentsNoID,
 		},
 	}
 	for _, tt := range tests {

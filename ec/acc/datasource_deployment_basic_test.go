@@ -42,8 +42,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             cfg,
-				ExpectNonEmptyPlan: true,
+				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(datasourceName, "region", resourceName, "region"),
@@ -110,8 +109,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				),
 			},
 			{
-				Config:             cfg,
-				ExpectNonEmptyPlan: true,
+				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", namePrefix),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployment_template_id", resourceName, "deployment_template_id"),

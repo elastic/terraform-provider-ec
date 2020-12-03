@@ -19,6 +19,7 @@ package deploymentsdatasource
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -26,7 +27,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -59,10 +59,6 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 		return diag.FromErr(multierror.NewPrefixed("failed searching deployments", err))
 	}
 
-	if d.Id() == "" {
-		d.SetId(resource.UniqueId())
-	}
-
 	if err := modelToState(d, res); err != nil {
 		return diag.FromErr(err)
 	}
@@ -71,6 +67,12 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 }
 
 func modelToState(d *schema.ResourceData, res *models.DeploymentsSearchResponse) error {
+	if d.Id() == "" {
+		if b, _ := res.MarshalBinary(); len(b) > 0 {
+			d.SetId(strconv.Itoa(schema.HashString(string(b))))
+		}
+	}
+
 	if err := d.Set("return_count", res.ReturnCount); err != nil {
 		return err
 	}
