@@ -180,10 +180,11 @@ func Test_deploymentNotFound(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "When the deployment is not authorized it returns false",
+			name: "When the deployment is not authorized it returns true, to account for the DR case (ESS)",
 			args: args{
 				err: &apierror.Error{Err: &runtime.APIError{Code: 403}},
 			},
+			want: true,
 		},
 	}
 	for _, tt := range tests {

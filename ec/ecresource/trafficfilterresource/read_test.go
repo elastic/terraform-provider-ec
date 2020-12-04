@@ -22,10 +22,7 @@ import (
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
-	"github.com/go-openapi/runtime"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -112,54 +109,6 @@ func Test_read(t *testing.T) {
 			}
 
 			assert.Equal(t, want, gotState)
-		})
-	}
-}
-
-func Test_ruleNotFound(t *testing.T) {
-	type args struct {
-		err error
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "When the error is empty, it returns false",
-		},
-		{
-			name: "When the error is something else (500), it returns false",
-			args: args{
-				err: &apierror.Error{Err: &runtime.APIError{Code: 500}},
-			},
-		},
-		{
-			name: "When the error is something else (401), it returns false",
-			args: args{
-				err: &apierror.Error{Err: &deployments_traffic_filter.GetTrafficFilterRulesetInternalServerError{}},
-			},
-		},
-		{
-			name: "When the deployment traffic filter rule is not found, it returns true",
-			args: args{
-				err: &apierror.Error{Err: &deployments_traffic_filter.GetTrafficFilterRulesetNotFound{}},
-			},
-			want: true,
-		},
-		{
-			name: "When the deployment traffic filter rule is not found in ESS it returns true",
-			args: args{
-				err: &apierror.Error{Err: &runtime.APIError{Code: 403}},
-			},
-			want: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := ruleNotFound(tt.args.err); got != tt.want {
-				t.Errorf("ruleNotFound() = %v, want %v", got, tt.want)
-			}
 		})
 	}
 }

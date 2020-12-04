@@ -22,6 +22,7 @@ import (
 	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
@@ -84,5 +85,10 @@ func deploymentNotFound(err error) bool {
 	// We're using the As() call since we do not care about the error value
 	// but do care about the error's contents type since it's an implicit 404.
 	var notDeploymentNotFound *deployments.GetDeploymentNotFound
-	return errors.As(err, &notDeploymentNotFound)
+	if errors.As(err, &notDeploymentNotFound) {
+		return true
+	}
+
+	// We also check for the case where a 403 is thrown for ESS.
+	return apierror.IsRuntimeStatusCode(err, 403)
 }

@@ -26,6 +26,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // Delete will delete an existing deployment traffic filter ruleset
@@ -36,7 +38,7 @@ func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 		API: client, ID: d.Id(), IncludeAssociations: true,
 	})
 	if err != nil {
-		if ruleNotFound(err) {
+		if util.TrafficFilterNotFound(err) {
 			d.SetId("")
 			return nil
 		}
