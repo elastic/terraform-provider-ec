@@ -11,6 +11,15 @@ APIs. Use the navigation to the left to read about data sources and resources su
 
 
 ```hcl
+terraform {
+  required_providers {
+    ec = {
+      source  = "elastic/ec"
+      version = "0.1.0-beta"
+    }
+  }
+}
+
 provider "ec" {
   apikey = "my-api-key"
 }
