@@ -66,9 +66,6 @@ func associateRule(ruleID, deploymentID string, client *api.API) error {
 		API: client, ID: ruleID, IncludeAssociations: true,
 	})
 	if err != nil {
-		if util.TrafficFilterNotFound(err) {
-			return nil
-		}
 		return err
 	}
 
