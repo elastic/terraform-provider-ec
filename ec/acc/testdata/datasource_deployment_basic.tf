@@ -77,4 +77,8 @@ data "ec_deployments" "query" {
   enterprise_search {
     version = data.ec_stack.latest.version
   }
+
+  depends_on = [
+    ec_deployment.basic_datasource,
+  ]
 }
