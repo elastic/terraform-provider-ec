@@ -8,3 +8,4 @@ examples/*/*.tfstate.backup
 .vscode
 .idea
 .apikey
+dist
