@@ -7,6 +7,7 @@ VERSION_GOBIN:=v0.0.13
 VERSION_GOLINT:=v0.0.0-20191125180803-fdd1cda4f05f
 VERSION_GOLICENSER:=v0.3.0
 VERSION_GOLANGCILINT:=v1.26.0
+VERSION_GORELEASER:=v0.149.0
 
 deps: $(GOBIN)/gobin $(GOBIN)/golint $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
 
@@ -48,3 +49,11 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
+
+$(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-goreleaser-*
+	@ echo $(VERSION_GORELEASER) > $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER)
+
+$(GOBIN)/goreleaser: $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER) | $(GOBIN)
+	@ echo "-> Installing goreleaser..."
+	@ curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh| sh -s -- -b $(GOBIN) $(VERSION_GORELEASER)
