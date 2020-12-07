@@ -181,3 +181,30 @@ func getVersion(res *models.DeploymentResources) (version string) {
 
 	return version
 }
+
+func hasRunningResources(res *models.DeploymentGetResponse) bool {
+	var hasRunning bool
+	if res.Resources != nil {
+		for _, r := range res.Resources.Elasticsearch {
+			if !isEsResourceStopped(r) {
+				hasRunning = true
+			}
+		}
+		for _, r := range res.Resources.Kibana {
+			if !isKibanaResourceStopped(r) {
+				hasRunning = true
+			}
+		}
+		for _, r := range res.Resources.Apm {
+			if !isApmResourceStopped(r) {
+				hasRunning = true
+			}
+		}
+		for _, r := range res.Resources.EnterpriseSearch {
+			if !isEssResourceStopped(r) {
+				hasRunning = true
+			}
+		}
+	}
+	return hasRunning
+}

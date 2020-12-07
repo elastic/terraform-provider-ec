@@ -21,6 +21,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func handleTrafficFilterChange(d *schema.ResourceData, client *api.API) error {
@@ -88,22 +90,12 @@ func removeRule(ruleID, deploymentID string, client *api.API) error {
 		API: client, ID: ruleID, IncludeAssociations: true,
 	})
 
-	// Removal is a little bit more hairy, the rule might have already been
-	// destroyed and the associated Traffic Filter associations too, so if an
-	// error is returned, fist, check if exist by iterating over all of the
-	// existing rules sets since the GET <rule id> returned with an error.
-	// If the rule set doesn't exist, then nil is returned.
+	// If the rule is gone (403 or 404), return nil.
 	if err != nil {
-		r, e := trafficfilterapi.List(trafficfilterapi.ListParams{API: client})
-		if e != nil {
-			return e
+		if util.TrafficFilterNotFound(err) {
+			return nil
 		}
-		for _, ruleSet := range r.Rulesets {
-			if *ruleSet.ID == ruleID {
-				return err
-			}
-		}
-		return nil
+		return err
 	}
 
 	// If the rule is found, then delete the association.

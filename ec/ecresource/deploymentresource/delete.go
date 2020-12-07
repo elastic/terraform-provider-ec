@@ -19,9 +19,12 @@ package deploymentresource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
+	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -33,7 +36,13 @@ func deleteResource(_ context.Context, d *schema.ResourceData, meta interface{})
 	if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
 		API: client, DeploymentID: d.Id(),
 	}); err != nil {
-		return diag.FromErr(err)
+		if alreadyDestroyed(err) {
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(multierror.NewPrefixed(
+			"failed shutting down the deployment", err,
+		))
 	}
 
 	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
@@ -55,4 +64,9 @@ func deleteResource(_ context.Context, d *schema.ResourceData, meta interface{})
 
 	d.SetId("")
 	return nil
+}
+
+func alreadyDestroyed(err error) bool {
+	var destroyed *deployments.ShutdownDeploymentNotFound
+	return errors.As(err, &destroyed)
 }

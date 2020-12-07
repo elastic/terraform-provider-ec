@@ -24,6 +24,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // Read queries the remote deployment traffic filter ruleset state and update
@@ -35,6 +37,10 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 		API: client, ID: d.Id(),
 	})
 	if err != nil {
+		if util.TrafficFilterNotFound(err) {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
 

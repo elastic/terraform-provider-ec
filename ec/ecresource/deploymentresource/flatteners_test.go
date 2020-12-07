@@ -793,3 +793,76 @@ func Test_parseCredentials(t *testing.T) {
 		})
 	}
 }
+
+func Test_hasRunningResources(t *testing.T) {
+	type args struct {
+		res *models.DeploymentGetResponse
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "has all the resources stopped",
+			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("stopped")}},
+				},
+				Kibana: []*models.KibanaResourceInfo{
+					{Info: &models.KibanaClusterInfo{Status: ec.String("stopped")}},
+				},
+				Apm: []*models.ApmResourceInfo{
+					{Info: &models.ApmInfo{Status: ec.String("stopped")}},
+				},
+				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+					{Info: &models.EnterpriseSearchInfo{Status: ec.String("stopped")}},
+				},
+			}}},
+			want: false,
+		},
+		{
+			name: "has some resources stopped",
+			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("running")}},
+				},
+				Kibana: []*models.KibanaResourceInfo{
+					{Info: &models.KibanaClusterInfo{Status: ec.String("stopped")}},
+				},
+				Apm: []*models.ApmResourceInfo{
+					{Info: &models.ApmInfo{Status: ec.String("running")}},
+				},
+				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+					{Info: &models.EnterpriseSearchInfo{Status: ec.String("running")}},
+				},
+			}}},
+			want: true,
+		},
+		{
+			name: "has all resources running",
+			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("running")}},
+				},
+				Kibana: []*models.KibanaResourceInfo{
+					{Info: &models.KibanaClusterInfo{Status: ec.String("running")}},
+				},
+				Apm: []*models.ApmResourceInfo{
+					{Info: &models.ApmInfo{Status: ec.String("running")}},
+				},
+				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+					{Info: &models.EnterpriseSearchInfo{Status: ec.String("running")}},
+				},
+			}}},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := hasRunningResources(tt.args.res); got != tt.want {
+				t.Errorf("hasRunningResources() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
