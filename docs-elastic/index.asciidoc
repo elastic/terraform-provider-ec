@@ -1,0 +1,9 @@
+= Elastic Cloud Terraform Documentation
+:n: Elastic Cloud Terraform provider
+:p: tpec
+
+The {n} allows you to provision Elastic Cloud deployments on any Elastic Cloud platform, whether it’s Elasticsearch Service or Elastic Cloud Enterprise.
+
+The provider lets you manage Elastic Cloud deployments as code, and introduce DevOps-driven methodologies to manage and deploy the Elastic Stack and solutions.
+
+To get started, see our link:https://registry.terraform.io/providers/elastic/ec/latest/docs[Elastic Cloud Terraform provider documentation].
