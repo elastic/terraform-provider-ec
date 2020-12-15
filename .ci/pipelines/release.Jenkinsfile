@@ -14,7 +14,7 @@ node('docker') {
     ]) {
         stage("Get secrets from vault") {
             withEnv(["VAULT_SECRET_ID=${VAULT_SECRET_ID}", "VAULT_ROLE_ID=${VAULT_ROLE_ID}", "VAULT_ADDR=${VAULT_ADDR}"]) {
-                sh 'make -C .ci .gpg_private .gpg_passphrase .github_token'
+                sh 'make -C .ci .gpg_private .gpg_passphrase .github_token .gpg_fingerprint'
             }
         }
     }
