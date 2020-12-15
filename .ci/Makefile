@@ -15,7 +15,25 @@ endif
 
 .PHONY: clean
 clean: ## Delete credentials
-	@ rm -f .apikey
+	@ rm -f .apikey .gpg_private .gpg_passphrase .github_token .gpg_fingerprint
 
 .apikey:
 	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=apikey secret/devops-ci/terraform-provider-ec > .apikey
+
+.gpg_private:
+	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=gpg_private secret/devops-ci/terraform-provider-ec  | base64 -d > .gpg_private
+
+.gpg_passphrase:
+	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=gpg_passphrase secret/devops-ci/terraform-provider-ec > .gpg_passphrase
+
+.gpg_fingerprint:
+	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=gpg_fingerprint secret/devops-ci/terraform-provider-ec > .gpg_fingerprint
+
+.github_token:
+	@ VAULT_TOKEN=$(VAULT_TOKEN) $(vault) read -field=gh_personal_access_token secret/devops-ci/terraform-provider-ec > .github_token
+
+import-gpg-key:
+	@ cat .gpg_passphrase | gpg --import --batch --yes --passphrase-fd 0 .gpg_private
+
+cache-gpg-passphrase:
+	@ cat .gpg_passphrase | gpg --armor --detach-sign --passphrase-fd 0 --pinentry-mode loopback

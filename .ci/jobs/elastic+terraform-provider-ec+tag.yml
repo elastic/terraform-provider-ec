@@ -1,0 +1,14 @@
+---
+- job:
+    name: elastic+terraform-provider-ec+release
+    display-name: elastic / terraform-provider-ec - release job
+    description: Releases job
+    project-type: pipeline
+    triggers:
+        - github
+    pipeline-scm:
+        script-path: .ci/pipelines/release.Jenkinsfile
+        scm:
+            - git:
+                branches:
+                    - refs/tags/v*
