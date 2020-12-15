@@ -1,25 +1,24 @@
 OWNER = elastic
 REPO = terraform-provider-ec
+PREFIXED_V = v$(subst -dev,,$(VERSION))
 
 ### Release targets
 
 ## Tags the current commit as the release commit with $(VERSION) (minus -dev).
 tag:
 	@ git fetch
-ifeq ($(shell git tag -l $(STRIPPED_V)),$(STRIPPED_V))
-	@ echo "-> git tag $(STRIPPED_V) already exists, exiting..."
+ifeq ($(shell git tag -l $(PREFIXED_V)),$(PREFIXED_V))
+	@ echo "-> git tag $(PREFIXED_V) already exists, exiting..."
 	@ exit 1
 endif
 ifeq ($(shell git remote -v | grep $(OWNER)/$(REPO)),)
 	@ echo "-> git remote 'upstream' is not configured, exiting..."
 	@ exit 2
 endif
-	@ echo $(STRIPPED_V)
-	@ exit 1
 	@ $(eval REMOTE = $(shell git remote -v | grep $(OWNER)/$(REPO)| head -1 | awk '{print $$1}'))
-	@ echo "Pushing git tag $(STRIPPED_V) to remote \"$(REMOTE)\"..."
-	@ git tag $(STRIPPED_V)
-	@ git push -u $(REMOTE) $(STRIPPED_V)
+	@ echo "Pushing git tag $(PREFIXED_V) to remote \"$(REMOTE)\"..."
+	@ git tag $(PREFIXED_V)
+	@ git push -u $(REMOTE) $(PREFIXED_V)
 
 ## Creates a snapshot build of the terraform provider.
 snapshot: $(GOBIN)/goreleaser

@@ -48,6 +48,9 @@ signs:
       - "--detach-sign"
       - "${artifact}"
 release:
+  github:
+    owner: elastic
+    name: terraform-provider-ec
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
 changelog:
