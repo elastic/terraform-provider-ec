@@ -40,7 +40,7 @@ func newSchema() map[string]*schema.Schema {
 			Required:    true,
 		},
 		"rule": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Description: "Required list of rules, which the ruleset is made of.",
 			Required:    true,
 			MinItems:    1,

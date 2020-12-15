@@ -44,9 +44,50 @@ func Test_modelToState(t *testing.T) {
 		},
 	}
 
+	trafficFilterSchemaArgMultipleR := schema.TestResourceDataRaw(t, newSchema(), nil)
+	trafficFilterSchemaArgMultipleR.SetId("some-random-id")
+
+	remoteStateMultipleRules := models.TrafficFilterRulesetInfo{
+		ID:               ec.String("some-random-id"),
+		Name:             ec.String("my traffic filter"),
+		Type:             ec.String("ip"),
+		IncludeByDefault: ec.Bool(false),
+		Region:           ec.String("us-east-1"),
+		Rules: []*models.TrafficFilterRule{
+			{Source: ec.String("1.1.1.0/16")},
+			{Source: ec.String("1.1.1.1/24")},
+			{Source: ec.String("0.0.0.0/0")},
+			{Source: ec.String("1.1.1.1")},
+		},
+	}
+
 	wantTrafficFilter := util.NewResourceData(t, util.ResDataParams{
 		ID:     "some-random-id",
 		State:  newSampleTrafficFilter(),
+		Schema: newSchema(),
+	})
+	wantTrafficFilterMultipleR := util.NewResourceData(t, util.ResDataParams{
+		ID: "some-random-id",
+		State: map[string]interface{}{
+			"name":               "my traffic filter",
+			"type":               "ip",
+			"include_by_default": false,
+			"region":             "us-east-1",
+			"rule": []interface{}{
+				map[string]interface{}{
+					"source": "1.1.1.1/24",
+				},
+				map[string]interface{}{
+					"source": "1.1.1.0/16",
+				},
+				map[string]interface{}{
+					"source": "0.0.0.0/0",
+				},
+				map[string]interface{}{
+					"source": "1.1.1.1",
+				},
+			},
+		},
 		Schema: newSchema(),
 	})
 	type args struct {
@@ -63,6 +104,11 @@ func Test_modelToState(t *testing.T) {
 			name: "flattens the resource",
 			args: args{d: trafficFilterSchemaArg, res: &remoteState},
 			want: wantTrafficFilter,
+		},
+		{
+			name: "flattens the resource with multiple rules",
+			args: args{d: trafficFilterSchemaArgMultipleR, res: &remoteStateMultipleRules},
+			want: wantTrafficFilterMultipleR,
 		},
 	}
 	for _, tt := range tests {

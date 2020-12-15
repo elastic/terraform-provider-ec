@@ -34,6 +34,30 @@ func Test_expandModel(t *testing.T) {
 		State:  newSampleTrafficFilter(),
 		Schema: newSchema(),
 	})
+	trafficFilterMultipleRD := util.NewResourceData(t, util.ResDataParams{
+		ID: "some-random-id",
+		State: map[string]interface{}{
+			"name":               "my traffic filter",
+			"type":               "ip",
+			"include_by_default": false,
+			"region":             "us-east-1",
+			"rule": []interface{}{
+				map[string]interface{}{
+					"source": "1.1.1.1/24",
+				},
+				map[string]interface{}{
+					"source": "1.1.1.0/16",
+				},
+				map[string]interface{}{
+					"source": "0.0.0.0/0",
+				},
+				map[string]interface{}{
+					"source": "1.1.1.1",
+				},
+			},
+		},
+		Schema: newSchema(),
+	})
 	type args struct {
 		d *schema.ResourceData
 	}
@@ -47,13 +71,28 @@ func Test_expandModel(t *testing.T) {
 			args: args{d: trafficFilterRD},
 			want: &models.TrafficFilterRulesetRequest{
 				Name:             ec.String("my traffic filter"),
-				Description:      "",
 				Type:             ec.String("ip"),
 				IncludeByDefault: ec.Bool(false),
 				Region:           ec.String("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
-					{Source: ec.String("1.1.1.1")},
 					{Source: ec.String("0.0.0.0/0")},
+					{Source: ec.String("1.1.1.1")},
+				},
+			},
+		},
+		{
+			name: "parses the resource with a lot of traffic rules",
+			args: args{d: trafficFilterMultipleRD},
+			want: &models.TrafficFilterRulesetRequest{
+				Name:             ec.String("my traffic filter"),
+				Type:             ec.String("ip"),
+				IncludeByDefault: ec.Bool(false),
+				Region:           ec.String("us-east-1"),
+				Rules: []*models.TrafficFilterRule{
+					{Source: ec.String("1.1.1.0/16")},
+					{Source: ec.String("1.1.1.1/24")},
+					{Source: ec.String("0.0.0.0/0")},
+					{Source: ec.String("1.1.1.1")},
 				},
 			},
 		},

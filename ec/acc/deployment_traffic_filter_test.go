@@ -31,8 +31,10 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_traffic_filter_basic.tf"
 	updateCfg := "testdata/deployment_traffic_filter_basic_update.tf"
+	updateLargeCfg := "testdata/deployment_traffic_filter_basic_update_large.tf"
 	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
 	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateCfg, randomName, getRegion())
+	updateLargeConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateLargeCfg, randomName, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -48,20 +50,24 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: cfg, PlanOnly: true},
 			{
 				Config: updateConfigCfg,
 				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "2"),
-					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr(resName, "rule.1.source", "1.1.1.0/24"),
+					resource.TestCheckResourceAttr(resName, "rule.0.source", "1.1.1.0/24"),
+					resource.TestCheckResourceAttr(resName, "rule.1.source", "0.0.0.0/0"),
 				),
 			},
-			// Ensure that no diff is generated.
-			{Config: updateConfigCfg, PlanOnly: true},
+			{
+				Config: updateLargeConfigCfg,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "ip"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "16"),
+				),
+			},
 			{
 				ResourceName:            resName,
 				ImportState:             true,
