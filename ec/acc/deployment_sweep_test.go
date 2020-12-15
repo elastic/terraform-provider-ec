@@ -20,6 +20,7 @@ package acc
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
@@ -62,35 +63,15 @@ func testSweepDeployment(_ string) error {
 			continue
 		}
 
+		if !staleDeployment(time.Time(*d.Metadata.LastModified)) {
+			continue
+		}
+
 		if !strings.HasPrefix(*d.Name, prefix) {
 			continue
 		}
 
-		var sweep bool
-		for _, res := range d.Resources.Apm {
-			if *res.Info.Status != "stopped" {
-				sweep = true
-			}
-		}
-		for _, res := range d.Resources.Elasticsearch {
-			if *res.Info.Status != "stopped" {
-				sweep = true
-			}
-		}
-		for _, res := range d.Resources.EnterpriseSearch {
-			if *res.Info.Status != "stopped" {
-				sweep = true
-			}
-		}
-		for _, res := range d.Resources.Kibana {
-			if *res.Info.Status != "stopped" {
-				sweep = true
-			}
-		}
-
-		if sweep {
-			sweepDeployments = append(sweepDeployments, *d.ID)
-		}
+		sweepDeployments = append(sweepDeployments, *d.ID)
 	}
 
 	var merr = multierror.NewPrefixed("failed sweeping resources")
@@ -98,7 +79,7 @@ func testSweepDeployment(_ string) error {
 	for _, dep := range sweepDeployments {
 		wg.Add(1)
 		go func(id string) {
-			if err := shutdownDeployment(client, id, wg.Done); err != nil {
+			if err := shutdownDeployment(client, id, &wg); err != nil {
 				merr = merr.Append(err)
 			}
 		}(dep)
@@ -108,8 +89,8 @@ func testSweepDeployment(_ string) error {
 	return merr.ErrorOrNil()
 }
 
-func shutdownDeployment(c *api.API, dep string, done func()) error {
-	defer done()
+func shutdownDeployment(c *api.API, dep string, wg *sync.WaitGroup) error {
+	defer wg.Done()
 	_, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
 		API: c, DeploymentID: dep,
 	})
@@ -120,4 +101,8 @@ func shutdownDeployment(c *api.API, dep string, done func()) error {
 	return planutil.Wait(plan.TrackChangeParams{
 		API: c, DeploymentID: dep,
 	})
+}
+
+func staleDeployment(lastModified time.Time) bool {
+	return lastModified.Before(time.Now().Add(-time.Hour))
 }
