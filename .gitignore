@@ -9,3 +9,5 @@ examples/*/*.tfstate.backup
 .idea
 .apikey
 dist
+.ci/.gpg_*
+.ci/.github_*

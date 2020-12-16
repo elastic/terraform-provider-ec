@@ -28,3 +28,7 @@ snapshot: $(GOBIN)/goreleaser
 ## Releases a new version of the terraform provider with a matching tag.
 release: $(GOBIN)/goreleaser
 	@ $(GOBIN)/goreleaser --rm-dist --skip-validate
+
+## Builds a new version of the terraform provider with a matching tag without publishing it.
+release-no-publish: $(GOBIN)/goreleaser
+	@ $(GOBIN)/goreleaser --rm-dist --skip-validate --skip-publish
