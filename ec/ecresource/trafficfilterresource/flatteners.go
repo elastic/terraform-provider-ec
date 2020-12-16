@@ -52,8 +52,8 @@ func modelToState(d *schema.ResourceData, res *models.TrafficFilterRulesetInfo) 
 	return nil
 }
 
-func flattenRules(rules []*models.TrafficFilterRule) []interface{} {
-	var result = make([]interface{}, 0, len(rules))
+func flattenRules(rules []*models.TrafficFilterRule) *schema.Set {
+	result := schema.NewSet(trafficFilterRuleHash, []interface{}{})
 	for _, rule := range rules {
 		var m = make(map[string]interface{})
 		m["source"] = *rule.Source
@@ -66,11 +66,7 @@ func flattenRules(rules []*models.TrafficFilterRule) []interface{} {
 			m["id"] = rule.ID
 		}
 
-		result = append(result, m)
-	}
-
-	if len(result) > 0 {
-		return result
+		result.Add(m)
 	}
 
 	return result

@@ -18,6 +18,8 @@
 package trafficfilterresource
 
 import (
+	"bytes"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -41,6 +43,7 @@ func newSchema() map[string]*schema.Schema {
 		},
 		"rule": {
 			Type:        schema.TypeSet,
+			Set:         trafficFilterRuleHash,
 			Description: "Required list of rules, which the ruleset is made of.",
 			Required:    true,
 			MinItems:    1,
@@ -79,4 +82,14 @@ func newSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func trafficFilterRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(m["source"].(string))
+	if m["description"] != nil {
+		buf.WriteString(m["description"].(string))
+	}
+	return schema.HashString(buf.String())
 }

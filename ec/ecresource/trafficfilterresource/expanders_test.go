@@ -89,10 +89,10 @@ func Test_expandModel(t *testing.T) {
 				IncludeByDefault: ec.Bool(false),
 				Region:           ec.String("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
-					{Source: ec.String("1.1.1.0/16")},
-					{Source: ec.String("1.1.1.1/24")},
 					{Source: ec.String("0.0.0.0/0")},
 					{Source: ec.String("1.1.1.1")},
+					{Source: ec.String("1.1.1.0/16")},
+					{Source: ec.String("1.1.1.1/24")},
 				},
 			},
 		},

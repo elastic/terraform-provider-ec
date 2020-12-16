@@ -56,8 +56,12 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "2"),
-					resource.TestCheckResourceAttr(resName, "rule.0.source", "1.1.1.0/24"),
-					resource.TestCheckResourceAttr(resName, "rule.1.source", "0.0.0.0/0"),
+					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
+						"source": "0.0.0.0/0",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
+						"source": "1.1.1.0/24",
+					}),
 				),
 			},
 			{
@@ -66,6 +70,12 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "16"),
+					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
+						"source": "8.8.8.8/24",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
+						"source": "8.8.4.4/24",
+					}),
 				),
 			},
 			{
