@@ -75,10 +75,10 @@ They can either be hardcoded in the provider `.tf` configuration (not recommende
 
 ```hcl
 provider "ec" {
-  # ECE installation endpoint
+  # ECE installation endpoint
   endpoint = "https://my.ece-environment.corp"
 
-  # If the ECE installation has a self-signed certificate
+  # If the ECE installation has a self-signed certificate
   # you must set insecure to true.
   insecure = true
 
@@ -111,7 +111,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   Useful when targeting installation with self-signed certificates. Not recommended when
   targeting ESS.
 
-* `insecure` - (Optional) This setting allows the user to set a custom timeout in the
+* `timeout` - (Optional) This setting allows the user to set a custom timeout in the
   individual HTTP request level. Defaults to 1 minute (`"1m"`), but might need to be tweaked if timeouts
   are experienced.
 
