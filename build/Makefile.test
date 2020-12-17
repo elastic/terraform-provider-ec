@@ -5,7 +5,7 @@ TEST_COUNT ?= 1
 TESTUNITARGS ?= -timeout 10s -p 4 -race -cover -coverprofile=reports/c.out
 TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc
 TEST_NAME ?= Test
-TEST_ACC_PARALLEL = 6
+TEST_ACC_PARALLEL = 4
 
 REPORT_PATH ?= ./reports
 
