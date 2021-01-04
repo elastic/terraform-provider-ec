@@ -30,16 +30,15 @@ import (
 func createResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
-	res, err := createRequest(client, d)
+	model, err := createRequest(client, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(*res.Payload.ID)
+	d.SetId(*model.ID)
 
 	if _, ok := d.GetOk("file_path"); ok {
-		_, err = uploadRequest(client, d)
-		if err != nil {
+		if err := uploadRequest(client, d); err != nil {
 			return diag.FromErr(multierror.NewPrefixed("failed to upload file", err))
 		}
 	}

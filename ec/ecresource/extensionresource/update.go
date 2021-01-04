@@ -35,7 +35,7 @@ func updateResource(ctx context.Context, d *schema.ResourceData, meta interface{
 	}
 
 	if _, ok := d.GetOk("file_path"); ok && d.HasChange("file_hash") {
-		if _, err = uploadRequest(client, d); err != nil {
+		if err := uploadRequest(client, d); err != nil {
 			return diag.FromErr(multierror.NewPrefixed("failed to upload file", err))
 		}
 	}

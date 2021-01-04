@@ -29,9 +29,7 @@ import (
 func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
-	_, err := deleteRequest(client, d)
-
-	if err != nil {
+	if err := deleteRequest(client, d); err != nil {
 		if alreadyDestroyed(err) {
 			d.SetId("")
 			return nil

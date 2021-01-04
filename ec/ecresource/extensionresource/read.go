@@ -33,7 +33,7 @@ import (
 func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
-	res, err := readRequest(d, client)
+	model, err := readRequest(d, client)
 
 	if err != nil {
 		if extensionNotFound(err) {
@@ -44,7 +44,7 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		return diag.FromErr(multierror.NewPrefixed("failed reading extension", err))
 	}
 
-	if err := modelToState(d, res.Payload); err != nil {
+	if err := modelToState(d, model); err != nil {
 		return diag.FromErr(err)
 	}
 
