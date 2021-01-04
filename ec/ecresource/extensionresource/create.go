@@ -19,6 +19,7 @@ package extensionresource
 
 import (
 	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -27,7 +28,7 @@ import (
 
 // Create will createResource a new deployment traffic filter ruleset
 func createResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+	client := meta.(*api.API)
 
 	res, err := createRequest(client, d)
 	if err != nil {

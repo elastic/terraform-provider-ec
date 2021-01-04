@@ -20,6 +20,7 @@ package extensionresource
 import (
 	"context"
 	"errors"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
@@ -30,7 +31,7 @@ import (
 )
 
 func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+	client := meta.(*api.API)
 
 	res, err := readRequest(d, client)
 

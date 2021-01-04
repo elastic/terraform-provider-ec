@@ -19,6 +19,7 @@ package extensionresource
 
 import (
 	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -26,7 +27,7 @@ import (
 )
 
 func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+	client := meta.(*api.API)
 
 	_, err := deleteRequest(client, d)
 

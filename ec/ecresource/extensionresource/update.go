@@ -27,7 +27,7 @@ import (
 )
 
 func updateResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+	client := meta.(*api.API)
 
 	_, err := updateRequest(client, d)
 	if err != nil {
