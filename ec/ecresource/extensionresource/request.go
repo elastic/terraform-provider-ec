@@ -97,14 +97,15 @@ func deleteRequest(client *api.API, d *schema.ResourceData) error {
 }
 
 func uploadRequest(client *api.API, d *schema.ResourceData) error {
-	reader, err := os.Open(d.Get("file_path").(string))
+	filePath := d.Get("file_path").(string)
+	reader, err := os.Open(filePath)
 	if err != nil {
 		return multierror.NewPrefixed("failed open file", err)
 	}
 
 	if _, err := client.V1API.Extensions.UploadExtension(
 		extensions.NewUploadExtensionParams().WithExtensionID(d.Id()).
-			WithFile(runtime.NamedReader(d.Get("file_path").(string), reader)),
+			WithFile(runtime.NamedReader(filePath, reader)),
 		client.AuthWriter); err != nil {
 		return apierror.Wrap(err)
 	}
