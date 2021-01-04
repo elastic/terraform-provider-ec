@@ -37,7 +37,7 @@ func createResource(ctx context.Context, d *schema.ResourceData, meta interface{
 
 	d.SetId(*res.Payload.ID)
 
-	if d.Get("file_path") != nil {
+	if _, ok := d.GetOk("file_path"); ok {
 		_, err = uploadRequest(client, d)
 		if err != nil {
 			return diag.FromErr(multierror.NewPrefixed("failed to upload file", err))
