@@ -168,6 +168,75 @@ func Test_modelToState(t *testing.T) {
 		Schema: newSchema(),
 	})
 
+	awsIOOptimizedTagsRes := openDeploymentGet(t, "testdata/deployment-aws-io-optimized-tags.json")
+	awsIOOptimizedTagsRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	awsIOOptimizedTagsRD.SetId(mock.ValidClusterID)
+	wantAwsIOOptimizedDeploymentTags := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		State: map[string]interface{}{
+			"deployment_template_id": "aws-io-optimized-v2",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d",
+			"region":                 "aws-eu-central-1",
+			"tags": map[string]interface{}{
+				"aaa":   "bbb",
+				"cost":  "rnd",
+				"owner": "elastic",
+			},
+			"version": "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "aws-eu-central-1",
+				"resource_id":                  "12328579b3bf40c8b58c1a0ed5a4bd8b",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12328579b3bf40c8b58c1a0ed5a4bd8b.apm.eu-central-1.aws.cloud.es.io:80",
+				"https_endpoint":               "https://12328579b3bf40c8b58c1a0ed5a4bd8b.apm.eu-central-1.aws.cloud.es.io:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.apm.r5d",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d:someCloudID",
+				"http_endpoint":  "http://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9200",
+				"https_endpoint": "https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "aws-eu-central-1",
+				"resource_id":    "1239f7ee7196439ba2d105319ac5eba7",
+				"version":        "7.9.2",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.data.highio.i3",
+					"node_type_data":            "true",
+					"node_type_ingest":          "true",
+					"node_type_master":          "true",
+					"node_type_ml":              "false",
+					"size":                      "8g",
+					"size_resource":             "memory",
+					"zone_count":                2,
+				}},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "aws-eu-central-1",
+				"resource_id":                  "123dcfda06254ca789eb287e8b73ff4c",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://123dcfda06254ca789eb287e8b73ff4c.eu-central-1.aws.cloud.es.io:9200",
+				"https_endpoint":               "https://123dcfda06254ca789eb287e8b73ff4c.eu-central-1.aws.cloud.es.io:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.kibana.r5d",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
 	gcpIOOptimizedRes := openDeploymentGet(t, "testdata/deployment-gcp-io-optimized.json")
 	gcpIOOptimizedRD := schema.TestResourceDataRaw(t, newSchema(), nil)
 	gcpIOOptimizedRD.SetId(mock.ValidClusterID)
@@ -581,6 +650,11 @@ func Test_modelToState(t *testing.T) {
 			name: "flattens an aws plan (io-optimized)",
 			args: args{d: awsIOOptimizedRD, res: awsIOOptimizedRes},
 			want: wantAwsIOOptimizedDeployment,
+		},
+		{
+			name: "flattens an aws plan (io-optimized) with tags",
+			args: args{d: awsIOOptimizedTagsRD, res: awsIOOptimizedTagsRes},
+			want: wantAwsIOOptimizedDeploymentTags,
 		},
 		{
 			name: "flattens a gcp plan (io-optimized)",

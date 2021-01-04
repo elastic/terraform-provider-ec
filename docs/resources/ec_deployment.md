@@ -97,6 +97,27 @@ resource "ec_deployment" "ccs" {
 }
 ```
 
+### With tags
+
+```hcl
+resource "ec_deployment" "with_tags" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = "7.9.2"
+  deployment_template_id = "aws-io-optimized-v2"
+
+  elasticsearch {}
+
+  tags = {
+    owner     = "elastic cloud"
+    component = "search"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -115,6 +136,7 @@ The following arguments are supported:
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
 * `observability` (Optional) Observability settings that you can set to ship logs and metrics to a separate deployment.
+* `tags` (Optional) Key value map of arbitrary string tags.
 
 ### Resources
 

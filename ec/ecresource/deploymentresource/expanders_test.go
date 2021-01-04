@@ -127,6 +127,30 @@ func Test_createResourceToModel(t *testing.T) {
 		},
 	})
 
+	deploymentWithTags := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		State: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-io-optimized-v2",
+			"region":                 "us-east-1",
+			"version":                "7.10.1",
+			"elasticsearch": []interface{}{
+				map[string]interface{}{
+					"topology": []interface{}{map[string]interface{}{
+						"instance_configuration_id": "aws.data.highio.i3",
+						"size":                      "8g",
+					}},
+				},
+			},
+			"tags": map[string]interface{}{
+				"aaa":         "bbb",
+				"owner":       "elastic",
+				"cost-center": "rnd",
+			},
+		},
+		Schema: newSchema(),
+	})
+
 	type args struct {
 		d      *schema.ResourceData
 		client *api.API
@@ -177,6 +201,9 @@ func Test_createResourceToModel(t *testing.T) {
 							},
 						},
 					},
+				},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
@@ -306,6 +333,9 @@ func Test_createResourceToModel(t *testing.T) {
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
 					},
 				},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -413,6 +443,9 @@ func Test_createResourceToModel(t *testing.T) {
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
 					},
+				},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
@@ -522,6 +555,9 @@ func Test_createResourceToModel(t *testing.T) {
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
 					},
 				},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -626,6 +662,9 @@ func Test_createResourceToModel(t *testing.T) {
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
 				Settings: &models.DeploymentCreateSettings{},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -715,6 +754,9 @@ func Test_createResourceToModel(t *testing.T) {
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
 				Settings: &models.DeploymentCreateSettings{},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -761,6 +803,52 @@ func Test_createResourceToModel(t *testing.T) {
 										},
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resources with tags",
+			args: args{
+				d:      deploymentWithTags,
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
+				Metadata: &models.DeploymentCreateMetadata{Tags: []*models.MetadataItem{
+					{Key: ec.String("aaa"), Value: ec.String("bbb")},
+					{Key: ec.String("cost-center"), Value: ec.String("rnd")},
+					{Key: ec.String("owner"), Value: ec.String("elastic")},
+				}},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(8192),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
 							},
 						},
 					},
@@ -1000,6 +1088,30 @@ func Test_updateResourceToModel(t *testing.T) {
 		Schema: newSchema(),
 	})
 
+	deploymentWithTags := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		State: map[string]interface{}{
+			"name":                   "my_deployment_name",
+			"deployment_template_id": "aws-io-optimized-v2",
+			"region":                 "us-east-1",
+			"version":                "7.10.1",
+			"elasticsearch": []interface{}{
+				map[string]interface{}{
+					"topology": []interface{}{map[string]interface{}{
+						"instance_configuration_id": "aws.data.highio.i3",
+						"size":                      "8g",
+					}},
+				},
+			},
+			"tags": map[string]interface{}{
+				"aaa":         "bbb",
+				"owner":       "elastic",
+				"cost-center": "rnd",
+			},
+		},
+		Schema: newSchema(),
+	})
+
 	type args struct {
 		d      *schema.ResourceData
 		client *api.API
@@ -1048,6 +1160,9 @@ func Test_updateResourceToModel(t *testing.T) {
 							},
 						},
 					},
+				},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
@@ -1174,6 +1289,9 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -1279,6 +1397,9 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -1384,6 +1505,9 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{
 						{
@@ -1476,6 +1600,9 @@ func Test_updateResourceToModel(t *testing.T) {
 				Settings: &models.DeploymentUpdateSettings{
 					Observability: &models.DeploymentObservabilitySettings{},
 				},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{{
 						Region:   ec.String("us-east-1"),
@@ -1540,6 +1667,9 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{{
 						Region:   ec.String("us-east-1"),
@@ -1599,6 +1729,9 @@ func Test_updateResourceToModel(t *testing.T) {
 				Name:         "my_deployment_name",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
 				Resources: &models.DeploymentUpdateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{{
 						Region: ec.String("us-east-1"),
@@ -1683,6 +1816,53 @@ func Test_updateResourceToModel(t *testing.T) {
 							},
 						},
 					}},
+				},
+			},
+		},
+		{
+			name: "parses the resources with tags",
+			args: args{
+				d:      deploymentWithTags,
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{Tags: []*models.MetadataItem{
+					{Key: ec.String("aaa"), Value: ec.String("bbb")},
+					{Key: ec.String("cost-center"), Value: ec.String("rnd")},
+					{Key: ec.String("owner"), Value: ec.String("elastic")},
+				}},
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-io-optimized-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(8192),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+									},
+								}},
+							},
+						},
+					},
 				},
 			},
 		},
