@@ -49,7 +49,7 @@ func newSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 
-		// Uploading file bia API
+		// Uploading file via API
 		"file_path": {
 			Type:        schema.TypeString,
 			Description: "file path",
