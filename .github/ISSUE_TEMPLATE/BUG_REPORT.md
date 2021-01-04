@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Create a report to help us improve.
-labels: Team:Delivery
+labels: Team:Delivery, bug
 
 ---
 <!--- Thank you for taking the time to create a Bug Report! -->
@@ -32,6 +32,9 @@ labels: Team:Delivery
 <!--- logs, but make to anonymise everything, and remove -->
 <!--- credentials, API tokens, etc., or any other sensitive -->
 <!--- information from everything you decide to include. -->
+
+## Terraform definition
+<!-- Please include the terraform definition used when this bug was found -->
 
 ## Possible Solution
 <!--- Not obligatory, but suggest a fix for the bug, or ideas -->

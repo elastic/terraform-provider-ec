@@ -1,7 +1,7 @@
 ---
 name: Feature Request
 about: Suggest an idea for this project.
-labels: Team:Delivery
+labels: Team:Delivery, enhancement
 
 ---
 <!--- Thank you for taking the time to open a Feature Request -->
