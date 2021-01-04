@@ -51,9 +51,10 @@ func newSchema() map[string]*schema.Schema {
 
 		// Uploading file via API
 		"file_path": {
-			Type:        schema.TypeString,
-			Description: "file path",
-			Optional:    true,
+			Type:         schema.TypeString,
+			Description:  "file path",
+			Optional:     true,
+			RequiredWith: []string{"file_hash"},
 		},
 		"file_hash": {
 			Type:        schema.TypeString,
