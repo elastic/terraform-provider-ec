@@ -19,9 +19,20 @@ package extensionresource
 
 func newExtension() map[string]interface{} {
 	return map[string]interface{}{
-		"name":        "my_extension",
-		"extension":   "bundle",
-		"description": "my description",
-		"version":     "*",
+		"name":           "my_extension",
+		"extension_type": "bundle",
+		"description":    "my description",
+		"version":        "*",
+	}
+}
+
+func newExtensionWithFilePath() map[string]interface{} {
+	return map[string]interface{}{
+		"name":           "my_extension",
+		"extension_type": "bundle",
+		"description":    "my description",
+		"version":        "*",
+		"file_path":      "test_extension_bundle.json",
+		"file_hash":      "abcd",
 	}
 }

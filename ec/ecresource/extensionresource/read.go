@@ -22,7 +22,6 @@ import (
 	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
@@ -55,12 +54,7 @@ func extensionNotFound(err error) bool {
 	// We're using the As() call since we do not care about the error value
 	// but do care about the error's contents type since it's an implicit 404.
 	var extensionNotFound *extensions.GetExtensionNotFound
-	if errors.As(err, &extensionNotFound) {
-		return true
-	}
-
-	// We also check for the case where a 403 is thrown for ESS.
-	return apierror.IsRuntimeStatusCode(err, 403)
+	return errors.As(err, &extensionNotFound)
 }
 
 func modelToState(d *schema.ResourceData, model *models.Extension) error {

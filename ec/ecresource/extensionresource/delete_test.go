@@ -31,6 +31,17 @@ import (
 )
 
 func Test_deleteResource(t *testing.T) {
+	tc200 := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtension(),
+		Schema: newSchema(),
+	})
+	wantTC200 := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtension(),
+		Schema: newSchema(),
+	})
+
 	tc500Err := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
 		State:  newExtension(),
@@ -42,17 +53,17 @@ func Test_deleteResource(t *testing.T) {
 		Schema: newSchema(),
 	})
 
-	tc403Err := util.NewResourceData(t, util.ResDataParams{
+	tc404Err := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
-	wantTC403 := util.NewResourceData(t, util.ResDataParams{
+	wantTC404 := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
-	wantTC403.SetId("")
+	wantTC404.SetId("")
 
 	type args struct {
 		ctx  context.Context
@@ -65,6 +76,15 @@ func Test_deleteResource(t *testing.T) {
 		want   diag.Diagnostics
 		wantRD *schema.ResourceData
 	}{
+		{
+			name: "returns nil when it receives a 200",
+			args: args{
+				d:    tc200,
+				meta: api.NewMock(mock.New200Response(nil)),
+			},
+			want:   nil,
+			wantRD: wantTC200,
+		},
 		{
 			name: "returns an error when it receives a 500",
 			args: args{
@@ -84,13 +104,13 @@ func Test_deleteResource(t *testing.T) {
 		{
 			name: "returns nil and unsets the state when the error is known",
 			args: args{
-				d: tc403Err,
-				meta: api.NewMock(mock.NewErrorResponse(403, mock.APIError{
+				d: tc404Err,
+				meta: api.NewMock(mock.NewErrorResponse(404, mock.APIError{
 					Code: "some", Message: "message",
 				})),
 			},
 			want:   nil,
-			wantRD: wantTC403,
+			wantRD: wantTC404,
 		},
 	}
 	for _, tt := range tests {

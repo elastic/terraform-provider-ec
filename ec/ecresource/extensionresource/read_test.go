@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -31,19 +32,30 @@ import (
 )
 
 func Test_readResource(t *testing.T) {
+	tc200 := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtension(),
+		Schema: newSchema(),
+	})
+	wantTC200 := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtension(),
+		Schema: newSchema(),
+	})
+
 	tc500Err := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
+		ID:     "12345678",
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
 	wantTC500 := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
+		ID:     "12345678",
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
 
 	tc404Err := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
+		ID:     "12345678",
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
@@ -65,6 +77,20 @@ func Test_readResource(t *testing.T) {
 		want   diag.Diagnostics
 		wantRD *schema.ResourceData
 	}{
+		{
+			name: "returns nil when it receives a 200",
+			args: args{
+				d: tc200,
+				meta: api.NewMock(mock.New200StructResponse(models.Extension{
+					Name:          stringPtr("my_extension"),
+					ExtensionType: stringPtr("bundle"),
+					Description:   "my description",
+					Version:       stringPtr("*"),
+				})),
+			},
+			want:   nil,
+			wantRD: wantTC200,
+		},
 		{
 			name: "returns an error when it receives a 500",
 			args: args{
@@ -113,3 +139,5 @@ func Test_readResource(t *testing.T) {
 		})
 	}
 }
+
+func stringPtr(s string) *string { return &s }

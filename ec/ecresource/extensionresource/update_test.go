@@ -21,6 +21,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -31,6 +33,28 @@ import (
 )
 
 func Test_updateResource(t *testing.T) {
+	tc200withoutFilePath := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtension(),
+		Schema: newSchema(),
+	})
+	wantTC200withoutFilePath := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtension(),
+		Schema: newSchema(),
+	})
+
+	tc200withFilePath := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtensionWithFilePath(),
+		Schema: newSchema(),
+	})
+	wantTC200withFilePath := util.NewResourceData(t, util.ResDataParams{
+		ID:     "12345678",
+		State:  newExtensionWithFilePath(),
+		Schema: newSchema(),
+	})
+
 	tc500Err := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
 		State:  newExtension(),
@@ -53,6 +77,56 @@ func Test_updateResource(t *testing.T) {
 		want   diag.Diagnostics
 		wantRD *schema.ResourceData
 	}{
+		{
+			name: "returns nil when it receives a 200 without file_path",
+			args: args{
+				d: tc200withoutFilePath,
+				meta: api.NewMock(
+					mock.New200StructResponse(models.Extension{ // update request response
+						Name:          stringPtr("my_extension"),
+						ExtensionType: stringPtr("bundle"),
+						Description:   "my description",
+						Version:       stringPtr("*"),
+					}),
+					mock.New200StructResponse(models.Extension{ // read request response
+						Name:          stringPtr("my_extension"),
+						ExtensionType: stringPtr("bundle"),
+						Description:   "my description",
+						Version:       stringPtr("*"),
+					}),
+				),
+			},
+			want:   nil,
+			wantRD: wantTC200withoutFilePath,
+		},
+		{
+			name: "returns nil when it receives a 200 with file_path",
+			args: args{
+				d: tc200withFilePath,
+				meta: api.NewMock(
+					mock.New200StructResponse(models.Extension{ // update request response
+						Name:          stringPtr("my_extension"),
+						ExtensionType: stringPtr("bundle"),
+						Description:   "my description",
+						Version:       stringPtr("*"),
+					}),
+					mock.New200StructResponse(models.Extension{ // upload request response
+						Name:          stringPtr("my_extension"),
+						ExtensionType: stringPtr("bundle"),
+						Description:   "my description",
+						Version:       stringPtr("*"),
+					}),
+					mock.New200StructResponse(models.Extension{ // read request response
+						Name:          stringPtr("my_extension"),
+						ExtensionType: stringPtr("bundle"),
+						Description:   "my description",
+						Version:       stringPtr("*"),
+					}),
+				),
+			},
+			want:   nil,
+			wantRD: wantTC200withFilePath,
+		},
 		{
 			name: "returns an error when it receives a 500",
 			args: args{

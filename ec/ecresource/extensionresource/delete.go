@@ -19,14 +19,15 @@ package extensionresource
 
 import (
 	"context"
+	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
+	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func deleteResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
 	if err := deleteRequest(client, d); err != nil {
@@ -42,6 +43,6 @@ func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{
 }
 
 func alreadyDestroyed(err error) bool {
-	// If the extension is already destroyed, API return 403.
-	return apierror.IsRuntimeStatusCode(err, 403)
+	var extensionNotFound *extensions.DeleteExtensionNotFound
+	return errors.As(err, &extensionNotFound)
 }
