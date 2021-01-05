@@ -30,6 +30,8 @@ node('docker && gobld/machineType:n1-highcpu-8') {
             throw err
         } finally {
             stage("Clean up") {
+                // Sweeps any deployments older than 1h.
+                sh 'make sweep-ci'
                 sh 'make -C .ci clean'
                 sh 'rm -rf reports bin'
             }

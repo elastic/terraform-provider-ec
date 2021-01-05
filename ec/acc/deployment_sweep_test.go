@@ -18,6 +18,7 @@
 package acc
 
 import (
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -33,8 +34,8 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("ec_deployment", &resource.Sweeper{
-		Name: "ec_deployment",
+	resource.AddTestSweepers("ec_deployments", &resource.Sweeper{
+		Name: "ec_deployments",
 		F:    testSweepDeployment,
 	})
 }
@@ -79,6 +80,7 @@ func testSweepDeployment(_ string) error {
 	for _, dep := range sweepDeployments {
 		wg.Add(1)
 		go func(id string) {
+			log.Printf("[DEBUG] Shutting down deployment %s", id)
 			if err := shutdownDeployment(client, id, &wg); err != nil {
 				merr = merr.Append(err)
 			}
