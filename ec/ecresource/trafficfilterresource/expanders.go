@@ -24,17 +24,17 @@ import (
 )
 
 func expandModel(d *schema.ResourceData) *models.TrafficFilterRulesetRequest {
-	var rulesIface = d.Get("rule").([]interface{})
+	var ruleSet = d.Get("rule").(*schema.Set)
 	var request = models.TrafficFilterRulesetRequest{
 		Name:             ec.String(d.Get("name").(string)),
 		Type:             ec.String(d.Get("type").(string)),
 		Region:           ec.String(d.Get("region").(string)),
 		Description:      d.Get("description").(string),
 		IncludeByDefault: ec.Bool(d.Get("include_by_default").(bool)),
-		Rules:            make([]*models.TrafficFilterRule, 0, len(rulesIface)),
+		Rules:            make([]*models.TrafficFilterRule, 0, ruleSet.Len()),
 	}
 
-	for _, r := range rulesIface {
+	for _, r := range ruleSet.List() {
 		var m = r.(map[string]interface{})
 		var rule = models.TrafficFilterRule{
 			Source: ec.String(m["source"].(string)),
