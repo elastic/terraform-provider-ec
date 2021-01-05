@@ -1,0 +1,351 @@
+{
+    "healthy": true,
+    "id": "123365f2805e46808d40849b1c0b266b",
+    "name": "up2d",
+    "metadata": {
+        "tags": [
+            {"key": "aaa", "value": "bbb"},
+            {"key": "cost", "value": "rnd"},
+            {"key": "owner", "value": "elastic"}
+        ]
+    },
+    "resources": {
+        "apm": [
+            {
+                "elasticsearch_cluster_ref_id": "main-elasticsearch",
+                "id": "12328579b3bf40c8b58c1a0ed5a4bd8b",
+                "info": {
+                    "deployment_id": "123365f2805e46808d40849b1c0b266b",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "1239f7ee7196439ba2d105319ac5eba7"
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "id": "12328579b3bf40c8b58c1a0ed5a4bd8b",
+                    "metadata": {
+                        "endpoint": "12328579b3bf40c8b58c1a0ed5a4bd8b.apm.eu-central-1.aws.cloud.es.io",
+                        "last_modified": "2020-10-14T05:02:27.645Z",
+                        "ports": {
+                            "http": 80,
+                            "https": 443,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 7
+                    },
+                    "name": "up2d",
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-14T05:04:55.439Z",
+                            "attempt_start_time": "2020-10-14T05:02:27.266Z",
+                            "healthy": true,
+                            "plan": {
+                                "apm": {
+                                    "system_settings": {
+                                        "secret_token": "yMpNQNOBVxZhlgFnBY"
+                                    },
+                                    "version": "7.9.2"
+                                },
+                                "cluster_topology": [
+                                    {
+                                        "apm": {
+                                            "system_settings": {
+                                                "debug_enabled": false,
+                                                "secret_token": "yMpNQNOBVxZhlgFnBY"
+                                            }
+                                        },
+                                        "instance_configuration_id": "aws.apm.r5d",
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 512
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ]
+                            },
+                            "plan_attempt_id": "26dd8a24-c8e2-42a4-ad7a-13ddf8c77b43",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "aws-eu-central-1",
+                    "status": "started"
+                },
+                "ref_id": "main-apm",
+                "region": "aws-eu-central-1"
+            }
+        ],
+        "appsearch": [],
+        "elasticsearch": [
+            {
+                "id": "1239f7ee7196439ba2d105319ac5eba7",
+                "info": {
+                    "associated_apm_clusters": [
+                        {
+                            "apm_id": "12328579b3bf40c8b58c1a0ed5a4bd8b",
+                            "enabled": true
+                        }
+                    ],
+                    "associated_appsearch_clusters": [],
+                    "associated_enterprise_search_clusters": [],
+                    "associated_kibana_clusters": [
+                        {
+                            "enabled": true,
+                            "kibana_id": "123dcfda06254ca789eb287e8b73ff4c"
+                        }
+                    ],
+                    "cluster_id": "1239f7ee7196439ba2d105319ac5eba7",
+                    "cluster_name": "up2d",
+                    "deployment_id": "123365f2805e46808d40849b1c0b266b",
+                    "elasticsearch": {
+                        "blocking_issues": {
+                            "cluster_level": [],
+                            "healthy": true,
+                            "index_level": []
+                        },
+                        "healthy": true
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "locked": false,
+                    "metadata": {
+                        "cloud_id": "up2d:someCloudID",
+                        "endpoint": "1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io",
+                        "last_modified": "2020-10-14T05:04:56.085Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 23
+                    },
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-14T05:03:31.757Z",
+                            "attempt_start_time": "2020-10-14T05:02:24.559Z",
+                            "healthy": true,
+                            "plan": {
+                                "cluster_topology": [
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "aws.data.highio.i3",
+                                        "node_type": {
+                                            "data": true,
+                                            "ingest": true,
+                                            "master": true,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 8192
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "aws.coordinating.m5d",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": true,
+                                            "master": false,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "aws.master.r5d",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": false,
+                                            "master": true,
+                                            "ml": false
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 3
+                                    },
+                                    {
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "aws.ml.m5d",
+                                        "node_type": {
+                                            "data": false,
+                                            "ingest": false,
+                                            "master": false,
+                                            "ml": true
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ],
+                                "deployment_template": {
+                                    "id": "aws-io-optimized-v2"
+                                },
+                                "elasticsearch": {
+                                    "version": "7.9.2"
+                                },
+                                "tiebreaker_topology": {
+                                    "memory_per_node": 1024
+                                }
+                            },
+                            "plan_attempt_id": "42025723-f52a-40ed-b6d2-126fe6b9cabe",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "aws-eu-central-1",
+                    "status": "started",
+                    "system_alerts": []
+                },
+                "ref_id": "main-elasticsearch",
+                "region": "aws-eu-central-1"
+            }
+        ],
+        "enterprise_search": [],
+        "kibana": [
+            {
+                "elasticsearch_cluster_ref_id": "main-elasticsearch",
+                "id": "123dcfda06254ca789eb287e8b73ff4c",
+                "info": {
+                    "cluster_id": "123dcfda06254ca789eb287e8b73ff4c",
+                    "cluster_name": "up2d",
+                    "deployment_id": "123365f2805e46808d40849b1c0b266b",
+                    "elasticsearch_cluster": {
+                        "elasticsearch_id": "1239f7ee7196439ba2d105319ac5eba7"
+                    },
+                    "external_links": [],
+                    "healthy": true,
+                    "metadata": {
+                        "endpoint": "123dcfda06254ca789eb287e8b73ff4c.eu-central-1.aws.cloud.es.io",
+                        "last_modified": "2020-10-14T05:04:55.982Z",
+                        "ports": {
+                            "http": 9200,
+                            "https": 9243,
+                            "transport_passthrough": 9400
+                        },
+                        "version": 10
+                    },
+                    "plan_info": {
+                        "current": {
+                            "attempt_end_time": "2020-10-14T05:06:38.610Z",
+                            "attempt_start_time": "2020-10-14T05:04:55.535Z",
+                            "healthy": true,
+                            "plan": {
+                                "cluster_topology": [
+                                    {
+                                        "instance_configuration_id": "aws.kibana.r5d",
+                                        "kibana": {
+                                            "system_settings": {}
+                                        },
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 1024
+                                        },
+                                        "zone_count": 1
+                                    }
+                                ],
+                                "kibana": {
+                                    "system_settings": {},
+                                    "version": "7.9.2"
+                                }
+                            },
+                            "plan_attempt_id": "b414904a-5f2b-485f-9e2a-05a181443247",
+                            "plan_attempt_log": [],
+                            "plan_end_time": "0001-01-01T00:00:00.000Z"
+                        },
+                        "healthy": true,
+                        "history": []
+                    },
+                    "region": "aws-eu-central-1",
+                    "status": "started"
+                },
+                "ref_id": "main-kibana",
+                "region": "aws-eu-central-1"
+            }
+        ]
+    }
+}

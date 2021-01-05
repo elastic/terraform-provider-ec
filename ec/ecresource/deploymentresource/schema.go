@@ -132,6 +132,15 @@ func newSchema() map[string]*schema.Schema {
 			MaxItems:    1,
 			Elem:        newObservabilitySettings(),
 		},
+
+		"tags": {
+			Description: "Optional map of deployment tags",
+			Type:        schema.TypeMap,
+			Optional:    true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 }
 

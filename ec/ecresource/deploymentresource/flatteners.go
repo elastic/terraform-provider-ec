@@ -34,6 +34,12 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, rem
 		return err
 	}
 
+	if res.Metadata != nil {
+		if err := d.Set("tags", flattenTags(res.Metadata.Tags)); err != nil {
+			return err
+		}
+	}
+
 	if res.Resources != nil {
 		dt, err := getDeploymentTemplateID(res.Resources)
 		if err != nil {
@@ -207,4 +213,17 @@ func hasRunningResources(res *models.DeploymentGetResponse) bool {
 		}
 	}
 	return hasRunning
+}
+
+func flattenTags(tags []*models.MetadataItem) map[string]interface{} {
+	if len(tags) == 0 {
+		return nil
+	}
+
+	result := make(map[string]interface{}, len(tags))
+	for _, tag := range tags {
+		result[*tag.Key] = *tag.Value
+	}
+
+	return result
 }

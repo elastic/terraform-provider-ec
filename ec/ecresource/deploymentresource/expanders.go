@@ -18,6 +18,8 @@
 package deploymentresource
 
 import (
+	"sort"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -33,6 +35,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		Name:      d.Get("name").(string),
 		Resources: &models.DeploymentCreateResources{},
 		Settings:  &models.DeploymentCreateSettings{},
+		Metadata:  &models.DeploymentCreateMetadata{},
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
@@ -92,6 +95,8 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 	result.Settings.Observability = observability
 
+	result.Metadata.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+
 	return &result, nil
 }
 
@@ -101,6 +106,7 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		PruneOrphans: ec.Bool(true),
 		Resources:    &models.DeploymentUpdateResources{},
 		Settings:     &models.DeploymentUpdateSettings{},
+		Metadata:     &models.DeploymentUpdateMetadata{},
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
@@ -177,6 +183,8 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		result.Settings.Observability = &models.DeploymentObservabilitySettings{}
 	}
 
+	result.Metadata.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+
 	return &result, nil
 }
 
@@ -196,4 +204,21 @@ func unsetTopology(rawRes []interface{}) {
 	for _, r := range rawRes {
 		delete(r.(map[string]interface{}), "topology")
 	}
+}
+
+func expandTags(raw map[string]interface{}) []*models.MetadataItem {
+	result := make([]*models.MetadataItem, 0, len(raw))
+	for k, v := range raw {
+		result = append(result, &models.MetadataItem{
+			Key:   ec.String(k),
+			Value: ec.String(v.(string)),
+		})
+	}
+
+	// Sort by key
+	sort.SliceStable(result, func(i, j int) bool {
+		return *result[i].Key < *result[j].Key
+	})
+
+	return result
 }
