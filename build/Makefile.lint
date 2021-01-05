@@ -39,4 +39,4 @@ validate-examples:
 ## Formats all the terraform ".tf" files in the repository
 fmt:
 	@ echo "-> Checking that the terraform .tf files are formatted..."
-	@ terraform fmt -write=false -recursive
+	@ terraform fmt -write=false -recursive -check
