@@ -1,6 +1,7 @@
 # Terraform Provider for Elastic Cloud
 
 ![Go](https://github.com/elastic/terraform-provider-ec/workflows/Go/badge.svg?branch=master)
+[![Acceptance Status](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/badge/icon?subject=acceptance&style=plastic)](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/)
 
 #### This project is currently under active development. Source code is provided with no assurances, use at your own risk.
 
