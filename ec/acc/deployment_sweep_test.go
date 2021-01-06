@@ -34,6 +34,9 @@ import (
 )
 
 func init() {
+	// Registering the sweeper as "ec_deployments" instead of "ec_deployment"
+	// since sweeping with --sweep-name will target any sweepers which contain
+	// "*ec_deployment*". Not to be confused with "ec_deployments" data source.
 	resource.AddTestSweepers("ec_deployments", &resource.Sweeper{
 		Name: "ec_deployments",
 		F:    testSweepDeployment,
