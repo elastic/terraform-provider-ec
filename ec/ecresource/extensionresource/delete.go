@@ -39,6 +39,7 @@ func deleteResource(_ context.Context, d *schema.ResourceData, meta interface{})
 		return diag.FromErr(err)
 	}
 
+	d.SetId("")
 	return nil
 }
 

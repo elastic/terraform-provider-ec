@@ -41,6 +41,7 @@ func Test_deleteResource(t *testing.T) {
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
+	wantTC200.SetId("")
 
 	tc500Err := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
