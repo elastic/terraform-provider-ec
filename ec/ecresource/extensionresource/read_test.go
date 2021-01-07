@@ -21,6 +21,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -82,10 +84,10 @@ func Test_readResource(t *testing.T) {
 			args: args{
 				d: tc200,
 				meta: api.NewMock(mock.New200StructResponse(models.Extension{
-					Name:          stringPtr("my_extension"),
-					ExtensionType: stringPtr("bundle"),
+					Name:          ec.String("my_extension"),
+					ExtensionType: ec.String("bundle"),
 					Description:   "my description",
-					Version:       stringPtr("*"),
+					Version:       ec.String("*"),
 				})),
 			},
 			want:   nil,
@@ -139,5 +141,3 @@ func Test_readResource(t *testing.T) {
 		})
 	}
 }
-
-func stringPtr(s string) *string { return &s }

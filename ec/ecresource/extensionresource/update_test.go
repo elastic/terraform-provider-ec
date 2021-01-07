@@ -21,6 +21,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -83,16 +85,16 @@ func Test_updateResource(t *testing.T) {
 				d: tc200withoutFilePath,
 				meta: api.NewMock(
 					mock.New200StructResponse(models.Extension{ // update request response
-						Name:          stringPtr("my_extension"),
-						ExtensionType: stringPtr("bundle"),
+						Name:          ec.String("my_extension"),
+						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
-						Version:       stringPtr("*"),
+						Version:       ec.String("*"),
 					}),
 					mock.New200StructResponse(models.Extension{ // read request response
-						Name:          stringPtr("my_extension"),
-						ExtensionType: stringPtr("bundle"),
+						Name:          ec.String("my_extension"),
+						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
-						Version:       stringPtr("*"),
+						Version:       ec.String("*"),
 					}),
 				),
 			},
@@ -105,22 +107,22 @@ func Test_updateResource(t *testing.T) {
 				d: tc200withFilePath,
 				meta: api.NewMock(
 					mock.New200StructResponse(models.Extension{ // update request response
-						Name:          stringPtr("my_extension"),
-						ExtensionType: stringPtr("bundle"),
+						Name:          ec.String("my_extension"),
+						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
-						Version:       stringPtr("*"),
+						Version:       ec.String("*"),
 					}),
 					mock.New200StructResponse(models.Extension{ // upload request response
-						Name:          stringPtr("my_extension"),
-						ExtensionType: stringPtr("bundle"),
+						Name:          ec.String("my_extension"),
+						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
-						Version:       stringPtr("*"),
+						Version:       ec.String("*"),
 					}),
 					mock.New200StructResponse(models.Extension{ // read request response
-						Name:          stringPtr("my_extension"),
-						ExtensionType: stringPtr("bundle"),
+						Name:          ec.String("my_extension"),
+						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
-						Version:       stringPtr("*"),
+						Version:       ec.String("*"),
 					}),
 				),
 			},
