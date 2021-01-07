@@ -21,6 +21,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-openapi/strfmt"
+
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -68,6 +70,7 @@ func Test_readResource(t *testing.T) {
 	})
 	wantTC404.SetId("")
 
+	lastModified, _ := strfmt.ParseDateTime("2021-01-07T22:13:42.999Z")
 	type args struct {
 		ctx  context.Context
 		d    *schema.ResourceData
@@ -88,6 +91,11 @@ func Test_readResource(t *testing.T) {
 					ExtensionType: ec.String("bundle"),
 					Description:   "my description",
 					Version:       ec.String("*"),
+					URL:           ec.String("repo://1234"),
+					FileMetadata: &models.ExtensionFileMetadata{
+						LastModifiedDate: lastModified,
+						Size:             1000,
+					},
 				})),
 			},
 			want:   nil,

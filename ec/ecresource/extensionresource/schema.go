@@ -61,5 +61,21 @@ func newSchema() map[string]*schema.Schema {
 			Description: "file hash",
 			Optional:    true,
 		},
+
+		"url": {
+			Type:        schema.TypeString,
+			Description: "",
+			Computed:    true,
+		},
+		"last_modified": {
+			Type:        schema.TypeString,
+			Description: "",
+			Computed:    true,
+		},
+		"size": {
+			Type:        schema.TypeInt,
+			Description: "",
+			Computed:    true,
+		},
 	}
 }

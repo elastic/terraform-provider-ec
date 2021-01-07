@@ -21,6 +21,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-openapi/strfmt"
+
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -40,9 +42,12 @@ func Test_updateResource(t *testing.T) {
 		State:  newExtension(),
 		Schema: newSchema(),
 	})
+
+	wantTC200statewithoutFilePath := newExtension()
+	wantTC200statewithoutFilePath["name"] = "updated_extension"
 	wantTC200withoutFilePath := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
-		State:  newExtension(),
+		State:  wantTC200statewithoutFilePath,
 		Schema: newSchema(),
 	})
 
@@ -51,9 +56,11 @@ func Test_updateResource(t *testing.T) {
 		State:  newExtensionWithFilePath(),
 		Schema: newSchema(),
 	})
+	wantTC200statewithFilePath := newExtensionWithFilePath()
+	wantTC200statewithFilePath["name"] = "updated_extension"
 	wantTC200withFilePath := util.NewResourceData(t, util.ResDataParams{
 		ID:     "12345678",
-		State:  newExtensionWithFilePath(),
+		State:  wantTC200statewithFilePath,
 		Schema: newSchema(),
 	})
 
@@ -68,6 +75,7 @@ func Test_updateResource(t *testing.T) {
 		Schema: newSchema(),
 	})
 
+	lastModified, _ := strfmt.ParseDateTime("2021-01-07T22:13:42.999Z")
 	type args struct {
 		ctx  context.Context
 		d    *schema.ResourceData
@@ -85,16 +93,26 @@ func Test_updateResource(t *testing.T) {
 				d: tc200withoutFilePath,
 				meta: api.NewMock(
 					mock.New200StructResponse(models.Extension{ // update request response
-						Name:          ec.String("my_extension"),
+						Name:          ec.String("updated_extension"),
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						URL:           ec.String("repo://1234"),
+						FileMetadata: &models.ExtensionFileMetadata{
+							LastModifiedDate: lastModified,
+							Size:             1000,
+						},
 					}),
 					mock.New200StructResponse(models.Extension{ // read request response
-						Name:          ec.String("my_extension"),
+						Name:          ec.String("updated_extension"),
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						URL:           ec.String("repo://1234"),
+						FileMetadata: &models.ExtensionFileMetadata{
+							LastModifiedDate: lastModified,
+							Size:             1000,
+						},
 					}),
 				),
 			},
@@ -107,22 +125,27 @@ func Test_updateResource(t *testing.T) {
 				d: tc200withFilePath,
 				meta: api.NewMock(
 					mock.New200StructResponse(models.Extension{ // update request response
-						Name:          ec.String("my_extension"),
+						Name:          ec.String("updated_extension"),
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						URL:           ec.String("repo://1234"),
+						FileMetadata: &models.ExtensionFileMetadata{
+							LastModifiedDate: lastModified,
+							Size:             1000,
+						},
 					}),
-					mock.New200StructResponse(models.Extension{ // upload request response
-						Name:          ec.String("my_extension"),
-						ExtensionType: ec.String("bundle"),
-						Description:   "my description",
-						Version:       ec.String("*"),
-					}),
+					mock.New200StructResponse(nil), // upload request response
 					mock.New200StructResponse(models.Extension{ // read request response
-						Name:          ec.String("my_extension"),
+						Name:          ec.String("updated_extension"),
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						URL:           ec.String("repo://1234"),
+						FileMetadata: &models.ExtensionFileMetadata{
+							LastModifiedDate: lastModified,
+							Size:             1000,
+						},
 					}),
 				),
 			},

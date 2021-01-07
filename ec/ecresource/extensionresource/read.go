@@ -74,5 +74,21 @@ func modelToState(d *schema.ResourceData, model *models.Extension) error {
 		return err
 	}
 
+	if err := d.Set("url", model.URL); err != nil {
+		return err
+	}
+
+	if model.FileMetadata != nil {
+		filemeta := model.FileMetadata
+
+		if err := d.Set("last_modified", filemeta.LastModifiedDate.String()); err != nil {
+			return err
+		}
+
+		if err := d.Set("size", filemeta.Size); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
