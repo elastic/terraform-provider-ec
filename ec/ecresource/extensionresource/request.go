@@ -45,12 +45,14 @@ func createRequest(client *api.API, d *schema.ResourceData) (*models.Extension, 
 	version := d.Get("version").(string)
 	extensionsType := d.Get("extension_type").(string)
 	description := d.Get("description").(string)
+	downloadURL := d.Get("download_url").(string)
 
 	body := &models.CreateExtensionRequest{
 		Name:          &name,
 		Version:       &version,
 		ExtensionType: &extensionsType,
 		Description:   description,
+		DownloadURL:   downloadURL,
 	}
 
 	res, err := client.V1API.Extensions.CreateExtension(
@@ -68,12 +70,14 @@ func updateRequest(client *api.API, d *schema.ResourceData) (*models.Extension, 
 	version := d.Get("version").(string)
 	extensionsType := d.Get("extension_type").(string)
 	description := d.Get("description").(string)
+	downloadURL := d.Get("download_url").(string)
 
 	body := &models.UpdateExtensionRequest{
 		Name:          &name,
 		Version:       &version,
 		ExtensionType: &extensionsType,
 		Description:   description,
+		DownloadURL:   downloadURL,
 	}
 
 	res, err := client.V1API.Extensions.UpdateExtension(
