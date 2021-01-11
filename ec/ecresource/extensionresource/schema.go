@@ -31,7 +31,7 @@ func newSchema() map[string]*schema.Schema {
 		"description": {
 			Type:        schema.TypeString,
 			Description: "Description for extension",
-			Required:    true,
+			Optional:    true,
 		},
 		"extension_type": {
 			Type:        schema.TypeString,

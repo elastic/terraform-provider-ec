@@ -41,7 +41,7 @@ resource "ec_extension" "example_extension" {
 The following arguments are supported:
 
 * `name` - (Required) Name of the extension. 
-* `description` - (Required) Description of the extension.
+* `description` - (Optional) Description of the extension.
 * `extension_type` - (Required) `bundle` or `plugin` allowed.
 * `version` - (Required) Elastic version.
 * `download_url` - (Optional) The URL to download the extension archive.
