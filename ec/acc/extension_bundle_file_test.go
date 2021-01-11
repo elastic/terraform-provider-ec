@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccExtension_bundle_file(t *testing.T) {
+func TestAccExtension_bundleFile(t *testing.T) {
 	resName := "ec_extension.my_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
