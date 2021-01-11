@@ -88,7 +88,7 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 						continue
 					}
 					merr = merr.Append(
-						fmt.Errorf("deployment [%s] resource apm (%s) still exists",
+						fmt.Errorf("deployment [%s] resource kibana (%s) still exists",
 							rs.Primary.ID, *res.ID,
 						),
 					)
