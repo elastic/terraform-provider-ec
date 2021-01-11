@@ -78,9 +78,7 @@ func modelToState(d *schema.ResourceData, model *models.Extension) error {
 		return err
 	}
 
-	if model.FileMetadata != nil {
-		filemeta := model.FileMetadata
-
+	if filemeta := model.FileMetadata; filemeta != nil {
 		if err := d.Set("last_modified", filemeta.LastModifiedDate.String()); err != nil {
 			return err
 		}
