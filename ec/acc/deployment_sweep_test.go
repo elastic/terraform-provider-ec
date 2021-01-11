@@ -18,6 +18,7 @@
 package acc
 
 import (
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -33,8 +34,11 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("ec_deployment", &resource.Sweeper{
-		Name: "ec_deployment",
+	// Registering the sweeper as "ec_deployments" instead of "ec_deployment"
+	// since sweeping with --sweep-name will target any sweepers which contain
+	// "*ec_deployment*". Not to be confused with "ec_deployments" data source.
+	resource.AddTestSweepers("ec_deployments", &resource.Sweeper{
+		Name: "ec_deployments",
 		F:    testSweepDeployment,
 	})
 }
@@ -79,6 +83,7 @@ func testSweepDeployment(_ string) error {
 	for _, dep := range sweepDeployments {
 		wg.Add(1)
 		go func(id string) {
+			log.Printf("[DEBUG] Shutting down deployment %s", id)
 			if err := shutdownDeployment(client, id, &wg); err != nil {
 				merr = merr.Append(err)
 			}

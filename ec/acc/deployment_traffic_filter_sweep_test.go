@@ -29,8 +29,9 @@ import (
 
 func init() {
 	resource.AddTestSweepers("ec_deployment_traffic_filter", &resource.Sweeper{
-		Name: "ec_deployment_traffic_filter",
-		F:    testSweepDeploymentTrafficFilter,
+		Name:         "ec_deployment_traffic_filter",
+		F:            testSweepDeploymentTrafficFilter,
+		Dependencies: []string{"ec_deployments"},
 	})
 }
 
@@ -45,7 +46,7 @@ func testSweepDeploymentTrafficFilter(region string) error {
 		Region: region,
 	})
 	if err != nil {
-		return api.UnwrapError(err)
+		return err
 	}
 
 	var sweepFilters []string

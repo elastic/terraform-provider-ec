@@ -97,9 +97,19 @@ Before running the acceptance tests make sure you have exported your API key to 
 - `TESTARGS` controls any additional flags you may want to pass to `go test`.
 - `TEST_COUNT` controls how many times each test is run. Defaults to 1.
 
+_Note: Acceptance tests may incur in charges for the deployments that are created. If you do not wish to run acceptance tests locally, you can rely on the acceptance tests which are run automatically on every pull request._
+
+##### Sweepers
+
 Additionally, there is a `make sweep` target which destroys any dangling infrastructure created by the acceptance tests. For more information on acceptance testing, check out the official Terraform [documentation](https://www.terraform.io/docs/extend/testing/acceptance-tests/index.html).
 
-_Note: Acceptance tests may incur in charges for the deployments that are created. If you do not wish to run acceptance tests locally, you can rely on the acceptance tests which are run automatically on every pull request._
+Running the sweepers will remove all the `terraform_acc_` prefixed resources for the registered sweepers, each resource should add its own sweepers so that in cases dangling resources are left, they can be cleaned up with `make sweep`. There are three variables that can be passed to `sweep`:
+
+- `SWEEP` controls the region (if any) to pass to the resources to be swept. Defaults to `us-east-1`.
+- `SWEEP_DIR` controls the directory where the sweepers are found. Defaults to `github.com/elastic/terraform-provider-ec/ec/acc`.
+- `SWEEPARGS` controls the additional command flags to pass to the `go test` command:
+  - `-sweep-run` can be set to filter which sweepers are run (matching is done with `string.Contains`).
+  - `-sweep-allow-failures` can be set to allow all sweepers to be run when one or more have failed.
 
 ### Build terraform-provider-ec locally with your changes
 

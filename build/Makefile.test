@@ -1,5 +1,6 @@
 SWEEP ?=us-east-1
 SWEEP_DIR ?= $(TEST_ACC)
+SWEEP_CI_RUN_FILTER ?= ec_deployments
 TEST ?= ./...
 TEST_COUNT ?= 1
 TESTUNITARGS ?= -timeout 10s -p 4 -race -cover -coverprofile=reports/c.out
@@ -33,10 +34,16 @@ testacc:
 .PHONY: sweep
 ## Destroys any dangling infrastructure created by the acceptance tests (terraform_acc_ prefix).
 sweep:
+ifndef BUILD_ID
 	@ echo "-> WARNING: This will destroy infrastructure. Use only in development accounts."
 	@ read -r -p "do you wish to continue? [y/N]: " res && if [[ "$${res:0:1}" =~ ^([yY]) ]]; then echo "-> Continuing..."; else exit 1; fi
+endif
 	@ go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS) -timeout 60m
 
 .PHONY: testacc-ci
 testacc-ci:
 	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
+
+.PHONY: sweep-ci
+sweep-ci:
+	@ EC_API_KEY=$(shell cat .ci/.apikey) SWEEPARGS=-sweep-run=$(SWEEP_CI_RUN_FILTER) $(MAKE) sweep
