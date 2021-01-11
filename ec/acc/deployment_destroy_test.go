@@ -47,9 +47,7 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 		// cannot delete a deployment, so even when it's been shut down it will
 		// show up on the GET call.
 		if err == nil && !*res.Metadata.Hidden {
-			var merr = multierror.NewPrefixed("ec_deployment found",
-				fmt.Errorf("deployment (%s) still exists", rs.Primary.ID),
-			)
+			var merr = multierror.NewPrefixed("ec_deployment found")
 
 			// If any of its subresources isn't stopped, return an error
 			// which will indicate there's still dangling resources.
@@ -60,7 +58,9 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 						continue
 					}
 					merr = merr.Append(
-						fmt.Errorf("resource apm (%s) still exists", *res.ID),
+						fmt.Errorf("deployment [%s] resource apm (%s) still exists",
+							rs.Primary.ID, *res.ID,
+						),
 					)
 				}
 				for _, res := range res.Resources.Elasticsearch {
@@ -68,7 +68,9 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 						continue
 					}
 					merr = merr.Append(
-						fmt.Errorf("resource elasticsearch (%s) still exists", *res.ID),
+						fmt.Errorf("deployment [%s] resource elasticsearch (%s) still exists",
+							rs.Primary.ID, *res.ID,
+						),
 					)
 				}
 				for _, res := range res.Resources.EnterpriseSearch {
@@ -76,7 +78,9 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 						continue
 					}
 					merr = merr.Append(
-						fmt.Errorf("resource enterpriseSearch (%s) still exists", *res.ID),
+						fmt.Errorf("deployment [%s] resource enterprise_search (%s) still exists",
+							rs.Primary.ID, *res.ID,
+						),
 					)
 				}
 				for _, res := range res.Resources.Kibana {
@@ -84,7 +88,9 @@ func testAccDeploymentDestroy(s *terraform.State) error {
 						continue
 					}
 					merr = merr.Append(
-						fmt.Errorf("resource apm (%s) still exists", *res.ID),
+						fmt.Errorf("deployment [%s] resource kibana (%s) still exists",
+							rs.Primary.ID, *res.ID,
+						),
 					)
 				}
 			}
