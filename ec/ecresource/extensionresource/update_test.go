@@ -94,6 +94,7 @@ func Test_updateResource(t *testing.T) {
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						DownloadURL:   "example.com",
 						URL:           ec.String("repo://1234"),
 						FileMetadata: &models.ExtensionFileMetadata{
 							LastModifiedDate: lastModified,
@@ -105,6 +106,7 @@ func Test_updateResource(t *testing.T) {
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						DownloadURL:   "example.com",
 						URL:           ec.String("repo://1234"),
 						FileMetadata: &models.ExtensionFileMetadata{
 							LastModifiedDate: lastModified,
@@ -126,6 +128,7 @@ func Test_updateResource(t *testing.T) {
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						DownloadURL:   "example.com",
 						URL:           ec.String("repo://1234"),
 						FileMetadata: &models.ExtensionFileMetadata{
 							LastModifiedDate: lastModified,
@@ -138,6 +141,7 @@ func Test_updateResource(t *testing.T) {
 						ExtensionType: ec.String("bundle"),
 						Description:   "my description",
 						Version:       ec.String("*"),
+						DownloadURL:   "example.com",
 						URL:           ec.String("repo://1234"),
 						FileMetadata: &models.ExtensionFileMetadata{
 							LastModifiedDate: lastModified,
