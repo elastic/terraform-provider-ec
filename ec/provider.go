@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
@@ -71,6 +72,7 @@ func Provider() *schema.Provider {
 			"ec_deployment":                            deploymentresource.Resource(),
 			"ec_deployment_traffic_filter":             trafficfilterresource.Resource(),
 			"ec_deployment_traffic_filter_association": trafficfilterassocresource.Resource(),
+			"ec_extension":                             extensionresource.Resource(),
 		},
 	}
 }
