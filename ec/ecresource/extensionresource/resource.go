@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Resource returns the ec_extension resource schema.
+// Resource returns the ec_deployment_extension resource schema.
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		Description: "Elastic Cloud extension (plugin or bundle) to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official Elasticsearch plugins already available",

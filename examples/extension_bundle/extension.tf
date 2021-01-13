@@ -16,7 +16,7 @@ locals {
 }
 
 # Create an Elastic Cloud Extension
-resource "ec_extension" "example_extension" {
+resource "ec_deployment_extension" "example_extension" {
   name           = "my_extension"
   description    = "my extension"
   version        = "*"
