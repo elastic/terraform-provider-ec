@@ -26,7 +26,7 @@ import (
 // Resource returns the ec_extension resource schema.
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		Description: "Elastic Cloud extension (plugin or bundle (scripts or dictionaries)) to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official Elasticsearch plugins already available",
+		Description: "Elastic Cloud extension (plugin or bundle) to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official Elasticsearch plugins already available",
 		Schema:      newSchema(),
 
 		CreateContext: createResource,
