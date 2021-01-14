@@ -33,8 +33,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccExtension_bundleFile(t *testing.T) {
-	resName := "ec_extension.my_extension"
+func TestAccDeploymentExtension_bundleFile(t *testing.T) {
+	resName := "ec_deployment_extension.my_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	filePath := filepath.Join(os.TempDir(), "extension.zip")
@@ -122,7 +122,7 @@ func checkExtensionFile(t *testing.T, s *terraform.State, filename string, expec
 	}
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ec_extension" {
+		if rs.Type != "ec_deployment_extension" {
 			continue
 		}
 

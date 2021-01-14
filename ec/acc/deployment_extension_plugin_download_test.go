@@ -26,12 +26,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccExtension_basic(t *testing.T) {
-	resName := "ec_extension.my_extension"
+func TestAccDeploymentExtension_pluginDownload(t *testing.T) {
+	resName := "ec_deployment_extension.my_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	downloadURL := "https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-icu/analysis-icu-7.10.1.zip"
 
-	cfg := fixtureAccExtensionBasicWithTF(t, "testdata/extension_basic.tf", randomName, "desc")
-	cfg2 := fixtureAccExtensionBasicWithTF(t, "testdata/extension_basic.tf", randomName, "updated desc")
+	cfg := fixtureAccExtensionBundleDownloadWithTF(t, "testdata/extension_plugin_download.tf", randomName, downloadURL)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -42,32 +42,21 @@ func TestAccExtension_basic(t *testing.T) {
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "name", randomName),
-					resource.TestCheckResourceAttr(resName, "version", "*"),
-					resource.TestCheckResourceAttr(resName, "description", "desc"),
-					resource.TestCheckResourceAttr(resName, "extension_type", "bundle"),
-				),
-			},
-			{
-				Config: cfg2,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "name", randomName),
-					resource.TestCheckResourceAttr(resName, "version", "*"),
-					resource.TestCheckResourceAttr(resName, "description", "updated desc"),
-					resource.TestCheckResourceAttr(resName, "extension_type", "bundle"),
+					resource.TestCheckResourceAttr(resName, "version", "7.10.1"),
+					resource.TestCheckResourceAttr(resName, "download_url", downloadURL),
+					resource.TestCheckResourceAttr(resName, "extension_type", "plugin"),
 				),
 			},
 		},
 	})
 }
 
-func fixtureAccExtensionBasicWithTF(t *testing.T, tfFileName, extensionName, description string) string {
+func fixtureAccExtensionBundleDownloadWithTF(t *testing.T, tfFileName, extensionName, downloadURL string) string {
 	t.Helper()
 
 	b, err := ioutil.ReadFile(tfFileName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return fmt.Sprintf(string(b),
-		extensionName, description,
-	)
+	return fmt.Sprintf(string(b), extensionName, downloadURL)
 }

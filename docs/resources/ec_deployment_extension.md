@@ -1,10 +1,10 @@
 ---
-page_title: "Elastic Cloud: ec_extension"
+page_title: "Elastic Cloud: ec_deployment_extension"
 description: |-
   Provides an Elastic Cloud extension resource, which allows extensions to be created, updated, and deleted.
 ---
 
-# Resource: ec_extension
+# Resource: ec_deployment_extension
 Provides an Elastic Cloud extension resource, which allows extensions to be created, updated, and deleted.
 
 Extensions allow users of Elastic Cloud to use custom plugins, scripts, or dictionaries to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official [Elasticsearch plugins](https://www.elastic.co/guide/en/elasticsearch/plugins/current/index.html) already available.
@@ -17,7 +17,7 @@ locals {
   file_path = "/path/to/plugin.zip"
 }
 
-resource "ec_extension" "example_extension" {
+resource "ec_deployment_extension" "example_extension" {
   name           = "my_extension"
   description    = "my extension"
   version        = "*"
@@ -30,7 +30,7 @@ resource "ec_extension" "example_extension" {
 
 ### With download URL
 ```hcl
-resource "ec_extension" "example_extension" {
+resource "ec_deployment_extension" "example_extension" {
   name           = "my_extension"
   description    = "my extension"
   version        = "*"

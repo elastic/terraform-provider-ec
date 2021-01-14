@@ -1,4 +1,4 @@
-resource "ec_extension" "my_extension" {
+resource "ec_deployment_extension" "my_extension" {
   name           = "%s"
   description    = "%s"
   version        = "*"

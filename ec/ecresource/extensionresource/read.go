@@ -22,6 +22,7 @@ import (
 	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
@@ -32,8 +33,10 @@ import (
 func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
-	model, err := readRequest(d, client)
-
+	res, err := extensionapi.Get(extensionapi.GetParams{
+		API:         client,
+		ExtensionID: d.Id(),
+	})
 	if err != nil {
 		if extensionNotFound(err) {
 			d.SetId("")
@@ -43,7 +46,7 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		return diag.FromErr(multierror.NewPrefixed("failed reading extension", err))
 	}
 
-	if err := modelToState(d, model); err != nil {
+	if err := modelToState(d, res); err != nil {
 		return diag.FromErr(err)
 	}
 

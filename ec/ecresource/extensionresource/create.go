@@ -21,6 +21,8 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -38,9 +40,33 @@ func createResource(ctx context.Context, d *schema.ResourceData, meta interface{
 	d.SetId(*model.ID)
 
 	if _, ok := d.GetOk("file_path"); ok {
-		if err := uploadRequest(client, d); err != nil {
+		if err := uploadExtension(client, d); err != nil {
 			return diag.FromErr(multierror.NewPrefixed("failed to upload file", err))
 		}
 	}
 	return readResource(ctx, d, meta)
+}
+
+func createRequest(client *api.API, d *schema.ResourceData) (*models.Extension, error) {
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	extensionType := d.Get("extension_type").(string)
+	description := d.Get("description").(string)
+	downloadURL := d.Get("download_url").(string)
+
+	body := extensionapi.CreateParams{
+		API:         client,
+		Name:        name,
+		Version:     version,
+		Type:        extensionType,
+		Description: description,
+		DownloadURL: downloadURL,
+	}
+
+	res, err := extensionapi.Create(body)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

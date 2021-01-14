@@ -23,7 +23,7 @@ func newExtension() map[string]interface{} {
 		"extension_type": "bundle",
 		"description":    "my description",
 		"version":        "*",
-		"download_url":   "example.com",
+		"download_url":   "https://example.com",
 		"url":            "repo://1234",
 		"last_modified":  "2021-01-07T22:13:42.999Z",
 		"size":           1000,
@@ -36,12 +36,12 @@ func newExtensionWithFilePath() map[string]interface{} {
 		"extension_type": "bundle",
 		"description":    "my description",
 		"version":        "*",
-		"download_url":   "example.com",
+		"download_url":   "https://example.com",
 		"url":            "repo://1234",
 		"last_modified":  "2021-01-07T22:13:42.999Z",
 		"size":           1000,
 
-		"file_path": "test_extension_bundle.json",
+		"file_path": "testdata/test_extension_bundle.json",
 		"file_hash": "abcd",
 	}
 }

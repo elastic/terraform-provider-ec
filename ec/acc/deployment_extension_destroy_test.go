@@ -32,7 +32,7 @@ func testAccExtensionDestroy(s *terraform.State) error {
 	}
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ec_extension" {
+		if rs.Type != "ec_deployment_extension" {
 			continue
 		}
 

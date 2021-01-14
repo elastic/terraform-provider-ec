@@ -91,7 +91,7 @@ func Test_readResource(t *testing.T) {
 					ExtensionType: ec.String("bundle"),
 					Description:   "my description",
 					Version:       ec.String("*"),
-					DownloadURL:   "example.com",
+					DownloadURL:   "https://example.com",
 					URL:           ec.String("repo://1234"),
 					FileMetadata: &models.ExtensionFileMetadata{
 						LastModifiedDate: lastModified,

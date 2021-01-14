@@ -22,6 +22,7 @@ import (
 	"errors"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -30,7 +31,10 @@ import (
 func deleteResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 
-	if err := deleteRequest(client, d); err != nil {
+	if err := extensionapi.Delete(extensionapi.DeleteParams{
+		API:         client,
+		ExtensionID: d.Id(),
+	}); err != nil {
 		if alreadyDestroyed(err) {
 			d.SetId("")
 			return nil

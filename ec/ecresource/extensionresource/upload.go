@@ -18,24 +18,29 @@
 package extensionresource
 
 import (
-	"time"
+	"os"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
+	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
+	"github.com/elastic/cloud-sdk-go/pkg/multierror"
+	"github.com/go-openapi/runtime"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Resource returns the ec_deployment_extension resource schema.
-func Resource() *schema.Resource {
-	return &schema.Resource{
-		Description: "Elastic Cloud extension (plugin or bundle) to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official Elasticsearch plugins already available",
-		Schema:      newSchema(),
-
-		CreateContext: createResource,
-		ReadContext:   readResource,
-		UpdateContext: updateResource,
-		DeleteContext: deleteResource,
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(10 * time.Minute),
-		},
+func uploadExtension(client *api.API, d *schema.ResourceData) error {
+	filePath := d.Get("file_path").(string)
+	reader, err := os.Open(filePath)
+	if err != nil {
+		return multierror.NewPrefixed("failed open file", err)
 	}
+
+	if _, err := client.V1API.Extensions.UploadExtension(
+		extensions.NewUploadExtensionParams().WithExtensionID(d.Id()).
+			WithFile(runtime.NamedReader(filePath, reader)),
+		client.AuthWriter); err != nil {
+		return apierror.Wrap(err)
+	}
+
+	return nil
 }

@@ -72,7 +72,7 @@ func Provider() *schema.Provider {
 			"ec_deployment":                            deploymentresource.Resource(),
 			"ec_deployment_traffic_filter":             trafficfilterresource.Resource(),
 			"ec_deployment_traffic_filter_association": trafficfilterassocresource.Resource(),
-			"ec_extension":                             extensionresource.Resource(),
+			"ec_deployment_extension":                  extensionresource.Resource(),
 		},
 	}
 }
