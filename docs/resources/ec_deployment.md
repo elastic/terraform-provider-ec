@@ -195,7 +195,7 @@ The optional `elasticsearch.remote_cluster` block can be set multiple times. It 
 * `deployment_id` (Required) Remote deployment ID.
 * `alias` (Optional) Alias for the Cross Cluster Search binding.
 * `ref_id` (Optional) Remote Elasticsearch `ref_id`. The default value `main-elasticsearch` is recommended.
-* `ignore_unavailable` (Optional) If true, skip the cluster during search when disconnected. Defaults to `false`.
+* `skip_unavailable` (Optional) If true, skip the cluster during search when disconnected. Defaults to `false`.
 
 ##### Snapshot source
 
