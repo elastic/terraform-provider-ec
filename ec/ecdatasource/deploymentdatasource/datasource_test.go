@@ -115,6 +115,14 @@ func Test_modelToState(t *testing.T) {
 							},
 						},
 					},
+					Metadata: &models.DeploymentMetadata{
+						Tags: []*models.MetadataItem{
+							{
+								Key:   ec.String("foo"),
+								Value: ec.String("bar"),
+							},
+						},
+					},
 				},
 			},
 		},
@@ -154,6 +162,9 @@ func newSampleDeployment() map[string]interface{} {
 		"enterprise_search": []interface{}{map[string]interface{}{
 			"healthy": true,
 		}},
+		"tags": map[string]interface{}{
+			"foo": "bar",
+		},
 	}
 }
 
