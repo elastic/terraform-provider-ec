@@ -64,18 +64,32 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 									EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 										Version: "7.7.0",
 									},
-									ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.enterprisesearch.r4",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(1024),
+									ClusterTopology: []*models.EnterpriseSearchTopologyElement{
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.enterprisesearch.r4",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
+											NodeType: &models.EnterpriseSearchNodeTypes{
+												Appserver: ec.Bool(true),
+												Worker:    ec.Bool(false),
+											},
 										},
-										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Worker:    ec.Bool(false),
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.enterprisesearch.m5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(0),
+											},
+											NodeType: &models.EnterpriseSearchNodeTypes{
+												Appserver: ec.Bool(true),
+												Worker:    ec.Bool(false),
+											},
 										},
-									}},
+									},
 								},
 							},
 						},

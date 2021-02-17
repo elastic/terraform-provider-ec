@@ -78,11 +78,15 @@ func flattenEnterpriseSearchTopology(plan *models.EnterpriseSearchPlan) []interf
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
 
+		if isEsSizePopulated(topology) && *topology.Size.Value == 0 {
+			continue
+		}
+
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
 		m["zone_count"] = topology.ZoneCount
 
-		if topology.Size != nil && topology.Size.Value != nil {
+		if isEsSizePopulated(topology) {
 			m["size"] = util.MemoryToState(*topology.Size.Value)
 			m["size_resource"] = *topology.Size.Resource
 		}
@@ -105,4 +109,12 @@ func flattenEnterpriseSearchTopology(plan *models.EnterpriseSearchPlan) []interf
 	}
 
 	return result
+}
+
+func isEsSizePopulated(topology *models.EnterpriseSearchTopologyElement) bool {
+	if topology.Size != nil && topology.Size.Value != nil {
+		return true
+	}
+
+	return false
 }

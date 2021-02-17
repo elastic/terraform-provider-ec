@@ -79,9 +79,13 @@ func flattenApmTopology(plan *models.ApmPlan) []interface{} {
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
 
+		if isApmSizePopulated(topology) && *topology.Size.Value == 0 {
+			continue
+		}
+
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
-		if topology.Size != nil && topology.Size.Value != nil {
+		if isApmSizePopulated(topology) {
 			m["size"] = util.MemoryToState(*topology.Size.Value)
 			m["size_resource"] = *topology.Size.Resource
 		}
@@ -92,4 +96,12 @@ func flattenApmTopology(plan *models.ApmPlan) []interface{} {
 	}
 
 	return result
+}
+
+func isApmSizePopulated(topology *models.ApmTopologyElement) bool {
+	if topology.Size != nil && topology.Size.Value != nil {
+		return true
+	}
+
+	return false
 }

@@ -76,9 +76,13 @@ func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []inter
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
 
+		if isSizePopulated(topology) && *topology.Size.Value == 0 {
+			continue
+		}
+
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
-		if topology.Size != nil && topology.Size.Value != nil {
+		if isSizePopulated(topology) {
 			m["size"] = util.MemoryToState(*topology.Size.Value)
 			m["size_resource"] = *topology.Size.Resource
 		}
@@ -107,4 +111,12 @@ func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []inter
 	}
 
 	return result
+}
+
+func isSizePopulated(topology *models.ElasticsearchClusterTopologyElement) bool {
+	if topology.Size != nil && topology.Size.Value != nil {
+		return true
+	}
+
+	return false
 }
