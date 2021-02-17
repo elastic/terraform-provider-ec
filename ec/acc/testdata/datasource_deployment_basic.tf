@@ -25,7 +25,8 @@ resource "ec_deployment" "basic_datasource" {
 
   elasticsearch {
     topology {
-      size = "1g"
+      size       = "1g"
+      zone_count = 1
     }
   }
 
