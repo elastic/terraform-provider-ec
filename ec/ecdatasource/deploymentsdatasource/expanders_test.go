@@ -128,7 +128,7 @@ func newTestQuery() []*models.QueryContainer {
 	return []*models.QueryContainer{
 		{
 			Prefix: map[string]models.PrefixQuery{
-				"name": {Value: ec.String("test")},
+				"name.keyword": {Value: ec.String("test")},
 			},
 		},
 		{

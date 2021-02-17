@@ -34,7 +34,9 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 	if namePrefix != "" {
 		queries = append(queries, &models.QueryContainer{
 			Prefix: map[string]models.PrefixQuery{
-				"name": {Value: ec.String(namePrefix)},
+				// The "keyword" addition denotes that the query will be using a keyword
+				// field rather than a text field in order to ensure the query is not analyzed
+				"name.keyword": {Value: ec.String(namePrefix)},
 			},
 		})
 	}
