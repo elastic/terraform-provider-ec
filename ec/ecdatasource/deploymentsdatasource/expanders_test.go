@@ -101,6 +101,9 @@ func newSampleFilters() map[string]interface{} {
 	return map[string]interface{}{
 		"name_prefix": "test",
 		"healthy":     "true",
+		"tags": map[string]interface{}{
+			"foo": "bar",
+		},
 		"elasticsearch": []interface{}{
 			map[string]interface{}{
 				"version": "7.9.1",
@@ -134,6 +137,38 @@ func newTestQuery() []*models.QueryContainer {
 		{
 			Term: map[string]models.TermQuery{
 				"healthy": {Value: true},
+			},
+		},
+		{
+			Bool: &models.BoolQuery{
+				MinimumShouldMatch: int32(1),
+				Should: []*models.QueryContainer{
+					{
+						Nested: &models.NestedQuery{
+							Path: ec.String("metadata.tags"),
+							Query: &models.QueryContainer{
+								Bool: &models.BoolQuery{
+									Filter: []*models.QueryContainer{
+										{
+											Term: map[string]models.TermQuery{
+												"metadata.tags.key": {
+													Value: ec.String("foo"),
+												},
+											},
+										},
+										{
+											Term: map[string]models.TermQuery{
+												"metadata.tags.value": {
+													Value: ec.String("bar"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 		{
