@@ -78,9 +78,13 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
 
+		if isKibanaSizePopulated(topology) && *topology.Size.Value == 0 {
+			continue
+		}
+
 		m["instance_configuration_id"] = topology.InstanceConfigurationID
 
-		if topology.Size != nil && topology.Size.Value != nil {
+		if isKibanaSizePopulated(topology) {
 			m["size"] = util.MemoryToState(*topology.Size.Value)
 			m["size_resource"] = *topology.Size.Resource
 		}
@@ -91,4 +95,12 @@ func flattenKibanaTopology(plan *models.KibanaClusterPlan) []interface{} {
 	}
 
 	return result
+}
+
+func isKibanaSizePopulated(topology *models.KibanaClusterTopologyElement) bool {
+	if topology.Size != nil && topology.Size.Value != nil {
+		return true
+	}
+
+	return false
 }

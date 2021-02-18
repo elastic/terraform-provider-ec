@@ -80,6 +80,21 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 												Ml:     ec.Bool(false),
 											},
 										},
+										{
+											NodeCountPerZone:        1,
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.coordinating.m5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(0),
+											},
+											NodeType: &models.ElasticsearchNodeType{
+												Data:   ec.Bool(true),
+												Ingest: ec.Bool(true),
+												Master: ec.Bool(true),
+												Ml:     ec.Bool(false),
+											},
+										},
 									},
 								},
 							},

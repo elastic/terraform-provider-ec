@@ -72,6 +72,14 @@ func Test_flattenKibanaResources(t *testing.T) {
 												Value:    ec.Int32(1024),
 											},
 										},
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.kibana.m5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(0),
+											},
+										},
 									},
 								},
 							},
