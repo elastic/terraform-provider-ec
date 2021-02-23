@@ -31,8 +31,8 @@ These will not be available for interpolation.
 * `region` - Region where the deployment can be found.
 * `deployment_template_id` - ID of the deployment template used to create the deployment.
 * `traffic_filter` - Traffic filter block, which contains a list of traffic filter rule identifiers.
+* `tags` Key value map of arbitrary string tags.
 * `observability` Observability settings. Information about logs and metrics shipped to a dedicated deployment.
-* `tags` Key value map of arbitrary string tags..
   * `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics.
   * `observability.#.ref_id` - Elasticsearch resource kind ref_id of the destination deployment.
   * `observability.#.logs` - Defines whether logs are enabled or disabled.
