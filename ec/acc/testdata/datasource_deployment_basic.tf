@@ -40,6 +40,10 @@ resource "ec_deployment" "basic_datasource" {
     deployment_id = ec_deployment.basic_observability.id
   }
 
+  tags = {
+    "foo" = "bar"
+  }
+  
   traffic_filter = [
     ec_deployment_traffic_filter.default.id,
   ]

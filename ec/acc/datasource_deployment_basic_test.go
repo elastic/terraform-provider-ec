@@ -48,6 +48,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "region", resourceName, "region"),
 					resource.TestCheckResourceAttrPair(datasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "traffic_filter.#", resourceName, "traffic_filter.#"),
+					resource.TestCheckResourceAttrPair(datasourceName, "tags", resourceName, "tags"),
 
 					// Elasticsearch
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.ref_id", resourceName, "elasticsearch.0.ref_id"),
