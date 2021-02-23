@@ -43,7 +43,7 @@ resource "ec_deployment" "basic_datasource" {
   tags = {
     "foo" = "bar"
   }
-  
+
   traffic_filter = [
     ec_deployment_traffic_filter.default.id,
   ]

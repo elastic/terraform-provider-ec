@@ -22,5 +22,5 @@ resource "ec_deployment" "tags" {
 }
 
 data "ec_deployment" "tags" {
-    id = ec_deployment.tags.id
+  id = ec_deployment.tags.id
 }
