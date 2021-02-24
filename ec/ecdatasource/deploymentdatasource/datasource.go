@@ -130,5 +130,11 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		return err
 	}
 
+	if tagsFlattened := flattenTags(res.Metadata); tagsFlattened != nil {
+		if err := d.Set("tags", tagsFlattened); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

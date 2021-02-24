@@ -55,6 +55,13 @@ func newSchema() map[string]*schema.Schema {
 			Computed: true,
 			Elem:     newObservabilitySettings(),
 		},
+		"tags": {
+			Type:     schema.TypeMap,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 
 		// Deployment resources
 		"elasticsearch": {
