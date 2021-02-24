@@ -40,10 +40,13 @@ resource "ec_deployment" "basic_datasource" {
     deployment_id = ec_deployment.basic_observability.id
   }
 
+<<<<<<< HEAD
   tags = {
     "foo" = "bar"
   }
 
+=======
+>>>>>>> parent of f5556a8... add tags the datasource_deployment_basic acc test
   traffic_filter = [
     ec_deployment_traffic_filter.default.id,
   ]
