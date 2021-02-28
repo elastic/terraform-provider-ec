@@ -84,11 +84,11 @@ func Test_expandFilters(t *testing.T) {
 
 			jsonWant, err := json.Marshal(tt.want)
 			if err != nil {
-				panic(err)
+				t.Error("Unable to marshal wanted struct to JSON")
 			}
 			jsonGot, err := json.Marshal(got)
 			if err != nil {
-				panic(err)
+				t.Error("Unable to marshal received struct to JSON")
 			}
 
 			assert.Equal(t, jsonWant, jsonGot)
