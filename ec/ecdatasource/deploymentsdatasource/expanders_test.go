@@ -18,6 +18,7 @@
 package deploymentsdatasource
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -81,7 +82,17 @@ func Test_expandFilters(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.want, got)
+			jsonWant, err := json.Marshal(tt.want)
+			if err != nil {
+				panic(err)
+			}
+			jsonGot, err := json.Marshal(got)
+			if err != nil {
+				panic(err)
+			}
+
+			assert.Equal(t, jsonWant, jsonGot)
+
 		})
 	}
 }
