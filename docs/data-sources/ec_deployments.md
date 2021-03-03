@@ -15,6 +15,10 @@ data "ec_deployments" "example" {
   name_prefix            = "test"
   deployment_template_id = "azure-compute-optimized"
 
+  tags = {
+    "foo" = "bar"
+  }
+
   elasticsearch {
     healthy = "true"
   }
@@ -37,6 +41,7 @@ data "ec_deployments" "example" {
 
 * `name_prefix` - Prefix that one or several deployment names have in common.
 * `deployment_template_id` - ID of the deployment template used to create the deployment.
+* `tags` - Key value map of arbitrary string tags for the deployment.
 * `healthy` - Overall health status of the deployment.
 * `elasticsearch` - Filter by Elasticsearch resource kind status or configuration.
   * `elasticsearch.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring, and started).
