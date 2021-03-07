@@ -1,15 +1,17 @@
 terraform {
-  required_version = ">= 0.12.29"
+  required_version = ">= 0.12"
 
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = "0.1.0-beta"
+      version = ">=0.1.0-beta"
     }
   }
 }
 
-provider "ec" {}
+provider "ec" {
+  apikey="TmxIdURIZ0JxVld3ME5DWTdqVUM6WnhTWEZoWXpRRmVMMXh6WHQ0U2RIQQ=="
+}
 
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
@@ -21,19 +23,11 @@ resource "ec_deployment" "example_minimal" {
   version                = "7.9.2"
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {}
+  elasticsearch {
+    config {
+	user_settings_yaml = file("./es_settings.yaml")
+    }
+  }
 
   kibana {}
-
-  apm {
-    topology {
-      size = "0.5g"
-    }
-  }
-
-  enterprise_search {
-    topology {
-      zone_count = 1
-    }
-  }
 }
