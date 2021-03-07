@@ -9,9 +9,7 @@ terraform {
   }
 }
 
-provider "ec" {
-  apikey="TmxIdURIZ0JxVld3ME5DWTdqVUM6WnhTWEZoWXpRRmVMMXh6WHQ0U2RIQQ=="
-}
+provider "ec" {}
 
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
