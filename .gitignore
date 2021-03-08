@@ -11,3 +11,4 @@ examples/*/*.tfstate.backup
 dist
 .ci/.gpg_*
 .ci/.github_*
+.terraform.lock.hcl
