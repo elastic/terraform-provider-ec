@@ -16,6 +16,7 @@ resource "ec_deployment" "tags" {
 
   elasticsearch {
     topology {
+      id         = "hot_content"
       size       = "1g"
       zone_count = 1
     }

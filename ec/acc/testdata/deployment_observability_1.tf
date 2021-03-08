@@ -11,6 +11,7 @@ resource "ec_deployment" "basic" {
 
   elasticsearch {
     topology {
+      id         = "hot_content"
       size       = "1g"
       zone_count = 1
     }
@@ -25,6 +26,7 @@ resource "ec_deployment" "observability" {
 
   elasticsearch {
     topology {
+      id         = "hot_content"
       size       = "1g"
       zone_count = 1
     }

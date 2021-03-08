@@ -11,6 +11,7 @@ resource "ec_deployment" "observability_tpl" {
 
   elasticsearch {
     topology {
+      id   = "hot_content"
       size = "2g"
     }
   }

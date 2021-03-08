@@ -55,15 +55,11 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.resource_id", resourceName, "elasticsearch.0.resource_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.http_endpoint_id", resourceName, "elasticsearch.0.http_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.https_endpoint_id", resourceName, "elasticsearch.0.https_endpoint_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.version", resourceName, "elasticsearch.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.instance_configuration_id", resourceName, "elasticsearch.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size", resourceName, "elasticsearch.0.topology.0.size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size_resource", resourceName, "elasticsearch.0.topology.0.size_resource"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.zone_count", resourceName, "elasticsearch.0.topology.0.zone_count"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_type_data", resourceName, "elasticsearch.0.topology.0.node_type_data"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_type_master", resourceName, "elasticsearch.0.topology.0.node_type_master"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_type_ingest", resourceName, "elasticsearch.0.topology.0.node_type_ingest"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_type_ml", resourceName, "elasticsearch.0.topology.0.node_type_ml"),
+					resource.TestCheckTypeSetElemAttrPair(datasourceName, "elasticsearch.0.topology.0.node_roles.*", resourceName, "elasticsearch.0.topology.0.node_roles.*"),
 
 					// Kibana
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.elasticsearch_cluster_ref_id", resourceName, "kibana.0.elasticsearch_cluster_ref_id"),
@@ -115,7 +111,6 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 
 					// Deployment resources
-					resource.TestCheckResourceAttrPair(depsDatasourceName, "elasticsearch.0.version", resourceName, "elasticsearch.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.version", resourceName, "kibana.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.version", resourceName, "apm.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.version", resourceName, "enterprise_search.0.version"),

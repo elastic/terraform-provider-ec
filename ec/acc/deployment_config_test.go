@@ -147,29 +147,3 @@ func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC
 
 	return esIC, kibanaIC, apmIC, essIC, nil
 }
-
-func setInstanceConfigurationsHW(deploymentTemplate string) (esIC, esIC2 string, err error) {
-	resources, err := getResources(deploymentTemplate)
-	if err != nil {
-		return "", "", err
-	}
-
-	esRes := resources.Elasticsearch[0].Plan.ClusterTopology
-
-	esICs := []string{}
-	for _, t := range esRes {
-		if *t.Size.Value > 0 {
-			ic := t.InstanceConfigurationID
-			esICs = append(esICs, ic)
-		}
-	}
-
-	if len(esICs) == 2 {
-		return esICs[0], esICs[1], nil
-	}
-
-	return "", "", fmt.Errorf(
-		"%v, is not a valid Hot/Warm deployment template, (elements: %v)",
-		deploymentTemplate, esICs,
-	)
-}

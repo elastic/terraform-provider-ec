@@ -11,6 +11,7 @@ resource "ec_deployment" "basic" {
 
   elasticsearch {
     topology {
+      id   = "hot_content"
       size = "1g"
     }
   }

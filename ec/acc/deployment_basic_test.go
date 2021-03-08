@@ -32,7 +32,7 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 	startCfg := "testdata/deployment_basic.tf"
 	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter_2.tf"
 	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_3.tf"
-	cfg := fixtureAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
+	cfg := fixtureAccDeploymentResourceBasicWithApps(t, startCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilter := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilterUpdate := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
@@ -84,8 +84,8 @@ func TestAccDeployment_basic_config(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic.tf"
 	settingsConfig := "testdata/deployment_basic_settings_config_2.tf"
-	cfg := fixtureAccDeploymentResourceBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
-	settingsConfigCfg := fixtureAccDeploymentResourceBasic(t, settingsConfig, randomName, getRegion(), defaultTemplate)
+	cfg := fixtureAccDeploymentResourceBasicWithApps(t, startCfg, randomName, getRegion(), defaultTemplate)
+	settingsConfigCfg := fixtureAccDeploymentResourceBasicWithApps(t, settingsConfig, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
 	if err != nil {
 		t.Fatal(err)
@@ -129,12 +129,13 @@ func TestAccDeployment_basic_config(t *testing.T) {
 	})
 }
 
-func fixtureAccDeploymentResourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
+func fixtureAccDeploymentResourceBasicWithApps(t *testing.T, fileName, name, region, depTpl string) string {
 	t.Helper()
 	requiresAPIConn(t)
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
-	esIC, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
+	// esIC is no longer needed
+	_, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +145,7 @@ func fixtureAccDeploymentResourceBasic(t *testing.T, fileName, name, region, dep
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, name, region, deploymentTpl, esIC, kibanaIC, apmIC, essIC,
+		region, name, region, deploymentTpl, kibanaIC, apmIC, essIC,
 	)
 }
 
@@ -177,7 +178,6 @@ func checkBasicDeploymentResource(resName, randomDeploymentName, deploymentVersi
 		resource.TestCheckResourceAttrSet(resName, "apm.0.http_endpoint"),
 		resource.TestCheckResourceAttrSet(resName, "apm.0.https_endpoint"),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-		resource.TestCheckResourceAttr(resName, "elasticsearch.0.version", deploymentVersion),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", getRegion()),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
 		resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),

@@ -11,6 +11,7 @@ resource "ec_deployment" "memory_optimized" {
 
   elasticsearch {
     topology {
+      id   = "hot_content"
       size = "2g"
     }
   }

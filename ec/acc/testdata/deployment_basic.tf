@@ -11,8 +11,8 @@ resource "ec_deployment" "basic" {
 
   elasticsearch {
     topology {
-      instance_configuration_id = "%s"
-      size                      = "1g"
+      id   = "hot_content"
+      size = "1g"
     }
   }
 

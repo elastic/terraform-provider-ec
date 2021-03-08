@@ -11,8 +11,8 @@ resource "ec_deployment" "defaults" {
 
   elasticsearch {
     topology {
-      size             = "1g"
-      node_type_ingest = "false"
+      id   = "hot_content"
+      size = "1g"
     }
   }
 
