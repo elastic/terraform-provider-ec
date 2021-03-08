@@ -65,17 +65,17 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 	}
 
 	tags := d.Get("tags").(map[string]interface{})
-	if len(tags) >= 1 {
-		var shouldQueries []*models.QueryContainer
-		tagPath := "metadata.tags"
-		for key, value := range tags {
-			tagQuery := newNestedTagQuery(tagPath, key, value)
-			shouldQueries = append(shouldQueries, tagQuery)
-		}
+	var tagQueries []*models.QueryContainer
+	for key, value := range tags {
+		tagQueries = append(tagQueries,
+			newNestedTagQuery("metadata.tags", key, value),
+		)
+	}
+	if len(tagQueries) > 0 {
 		queries = append(queries, &models.QueryContainer{
 			Bool: &models.BoolQuery{
 				MinimumShouldMatch: int32(len(tags)),
-				Should:             shouldQueries,
+				Should:             tagQueries,
 			},
 		})
 	}
