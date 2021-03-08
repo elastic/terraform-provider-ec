@@ -43,5 +43,14 @@ func Resource() *schema.Resource {
 			Update:  schema.DefaultTimeout(60 * time.Minute),
 			Delete:  schema.DefaultTimeout(60 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStateUpgradeV0,
+				Version: 0,
+			},
+		},
 	}
 }
