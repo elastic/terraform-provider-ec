@@ -38,11 +38,6 @@ func newElasticsearchResource() *schema.Resource {
 				Description: "The Elasticsearch resource unique identifier",
 				Computed:    true,
 			},
-			"version": {
-				Type:        schema.TypeString,
-				Description: "The Elasticsearch resource current version",
-				Computed:    true,
-			},
 			"region": {
 				Type:        schema.TypeString,
 				Description: "The Elasticsearch resource region",
@@ -85,11 +80,15 @@ func elasticsearchTopologySchema() *schema.Schema {
 		Description: `Optional topology element which must be set once but can be set multiple times to compose complex topologies`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:        schema.TypeString,
+					Description: `Required topology ID from the deployment template`,
+					Required:    true,
+				},
 				"instance_configuration_id": {
 					Type:        schema.TypeString,
-					Description: `Optional Instance Configuration ID from the deployment template`,
+					Description: `Computed Instance Configuration ID of the topology element`,
 					Computed:    true,
-					Optional:    true,
 				},
 				"size": {
 					Type:        schema.TypeString,
@@ -132,6 +131,15 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Description: `The node type for the Elasticsearch Topology element (machine learning node)`,
 					Computed:    true,
 					Optional:    true,
+				},
+				"node_roles": {
+					Type:        schema.TypeSet,
+					Set:         schema.HashString,
+					Description: `The computed list of node roles for the current topology element`,
+					Computed:    true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 			},
 		},

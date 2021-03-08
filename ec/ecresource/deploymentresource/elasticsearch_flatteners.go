@@ -31,9 +31,9 @@ import (
 // flattenEsResources takes in Elasticsearch resource models and returns its
 // flattened form.
 func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, remotes models.RemoteResources) []interface{} {
-	var result = make([]interface{}, 0, len(in))
+	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
-		var m = make(map[string]interface{})
+		m := make(map[string]interface{})
 		if util.IsCurrentEsPlanEmpty(res) || isEsResourceStopped(res) {
 			continue
 		}
@@ -46,22 +46,17 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 			m["ref_id"] = *res.RefID
 		}
 
-		var plan = res.Info.PlanInfo.Current.Plan
-		if plan.Elasticsearch != nil {
-			m["version"] = plan.Elasticsearch.Version
-		}
-
 		if res.Region != nil {
 			m["region"] = *res.Region
 		}
 
+		plan := res.Info.PlanInfo.Current.Plan
 		if topology := flattenEsTopology(plan); len(topology) > 0 {
 			m["topology"] = topology
 		}
 
-		var metadata = res.Info.Metadata
-		if metadata != nil && metadata.CloudID != "" {
-			m["cloud_id"] = metadata.CloudID
+		if meta := res.Info.Metadata; meta != nil && meta.CloudID != "" {
+			m["cloud_id"] = meta.CloudID
 		}
 
 		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
@@ -83,12 +78,15 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 }
 
 func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
-	var result = make([]interface{}, 0, len(plan.ClusterTopology))
+	result := make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
 		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
 			continue
 		}
+
+		// ID is always set.
+		m["id"] = topology.ID
 
 		if topology.InstanceConfigurationID != "" {
 			m["instance_configuration_id"] = topology.InstanceConfigurationID
@@ -103,6 +101,8 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 			m["size"] = util.MemoryToState(*topology.Size.Value)
 			m["size_resource"] = *topology.Size.Resource
 		}
+
+		m["zone_count"] = topology.ZoneCount
 
 		if nt := topology.NodeType; nt != nil {
 			if nt.Data != nil {
@@ -122,7 +122,11 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 			}
 		}
 
-		m["zone_count"] = topology.ZoneCount
+		if len(topology.NodeRoles) > 0 {
+			m["node_roles"] = schema.NewSet(schema.HashString, util.StringToItems(
+				topology.NodeRoles...,
+			))
+		}
 
 		result = append(result, m)
 	}

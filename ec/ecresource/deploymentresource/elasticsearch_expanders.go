@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -49,14 +50,10 @@ func expandEsResources(ess []interface{}, tpl *models.ElasticsearchPayload) ([]*
 
 // expandEsResource expands a single Elasticsearch resource
 func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*models.ElasticsearchPayload, error) {
-	var es = raw.(map[string]interface{})
+	es := raw.(map[string]interface{})
 
 	if refID, ok := es["ref_id"]; ok {
 		res.RefID = ec.String(refID.(string))
-	}
-
-	if version, ok := es["version"]; ok {
-		res.Plan.Elasticsearch.Version = version.(string)
 	}
 
 	if region, ok := es["region"]; ok {
@@ -76,7 +73,7 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 		res.Plan.ClusterTopology = topology
 	} else {
-		res.Plan.ClusterTopology = defaultEsTopology(res.Plan.ClusterTopology)
+		res.Plan.ClusterTopology = defaultEsTopologies(res.Plan.ClusterTopology)
 	}
 
 	if cfg, ok := es["config"]; ok {
@@ -97,19 +94,15 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 
 // expandEsTopology expands a flattened topology
 func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchClusterTopologyElement) ([]*models.ElasticsearchClusterTopologyElement, error) {
-	var rawTopologies = raw.([]interface{})
-	var res = make([]*models.ElasticsearchClusterTopologyElement, 0)
-	for i, rawTop := range rawTopologies {
-		var topology = rawTop.(map[string]interface{})
-		var icID string
-		if id, ok := topology["instance_configuration_id"]; ok {
-			icID = id.(string)
-		}
-		// When a topology element is set but no instance_configuration_id
-		// is set, then obtain the instance_configuration_id from the topology
-		// element.
-		if t := defaultEsTopology(topologies); icID == "" && len(t) >= i {
-			icID = t[i].InstanceConfigurationID
+	rawTopologies := raw.([]interface{})
+	res := make([]*models.ElasticsearchClusterTopologyElement, 0)
+
+	for _, rawTop := range rawTopologies {
+		topology := rawTop.(map[string]interface{})
+
+		var topologyID string
+		if id, ok := topology["id"]; ok {
+			topologyID = id.(string)
 		}
 
 		size, err := util.ParseTopologySize(topology)
@@ -117,12 +110,18 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			return nil, err
 		}
 
-		elem, err := matchEsTopology(icID, topologies)
+		elem, err := matchEsTopologyID(topologyID, topologies)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("elasticsearch topology %s: %w", topologyID, err)
 		}
 		if size != nil {
 			elem.Size = size
+		}
+
+		// This check will most likely will need to be updated to handle
+		// autoscaling values. This is already the case for Machine Learning.
+		if sizeIsEmpty(elem.Size) {
+			return nil, fmt.Errorf("elasticsearch topology %s: size cannot be zero", topologyID)
 		}
 
 		if zones, ok := topology["zone_count"]; ok {
@@ -131,36 +130,15 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			}
 		}
 
-		if ntData, ok := topology["node_type_data"]; ok && ntData.(string) != "" {
-			nt, err := strconv.ParseBool(ntData.(string))
-			if err != nil {
-				return nil, fmt.Errorf("failed parsing node_type_data value: %w", err)
-			}
-			elem.NodeType.Data = ec.Bool(nt)
+		if err := parseLegacyNodeType(topology, elem.NodeType); err != nil {
+			return nil, err
 		}
 
-		if ntMaster, ok := topology["node_type_master"]; ok && ntMaster.(string) != "" {
-			nt, err := strconv.ParseBool(ntMaster.(string))
-			if err != nil {
-				return nil, fmt.Errorf("failed parsing node_type_master value: %w", err)
+		if nr, ok := topology["node_roles"]; ok {
+			if nrSet, ok := nr.(*schema.Set); ok && nrSet.Len() > 0 {
+				elem.NodeRoles = util.ItemsToString(nrSet.List())
+				elem.NodeType = nil
 			}
-			elem.NodeType.Master = ec.Bool(nt)
-		}
-
-		if ntIngest, ok := topology["node_type_ingest"]; ok && ntIngest.(string) != "" {
-			nt, err := strconv.ParseBool(ntIngest.(string))
-			if err != nil {
-				return nil, fmt.Errorf("failed parsing node_type_ingest value: %w", err)
-			}
-			elem.NodeType.Ingest = ec.Bool(nt)
-		}
-
-		if ntMl, ok := topology["node_type_ml"]; ok && ntMl.(string) != "" {
-			nt, err := strconv.ParseBool(ntMl.(string))
-			if err != nil {
-				return nil, fmt.Errorf("failed parsing node_type_ml value: %w", err)
-			}
-			elem.NodeType.Ml = ec.Bool(nt)
 		}
 
 		res = append(res, elem)
@@ -229,13 +207,13 @@ func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement)
 	return result
 }
 
-// defaultEsTopology iterates over all the templated topology elements and
+// defaultEsTopologies iterates over all the templated topology elements and
 // sets the size to the default when the template size is smaller than the
 // deployment template default, the same is done on the ZoneCount. It discards
 // any elements where the size is == 0, since it means that different Instance
 // configurations are available to configure but are not included in the
 // default deployment template.
-func defaultEsTopology(topology []*models.ElasticsearchClusterTopologyElement) []*models.ElasticsearchClusterTopologyElement {
+func defaultEsTopologies(topology []*models.ElasticsearchClusterTopologyElement) []*models.ElasticsearchClusterTopologyElement {
 	topology = discardEsZeroSize(topology)
 	for _, t := range topology {
 		if *t.Size.Value < minimumElasticsearchSize {
@@ -249,15 +227,20 @@ func defaultEsTopology(topology []*models.ElasticsearchClusterTopologyElement) [
 	return topology
 }
 
-func matchEsTopology(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {
+func matchEsTopologyID(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {
 	for _, t := range topologies {
-		if t.InstanceConfigurationID == id {
+		if t.ID == id {
 			return t, nil
 		}
 	}
-	return nil, fmt.Errorf(
-		`elasticsearch topology: invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
-		id,
+
+	topIDs := topologyIDs(topologies)
+	for i, id := range topIDs {
+		topIDs[i] = "\"" + id + "\""
+	}
+
+	return nil, fmt.Errorf(`invalid id: valid topology IDs are %s`,
+		strings.Join(topIDs, ", "),
 	)
 }
 
@@ -283,4 +266,69 @@ func unsetElasticsearchCuration(payload *models.ElasticsearchPayload) {
 	if payload.Settings != nil {
 		payload.Settings.Curation = nil
 	}
+}
+
+func topologyIDs(topologies []*models.ElasticsearchClusterTopologyElement) []string {
+	var result []string
+
+	for _, topology := range topologies {
+		result = append(result, topology.ID)
+	}
+
+	if len(result) == 0 {
+		return nil
+	}
+	return result
+}
+
+func parseLegacyNodeType(topology map[string]interface{}, nodeType *models.ElasticsearchNodeType) error {
+	if nodeType == nil {
+		return nil
+	}
+
+	if ntData, ok := topology["node_type_data"]; ok && ntData.(string) != "" {
+		nt, err := strconv.ParseBool(ntData.(string))
+		if err != nil {
+			return fmt.Errorf("failed parsing node_type_data value: %w", err)
+		}
+		nodeType.Data = ec.Bool(nt)
+	}
+
+	if ntMaster, ok := topology["node_type_master"]; ok && ntMaster.(string) != "" {
+		nt, err := strconv.ParseBool(ntMaster.(string))
+		if err != nil {
+			return fmt.Errorf("failed parsing node_type_master value: %w", err)
+		}
+		nodeType.Master = ec.Bool(nt)
+	}
+
+	if ntIngest, ok := topology["node_type_ingest"]; ok && ntIngest.(string) != "" {
+		nt, err := strconv.ParseBool(ntIngest.(string))
+		if err != nil {
+			return fmt.Errorf("failed parsing node_type_ingest value: %w", err)
+		}
+		nodeType.Ingest = ec.Bool(nt)
+	}
+
+	if ntMl, ok := topology["node_type_ml"]; ok && ntMl.(string) != "" {
+		nt, err := strconv.ParseBool(ntMl.(string))
+		if err != nil {
+			return fmt.Errorf("failed parsing node_type_ml value: %w", err)
+		}
+		nodeType.Ml = ec.Bool(nt)
+	}
+
+	return nil
+}
+
+func sizeIsEmpty(size *models.TopologySize) bool {
+	if size == nil {
+		return true
+	}
+
+	if size.Value == nil || *size.Value == 0 {
+		return true
+	}
+
+	return false
 }
