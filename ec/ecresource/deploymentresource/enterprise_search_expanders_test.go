@@ -28,10 +28,9 @@ import (
 )
 
 func Test_expandEssResources(t *testing.T) {
-	tplPath := "testdata/aws-io-optimized-v2.json"
 	tpl := func() *models.EnterpriseSearchPayload {
 		return essResource(parseDeploymentTemplate(t,
-			tplPath,
+			"testdata/template-aws-io-optimized-v2.json",
 		))
 	}
 	type args struct {

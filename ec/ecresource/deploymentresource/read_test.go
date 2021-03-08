@@ -38,37 +38,37 @@ import (
 func Test_readResource(t *testing.T) {
 	tc500Err := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 	wantTC500 := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 
 	tc404Err := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 
 	wantTC404 := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 	wantTC404.SetId("")
 
 	tc200Stopped := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 
 	wantTC200Stopped := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 	wantTC200Stopped.SetId("")
