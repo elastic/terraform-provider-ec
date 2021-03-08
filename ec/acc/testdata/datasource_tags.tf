@@ -9,8 +9,9 @@ resource "ec_deployment" "tags" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
   tags = {
-    "foo" = "bar"
-    "bar" = "baz"
+    "foo"     = "bar"
+    "bar"     = "baz"
+    "test_id" = "%s"
   }
 
   elasticsearch {
@@ -21,6 +22,12 @@ resource "ec_deployment" "tags" {
   }
 }
 
-data "ec_deployment" "tags" {
+data "ec_deployment" "tagdata" {
   id = ec_deployment.tags.id
+}
+
+data "ec_deployments" "tagfilter" {
+  tags = {
+    "test_id" = "%s"
+  }
 }
