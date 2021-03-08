@@ -68,7 +68,7 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 	var tagQueries []*models.QueryContainer
 	for key, value := range tags {
 		tagQueries = append(tagQueries,
-			newNestedTagQuery("metadata.tags", key, value),
+			newNestedTagQuery(key, value),
 		)
 	}
 	if len(tagQueries) > 0 {
@@ -171,10 +171,10 @@ func newNestedTermQuery(path, term string, value interface{}) *models.QueryConta
 }
 
 // newNestedTagQuery returns a nested query for a metadata tag
-func newNestedTagQuery(path string, key interface{}, value interface{}) *models.QueryContainer {
+func newNestedTagQuery(key interface{}, value interface{}) *models.QueryContainer {
 	return &models.QueryContainer{
 		Nested: &models.NestedQuery{
-			Path: ec.String(path),
+			Path: ec.String("metadata.tags"),
 			Query: &models.QueryContainer{
 				Bool: &models.BoolQuery{
 					Filter: []*models.QueryContainer{
