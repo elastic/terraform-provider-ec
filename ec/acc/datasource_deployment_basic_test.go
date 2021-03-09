@@ -59,7 +59,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size", resourceName, "elasticsearch.0.topology.0.size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size_resource", resourceName, "elasticsearch.0.topology.0.size_resource"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.zone_count", resourceName, "elasticsearch.0.topology.0.zone_count"),
-					resource.TestCheckTypeSetElemAttrPair(datasourceName, "elasticsearch.0.topology.0.node_roles.*", resourceName, "elasticsearch.0.topology.0.node_roles.*"),
+					// Pending the adddition of the `node_roles` field to the ec_deployment resource.
+					// resource.TestCheckTypeSetElemAttrPair(datasourceName, "elasticsearch.0.topology.0.node_roles.*", resourceName, "elasticsearch.0.topology.0.node_roles.*"),
 
 					// Kibana
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.elasticsearch_cluster_ref_id", resourceName, "kibana.0.elasticsearch_cluster_ref_id"),
