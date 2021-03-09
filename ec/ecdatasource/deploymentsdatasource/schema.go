@@ -33,6 +33,13 @@ func newSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+		"tags": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 		"return_count": {
 			Type:     schema.TypeInt,
 			Computed: true,

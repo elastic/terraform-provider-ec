@@ -18,6 +18,7 @@
 package deploymentsdatasource
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -81,7 +82,17 @@ func Test_expandFilters(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.want, got)
+			jsonWant, err := json.MarshalIndent(tt.want, "", "  ")
+			if err != nil {
+				t.Error("Unable to marshal wanted struct to JSON")
+			}
+
+			jsonGot, err := json.MarshalIndent(got, "", "  ")
+			if err != nil {
+				t.Error("Unable to marshal received struct to JSON")
+			}
+
+			assert.Equal(t, string(jsonWant), string(jsonGot))
 		})
 	}
 }
@@ -101,6 +112,9 @@ func newSampleFilters() map[string]interface{} {
 	return map[string]interface{}{
 		"name_prefix": "test",
 		"healthy":     "true",
+		"tags": map[string]interface{}{
+			"foo": "bar",
+		},
 		"elasticsearch": []interface{}{
 			map[string]interface{}{
 				"version": "7.9.1",
@@ -134,6 +148,38 @@ func newTestQuery() []*models.QueryContainer {
 		{
 			Term: map[string]models.TermQuery{
 				"healthy": {Value: true},
+			},
+		},
+		{
+			Bool: &models.BoolQuery{
+				MinimumShouldMatch: int32(1),
+				Should: []*models.QueryContainer{
+					{
+						Nested: &models.NestedQuery{
+							Path: ec.String("metadata.tags"),
+							Query: &models.QueryContainer{
+								Bool: &models.BoolQuery{
+									Filter: []*models.QueryContainer{
+										{
+											Term: map[string]models.TermQuery{
+												"metadata.tags.key": {
+													Value: ec.String("foo"),
+												},
+											},
+										},
+										{
+											Term: map[string]models.TermQuery{
+												"metadata.tags.value": {
+													Value: ec.String("bar"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 		{

@@ -64,6 +64,22 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 		})
 	}
 
+	tags := d.Get("tags").(map[string]interface{})
+	var tagQueries []*models.QueryContainer
+	for key, value := range tags {
+		tagQueries = append(tagQueries,
+			newNestedTagQuery(key, value),
+		)
+	}
+	if len(tagQueries) > 0 {
+		queries = append(queries, &models.QueryContainer{
+			Bool: &models.BoolQuery{
+				MinimumShouldMatch: int32(len(tags)),
+				Should:             tagQueries,
+			},
+		})
+	}
+
 	validResourceKinds := []string{util.Elasticsearch, util.Kibana,
 		util.Apm, util.EnterpriseSearch}
 
@@ -147,6 +163,35 @@ func newNestedTermQuery(path, term string, value interface{}) *models.QueryConta
 				Term: map[string]models.TermQuery{
 					term: {
 						Value: value,
+					},
+				},
+			},
+		},
+	}
+}
+
+// newNestedTagQuery returns a nested query for a metadata tag
+func newNestedTagQuery(key interface{}, value interface{}) *models.QueryContainer {
+	return &models.QueryContainer{
+		Nested: &models.NestedQuery{
+			Path: ec.String("metadata.tags"),
+			Query: &models.QueryContainer{
+				Bool: &models.BoolQuery{
+					Filter: []*models.QueryContainer{
+						{
+							Term: map[string]models.TermQuery{
+								"metadata.tags.key": {
+									Value: &key,
+								},
+							},
+						},
+						{
+							Term: map[string]models.TermQuery{
+								"metadata.tags.value": {
+									Value: &value,
+								},
+							},
+						},
 					},
 				},
 			},
