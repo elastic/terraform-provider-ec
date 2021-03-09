@@ -1,5 +1,7 @@
 terraform {
-  required_version = ">= 0.12"
+  # The Elastic Cloud provider is supported from ">=0.12"
+  # Version later than 0.12.29 is required for this terraform block to work.
+  required_version = ">= 0.12.29"
 
   required_providers {
     ec = {
@@ -9,9 +11,7 @@ terraform {
   }
 }
 
-provider "ec" {
-  apikey="TmxIdURIZ0JxVld3ME5DWTdqVUM6WnhTWEZoWXpRRmVMMXh6WHQ0U2RIQQ=="
-}
+provider "ec" {}
 
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
@@ -25,9 +25,21 @@ resource "ec_deployment" "example_minimal" {
 
   elasticsearch {
     config {
-	user_settings_yaml = file("./es_settings.yaml")
+      user_settings_yaml = file("./es_settings.yaml")
     }
   }
 
   kibana {}
+
+  enterprise_search {
+    topology {
+      zone_count = 1
+    }
+  }
+
+  apm {
+    topology {
+      size = "0.5g"
+    }
+  }
 }
