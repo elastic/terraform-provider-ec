@@ -19,6 +19,7 @@ package deploymentdatasource
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -105,6 +106,12 @@ func flattenElasticsearchTopology(plan *models.ElasticsearchClusterPlan) []inter
 			if topology.NodeType.Ml != nil {
 				m["node_type_ml"] = *topology.NodeType.Ml
 			}
+		}
+
+		if len(topology.NodeRoles) > 0 {
+			m["node_roles"] = schema.NewSet(schema.HashString, util.StringToItems(
+				topology.NodeRoles...,
+			))
 		}
 
 		result = append(result, m)

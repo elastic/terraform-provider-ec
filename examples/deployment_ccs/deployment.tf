@@ -20,6 +20,7 @@ resource "ec_deployment" "source_deployment" {
 
   elasticsearch {
     topology {
+      id         = "hot_content"
       zone_count = 1
       size       = "2g"
     }
@@ -35,6 +36,7 @@ resource "ec_deployment" "second_source" {
 
   elasticsearch {
     topology {
+      id         = "hot_content"
       zone_count = 1
       size       = "2g"
     }

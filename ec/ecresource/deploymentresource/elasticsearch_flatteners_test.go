@@ -82,6 +82,7 @@ func Test_flattenEsResource(t *testing.T) {
 									},
 									ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 										{
+											ID:                      "hot_content",
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.data.highio.i3",
 											Size: &models.TopologySize{
@@ -124,6 +125,7 @@ func Test_flattenEsResource(t *testing.T) {
 									},
 									ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 										{
+											ID:                      "hot_content",
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.data.highio.i3",
 											Size: &models.TopologySize{
@@ -148,13 +150,13 @@ func Test_flattenEsResource(t *testing.T) {
 				map[string]interface{}{
 					"ref_id":         "main-elasticsearch",
 					"resource_id":    mock.ValidClusterID,
-					"version":        "7.7.0",
 					"region":         "some-region",
 					"cloud_id":       "some CLOUD ID",
 					"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
 					"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
 					"topology": []interface{}{
 						map[string]interface{}{
+							"id":                        "hot_content",
 							"instance_configuration_id": "aws.data.highio.i3",
 							"size":                      "2g",
 							"size_resource":             "memory",
@@ -201,6 +203,7 @@ func Test_flattenEsResource(t *testing.T) {
 										},
 									},
 									ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+										ID:                      "hot_content",
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.data.highio.i3",
 										Size: &models.TopologySize{
@@ -223,7 +226,6 @@ func Test_flattenEsResource(t *testing.T) {
 			want: []interface{}{map[string]interface{}{
 				"ref_id":         "main-elasticsearch",
 				"resource_id":    mock.ValidClusterID,
-				"version":        "7.7.0",
 				"region":         "some-region",
 				"http_endpoint":  "http://othercluster.cloud.elastic.co:9200",
 				"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
@@ -234,6 +236,7 @@ func Test_flattenEsResource(t *testing.T) {
 					"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 				}},
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"size":                      "2g",
 					"size_resource":             "memory",
@@ -270,6 +273,7 @@ func Test_flattenEsResource(t *testing.T) {
 										Version: "7.7.0",
 									},
 									ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+										ID:                      "hot_content",
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.data.highio.i3",
 										Size: &models.TopologySize{
@@ -304,7 +308,6 @@ func Test_flattenEsResource(t *testing.T) {
 			want: []interface{}{map[string]interface{}{
 				"ref_id":         "main-elasticsearch",
 				"resource_id":    mock.ValidClusterID,
-				"version":        "7.7.0",
 				"region":         "some-region",
 				"http_endpoint":  "http://othercluster.cloud.elastic.co:9200",
 				"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
@@ -321,6 +324,7 @@ func Test_flattenEsResource(t *testing.T) {
 					},
 				},
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"size":                      "2g",
 					"size_resource":             "memory",
@@ -355,6 +359,7 @@ func Test_flattenEsTopology(t *testing.T) {
 			args: args{plan: &models.ElasticsearchClusterPlan{
 				ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 					{
+						ID:                      "hot_content",
 						ZoneCount:               1,
 						InstanceConfigurationID: "aws.data.highio.i3",
 						Size: &models.TopologySize{
@@ -367,6 +372,7 @@ func Test_flattenEsTopology(t *testing.T) {
 						},
 					},
 					{
+						ID:                      "coordinating",
 						ZoneCount:               2,
 						InstanceConfigurationID: "aws.coordinating.m5",
 						Size: &models.TopologySize{
@@ -377,6 +383,7 @@ func Test_flattenEsTopology(t *testing.T) {
 			}},
 			want: []interface{}{
 				map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"size":                      "4g",
 					"size_resource":             "memory",

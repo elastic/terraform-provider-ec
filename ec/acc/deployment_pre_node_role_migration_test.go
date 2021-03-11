@@ -18,24 +18,26 @@
 package acc
 
 import (
-	"fmt"
-	"io/ioutil"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// This test case takes that on a hot/warm "ec_deployment", a select number of
-// topology settings can be changed without affecting the underlying Deployment
-// Template.
-func TestAccDeployment_hotwarm(t *testing.T) {
-	resName := "ec_deployment.hotwarm"
+func TestAccDeployment_pre_node_roles(t *testing.T) {
+	resName := "ec_deployment.pre_nr"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_hotwarm_1.tf"
-	secondCfg := "testdata/deployment_hotwarm_2.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
-	secondConfigCfg := fixtureAccDeploymentResourceBasic(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
+	startCfg := "testdata/deployment_pre_node_roles_migration_1.tf"
+	upgradeVersionCfg := "testdata/deployment_pre_node_roles_migration_2.tf"
+	invalidWarmTopologyCfg := "testdata/deployment_pre_node_roles_migration_3.tf"
+	addWarmTopologyCfg := "testdata/deployment_pre_node_roles_migration_4.tf"
+
+	cfgF := func(cfg string) string {
+		return fixtureAccDeploymentResourceBasic(
+			t, cfg, randomName, getRegion(), defaultTemplate,
+		)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -43,66 +45,79 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 		CheckDestroy:      testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create a Hot / Warm deployment with the default settings.
-				Config: cfg,
+				Config: cfgF(startCfg),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "2"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.1.instance_configuration_id"),
-					// Hot Warm defaults to 4g.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "4g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size", "4g"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size_resource", "memory"),
-
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", ""),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.id", "hot_content"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.node_roles.#"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "2"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_data", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_ingest", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_master", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_ml", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.id", "warm"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.1.node_roles.#"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.zone_count", "2"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_roles.#", "0"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
 				),
 			},
 			{
-				// Change the Elasticsearch toplogy size and node count.
-				Config: secondConfigCfg,
+				Config: cfgF(upgradeVersionCfg),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Changes.
+					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", "true"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", "false"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.id", "hot_content"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_roles.#", "0"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size", "2g"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.zone_count", "1"),
-
+					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
+					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
+				),
+			},
+			{
+				Config:      cfgF(invalidWarmTopologyCfg),
+				ExpectError: regexp.MustCompile(`(?m)invalid configuration: 1 error occurred:\n\t\* elasticsearch topology warm: size cannot be zero\n\n`),
+			},
+			{
+				Config: cfgF(addWarmTopologyCfg),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "2"),
+
+					// Hot
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.1.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_data", ""),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ingest", ""),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_master", ""),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_type_ml", ""),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.id", "hot_content"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.node_roles.#", "0"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.zone_count", "1"),
+
+					// Warm
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.1.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size", "2g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_data", ""),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_ingest", ""),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_master", ""),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.node_type_ml", ""),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.id", "hot_content"),
-					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.0.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.id", "warm"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.topology.1.node_roles.#"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.1.zone_count", "1"),
+
 					resource.TestCheckResourceAttr(resName, "kibana.#", "0"),
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
@@ -110,17 +125,4 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 			},
 		},
 	})
-}
-
-func fixtureAccDeploymentResourceBasic(t *testing.T, fileName, name, region, depTpl string) string {
-	t.Helper()
-	requiresAPIConn(t)
-
-	b, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return fmt.Sprintf(string(b),
-		region, name, region, setDefaultTemplate(region, depTpl),
-	)
 }

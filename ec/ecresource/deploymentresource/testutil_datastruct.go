@@ -24,6 +24,55 @@ import (
 func newSampleDeployment() map[string]interface{} {
 	return map[string]interface{}{
 		"name":                   "my_deployment_name",
+		"deployment_template_id": "aws-hot-warm-v2",
+		"region":                 "us-east-1",
+		"version":                "7.11.1",
+		"elasticsearch": []interface{}{map[string]interface{}{
+			"ref_id":      "main-elasticsearch",
+			"resource_id": mock.ValidClusterID,
+			"region":      "us-east-1",
+			"config": []interface{}{map[string]interface{}{
+				"user_settings_yaml":          "some.setting: value",
+				"user_settings_override_yaml": "some.setting: value2",
+				"user_settings_json":          "{\"some.setting\":\"value\"}",
+				"user_settings_override_json": "{\"some.setting\":\"value2\"}",
+			}},
+			"topology": []interface{}{
+				map[string]interface{}{
+					"id":   "hot_content",
+					"size": "2g",
+					"node_roles": []interface{}{
+						"master",
+						"ingest",
+						"remote_cluster_client",
+						"data_hot",
+						"transform",
+						"data_content",
+					},
+					"zone_count": 1,
+				},
+				map[string]interface{}{
+					"id":   "warm",
+					"size": "2g",
+					"node_roles": []interface{}{
+						"data_warm",
+						"remote_cluster_client",
+					},
+					"zone_count": 1,
+				},
+			},
+		}},
+		"kibana":            []interface{}{newKibanaSample()},
+		"apm":               []interface{}{newApmSample()},
+		"enterprise_search": []interface{}{newEnterpriseSearchSample()},
+		"observability":     []interface{}{newObservabilitySample()},
+		"traffic_filter":    []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
+	}
+}
+
+func newSampleLegacyDeployment() map[string]interface{} {
+	return map[string]interface{}{
+		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-io-optimized-v2",
 		"region":                 "us-east-1",
 		"version":                "7.7.0",
@@ -59,6 +108,7 @@ func newSampleDeploymentOverrides() map[string]interface{} {
 		"elasticsearch": []interface{}{map[string]interface{}{
 			"ref_id": "main-elasticsearch",
 			"topology": []interface{}{map[string]interface{}{
+				"id":   "hot_content",
 				"size": "4g",
 			}}},
 		},
@@ -93,7 +143,7 @@ func newSampleDeploymentOverridesIC() map[string]interface{} {
 		"elasticsearch": []interface{}{map[string]interface{}{
 			"ref_id": "main-elasticsearch",
 			"topology": []interface{}{map[string]interface{}{
-				"instance_configuration_id": "aws.data.highio.i3",
+				"id": "hot_content",
 			}}},
 		},
 		"kibana": []interface{}{map[string]interface{}{
@@ -122,7 +172,6 @@ func newElasticsearchSample() map[string]interface{} {
 	return map[string]interface{}{
 		"ref_id":      "main-elasticsearch",
 		"resource_id": mock.ValidClusterID,
-		"version":     "7.7.0",
 		"region":      "us-east-1",
 		"config": []interface{}{map[string]interface{}{
 			"user_settings_yaml":          "some.setting: value",
@@ -131,6 +180,7 @@ func newElasticsearchSample() map[string]interface{} {
 			"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 		}},
 		"topology": []interface{}{map[string]interface{}{
+			"id":                        "hot_content",
 			"instance_configuration_id": "aws.data.highio.i3",
 			"size":                      "2g",
 			"node_type_data":            "true",

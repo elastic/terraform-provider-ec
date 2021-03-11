@@ -1,0 +1,186 @@
+{
+  "deployment_template": {
+    "resources": {
+      "apm": null,
+      "appsearch": null,
+      "elasticsearch": [
+        {
+          "plan": {
+            "cluster_topology": [
+              {
+                "id": "hot_content",
+                "instance_configuration_id": "aws.ccs.r5d",
+                "node_roles": [
+                  "master",
+                  "ingest",
+                  "remote_cluster_client",
+                  "data_hot",
+                  "transform",
+                  "data_content"
+                ],
+                "node_type": {
+                  "data": true,
+                  "ingest": true,
+                  "master": true
+                },
+                "size": {
+                  "resource": "memory",
+                  "value": 1024
+                },
+                "topology_element_control": {
+                  "min": {
+                    "resource": "memory",
+                    "value": 1024
+                  }
+                },
+                "zone_count": 1
+              },
+              {
+                "id": "ml",
+                "instance_configuration_id": "aws.ml.m5d",
+                "node_roles": [
+                  "ml",
+                  "remote_cluster_client"
+                ],
+                "node_type": {
+                  "data": false,
+                  "ingest": false,
+                  "master": false,
+                  "ml": true
+                },
+                "size": {
+                  "resource": "memory",
+                  "value": 0
+                },
+                "topology_element_control": {
+                  "min": {
+                    "resource": "memory",
+                    "value": 0
+                  }
+                },
+                "zone_count": 1
+              }
+            ],
+            "elasticsearch": {}
+          },
+          "ref_id": "es-ref-id",
+          "region": "us-east-1",
+          "settings": {}
+        }
+      ],
+      "enterprise_search": null,
+      "kibana": [
+        {
+          "elasticsearch_cluster_ref_id": "es-ref-id",
+          "plan": {
+            "cluster_topology": [
+              {
+                "instance_configuration_id": "aws.kibana.r5d",
+                "size": {
+                  "resource": "memory",
+                  "value": 1024
+                },
+                "zone_count": 1
+              }
+            ],
+            "kibana": {}
+          },
+          "ref_id": "kibana-ref-id",
+          "region": "us-east-1"
+        }
+      ]
+    }
+  },
+  "description": "Search data across one or more associated remote deployments.",
+  "id": "aws-cross-cluster-search-v2",
+  "instance_configurations": [
+    {
+      "description": "A cross cluster search optimized Elasticsearch instance running on an AWS r5d.",
+      "discrete_sizes": {
+        "default_size": 1024,
+        "resource": "memory",
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192
+        ]
+      },
+      "id": "aws.ccs.r5d",
+      "instance_type": "elasticsearch",
+      "name": "aws.ccs.r5d",
+      "node_types": [
+        "master",
+        "data",
+        "ingest"
+      ],
+      "storage_multiplier": 4
+    },
+    {
+      "description": "An Elasticsearch machine learning instance running on an AWS m5d.",
+      "discrete_sizes": {
+        "default_size": 1024,
+        "resource": "memory",
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192,
+          15360,
+          30720,
+          61440
+        ]
+      },
+      "id": "aws.ml.m5d",
+      "instance_type": "elasticsearch",
+      "name": "aws.ml.m5d",
+      "node_types": [
+        "ml"
+      ],
+      "storage_multiplier": 2
+    },
+    {
+      "description": "A Kibana instance running on an AWS r5d.",
+      "discrete_sizes": {
+        "default_size": 1024,
+        "resource": "memory",
+        "sizes": [
+          1024,
+          2048,
+          4096,
+          8192
+        ]
+      },
+      "id": "aws.kibana.r5d",
+      "instance_type": "kibana",
+      "name": "aws.kibana.r5d",
+      "node_types": null,
+      "storage_multiplier": 2
+    }
+  ],
+  "kibana_deeplink": [
+    {
+      "semver": "\u003e=7.9.0",
+      "uri": "/app/home"
+    },
+    {
+      "semver": "\u003c7.9.0",
+      "uri": "/app/kibana#/home"
+    }
+  ],
+  "metadata": [
+    {
+      "key": "parent_solution",
+      "value": "stack"
+    },
+    {
+      "key": "hidden",
+      "value": "true"
+    }
+  ],
+  "min_version": "6.7.0",
+  "name": "Cross Cluster Search",
+  "order": 5,
+  "system_owned": true,
+  "template_category_id": "cross-cluster-search"
+}

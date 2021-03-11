@@ -1,49 +1,52 @@
 {
     "healthy": true,
-    "id": "123e79d8109c4a0790b0b333110bf715",
-    "name": "up2d",
+    "id": "123d148423864552aa57b59929d4bf4d",
+    "name": "up2d-hot-warm",
     "resources": {
         "apm": [
             {
                 "elasticsearch_cluster_ref_id": "main-elasticsearch",
-                "id": "1235d8c911b74dd6a03c2a7b37fd68ab",
+                "id": "1234b68b0b9347f1b49b1e01b33bf4a4",
                 "info": {
-                    "deployment_id": "123e79d8109c4a0790b0b333110bf715",
+                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
                     "elasticsearch_cluster": {
-                        "elasticsearch_id": "1238f19957874af69306787dca662154"
+                        "elasticsearch_id": "123e837db6ee4391bb74887be35a7a91"
                     },
                     "external_links": [],
                     "healthy": true,
-                    "id": "1235d8c911b74dd6a03c2a7b37fd68ab",
+                    "id": "1234b68b0b9347f1b49b1e01b33bf4a4",
                     "metadata": {
-                        "endpoint": "1235d8c911b74dd6a03c2a7b37fd68ab.apm.eastus2.azure.elastic-cloud.com",
-                        "last_modified": "2020-10-13T10:34:05.358Z",
+                        "endpoint": "1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io",
+                        "last_modified": "2020-10-14T05:43:58.834Z",
                         "ports": {
-                            "http": 9200,
+                            "http": 80,
                             "https": 443,
                             "transport_passthrough": 9400
                         },
                         "version": 10
                     },
-                    "name": "up2d",
+                    "name": "up2d-hot-warm",
                     "plan_info": {
                         "current": {
-                            "attempt_end_time": "2020-10-13T10:36:43.919Z",
-                            "attempt_start_time": "2020-10-13T10:34:05.085Z",
+                            "attempt_end_time": "2020-10-14T05:47:03.036Z",
+                            "attempt_start_time": "2020-10-14T05:43:58.142Z",
                             "healthy": true,
                             "plan": {
                                 "apm": {
-                                    "system_settings": {},
-                                    "version": "7.9.2"
+                                    "system_settings": {
+                                        "secret_token": "al0DOoO2S8MKswdJ7W"
+                                    },
+                                    "version": "7.11.0"
                                 },
                                 "cluster_topology": [
                                     {
                                         "apm": {
                                             "system_settings": {
-                                                "debug_enabled": false
+                                                "debug_enabled": false,
+                                                "secret_token": "al0DOoO2S8MKswdJ7W"
                                             }
                                         },
-                                        "instance_configuration_id": "azure.apm.e32sv3",
+                                        "instance_configuration_id": "gcp.apm.1",
                                         "size": {
                                             "resource": "memory",
                                             "value": 512
@@ -52,28 +55,28 @@
                                     }
                                 ]
                             },
-                            "plan_attempt_id": "8c25b69a-17d8-4e42-aaeb-03d60688a4e0",
+                            "plan_attempt_id": "95240adf-9776-4d41-9cca-a54e3d2ee353",
                             "plan_attempt_log": [],
                             "plan_end_time": "0001-01-01T00:00:00.000Z"
                         },
                         "healthy": true,
                         "history": []
                     },
-                    "region": "azure-eastus2",
+                    "region": "gcp-us-central1",
                     "status": "started"
                 },
                 "ref_id": "main-apm",
-                "region": "azure-eastus2"
+                "region": "gcp-us-central1"
             }
         ],
         "appsearch": [],
         "elasticsearch": [
             {
-                "id": "1238f19957874af69306787dca662154",
+                "id": "123e837db6ee4391bb74887be35a7a91",
                 "info": {
                     "associated_apm_clusters": [
                         {
-                            "apm_id": "1235d8c911b74dd6a03c2a7b37fd68ab",
+                            "apm_id": "1234b68b0b9347f1b49b1e01b33bf4a4",
                             "enabled": true
                         }
                     ],
@@ -82,12 +85,12 @@
                     "associated_kibana_clusters": [
                         {
                             "enabled": true,
-                            "kibana_id": "1235cd4a4c7f464bbcfd795f3638b769"
+                            "kibana_id": "12372cc60d284e7e96b95ad14727c23d"
                         }
                     ],
-                    "cluster_id": "1238f19957874af69306787dca662154",
-                    "cluster_name": "up2d",
-                    "deployment_id": "123e79d8109c4a0790b0b333110bf715",
+                    "cluster_id": "123e837db6ee4391bb74887be35a7a91",
+                    "cluster_name": "up2d-hot-warm",
+                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
                     "elasticsearch": {
                         "blocking_issues": {
                             "cluster_level": [],
@@ -100,20 +103,20 @@
                     "healthy": true,
                     "locked": false,
                     "metadata": {
-                        "cloud_id": "up2d:somecloudID",
-                        "endpoint": "1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com",
-                        "last_modified": "2020-10-13T10:36:44.444Z",
+                        "cloud_id": "up2d-hot-warm:someCloudID",
+                        "endpoint": "123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io",
+                        "last_modified": "2020-10-14T05:47:04.058Z",
                         "ports": {
                             "http": 9200,
                             "https": 9243,
                             "transport_passthrough": 9400
                         },
-                        "version": 27
+                        "version": 26
                     },
                     "plan_info": {
                         "current": {
-                            "attempt_end_time": "2020-10-13T10:35:28.216Z",
-                            "attempt_start_time": "2020-10-13T10:34:03.551Z",
+                            "attempt_end_time": "2020-10-14T05:45:53.057Z",
+                            "attempt_start_time": "2020-10-14T05:43:55.416Z",
                             "healthy": true,
                             "plan": {
                                 "cluster_topology": [
@@ -141,13 +144,15 @@
                                                 "use_disk_threshold": true
                                             }
                                         },
-                                        "instance_configuration_id": "azure.data.highio.l32sv2",
-                                        "node_type": {
-                                            "data": true,
-                                            "ingest": true,
-                                            "master": true,
-                                            "ml": false
-                                        },
+                                        "instance_configuration_id": "gcp.data.highio.1",
+                                        "node_roles": [
+                                            "master",
+                                            "ingest",
+                                            "remote_cluster_client",
+                                            "data_hot",
+                                            "transform",
+                                            "data_content"
+                                        ],
                                         "size": {
                                             "resource": "memory",
                                             "value": 4096
@@ -161,7 +166,11 @@
                                         "zone_count": 2
                                     },
                                     {
+                                        "id": "warm",
                                         "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "warm"
+                                            },
                                             "system_settings": {
                                                 "auto_create_index": true,
                                                 "destructive_requires_name": false,
@@ -180,20 +189,25 @@
                                                 "use_disk_threshold": true
                                             }
                                         },
-                                        "instance_configuration_id": "azure.coordinating.d64sv3",
-                                        "node_type": {
-                                            "data": false,
-                                            "ingest": true,
-                                            "master": false,
-                                            "ml": false
-                                        },
+                                        "instance_configuration_id": "gcp.data.highstorage.1",
+                                        "node_roles": [
+                                            "data_warm",
+                                            "remote_cluster_client"
+                                        ],
                                         "size": {
                                             "resource": "memory",
-                                            "value": 0
+                                            "value": 4096
+                                        },
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory",
+                                                "value": 0
+                                            }
                                         },
                                         "zone_count": 2
                                     },
                                     {
+                                        "id": "coordinating",
                                         "elasticsearch": {
                                             "system_settings": {
                                                 "auto_create_index": true,
@@ -213,13 +227,48 @@
                                                 "use_disk_threshold": true
                                             }
                                         },
-                                        "instance_configuration_id": "azure.master.e32sv3",
-                                        "node_type": {
-                                            "data": false,
-                                            "ingest": false,
-                                            "master": true,
-                                            "ml": false
+                                        "instance_configuration_id": "gcp.coordinating.1",
+                                        "node_roles": [
+                                            "ingest",
+                                            "remote_cluster_client"
+                                        ],
+                                        "size": {
+                                            "resource": "memory",
+                                            "value": 0
                                         },
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory",
+                                                "value": 0
+                                            }
+                                        },
+                                        "zone_count": 2
+                                    },
+                                    {
+                                        "id": "master",
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "auto_create_index": true,
+                                                "destructive_requires_name": false,
+                                                "enable_close_index": true,
+                                                "monitoring_collection_interval": -1,
+                                                "monitoring_history_duration": "3d",
+                                                "reindex_whitelist": [],
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    },
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                },
+                                                "use_disk_threshold": true
+                                            }
+                                        },
+                                        "instance_configuration_id": "gcp.master.1",
+                                        "node_roles": [
+                                            "master"
+                                        ],
                                         "size": {
                                             "resource": "memory",
                                             "value": 0
@@ -227,6 +276,7 @@
                                         "zone_count": 3
                                     },
                                     {
+                                        "id": "ml",
                                         "elasticsearch": {
                                             "system_settings": {
                                                 "auto_create_index": true,
@@ -246,13 +296,11 @@
                                                 "use_disk_threshold": true
                                             }
                                         },
-                                        "instance_configuration_id": "azure.ml.d64sv3",
-                                        "node_type": {
-                                            "data": false,
-                                            "ingest": false,
-                                            "master": false,
-                                            "ml": true
-                                        },
+                                        "instance_configuration_id": "gcp.ml.1",
+                                        "node_roles": [
+                                            "ml",
+                                            "remote_cluster_client"
+                                        ],
                                         "size": {
                                             "resource": "memory",
                                             "value": 0
@@ -261,63 +309,63 @@
                                     }
                                 ],
                                 "deployment_template": {
-                                    "id": "azure-io-optimized"
+                                    "id": "gcp-hot-warm"
                                 },
                                 "elasticsearch": {
-                                    "version": "7.9.2"
+                                    "version": "7.11.0"
                                 },
                                 "tiebreaker_topology": {
                                     "memory_per_node": 1024
                                 }
                             },
-                            "plan_attempt_id": "81a1c482-2068-4b93-b1f6-5b47c077eb14",
+                            "plan_attempt_id": "152d8c3c-f4f0-4144-8691-8375ab58f4ac",
                             "plan_attempt_log": [],
                             "plan_end_time": "0001-01-01T00:00:00.000Z"
                         },
                         "healthy": true,
                         "history": []
                     },
-                    "region": "azure-eastus2",
+                    "region": "gcp-us-central1",
                     "status": "started",
                     "system_alerts": []
                 },
                 "ref_id": "main-elasticsearch",
-                "region": "azure-eastus2"
+                "region": "gcp-us-central1"
             }
         ],
         "enterprise_search": [],
         "kibana": [
             {
                 "elasticsearch_cluster_ref_id": "main-elasticsearch",
-                "id": "1235cd4a4c7f464bbcfd795f3638b769",
+                "id": "12372cc60d284e7e96b95ad14727c23d",
                 "info": {
-                    "cluster_id": "1235cd4a4c7f464bbcfd795f3638b769",
-                    "cluster_name": "up2d",
-                    "deployment_id": "123e79d8109c4a0790b0b333110bf715",
+                    "cluster_id": "12372cc60d284e7e96b95ad14727c23d",
+                    "cluster_name": "up2d-hot-warm",
+                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
                     "elasticsearch_cluster": {
-                        "elasticsearch_id": "1238f19957874af69306787dca662154"
+                        "elasticsearch_id": "123e837db6ee4391bb74887be35a7a91"
                     },
                     "external_links": [],
                     "healthy": true,
                     "metadata": {
-                        "endpoint": "1235cd4a4c7f464bbcfd795f3638b769.eastus2.azure.elastic-cloud.com",
-                        "last_modified": "2020-10-13T10:36:44.425Z",
+                        "endpoint": "12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io",
+                        "last_modified": "2020-10-14T05:47:04.007Z",
                         "ports": {
                             "http": 9200,
                             "https": 9243,
                             "transport_passthrough": 9400
                         },
-                        "version": 16
+                        "version": 19
                     },
                     "plan_info": {
                         "current": {
-                            "attempt_end_time": "2020-10-13T10:38:11.726Z",
-                            "attempt_start_time": "2020-10-13T10:36:44.049Z",
+                            "attempt_end_time": "2020-10-14T05:48:37.424Z",
+                            "attempt_start_time": "2020-10-14T05:47:03.205Z",
                             "healthy": true,
                             "plan": {
                                 "cluster_topology": [
                                     {
-                                        "instance_configuration_id": "azure.kibana.e32sv3",
+                                        "instance_configuration_id": "gcp.kibana.1",
                                         "kibana": {
                                             "system_settings": {}
                                         },
@@ -330,21 +378,21 @@
                                 ],
                                 "kibana": {
                                     "system_settings": {},
-                                    "version": "7.9.2"
+                                    "version": "7.11.0"
                                 }
                             },
-                            "plan_attempt_id": "14a0e4a9-5511-4cd3-abdd-f95c3a87ea03",
+                            "plan_attempt_id": "3fed0879-2493-49b4-b4e2-45d856056efb",
                             "plan_attempt_log": [],
                             "plan_end_time": "0001-01-01T00:00:00.000Z"
                         },
                         "healthy": true,
                         "history": []
                     },
-                    "region": "azure-eastus2",
+                    "region": "gcp-us-central1",
                     "status": "started"
                 },
                 "ref_id": "main-kibana",
-                "region": "azure-eastus2"
+                "region": "gcp-us-central1"
             }
         ]
     }

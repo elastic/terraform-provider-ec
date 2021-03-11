@@ -31,7 +31,7 @@ func Test_hasDeploymentChange(t *testing.T) {
 	unchanged := Resource().Data(util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
 		Schema: newSchema(),
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 	}).State())
 
 	changesToTrafficFilter := util.NewResourceData(t, util.ResDataParams{
