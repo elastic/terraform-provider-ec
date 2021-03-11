@@ -1,5 +1,4 @@
-# 0.1.0-beta (Unreleased)
-
+# 0.1.0 (Unreleased)
 
 # 0.1.0-beta (December 14, 2020)
 
