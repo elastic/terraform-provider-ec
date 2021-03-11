@@ -8,6 +8,7 @@ VERSION_GOLINT:=v0.0.0-20191125180803-fdd1cda4f05f
 VERSION_GOLICENSER:=v0.3.0
 VERSION_GOLANGCILINT:=v1.26.0
 VERSION_GORELEASER:=v0.149.0
+VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 
 deps: $(GOBIN)/gobin $(GOBIN)/golint $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
 
@@ -57,3 +58,11 @@ $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER): | $(VERSION_DIR)
 $(GOBIN)/goreleaser: $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER) | $(GOBIN)
 	@ echo "-> Installing goreleaser..."
 	@ curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh| sh -s -- -b $(GOBIN) $(VERSION_GORELEASER)
+
+$(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-changelog-build-*
+	@ echo $(VERSION_GOCHANGELOG) > $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG)
+
+$(GOBIN)/changelog-build: $(GOBIN)/gobin $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG) | $(GOBIN)
+	@ echo "-> Installing changelog-build..."
+	@ $(GOBIN)/gobin github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
