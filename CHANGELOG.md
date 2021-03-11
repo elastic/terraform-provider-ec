@@ -1,5 +1,26 @@
 # 0.1.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* datasource/ec_deployment: Adds support for the newly added data tiers. A new **required** field `elasticsearch.toplogy.id` has been added, it needs to be set to all **explicit** Elasticsearch topology declarations. A `node_roles` computed field has been added to the schema and **cannot** be overridden by the user, versions `>=7.10.0` will be automatically migrated by the provider to use `node_roles` from the `node_type_*` settings, these will be removed from the state. When `node_type_*` fields are explicitly set in the terraform configuration they need to be unset manually by the user. Additionally, it removes the `elasticsearch.version` computed field. ([#253](https://github.com/elastic/terraform-provider-ec/issues/253))
+
+FEATURES:
+
+* **New Resource:** resource/ec_extension: Add a new resource `ec_extension` which allows users to mange custom Elasticsearch bundles and plugins ([#216](https://github.com/elastic/terraform-provider-ec/issues/216))
+
+ENHANCEMENTS:
+
+* datasource/ec_deployment: Adds the tag attribute to the `ec_deployment` datasource ([#244](https://github.com/elastic/terraform-provider-ec/issues/244))
+* datasource/ec_deployments: Allows filtering deployments by their associated tags ([#248](https://github.com/elastic/terraform-provider-ec/issues/248))
+* resource/ec_deployment: Add tags key / value map ([#218](https://github.com/elastic/terraform-provider-ec/issues/218))
+
+BUG FIXES:
+
+* datasource/ec_deployment: Fixes bug where the datasource was persisting zero sized topology elements in the state ([#242](https://github.com/elastic/terraform-provider-ec/issues/242))
+* datasource/ec_deployments: Fixes bug where queries containing a hyphens wouldn't work as expected ([#241](https://github.com/elastic/terraform-provider-ec/issues/241))
+* go/build: Fixes bug where the api user agent wasn't stripped of its `-dev` tag prior to releasing ([#235](https://github.com/elastic/terraform-provider-ec/issues/235))
+* resource/ec_traffic_filter: Fixes bug where having a traffic filter with a multiple rules will cause an infinite diff due to ordering ([#208](https://github.com/elastic/terraform-provider-ec/issues/208))
+
 # 0.1.0-beta (December 14, 2020)
 
 NOTES
