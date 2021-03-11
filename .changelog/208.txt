@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_traffic_filter: Fixes bug where having a traffic filter with a multiple rules will cause an infinite diff due to ordering
+```

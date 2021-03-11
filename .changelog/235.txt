@@ -1,0 +1,3 @@
+```release-note:bug
+go/build: Fixes bug where the api user agent wasn't stripped of its `-dev` tag prior to releasing
+```

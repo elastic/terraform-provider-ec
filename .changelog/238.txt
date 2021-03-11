@@ -1,0 +1,3 @@
+```release-note:documentation
+resource/ec_deployment: renames invalid `ignore_unavailable` to the actual `skip_unavailable` option name
+```
