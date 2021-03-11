@@ -36,7 +36,7 @@ func Test_modelToState(t *testing.T) {
 
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 
@@ -73,8 +73,8 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "azure-eastus2",
 				"resource_id":    "1238f19957874af69306787dca662154",
-				"version":        "7.9.2",
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "azure.data.highio.l32sv2",
 					"node_type_data":            "true",
 					"node_type_ingest":          "true",
@@ -137,8 +137,8 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "aws-eu-central-1",
 				"resource_id":    "1239f7ee7196439ba2d105319ac5eba7",
-				"version":        "7.9.2",
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"node_type_data":            "true",
 					"node_type_ingest":          "true",
@@ -206,8 +206,8 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "aws-eu-central-1",
 				"resource_id":    "1239f7ee7196439ba2d105319ac5eba7",
-				"version":        "7.9.2",
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"node_type_data":            "true",
 					"node_type_ingest":          "true",
@@ -270,8 +270,8 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "gcp-asia-east1",
 				"resource_id":    "123695e76d914005bf90b717e668ad4b",
-				"version":        "7.9.2",
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "gcp.data.highio.1",
 					"node_type_data":            "true",
 					"node_type_ingest":          "true",
@@ -334,9 +334,9 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "gcp-us-central1",
 				"resource_id":    "123e837db6ee4391bb74887be35a7a91",
-				"version":        "7.9.2",
 				"topology": []interface{}{
 					map[string]interface{}{
+						"id":                        "hot_content",
 						"instance_configuration_id": "gcp.data.highio.1",
 						"node_type_data":            "true",
 						"node_type_ingest":          "true",
@@ -347,6 +347,7 @@ func Test_modelToState(t *testing.T) {
 						"zone_count":                2,
 					},
 					map[string]interface{}{
+						"id":                        "warm",
 						"instance_configuration_id": "gcp.data.highstorage.1",
 						"node_type_data":            "true",
 						"node_type_ingest":          "true",
@@ -364,6 +365,87 @@ func Test_modelToState(t *testing.T) {
 				"region":                       "gcp-us-central1",
 				"resource_id":                  "12372cc60d284e7e96b95ad14727c23d",
 				"version":                      "7.9.2",
+				"http_endpoint":                "http://12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io:9200",
+				"https_endpoint":               "https://12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.kibana.1",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+
+	gcpHotWarmNodeRolesRes := openDeploymentGet(t, "testdata/deployment-gcp-hot-warm-node_roles.json")
+	gcpHotWarmNodeRolesRD := schema.TestResourceDataRaw(t, newSchema(), nil)
+	gcpHotWarmNodeRolesRD.SetId(mock.ValidClusterID)
+	wantGcpHotWarmNodeRolesDeployment := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		State: map[string]interface{}{
+			"deployment_template_id": "gcp-hot-warm",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d-hot-warm",
+			"region":                 "gcp-us-central1",
+			"version":                "7.11.0",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "gcp-us-central1",
+				"resource_id":                  "1234b68b0b9347f1b49b1e01b33bf4a4",
+				"version":                      "7.11.0",
+				"http_endpoint":                "http://1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io:80",
+				"https_endpoint":               "https://1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.apm.1",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"cloud_id":       "up2d-hot-warm:someCloudID",
+				"http_endpoint":  "http://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9200",
+				"https_endpoint": "https://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "gcp-us-central1",
+				"resource_id":    "123e837db6ee4391bb74887be35a7a91",
+				"topology": []interface{}{
+					map[string]interface{}{
+						"id":                        "hot_content",
+						"instance_configuration_id": "gcp.data.highio.1",
+						"size":                      "4g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+						"node_roles": []interface{}{
+							"master",
+							"ingest",
+							"remote_cluster_client",
+							"data_hot",
+							"transform",
+							"data_content",
+						},
+					},
+					map[string]interface{}{
+						"id":                        "warm",
+						"instance_configuration_id": "gcp.data.highstorage.1",
+						"size":                      "4g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+						"node_roles": []interface{}{
+							"data_warm",
+							"remote_cluster_client",
+						},
+					},
+				},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "gcp-us-central1",
+				"resource_id":                  "12372cc60d284e7e96b95ad14727c23d",
+				"version":                      "7.11.0",
 				"http_endpoint":                "http://12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io:9200",
 				"https_endpoint":               "https://12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io:9243",
 				"topology": []interface{}{map[string]interface{}{
@@ -395,7 +477,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "eu-west-1",
 				"resource_id":    "1230b3ae633b4f51a432d50971f7f1c1",
-				"version":        "7.9.2",
 				"remote_cluster": []interface{}{
 					map[string]interface{}{
 						"alias":            "alias",
@@ -409,6 +490,7 @@ func Test_modelToState(t *testing.T) {
 					},
 				},
 				"topology": []interface{}{map[string]interface{}{
+					"id":                        "hot_content",
 					"instance_configuration_id": "aws.ccs.r5d",
 					"node_type_data":            "true",
 					"node_type_ingest":          "true",
@@ -518,6 +600,10 @@ func Test_modelToState(t *testing.T) {
 													ID: ec.String("aws-io-optimized-v2"),
 												},
 												ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+													ID: "hot_content",
+													Elasticsearch: &models.ElasticsearchConfiguration{
+														NodeAttributes: map[string]string{"data": "hot"},
+													},
 													ZoneCount:               1,
 													InstanceConfigurationID: "aws.data.highio.i3",
 													Size: &models.TopologySize{
@@ -529,6 +615,12 @@ func Test_modelToState(t *testing.T) {
 														Ingest: ec.Bool(true),
 														Master: ec.Bool(true),
 														Ml:     ec.Bool(false),
+													},
+													TopologyElementControl: &models.TopologyElementControl{
+														Min: &models.TopologySize{
+															Resource: ec.String("memory"),
+															Value:    ec.Int32(1024),
+														},
 													},
 												}},
 											},
@@ -667,6 +759,11 @@ func Test_modelToState(t *testing.T) {
 			want: wantGcpHotWarmDeployment,
 		},
 		{
+			name: "flattens a gcp plan (hot-warm) with node_roles",
+			args: args{d: gcpHotWarmNodeRolesRD, res: gcpHotWarmNodeRolesRes},
+			want: wantGcpHotWarmNodeRolesDeployment,
+		},
+		{
 			name: "flattens an aws plan (Cross Cluster Search)",
 			args: args{d: awsCCSRD, res: awsCCSRes, remotes: argCCSRemotes},
 			want: wantAWSCCSDeployment,
@@ -800,11 +897,11 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 func Test_parseCredentials(t *testing.T) {
 	deploymentRD := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
+		State:  newSampleLegacyDeployment(),
 		Schema: newSchema(),
 	})
 
-	rawData := newSampleDeployment()
+	rawData := newSampleLegacyDeployment()
 	rawData["elasticsearch_username"] = "my-username"
 	rawData["elasticsearch_password"] = "my-password"
 	rawData["apm_secret_token"] = "some-secret-token"

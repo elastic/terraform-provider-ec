@@ -14,6 +14,8 @@ Provides an Elastic Cloud deployment resource, which allows deployments to be cr
 
 -> **Note on regions and deployment templates** Before you start, you might want to read about [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html) and check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in Elasticsearch Service (ESS).
 
+-> **Note on Elasticsearch topology IDs** Since the addition of data tiers, each Elasticsearch topology block requires the `"id"` field to be set. The accepted values are set in the deployment template that you have chosen, but values are closely related to the Elasticsearch data tiers. [Learn more abut Elasticsearch data tiers](https://www.elastic.co/guide/en/elasticsearch/reference/current/data-tiers.html). For a complete list of all the supported values, refer to the deployment template definition used by your deployment.
+
 ## Example Usage
 
 ### Basic
@@ -25,10 +27,43 @@ resource "ec_deployment" "example_minimal" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = "7.11.1"
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
+
+  kibana {}
+
+  apm {}
+
+  enterprise_search {}
+}
+```
+
+### Hot warm cold tiered deployment
+
+```hcl
+resource "ec_deployment" "example_minimal" {
+  region                 = "us-east-1"
+  version                = "7.11.1"
+  deployment_template_id = "aws-io-optimized-v2"
+
+  elasticsearch {
+    topology {
+      id   = "hot_content"
+      size = "8g"
+    }
+
+    topology {
+      id   = "warm"
+      size = "16g"
+    }
+
+    topology {
+      id   = "cold"
+      size = "8g"
+    }
+  }
 
   kibana {}
 
@@ -47,7 +82,7 @@ resource "ec_deployment" "example_observability" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = "7.11.1"
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
@@ -68,11 +103,12 @@ resource "ec_deployment" "source_deployment" {
   name = "my_ccs_source"
 
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = "7.11.1"
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
     topology {
+      id   = "hot_content"
       size = "1g"
     }
   }
@@ -82,7 +118,7 @@ resource "ec_deployment" "ccs" {
   name = "ccs deployment"
 
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = "7.11.1"
   deployment_template_id = "aws-cross-cluster-search-v2"
 
   elasticsearch {
@@ -106,7 +142,7 @@ resource "ec_deployment" "with_tags" {
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = "7.11.1"
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
@@ -166,17 +202,16 @@ To set up multi-node Elasticsearch clusters, you can set single or multiple topo
 
 The optional `elasticsearch.topology` block supports the following arguments:
 
-* `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. To change it, use the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
-
--> Before you get started with instance configurations, read the [ESS hardware and Instance Configurations](https://www.elastic.co/guide/en/cloud/current/ec-reference-hardware.html#ec-instance-configuration-names) documentation.
-
-* `size` - (Optional) Amount of memory (RAM) per topology element in the `"<size in GB>g"` notation. When omitted, it defaults to the deployment template value.
+* `id` - (Required) Unique topology identifier. It generally refers to an Elasticsearch data tier, such as `hot_content`, `warm` or `cold`.
+* `size` - (Optional) Amount in Gigabytes per topology element in the `"<size in GB>g"` notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
 * `node_type_data` - (Optional) The node type for the Elasticsearch cluster (data node).
 * `node_type_master` - (Optional) The node type for the Elasticsearch cluster (master node).
 * `node_type_ingest` - (Optional) The node type for the Elasticsearch cluster (ingest node).
 * `node_type_ml` - (Optional) The node type for the Elasticsearch cluster (machine learning node).
+
+~> **Note when node_type_* fields set** After upgrading to a version that supports data tiers (7.10.0 or above), the `node_type_*` has no effect even if specified. The provider automatically migrates the `node_type_*` fields to the appropriate `node_roles` as set by the deployment template. After having upgraded to `7.10.0` or above, the fields should be removed from the terraform configuration, if explicitly configured.
 
 ##### Config
 
@@ -308,10 +343,12 @@ In addition to all the arguments above, the following attributes are exported:
 * `elasticsearch.#.cloud_id` - Encoded Elasticsearch credentials to use in Beats or Logstash. For more information, see [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).
 * `elasticsearch.#.http_endpoint` - Elasticsearch resource HTTP endpoint.
 * `elasticsearch.#.https_endpoint` - Elasticsearch resource HTTPs endpoint.
+* `elasticsearch.#.topology.#.instance_configuration_id` - instance configuration of the deployment topology element.
 * `elasticsearch.#.topology.#.node_type_data` - Node type (data) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_type_master` - Node type (master) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_type_ingest` - Node type (ingest) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_type_ml` - Node type (machine learning) for the Elasticsearch topology element.
+* `elasticsearch.#.topology.#.node_roles` - List of roles for the topology element. They are inferred from the deployment template.
 * `elasticsearch.#.snapshot_source.#.source_elasticsearch_cluster_id` - ID of the Elasticsearch cluster that will be used as the source of the snapshot.
 * `elasticsearch.#.snapshot_source.#.snapshot_name` - Name of the snapshot to restore.
 * `kibana.#.resource_id` - Kibana resource unique identifier.

@@ -14,8 +14,8 @@ resource "ec_deployment" "basic" {
       user_settings_yaml = "action.auto_create_index: true"
     }
     topology {
-      instance_configuration_id = "%s"
-      size                      = "1g"
+      id   = "hot_content"
+      size = "1g"
     }
   }
 

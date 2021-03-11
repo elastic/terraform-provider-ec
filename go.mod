@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/blang/semver/v4 v4.0.0
-	github.com/elastic/cloud-sdk-go v1.2.0
+	github.com/elastic/cloud-sdk-go v1.2.1-0.20210217141459-a6982b3b8143
 	github.com/go-openapi/runtime v0.19.26
 	github.com/go-openapi/strfmt v0.20.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.4.4

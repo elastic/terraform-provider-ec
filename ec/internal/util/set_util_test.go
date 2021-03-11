@@ -64,7 +64,7 @@ func TestItemsToString(t *testing.T) {
 		{
 			name:       "populated list returns the results as []string{}",
 			args:       args{elems: []interface{}{"some", "some-other", ""}},
-			wantResult: []string{"some", "some-other", ""},
+			wantResult: []string{"", "some", "some-other"},
 		},
 	}
 	for _, tt := range tests {

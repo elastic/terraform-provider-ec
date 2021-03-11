@@ -61,6 +61,7 @@
                             "plan": {
                                 "cluster_topology": [
                                     {
+                                        "id": "hot_content",
                                         "elasticsearch": {
                                             "system_settings": {
                                                 "auto_create_index": true,
@@ -90,6 +91,12 @@
                                         "size": {
                                             "resource": "memory",
                                             "value": 1024
+                                        },
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory",
+                                                "value": 1024
+                                            }
                                         },
                                         "zone_count": 1
                                     },

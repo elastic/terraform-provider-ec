@@ -11,6 +11,7 @@ resource "ec_deployment" "example_minimal" {
   traffic_filter         = [ec_deployment_traffic_filter.allow_all.id]
   elasticsearch {
     topology {
+      id   = "hot_content"
       size = "8g"
     }
   }

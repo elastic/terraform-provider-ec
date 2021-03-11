@@ -50,10 +50,11 @@ These will not be available for interpolation.
     * `elasticsearch.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.
     * `elasticsearch.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
     * `elasticsearch.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
-    * `elasticsearch.#.topology.#.node_type_data` - Defines whether this node can hold data.
-    * `elasticsearch.#.topology.#.node_type_master` - Defines whether this node can be elected master.
-    * `elasticsearch.#.topology.#.node_type_ingest` - Defines whether this node can run an ingest pipeline.
-    * `elasticsearch.#.topology.#.node_type_ml` - Defines whether this node can run ML jobs.
+    * `elasticsearch.#.topology.#.node_roles` - Defines the list of Elasticsearch node roles assigned to the topology element (>=7.10.0).
+    * `elasticsearch.#.topology.#.node_type_data` - Defines whether this node can hold data (<7.10.0).
+    * `elasticsearch.#.topology.#.node_type_master` - Defines whether this node can be elected master (<7.10.0).
+    * `elasticsearch.#.topology.#.node_type_ingest` - Defines whether this node can run an ingest pipeline (<7.10.0).
+    * `elasticsearch.#.topology.#.node_type_ml` - Defines whether this node can run ML jobs (<7.10.0).
 * `kibana` - Instance configuration of the Kibana type.
   * `kibana.#.elasticsearch_cluster_ref_id` - The user-specified ID of the Elasticsearch cluster to which this resource kind will link.
   * `kibana.#.healthy` - Resource kind health status.

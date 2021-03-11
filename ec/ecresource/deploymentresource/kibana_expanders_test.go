@@ -28,7 +28,7 @@ import (
 )
 
 func Test_expandKibanaResources(t *testing.T) {
-	tplPath := "testdata/aws-io-optimized-v2.json"
+	tplPath := "testdata/template-aws-io-optimized-v2.json"
 	tpl := func() *models.KibanaPayload {
 		return kibanaResource(parseDeploymentTemplate(t,
 			tplPath,

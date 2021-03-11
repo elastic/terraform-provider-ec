@@ -3,7 +3,7 @@ output "deployment_id" {
 }
 
 output "elasticsearch_version" {
-  value = ec_deployment.ccs.elasticsearch[0].version
+  value = ec_deployment.ccs.version
 }
 
 output "elasticsearch_cloud_id" {

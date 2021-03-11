@@ -25,6 +25,7 @@ resource "ec_deployment" "source_ccs" {
 
   elasticsearch {
     topology {
+      id         = "hot_content"
       zone_count = 1
       size       = "1g"
     }

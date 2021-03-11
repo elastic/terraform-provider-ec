@@ -99,6 +99,14 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 				},
+				"node_roles": {
+					Type:     schema.TypeSet,
+					Set:      schema.HashString,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
 			},
 		},
 	}

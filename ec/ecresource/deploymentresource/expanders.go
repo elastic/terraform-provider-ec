@@ -18,8 +18,10 @@
 package deploymentresource
 
 import (
+	"fmt"
 	"sort"
 
+	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -39,6 +41,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
+	version := d.Get("version").(string)
 	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 dtID,
@@ -49,10 +52,17 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		return nil, err
 	}
 
+	useNodeRoles, err := compatibleWithNodeRoles(version)
+	if err != nil {
+		return nil, err
+	}
+
 	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
 		d.Get("elasticsearch").([]interface{}),
-		enrichWithDeploymentTemplate(esResource(template), dtID),
+		enrichElasticsearchTemplate(
+			esResource(template), dtID, version, useNodeRoles,
+		),
 	)
 	if err != nil {
 		merr = merr.Append(err)
@@ -110,6 +120,7 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 
 	dtID := d.Get("deployment_template_id").(string)
+	version := d.Get("version").(string)
 	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 dtID,
@@ -139,9 +150,17 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		unsetTopology(es)
 	}
 
+	nodeRolesCompatible, err := compatibleWithNodeRoles(version)
+	if err != nil {
+		return nil, err
+	}
+	useNodeRoles := d.HasChange("elasticsearch") && !d.HasChange("version") && nodeRolesCompatible
+
 	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
-		es, enrichWithDeploymentTemplate(esResource(template), dtID),
+		es, enrichElasticsearchTemplate(
+			esResource(template), dtID, version, useNodeRoles,
+		),
 	)
 	if err != nil {
 		merr = merr.Append(err)
@@ -188,13 +207,25 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	return &result, nil
 }
 
-func enrichWithDeploymentTemplate(tpl *models.ElasticsearchPayload, dt string) *models.ElasticsearchPayload {
+func enrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, dt, version string, useNodeRoles bool) *models.ElasticsearchPayload {
 	if tpl.Plan.DeploymentTemplate == nil {
 		tpl.Plan.DeploymentTemplate = &models.DeploymentTemplateReference{}
 	}
 
 	if tpl.Plan.DeploymentTemplate.ID == nil || *tpl.Plan.DeploymentTemplate.ID == "" {
 		tpl.Plan.DeploymentTemplate.ID = ec.String(dt)
+	}
+
+	if tpl.Plan.Elasticsearch.Version == "" {
+		tpl.Plan.Elasticsearch.Version = version
+	}
+
+	for _, topology := range tpl.Plan.ClusterTopology {
+		if useNodeRoles {
+			topology.NodeType = nil
+			continue
+		}
+		topology.NodeRoles = nil
 	}
 
 	return tpl
@@ -221,4 +252,14 @@ func expandTags(raw map[string]interface{}) []*models.MetadataItem {
 	})
 
 	return result
+}
+
+func compatibleWithNodeRoles(version string) (bool, error) {
+	deploymentVersion, err := semver.Parse(version)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse Elasticsearch version: %w", err)
+	}
+
+	dataTiersVersion := semver.MustParse("7.10.0")
+	return deploymentVersion.GE(dataTiersVersion), nil
 }

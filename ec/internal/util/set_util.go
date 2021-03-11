@@ -17,6 +17,8 @@
 
 package util
 
+import "sort"
+
 // StringToItems takes in a slice of strings and returns a []interface{}.
 func StringToItems(elems ...string) (result []interface{}) {
 	for _, e := range elems {
@@ -31,6 +33,7 @@ func ItemsToString(elems []interface{}) (result []string) {
 	for _, e := range elems {
 		result = append(result, e.(string))
 	}
+	sort.Strings(result)
 
 	return result
 }

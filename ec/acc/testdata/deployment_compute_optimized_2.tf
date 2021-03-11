@@ -11,6 +11,7 @@ resource "ec_deployment" "compute_optimized" {
 
   elasticsearch {
     topology {
+      id   = "hot_content"
       size = "2g"
     }
   }
