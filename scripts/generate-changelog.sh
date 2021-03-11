@@ -48,10 +48,15 @@ echo "${CHANGELOG}" >> ${CHANGELOG_TMP_FILE_NAME}
 echo >> ${CHANGELOG_TMP_FILE_NAME}
 echo "${PREVIOUS_CHANGELOG}" >> ${CHANGELOG_TMP_FILE_NAME}
 
+HAS_CHANGES=$(diff ${CHANGELOG_TMP_FILE_NAME} ${CHANGELOG_FILE_NAME})
+
 cp ${CHANGELOG_TMP_FILE_NAME} ${CHANGELOG_FILE_NAME}
 
 rm ${CHANGELOG_TMP_FILE_NAME}
 
-echo "Successfully generated changelog."
+if [ -z ${HAS_CHANGES} ]; then
+    echo "No new changelog entries."
+    exit 0
+fi
 
-exit 0
+echo "Successfully generated changelog."
