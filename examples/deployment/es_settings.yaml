@@ -1,0 +1,2 @@
+# My example YAML configuration for elasicsearch nodes
+repositories.url.allowed_urls: ["http://www.example.org/root/*", "https://*.mydomain.com/*?*#*"]
