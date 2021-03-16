@@ -33,3 +33,8 @@ release: $(GOBIN)/goreleaser
 release-no-publish: $(GOBIN)/goreleaser
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
 	@ $(GOBIN)/goreleaser --rm-dist --skip-validate --skip-publish
+
+.PHONY: changelog
+changelog: $(GOBIN)/changelog-build
+	@ echo "-> Generating changelog..."
+	@ ./scripts/generate-changelog.sh
