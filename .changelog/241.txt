@@ -1,0 +1,3 @@
+```release-note:bug
+datasource/ec_deployments: Fixes bug where queries containing a hyphens wouldn't work as expected
+```

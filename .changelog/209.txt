@@ -1,0 +1,3 @@
+```release-note:documentation
+index: Fix timeout configuration option in example
+```
