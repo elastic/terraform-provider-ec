@@ -36,10 +36,6 @@ labels: Team:Delivery, bug
 ## Terraform definition
 <!-- Please include the terraform definition used when this bug was found -->
 
-## Possible Solution
-<!--- Not obligatory, but suggest a fix for the bug, or ideas -->
-<!--- how to implement the addition or change. -->
-
 ## Steps to Reproduce
 <!--- Provide a link to a live example, or an unambiguous set -->
 <!--- of steps to reproduce this bug.  Include a code snippet -->
@@ -54,10 +50,15 @@ labels: Team:Delivery, bug
 <!--- accomplish?  Providing context helps us come up with a -->
 <!--- solution that is most useful in the real world. -->
 
+## Possible Solution
+<!--- Not obligatory, but suggest a fix for the bug, or ideas -->
+<!--- how to implement the addition or change. -->
+
 ## Your Environment
 <!--- Include as many relevant details about the environment -->
 <!--- you experienced the bug in. -->
 * Version used:
+* Running against Elastic Cloud SaaS or Elastic Cloud Enterprise and version:
 * Environment name and version (e.g. Go 1.9):
 * Server type and version:
 * Operating System and version:
