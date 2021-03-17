@@ -1,3 +1,9 @@
+# Retrieve the latest stack pack version
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = var.region
+}
+
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "deployment" {
   # Optional name.
@@ -5,7 +11,7 @@ resource "ec_deployment" "deployment" {
 
   # Mandatory fields.
   region                 = var.region
-  version                = var.deployment_version
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
   traffic_filter         = [ec_deployment_traffic_filter.allow_my_instance.id]
 

@@ -10,10 +10,6 @@ variable "ec_api_key" {
   default = "<enter your Elastic Cloud API Key>"
 }
 
-variable "deployment_version" {
-  default = "7.9.2"
-}
-
 variable "keypair" {
   default = "<enter a key pair>"
 }

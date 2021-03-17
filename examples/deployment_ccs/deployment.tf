@@ -11,11 +11,17 @@ terraform {
 
 provider "ec" {}
 
+# Retrieve the latest stack pack version
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
 resource "ec_deployment" "source_deployment" {
   name = "my_source_ccs"
 
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
@@ -31,7 +37,7 @@ resource "ec_deployment" "second_source" {
   name = "my_second_source_source_ccs"
 
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
@@ -47,7 +53,7 @@ resource "ec_deployment" "ccs" {
   name = "ccs deployment"
 
   region                 = "us-east-1"
-  version                = "7.9.2"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-cross-cluster-search-v2"
 
   elasticsearch {
