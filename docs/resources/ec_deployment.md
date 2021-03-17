@@ -21,13 +21,18 @@ Provides an Elastic Cloud deployment resource, which allows deployments to be cr
 ### Basic
 
 ```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
 resource "ec_deployment" "example_minimal" {
   # Optional name.
   name = "my_example_deployment"
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.11.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
@@ -43,9 +48,14 @@ resource "ec_deployment" "example_minimal" {
 ### Hot warm cold tiered deployment
 
 ```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
 resource "ec_deployment" "example_minimal" {
   region                 = "us-east-1"
-  version                = "7.11.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
@@ -76,13 +86,18 @@ resource "ec_deployment" "example_minimal" {
 ### With observability settings
 
 ```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
 resource "ec_deployment" "example_observability" {
   # Optional name.
   name = "my_example_deployment"
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.11.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
@@ -99,11 +114,16 @@ resource "ec_deployment" "example_observability" {
 ### With Cross Cluster Search settings
 
 ```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
 resource "ec_deployment" "source_deployment" {
   name = "my_ccs_source"
 
   region                 = "us-east-1"
-  version                = "7.11.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
@@ -118,7 +138,7 @@ resource "ec_deployment" "ccs" {
   name = "ccs deployment"
 
   region                 = "us-east-1"
-  version                = "7.11.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-cross-cluster-search-v2"
 
   elasticsearch {
@@ -136,13 +156,18 @@ resource "ec_deployment" "ccs" {
 ### With tags
 
 ```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
 resource "ec_deployment" "with_tags" {
   # Optional name.
   name = "my_example_deployment"
 
   # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.11.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {}
@@ -164,6 +189,9 @@ The following arguments are supported:
 
 * `deployment_template_id` - (Required) Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 * `version` - (Required) Elastic Stack version to use for all the deployment resources.
+
+-> Make to read the [ESS stack version policy](https://www.elastic.co/guide/en/cloud/current/ec-version-policy.html#ec-version-policy-available) to understand which versions are available to use.
+
 * `name` - (Optional) Name of the deployment.
 * `request_id` - (Optional) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 * `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
