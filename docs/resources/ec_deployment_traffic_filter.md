@@ -11,32 +11,29 @@ Provides an Elastic Cloud traffic filter resource, which allows traffic filter r
 ## Example Usage
 
 ```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
+# Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
   region                 = "us-east-1"
-  version                = "7.8.1"
+  version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
   traffic_filter = [
     ec_deployment_traffic_filter.example.id
   ]
 
-  elasticsearch {
-    topology {
-      instance_configuration_id = "aws.data.highio.i3"
-    }
-  }
+  # Use the deployment template defaults
+  elasticsearch {}
 
-  kibana {
-    topology {
-      instance_configuration_id = "aws.kibana.r5d"
-    }
-  }
-
-  apm {
-    topology {
-      instance_configuration_id = "aws.apm.r5d"
-    }
-  }
+  kibana {}
 }
 
 resource "ec_deployment_traffic_filter" "example" {
