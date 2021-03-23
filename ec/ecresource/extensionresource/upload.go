@@ -21,10 +21,8 @@ import (
 	"os"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
-	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/go-openapi/runtime"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -32,14 +30,16 @@ func uploadExtension(client *api.API, d *schema.ResourceData) error {
 	filePath := d.Get("file_path").(string)
 	reader, err := os.Open(filePath)
 	if err != nil {
-		return multierror.NewPrefixed("failed open file", err)
+		return multierror.NewPrefixed("failed to open file", err)
 	}
 
-	if _, err := client.V1API.Extensions.UploadExtension(
-		extensions.NewUploadExtensionParams().WithExtensionID(d.Id()).
-			WithFile(runtime.NamedReader(filePath, reader)),
-		client.AuthWriter); err != nil {
-		return apierror.Wrap(err)
+	_, err = extensionapi.Upload(extensionapi.UploadParams{
+		API:         client,
+		ExtensionID: d.Id(),
+		File:        reader,
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
