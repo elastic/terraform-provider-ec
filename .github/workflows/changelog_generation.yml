@@ -9,8 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
         with:
-          fetch-depth: 0
+          go-version: 1.16
+        id: go
+
       - run: make changelog
       - run: |
           if [[ $(git status --porcelain) ]]; then
