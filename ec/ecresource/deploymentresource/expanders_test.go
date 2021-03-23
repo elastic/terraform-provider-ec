@@ -287,9 +287,7 @@ func Test_createResourceToModel(t *testing.T) {
 							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
-								Kibana: &models.KibanaConfiguration{
-									Version: "7.7.0",
-								},
+								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
 									{
 										ZoneCount:               1,
@@ -310,7 +308,6 @@ func Test_createResourceToModel(t *testing.T) {
 							RefID:                     ec.String("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
-									Version: "7.7.0",
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(false),
 									},
@@ -332,9 +329,7 @@ func Test_createResourceToModel(t *testing.T) {
 							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
-								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-									Version: "7.7.0",
-								},
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
 									{
 										ZoneCount:               1,
@@ -456,9 +451,7 @@ func Test_createResourceToModel(t *testing.T) {
 							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
-								Kibana: &models.KibanaConfiguration{
-									Version: "7.7.0",
-								},
+								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
 									{
 										ZoneCount:               1,
@@ -479,7 +472,6 @@ func Test_createResourceToModel(t *testing.T) {
 							RefID:                     ec.String("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
-									Version: "7.7.0",
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(false),
 									},
@@ -501,9 +493,7 @@ func Test_createResourceToModel(t *testing.T) {
 							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
-								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-									Version: "7.7.0",
-								},
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
 									{
 										ZoneCount:               1,
@@ -1786,9 +1776,7 @@ func Test_updateResourceToModel(t *testing.T) {
 							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
-								Kibana: &models.KibanaConfiguration{
-									Version: "7.7.0",
-								},
+								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
 									{
 										ZoneCount:               1,
@@ -1809,7 +1797,6 @@ func Test_updateResourceToModel(t *testing.T) {
 							RefID:                     ec.String("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
-									Version: "7.7.0",
 									SystemSettings: &models.ApmSystemSettings{
 										DebugEnabled: ec.Bool(false),
 									},
@@ -1831,9 +1818,7 @@ func Test_updateResourceToModel(t *testing.T) {
 							Region:                    ec.String("us-east-1"),
 							RefID:                     ec.String("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
-								EnterpriseSearch: &models.EnterpriseSearchConfiguration{
-									Version: "7.7.0",
-								},
+								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
 									{
 										ZoneCount:               1,
@@ -2253,9 +2238,7 @@ func Test_updateResourceToModel(t *testing.T) {
 						Region:                    ec.String("us-east-1"),
 						RefID:                     ec.String("main-kibana"),
 						Plan: &models.KibanaClusterPlan{
-							Kibana: &models.KibanaConfiguration{
-								Version: "7.7.0",
-							},
+							Kibana: &models.KibanaConfiguration{},
 							ClusterTopology: []*models.KibanaClusterTopologyElement{
 								{
 									ZoneCount:               1,

@@ -28,9 +28,9 @@ import (
 
 // flattenEssResources flattens Enterprise Search resources into its flattened structure.
 func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string) []interface{} {
-	var result = make([]interface{}, 0, len(in))
+	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
-		var m = make(map[string]interface{})
+		m := make(map[string]interface{})
 		if util.IsCurrentEssPlanEmpty(res) || isEssResourceStopped(res) {
 			continue
 		}
@@ -43,15 +43,11 @@ func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string)
 			m["resource_id"] = *res.Info.ID
 		}
 
-		var plan = res.Info.PlanInfo.Current.Plan
-		if plan.EnterpriseSearch != nil {
-			m["version"] = plan.EnterpriseSearch.Version
-		}
-
 		if res.Region != nil {
 			m["region"] = *res.Region
 		}
 
+		plan := res.Info.PlanInfo.Current.Plan
 		if topology := flattenEssTopology(plan); len(topology) > 0 {
 			m["topology"] = topology
 		}

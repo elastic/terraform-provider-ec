@@ -51,33 +51,29 @@ func expandKibanaResources(kibanas []interface{}, tpl *models.KibanaPayload) ([]
 }
 
 func expandKibanaResource(raw interface{}, res *models.KibanaPayload) (*models.KibanaPayload, error) {
-	var es = raw.(map[string]interface{})
+	kibana := raw.(map[string]interface{})
 
-	if esRefID, ok := es["elasticsearch_cluster_ref_id"]; ok {
+	if esRefID, ok := kibana["elasticsearch_cluster_ref_id"]; ok {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
 	}
 
-	if refID, ok := es["ref_id"]; ok {
+	if refID, ok := kibana["ref_id"]; ok {
 		res.RefID = ec.String(refID.(string))
 	}
 
-	if version, ok := es["version"]; ok {
-		res.Plan.Kibana.Version = version.(string)
-	}
-
-	if region, ok := es["region"]; ok {
+	if region, ok := kibana["region"]; ok {
 		if r := region.(string); r != "" {
 			res.Region = ec.String(r)
 		}
 	}
 
-	if cfg, ok := es["config"]; ok {
+	if cfg, ok := kibana["config"]; ok {
 		if err := expandKibanaConfig(cfg, res.Plan.Kibana); err != nil {
 			return nil, err
 		}
 	}
 
-	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := kibana["topology"]; ok && len(rt.([]interface{})) > 0 {
 		topology, err := expandKibanaTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err

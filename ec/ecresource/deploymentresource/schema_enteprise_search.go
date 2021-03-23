@@ -38,10 +38,6 @@ func newEnterpriseSearchResource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"region": {
 				Type:     schema.TypeString,
 				Computed: true,

@@ -25,12 +25,25 @@ import (
 )
 
 func resourceStateUpgradeV0(_ context.Context, raw map[string]interface{}, m interface{}) (map[string]interface{}, error) {
+	for _, apm := range raw["apm"].([]interface{}) {
+		rawApm := apm.(map[string]interface{})
+		delete(rawApm, "version")
+	}
+
 	for _, es := range raw["elasticsearch"].([]interface{}) {
 		rawEs := es.(map[string]interface{})
 		delete(rawEs, "version")
 	}
 
-	// TODO: Do the same for APM, Kibana, ESS.
+	for _, ess := range raw["enterprise_search"].([]interface{}) {
+		rawEss := ess.(map[string]interface{})
+		delete(rawEss, "version")
+	}
+
+	for _, kibana := range raw["kibana"].([]interface{}) {
+		rawKibana := kibana.(map[string]interface{})
+		delete(rawKibana, "version")
+	}
 
 	return raw, nil
 }

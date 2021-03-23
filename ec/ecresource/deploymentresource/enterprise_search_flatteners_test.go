@@ -159,7 +159,6 @@ func Test_flattenEssResource(t *testing.T) {
 					"elasticsearch_cluster_ref_id": "main-elasticsearch",
 					"ref_id":                       "main-enterprise_search",
 					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.7.0",
 					"region":                       "some-region",
 					"http_endpoint":                "http://enterprisesearchresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://enterprisesearchresource.cloud.elastic.co:9243",

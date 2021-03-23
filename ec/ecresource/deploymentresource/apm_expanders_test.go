@@ -55,7 +55,6 @@ func Test_expandApmResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-apm",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
@@ -73,9 +72,7 @@ func Test_expandApmResources(t *testing.T) {
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-apm"),
 					Plan: &models.ApmPlan{
-						Apm: &models.ApmConfiguration{
-							Version: "7.7.0",
-						},
+						Apm: &models.ApmConfiguration{},
 						ClusterTopology: []*models.ApmTopologyElement{{
 							ZoneCount:               1,
 							InstanceConfigurationID: "aws.apm.r5d",
@@ -96,7 +93,6 @@ func Test_expandApmResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-apm",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
@@ -118,7 +114,6 @@ func Test_expandApmResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-apm",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 					},
@@ -130,9 +125,7 @@ func Test_expandApmResources(t *testing.T) {
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-apm"),
 					Plan: &models.ApmPlan{
-						Apm: &models.ApmConfiguration{
-							Version: "7.7.0",
-						},
+						Apm: &models.ApmConfiguration{},
 						ClusterTopology: []*models.ApmTopologyElement{{
 							ZoneCount:               1,
 							InstanceConfigurationID: "aws.apm.r5d",
@@ -153,7 +146,6 @@ func Test_expandApmResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-apm",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
@@ -169,9 +161,7 @@ func Test_expandApmResources(t *testing.T) {
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-apm"),
 					Plan: &models.ApmPlan{
-						Apm: &models.ApmConfiguration{
-							Version: "7.7.0",
-						},
+						Apm: &models.ApmConfiguration{},
 						ClusterTopology: []*models.ApmTopologyElement{{
 							ZoneCount:               1,
 							InstanceConfigurationID: "aws.apm.r5d",
@@ -192,7 +182,6 @@ func Test_expandApmResources(t *testing.T) {
 					"ref_id":                       "tertiary-apm",
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.8.0",
 					"region":                       "some-region",
 					"config": []interface{}{map[string]interface{}{
 						"user_settings_yaml":          "some.setting: value",
@@ -215,7 +204,6 @@ func Test_expandApmResources(t *testing.T) {
 				RefID:                     ec.String("tertiary-apm"),
 				Plan: &models.ApmPlan{
 					Apm: &models.ApmConfiguration{
-						Version:                  "7.8.0",
 						UserSettingsYaml:         `some.setting: value`,
 						UserSettingsOverrideYaml: `some.setting: value2`,
 						UserSettingsJSON: map[string]interface{}{
@@ -247,7 +235,6 @@ func Test_expandApmResources(t *testing.T) {
 					"ref_id":                       "tertiary-apm",
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.8.0",
 					"region":                       "some-region",
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.apm.r5d",
