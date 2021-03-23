@@ -18,6 +18,10 @@
 package deploymentresource
 
 import (
+	"bytes"
+	"fmt"
+
+	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -67,6 +71,8 @@ func newElasticsearchResource() *schema.Resource {
 			"remote_cluster": elasticsearchRemoteCluster(),
 
 			"snapshot_source": newSnapshotSourceSettings(),
+
+			"extension": newExtensionSchema(),
 		},
 	}
 }
@@ -260,4 +266,58 @@ func newSnapshotSourceSettings() *schema.Schema {
 			},
 		},
 	}
+}
+
+func newExtensionSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeSet,
+		Set:         esExtensionHash,
+		Description: "Optional Elasticsearch extensions such as custom bundles or plugins.",
+		Optional:    true,
+		MinItems:    1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Description: "Extension name.",
+					Type:        schema.TypeString,
+					Required:    true,
+				},
+				"type": {
+					Description: "Extension type, only `bundle` or `plugin` are supported.",
+					Type:        schema.TypeString,
+					Required:    true,
+					ValidateFunc: func(val interface{}, _ string) ([]string, []error) {
+						t := val.(string)
+						if !slice.HasString([]string{"bundle", "plugin"}, t) {
+							return nil, []error{fmt.Errorf(
+								"invalid extension type %s: accepted values are bundle or plugin",
+								t,
+							)}
+						}
+						return nil, nil
+					},
+				},
+				"version": {
+					Description: "Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.",
+					Type:        schema.TypeString,
+					Required:    true,
+				},
+				"url": {
+					Description: "Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.",
+					Type:        schema.TypeString,
+					Required:    true,
+				},
+			},
+		},
+	}
+}
+
+func esExtensionHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(m["type"].(string))
+	buf.WriteString(m["version"].(string))
+	buf.WriteString(m["url"].(string))
+	buf.WriteString(m["name"].(string))
+	return schema.HashString(buf.String())
 }

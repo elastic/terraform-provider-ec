@@ -223,6 +223,7 @@ The required `elasticsearch` block supports the following arguments:
 * `config` (Optional) Elasticsearch settings applied to all topologies unless overridden in the `topology` element. 
 * `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
 * `snapshot_source` (Optional) Restores data from a snapshot of another deployment.
+* `extension` (Optional) Custom Elasticsearch bundles or plugins. Can be set multiple times.
 
 ##### Topology
 
@@ -268,6 +269,15 @@ The optional `elasticsearch.snapshot_source` block, which restores data from a s
 * `snapshot_name` (Optional) Name of the snapshot to restore. Use `__latest_success__` to get the most recent successful snapshot (Defaults to `__latest_success__`).
 
 ~> **Note on behavior** The `snapshot_source` block will not be saved in the Terraform state due to its transient nature. This means that whenever the `snapshot_source` block is set, a snapshot will **always be restored**, unless removed before running `terraform apply`.
+
+##### Extension
+
+The optional `elasticsearch.extension` block, allows custom plugins or bundles to be configured in the Elasticsearch cluster, supports the following arguments:
+
+* `name` (Required) Extension name.
+* `type` (Required) Extension type, only `bundle` or `plugin` are supported.
+* `version` (Required) Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.
+* `url` (Required) Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
 
 #### Kibana
 

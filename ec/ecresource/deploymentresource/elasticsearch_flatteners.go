@@ -71,6 +71,19 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 			m["remote_cluster"] = r
 		}
 
+		extensions := schema.NewSet(esExtensionHash, nil)
+		for _, ext := range flattenEsBundles(plan.Elasticsearch.UserBundles) {
+			extensions.Add(ext)
+		}
+
+		for _, ext := range flattenEsPlugins(plan.Elasticsearch.UserPlugins) {
+			extensions.Add(ext)
+		}
+
+		if extensions.Len() > 0 {
+			m["extension"] = extensions
+		}
+
 		result = append(result, m)
 	}
 
@@ -196,4 +209,34 @@ func flattenEsRemotes(in models.RemoteResources) []interface{} {
 	}
 
 	return res
+}
+
+func flattenEsBundles(in []*models.ElasticsearchUserBundle) []interface{} {
+	result := make([]interface{}, 0, len(in))
+	for _, bundle := range in {
+		m := make(map[string]interface{})
+		m["type"] = "bundle"
+		m["version"] = *bundle.ElasticsearchVersion
+		m["url"] = *bundle.URL
+		m["name"] = *bundle.Name
+
+		result = append(result, m)
+	}
+
+	return result
+}
+
+func flattenEsPlugins(in []*models.ElasticsearchUserPlugin) []interface{} {
+	result := make([]interface{}, 0, len(in))
+	for _, plugin := range in {
+		m := make(map[string]interface{})
+		m["type"] = "plugin"
+		m["version"] = *plugin.ElasticsearchVersion
+		m["url"] = *plugin.URL
+		m["name"] = *plugin.Name
+
+		result = append(result, m)
+	}
+
+	return result
 }

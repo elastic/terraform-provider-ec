@@ -89,6 +89,12 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		expandSnapshotSource(snap, res.Plan.Transient.RestoreSnapshot)
 	}
 
+	if ext, ok := es["extension"]; ok {
+		if e := ext.(*schema.Set); e.Len() > 0 {
+			expandEsExtension(e.List(), res.Plan.Elasticsearch)
+		}
+	}
+
 	return res, nil
 }
 
@@ -331,4 +337,41 @@ func sizeIsEmpty(size *models.TopologySize) bool {
 	}
 
 	return false
+}
+
+func expandEsExtension(raw []interface{}, es *models.ElasticsearchConfiguration) {
+	for _, rawExt := range raw {
+		m := rawExt.(map[string]interface{})
+
+		var version string
+		if v, ok := m["version"]; ok {
+			version = v.(string)
+		}
+
+		var url string
+		if u, ok := m["url"]; ok {
+			url = u.(string)
+		}
+
+		var name string
+		if n, ok := m["name"]; ok {
+			name = n.(string)
+		}
+
+		if t, ok := m["type"]; ok && t.(string) == "bundle" {
+			es.UserBundles = append(es.UserBundles, &models.ElasticsearchUserBundle{
+				Name:                 &name,
+				ElasticsearchVersion: &version,
+				URL:                  &url,
+			})
+		}
+
+		if t, ok := m["type"]; ok && t.(string) == "plugin" {
+			es.UserPlugins = append(es.UserPlugins, &models.ElasticsearchUserPlugin{
+				Name:                 &name,
+				ElasticsearchVersion: &version,
+				URL:                  &url,
+			})
+		}
+	}
 }

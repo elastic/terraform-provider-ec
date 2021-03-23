@@ -1272,6 +1272,152 @@ func Test_createResourceToModel(t *testing.T) {
 			},
 		},
 		{
+			name: "parses the resources with empty declarations (Hot Warm) with node_roles and extensions",
+			args: args{
+				d: util.NewResourceData(t, util.ResDataParams{
+					ID:     mock.ValidClusterID,
+					Schema: newSchema(),
+					State: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-hot-warm-v2",
+						"region":                 "us-east-1",
+						"version":                "7.12.0",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"extension": []interface{}{
+								map[string]interface{}{
+									"name":    "my-plugin",
+									"type":    "plugin",
+									"url":     "repo://12311234",
+									"version": "7.7.0",
+								},
+								map[string]interface{}{
+									"name":    "my-second-plugin",
+									"type":    "plugin",
+									"url":     "repo://12311235",
+									"version": "7.7.0",
+								},
+								map[string]interface{}{
+									"name":    "my-bundle",
+									"type":    "bundle",
+									"url":     "repo://1231122",
+									"version": "7.7.0",
+								},
+								map[string]interface{}{
+									"name":    "my-second-bundle",
+									"type":    "bundle",
+									"url":     "repo://1231123",
+									"version": "7.7.0",
+								},
+							},
+						}},
+					},
+				}),
+				client: api.NewMock(mock.New200Response(hotWarmTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{
+						{
+							Region: ec.String("us-east-1"),
+							RefID:  ec.String("main-elasticsearch"),
+							Settings: &models.ElasticsearchClusterSettings{
+								DedicatedMastersThreshold: 6,
+							},
+							Plan: &models.ElasticsearchClusterPlan{
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									Version: "7.12.0",
+									UserBundles: []*models.ElasticsearchUserBundle{
+										{
+											URL:                  ec.String("repo://1231122"),
+											Name:                 ec.String("my-bundle"),
+											ElasticsearchVersion: ec.String("7.7.0"),
+										},
+										{
+											URL:                  ec.String("repo://1231123"),
+											Name:                 ec.String("my-second-bundle"),
+											ElasticsearchVersion: ec.String("7.7.0"),
+										},
+									},
+									UserPlugins: []*models.ElasticsearchUserPlugin{
+										{
+											URL:                  ec.String("repo://12311235"),
+											Name:                 ec.String("my-second-plugin"),
+											ElasticsearchVersion: ec.String("7.7.0"),
+										},
+										{
+											URL:                  ec.String("repo://12311234"),
+											Name:                 ec.String("my-plugin"),
+											ElasticsearchVersion: ec.String("7.7.0"),
+										},
+									},
+								},
+								DeploymentTemplate: &models.DeploymentTemplateReference{
+									ID: ec.String("aws-hot-warm-v2"),
+								},
+								ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+									{
+										ID:                      "hot_content",
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highio.i3",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeRoles: []string{
+											"master",
+											"ingest",
+											"remote_cluster_client",
+											"data_hot",
+											"transform",
+											"data_content",
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{"data": "hot"},
+										},
+										TopologyElementControl: &models.TopologyElementControl{
+											Min: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
+										},
+									},
+									{
+										ID:                      "warm",
+										ZoneCount:               2,
+										InstanceConfigurationID: "aws.data.highstorage.d2",
+										Size: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(4096),
+										},
+										NodeRoles: []string{
+											"data_warm",
+											"remote_cluster_client",
+										},
+										Elasticsearch: &models.ElasticsearchConfiguration{
+											NodeAttributes: map[string]string{
+												"data": "warm",
+											},
+										},
+										TopologyElementControl: &models.TopologyElementControl{
+											Min: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(0),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "parses the resources with empty declarations (Cross Cluster Search)",
 			args: args{
 				d:      deploymentCCS,
