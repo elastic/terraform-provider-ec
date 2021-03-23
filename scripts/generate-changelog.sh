@@ -2,6 +2,7 @@
 
 set -o errexit
 set -o nounset
+set -x
 
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __parent="$(dirname "${__dir}")"
