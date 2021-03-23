@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 jobs:
   GenerateChangelog:
-    # if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,7 +15,8 @@ jobs:
         id: go
 
       - run: make changelog
-      - run: |
+      - if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
+        run: |
           if [[ $(git status --porcelain) ]]; then
             MSG="Update CHANGELOG.md (Manual Trigger)"
             if ${{github.event_name != 'workflow_dispatch'}}; then
