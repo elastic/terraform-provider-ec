@@ -272,7 +272,7 @@ The optional `elasticsearch.snapshot_source` block, which restores data from a s
 
 ##### Extension
 
-The optional `elasticsearch.extension` block, allows custom plugins or bundles to be configured in the Elasticsearch cluster, supports the following arguments:
+The optional `elasticsearch.extension` block, allows custom plugins or bundles to be configured in the Elasticsearch cluster. It supports the following arguments:
 
 * `name` (Required) Extension name.
 * `type` (Required) Extension type, only `bundle` or `plugin` are supported.
