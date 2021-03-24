@@ -11,18 +11,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          persist-credentials: false
       - run: make changelog
-      - env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          if [[ $(git status --porcelain) ]]; then
-            MSG="Update CHANGELOG.md (Manual Trigger)"
-            if ${{github.event_name != 'workflow_dispatch'}}; then
-              MSG="Update CHANGELOG.md for #${{ github.event.pull_request.number }}"
-            fi
-            git config --local user.email elasticcloudclients@elastic.co
-            git config --local user.name elasticcloudclients
-            git add CHANGELOG.md
-            git commit -m "$MSG" 
-            git push
-          fi
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          author_email: elasticcloudclients@elastic.co
+          author_name: elasticcloudclients
+          message: Update CHANGELOG.md

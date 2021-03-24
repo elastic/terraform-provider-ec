@@ -56,7 +56,7 @@ cp ${CHANGELOG_TMP_FILE_NAME} ${CHANGELOG_FILE_NAME}
 
 rm ${CHANGELOG_TMP_FILE_NAME}
 
-if [ -z ${HAS_CHANGES} ]; then
+if [ -z "${HAS_CHANGES}" ]; then
     echo "No new changelog entries."
     exit 0
 fi
