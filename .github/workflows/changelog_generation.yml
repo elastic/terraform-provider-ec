@@ -12,7 +12,9 @@ jobs:
         with:
           fetch-depth: 0
       - run: make changelog
-      - run: |
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
           if [[ $(git status --porcelain) ]]; then
             MSG="Update CHANGELOG.md (Manual Trigger)"
             if ${{github.event_name != 'workflow_dispatch'}}; then
