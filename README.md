@@ -86,12 +86,12 @@ $ make install
 
 To generate an API key, follow these steps:
 
-  1. Navigate to <https://cloud.elastic.co/login> with your browser
-  2. Log in with your Email and Password.
+  1. Open your browser and navigate to <https://cloud.elastic.co/login>.
+  2. Log in with your email and password.
   3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
-  4. Navigate to [Featuress > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
-  5. Chose a name for your API key.
-  6. Persist your API key somewhere safe.
+  4. Navigate to [Features > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  5. Choose a name for your API key.
+  6. Save your API key somewhere safe.
 
 ### Using your API Key on the Elastic Cloud terraform provider
 

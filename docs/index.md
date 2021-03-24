@@ -31,16 +31,16 @@ API keys are the recommended authentication method. They can be used to authenti
 
 To generate an API key, follow these steps:
 
-  1. Navigate to <https://cloud.elastic.co/login> with your browser
-  2. Log in with your Email and Password.
+  1. Open you browser and navigate to <https://cloud.elastic.co/login>.
+  2. Log in with your email and password.
   3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
-  4. Navigate to [Featuress > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
-  5. Chose a name for your API key.
-  6. Persist your API key somewhere safe.
+  4. Navigate to [Features > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  5. Choose a name for your API key.
+  6. Save your API key somewhere.
 
 #### Using your API Key on the Elastic Cloud terraform provider
 
-After you've generated your API Key, you can make it available to the Terraform provider by exporting it as the environment variable `EC_API_KEY` environment variable (recommended) or hardcoded in the provider `.tf` configuration file (supported but not recommended).
+After you've generated your API Key, you can make it available to the Terraform provider by exporting it as the environment variable `EC_API_KEY` (recommended), or hardcoded in the provider `.tf` configuration file (supported but not recommended).
 
 ```sh
 $ export EC_API_KEY="<apikey value>"
