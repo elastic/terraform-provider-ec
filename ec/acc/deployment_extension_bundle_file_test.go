@@ -21,7 +21,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -82,7 +82,7 @@ func TestAccDeploymentExtension_bundleFile(t *testing.T) {
 func fixtureAccExtensionBundleWithTF(t *testing.T, tfFileName, bundleFilePath, extensionName, description string) string {
 	t.Helper()
 
-	b, err := ioutil.ReadFile(tfFileName)
+	b, err := os.ReadFile(tfFileName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func writeFile(t *testing.T, filePath, fileName, content string) {
 		t.Fatal(err)
 	}
 
-	if err := ioutil.WriteFile(filePath, buf.Bytes(), 0644); err != nil {
+	if err := os.WriteFile(filePath, buf.Bytes(), 0644); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -153,7 +153,7 @@ func downloadAndReadExtension(filename string, url string, size int64) (string, 
 		return "", err
 	}
 
-	b, _ := ioutil.ReadAll(resp.Body)
+	b, _ := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
 
 	r, err := zip.NewReader(bytes.NewReader(b), size)
@@ -167,7 +167,7 @@ func downloadAndReadExtension(filename string, url string, size int64) (string, 
 
 	for _, f := range r.File {
 		reader, _ := f.Open()
-		b, _ := ioutil.ReadAll(reader)
+		b, _ := io.ReadAll(reader)
 		func() { defer reader.Close() }()
 		if filename == f.Name {
 			return string(b), nil
