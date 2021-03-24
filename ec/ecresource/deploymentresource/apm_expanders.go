@@ -51,33 +51,29 @@ func expandApmResources(apms []interface{}, tpl *models.ApmPayload) ([]*models.A
 }
 
 func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayload, error) {
-	var es = raw.(map[string]interface{})
+	var apm = raw.(map[string]interface{})
 
-	if esRefID, ok := es["elasticsearch_cluster_ref_id"]; ok {
+	if esRefID, ok := apm["elasticsearch_cluster_ref_id"]; ok {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
 	}
 
-	if refID, ok := es["ref_id"]; ok {
+	if refID, ok := apm["ref_id"]; ok {
 		res.RefID = ec.String(refID.(string))
 	}
 
-	if version, ok := es["version"]; ok {
-		res.Plan.Apm.Version = version.(string)
-	}
-
-	if region, ok := es["region"]; ok {
+	if region, ok := apm["region"]; ok {
 		if r := region.(string); r != "" {
 			res.Region = ec.String(r)
 		}
 	}
 
-	if cfg, ok := es["config"]; ok {
+	if cfg, ok := apm["config"]; ok {
 		if err := expandApmConfig(cfg, res.Plan.Apm); err != nil {
 			return nil, err
 		}
 	}
 
-	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := apm["topology"]; ok && len(rt.([]interface{})) > 0 {
 		topology, err := expandApmTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err

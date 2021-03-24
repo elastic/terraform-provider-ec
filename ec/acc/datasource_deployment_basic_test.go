@@ -68,7 +68,6 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.resource_id", resourceName, "kibana.0.resource_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.http_endpoint_id", resourceName, "kibana.0.http_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.https_endpoint_id", resourceName, "kibana.0.https_endpoint_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.version", resourceName, "kibana.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.instance_configuration_id", resourceName, "kibana.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.size", resourceName, "kibana.0.topology.0.size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.topology.0.size_resource", resourceName, "kibana.0.topology.0.size_resource"),
@@ -81,7 +80,6 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.resource_id", resourceName, "apm.0.resource_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.http_endpoint_id", resourceName, "apm.0.http_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.https_endpoint_id", resourceName, "apm.0.https_endpoint_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.version", resourceName, "apm.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.instance_configuration_id", resourceName, "apm.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.size", resourceName, "apm.0.topology.0.size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.topology.0.size_resource", resourceName, "apm.0.topology.0.size_resource"),
@@ -94,7 +92,6 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.resource_id", resourceName, "enterprise_search.0.resource_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.http_endpoint_id", resourceName, "enterprise_search.0.http_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.https_endpoint_id", resourceName, "enterprise_search.0.https_endpoint_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.version", resourceName, "enterprise_search.0.version"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.instance_configuration_id", resourceName, "enterprise_search.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.size", resourceName, "enterprise_search.0.topology.0.size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.topology.0.size_resource", resourceName, "enterprise_search.0.topology.0.size_resource"),
@@ -109,11 +106,6 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", namePrefix),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
-
-					// Deployment resources
-					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.version", resourceName, "kibana.0.version"),
-					resource.TestCheckResourceAttrPair(datasourceName, "apm.0.version", resourceName, "apm.0.version"),
-					resource.TestCheckResourceAttrPair(datasourceName, "enterprise_search.0.version", resourceName, "enterprise_search.0.version"),
 
 					// Query results
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_resource_id", resourceName, "elasticsearch.0.resource_id"),

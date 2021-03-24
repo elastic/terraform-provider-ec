@@ -376,7 +376,6 @@ In addition to all the arguments above, the following attributes are exported:
 * `elasticsearch_password` - Auto-generated Elasticsearch password.
 * `apm_secret_token` - Auto-generated APM secret_token, empty unless an `apm` resource is specified.
 * `elasticsearch.#.resource_id` - Elasticsearch resource unique identifier.
-* `elasticsearch.#.version` - Elasticsearch current version.
 * `elasticsearch.#.region` - Elasticsearch region.
 * `elasticsearch.#.cloud_id` - Encoded Elasticsearch credentials to use in Beats or Logstash. For more information, see [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html).
 * `elasticsearch.#.http_endpoint` - Elasticsearch resource HTTP endpoint.
@@ -390,17 +389,14 @@ In addition to all the arguments above, the following attributes are exported:
 * `elasticsearch.#.snapshot_source.#.source_elasticsearch_cluster_id` - ID of the Elasticsearch cluster that will be used as the source of the snapshot.
 * `elasticsearch.#.snapshot_source.#.snapshot_name` - Name of the snapshot to restore.
 * `kibana.#.resource_id` - Kibana resource unique identifier.
-* `kibana.#.version` - Kibana current version.
 * `kibana.#.region` - Kibana region.
 * `kibana.#.http_endpoint` - Kibana resource HTTP endpoint.
 * `kibana.#.https_endpoint` - Kibana resource HTTPs endpoint.
 * `apm.#.resource_id` - APM resource unique identifier.
-* `apm.#.version` - APM current version.
 * `apm.#.region` - APM region.
 * `apm.#.http_endpoint` - APM resource HTTP endpoint.
 * `apm.#.https_endpoint` - APM resource HTTPs endpoint.
 * `enterprise_search.#.resource_id` - Enterprise Search resource unique identifier.
-* `enterprise_search.#.version` - Enterprise Search current version.
 * `enterprise_search.#.region` - Enterprise Search region.
 * `enterprise_search.#.http_endpoint` - Enterprise Search resource HTTP endpoint.
 * `enterprise_search.#.https_endpoint` - Enterprise Search resource HTTPs endpoint.

@@ -43,15 +43,11 @@ func flattenApmResources(in []*models.ApmResourceInfo, name string) []interface{
 			m["resource_id"] = *res.Info.ID
 		}
 
-		var plan = res.Info.PlanInfo.Current.Plan
-		if plan.Apm != nil {
-			m["version"] = plan.Apm.Version
-		}
-
 		if res.Region != nil {
 			m["region"] = *res.Region
 		}
 
+		plan := res.Info.PlanInfo.Current.Plan
 		if topology := flattenApmTopology(plan); len(topology) > 0 {
 			m["topology"] = topology
 		}

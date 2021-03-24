@@ -51,33 +51,33 @@ func expandEssResources(ess []interface{}, tpl *models.EnterpriseSearchPayload) 
 }
 
 func expandEssResource(raw interface{}, res *models.EnterpriseSearchPayload) (*models.EnterpriseSearchPayload, error) {
-	var es = raw.(map[string]interface{})
+	ess := raw.(map[string]interface{})
 
-	if esRefID, ok := es["elasticsearch_cluster_ref_id"]; ok {
+	if esRefID, ok := ess["elasticsearch_cluster_ref_id"]; ok {
 		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
 	}
 
-	if refID, ok := es["ref_id"]; ok {
+	if refID, ok := ess["ref_id"]; ok {
 		res.RefID = ec.String(refID.(string))
 	}
 
-	if version, ok := es["version"]; ok {
+	if version, ok := ess["version"]; ok {
 		res.Plan.EnterpriseSearch.Version = version.(string)
 	}
 
-	if region, ok := es["region"]; ok {
+	if region, ok := ess["region"]; ok {
 		if r := region.(string); r != "" {
 			res.Region = ec.String(r)
 		}
 	}
 
-	if cfg, ok := es["config"]; ok {
+	if cfg, ok := ess["config"]; ok {
 		if err := expandEssConfig(cfg, res.Plan.EnterpriseSearch); err != nil {
 			return nil, err
 		}
 	}
 
-	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := ess["topology"]; ok && len(rt.([]interface{})) > 0 {
 		topology, err := expandEssTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err

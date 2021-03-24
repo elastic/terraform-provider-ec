@@ -28,9 +28,9 @@ import (
 
 // flattenKibanaResources takes the kibana resource models and returns them flattened.
 func flattenKibanaResources(in []*models.KibanaResourceInfo, name string) []interface{} {
-	var result = make([]interface{}, 0, len(in))
+	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
-		var m = make(map[string]interface{})
+		m := make(map[string]interface{})
 		if util.IsCurrentKibanaPlanEmpty(res) || isKibanaResourceStopped(res) {
 			continue
 		}
@@ -43,15 +43,11 @@ func flattenKibanaResources(in []*models.KibanaResourceInfo, name string) []inte
 			m["resource_id"] = *res.Info.ClusterID
 		}
 
-		var plan = res.Info.PlanInfo.Current.Plan
-		if plan.Kibana != nil {
-			m["version"] = plan.Kibana.Version
-		}
-
 		if res.Region != nil {
 			m["region"] = *res.Region
 		}
 
+		plan := res.Info.PlanInfo.Current.Plan
 		if topology := flattenKibanaTopology(plan); len(topology) > 0 {
 			m["topology"] = topology
 		}

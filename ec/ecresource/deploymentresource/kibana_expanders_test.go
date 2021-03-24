@@ -55,7 +55,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-kibana",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
@@ -72,9 +71,7 @@ func Test_expandKibanaResources(t *testing.T) {
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-kibana"),
 					Plan: &models.KibanaClusterPlan{
-						Kibana: &models.KibanaConfiguration{
-							Version: "7.7.0",
-						},
+						Kibana: &models.KibanaConfiguration{},
 						ClusterTopology: []*models.KibanaClusterTopologyElement{
 							{
 								ZoneCount:               1,
@@ -97,7 +94,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-kibana",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
@@ -118,7 +114,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-kibana",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 					},
@@ -130,9 +125,7 @@ func Test_expandKibanaResources(t *testing.T) {
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-kibana"),
 					Plan: &models.KibanaClusterPlan{
-						Kibana: &models.KibanaConfiguration{
-							Version: "7.7.0",
-						},
+						Kibana: &models.KibanaConfiguration{},
 						ClusterTopology: []*models.KibanaClusterTopologyElement{
 							{
 								ZoneCount:               1,
@@ -155,7 +148,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					map[string]interface{}{
 						"ref_id":                       "main-kibana",
 						"resource_id":                  mock.ValidClusterID,
-						"version":                      "7.7.0",
 						"region":                       "some-region",
 						"elasticsearch_cluster_ref_id": "somerefid",
 						"topology": []interface{}{map[string]interface{}{
@@ -170,9 +162,7 @@ func Test_expandKibanaResources(t *testing.T) {
 					Region:                    ec.String("some-region"),
 					RefID:                     ec.String("main-kibana"),
 					Plan: &models.KibanaClusterPlan{
-						Kibana: &models.KibanaConfiguration{
-							Version: "7.7.0",
-						},
+						Kibana: &models.KibanaConfiguration{},
 						ClusterTopology: []*models.KibanaClusterTopologyElement{
 							{
 								ZoneCount:               1,
@@ -195,7 +185,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					"ref_id":                       "secondary-kibana",
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.8.0",
 					"region":                       "some-region",
 					"config": []interface{}{map[string]interface{}{
 						"user_settings_yaml":          "some.setting: value",
@@ -217,7 +206,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					RefID:                     ec.String("secondary-kibana"),
 					Plan: &models.KibanaClusterPlan{
 						Kibana: &models.KibanaConfiguration{
-							Version:                  "7.8.0",
 							UserSettingsYaml:         "some.setting: value",
 							UserSettingsOverrideYaml: "some.setting: override",
 							UserSettingsJSON: map[string]interface{}{
@@ -247,7 +235,6 @@ func Test_expandKibanaResources(t *testing.T) {
 					"ref_id":                       "tertiary-kibana",
 					"elasticsearch_cluster_ref_id": "somerefid",
 					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.8.0",
 					"region":                       "some-region",
 					"topology": []interface{}{map[string]interface{}{
 						"instance_configuration_id": "aws.kibana.r5d",
