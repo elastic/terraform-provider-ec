@@ -5,66 +5,52 @@ page_title: "Provider: Elastic Cloud"
 # Elastic Cloud Provider
 
 The Elastic Cloud Terraform provider can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
-APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider.
+APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider. Elastic Cloud APIs are available for:
 
-## Example Usage
+* Elasticsearch Service (ESS).
+* Elastic Cloud Enterprise (ECE).
+* Elasticsearch Service Private (ESSP).
 
+## Releases
 
-```hcl
-terraform {
-  required_providers {
-    ec = {
-      source  = "elastic/ec"
-      version = "0.1.0"
-    }
-  }
-}
-
-provider "ec" {
-  apikey = "my-api-key"
-}
-
-data "ec_stack" "latest" {
-  version_regex = "latest"
-  region        = "us-east-1"
-}
-
-# Create an Elastic Cloud deployment
-resource "ec_deployment" "example_minimal" {
-  # Optional name.
-  name = "my_example_deployment"
-
-  # Mandatory fields
-  region                 = "us-east-1"
-  version                = data.ec_stack.latest.version
-  deployment_template_id = "aws-io-optimized-v2"
-
-  # Use the deployment template defaults
-  elasticsearch {}
-
-  kibana {}
-}
-```
+Interested in the provider's latest features, or want to make sure you're up to date? [Check out the provider changelog](https://github.com/elastic/terraform-provider-ec/blob/master/CHANGELOG.md).
 
 ## Authentication
 
-The Elastic Cloud Terraform provider offers two methods of authentication against the remote API: `apikey` or a combination of `username` and `password`. Depending on the environment, one or both can be used. The Public API of Elasticsearch Service (ESS) is the default `endpoint` that the provider will target.
+The Elastic Cloud Terraform provider offers two methods of authentication against the remote API: `apikey` or a combination of `username` and `password`. Depending on the environment, you may choose one over the other. The Public API of Elasticsearch Service (ESS) is the default `endpoint` that the provider will target.
 
-Elasticsearch Service (ESS) only supports `apikey`. Elastic Cloud Enterprise (ECE) supports both `apikey` and a combination of `username` and `password`.
+Elasticsearch Service (ESS) only supports `apikey`. Elastic Cloud Enterprise (ECE) supports `apikey` or a combination of `username` and `password`.
 
-!> **Warning:** Hard-coding credentials into any Terraform configuration is not
-recommended, and risks secret leakage should this file ever be committed to a
-public version control system.
+!> **Warning:** Hard-coding credentials into a Terraform configuration is not recommended, and risks secret leakage should this file ever be committed to a public version control system.
 
 ### API key authentication (recommended)
 
 API keys are the recommended authentication method. They can be used to authenticate against Elasticsearch Service or Elastic Cloud Enterprise.
 
-They can either be specified with the `EC_API_KEY` environment variable (recommended) or hardcoded in the provider `.tf` configuration file (supported but not recommended).
+#### Generating an Elasticsearch Service (ESS) API Key
+
+To generate an API key, follow these steps:
+
+  1. Navigate to <https://cloud.elastic.co/login> with your browser
+  2. Log in with your Email and Password.
+  3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
+  4. Navigate to [Featuress > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  5. Chose a name for your API key.
+  6. Persist your API key somewhere safe.
+
+#### Using your API Key on the Elastic Cloud terraform provider
+
+After you've generated your API Key, you can make it available to the Terraform provider by exporting it as the environment variable `EC_API_KEY` environment variable (recommended) or hardcoded in the provider `.tf` configuration file (supported but not recommended).
+
+```sh
+$ export EC_API_KEY="<apikey value>"
+```
+
+Or set the `apikey` field in the "ec" provider to the value of your generated API key.
 
 ```hcl
 provider "ec" {
-  apikey = "my-api-key"
+  apikey = "<apikey value>"
 }
 ```
 
