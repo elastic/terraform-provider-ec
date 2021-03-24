@@ -2,7 +2,8 @@
 
 BREAKING CHANGES:
 
-* datasource/ec_deployment: Adds support for the newly added data tiers. A new **required** field `elasticsearch.toplogy.id` has been added, it needs to be set to all **explicit** Elasticsearch topology declarations. A `node_roles` computed field has been added to the schema and **cannot** be overridden by the user, versions `>=7.10.0` will be automatically migrated by the provider to use `node_roles` from the `node_type_*` settings, these will be removed from the state. When `node_type_*` fields are explicitly set in the terraform configuration they need to be unset manually by the user. Additionally, it removes the `elasticsearch.version` computed field. ([#253](https://github.com/elastic/terraform-provider-ec/issues/253))
+* ec_deployment: Removes the `apm.version`, `enterprise_search.version` and `kibana.version` computed fields. ([#266](https://github.com/elastic/terraform-provider-ec/issues/266))
+* resource/ec_deployment: Adds support for the newly added data tiers. A new **required** field `elasticsearch.toplogy.id` has been added, it needs to be set to all **explicit** Elasticsearch topology declarations. A `node_roles` computed field has been added to the schema and **cannot** be overridden by the user, versions `>=7.10.0` will be automatically migrated by the provider to use `node_roles` from the `node_type_*` settings, these will be removed from the state. When `node_type_*` fields are explicitly set in the terraform configuration they need to be unset manually by the user. Additionally, it removes the `elasticsearch.version` computed field. ([#253](https://github.com/elastic/terraform-provider-ec/issues/253))
 
 FEATURES:
 
@@ -13,6 +14,7 @@ ENHANCEMENTS:
 * datasource/ec_deployment: Adds the tag attribute to the `ec_deployment` datasource ([#244](https://github.com/elastic/terraform-provider-ec/issues/244))
 * datasource/ec_deployments: Allows filtering deployments by their associated tags ([#248](https://github.com/elastic/terraform-provider-ec/issues/248))
 * resource/ec_deployment: Add tags key / value map ([#218](https://github.com/elastic/terraform-provider-ec/issues/218))
+* resource/ec_deployment: Adds a new `elasticsearch.extension` block which can be used to enable custom Elasticsearch bundles or plugins that have previously been uploaded. ([#264](https://github.com/elastic/terraform-provider-ec/issues/264))
 
 BUG FIXES:
 
