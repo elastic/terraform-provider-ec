@@ -19,7 +19,7 @@ package acc
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -71,7 +71,7 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 func fixtureAccStackDataSource(t *testing.T, fileName, region string) string {
 	t.Helper()
 
-	b, err := ioutil.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}

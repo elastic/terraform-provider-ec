@@ -19,7 +19,7 @@ package acc
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -63,7 +63,7 @@ func TestAccDeploymentExtension_basic(t *testing.T) {
 func fixtureAccExtensionBasicWithTF(t *testing.T, tfFileName, extensionName, description string) string {
 	t.Helper()
 
-	b, err := ioutil.ReadFile(tfFileName)
+	b, err := os.ReadFile(tfFileName)
 	if err != nil {
 		t.Fatal(err)
 	}

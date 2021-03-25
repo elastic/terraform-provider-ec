@@ -19,7 +19,7 @@ package acc
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -140,7 +140,7 @@ func fixtureAccDeploymentResourceBasicWithApps(t *testing.T, fileName, name, reg
 		t.Fatal(err)
 	}
 
-	b, err := ioutil.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func fixtureAccDeploymentResourceBasicWithTF(t *testing.T, fileName, name, regio
 	t.Helper()
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
-	b, err := ioutil.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
