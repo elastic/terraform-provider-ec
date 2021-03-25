@@ -1,0 +1,33 @@
+name: release-branch
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  branch-out:
+    name: Create a github branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get the branch version
+        id: get_branch
+        run: |
+          BRANCH=${GITHUB_REF/refs\/tags\//}
+          if ${{github.event_name == 'workflow_dispatch'}}; then
+            BRANCH=$(git describe --abbrev=0 --tags)
+          fi
+          echo ::set-output name=BRANCH::$(echo ${BRANCH} | cut -d '.' -f1-2 | tr -d 'v')
+
+      - name: Create a github branch
+        uses: peterjgrainger/action-create-branch@v2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          branch: ${{ steps.get_branch.outputs.BRANCH }}
