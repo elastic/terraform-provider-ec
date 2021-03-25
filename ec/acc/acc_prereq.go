@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
@@ -118,6 +119,7 @@ func newAPI() (*api.API, error) {
 		Host:          host,
 		SkipTLSVerify: insecure,
 		Retries:       ec.DefaultHTTPRetries,
+		Timeout:       5 * time.Minute,
 	})
 }
 
