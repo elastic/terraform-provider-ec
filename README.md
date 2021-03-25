@@ -3,8 +3,6 @@
 ![Go](https://github.com/elastic/terraform-provider-ec/workflows/Go/badge.svg?branch=master)
 [![Acceptance Status](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/badge/icon?subject=acceptance&style=plastic)](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/)
 
-#### This project is currently under active development. Source code is provided with no assurances, use at your own risk.
-
 Terraform provider for the Elastic Cloud API, including:
 
 * Elasticsearch Service (ESS).
@@ -66,12 +64,12 @@ resource "ec_deployment" "example_minimal" {
 }
 ```
 
-You can find the full resource documentation in the [terraform-provider-ec/docs/](https://github.com/elastic/terraform-provider-ec/tree/master/docs) repo.
+You can find the full documentation for the latest provider version in the [Terraform Registry](https://registry.terraform.io/providers/elastic/ec/latest/docs).
 
 ## Developer Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.13+
-- [Go](https://golang.org/doc/install) 1.13+ (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.16+ (to build the provider plugin)
 
 ### Installing the provider via the source code
 
@@ -84,16 +82,16 @@ $ cd terraform-provider-ec
 $ make install
 ```
 
-### Generating an Elasticsearch Service API Key
+### Generating an Elasticsearch Service (ESS) API Key
 
 To generate an API key, follow these steps:
 
-  1. Navigate to <https://cloud.elastic.co/login> with your browser
-  2. Log in with your Email and Password.
+  1. Open your browser and navigate to <https://cloud.elastic.co/login>.
+  2. Log in with your email and password.
   3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
-  4. Navigate to [Account > API Keys](https://cloud.elastic.co/account/keys) and click on **Generate API Key**.
-  5. Once you Re-Authenticate, you'll have to chose a name for your API key.
-  6. Copy your API key somewhere safe.
+  4. Navigate to [Features > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  5. Choose a name for your API key.
+  6. Save your API key somewhere safe.
 
 ### Using your API Key on the Elastic Cloud terraform provider
 
