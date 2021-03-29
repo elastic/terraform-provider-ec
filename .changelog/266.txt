@@ -1,3 +1,0 @@
-```release-note:breaking-change
-ec_deployment: Removes the `apm.version`, `enterprise_search.version` and `kibana.version` computed fields.
-```

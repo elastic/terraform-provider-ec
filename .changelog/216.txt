@@ -1,3 +1,0 @@
-```release-note:new-resource
-resource/ec_extension: Add a new resource `ec_extension` which allows users to mange custom Elasticsearch bundles and plugins
-```

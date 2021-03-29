@@ -1,3 +1,0 @@
-```release-note:enhancement
-datasource/ec_deployments: Allows filtering deployments by their associated tags
-```
