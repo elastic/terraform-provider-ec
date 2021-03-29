@@ -56,6 +56,11 @@ func TestAccDeploymentExtension_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "extension_type", "bundle"),
 				),
 			},
+			{
+				ResourceName:      resName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

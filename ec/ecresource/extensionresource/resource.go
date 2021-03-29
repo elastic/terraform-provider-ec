@@ -34,6 +34,10 @@ func Resource() *schema.Resource {
 		UpdateContext: updateResource,
 		DeleteContext: deleteResource,
 
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+
 		Timeouts: &schema.ResourceTimeout{
 			Default: schema.DefaultTimeout(10 * time.Minute),
 		},
