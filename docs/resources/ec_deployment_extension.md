@@ -93,3 +93,11 @@ In addition to all the arguments above, the following attributes are exported:
 * `url` - The extension URL to be used in the plan.
 * `last_modified` - The datetime the extension was last modified.
 * `size` - The extension file size in bytes.
+
+## Import
+
+You can import extensions using the `id`, for example:
+
+```
+$ terraform import ec_deployment_extension.name 320b7b540dfc967a7a649c18e2fce4ed
+```
