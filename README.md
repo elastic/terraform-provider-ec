@@ -9,6 +9,8 @@ Terraform provider for the Elastic Cloud API, including:
 * Elastic Cloud Enterprise (ECE).
 * Elasticsearch Service Private (ESSP).
 
+_Model changes might be introduced between minors until version 1.0.0 is released. Such changes and the expected impact will be detailed in the change log and the individual release notes._
+
 ## Example usage
 
 ```hcl
