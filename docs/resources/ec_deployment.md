@@ -196,6 +196,9 @@ The following arguments are supported:
 * `request_id` - (Optional) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 * `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
 * `kibana` (Optional) Kibana instance definition, can only be specified once.
+
+-> **Note on disabling Kibana** While optional it is recommended deployments specify a Kibana block, since not doing so might cause issues when modifying or upgrading the deployment.
+
 * `apm` (Optional) APM instance definition, can only be specified once.
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
