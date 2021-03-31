@@ -1,3 +1,0 @@
-```release-note:enhancement
-datasource/ec_deployment: Adds the tag attribute to the `ec_deployment` datasource
-```

@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/ec_deployment: Adds a new `elasticsearch.extension` block which can be used to enable custom Elasticsearch bundles or plugins that have previously been uploaded.
-```

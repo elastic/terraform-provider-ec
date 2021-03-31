@@ -13,6 +13,8 @@ _Model changes might be introduced between minors until version 1.0.0 is release
 
 ## Example usage
 
+_These examples are forward looking and might use an unreleased version, for a current view of working examples, please refer to the [Terraform registry documentation](https://registry.terraform.io/providers/elastic/ec/latest/docs)._
+
 ```hcl
 terraform {
   required_version = ">= 0.12.29"
@@ -20,7 +22,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = "0.1.0"
+      version = "0.2.0"
     }
   }
 }
@@ -65,8 +67,6 @@ resource "ec_deployment" "example_minimal" {
   kibana {}
 }
 ```
-
-You can find the full documentation for the latest provider version in the [Terraform Registry](https://registry.terraform.io/providers/elastic/ec/latest/docs).
 
 ## Developer Requirements
 

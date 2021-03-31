@@ -1,3 +1,0 @@
-```release-note:bug
-datasource/ec_deployment: Fixes bug where the datasource was persisting zero sized topology elements in the state
-```
