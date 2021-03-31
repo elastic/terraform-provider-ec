@@ -10,5 +10,6 @@
         script-path: .ci/pipelines/release.Jenkinsfile
         scm:
             - git:
+                refspec: +refs/tags/v*:refs/remotes/origin/tags/v*
                 branches:
-                    - refs/tags/v*
+                    - "**/tags/v*"
