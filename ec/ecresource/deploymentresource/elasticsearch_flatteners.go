@@ -52,7 +52,7 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 
 		plan := res.Info.PlanInfo.Current.Plan
 		if topology := flattenEsTopology(plan); len(topology) > 0 {
-			m["topology"] = topology
+			m["topology"] = schema.NewSet(esTopologyHash, topology)
 		}
 
 		if meta := res.Info.Metadata; meta != nil && meta.CloudID != "" {

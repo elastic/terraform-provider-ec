@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -28,6 +29,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+)
+
+// These constants are only used to determine whether or not a dedicated
+// tier of masters or ingest (coordinating) nodes are set.
+const (
+	dataTierRolePrefix = "data_"
+	ingestDataTierRole = "ingest"
+	masterDataTierRole = "master"
 )
 
 // expandEsResources expands Elasticsearch resources
@@ -66,7 +75,7 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	// >= 6.6.0 which is when ILM is introduced in Elasticsearch.
 	unsetElasticsearchCuration(res)
 
-	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := es["topology"]; ok && rt.(*schema.Set).Len() > 0 {
 		topology, err := expandEsTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
@@ -75,6 +84,10 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	} else {
 		res.Plan.ClusterTopology = defaultEsTopologies(res.Plan.ClusterTopology)
 	}
+
+	// Fixes the node_roles field to remove the dedicated tier roles from the
+	// list when these are set as a dedicated tier as a topology element.
+	updateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
 
 	if cfg, ok := es["config"]; ok {
 		if err := expandEsConfig(cfg, res.Plan.Elasticsearch); err != nil {
@@ -100,7 +113,7 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 
 // expandEsTopology expands a flattened topology
 func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchClusterTopologyElement) ([]*models.ElasticsearchClusterTopologyElement, error) {
-	rawTopologies := raw.([]interface{})
+	rawTopologies := raw.(*schema.Set).List()
 	res := make([]*models.ElasticsearchClusterTopologyElement, 0)
 
 	for _, rawTop := range rawTopologies {
@@ -150,6 +163,10 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		res = append(res, elem)
 	}
 
+	// Ensure the topologies are sorted by id.
+	sort.SliceStable(res, func(i, j int) bool {
+		return res[i].ID < res[j].ID
+	})
 	return res, nil
 }
 
@@ -337,6 +354,72 @@ func sizeIsEmpty(size *models.TopologySize) bool {
 	}
 
 	return false
+}
+
+func updateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTopologyElement) {
+	dataTier, hasMasterTier, hasIngestTier := dedicatedTopoogies(topologies)
+	// This case is not very likely since all deployments will have a data tier.
+	// It's here because the code path is technically possible and it's better
+	// than a straight panic.
+	if dataTier == nil {
+		return
+	}
+
+	if hasIngestTier {
+		dataTier.NodeRoles = removeItem(dataTier.NodeRoles, ingestDataTierRole)
+	}
+	if hasMasterTier {
+		dataTier.NodeRoles = removeItem(dataTier.NodeRoles, masterDataTierRole)
+	}
+}
+
+func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement) (dataTier *models.ElasticsearchClusterTopologyElement, hasMasterTier, hasIngestTier bool) {
+	for _, topology := range topologies {
+		var hasSomeDataRole bool
+		var hasMasterRole bool
+		var hasIngestRole bool
+		for _, role := range topology.NodeRoles {
+			if strings.HasPrefix(role, dataTierRolePrefix) {
+				hasSomeDataRole = true
+			}
+			if role == ingestDataTierRole {
+				hasIngestRole = true
+			}
+			if role == masterDataTierRole {
+				hasMasterRole = true
+			}
+		}
+
+		if !hasSomeDataRole && hasMasterRole {
+			hasMasterTier = true
+		}
+
+		if !hasSomeDataRole && hasIngestRole {
+			hasIngestTier = true
+		}
+
+		if hasSomeDataRole && hasMasterRole {
+			dataTier = topology
+		}
+	}
+
+	return dataTier, hasMasterTier, hasIngestTier
+}
+
+func removeItem(slice []string, item string) []string {
+	var hasItem bool
+	var itemIndex int
+	for i, str := range slice {
+		if str == item {
+			hasItem = true
+			itemIndex = i
+		}
+	}
+	if hasItem {
+		copy(slice[itemIndex:], slice[itemIndex+1:])
+		return slice[:len(slice)-1]
+	}
+	return slice
 }
 
 func expandEsExtension(raw []interface{}, es *models.ElasticsearchConfiguration) {
