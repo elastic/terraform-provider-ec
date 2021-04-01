@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -79,7 +80,8 @@ func newElasticsearchResource() *schema.Resource {
 
 func elasticsearchTopologySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:        schema.TypeList,
+		Type:        schema.TypeSet,
+		Set:         esTopologyHash,
 		MinItems:    1,
 		Optional:    true,
 		Computed:    true,
@@ -150,6 +152,54 @@ func elasticsearchTopologySchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+// This function needs to hash ALL the topology fields.
+func esTopologyHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(m["id"].(string))
+	if s := m["size"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+	if s := m["node_type_data"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+	if s := m["node_type_ingest"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+	if s := m["node_type_master"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+	if s := m["node_type_ml"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+
+	if nr := m["node_roles"]; nr != nil {
+		set := nr.(*schema.Set)
+		buf.WriteString(set.GoString())
+	}
+
+	if s := m["instance_configuration_id"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+
+	if s := m["size_resource"]; s != nil {
+		buf.WriteString(s.(string))
+	}
+
+	if s := m["zone_count"]; s != nil {
+		var val int
+		switch s := s.(type) {
+		case int:
+			val = s
+		case int32:
+			val = int(s)
+		}
+		buf.WriteString(strconv.Itoa(val))
+	}
+
+	return schema.HashString(buf.String())
 }
 
 func elasticsearchConfig() *schema.Schema {
