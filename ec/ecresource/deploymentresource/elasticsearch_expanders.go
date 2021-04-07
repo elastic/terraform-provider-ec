@@ -361,10 +361,14 @@ func updateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTo
 	}
 
 	if hasIngestTier {
-		dataTier.NodeRoles = removeItem(dataTier.NodeRoles, ingestDataTierRole)
+		dataTier.NodeRoles = removeItemFromSlice(
+			dataTier.NodeRoles, ingestDataTierRole,
+		)
 	}
 	if hasMasterTier {
-		dataTier.NodeRoles = removeItem(dataTier.NodeRoles, masterDataTierRole)
+		dataTier.NodeRoles = removeItemFromSlice(
+			dataTier.NodeRoles, masterDataTierRole,
+		)
 	}
 }
 
@@ -401,7 +405,7 @@ func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement
 	return dataTier, hasMasterTier, hasIngestTier
 }
 
-func removeItem(slice []string, item string) []string {
+func removeItemFromSlice(slice []string, item string) []string {
 	var hasItem bool
 	var itemIndex int
 	for i, str := range slice {
