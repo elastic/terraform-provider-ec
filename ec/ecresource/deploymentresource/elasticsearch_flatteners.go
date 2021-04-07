@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"bytes"
 	"encoding/json"
+	"sort"
 	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -144,6 +145,12 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 		result = append(result, m)
 	}
 
+	// Ensure the topologies are sorted alphabetically by ID.
+	sort.SliceStable(result, func(i, j int) bool {
+		a := result[i].(map[string]interface{})
+		b := result[j].(map[string]interface{})
+		return a["id"].(string) < b["id"].(string)
+	})
 	return result
 }
 

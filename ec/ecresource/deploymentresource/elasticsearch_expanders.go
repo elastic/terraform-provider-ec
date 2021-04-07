@@ -30,6 +30,14 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
+// These constants are only used to determine whether or not a dedicated
+// tier of masters or ingest (coordinating) nodes are set.
+const (
+	dataTierRolePrefix = "data_"
+	ingestDataTierRole = "ingest"
+	masterDataTierRole = "master"
+)
+
 // expandEsResources expands Elasticsearch resources
 func expandEsResources(ess []interface{}, tpl *models.ElasticsearchPayload) ([]*models.ElasticsearchPayload, error) {
 	if len(ess) == 0 {
@@ -75,6 +83,10 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	} else {
 		res.Plan.ClusterTopology = defaultEsTopologies(res.Plan.ClusterTopology)
 	}
+
+	// Fixes the node_roles field to remove the dedicated tier roles from the
+	// list when these are set as a dedicated tier as a topology element.
+	updateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
 
 	if cfg, ok := es["config"]; ok {
 		if err := expandEsConfig(cfg, res.Plan.Elasticsearch); err != nil {
@@ -337,6 +349,76 @@ func sizeIsEmpty(size *models.TopologySize) bool {
 	}
 
 	return false
+}
+
+func updateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTopologyElement) {
+	dataTier, hasMasterTier, hasIngestTier := dedicatedTopoogies(topologies)
+	// This case is not very likely since all deployments will have a data tier.
+	// It's here because the code path is technically possible and it's better
+	// than a straight panic.
+	if dataTier == nil {
+		return
+	}
+
+	if hasIngestTier {
+		dataTier.NodeRoles = removeItemFromSlice(
+			dataTier.NodeRoles, ingestDataTierRole,
+		)
+	}
+	if hasMasterTier {
+		dataTier.NodeRoles = removeItemFromSlice(
+			dataTier.NodeRoles, masterDataTierRole,
+		)
+	}
+}
+
+func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement) (dataTier *models.ElasticsearchClusterTopologyElement, hasMasterTier, hasIngestTier bool) {
+	for _, topology := range topologies {
+		var hasSomeDataRole bool
+		var hasMasterRole bool
+		var hasIngestRole bool
+		for _, role := range topology.NodeRoles {
+			if strings.HasPrefix(role, dataTierRolePrefix) {
+				hasSomeDataRole = true
+			}
+			if role == ingestDataTierRole {
+				hasIngestRole = true
+			}
+			if role == masterDataTierRole {
+				hasMasterRole = true
+			}
+		}
+
+		if !hasSomeDataRole && hasMasterRole {
+			hasMasterTier = true
+		}
+
+		if !hasSomeDataRole && hasIngestRole {
+			hasIngestTier = true
+		}
+
+		if hasSomeDataRole && hasMasterRole {
+			dataTier = topology
+		}
+	}
+
+	return dataTier, hasMasterTier, hasIngestTier
+}
+
+func removeItemFromSlice(slice []string, item string) []string {
+	var hasItem bool
+	var itemIndex int
+	for i, str := range slice {
+		if str == item {
+			hasItem = true
+			itemIndex = i
+		}
+	}
+	if hasItem {
+		copy(slice[itemIndex:], slice[itemIndex+1:])
+		return slice[:len(slice)-1]
+	}
+	return slice
 }
 
 func expandEsExtension(raw []interface{}, es *models.ElasticsearchConfiguration) {
