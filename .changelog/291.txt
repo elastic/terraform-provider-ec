@@ -1,0 +1,3 @@
+```release-note:bug
+ resource/ec_deployment: Fixes a bug where specifying a dedicated tier for master or coordinating nodes would result in an API stating that the master or ingest roles are duplicated.
+ ```

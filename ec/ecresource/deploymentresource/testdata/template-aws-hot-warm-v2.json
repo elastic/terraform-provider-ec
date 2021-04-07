@@ -145,7 +145,8 @@
                 "id": "master",
                 "instance_configuration_id": "aws.master.r5d",
                 "node_roles": [
-                  "master"
+                  "master",
+                  "remote_cluster_client"
                 ],
                 "node_type": {
                   "data": false,
