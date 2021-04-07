@@ -1,5 +1,9 @@
 # 0.1.1 (April 7, 2021)
 
+BUG FIXES:
+
+* resource/ec_deployment: Fixes a bug where specifying a dedicated tier for master or coordinating nodes would result in an API stating that the master or ingest roles are duplicated. ([#293](https://github.com/elastic/terraform-provider-ec/issues/293))
+
 # 0.1.0 (March 31, 2021)
 
 BREAKING CHANGES:
