@@ -56,7 +56,7 @@ func flattenRules(rules []*models.TrafficFilterRule) *schema.Set {
 	result := schema.NewSet(trafficFilterRuleHash, []interface{}{})
 	for _, rule := range rules {
 		var m = make(map[string]interface{})
-		m["source"] = *rule.Source
+		m["source"] = rule.Source
 
 		if rule.Description != "" {
 			m["description"] = rule.Description

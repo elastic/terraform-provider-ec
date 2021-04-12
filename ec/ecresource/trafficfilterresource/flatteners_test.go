@@ -39,8 +39,8 @@ func Test_modelToState(t *testing.T) {
 		IncludeByDefault: ec.Bool(false),
 		Region:           ec.String("us-east-1"),
 		Rules: []*models.TrafficFilterRule{
-			{Source: ec.String("1.1.1.1")},
-			{Source: ec.String("0.0.0.0/0")},
+			{Source: "1.1.1.1"},
+			{Source: "0.0.0.0/0"},
 		},
 	}
 
@@ -54,10 +54,10 @@ func Test_modelToState(t *testing.T) {
 		IncludeByDefault: ec.Bool(false),
 		Region:           ec.String("us-east-1"),
 		Rules: []*models.TrafficFilterRule{
-			{Source: ec.String("1.1.1.0/16")},
-			{Source: ec.String("1.1.1.1/24")},
-			{Source: ec.String("0.0.0.0/0")},
-			{Source: ec.String("1.1.1.1")},
+			{Source: "1.1.1.0/16"},
+			{Source: "1.1.1.1/24"},
+			{Source: "0.0.0.0/0"},
+			{Source: "1.1.1.1"},
 		},
 	}
 
@@ -71,9 +71,9 @@ func Test_modelToState(t *testing.T) {
 		IncludeByDefault: ec.Bool(false),
 		Region:           ec.String("us-east-1"),
 		Rules: []*models.TrafficFilterRule{
-			{Source: ec.String("1.1.1.0/16"), Description: "some network"},
-			{Source: ec.String("1.1.1.1/24"), Description: "a specific IP"},
-			{Source: ec.String("0.0.0.0/0"), Description: "all internet traffic"},
+			{Source: "1.1.1.0/16", Description: "some network"},
+			{Source: "1.1.1.1/24", Description: "a specific IP"},
+			{Source: "0.0.0.0/0", Description: "all internet traffic"},
 		},
 	}
 

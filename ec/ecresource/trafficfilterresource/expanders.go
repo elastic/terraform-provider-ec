@@ -37,7 +37,7 @@ func expandModel(d *schema.ResourceData) *models.TrafficFilterRulesetRequest {
 	for _, r := range ruleSet.List() {
 		var m = r.(map[string]interface{})
 		var rule = models.TrafficFilterRule{
-			Source: ec.String(m["source"].(string)),
+			Source: m["source"].(string),
 		}
 
 		if val, ok := m["id"]; ok {
