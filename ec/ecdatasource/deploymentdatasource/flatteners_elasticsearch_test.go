@@ -34,6 +34,7 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 		name string
 		args args
 		want []interface{}
+		err  string
 	}{
 		{
 			name: "empty resource list returns empty list",
@@ -61,6 +62,7 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 						PlanInfo: &models.ElasticsearchClusterPlansInfo{
 							Current: &models.ElasticsearchClusterPlanInfo{
 								Plan: &models.ElasticsearchClusterPlan{
+									AutoscalingEnabled: ec.Bool(true),
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										Version: "7.7.0",
 									},
@@ -78,6 +80,14 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 												Ingest: ec.Bool(true),
 												Master: ec.Bool(true),
 												Ml:     ec.Bool(false),
+											},
+											AutoscalingMax: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(15360),
+											},
+											AutoscalingMin: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
 											},
 										},
 										{
@@ -102,35 +112,41 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{
-				map[string]interface{}{
-					"ref_id":         "main-elasticsearch",
-					"resource_id":    mock.ValidClusterID,
-					"version":        "7.7.0",
-					"cloud_id":       "some CLOUD ID",
-					"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
-					"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
-					"healthy":        true,
-					"status":         "started",
-					"topology": []interface{}{
-						map[string]interface{}{
-							"instance_configuration_id": "aws.data.highio.i3",
-							"size":                      "2g",
-							"size_resource":             "memory",
-							"node_type_data":            true,
-							"node_type_ingest":          true,
-							"node_type_master":          true,
-							"node_type_ml":              false,
-							"zone_count":                int32(1),
-						},
-					},
-				},
-			},
+			want: []interface{}{map[string]interface{}{
+				"autoscale":      "true",
+				"ref_id":         "main-elasticsearch",
+				"resource_id":    mock.ValidClusterID,
+				"version":        "7.7.0",
+				"cloud_id":       "some CLOUD ID",
+				"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
+				"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
+				"healthy":        true,
+				"status":         "started",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "aws.data.highio.i3",
+					"size":                      "2g",
+					"size_resource":             "memory",
+					"node_type_data":            true,
+					"node_type_ingest":          true,
+					"node_type_master":          true,
+					"node_type_ml":              false,
+					"zone_count":                int32(1),
+					"autoscaling": []interface{}{map[string]interface{}{
+						"max_size":          "15g",
+						"max_size_resource": "memory",
+						"min_size":          "1g",
+						"min_size_resource": "memory",
+					}},
+				}},
+			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenElasticsearchResources(tt.args.in)
+			got, err := flattenElasticsearchResources(tt.args.in)
+			if err != nil && assert.EqualError(t, err, tt.err) {
+				t.Error(err)
+			}
 			assert.Equal(t, tt.want, got)
 		})
 	}
