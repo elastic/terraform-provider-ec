@@ -110,7 +110,10 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		}
 	}
 
-	elasticsearchFlattened := flattenElasticsearchResources(res.Resources.Elasticsearch)
+	elasticsearchFlattened, err := flattenElasticsearchResources(res.Resources.Elasticsearch)
+	if err != nil {
+		return err
+	}
 	if err := d.Set("elasticsearch", elasticsearchFlattened); err != nil {
 		return err
 	}

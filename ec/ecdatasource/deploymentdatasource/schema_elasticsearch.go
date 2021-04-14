@@ -24,6 +24,10 @@ import (
 func newElasticsearchResourceInfo() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
+			"autoscale": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"healthy": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -105,6 +109,46 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
+					},
+				},
+
+				"autoscaling": {
+					Type:        schema.TypeList,
+					Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
+					Computed:    true,
+					MaxItems:    1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"max_size_resource": {
+								Description: "Maximum resource type for the maximum autoscaling setting.",
+								Type:        schema.TypeString,
+								Computed:    true,
+							},
+
+							"max_size": {
+								Description: "Maximum size value for the maximum autoscaling setting.",
+								Type:        schema.TypeString,
+								Computed:    true,
+							},
+
+							"min_size_resource": {
+								Description: "Minimum resource type for the minimum autoscaling setting.",
+								Type:        schema.TypeString,
+								Computed:    true,
+							},
+
+							"min_size": {
+								Description: "Minimum size value for the minimum autoscaling setting.",
+								Type:        schema.TypeString,
+								Computed:    true,
+							},
+
+							"policy_override_json": {
+								Type:        schema.TypeString,
+								Description: "Computed policy overrides set directly via the API or other clients.",
+								Computed:    true,
+							},
+						},
 					},
 				},
 			},
