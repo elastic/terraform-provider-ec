@@ -17,6 +17,7 @@ resource "ec_deployment" "pre_nr" {
     }
     topology {
       id         = "warm"
+      size       = "2g"
       zone_count = 1
     }
   }

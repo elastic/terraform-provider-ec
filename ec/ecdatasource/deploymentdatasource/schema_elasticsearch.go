@@ -116,7 +116,6 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Type:        schema.TypeList,
 					Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
 					Computed:    true,
-					MaxItems:    1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"max_size_resource": {
