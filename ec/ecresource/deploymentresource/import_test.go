@@ -107,6 +107,7 @@ func Test_importFunc(t *testing.T) {
 				"deployment_template_id": "aws-cross-cluster-search-v2",
 
 				"elasticsearch.#":                   "1",
+				"elasticsearch.0.autoscale":         "",
 				"elasticsearch.0.cloud_id":          "",
 				"elasticsearch.0.snapshot_source.#": "0",
 				"elasticsearch.0.config.#":          "0",
@@ -152,6 +153,7 @@ func Test_importFunc(t *testing.T) {
 				"deployment_template_id": "aws-cross-cluster-search-v2",
 
 				"elasticsearch.#":                   "1",
+				"elasticsearch.0.autoscale":         "",
 				"elasticsearch.0.cloud_id":          "",
 				"elasticsearch.0.snapshot_source.#": "0",
 				"elasticsearch.0.config.#":          "0",
@@ -197,6 +199,7 @@ func Test_importFunc(t *testing.T) {
 				"deployment_template_id": "aws-cross-cluster-search-v2",
 
 				"elasticsearch.#":                   "1",
+				"elasticsearch.0.autoscale":         "",
 				"elasticsearch.0.cloud_id":          "",
 				"elasticsearch.0.snapshot_source.#": "0",
 				"elasticsearch.0.config.#":          "0",
