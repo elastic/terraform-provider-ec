@@ -37,6 +37,7 @@ func Test_flattenEsResource(t *testing.T) {
 		name string
 		args args
 		want []interface{}
+		err  string
 	}{
 		{
 			name: "empty resource list returns empty list",
@@ -339,7 +340,10 @@ func Test_flattenEsResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenEsResources(tt.args.in, tt.args.name, tt.args.remotes)
+			got, err := flattenEsResources(tt.args.in, tt.args.name, tt.args.remotes)
+			if err != nil && !assert.EqualError(t, err, tt.err) {
+				t.Error(err)
+			}
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -353,6 +357,7 @@ func Test_flattenEsTopology(t *testing.T) {
 		name string
 		args args
 		want []interface{}
+		err  string
 	}{
 		{
 			name: "no zombie topologies",
@@ -397,7 +402,10 @@ func Test_flattenEsTopology(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenEsTopology(tt.args.plan)
+			got, err := flattenEsTopology(tt.args.plan)
+			if err != nil && !assert.EqualError(t, err, tt.err) {
+				t.Error(err)
+			}
 			assert.Equal(t, tt.want, got)
 		})
 	}
