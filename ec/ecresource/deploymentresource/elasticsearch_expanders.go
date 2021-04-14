@@ -82,8 +82,6 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 			return nil, err
 		}
 		res.Plan.ClusterTopology = topology
-	} else {
-		res.Plan.ClusterTopology = defaultEsTopologies(res.Plan.ClusterTopology)
 	}
 
 	// Fixes the node_roles field to remove the dedicated tier roles from the
@@ -283,36 +281,6 @@ func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfig
 		}
 
 	}
-}
-
-func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement) (result []*models.ElasticsearchClusterTopologyElement) {
-	for _, topology := range topologies {
-		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
-			continue
-		}
-		result = append(result, topology)
-	}
-	return result
-}
-
-// defaultEsTopologies iterates over all the templated topology elements and
-// sets the size to the default when the template size is smaller than the
-// deployment template default, the same is done on the ZoneCount. It discards
-// any elements where the size is == 0, since it means that different Instance
-// configurations are available to configure but are not included in the
-// default deployment template.
-func defaultEsTopologies(topology []*models.ElasticsearchClusterTopologyElement) []*models.ElasticsearchClusterTopologyElement {
-	topology = discardEsZeroSize(topology)
-	for _, t := range topology {
-		if *t.Size.Value < minimumElasticsearchSize {
-			t.Size.Value = ec.Int32(minimumElasticsearchSize)
-		}
-		if t.ZoneCount < minimumZoneCount {
-			t.ZoneCount = minimumZoneCount
-		}
-	}
-
-	return topology
 }
 
 func matchEsTopologyID(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {
