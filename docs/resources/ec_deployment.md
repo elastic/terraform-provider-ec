@@ -45,7 +45,7 @@ resource "ec_deployment" "example_minimal" {
 }
 ```
 
-### Hot warm cold tiered deployment
+### Tiered deployment with Autoscaling enabled
 
 ```hcl
 data "ec_stack" "latest" {
@@ -59,19 +59,26 @@ resource "ec_deployment" "example_minimal" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
+    autoscale = "true"
+
+    topology {
+      id   = "cold"
+      size = "8g"
+    }
+
     topology {
       id   = "hot_content"
       size = "8g"
+
+      autoscaling {
+        // Optionally change the policy max size.
+        // max_size = "29g"
+      }
     }
 
     topology {
       id   = "warm"
       size = "16g"
-    }
-
-    topology {
-      id   = "cold"
-      size = "8g"
     }
   }
 
@@ -207,7 +214,7 @@ The following arguments are supported:
 
 ### Resources
 
-!> **Warning on removing explicit topology objects** Due to current limitations, if a topology object is removed from the configuration, the removal won't trigger any changes since the field is optional and computed. There is no way to determine if the block was removed, which results in a _"sticky"_ topology configuration.
+!> **Warning on removing explicit topology objects** Due to current limitations, if a topology object is removed from the configuration, the removal won't trigger any changes since the field is optional and computed. There is no way to determine if the block was removed, which results in a _"sticky"_ topology configuration. To disable a topology element, set the `topology.size` to `"0g"`.
 
 To create a valid deployment, you must specify at least the resource type `elasticsearch`. The supported resources are listed below.
 
@@ -215,7 +222,7 @@ A default topology from the deployment template is used for empty blocks: `elast
 
 The `ec_deployment` resource will opt-out all the resources except Elasticsearch, which inherits the default topology from the deployment template. For example, the [I/O Optimized template includes an Elasticsearch cluster 8 GB memory x 2 availability zones](https://www.elastic.co/guide/en/cloud/current/ec-getting-started-profiles.html#ec-getting-started-profiles-io).
 
-To customize the size or settings of the deployment resource, use the `topology` block within each resource kind block.
+To customize the size or settings of the deployment resource, use the `topology` block within each resource kind block. The `topology` blocks are ordered lists and should be defined in the Terraform configuration in an ascending manner by alphabetical order of the `id` field.
 
 #### Elasticsearch
 
@@ -227,6 +234,7 @@ The required `elasticsearch` block supports the following arguments:
 * `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
 * `snapshot_source` (Optional) Restores data from a snapshot of another deployment.
 * `extension` (Optional) Custom Elasticsearch bundles or plugins. Can be set multiple times.
+* `autoscale` (Optional) Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are `"true"` or `"false"`.
 
 ##### Topology
 
@@ -244,8 +252,22 @@ The optional `elasticsearch.topology` block supports the following arguments:
 * `node_type_master` - (Optional) The node type for the Elasticsearch cluster (master node).
 * `node_type_ingest` - (Optional) The node type for the Elasticsearch cluster (ingest node).
 * `node_type_ml` - (Optional) The node type for the Elasticsearch cluster (machine learning node).
+* `autoscaling` - (Optional) Autoscaling policy defining the maximum and / or minimum total size for this topology element. For more information refer to the `autoscaling` block.
 
 ~> **Note when node_type_* fields set** After upgrading to a version that supports data tiers (7.10.0 or above), the `node_type_*` has no effect even if specified. The provider automatically migrates the `node_type_*` fields to the appropriate `node_roles` as set by the deployment template. After having upgraded to `7.10.0` or above, the fields should be removed from the terraform configuration, if explicitly configured.
+
+##### Autoscaling
+
+The optional `elasticsearch.autoscaling` block supports the following arguments:
+
+* `min_size` - (Optional) Defines the minimum size the deployment will scale down to. When set, scale down will be enabled, please note that not all the tiers support this option.
+* `min_size_resource` - (Optional) Defines the resource type the scale down will use (Defaults to `"memory"`).
+* `max_size` - (Optional) Defines the maximum size the deployment will scale up to. When set, scaling up will be enabled. All tiers should support this option.
+* `max_size_resource` - (Optional) Defines the resource type the scale up will use (Defaults to `"memory"`).
+
+-> Note that none of these settings will take effect unless `elasticsearch.autoscale` is set to `"true"`.
+
+Please refer to the [Deployment Autoscaling](https://www.elastic.co/guide/en/cloud/current/ec-autoscaling.html) documentation for an updated list of the Elasticsearch tiers supporting scale up and scale down.
 
 ##### Config
 
@@ -391,6 +413,7 @@ In addition to all the arguments above, the following attributes are exported:
 * `elasticsearch.#.topology.#.node_type_ingest` - Node type (ingest) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_type_ml` - Node type (machine learning) for the Elasticsearch topology element.
 * `elasticsearch.#.topology.#.node_roles` - List of roles for the topology element. They are inferred from the deployment template.
+* `elasticsearch.#.topology.#.autoscaling.#.policy_override_json` - Computed policy overrides set directly via the API or other clients.
 * `elasticsearch.#.snapshot_source.#.source_elasticsearch_cluster_id` - ID of the Elasticsearch cluster that will be used as the source of the snapshot.
 * `elasticsearch.#.snapshot_source.#.snapshot_name` - Name of the snapshot to restore.
 * `kibana.#.resource_id` - Kibana resource unique identifier.
