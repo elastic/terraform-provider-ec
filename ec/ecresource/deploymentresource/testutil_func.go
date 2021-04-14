@@ -19,6 +19,7 @@ package deploymentresource
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"testing"
 
@@ -63,4 +64,41 @@ func openDeploymentGet(t *testing.T, name string) *models.DeploymentGetResponse 
 		t.Fatal(err)
 	}
 	return &res
+}
+
+func enrichWithEmptyTopologies(tpl, want *models.ElasticsearchPayload) []*models.ElasticsearchPayload {
+	tpl.DisplayName = want.DisplayName
+	tpl.RefID = want.RefID
+	tpl.Region = want.Region
+	tpl.Settings = want.Settings
+	tpl.Plan.AutoscalingEnabled = want.Plan.AutoscalingEnabled
+	tpl.Plan.Elasticsearch = want.Plan.Elasticsearch
+	tpl.Plan.ZoneCount = want.Plan.ZoneCount
+	tpl.Plan.Transient = want.Plan.Transient
+
+	for i, t := range tpl.Plan.ClusterTopology {
+		for _, w := range want.Plan.ClusterTopology {
+			if t.ID == w.ID {
+				tpl.Plan.ClusterTopology[i] = w
+			}
+		}
+	}
+
+	return []*models.ElasticsearchPayload{tpl}
+}
+
+func readerToESPayload(t *testing.T, rc io.Reader, nr bool) *models.ElasticsearchPayload {
+	t.Helper()
+
+	var tpl models.DeploymentTemplateInfoV2
+	if err := json.NewDecoder(rc).Decode(&tpl); err != nil {
+		t.Fatal(err)
+	}
+
+	return enrichElasticsearchTemplate(
+		tpl.DeploymentTemplate.Resources.Elasticsearch[0],
+		*tpl.ID,
+		"",
+		nr,
+	)
 }
