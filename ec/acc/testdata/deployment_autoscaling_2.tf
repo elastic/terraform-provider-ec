@@ -11,7 +11,7 @@ resource "ec_deployment" "autoscaling" {
 
   elasticsearch {
     autoscale = "false"
-    
+
     topology {
       id         = "hot_content"
       size       = "1g"
