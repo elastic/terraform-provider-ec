@@ -25,6 +25,7 @@
       "elasticsearch": [
         {
           "plan": {
+            "autoscaling_enabled": false,
             "cluster_topology": [
               {
                 "id": "coordinating",
@@ -51,6 +52,10 @@
                 "zone_count": 2
               },
               {
+                "autoscaling_max": {
+                  "resource": "memory",
+                  "value": 118784
+                },
                 "elasticsearch": {
                   "node_attributes": {
                     "data": "hot"
@@ -84,6 +89,10 @@
                 "zone_count": 2
               },
               {
+                "autoscaling_max": {
+                  "resource": "memory",
+                  "value": 118784
+                },
                 "elasticsearch": {
                   "node_attributes": {
                     "data": "warm"
@@ -113,6 +122,10 @@
                 "zone_count": 2
               },
               {
+                "autoscaling_max": {
+                  "resource": "memory",
+                  "value": 59392
+                },
                 "elasticsearch": {
                   "node_attributes": {
                     "data": "cold"
@@ -166,6 +179,14 @@
                 "zone_count": 3
               },
               {
+                "autoscaling_max": {
+                  "resource": "memory",
+                  "value": 61440
+                },
+                "autoscaling_min": {
+                  "resource": "memory",
+                  "value": 0
+                },
                 "id": "ml",
                 "instance_configuration_id": "aws.ml.m5d",
                 "node_roles": [

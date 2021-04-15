@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"strconv"
 
@@ -31,7 +32,7 @@ import (
 
 // flattenEsResources takes in Elasticsearch resource models and returns its
 // flattened form.
-func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, remotes models.RemoteResources) []interface{} {
+func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, remotes models.RemoteResources) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
 		m := make(map[string]interface{})
@@ -52,8 +53,16 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 		}
 
 		plan := res.Info.PlanInfo.Current.Plan
-		if topology := flattenEsTopology(plan); len(topology) > 0 {
+		topology, err := flattenEsTopology(plan)
+		if err != nil {
+			return nil, err
+		}
+		if len(topology) > 0 {
 			m["topology"] = topology
+		}
+
+		if plan.AutoscalingEnabled != nil {
+			m["autoscale"] = strconv.FormatBool(*plan.AutoscalingEnabled)
 		}
 
 		if meta := res.Info.Metadata; meta != nil && meta.CloudID != "" {
@@ -88,10 +97,10 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 		result = append(result, m)
 	}
 
-	return result
+	return result, nil
 }
 
-func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
+func flattenEsTopology(plan *models.ElasticsearchClusterPlan) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
@@ -142,6 +151,32 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 			))
 		}
 
+		autoscaling := make(map[string]interface{})
+		if ascale := topology.AutoscalingMax; ascale != nil {
+			autoscaling["max_size_resource"] = *ascale.Resource
+			autoscaling["max_size"] = util.MemoryToState(*ascale.Value)
+		}
+
+		if ascale := topology.AutoscalingMin; ascale != nil {
+			autoscaling["min_size_resource"] = *ascale.Resource
+			autoscaling["min_size"] = util.MemoryToState(*ascale.Value)
+		}
+
+		if topology.AutoscalingPolicyOverrideJSON != nil {
+			b, err := json.Marshal(topology.AutoscalingPolicyOverrideJSON)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"elasticsearch topology %s: unable to persist policy_override_json: %w",
+					topology.ID, err,
+				)
+			}
+			autoscaling["policy_override_json"] = string(b)
+		}
+
+		if len(autoscaling) > 0 {
+			m["autoscaling"] = []interface{}{autoscaling}
+		}
+
 		result = append(result, m)
 	}
 
@@ -151,7 +186,7 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) []interface{} {
 		b := result[j].(map[string]interface{})
 		return a["id"].(string) < b["id"].(string)
 	})
-	return result
+	return result, nil
 }
 
 func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {

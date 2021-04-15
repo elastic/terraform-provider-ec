@@ -22,7 +22,6 @@ import (
 )
 
 const (
-	minimumElasticsearchSize    = 1024
 	minimumKibanaSize           = 1024
 	minimumApmSize              = 512
 	minimumEnterpriseSearchSize = 2048

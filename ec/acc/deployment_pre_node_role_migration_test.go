@@ -18,7 +18,6 @@
 package acc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -30,8 +29,7 @@ func TestAccDeployment_pre_node_roles(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_pre_node_roles_migration_1.tf"
 	upgradeVersionCfg := "testdata/deployment_pre_node_roles_migration_2.tf"
-	invalidWarmTopologyCfg := "testdata/deployment_pre_node_roles_migration_3.tf"
-	addWarmTopologyCfg := "testdata/deployment_pre_node_roles_migration_4.tf"
+	addWarmTopologyCfg := "testdata/deployment_pre_node_roles_migration_3.tf"
 
 	cfgF := func(cfg string) string {
 		return fixtureAccDeploymentResourceBasic(
@@ -83,10 +81,6 @@ func TestAccDeployment_pre_node_roles(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
 				),
-			},
-			{
-				Config:      cfgF(invalidWarmTopologyCfg),
-				ExpectError: regexp.MustCompile(`(?m)invalid configuration: 1 error occurred:\n\t\* elasticsearch topology warm: size cannot be zero\n\n`),
 			},
 			{
 				Config: cfgF(addWarmTopologyCfg),

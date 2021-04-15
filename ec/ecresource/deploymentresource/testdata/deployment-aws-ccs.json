@@ -59,6 +59,7 @@
                             "attempt_start_time": "2020-10-14T06:37:45.588Z",
                             "healthy": true,
                             "plan": {
+                                "autoscaling_enabled": false,
                                 "cluster_topology": [
                                     {
                                         "id": "hot_content",

@@ -38,6 +38,7 @@ These will not be available for interpolation.
   * `observability.#.logs` - Defines whether logs are enabled or disabled.
   * `observability.#.metrics` - Defines whether metrics are enabled or disabled.
 * `elasticsearch` - Instance configuration of the Elasticsearch resource kind.
+  * `elasticsearch.#.autoscale` - Whether or not Elasticsearch autoscaling is enabled.
   * `elasticsearch.#.healthy` - Resource kind health status.
   * `elasticsearch.#.cloud_id` - The encoded Elasticsearch credentials to use in Beats or Logstash. See [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html) for more information.
   * `elasticsearch.#.http_endpoint` - HTTP endpoint for the resource kind.
@@ -55,6 +56,11 @@ These will not be available for interpolation.
     * `elasticsearch.#.topology.#.node_type_master` - Defines whether this node can be elected master (<7.10.0).
     * `elasticsearch.#.topology.#.node_type_ingest` - Defines whether this node can run an ingest pipeline (<7.10.0).
     * `elasticsearch.#.topology.#.node_type_ml` - Defines whether this node can run ML jobs (<7.10.0).
+    * `elasticsearch.#.topology.#.autoscaling.#.max_size` - The maximum size for the scale up policy.
+    * `elasticsearch.#.topology.#.autoscaling.#.max_size_resource` - The maximum size resource for the scale up policy.
+    * `elasticsearch.#.topology.#.autoscaling.#.min_size` - The minimum size for the scale down policy.
+    * `elasticsearch.#.topology.#.autoscaling.#.min_size_resource` - The minimum size for the scale down policy.
+    * `elasticsearch.#.topology.#.autoscaling.#.policy_override_json` - The advanced policy overrides for the autoscaling policy.
 * `kibana` - Instance configuration of the Kibana type.
   * `kibana.#.elasticsearch_cluster_ref_id` - The user-specified ID of the Elasticsearch cluster to which this resource kind will link.
   * `kibana.#.healthy` - Resource kind health status.

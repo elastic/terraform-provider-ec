@@ -20,9 +20,11 @@ package deploymentresource
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deploymentsize"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -80,8 +82,6 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 			return nil, err
 		}
 		res.Plan.ClusterTopology = topology
-	} else {
-		res.Plan.ClusterTopology = defaultEsTopologies(res.Plan.ClusterTopology)
 	}
 
 	// Fixes the node_roles field to remove the dedicated tier roles from the
@@ -107,13 +107,23 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
+	if auto := es["autoscale"]; auto != nil {
+		if autoscale := auto.(string); autoscale != "" {
+			autoscaleBool, err := strconv.ParseBool(autoscale)
+			if err != nil {
+				return nil, fmt.Errorf("failed parsing autoscale value: %w", err)
+			}
+			res.Plan.AutoscalingEnabled = &autoscaleBool
+		}
+	}
+
 	return res, nil
 }
 
 // expandEsTopology expands a flattened topology
 func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchClusterTopologyElement) ([]*models.ElasticsearchClusterTopologyElement, error) {
 	rawTopologies := raw.([]interface{})
-	res := make([]*models.ElasticsearchClusterTopologyElement, 0)
+	res := topologies
 
 	for _, rawTop := range rawTopologies {
 		topology := rawTop.(map[string]interface{})
@@ -136,12 +146,6 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			elem.Size = size
 		}
 
-		// This check will most likely will need to be updated to handle
-		// autoscaling values. This is already the case for Machine Learning.
-		if sizeIsEmpty(elem.Size) {
-			return nil, fmt.Errorf("elasticsearch topology %s: size cannot be zero", topologyID)
-		}
-
 		if zones, ok := topology["zone_count"]; ok {
 			if z := zones.(int); z > 0 {
 				elem.ZoneCount = int32(z)
@@ -159,7 +163,71 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			}
 		}
 
-		res = append(res, elem)
+		if autoscalingRaw := topology["autoscaling"]; autoscalingRaw != nil {
+			for _, autoscaleRaw := range autoscalingRaw.([]interface{}) {
+				autoscale := autoscaleRaw.(map[string]interface{})
+				if elem.AutoscalingMax == nil {
+					elem.AutoscalingMax = new(models.TopologySize)
+				}
+
+				if elem.AutoscalingMin == nil {
+					elem.AutoscalingMin = new(models.TopologySize)
+				}
+
+				if minSizeRes := autoscale["min_size_resource"]; minSizeRes != nil {
+					if minSize := minSizeRes.(string); minSize != "" {
+						elem.AutoscalingMin.Resource = ec.String(minSize)
+					}
+				}
+
+				if minSize := autoscale["min_size"]; minSize != nil {
+					if minSize := minSize.(string); minSize != "" {
+						val, err := deploymentsize.ParseGb(minSize)
+						if err != nil {
+							return nil, err
+						}
+						elem.AutoscalingMin.Value = &val
+					}
+				}
+
+				if maxSizeRes := autoscale["max_size_resource"]; maxSizeRes != nil {
+					if maxSize := maxSizeRes.(string); maxSize != "" {
+						elem.AutoscalingMax.Resource = ec.String(maxSize)
+					}
+				}
+
+				if maxSize := autoscale["max_size"]; maxSize != nil {
+					if maxSize := maxSize.(string); maxSize != "" {
+						val, err := deploymentsize.ParseGb(maxSize)
+						if err != nil {
+							return nil, err
+						}
+						elem.AutoscalingMax.Value = &val
+					}
+				}
+
+				// Ensure that if the Min and Max are empty, they're nil.
+				if reflect.DeepEqual(elem.AutoscalingMin, new(models.TopologySize)) {
+					elem.AutoscalingMin = nil
+				}
+				if reflect.DeepEqual(elem.AutoscalingMax, new(models.TopologySize)) {
+					elem.AutoscalingMax = nil
+				}
+
+				if policy := autoscale["policy_override_json"]; policy != nil {
+					if policyString := policy.(string); policyString != "" {
+						if err := json.Unmarshal([]byte(policyString),
+							&elem.AutoscalingPolicyOverrideJSON,
+						); err != nil {
+							return nil, fmt.Errorf(
+								"elasticsearch topology %s: unable to load policy_override_json: %w",
+								topologyID, err,
+							)
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return res, nil
@@ -213,36 +281,6 @@ func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfig
 		}
 
 	}
-}
-
-func discardEsZeroSize(topologies []*models.ElasticsearchClusterTopologyElement) (result []*models.ElasticsearchClusterTopologyElement) {
-	for _, topology := range topologies {
-		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
-			continue
-		}
-		result = append(result, topology)
-	}
-	return result
-}
-
-// defaultEsTopologies iterates over all the templated topology elements and
-// sets the size to the default when the template size is smaller than the
-// deployment template default, the same is done on the ZoneCount. It discards
-// any elements where the size is == 0, since it means that different Instance
-// configurations are available to configure but are not included in the
-// default deployment template.
-func defaultEsTopologies(topology []*models.ElasticsearchClusterTopologyElement) []*models.ElasticsearchClusterTopologyElement {
-	topology = discardEsZeroSize(topology)
-	for _, t := range topology {
-		if *t.Size.Value < minimumElasticsearchSize {
-			t.Size.Value = ec.Int32(minimumElasticsearchSize)
-		}
-		if t.ZoneCount < minimumZoneCount {
-			t.ZoneCount = minimumZoneCount
-		}
-	}
-
-	return topology
 }
 
 func matchEsTopologyID(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {
@@ -339,18 +377,6 @@ func parseLegacyNodeType(topology map[string]interface{}, nodeType *models.Elast
 	return nil
 }
 
-func sizeIsEmpty(size *models.TopologySize) bool {
-	if size == nil {
-		return true
-	}
-
-	if size.Value == nil || *size.Value == 0 {
-		return true
-	}
-
-	return false
-}
-
 func updateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTopologyElement) {
 	dataTier, hasMasterTier, hasIngestTier := dedicatedTopoogies(topologies)
 	// This case is not very likely since all deployments will have a data tier.
@@ -378,13 +404,14 @@ func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement
 		var hasMasterRole bool
 		var hasIngestRole bool
 		for _, role := range topology.NodeRoles {
-			if strings.HasPrefix(role, dataTierRolePrefix) {
+			sizeNonZero := *topology.Size.Value > 0
+			if strings.HasPrefix(role, dataTierRolePrefix) && sizeNonZero {
 				hasSomeDataRole = true
 			}
-			if role == ingestDataTierRole {
+			if role == ingestDataTierRole && sizeNonZero {
 				hasIngestRole = true
 			}
-			if role == masterDataTierRole {
+			if role == masterDataTierRole && sizeNonZero {
 				hasMasterRole = true
 			}
 		}

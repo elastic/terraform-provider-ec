@@ -1,40 +1,40 @@
 {
     "healthy": true,
-    "id": "123d148423864552aa57b59929d4bf4d",
-    "name": "up2d-hot-warm",
+    "id": "1239e402d6df471ea374bd68e3f91cc5",
+    "name": "up2d",
     "resources": {
         "apm": [
             {
                 "elasticsearch_cluster_ref_id": "main-elasticsearch",
-                "id": "1234b68b0b9347f1b49b1e01b33bf4a4",
+                "id": "12307c6c304949b8a9f3682b80900879",
                 "info": {
-                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
+                    "deployment_id": "1239e402d6df471ea374bd68e3f91cc5",
                     "elasticsearch_cluster": {
-                        "elasticsearch_id": "123e837db6ee4391bb74887be35a7a91"
+                        "elasticsearch_id": "123695e76d914005bf90b717e668ad4b"
                     },
                     "external_links": [],
                     "healthy": true,
-                    "id": "1234b68b0b9347f1b49b1e01b33bf4a4",
+                    "id": "12307c6c304949b8a9f3682b80900879",
                     "metadata": {
-                        "endpoint": "1234b68b0b9347f1b49b1e01b33bf4a4.apm.us-central1.gcp.cloud.es.io",
-                        "last_modified": "2020-10-14T05:43:58.834Z",
+                        "endpoint": "12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com",
+                        "last_modified": "2020-10-14T05:31:29.441Z",
                         "ports": {
                             "http": 80,
                             "https": 443,
                             "transport_passthrough": 9400
                         },
-                        "version": 10
+                        "version": 7
                     },
-                    "name": "up2d-hot-warm",
+                    "name": "up2d",
                     "plan_info": {
                         "current": {
-                            "attempt_end_time": "2020-10-14T05:47:03.036Z",
-                            "attempt_start_time": "2020-10-14T05:43:58.142Z",
+                            "attempt_end_time": "2020-10-14T05:33:42.125Z",
+                            "attempt_start_time": "2020-10-14T05:31:28.748Z",
                             "healthy": true,
                             "plan": {
                                 "apm": {
                                     "system_settings": {
-                                        "secret_token": "al0DOoO2S8MKswdJ7W"
+                                        "secret_token": "7g6LZFbwU6aCCVoLjw"
                                     },
                                     "version": "7.9.2"
                                 },
@@ -43,7 +43,7 @@
                                         "apm": {
                                             "system_settings": {
                                                 "debug_enabled": false,
-                                                "secret_token": "al0DOoO2S8MKswdJ7W"
+                                                "secret_token": "7g6LZFbwU6aCCVoLjw"
                                             }
                                         },
                                         "instance_configuration_id": "gcp.apm.1",
@@ -53,30 +53,44 @@
                                         },
                                         "zone_count": 1
                                     }
-                                ]
+                                ],
+                                "transient": {
+                                    "plan_configuration": {
+                                        "calm_wait_time": 5,
+                                        "extended_maintenance": false,
+                                        "move_allocators": [],
+                                        "move_instances": [],
+                                        "preferred_allocators": [],
+                                        "reallocate_instances": false,
+                                        "timeout": 2048
+                                    },
+                                    "strategy": {
+                                        "autodetect": {}
+                                    }
+                                }
                             },
-                            "plan_attempt_id": "95240adf-9776-4d41-9cca-a54e3d2ee353",
+                            "plan_attempt_id": "59fdecfc-40ab-43c7-83d1-7179e720c307",
                             "plan_attempt_log": [],
                             "plan_end_time": "0001-01-01T00:00:00.000Z"
                         },
                         "healthy": true,
                         "history": []
                     },
-                    "region": "gcp-us-central1",
+                    "region": "gcp-asia-east1",
                     "status": "started"
                 },
                 "ref_id": "main-apm",
-                "region": "gcp-us-central1"
+                "region": "gcp-asia-east1"
             }
         ],
         "appsearch": [],
         "elasticsearch": [
             {
-                "id": "123e837db6ee4391bb74887be35a7a91",
+                "id": "123695e76d914005bf90b717e668ad4b",
                 "info": {
                     "associated_apm_clusters": [
                         {
-                            "apm_id": "1234b68b0b9347f1b49b1e01b33bf4a4",
+                            "apm_id": "12307c6c304949b8a9f3682b80900879",
                             "enabled": true
                         }
                     ],
@@ -85,12 +99,12 @@
                     "associated_kibana_clusters": [
                         {
                             "enabled": true,
-                            "kibana_id": "12372cc60d284e7e96b95ad14727c23d"
+                            "kibana_id": "12365046781e4d729a07df64fe67c8c6"
                         }
                     ],
-                    "cluster_id": "123e837db6ee4391bb74887be35a7a91",
-                    "cluster_name": "up2d-hot-warm",
-                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
+                    "cluster_id": "123695e76d914005bf90b717e668ad4b",
+                    "cluster_name": "up2d",
+                    "deployment_id": "1239e402d6df471ea374bd68e3f91cc5",
                     "elasticsearch": {
                         "blocking_issues": {
                             "cluster_level": [],
@@ -103,25 +117,34 @@
                     "healthy": true,
                     "locked": false,
                     "metadata": {
-                        "cloud_id": "up2d-hot-warm:someCloudID",
-                        "endpoint": "123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io",
-                        "last_modified": "2020-10-14T05:47:04.058Z",
+                        "cloud_id": "up2d:someCloudID",
+                        "endpoint": "123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com",
+                        "last_modified": "2020-10-14T05:33:43.403Z",
                         "ports": {
                             "http": 9200,
                             "https": 9243,
                             "transport_passthrough": 9400
                         },
-                        "version": 26
+                        "version": 25
                     },
                     "plan_info": {
                         "current": {
-                            "attempt_end_time": "2020-10-14T05:45:53.057Z",
-                            "attempt_start_time": "2020-10-14T05:43:55.416Z",
+                            "attempt_end_time": "2020-10-14T05:32:31.743Z",
+                            "attempt_start_time": "2020-10-14T05:31:22.873Z",
                             "healthy": true,
                             "plan": {
-                                "autoscaling_enabled": false,
+                                "autoscaling_enabled": true,
                                 "cluster_topology": [
                                     {
+                                        "autoscaling_max": {
+                                            "resource": "memory",
+                                            "value": 29696
+                                        },
+                                        "autoscaling_policy_override_json": {
+                                            "proactive_storage": {
+                                                "forecast_window": "3 h"
+                                            }
+                                        },
                                         "id": "hot_content",
                                         "elasticsearch": {
                                             "node_attributes": {
@@ -154,55 +177,12 @@
                                         },
                                         "size": {
                                             "resource": "memory",
-                                            "value": 4096
+                                            "value": 8192
                                         },
                                         "topology_element_control": {
                                             "min": {
                                                 "resource": "memory",
                                                 "value": 1024
-                                            }
-                                        },
-                                        "zone_count": 2
-                                    },
-                                    {
-                                        "id": "warm",
-                                        "elasticsearch": {
-                                            "node_attributes": {
-                                                "data": "warm"
-                                            },
-                                            "system_settings": {
-                                                "auto_create_index": true,
-                                                "destructive_requires_name": false,
-                                                "enable_close_index": true,
-                                                "monitoring_collection_interval": -1,
-                                                "monitoring_history_duration": "3d",
-                                                "reindex_whitelist": [],
-                                                "scripting": {
-                                                    "inline": {
-                                                        "enabled": true
-                                                    },
-                                                    "stored": {
-                                                        "enabled": true
-                                                    }
-                                                },
-                                                "use_disk_threshold": true
-                                            }
-                                        },
-                                        "instance_configuration_id": "gcp.data.highstorage.1",
-                                        "node_type": {
-                                            "data": true,
-                                            "ingest": true,
-                                            "master": false,
-                                            "ml": false
-                                        },
-                                        "size": {
-                                            "resource": "memory",
-                                            "value": 4096
-                                        },
-                                        "topology_element_control": {
-                                            "min": {
-                                                "resource": "memory",
-                                                "value": 0
                                             }
                                         },
                                         "zone_count": 2
@@ -239,15 +219,10 @@
                                             "resource": "memory",
                                             "value": 0
                                         },
-                                        "topology_element_control": {
-                                            "min": {
-                                                "resource": "memory",
-                                                "value": 0
-                                            }
-                                        },
                                         "zone_count": 2
                                     },
                                     {
+                                        "id": "master",
                                         "elasticsearch": {
                                             "system_settings": {
                                                 "auto_create_index": true,
@@ -281,6 +256,15 @@
                                         "zone_count": 3
                                     },
                                     {
+                                        "autoscaling_max": {
+                                            "value": 30720,
+                                            "resource": "memory"
+                                        },
+                                        "autoscaling_min": {
+                                            "value": 1024,
+                                            "resource": "memory"
+                                        },
+                                        "id": "ml",
                                         "elasticsearch": {
                                             "system_settings": {
                                                 "auto_create_index": true,
@@ -309,13 +293,13 @@
                                         },
                                         "size": {
                                             "resource": "memory",
-                                            "value": 0
+                                            "value": 1024
                                         },
                                         "zone_count": 1
                                     }
                                 ],
                                 "deployment_template": {
-                                    "id": "gcp-hot-warm"
+                                    "id": "gcp-io-optimized"
                                 },
                                 "elasticsearch": {
                                     "version": "7.9.2"
@@ -324,49 +308,49 @@
                                     "memory_per_node": 1024
                                 }
                             },
-                            "plan_attempt_id": "152d8c3c-f4f0-4144-8691-8375ab58f4ac",
+                            "plan_attempt_id": "c369366f-ed22-428c-94a2-15810152fa3f",
                             "plan_attempt_log": [],
                             "plan_end_time": "0001-01-01T00:00:00.000Z"
                         },
                         "healthy": true,
                         "history": []
                     },
-                    "region": "gcp-us-central1",
+                    "region": "gcp-asia-east1",
                     "status": "started",
                     "system_alerts": []
                 },
                 "ref_id": "main-elasticsearch",
-                "region": "gcp-us-central1"
+                "region": "gcp-asia-east1"
             }
         ],
         "enterprise_search": [],
         "kibana": [
             {
                 "elasticsearch_cluster_ref_id": "main-elasticsearch",
-                "id": "12372cc60d284e7e96b95ad14727c23d",
+                "id": "12365046781e4d729a07df64fe67c8c6",
                 "info": {
-                    "cluster_id": "12372cc60d284e7e96b95ad14727c23d",
-                    "cluster_name": "up2d-hot-warm",
-                    "deployment_id": "123d148423864552aa57b59929d4bf4d",
+                    "cluster_id": "12365046781e4d729a07df64fe67c8c6",
+                    "cluster_name": "up2d",
+                    "deployment_id": "1239e402d6df471ea374bd68e3f91cc5",
                     "elasticsearch_cluster": {
-                        "elasticsearch_id": "123e837db6ee4391bb74887be35a7a91"
+                        "elasticsearch_id": "123695e76d914005bf90b717e668ad4b"
                     },
                     "external_links": [],
                     "healthy": true,
                     "metadata": {
-                        "endpoint": "12372cc60d284e7e96b95ad14727c23d.us-central1.gcp.cloud.es.io",
-                        "last_modified": "2020-10-14T05:47:04.007Z",
+                        "endpoint": "12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com",
+                        "last_modified": "2020-10-14T05:33:43.199Z",
                         "ports": {
                             "http": 9200,
                             "https": 9243,
                             "transport_passthrough": 9400
                         },
-                        "version": 19
+                        "version": 12
                     },
                     "plan_info": {
                         "current": {
-                            "attempt_end_time": "2020-10-14T05:48:37.424Z",
-                            "attempt_start_time": "2020-10-14T05:47:03.205Z",
+                            "attempt_end_time": "2020-10-14T05:35:15.948Z",
+                            "attempt_start_time": "2020-10-14T05:33:42.291Z",
                             "healthy": true,
                             "plan": {
                                 "cluster_topology": [
@@ -387,18 +371,18 @@
                                     "version": "7.9.2"
                                 }
                             },
-                            "plan_attempt_id": "3fed0879-2493-49b4-b4e2-45d856056efb",
+                            "plan_attempt_id": "8e2746b7-0779-4e64-9972-7340b6382de3",
                             "plan_attempt_log": [],
                             "plan_end_time": "0001-01-01T00:00:00.000Z"
                         },
                         "healthy": true,
                         "history": []
                     },
-                    "region": "gcp-us-central1",
+                    "region": "gcp-asia-east1",
                     "status": "started"
                 },
                 "ref_id": "main-kibana",
-                "region": "gcp-us-central1"
+                "region": "gcp-asia-east1"
             }
         ]
     }

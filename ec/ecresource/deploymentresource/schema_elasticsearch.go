@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -29,6 +30,21 @@ import (
 func newElasticsearchResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
+			"autoscale": {
+				Type:        schema.TypeString,
+				Description: `Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".`,
+				Computed:    true,
+				Optional:    true,
+				ValidateFunc: func(i interface{}, s string) ([]string, []error) {
+					if _, err := strconv.ParseBool(i.(string)); err != nil {
+						return nil, []error{
+							fmt.Errorf("failed parsing autoscale value: %w", err),
+						}
+					}
+					return nil, nil
+				},
+			},
+
 			"ref_id": {
 				Type:        schema.TypeString,
 				Description: "Optional ref_id to set on the Elasticsearch resource",
@@ -145,6 +161,51 @@ func elasticsearchTopologySchema() *schema.Schema {
 					Computed:    true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
+					},
+				},
+
+				"autoscaling": {
+					Type:        schema.TypeList,
+					Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
+					Optional:    true,
+					Computed:    true,
+					MaxItems:    1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"max_size_resource": {
+								Description: "Maximum resource type for the maximum autoscaling setting.",
+								Type:        schema.TypeString,
+								Optional:    true,
+								Computed:    true,
+							},
+
+							"max_size": {
+								Description: "Maximum size value for the maximum autoscaling setting.",
+								Type:        schema.TypeString,
+								Optional:    true,
+								Computed:    true,
+							},
+
+							"min_size_resource": {
+								Description: "Minimum resource type for the minimum autoscaling setting.",
+								Type:        schema.TypeString,
+								Optional:    true,
+								Computed:    true,
+							},
+
+							"min_size": {
+								Description: "Minimum size value for the minimum autoscaling setting.",
+								Type:        schema.TypeString,
+								Optional:    true,
+								Computed:    true,
+							},
+
+							"policy_override_json": {
+								Type:        schema.TypeString,
+								Description: "Computed policy overrides set directly via the API or other clients.",
+								Computed:    true,
+							},
+						},
 					},
 				},
 			},
