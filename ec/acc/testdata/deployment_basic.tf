@@ -4,6 +4,7 @@ data "ec_stack" "latest" {
 }
 
 resource "ec_deployment" "basic" {
+  alias                  = "basic"
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version

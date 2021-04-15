@@ -200,6 +200,7 @@ The following arguments are supported:
 -> Read the [ESS stack version policy](https://www.elastic.co/guide/en/cloud/current/ec-version-policy.html#ec-version-policy-available) to understand which versions are available.
 
 * `name` - (Optional) Name of the deployment.
+* `alias` - (Optional) Deployment alias, affects the format of the resource URLs.
 * `request_id` - (Optional) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 * `elasticsearch` (Required) Elasticsearch cluster definition, can only be specified once. For multi-node Elasticsearch clusters, use multiple `topology` blocks.
 * `kibana` (Optional) Kibana instance definition, can only be specified once.

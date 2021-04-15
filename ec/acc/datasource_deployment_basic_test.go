@@ -45,6 +45,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(datasourceName, "alias", resourceName, "alias"),
 					resource.TestCheckResourceAttrPair(datasourceName, "region", resourceName, "region"),
 					resource.TestCheckResourceAttrPair(datasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "traffic_filter.#", resourceName, "traffic_filter.#"),

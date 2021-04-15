@@ -23,6 +23,10 @@ import (
 
 func newSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"alias": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"healthy": {
 			Type:     schema.TypeBool,
 			Computed: true,

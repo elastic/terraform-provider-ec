@@ -25,6 +25,7 @@ data "ec_deployment" "example" {
 ~> **NOTE:** Depending on the deployment definition, some values may not be set.
 These will not be available for interpolation.
 
+* `alias` - Deployment alias.
 * `healthy` - Overall health status of the deployment.
 * `id` - The unique ID of the deployment.
 * `name` - The name of the deployment.

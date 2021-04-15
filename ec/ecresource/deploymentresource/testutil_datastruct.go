@@ -23,6 +23,7 @@ import (
 
 func newSampleDeployment() map[string]interface{} {
 	return map[string]interface{}{
+		"alias":                  "my-deployment",
 		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-hot-warm-v2",
 		"region":                 "us-east-1",
@@ -72,6 +73,7 @@ func newSampleDeployment() map[string]interface{} {
 
 func newSampleLegacyDeployment() map[string]interface{} {
 	return map[string]interface{}{
+		"alias":                  "my-deployment",
 		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-io-optimized-v2",
 		"region":                 "us-east-1",
@@ -87,6 +89,7 @@ func newSampleLegacyDeployment() map[string]interface{} {
 
 func newSampleDeploymentEmptyRD() map[string]interface{} {
 	return map[string]interface{}{
+		"alias":                  "my-deployment",
 		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-io-optimized-v2",
 		"region":                 "us-east-1",
@@ -101,6 +104,7 @@ func newSampleDeploymentEmptyRD() map[string]interface{} {
 
 func newSampleDeploymentOverrides() map[string]interface{} {
 	return map[string]interface{}{
+		"alias":                  "my-deployment",
 		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-io-optimized-v2",
 		"region":                 "us-east-1",
@@ -136,6 +140,7 @@ func newSampleDeploymentOverrides() map[string]interface{} {
 
 func newSampleDeploymentOverridesIC() map[string]interface{} {
 	return map[string]interface{}{
+		"alias":                  "my-deployment",
 		"name":                   "my_deployment_name",
 		"deployment_template_id": "aws-io-optimized-v2",
 		"region":                 "us-east-1",

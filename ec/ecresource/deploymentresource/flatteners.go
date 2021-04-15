@@ -34,6 +34,10 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, rem
 		return err
 	}
 
+	if err := d.Set("alias", res.Alias); err != nil {
+		return err
+	}
+
 	if res.Metadata != nil {
 		if err := d.Set("tags", flattenTags(res.Metadata.Tags)); err != nil {
 			return err
