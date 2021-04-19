@@ -1,0 +1,3 @@
+```release-note:feature
+resource/ec_deployment: Supports Autoscaling via two new settings: `elasticsearch.autoscale` (`"true"` or `"false"`) and an `elasticsearch.topology.autoscaling` block to modify the default autoscaling policies. For more information, refer to the [documentation examples](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/ec_deployment#example-usage).
+```
