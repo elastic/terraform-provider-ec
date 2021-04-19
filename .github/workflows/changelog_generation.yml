@@ -11,12 +11,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          persist-credentials: false
       - run: make changelog
       - name: Commit & Push changes
-        uses: actions-js/push@master
+        uses: EndBug/add-and-commit@v7
         with:
-          github_token: ${{ secrets.GH_TOKEN }}
+          add: CHANGELOG.md
           author_email: elasticcloudclients@elastic.co
           author_name: elasticcloudclients
           message: Update CHANGELOG.md
