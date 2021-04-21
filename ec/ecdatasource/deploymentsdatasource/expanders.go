@@ -91,7 +91,9 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 		queries = append(queries, req...)
 	}
 
-	var searchReq models.SearchRequest
+	searchReq := models.SearchRequest{
+		Size: int32(d.Get("size").(int)),
+	}
 
 	if len(queries) > 0 {
 		searchReq.Query = &models.QueryContainer{
