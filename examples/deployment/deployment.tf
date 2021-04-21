@@ -22,8 +22,7 @@ data "ec_stack" "latest" {
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
   # Optional name.
-  name  = "my_example_deployment"
-  alias = "some"
+  name = "my_example_deployment"
 
   # Mandatory fields
   region                 = "us-east-1"
