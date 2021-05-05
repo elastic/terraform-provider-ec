@@ -55,7 +55,6 @@ func Test_deleteResource(t *testing.T) {
 	wantTC404.SetId("")
 
 	type args struct {
-		ctx  context.Context
 		d    *schema.ResourceData
 		meta interface{}
 	}
@@ -95,7 +94,7 @@ func Test_deleteResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := deleteResource(tt.args.ctx, tt.args.d, tt.args.meta)
+			got := deleteResource(context.Background(), tt.args.d, tt.args.meta)
 			assert.Equal(t, tt.want, got)
 			var want interface{}
 			if tt.wantRD != nil {
