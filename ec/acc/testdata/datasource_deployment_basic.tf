@@ -19,7 +19,7 @@ resource "ec_deployment" "basic_observability" {
 }
 
 resource "ec_deployment" "basic_datasource" {
-  alias                  = "basic-datasource"
+  alias                  = "%s"
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version

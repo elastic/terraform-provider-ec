@@ -30,9 +30,10 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic.tf"
+	randomAlias := "alias" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter_2.tf"
 	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_3.tf"
-	cfg := fixtureAccDeploymentResourceBasicWithApps(t, startCfg, randomName, getRegion(), defaultTemplate)
+	cfg := fixtureAccDeploymentResourceBasicWithAppsAlias(t, startCfg, randomAlias, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilter := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilterUpdate := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
@@ -48,7 +49,7 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 			{
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "alias", "basic"),
+					resource.TestCheckResourceAttr(resName, "alias", randomAlias),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
@@ -147,6 +148,26 @@ func fixtureAccDeploymentResourceBasicWithApps(t *testing.T, fileName, name, reg
 	}
 	return fmt.Sprintf(string(b),
 		region, name, region, deploymentTpl, kibanaIC, apmIC, essIC,
+	)
+}
+
+func fixtureAccDeploymentResourceBasicWithAppsAlias(t *testing.T, fileName, alias, name, region, depTpl string) string {
+	t.Helper()
+	requiresAPIConn(t)
+
+	deploymentTpl := setDefaultTemplate(region, depTpl)
+	// esIC is no longer needed
+	_, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return fmt.Sprintf(string(b),
+		region, alias, name, region, deploymentTpl, kibanaIC, apmIC, essIC,
 	)
 }
 
