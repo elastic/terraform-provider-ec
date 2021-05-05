@@ -1,0 +1,3 @@
+```release-note:feature
+datasource/ec_deployment: Add a new size parameter to allow modifying the default size of `10` in the number of deployments returned by the search request.
+```

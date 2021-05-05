@@ -15,6 +15,8 @@ data "ec_deployments" "example" {
   name_prefix            = "test"
   deployment_template_id = "azure-compute-optimized"
 
+  size = 200
+
   tags = {
     "foo" = "bar"
   }
@@ -41,6 +43,7 @@ data "ec_deployments" "example" {
 
 * `name_prefix` - Prefix that one or several deployment names have in common.
 * `deployment_template_id` - ID of the deployment template used to create the deployment.
+* `size` - The maximum number of deployments to return. Defaults to `100`.
 * `tags` - Key value map of arbitrary string tags for the deployment.
 * `healthy` - Overall health status of the deployment.
 * `elasticsearch` - Filter by Elasticsearch resource kind status or configuration.

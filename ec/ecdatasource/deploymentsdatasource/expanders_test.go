@@ -54,6 +54,56 @@ func Test_expandFilters(t *testing.T) {
 			name: "parses the data source",
 			args: args{d: deploymentsDS},
 			want: &models.SearchRequest{
+				Size: 100,
+				Query: &models.QueryContainer{
+					Bool: &models.BoolQuery{
+						Filter: []*models.QueryContainer{
+							{
+								Bool: &models.BoolQuery{
+									Must: newTestQuery(),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses the data source with a different size",
+			args: args{d: util.NewResourceData(t, util.ResDataParams{
+				ID:     "myID",
+				Schema: newSchema(),
+				State: map[string]interface{}{
+					"name_prefix": "test",
+					"healthy":     "true",
+					"size":        200,
+					"tags": map[string]interface{}{
+						"foo": "bar",
+					},
+					"elasticsearch": []interface{}{
+						map[string]interface{}{
+							"version": "7.9.1",
+						},
+					},
+					"kibana": []interface{}{
+						map[string]interface{}{
+							"status": "started",
+						},
+					},
+					"apm": []interface{}{
+						map[string]interface{}{
+							"healthy": "true",
+						},
+					},
+					"enterprise_search": []interface{}{
+						map[string]interface{}{
+							"healthy": "false",
+						},
+					},
+				},
+			})},
+			want: &models.SearchRequest{
+				Size: 200,
 				Query: &models.QueryContainer{
 					Bool: &models.BoolQuery{
 						Filter: []*models.QueryContainer{

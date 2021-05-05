@@ -40,6 +40,13 @@ func newSchema() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"size": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			Default:  100,
+		},
+
+		// Computed
 		"return_count": {
 			Type:     schema.TypeInt,
 			Computed: true,
