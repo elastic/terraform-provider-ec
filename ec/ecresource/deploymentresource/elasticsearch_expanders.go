@@ -279,7 +279,6 @@ func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfig
 		if snapshotName, ok := rs["snapshot_name"]; ok {
 			restore.SnapshotName = ec.String(snapshotName.(string))
 		}
-
 	}
 }
 
