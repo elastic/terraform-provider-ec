@@ -32,6 +32,12 @@ const (
 // newSchema returns the schema for an "ec_deployment" resource.
 func newSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"alias": {
+			Type:        schema.TypeString,
+			Description: "Optional deployment alias that affects the format of the resource URLs",
+			Optional:    true,
+			Computed:    true,
+		},
 		"version": {
 			Type:        schema.TypeString,
 			Description: "Required Elastic Stack version to use for all of the deployment resources",

@@ -46,6 +46,7 @@ func Test_modelToState(t *testing.T) {
 	wantAzureIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
 		State: map[string]interface{}{
+			"alias":                  "my-deployment",
 			"deployment_template_id": "azure-io-optimized",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -111,6 +112,7 @@ func Test_modelToState(t *testing.T) {
 	wantAwsIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
 		State: map[string]interface{}{
+			"alias":                  "my-deployment",
 			"deployment_template_id": "aws-io-optimized-v2",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -179,6 +181,7 @@ func Test_modelToState(t *testing.T) {
 	wantAwsIOOptimizedDeploymentTags := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
 		State: map[string]interface{}{
+			"alias":                  "my-deployment",
 			"deployment_template_id": "aws-io-optimized-v2",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -249,6 +252,7 @@ func Test_modelToState(t *testing.T) {
 	wantGcpIOOptimizedDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
 		State: map[string]interface{}{
+			"alias":                  "my-deployment",
 			"deployment_template_id": "gcp-io-optimized",
 			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 			"name":                   "up2d",
@@ -389,6 +393,96 @@ func Test_modelToState(t *testing.T) {
 		},
 		Schema: newSchema(),
 	})
+	_ = wantGcpHotWarmDeployment.Set("alias", "")
+
+	wantGcpIOOptAutoscale := util.NewResourceData(t, util.ResDataParams{
+		ID: mock.ValidClusterID,
+		State: map[string]interface{}{
+			"alias":                  "",
+			"deployment_template_id": "gcp-io-optimized",
+			"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+			"name":                   "up2d",
+			"region":                 "gcp-asia-east1",
+			"version":                "7.9.2",
+			"apm": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-apm",
+				"region":                       "gcp-asia-east1",
+				"resource_id":                  "12307c6c304949b8a9f3682b80900879",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com:80",
+				"https_endpoint":               "https://12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com:443",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.apm.1",
+					"size":                      "0.5g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+			"elasticsearch": []interface{}{map[string]interface{}{
+				"autoscale":      "true",
+				"cloud_id":       "up2d:someCloudID",
+				"http_endpoint":  "http://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9200",
+				"https_endpoint": "https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243",
+				"ref_id":         "main-elasticsearch",
+				"region":         "gcp-asia-east1",
+				"resource_id":    "123695e76d914005bf90b717e668ad4b",
+				"topology": []interface{}{
+					map[string]interface{}{
+						"id":                        "hot_content",
+						"instance_configuration_id": "gcp.data.highio.1",
+						"node_type_data":            "true",
+						"node_type_ingest":          "true",
+						"node_type_master":          "true",
+						"node_type_ml":              "false",
+						"size":                      "8g",
+						"size_resource":             "memory",
+						"zone_count":                2,
+						"autoscaling": []interface{}{map[string]interface{}{
+							"max_size":             "29g",
+							"max_size_resource":    "memory",
+							"policy_override_json": `{"proactive_storage":{"forecast_window":"3 h"}}`,
+						}},
+					},
+					map[string]interface{}{
+						"id":                        "ml",
+						"instance_configuration_id": "gcp.ml.1",
+						"node_type_data":            "false",
+						"node_type_ingest":          "false",
+						"node_type_master":          "false",
+						"node_type_ml":              "true",
+						"size":                      "1g",
+						"size_resource":             "memory",
+						"zone_count":                1,
+						"autoscaling": []interface{}{map[string]interface{}{
+							"max_size":          "30g",
+							"max_size_resource": "memory",
+
+							"min_size":          "1g",
+							"min_size_resource": "memory",
+						}},
+					},
+				},
+			}},
+			"kibana": []interface{}{map[string]interface{}{
+				"elasticsearch_cluster_ref_id": "main-elasticsearch",
+				"ref_id":                       "main-kibana",
+				"region":                       "gcp-asia-east1",
+				"resource_id":                  "12365046781e4d729a07df64fe67c8c6",
+				"version":                      "7.9.2",
+				"http_endpoint":                "http://12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com:9200",
+				"https_endpoint":               "https://12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com:9243",
+				"topology": []interface{}{map[string]interface{}{
+					"instance_configuration_id": "gcp.kibana.1",
+					"size":                      "1g",
+					"size_resource":             "memory",
+					"zone_count":                1,
+				}},
+			}},
+		},
+		Schema: newSchema(),
+	})
+	_ = wantGcpIOOptAutoscale.Set("alias", "")
 
 	gcpHotWarmNodeRolesRes := openDeploymentGet(t, "testdata/deployment-gcp-hot-warm-node_roles.json")
 	gcpHotWarmNodeRolesRD := schema.TestResourceDataRaw(t, newSchema(), nil)
@@ -471,6 +565,7 @@ func Test_modelToState(t *testing.T) {
 		},
 		Schema: newSchema(),
 	})
+	_ = wantGcpHotWarmNodeRolesDeployment.Set("alias", "")
 
 	awsCCSRes := openDeploymentGet(t, "testdata/deployment-aws-ccs.json")
 	awsCCSRD := schema.TestResourceDataRaw(t, newSchema(), nil)
@@ -533,6 +628,7 @@ func Test_modelToState(t *testing.T) {
 		},
 		Schema: newSchema(),
 	})
+	_ = wantAWSCCSDeployment.Set("alias", "")
 	argCCSRemotes := models.RemoteResources{Resources: []*models.RemoteResourceRef{
 		{
 			Alias:              ec.String("alias"),
@@ -563,7 +659,8 @@ func Test_modelToState(t *testing.T) {
 			args: args{
 				d: deploymentSchemaArg,
 				res: &models.DeploymentGetResponse{
-					Name: ec.String("my_deployment_name"),
+					Alias: "my-deployment",
+					Name:  ec.String("my_deployment_name"),
 					Settings: &models.DeploymentSettings{
 						TrafficFilterSettings: &models.TrafficFilterSettings{
 							Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -766,6 +863,7 @@ func Test_modelToState(t *testing.T) {
 			want: util.NewResourceData(t, util.ResDataParams{
 				ID: mock.ValidClusterID,
 				State: map[string]interface{}{
+					"alias":                  "my-deployment",
 					"deployment_template_id": "aws-io-optimized-v2",
 					"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
 					"name":                   "up2d",
@@ -864,92 +962,7 @@ func Test_modelToState(t *testing.T) {
 		{
 			name: "flattens a gcp plan with autoscale set (io-optimized)",
 			args: args{d: gcpIOOptimizedRD, res: gcpIOOptimizedAutoscaleRes},
-			want: util.NewResourceData(t, util.ResDataParams{
-				ID: mock.ValidClusterID,
-				State: map[string]interface{}{
-					"deployment_template_id": "gcp-io-optimized",
-					"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
-					"name":                   "up2d",
-					"region":                 "gcp-asia-east1",
-					"version":                "7.9.2",
-					"apm": []interface{}{map[string]interface{}{
-						"elasticsearch_cluster_ref_id": "main-elasticsearch",
-						"ref_id":                       "main-apm",
-						"region":                       "gcp-asia-east1",
-						"resource_id":                  "12307c6c304949b8a9f3682b80900879",
-						"version":                      "7.9.2",
-						"http_endpoint":                "http://12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com:80",
-						"https_endpoint":               "https://12307c6c304949b8a9f3682b80900879.apm.asia-east1.gcp.elastic-cloud.com:443",
-						"topology": []interface{}{map[string]interface{}{
-							"instance_configuration_id": "gcp.apm.1",
-							"size":                      "0.5g",
-							"size_resource":             "memory",
-							"zone_count":                1,
-						}},
-					}},
-					"elasticsearch": []interface{}{map[string]interface{}{
-						"autoscale":      "true",
-						"cloud_id":       "up2d:someCloudID",
-						"http_endpoint":  "http://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9200",
-						"https_endpoint": "https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243",
-						"ref_id":         "main-elasticsearch",
-						"region":         "gcp-asia-east1",
-						"resource_id":    "123695e76d914005bf90b717e668ad4b",
-						"topology": []interface{}{
-							map[string]interface{}{
-								"id":                        "hot_content",
-								"instance_configuration_id": "gcp.data.highio.1",
-								"node_type_data":            "true",
-								"node_type_ingest":          "true",
-								"node_type_master":          "true",
-								"node_type_ml":              "false",
-								"size":                      "8g",
-								"size_resource":             "memory",
-								"zone_count":                2,
-								"autoscaling": []interface{}{map[string]interface{}{
-									"max_size":             "29g",
-									"max_size_resource":    "memory",
-									"policy_override_json": `{"proactive_storage":{"forecast_window":"3 h"}}`,
-								}},
-							},
-							map[string]interface{}{
-								"id":                        "ml",
-								"instance_configuration_id": "gcp.ml.1",
-								"node_type_data":            "false",
-								"node_type_ingest":          "false",
-								"node_type_master":          "false",
-								"node_type_ml":              "true",
-								"size":                      "1g",
-								"size_resource":             "memory",
-								"zone_count":                1,
-								"autoscaling": []interface{}{map[string]interface{}{
-									"max_size":          "30g",
-									"max_size_resource": "memory",
-
-									"min_size":          "1g",
-									"min_size_resource": "memory",
-								}},
-							},
-						},
-					}},
-					"kibana": []interface{}{map[string]interface{}{
-						"elasticsearch_cluster_ref_id": "main-elasticsearch",
-						"ref_id":                       "main-kibana",
-						"region":                       "gcp-asia-east1",
-						"resource_id":                  "12365046781e4d729a07df64fe67c8c6",
-						"version":                      "7.9.2",
-						"http_endpoint":                "http://12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com:9200",
-						"https_endpoint":               "https://12365046781e4d729a07df64fe67c8c6.asia-east1.gcp.elastic-cloud.com:9243",
-						"topology": []interface{}{map[string]interface{}{
-							"instance_configuration_id": "gcp.kibana.1",
-							"size":                      "1g",
-							"size_resource":             "memory",
-							"zone_count":                1,
-						}},
-					}},
-				},
-				Schema: newSchema(),
-			}),
+			want: wantGcpIOOptAutoscale,
 		},
 		{
 			name: "flattens a gcp plan (hot-warm)",

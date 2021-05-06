@@ -55,6 +55,7 @@ func Test_modelToState(t *testing.T) {
 			args: args{
 				d: deploymentSchemaArg,
 				res: &models.DeploymentGetResponse{
+					Alias:   "some-alias",
 					ID:      &mock.ValidClusterID,
 					Healthy: ec.Bool(true),
 					Name:    ec.String("my_deployment_name"),
@@ -145,6 +146,7 @@ func newSampleDeployment() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                     mock.ValidClusterID,
 		"name":                   "my_deployment_name",
+		"alias":                  "some-alias",
 		"deployment_template_id": "aws-io-optimized",
 		"healthy":                true,
 		"region":                 "us-east-1",

@@ -182,7 +182,8 @@ func Test_createResourceToModel(t *testing.T) {
 				),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: "my-deployment",
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -379,7 +380,8 @@ func Test_createResourceToModel(t *testing.T) {
 				),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: "my-deployment",
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -815,7 +817,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: "my-deployment",
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -941,7 +944,8 @@ func Test_createResourceToModel(t *testing.T) {
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: "my-deployment",
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},

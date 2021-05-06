@@ -35,6 +35,7 @@ import (
 func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentCreateRequest, error) {
 	var result = models.DeploymentCreateRequest{
 		Name:      d.Get("name").(string),
+		Alias:     d.Get("alias").(string),
 		Resources: &models.DeploymentCreateResources{},
 		Settings:  &models.DeploymentCreateSettings{},
 		Metadata:  &models.DeploymentCreateMetadata{},

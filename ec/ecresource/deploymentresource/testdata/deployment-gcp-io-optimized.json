@@ -1,4 +1,5 @@
 {
+    "alias": "my-deployment",
     "healthy": true,
     "id": "1239e402d6df471ea374bd68e3f91cc5",
     "name": "up2d",

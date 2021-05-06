@@ -1,0 +1,3 @@
+```release-note:feature
+resource/ec_deployment: Supports deployment aliases in a new top level field `alias`.
+```

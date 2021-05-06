@@ -32,8 +32,9 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	depsDatasourceName := "data.ec_deployments.query"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	secondRandomName := prefix + "-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	randomAlias := "alias" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfg := fixtureAccDeploymentDatasourceBasic(t, depCfg, randomName, secondRandomName, getRegion(), computeOpTemplate)
+	cfg := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), computeOpTemplate)
 	var namePrefix = secondRandomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,6 +46,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				Config: cfg,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(datasourceName, "alias", resourceName, "alias"),
 					resource.TestCheckResourceAttrPair(datasourceName, "region", resourceName, "region"),
 					resource.TestCheckResourceAttrPair(datasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "traffic_filter.#", resourceName, "traffic_filter.#"),
@@ -118,7 +120,7 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	})
 }
 
-func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, secondName, region, depTpl string) string {
+func fixtureAccDeploymentDatasourceBasicAlias(t *testing.T, fileName, alias, name, secondName, region, depTpl string) string {
 	t.Helper()
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
@@ -127,6 +129,6 @@ func fixtureAccDeploymentDatasourceBasic(t *testing.T, fileName, name, secondNam
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, name, region, deploymentTpl, secondName, region, deploymentTpl, secondName, region, deploymentTpl,
+		region, name, region, deploymentTpl, alias, secondName, region, deploymentTpl, secondName, region, deploymentTpl,
 	)
 }
