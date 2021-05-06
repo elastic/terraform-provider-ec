@@ -19,10 +19,12 @@ package deploymentresource
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -109,6 +111,81 @@ func Test_deleteResource(t *testing.T) {
 			}
 
 			assert.Equal(t, want, gotState)
+		})
+	}
+}
+
+func Test_shouldRetryShutdown(t *testing.T) {
+	type args struct {
+		err        error
+		retries    int
+		maxRetries int
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "returns false when error doesn't contain timeout string",
+			args: args{
+				err:        errors.New("some error"),
+				retries:    1,
+				maxRetries: 10,
+			},
+			want: false,
+		},
+		{
+			name: "returns false when the error is nil",
+			args: args{
+				retries:    1,
+				maxRetries: 10,
+			},
+			want: false,
+		},
+		{
+			name: "returns false when error doesn't contain timeout string",
+			args: args{
+				err:        errors.New("timeout exceeded"),
+				retries:    1,
+				maxRetries: 10,
+			},
+			want: false,
+		},
+		{
+			name: "returns true when error contains timeout string",
+			args: args{
+				err:        errors.New("Timeout exceeded"),
+				retries:    1,
+				maxRetries: 10,
+			},
+			want: true,
+		},
+		{
+			name: "returns true when error contains timeout string",
+			args: args{
+				err: multierror.NewPrefixed("aa",
+					errors.New("Timeout exceeded"),
+				),
+				retries:    1,
+				maxRetries: 10,
+			},
+			want: true,
+		},
+		{
+			name: "returns false when error contains timeout string but exceeds max timeouts",
+			args: args{
+				err:        errors.New("Timeout exceeded"),
+				retries:    10,
+				maxRetries: 10,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := shouldRetryShutdown(tt.args.err, tt.args.retries, tt.args.maxRetries)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

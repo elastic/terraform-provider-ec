@@ -20,7 +20,6 @@ package deploymentresource
 import (
 	"context"
 	"errors"
-	"log"
 	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -32,13 +31,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Delete shuts down and deletes the remote deployment.
+// Delete shuts down and deletes the remote deployment retrying up to 3 times
+// the Shutdown API call in case the plan returns with a failure that contains
+// the "Timeout Exceeded" string, which is a fairly common transient error state
+// returned from the API.
 func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
 	const maxRetries = 3
 	var retries int
+	timeout := d.Timeout(schema.TimeoutDelete)
+	client := meta.(*api.API)
 
-	return diag.FromErr(resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return diag.FromErr(resource.RetryContext(ctx, timeout, func() *resource.RetryError {
 		if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
 			API: client, DeploymentID: d.Id(),
 		}); err != nil {
@@ -52,11 +55,8 @@ func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 
 		if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-			isTimeout := strings.Contains(err.Error(), "Timeout exceeded")
-			log.Println("[DEBUG]: AA", err.Error(), isTimeout, retries, maxRetries)
-			if isTimeout && retries < maxRetries {
+			if shouldRetryShutdown(err, retries, maxRetries) {
 				retries++
-				log.Println("[DEBUG]: Retry", retries)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -83,4 +83,15 @@ func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{
 func alreadyDestroyed(err error) bool {
 	var destroyed *deployments.ShutdownDeploymentNotFound
 	return errors.As(err, &destroyed)
+}
+
+func shouldRetryShutdown(err error, retries, maxRetries int) bool {
+	const timeout = "Timeout exceeded"
+	needsRetry := retries < maxRetries
+
+	var isTimeout bool
+	if err != nil {
+		isTimeout = strings.Contains(err.Error(), timeout)
+	}
+	return isTimeout && needsRetry
 }
