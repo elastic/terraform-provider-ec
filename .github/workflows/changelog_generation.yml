@@ -13,9 +13,9 @@ jobs:
           fetch-depth: 0
       - run: make changelog
       - name: Commit & Push changes
-        uses: EndBug/add-and-commit@v7
-        with:
-          add: CHANGELOG.md
-          author_email: elasticcloudclients@elastic.co
-          author_name: elasticcloudclients
-          message: Update CHANGELOG.md
+        run: |
+          git config --local user.email elasticcloudclients@elastic.co
+          git config --local user.name elasticcloudclients
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md"
+          git push
