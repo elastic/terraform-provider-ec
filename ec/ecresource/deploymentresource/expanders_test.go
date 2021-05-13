@@ -2414,6 +2414,93 @@ func Test_createResourceToModel(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "handles a snapshot_source block, leaving the strategy as is",
+			args: args{
+				d: util.NewResourceData(t, util.ResDataParams{
+					ID: mock.ValidClusterID,
+					State: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-io-optimized-v2",
+						"region":                 "us-east-1",
+						"version":                "7.10.1",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"version": "7.10.1",
+							"snapshot_source": []interface{}{map[string]interface{}{
+								"source_elasticsearch_cluster_id": "8c63b87af9e24ea49b8a4bfe550e5fe9",
+							}},
+							"topology": []interface{}{map[string]interface{}{
+								"id":   "hot_content",
+								"size": "8g",
+							}},
+						}},
+					},
+					Schema: newSchema(),
+				}),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: enrichWithEmptyTopologies(readerToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+						Region: ec.String("us-east-1"),
+						RefID:  ec.String("main-elasticsearch"),
+						Settings: &models.ElasticsearchClusterSettings{
+							DedicatedMastersThreshold: 6,
+						},
+						Plan: &models.ElasticsearchClusterPlan{
+							Transient: &models.TransientElasticsearchPlanConfiguration{
+								RestoreSnapshot: &models.RestoreSnapshotConfiguration{
+									SourceClusterID: "8c63b87af9e24ea49b8a4bfe550e5fe9",
+									SnapshotName:    ec.String("__latest_success__"),
+								},
+							},
+							AutoscalingEnabled: ec.Bool(false),
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version: "7.10.1",
+							},
+							DeploymentTemplate: &models.DeploymentTemplateReference{
+								ID: ec.String("aws-io-optimized-v2"),
+							},
+							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+								ID: "hot_content",
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									NodeAttributes: map[string]string{"data": "hot"},
+								},
+								ZoneCount:               2,
+								InstanceConfigurationID: "aws.data.highio.i3",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(8192),
+								},
+								NodeRoles: []string{
+									"master",
+									"ingest",
+									"remote_cluster_client",
+									"data_hot",
+									"transform",
+									"data_content",
+								},
+								TopologyElementControl: &models.TopologyElementControl{
+									Min: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(1024),
+									},
+								},
+								AutoscalingMax: &models.TopologySize{
+									Value:    ec.Int32(118784),
+									Resource: ec.String("memory"),
+								},
+							}},
+						},
+					}),
+				},
+			},
+		},
 		// This case we're using an empty deployment_template to ensure that
 		// resources not present in the template cannot be expanded, receiving
 		// an error instead.
@@ -3999,6 +4086,108 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 		},
 		{
+			name: "handles a snapshot_source block adding Strategy: partial",
+			args: args{
+				d: util.NewResourceData(t, util.ResDataParams{
+					ID: mock.ValidClusterID,
+					State: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-io-optimized-v2",
+						"region":                 "us-east-1",
+						"version":                "7.10.1",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"version": "7.10.1",
+							"topology": []interface{}{map[string]interface{}{
+								"id":   "hot_content",
+								"size": "8g",
+							}},
+						}},
+					},
+					Change: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-io-optimized-v2",
+						"region":                 "us-east-1",
+						"version":                "7.10.1",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"version": "7.10.1",
+							"snapshot_source": []interface{}{map[string]interface{}{
+								"source_elasticsearch_cluster_id": "8c63b87af9e24ea49b8a4bfe550e5fe9",
+							}},
+							"topology": []interface{}{map[string]interface{}{
+								"id":   "hot_content",
+								"size": "8g",
+							}},
+						}},
+					},
+					Schema: newSchema(),
+				}),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: enrichWithEmptyTopologies(readerToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+						Region: ec.String("us-east-1"),
+						RefID:  ec.String("main-elasticsearch"),
+						Settings: &models.ElasticsearchClusterSettings{
+							DedicatedMastersThreshold: 6,
+						},
+						Plan: &models.ElasticsearchClusterPlan{
+							Transient: &models.TransientElasticsearchPlanConfiguration{
+								RestoreSnapshot: &models.RestoreSnapshotConfiguration{
+									SourceClusterID: "8c63b87af9e24ea49b8a4bfe550e5fe9",
+									SnapshotName:    ec.String("__latest_success__"),
+									Strategy:        "partial",
+								},
+							},
+							AutoscalingEnabled: ec.Bool(false),
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version: "7.10.1",
+							},
+							DeploymentTemplate: &models.DeploymentTemplateReference{
+								ID: ec.String("aws-io-optimized-v2"),
+							},
+							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+								ID: "hot_content",
+								Elasticsearch: &models.ElasticsearchConfiguration{
+									NodeAttributes: map[string]string{"data": "hot"},
+								},
+								ZoneCount:               2,
+								InstanceConfigurationID: "aws.data.highio.i3",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(8192),
+								},
+								NodeRoles: []string{
+									"master",
+									"ingest",
+									"remote_cluster_client",
+									"data_hot",
+									"transform",
+									"data_content",
+								},
+								TopologyElementControl: &models.TopologyElementControl{
+									Min: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(1024),
+									},
+								},
+								AutoscalingMax: &models.TopologySize{
+									Value:    ec.Int32(118784),
+									Resource: ec.String("memory"),
+								},
+							}},
+						},
+					}),
+				},
+			},
+		},
+		{
 			name: "topology change with invalid resources returns an error",
 			args: args{
 				d:      deploymentChangeToEmptyDT,
@@ -4020,6 +4209,68 @@ func Test_updateResourceToModel(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_ensurePartialSnapshotStrategy(t *testing.T) {
+	type args struct {
+		ess []*models.ElasticsearchPayload
+	}
+	tests := []struct {
+		name string
+		args args
+		want []*models.ElasticsearchPayload
+	}{
+		{
+			name: "ignores resources with no transient block",
+			args: args{ess: []*models.ElasticsearchPayload{{
+				Plan: &models.ElasticsearchClusterPlan{},
+			}}},
+			want: []*models.ElasticsearchPayload{{
+				Plan: &models.ElasticsearchClusterPlan{},
+			}},
+		},
+		{
+			name: "ignores resources with no transient.snapshot block",
+			args: args{ess: []*models.ElasticsearchPayload{{
+				Plan: &models.ElasticsearchClusterPlan{
+					Transient: &models.TransientElasticsearchPlanConfiguration{},
+				},
+			}}},
+			want: []*models.ElasticsearchPayload{{
+				Plan: &models.ElasticsearchClusterPlan{
+					Transient: &models.TransientElasticsearchPlanConfiguration{},
+				},
+			}},
+		},
+		{
+			name: "Sets strategy to partial",
+			args: args{ess: []*models.ElasticsearchPayload{{
+				Plan: &models.ElasticsearchClusterPlan{
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						RestoreSnapshot: &models.RestoreSnapshotConfiguration{
+							SourceClusterID: "some",
+						},
+					},
+				},
+			}}},
+			want: []*models.ElasticsearchPayload{{
+				Plan: &models.ElasticsearchClusterPlan{
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						RestoreSnapshot: &models.RestoreSnapshotConfiguration{
+							SourceClusterID: "some",
+							Strategy:        "partial",
+						},
+					},
+				},
+			}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ensurePartialSnapshotStrategy(tt.args.ess)
+			assert.Equal(t, tt.want, tt.args.ess)
 		})
 	}
 }

@@ -168,6 +168,11 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	}
 	result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, esRes...)
 
+	// if the restore snapshot operation has been specified, the snapshot restore
+	// can't be full once the cluster has been created, so the Strategy must be set
+	// to "partial".
+	ensurePartialSnapshotStrategy(esRes)
+
 	kibanaRes, err := expandKibanaResources(kibana, kibanaResource(template))
 	if err != nil {
 		merr = merr.Append(err)
@@ -263,4 +268,14 @@ func compatibleWithNodeRoles(version string) (bool, error) {
 
 	dataTiersVersion := semver.MustParse("7.10.0")
 	return deploymentVersion.GE(dataTiersVersion), nil
+}
+
+func ensurePartialSnapshotStrategy(ess []*models.ElasticsearchPayload) {
+	for _, es := range ess {
+		transient := es.Plan.Transient
+		if transient == nil || transient.RestoreSnapshot == nil {
+			continue
+		}
+		transient.RestoreSnapshot.Strategy = "partial"
+	}
 }
