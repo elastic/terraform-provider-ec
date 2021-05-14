@@ -9,7 +9,9 @@ __parent="$(dirname "${__dir}")"
 CHANGELOG_FILE_NAME="CHANGELOG.md"
 CHANGELOG_TMP_FILE_NAME="CHANGELOG.tmp"
 TARGET_SHA=$(git rev-parse HEAD)
-PREVIOUS_RELEASE_TAG=$(git describe --abbrev=0 --match='v*.*.*' --tags)
+
+# Obtain tags from all branches.
+PREVIOUS_RELEASE_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
 PREVIOUS_RELEASE_SHA=$(git rev-list -n 1 ${PREVIOUS_RELEASE_TAG})
 
 if [ ${TARGET_SHA} == ${PREVIOUS_RELEASE_SHA} ]; then
