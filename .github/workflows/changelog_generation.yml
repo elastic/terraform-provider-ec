@@ -1,11 +1,9 @@
 name: Generate CHANGELOG
 on:
-  pull_request:
-    types: [closed]
+  push:
   workflow_dispatch:
 jobs:
   GenerateChangelog:
-    if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,8 +14,10 @@ jobs:
       - run: make changelog
       - name: Commit & Push changes
         run: |
-          git config --local user.email elasticcloudclients@elastic.co
-          git config --local user.name elasticcloudclients
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md"
-          git push
+          if [[ ! -z  $(git status --porcelain) ]]; then
+            git config --local user.email elasticcloudclients@elastic.co
+            git config --local user.name elasticcloudclients
+            git add CHANGELOG.md
+            git commit -m "Update CHANGELOG.md"
+            git push
+          fi
