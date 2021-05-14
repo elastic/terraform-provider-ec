@@ -1,5 +1,19 @@
 # 0.2.0 (Unreleased)
 
+FEATURES:
+
+* datasource/ec_deployment: Add a new size parameter to allow modifying the default size of `10` in the number of deployments returned by the search request. ([#300](https://github.com/elastic/terraform-provider-ec/issues/300))
+* resource/ec_deployment: Supports Autoscaling via two new settings: `elasticsearch.autoscale` (`"true"` or `"false"`) and an `elasticsearch.topology.autoscaling` block to modify the default autoscaling policies. For more information, refer to the [documentation examples](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/ec_deployment#example-usage). ([#296](https://github.com/elastic/terraform-provider-ec/issues/296))
+* resource/ec_deployment: Supports deployment aliases in a new top level field `alias`. ([#298](https://github.com/elastic/terraform-provider-ec/issues/298))
+
+ENHANCEMENTS:
+
+* resource/ec_deployment: Retries the Shutdown API call on the destroy operation up to 3 times when the transient "Timeout Exceeded" error returned from the Elastic Cloud API. ([#308](https://github.com/elastic/terraform-provider-ec/issues/308))
+
+BUG FIXES:
+
+* resource/ec_deployment: Fixes a bug which made restoring a snapshot to an existing deployment fail. ([#309](https://github.com/elastic/terraform-provider-ec/issues/309))
+
 # 0.1.1 (April 7, 2021)
 
 BUG FIXES:
