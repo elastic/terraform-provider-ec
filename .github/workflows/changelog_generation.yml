@@ -10,7 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
+
       - run: make changelog
       - name: Commit & Push changes
         run: |
