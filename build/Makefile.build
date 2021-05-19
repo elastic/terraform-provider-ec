@@ -1,8 +1,9 @@
 BINARY_LOCATION ?= bin/$(BINARY)
 PLUGIN_LOCATION ?= ~/.terraform.d/plugins
 OS = $(shell uname -s|tr '[:upper:]' '[:lower:]')
+ARCH = $(uname -m)
 STRIPPED_V ?= $(subst -dev,,$(VERSION))
-PLUGIN_0.13 = registry.terraform.io/elastic/ec/$(STRIPPED_V)/$(OS)_amd64/terraform-provider-ec_v$(STRIPPED_V)
+PLUGIN_0.13 = registry.terraform.io/elastic/ec/$(STRIPPED_V)/$(OS)_$(ARCH)/terraform-provider-ec_v$(STRIPPED_V)
 
 ### Build targets
 
