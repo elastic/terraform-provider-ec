@@ -11,24 +11,24 @@ $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS): | $(VERSION_DI
 	@ rm -f $(VERSION_DIR)/.version-tfproviderdocs-*
 	@ echo $(VERSION_TFPROVIDERDOCS) > $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS)
 
-$(GOBIN)/tfproviderdocs: $(GOBIN)/gobin $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS) | $(GOBIN)
+$(GOBIN)/tfproviderdocs: $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS) | $(GOBIN)
 	@ echo "-> Installing tfproviderdocs..."
-	@ $(GOBIN)/gobin github.com/bflad/tfproviderdocs@$(VERSION_TFPROVIDERDOCS)
+	@ go install github.com/bflad/tfproviderdocs@$(VERSION_TFPROVIDERDOCS)
 
 
 $(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-terrafmt-*
 	@ echo $(VERSION_TERRAFMT) > $(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT)
 
-$(GOBIN)/terrafmt: $(GOBIN)/gobin $(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT) | $(GOBIN)
+$(GOBIN)/terrafmt: $(VERSION_DIR)/.version-terrafmt-$(VERSION_TERRAFMT) | $(GOBIN)
 	@ echo "-> Installing terrafmt..."
-	@ $(GOBIN)/gobin github.com/katbyte/terrafmt@$(VERSION_TERRAFMT)
+	@ go install github.com/katbyte/terrafmt@$(VERSION_TERRAFMT)
 
 
 $(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-tfproviderlint-*
 	@ echo $(VERSION_TFPROVIDERLINT) > $(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT)
 
-$(GOBIN)/tfproviderlint: $(GOBIN)/gobin $(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT) | $(GOBIN)
+$(GOBIN)/tfproviderlint: $(VERSION_DIR)/.version-tfproviderlint-$(VERSION_TFPROVIDERLINT) | $(GOBIN)
 	@ echo "-> Installing tfproviderlint..."
-	@ $(GOBIN)/gobin github.com/bflad/tfproviderlint/cmd/tfproviderlint@$(VERSION_TFPROVIDERLINT)
+	@ go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@$(VERSION_TFPROVIDERLINT)
