@@ -3,14 +3,13 @@ OS:=$(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
-VERSION_GOBIN:=v0.0.13
 VERSION_GOLINT:=v0.0.0-20191125180803-fdd1cda4f05f
 VERSION_GOLICENSER:=v0.3.0
-VERSION_GOLANGCILINT:=v1.26.0
-VERSION_GORELEASER:=v0.149.0
+VERSION_GOLANGCILINT:=v1.40.1
+VERSION_GORELEASER:=v0.164.0
 VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 
-deps: $(GOBIN)/gobin $(GOBIN)/golint $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
+deps: $(GOBIN)/golint $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
 
 $(GOBIN):
 	@ mkdir -p $(GOBIN)
@@ -18,30 +17,21 @@ $(GOBIN):
 $(VERSION_DIR): | $(GOBIN)
 	@ mkdir -p $(GOBIN)/versions
 
-$(VERSION_DIR)/.version-gobin-$(VERSION_GOBIN): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-gobin-*
-	@ echo $(VERSION_GOBIN) > $(VERSION_DIR)/.version-gobin-$(VERSION_GOBIN)
-
-$(GOBIN)/gobin: $(VERSION_DIR)/.version-gobin-$(VERSION_GOBIN) | $(GOBIN)
-	@ echo "-> Installing gobin..."
-	@ curl -sL -o $(GOBIN)/gobin https://github.com/myitcv/gobin/releases/download/$(VERSION_GOBIN)/$(OS)-$(ARCH)
-	@ chmod +x $(GOBIN)/gobin
-
 $(VERSION_DIR)/.version-golint-$(VERSION_GOLINT): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-golint-*
 	@ echo $(VERSION_GOLINT) > $(VERSION_DIR)/.version-golint-$(VERSION_GOLINT)
 
-$(GOBIN)/golint: $(GOBIN)/gobin $(VERSION_DIR)/.version-golint-$(VERSION_GOLINT) | $(GOBIN)
+$(GOBIN)/golint: $(VERSION_DIR)/.version-golint-$(VERSION_GOLINT) | $(GOBIN)
 	@ echo "-> Installing golint..."
-	@ $(GOBIN)/gobin golang.org/x/lint/golint@$(VERSION_GOLINT)
+	@ go install golang.org/x/lint/golint@$(VERSION_GOLINT)
 
 $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-go-licenser-*
 	@ echo $(VERSION_GOLICENSER) > $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER)
 
-$(GOBIN)/go-licenser: $(GOBIN)/gobin $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER) | $(GOBIN)
+$(GOBIN)/go-licenser: $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER) | $(GOBIN)
 	@ echo "-> Installing go-licenser..."
-	@ $(GOBIN)/gobin github.com/elastic/go-licenser@$(VERSION_GOLICENSER)
+	@ go install github.com/elastic/go-licenser@$(VERSION_GOLICENSER)
 
 $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-golangci-lint-*
@@ -63,6 +53,6 @@ $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-changelog-build-*
 	@ echo $(VERSION_GOCHANGELOG) > $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG)
 
-$(GOBIN)/changelog-build: $(GOBIN)/gobin $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG) | $(GOBIN)
+$(GOBIN)/changelog-build: $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG) | $(GOBIN)
 	@ echo "-> Installing changelog-build..."
-	@ $(GOBIN)/gobin github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
+	@ go install github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
