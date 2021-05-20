@@ -1,4 +1,8 @@
+# 0.1.3 (Unreleased)
+
 # 0.1.2 (Unreleased)
+
+* Add `darwin/arm64` build. ([#316](https://github.com/elastic/terraform-provider-ec/issues/316))
 
 # 0.1.1 (April 7, 2021)
 
