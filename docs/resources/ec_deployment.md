@@ -241,11 +241,11 @@ The required `elasticsearch` block supports the following arguments:
 
 To set up multi-node Elasticsearch clusters, you can set the topology block multiple times. Each block must specify the `id` field referencing the data tier name. This is particularly relevant for Elasticsearch clusters with multiple data tiers or Machine lLearning.
 
--> To avoid infinite diff loops, topology blocks should be ordered alphabetically by the `topology.id` field. The order with the current data tiers at the time of this writing would be: "cold", "coordinating", "hot_content", "master", "warm".
+-> To avoid infinite diff loops, topology blocks should be ordered alphabetically by the `topology.id` field. The order with the current data tiers at the time of this writing would be: "cold", "coordinating", "frozen", "hot_content", "master", "ml", "warm".
 
 The optional `elasticsearch.topology` block supports the following arguments:
 
-* `id` - (Required) Unique topology identifier. It generally refers to an Elasticsearch data tier, such as `hot_content`, `warm`, `cold`, `coordinating` or `master`.
+* `id` - (Required) Unique topology identifier. It generally refers to an Elasticsearch data tier, such as `hot_content`, `warm`, `cold`, `coordinating`, `frozen`, `ml` or `master`.
 * `size` - (Optional) Amount in Gigabytes per topology element in the `"<size in GB>g"` notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
 * `zone_count` - (Optional) Number of zones the instance type of the Elasticsearch cluster will span. This is used to set or unset HA on an Elasticsearch node type. When omitted, it defaults to the deployment template value.
