@@ -55,6 +55,7 @@ func Test_expandFilters(t *testing.T) {
 			args: args{d: deploymentsDS},
 			want: &models.SearchRequest{
 				Size: 100,
+				Sort: []interface{}{"id"},
 				Query: &models.QueryContainer{
 					Bool: &models.BoolQuery{
 						Filter: []*models.QueryContainer{
@@ -104,6 +105,7 @@ func Test_expandFilters(t *testing.T) {
 			})},
 			want: &models.SearchRequest{
 				Size: 200,
+				Sort: []interface{}{"id"},
 				Query: &models.QueryContainer{
 					Bool: &models.BoolQuery{
 						Filter: []*models.QueryContainer{

@@ -93,6 +93,7 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 
 	searchReq := models.SearchRequest{
 		Size: int32(d.Get("size").(int)),
+		Sort: []interface{}{"id"},
 	}
 
 	if len(queries) > 0 {
