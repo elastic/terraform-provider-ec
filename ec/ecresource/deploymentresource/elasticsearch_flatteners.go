@@ -94,6 +94,16 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 			m["extension"] = extensions
 		}
 
+		if settings := res.Info.Settings; settings != nil {
+			if trust := flattenAccountTrust(settings.Trust); trust != nil {
+				m["trust_account"] = trust
+			}
+
+			if trust := flattenExternalTrust(settings.Trust); trust != nil {
+				m["trust_external"] = trust
+			}
+		}
+
 		result = append(result, m)
 	}
 
@@ -281,4 +291,48 @@ func flattenEsPlugins(in []*models.ElasticsearchUserPlugin) []interface{} {
 	}
 
 	return result
+}
+
+func flattenAccountTrust(in *models.ElasticsearchClusterTrustSettings) *schema.Set {
+	if in == nil {
+		return nil
+	}
+
+	account := schema.NewSet(schema.HashResource(accountResource()), nil)
+	for _, acc := range in.Accounts {
+		account.Add(map[string]interface{}{
+			"account_id": *acc.AccountID,
+			"trust_all":  *acc.TrustAll,
+			"trust_allowlist": schema.NewSet(schema.HashString,
+				util.StringToItems(acc.TrustAllowlist...),
+			),
+		})
+	}
+
+	if account.Len() > 0 {
+		return account
+	}
+	return nil
+}
+
+func flattenExternalTrust(in *models.ElasticsearchClusterTrustSettings) *schema.Set {
+	if in == nil {
+		return nil
+	}
+
+	external := schema.NewSet(schema.HashResource(externalResource()), nil)
+	for _, ext := range in.External {
+		external.Add(map[string]interface{}{
+			"relationship_id": *ext.TrustRelationshipID,
+			"trust_all":       *ext.TrustAll,
+			"trust_allowlist": schema.NewSet(schema.HashString,
+				util.StringToItems(ext.TrustAllowlist...),
+			),
+		})
+	}
+
+	if external.Len() > 0 {
+		return external
+	}
+	return nil
 }
