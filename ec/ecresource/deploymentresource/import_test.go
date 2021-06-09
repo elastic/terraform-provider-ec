@@ -119,6 +119,8 @@ func Test_importFunc(t *testing.T) {
 				"elasticsearch.0.remote_cluster.#":  "0",
 				"elasticsearch.0.resource_id":       "",
 				"elasticsearch.0.topology.#":        "0",
+				"elasticsearch.0.trust_account.#":   "0",
+				"elasticsearch.0.trust_external.#":  "0",
 			},
 		},
 		{
@@ -165,6 +167,8 @@ func Test_importFunc(t *testing.T) {
 				"elasticsearch.0.remote_cluster.#":  "0",
 				"elasticsearch.0.resource_id":       "",
 				"elasticsearch.0.topology.#":        "0",
+				"elasticsearch.0.trust_account.#":   "0",
+				"elasticsearch.0.trust_external.#":  "0",
 			},
 		},
 		{
@@ -211,6 +215,8 @@ func Test_importFunc(t *testing.T) {
 				"elasticsearch.0.remote_cluster.#":  "0",
 				"elasticsearch.0.resource_id":       "",
 				"elasticsearch.0.topology.#":        "0",
+				"elasticsearch.0.trust_account.#":   "0",
+				"elasticsearch.0.trust_external.#":  "0",
 			},
 		},
 	}
