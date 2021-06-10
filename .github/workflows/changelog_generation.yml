@@ -11,6 +11,12 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+
       - run: make changelog
       - name: Commit & Push changes
         run: |
