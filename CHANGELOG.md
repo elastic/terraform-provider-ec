@@ -12,7 +12,9 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* datasource/ec_deployments: Properly sorts the datasource results by ID. ([#322](https://github.com/elastic/terraform-provider-ec/issues/322))
 * resource/ec_deployment: Fixes a bug which made restoring a snapshot to an existing deployment fail. ([#309](https://github.com/elastic/terraform-provider-ec/issues/309))
+* resource/ec_deployment: Handles account and external trust settings, fixing a bug where the default trust settings are unset and allowing users to set up their own trust settings for an Elasticsearch cluster. ([#324](https://github.com/elastic/terraform-provider-ec/issues/324))
 
 # 0.1.1 (April 7, 2021)
 
