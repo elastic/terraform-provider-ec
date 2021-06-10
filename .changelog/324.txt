@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Handles account and external trust settings, fixing a bug where the default trust settings are unset and allowing users to set up their own trust settings for an Elasticsearch cluster.
+```

@@ -89,6 +89,9 @@ func newElasticsearchResource() *schema.Resource {
 			"snapshot_source": newSnapshotSourceSettings(),
 
 			"extension": newExtensionSchema(),
+
+			"trust_account":  newTrustAccountSchema(),
+			"trust_external": newTrustExternalSchema(),
 		},
 	}
 }
@@ -381,4 +384,76 @@ func esExtensionHash(v interface{}) int {
 	buf.WriteString(m["url"].(string))
 	buf.WriteString(m["name"].(string))
 	return schema.HashString(buf.String())
+}
+
+func newTrustAccountSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeSet,
+		Description: "Optional Elasticsearch account trust settings.",
+		Optional:    true,
+		Computed:    true,
+		Elem:        accountResource(),
+	}
+}
+
+func accountResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"account_id": {
+				Description: "The ID of the Account.",
+				Type:        schema.TypeString,
+				Required:    true,
+			},
+			"trust_all": {
+				Description: "If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.",
+				Type:        schema.TypeBool,
+				Required:    true,
+			},
+			"trust_allowlist": {
+				Description: "The list of clusters to trust. Only used when `trust_all` is false.",
+				Type:        schema.TypeSet,
+				Set:         schema.HashString,
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+		},
+	}
+}
+
+func newTrustExternalSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeSet,
+		Description: "Optional Elasticsearch external trust settings.",
+		Optional:    true,
+		Computed:    true,
+		Elem:        externalResource(),
+	}
+}
+
+func externalResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"relationship_id": {
+				Description: "The ID of the external trust relationship.",
+				Type:        schema.TypeString,
+				Required:    true,
+			},
+			"trust_all": {
+				Description: "If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.",
+				Type:        schema.TypeBool,
+				Required:    true,
+			},
+			"trust_allowlist": {
+				Description: "The list of clusters to trust. Only used when `trust_all` is false.",
+				Type:        schema.TypeSet,
+				Set:         schema.HashString,
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+		},
+	}
 }

@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // parseDeploymentTemplate is a test helper which parse a file by path and
@@ -101,4 +102,10 @@ func readerToESPayload(t *testing.T, rc io.Reader, nr bool) *models.Elasticsearc
 		"",
 		nr,
 	)
+}
+
+func newDeploymentRD(t *testing.T, id string, raw map[string]interface{}) *schema.ResourceData {
+	rd := schema.TestResourceDataRaw(t, newSchema(), raw)
+	rd.SetId(id)
+	return rd
 }

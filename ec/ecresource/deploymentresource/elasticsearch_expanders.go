@@ -117,6 +117,24 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
+	if trust, ok := es["trust_account"]; ok {
+		if t := trust.(*schema.Set); t.Len() > 0 {
+			if res.Settings == nil {
+				res.Settings = &models.ElasticsearchClusterSettings{}
+			}
+			expandAccountTrust(t.List(), res.Settings)
+		}
+	}
+
+	if trust, ok := es["trust_external"]; ok {
+		if t := trust.(*schema.Set); t.Len() > 0 {
+			if res.Settings == nil {
+				res.Settings = &models.ElasticsearchClusterSettings{}
+			}
+			expandExternalTrust(t.List(), res.Settings)
+		}
+	}
+
 	return res, nil
 }
 
@@ -482,4 +500,86 @@ func expandEsExtension(raw []interface{}, es *models.ElasticsearchConfiguration)
 			})
 		}
 	}
+}
+
+func expandAccountTrust(raw []interface{}, es *models.ElasticsearchClusterSettings) {
+	var accounts []*models.AccountTrustRelationship
+	for _, rawTrust := range raw {
+		m := rawTrust.(map[string]interface{})
+
+		var id string
+		if v, ok := m["account_id"]; ok {
+			id = v.(string)
+		}
+
+		var all bool
+		if a, ok := m["trust_all"]; ok {
+			all = a.(bool)
+		}
+
+		var allowlist []string
+		if al, ok := m["trust_allowlist"]; ok {
+			set := al.(*schema.Set)
+			if set.Len() > 0 {
+				allowlist = util.ItemsToString(set.List())
+			}
+		}
+
+		accounts = append(accounts, &models.AccountTrustRelationship{
+			AccountID:      &id,
+			TrustAll:       &all,
+			TrustAllowlist: allowlist,
+		})
+	}
+
+	if len(accounts) == 0 {
+		return
+	}
+
+	if es.Trust == nil {
+		es.Trust = &models.ElasticsearchClusterTrustSettings{}
+	}
+
+	es.Trust.Accounts = append(es.Trust.Accounts, accounts...)
+}
+
+func expandExternalTrust(raw []interface{}, es *models.ElasticsearchClusterSettings) {
+	var external []*models.ExternalTrustRelationship
+	for _, rawTrust := range raw {
+		m := rawTrust.(map[string]interface{})
+
+		var id string
+		if v, ok := m["relationship_id"]; ok {
+			id = v.(string)
+		}
+
+		var all bool
+		if a, ok := m["trust_all"]; ok {
+			all = a.(bool)
+		}
+
+		var allowlist []string
+		if al, ok := m["trust_allowlist"]; ok {
+			set := al.(*schema.Set)
+			if set.Len() > 0 {
+				allowlist = util.ItemsToString(set.List())
+			}
+		}
+
+		external = append(external, &models.ExternalTrustRelationship{
+			TrustRelationshipID: &id,
+			TrustAll:            &all,
+			TrustAllowlist:      allowlist,
+		})
+	}
+
+	if len(external) == 0 {
+		return
+	}
+
+	if es.Trust == nil {
+		es.Trust = &models.ElasticsearchClusterTrustSettings{}
+	}
+
+	es.Trust.External = append(es.Trust.External, external...)
 }

@@ -236,6 +236,8 @@ The required `elasticsearch` block supports the following arguments:
 * `snapshot_source` (Optional) Restores data from a snapshot of another deployment.
 * `extension` (Optional) Custom Elasticsearch bundles or plugins. Can be set multiple times.
 * `autoscale` (Optional) Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are `"true"` or `"false"`.
+* `trust_account` (Optional) The trust relationships with other ESS accounts.
+* `trust_external` (Optional) The trust relationship with external entities (remote environments, remote accounts...).
 
 ##### Topology
 
@@ -306,6 +308,24 @@ The optional `elasticsearch.extension` block, allows custom plugins or bundles t
 * `type` (Required) Extension type, only `bundle` or `plugin` are supported.
 * `version` (Required) Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.
 * `url` (Required) Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
+
+##### Trust Account
+
+~> **Note on Computed Account Trusts** If your account has the default trust setting set to `Trust all my deployments (includes future deployments)`, the `trust_account` will always contain 1 element that sets up that trust. If that element is manually removed, the trust default will be unset for the cluster.
+
+The optional `elasticsearch.trust_account` block, allows cross-account trust relationships to be set. It supports the following arguments:
+
+* `account_id` (Required) The account identifier to establish the new trust with.
+* `trust_all` (Optional) If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.
+* `trust_allowlist` (Optional) The list of clusters to trust. Only used when `trust_all` is `false`.
+
+##### Trust External
+
+The optional `elasticsearch.trust_external` block, allows external trust relationships to be set. It supports the following arguments:
+
+* `relationship_id` (Required) Identifier of the the trust relationship with external entities (remote environments, remote accounts...).
+* `trust_all` (Optional) If true, all clusters in this external entity will be trusted and the `trust_allowlist` is ignored.
+* `trust_allowlist` (Optional) The list of clusters to trust. Only used when `trust_all` is `false`.
 
 #### Kibana
 

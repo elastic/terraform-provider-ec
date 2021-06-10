@@ -54,11 +54,15 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
+					// Ensure at least 1 account is trusted (self).
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.trust_account.#", "1"),
 				),
 			},
 			{
 				Config: cfgWithTrafficFilter,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
+					// Ensure at least 1 account is trusted (self). It isn't deleted.
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.trust_account.#", "1"),
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
 			},

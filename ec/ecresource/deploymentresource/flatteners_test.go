@@ -950,6 +950,122 @@ func Test_modelToState(t *testing.T) {
 			}),
 		},
 		{
+			name: "flattens an aws plan with trusts",
+			args: args{
+				d: newDeploymentRD(t, "123b7b540dfc967a7a649c18e2fce4ed", nil),
+				res: &models.DeploymentGetResponse{
+					ID:    ec.String("123b7b540dfc967a7a649c18e2fce4ed"),
+					Alias: "OH",
+					Name:  ec.String("up2d"),
+					Resources: &models.DeploymentResources{
+						Elasticsearch: []*models.ElasticsearchResourceInfo{{
+							RefID:  ec.String("main-elasticsearch"),
+							Region: ec.String("aws-eu-central-1"),
+							Info: &models.ElasticsearchClusterInfo{
+								Status: ec.String("running"),
+								PlanInfo: &models.ElasticsearchClusterPlansInfo{
+									Current: &models.ElasticsearchClusterPlanInfo{
+										Plan: &models.ElasticsearchClusterPlan{
+											DeploymentTemplate: &models.DeploymentTemplateReference{
+												ID: ec.String("aws-io-optimized-v2"),
+											},
+											Elasticsearch: &models.ElasticsearchConfiguration{
+												Version: "7.13.1",
+											},
+											ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+												ID: "hot_content",
+												Size: &models.TopologySize{
+													Value:    ec.Int32(4096),
+													Resource: ec.String("memory"),
+												},
+											}},
+										},
+									},
+								},
+								Settings: &models.ElasticsearchClusterSettings{
+									Trust: &models.ElasticsearchClusterTrustSettings{
+										Accounts: []*models.AccountTrustRelationship{
+											{
+												AccountID: ec.String("ANID"),
+												TrustAll:  ec.Bool(true),
+											},
+											{
+												AccountID: ec.String("anotherID"),
+												TrustAll:  ec.Bool(false),
+												TrustAllowlist: []string{
+													"abc", "dfg", "hij",
+												},
+											},
+										},
+										External: []*models.ExternalTrustRelationship{
+											{
+												TrustRelationshipID: ec.String("external_id"),
+												TrustAll:            ec.Bool(true),
+											},
+											{
+												TrustRelationshipID: ec.String("another_external_id"),
+												TrustAll:            ec.Bool(false),
+												TrustAllowlist: []string{
+													"abc", "dfg",
+												},
+											},
+										},
+									},
+								},
+							},
+						}},
+					},
+				},
+			},
+			want: util.NewResourceData(t, util.ResDataParams{
+				ID: "123b7b540dfc967a7a649c18e2fce4ed",
+				State: map[string]interface{}{
+					"alias":                  "OH",
+					"deployment_template_id": "aws-io-optimized-v2",
+					"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+					"name":                   "up2d",
+					"region":                 "aws-eu-central-1",
+					"version":                "7.13.1",
+					"elasticsearch": []interface{}{map[string]interface{}{
+						"region": "aws-eu-central-1",
+						"ref_id": "main-elasticsearch",
+						"topology": []interface{}{map[string]interface{}{
+							"id":            "hot_content",
+							"size":          "4g",
+							"size_resource": "memory",
+						}},
+						"trust_account": []interface{}{
+							map[string]interface{}{
+								"account_id": "ANID",
+								"trust_all":  "true",
+							},
+							map[string]interface{}{
+								"account_id": "anotherID",
+								"trust_all":  "false",
+								"trust_allowlist": []interface{}{
+									"abc", "hij", "dfg",
+								},
+							},
+						},
+						"trust_external": []interface{}{
+							map[string]interface{}{
+								"relationship_id": "another_external_id",
+								"trust_all":       "false",
+								"trust_allowlist": []interface{}{
+									"abc", "dfg",
+								},
+							},
+							map[string]interface{}{
+								"relationship_id": "external_id",
+								"trust_all":       "true",
+							},
+						},
+					}},
+				},
+				Schema: newSchema(),
+			}),
+		},
+		{
 			name: "flattens an aws plan (io-optimized) with tags",
 			args: args{d: awsIOOptimizedTagsRD, res: awsIOOptimizedTagsRes},
 			want: wantAwsIOOptimizedDeploymentTags,
