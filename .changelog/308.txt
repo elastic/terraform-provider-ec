@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/ec_deployment: Retries the Shutdown API call on the destroy operation up to 3 times when the transient "Timeout Exceeded" error returned from the Elastic Cloud API.
-```

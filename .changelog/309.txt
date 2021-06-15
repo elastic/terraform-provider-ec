@@ -1,3 +1,0 @@
-```release-note:bug
-resource/ec_deployment: Fixes a bug which made restoring a snapshot to an existing deployment fail.
-```
