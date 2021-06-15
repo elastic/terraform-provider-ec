@@ -1,3 +1,0 @@
-```release-note:bug
-datasource/ec_deployments: Properly sorts the datasource results by ID.
-```
