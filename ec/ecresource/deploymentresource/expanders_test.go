@@ -3777,7 +3777,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 		},
 		{
-			name: "does not migrate node_type to node_role on version upgrade",
+			name: "does not migrate node_type to node_role on version upgrade that's lower than 7.10.0",
 			args: args{
 				d: util.NewResourceData(t, util.ResDataParams{
 					ID: mock.ValidClusterID,
@@ -3785,7 +3785,7 @@ func Test_updateResourceToModel(t *testing.T) {
 						"name":                   "my_deployment_name",
 						"deployment_template_id": "aws-io-optimized-v2",
 						"region":                 "us-east-1",
-						"version":                "7.10.1",
+						"version":                "7.9.1",
 						"elasticsearch": []interface{}{map[string]interface{}{
 							"topology": []interface{}{map[string]interface{}{
 								"id":               "hot_content",
@@ -3867,6 +3867,104 @@ func Test_updateResourceToModel(t *testing.T) {
 									Resource: ec.String("memory"),
 								},
 							}},
+						},
+					}),
+				},
+			},
+		},
+		{
+			name: "does not migrate node_type to node_role on version upgrade that's higher than 7.10.0",
+			args: args{
+				d: util.NewResourceData(t, util.ResDataParams{
+					ID: mock.ValidClusterID,
+					State: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-io-optimized-v2",
+						"region":                 "us-east-1",
+						"version":                "7.10.1",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"topology": []interface{}{map[string]interface{}{
+								"id":               "hot_content",
+								"size":             "16g",
+								"node_type_data":   "true",
+								"node_type_ingest": "true",
+								"node_type_master": "true",
+								"node_type_ml":     "false",
+							}},
+						}},
+					},
+					Change: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-io-optimized-v2",
+						"region":                 "us-east-1",
+						"version":                "7.11.1",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"topology": []interface{}{map[string]interface{}{
+								"id":               "hot_content",
+								"size":             "16g",
+								"node_type_data":   "true",
+								"node_type_ingest": "true",
+								"node_type_master": "true",
+								"node_type_ml":     "false",
+							}},
+						}},
+					},
+					Schema: newSchema(),
+				}),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: enrichWithEmptyTopologies(readerToESPayload(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
+						Region: ec.String("us-east-1"),
+						RefID:  ec.String("main-elasticsearch"),
+						Settings: &models.ElasticsearchClusterSettings{
+							DedicatedMastersThreshold: 6,
+						},
+						Plan: &models.ElasticsearchClusterPlan{
+							AutoscalingEnabled: ec.Bool(false),
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version: "7.11.1",
+							},
+							DeploymentTemplate: &models.DeploymentTemplateReference{
+								ID: ec.String("aws-io-optimized-v2"),
+							},
+							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+								{
+									ID: "hot_content",
+									Elasticsearch: &models.ElasticsearchConfiguration{
+										NodeAttributes: map[string]string{"data": "hot"},
+									},
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(16384),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+										Ml:     ec.Bool(false),
+									},
+									TopologyElementControl: &models.TopologyElementControl{
+										Min: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+									AutoscalingMax: &models.TopologySize{
+										Value:    ec.Int32(118784),
+										Resource: ec.String("memory"),
+									},
+								},
+							},
 						},
 					}),
 				},
