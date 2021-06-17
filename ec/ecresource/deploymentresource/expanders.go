@@ -32,6 +32,10 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
+var (
+	dataTiersVersion = semver.MustParse("7.10.0")
+)
+
 func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentCreateRequest, error) {
 	var result = models.DeploymentCreateRequest{
 		Name:      d.Get("name").(string),
@@ -155,7 +159,13 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	if err != nil {
 		return nil, err
 	}
-	useNodeRoles := d.HasChange("elasticsearch") && !d.HasChange("version") && nodeRolesCompatible
+	useNodeRoles := d.HasChange("elasticsearch") && nodeRolesCompatible
+
+	convertLegacy, err := legacyToNodeRoles(d)
+	if err != nil {
+		return nil, err
+	}
+	useNodeRoles = useNodeRoles && convertLegacy
 
 	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
@@ -266,7 +276,6 @@ func compatibleWithNodeRoles(version string) (bool, error) {
 		return false, fmt.Errorf("failed to parse Elasticsearch version: %w", err)
 	}
 
-	dataTiersVersion := semver.MustParse("7.10.0")
 	return deploymentVersion.GE(dataTiersVersion), nil
 }
 
@@ -278,4 +287,73 @@ func ensurePartialSnapshotStrategy(ess []*models.ElasticsearchPayload) {
 		}
 		transient.RestoreSnapshot.Strategy = "partial"
 	}
+}
+
+// legacyToNodeRoles returns true when the legacy  "node_type_*" should be
+// migrated over to node_roles. Which will be true when:
+// * The version field doesn't change.
+// * The version field changes but:
+//   * The Elasticsearch.0.toplogy doesn't have any node_type_* set.
+func legacyToNodeRoles(d *schema.ResourceData) (bool, error) {
+	if !d.HasChange("version") {
+		return true, nil
+	}
+
+	oldVRaw, newVRaw := d.GetChange("version")
+	oldVS, newVS := oldVRaw.(string), newVRaw.(string)
+
+	// If the previous version is empty, node_roles should be used.
+	if oldVS == "" {
+		return true, nil
+	}
+
+	oldV, err := semver.Parse(oldVS)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse previous Elasticsearch version: %w", err)
+	}
+	newV, err := semver.Parse(newVS)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse previous Elasticsearch version: %w", err)
+	}
+
+	// if the version change moves from non-node_roles to one
+	// that supports node roles, do not migrate on that step.
+	if oldV.LT(dataTiersVersion) && newV.GE(dataTiersVersion) {
+		return false, nil
+	}
+
+	// When any topology elements in the state have the node_type_*
+	// properties set, the node_role field cannot be used, since
+	// we'd be changing the version AND migrating over `node_role`s
+	// which is not permitted by the API.
+	var hasNodeTypeSet bool
+	for _, t := range d.Get("elasticsearch.0.topology").([]interface{}) {
+		top := t.(map[string]interface{})
+		if nt, ok := top["node_type_data"]; ok {
+			if nt.(string) != "" {
+				hasNodeTypeSet = true
+			}
+		}
+		if nt, ok := top["node_type_ingest"]; ok {
+			if nt.(string) != "" {
+				hasNodeTypeSet = true
+			}
+		}
+		if nt, ok := top["node_type_master"]; ok {
+			if nt.(string) != "" {
+				hasNodeTypeSet = true
+			}
+		}
+		if nt, ok := top["node_type_ml"]; ok {
+			if nt.(string) != "" {
+				hasNodeTypeSet = true
+			}
+		}
+	}
+
+	if hasNodeTypeSet {
+		return false, nil
+	}
+
+	return true, nil
 }
