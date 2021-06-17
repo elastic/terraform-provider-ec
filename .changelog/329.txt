@@ -1,3 +1,0 @@
-```release-note:bug
-resource/ec_deployment: Fixes a bug which made ec_deployment version upgrades return an API error stating: `node_roles must be provided for all elasticsearch topology elements or for none of them`.
-```
