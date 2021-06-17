@@ -1,12 +1,12 @@
-data "ec_stack" "pre_node_roles" {
+data "ec_stack" "post_node_roles_upgrade" {
   version_regex = "7.??.?"
   region        = "%s"
 }
 
-resource "ec_deployment" "pre_nr" {
+resource "ec_deployment" "post_nr_upgrade" {
   name                   = "%s"
   region                 = "%s"
-  version                = data.ec_stack.pre_node_roles.version
+  version                = data.ec_stack.post_node_roles_upgrade.version
   deployment_template_id = "%s"
 
   elasticsearch {

@@ -1,5 +1,11 @@
 # 0.3.0 (Unreleased)
 
+# 0.2.1 (Jun 17, 2021)
+
+BUG FIXES:
+
+* resource/ec_deployment: Fixes a bug which made ec_deployment version upgrades return an API error stating: `node_roles must be provided for all elasticsearch topology elements or for none of them`. ([#329](https://github.com/elastic/terraform-provider-ec/issues/329))
+
 # 0.2.0 (Jun 15, 2021)
 
 FEATURES:
