@@ -48,6 +48,14 @@ func expandModel(d *schema.ResourceData) *models.TrafficFilterRulesetRequest {
 			rule.Description = val.(string)
 		}
 
+		if val, ok := m["azure_endpoint_name"]; ok {
+			rule.AzureEndpointName = val.(string)
+		}
+
+		if val, ok := m["azure_endpoint_guid"]; ok {
+			rule.AzureEndpointGUID = val.(string)
+		}
+
 		request.Rules = append(request.Rules, &rule)
 	}
 

@@ -20,6 +20,7 @@ package acc
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -83,6 +84,31 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
+	resName := "ec_deployment_traffic_filter.azure"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	startCfg := "testdata/deployment_traffic_filter_azure.tf"
+	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, "azure-australiaeast")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactory,
+		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "ip"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
+				),
+				ExpectError: regexp.MustCompile(`.*traffic_filter.azure_private_link_connection_not_found.*`),
 			},
 		},
 	})

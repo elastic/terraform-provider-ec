@@ -56,7 +56,9 @@ func flattenRules(rules []*models.TrafficFilterRule) *schema.Set {
 	result := schema.NewSet(trafficFilterRuleHash, []interface{}{})
 	for _, rule := range rules {
 		var m = make(map[string]interface{})
-		m["source"] = rule.Source
+		if rule.Source != "" {
+			m["source"] = rule.Source
+		}
 
 		if rule.Description != "" {
 			m["description"] = rule.Description
@@ -64,6 +66,14 @@ func flattenRules(rules []*models.TrafficFilterRule) *schema.Set {
 
 		if rule.ID != "" {
 			m["id"] = rule.ID
+		}
+
+		if rule.AzureEndpointGUID != "" {
+			m["azure_endpoint_guid"] = rule.AzureEndpointGUID
+		}
+
+		if rule.AzureEndpointName != "" {
+			m["azure_endpoint_name"] = rule.AzureEndpointName
 		}
 
 		result.Add(m)
