@@ -3013,6 +3013,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        "my-deployment",
 				PruneOrphans: ec.Bool(true),
 				Settings: &models.DeploymentUpdateSettings{
 					Observability: &models.DeploymentObservabilitySettings{
@@ -3164,6 +3165,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        "my-deployment",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -3287,6 +3289,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        "my-deployment",
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -3521,6 +3524,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        "my-deployment",
 				PruneOrphans: ec.Bool(true),
 				Settings: &models.DeploymentUpdateSettings{
 					Observability: &models.DeploymentObservabilitySettings{},

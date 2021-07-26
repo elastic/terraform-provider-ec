@@ -118,6 +118,7 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentUpdateRequest, error) {
 	var result = models.DeploymentUpdateRequest{
 		Name:         d.Get("name").(string),
+		Alias:        d.Get("alias").(string),
 		PruneOrphans: ec.Bool(true),
 		Resources:    &models.DeploymentUpdateResources{},
 		Settings:     &models.DeploymentUpdateSettings{},
