@@ -49,26 +49,26 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 }
 
 func modelToState(d *schema.ResourceData, res *models.KeystoreContents) error {
-	var result = make([]interface{}, 0, len(res.Secrets))
 	for setting, secret := range res.Secrets {
-		var m = make(map[string]interface{})
-
-		m["setting_name"] = setting
-
-		if secret.AsFile != nil {
-			m["as_file"] = *secret.AsFile
+		if setting != d.Get("setting_name") {
+			continue
 		}
 
-		m["value"] = secret.Value
+		if err := d.Set("setting_name", setting); err != nil {
+			return err
+		}
 
-		result = append(result, m)
-
-		if len(result) > 0 {
-			if err := d.Set("secrets", result); err != nil {
+		if secret.AsFile != nil {
+			if err := d.Set("as_file", *secret.AsFile); err != nil {
 				return err
 			}
 		}
+		return nil
 	}
+
+	// Defaults when keystore not found
+	d.Set("setting_name", "")
+	d.Set("as_file", false)
 
 	return nil
 }

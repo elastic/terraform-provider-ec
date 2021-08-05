@@ -23,34 +23,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func expandModel(d *schema.ResourceData) *models.KeystoreContents {
-	var secretsIface = d.Get("secrets").([]interface{})
+func expandModel(d *schema.ResourceData, delete bool) *models.KeystoreContents {
 	var secrets = make(map[string]models.KeystoreSecret)
 
-	for _, r := range secretsIface {
-		var m = r.(map[string]interface{})
+	secretName := d.Get("setting_name").(string)
 
-		var secretName string
-		if val, ok := m["setting_name"]; ok {
-			secretName = val.(string)
-		}
+	var secret = models.KeystoreSecret{}
+	secret.AsFile = ec.Bool(d.Get("as_file").(bool))
 
-		var secret = models.KeystoreSecret{}
-
-		if val, ok := m["as_file"]; ok {
-			secret.AsFile = ec.Bool(val.(bool))
-		}
-
-		if val, ok := m["value"]; ok {
-			secret.Value = val
-		}
-
-		secrets[secretName] = secret
+	if !delete {
+		secret.Value = d.Get("value")
 	}
+
+	secrets[secretName] = secret
 
 	var request = models.KeystoreContents{
 		Secrets: secrets,
 	}
-
 	return &request
 }

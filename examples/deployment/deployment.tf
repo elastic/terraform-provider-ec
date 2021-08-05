@@ -24,28 +24,34 @@ resource "ec_deployment" "example_minimal" {
   # Optional name.
   name = "my_example_deployment"
 
-  # Mandatory fields
-  region                 = "us-east-1"
-  version                = data.ec_stack.latest.version
-  deployment_template_id = "aws-io-optimized-v2"
+  region                 = "gcp-europe-west4"
+  version                = "7.13.2"
+  deployment_template_id = "gcp-hot-warm"
 
   elasticsearch {
     config {
-      user_settings_yaml = file("./es_settings.yaml")
+      user_settings_yaml = "# test"
     }
   }
+}
 
-  kibana {}
+resource "ec_deployment_elasticsearch_keystore" "test" {
+  count         = 1
+  deployment_id = ec_deployment.example_minimal.id
+  setting_name  = "xpack.notification.slack.account.hello.secure_url"
+  value         = "hello"
+}
 
-  enterprise_search {
-    topology {
-      zone_count = 1
-    }
-  }
+resource "ec_deployment_elasticsearch_keystore" "world" {
+  count         = 1
+  deployment_id = ec_deployment.example_minimal.id
+  setting_name  = "xpack.notification.slack.account.world.secure_url"
+  value         = "world"
+}
 
-  apm {
-    topology {
-      size = "0.5g"
-    }
-  }
+resource "ec_deployment_elasticsearch_keystore" "itme" {
+  count         = 1
+  deployment_id = ec_deployment.example_minimal.id
+  setting_name  = "xpack.notification.slack.account.yay.secure_url"
+  value         = "woop"
 }

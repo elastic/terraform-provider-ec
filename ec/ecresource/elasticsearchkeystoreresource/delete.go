@@ -27,21 +27,19 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
 )
 
-// create will create an item in the Elasticsearch keystore
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// delete will delete an existing element in the Elasticsearch keystore
+func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var client = meta.(*api.API)
 	deploymentID := d.Get("deployment_id").(string)
-	settingName := d.Get("setting_name").(string)
 
 	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          client,
 		DeploymentID: deploymentID,
-		Contents:     expandModel(d, false),
+		Contents:     expandModel(d, true),
 	})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(settingName)
 	return read(ctx, d, meta)
 }

@@ -32,7 +32,7 @@ func Resource() *schema.Resource {
 		CreateContext: create,
 		ReadContext:   read,
 		UpdateContext: update,
-		DeleteContext: update,
+		DeleteContext: delete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Default: schema.DefaultTimeout(5 * time.Minute),

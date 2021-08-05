@@ -1,7 +1,3 @@
-output "deployment_id" {
-  value = ec_deployment.example_minimal.id
-}
-
 output "elasticsearch_version" {
   value = ec_deployment.example_minimal.version
 }
