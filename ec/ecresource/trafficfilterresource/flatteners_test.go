@@ -130,6 +130,24 @@ func Test_modelToState(t *testing.T) {
 		},
 		Schema: newSchema(),
 	})
+
+	azurePLSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
+	azurePLSchemaArg.SetId("some-random-id")
+
+	azurePLRemoteState := models.TrafficFilterRulesetInfo{
+		ID:               ec.String("some-random-id"),
+		Name:             ec.String("my traffic filter"),
+		Type:             ec.String("azure_private_endpoint"),
+		IncludeByDefault: ec.Bool(false),
+		Region:           ec.String("azure-australiaeast"),
+		Rules: []*models.TrafficFilterRule{
+			{
+				AzureEndpointGUID: "1231312-1231-1231-1231-1231312",
+				AzureEndpointName: "my-azure-pl",
+			},
+		},
+	}
+
 	type args struct {
 		d   *schema.ResourceData
 		res *models.TrafficFilterRulesetInfo
@@ -154,6 +172,24 @@ func Test_modelToState(t *testing.T) {
 			name: "flattens the resource with multiple rules with descriptions",
 			args: args{d: trafficFilterSchemaArgMultipleRWithDesc, res: &remoteStateMultipleRulesWithDesc},
 			want: wantTrafficFilterMultipleRWithDesc,
+		},
+		{
+			name: "flattens the resource with multiple rules with descriptions",
+			args: args{d: azurePLSchemaArg, res: &azurePLRemoteState},
+			want: util.NewResourceData(t, util.ResDataParams{
+				ID: "some-random-id",
+				State: map[string]interface{}{
+					"name":               "my traffic filter",
+					"type":               "azure_private_endpoint",
+					"include_by_default": false,
+					"region":             "azure-australiaeast",
+					"rule": []interface{}{map[string]interface{}{
+						"azure_endpoint_guid": "1231312-1231-1231-1231-1231312",
+						"azure_endpoint_name": "my-azure-pl",
+					}},
+				},
+				Schema: newSchema(),
+			}),
 		},
 	}
 	for _, tt := range tests {

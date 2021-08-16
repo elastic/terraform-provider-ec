@@ -33,7 +33,7 @@ func newSchema() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:        schema.TypeString,
-			Description: `Required type of the ruleset ("ip" or "vpce")`,
+			Description: `Required type of the ruleset ("ip", "vpce" or "azure_private_endpoint")`,
 			Required:    true,
 		},
 		"region": {
@@ -51,13 +51,25 @@ func newSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"source": {
 						Type:        schema.TypeString,
-						Description: "Required traffic filter source: IP address, CIDR mask, or VPC endpoint ID",
-						Required:    true,
+						Description: "Required traffic filter source: IP address, CIDR mask, or VPC endpoint ID, not required when the type is azure_private_endpoint",
+						Optional:    true,
 					},
 
 					"description": {
 						Type:        schema.TypeString,
 						Description: "Optional rule description",
+						Optional:    true,
+					},
+
+					"azure_endpoint_name": {
+						Type:        schema.TypeString,
+						Description: "Optional Azure endpoint name",
+						Optional:    true,
+					},
+
+					"azure_endpoint_guid": {
+						Type:        schema.TypeString,
+						Description: "Optional Azure endpoint GUID",
 						Optional:    true,
 					},
 
@@ -87,9 +99,17 @@ func newSchema() map[string]*schema.Schema {
 func trafficFilterRuleHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(m["source"].(string))
+	if m["source"] != nil {
+		buf.WriteString(m["source"].(string))
+	}
 	if m["description"] != nil {
 		buf.WriteString(m["description"].(string))
+	}
+	if m["azure_endpoint_name"] != nil {
+		buf.WriteString(m["azure_endpoint_name"].(string))
+	}
+	if m["azure_endpoint_guid"] != nil {
+		buf.WriteString(m["azure_endpoint_guid"].(string))
 	}
 	return schema.HashString(buf.String())
 }
