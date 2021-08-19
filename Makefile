@@ -15,3 +15,4 @@ include build/Makefile.tools
 include build/Makefile.lint
 include build/Makefile.format
 include build/Makefile.release
+include build/Makefile.version
