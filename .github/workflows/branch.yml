@@ -16,6 +16,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+        id: go
+
+      - name: Bump main version
+        run: make patch
+
       - name: Get the branch version
         id: get_branch
         run: |
@@ -31,3 +40,40 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           branch: ${{ steps.get_branch.outputs.BRANCH }}
+
+      - name: Commit changes to the minor branch
+        uses: EndBug/add-and-commit@v7
+        with:
+          default_author: user_info
+          message: 'Update patch version'
+          branch: ${{ steps.get_branch.outputs.BRANCH }}
+          author_name: elasticcloudclients
+          author_email: elasticcloudclients@elastic.co
+
+  bump-minor-version:
+    name: Bump main version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+        id: go
+
+      - name: Bump main version
+        run: make minor; git diff
+
+      - name: Commit changes to main
+        uses: EndBug/add-and-commit@v7
+        with:
+          default_author: user_info
+          message: 'Update minor version'
+          branch: master
+          author_name: elasticcloudclients
+          author_email: elasticcloudclients@elastic.co
