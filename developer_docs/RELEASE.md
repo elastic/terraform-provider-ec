@@ -21,7 +21,7 @@ Releasing a new version implies that there have been changes in the source code 
 
 Since the source has changed, we need to update the current committed version to a higher version so that the release is published.
 
-The version is currently defined in the [Makefile](./Makefile) as an exported environment variable called `VERSION` in the [SEMVER](https://semver.org) format: `MAJOR.MINOR.BUG`
+The version is currently defined in the [Makefile](./Makefile) as an exported environment variable called `VERSION` in the [SEMVER](https://semver.org) format: `MAJOR.MINOR.PATCH`
 
 ```Makefile
 SHELL := /bin/bash
