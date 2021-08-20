@@ -8,6 +8,7 @@ VERSION_GOLICENSER:=v0.3.0
 VERSION_GOLANGCILINT:=v1.40.1
 VERSION_GORELEASER:=v0.164.0
 VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
+VERSION_VERSIONBUMP:=v1.1.0
 
 deps: $(GOBIN)/golint $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
 
@@ -56,3 +57,11 @@ $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG): | $(VERSION_DIR)
 $(GOBIN)/changelog-build: $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG) | $(GOBIN)
 	@ echo "-> Installing changelog-build..."
 	@ go install github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
+
+$(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP):
+	@ rm -f $(VERSION_DIR)/.version-versionbump-*
+	@ echo $(VERSION_VERSIONBUMP) > $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP)
+
+$(GOBIN)/versionbump: $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP) | $(GOBIN)
+	@ echo "-> Installing versionbump..."
+	@ go install github.com/crosseyed/versionbump/cmd/versionbump@$(VERSION_VERSIONBUMP)

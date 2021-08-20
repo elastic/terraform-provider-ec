@@ -10,6 +10,8 @@ Provides an Elastic Cloud traffic filter resource, which allows traffic filter r
 
 ## Example Usage
 
+### IP type
+
 ```hcl
 data "ec_stack" "latest" {
   version_regex = "latest"
@@ -47,12 +49,57 @@ resource "ec_deployment_traffic_filter" "example" {
 }
 ```
 
+### Azure Private Link type
+
+```hcl
+locals {
+  region = azure-australiaeast
+}
+
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = local.region
+}
+
+# Create an Elastic Cloud deployment
+resource "ec_deployment" "example_minimal" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
+  region                 = local.region
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "aws-io-optimized-v2"
+
+  traffic_filter = [
+    ec_deployment_traffic_filter.azure.id
+  ]
+
+  # Use the deployment template defaults
+  elasticsearch {}
+
+  kibana {}
+}
+
+resource "ec_deployment_traffic_filter" "azure" {
+  name   = "my traffic filter name"
+  region = local.region
+  type   = "azure_private_endpoint"
+
+  rule {
+    azure_endpoint_name = "my-azure-pl"
+    azure_endpoint_guid = "78c64959-fd88-41cc-81ac-1cfcdb1ac32e"
+  }
+}
+
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Name of the ruleset.
-* `type` - (Required) Type of the ruleset.  It can be `"ip"` or `"vpce"`.
+* `type` - (Required) Type of the ruleset.  It can be `"ip"`, `"vpce"` or `"azure_private_endpoint"`.
 * `region` - (Required) Filter region, the ruleset can only be attached to deployments in the specific region.
 * `rule` (Required) Rule block, which can be specified multiple times for multiple rules.
 * `include_by_default` - (Optional) To automatically include the ruleset in the new deployments. Defaults to `false`.
@@ -62,8 +109,10 @@ The following arguments are supported:
 
 The `rule` block supports the following configuration options:
 
-* `source` - (Required) Source type, `"ip"` or `"vpce"`, from which the ruleset accepts traffic.
+* `source` - (Optional) traffic filter source: IP address, CIDR mask, or VPC endpoint ID, **only required** when the type is not `"azure_private_endpoint"`.
 * `description` - (Optional) Description of this individual rule.
+* `azure_endpoint_name` - (Optional) Azure endpoint name. Only applicable when the ruleset type is set to `"azure_private_endpoint"`.
+* `azure_endpoint_guid` - (Optional) Azure endpoint GUID. Only applicable when the ruleset type is set to `"azure_private_endpoint"`.
 
 ## Attributes Reference
 

@@ -1,0 +1,13 @@
+### Manage repository versions
+
+## Bump the major version for the Terraform Provider for Elastic Cloud.
+major: $(GOBIN)/versionbump
+	@ $(GOBIN)/versionbump -c major Makefile
+
+## Bump the minor o feature version for the Terraform Provider for Elastic Cloud.
+minor: $(GOBIN)/versionbump
+	@ $(GOBIN)/versionbump -c minor Makefile
+
+## Bump the patch o bugfix version for the Terraform Provider for Elastic Cloud.
+patch: $(GOBIN)/versionbump
+	@ $(GOBIN)/versionbump -c patch Makefile

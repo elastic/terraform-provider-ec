@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 node('docker && gobld/machineType:n1-highcpu-8') {
-    String DOCKER_IMAGE = "golang:1.16"
+    String DOCKER_IMAGE = "golang:1.17"
     String APP_PATH = "/go/src/github.com/elastic/terraform-provider-ec"
 
     stage('Checkout from GitHub') {
