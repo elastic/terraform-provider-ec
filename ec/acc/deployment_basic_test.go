@@ -118,7 +118,7 @@ func TestAccDeployment_basic_config(t *testing.T) {
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
