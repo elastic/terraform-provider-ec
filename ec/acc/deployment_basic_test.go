@@ -51,7 +51,7 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "alias", randomAlias),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
 					// Ensure at least 1 account is trusted (self).
@@ -76,7 +76,7 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 			{
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
 					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
 				),
