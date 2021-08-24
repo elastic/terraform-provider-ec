@@ -155,6 +155,7 @@ func Test_flattenEsResource(t *testing.T) {
 					"cloud_id":       "some CLOUD ID",
 					"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
 					"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
+					"config":         []interface{}{map[string]interface{}{}},
 					"topology": []interface{}{
 						map[string]interface{}{
 							"id":                        "hot_content",
@@ -312,6 +313,7 @@ func Test_flattenEsResource(t *testing.T) {
 				"region":         "some-region",
 				"http_endpoint":  "http://othercluster.cloud.elastic.co:9200",
 				"https_endpoint": "https://othercluster.cloud.elastic.co:9243",
+				"config":         []interface{}{map[string]interface{}{}},
 				"remote_cluster": []interface{}{
 					map[string]interface{}{
 						"alias":            "alias",

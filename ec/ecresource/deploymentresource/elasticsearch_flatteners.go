@@ -202,7 +202,7 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) ([]interface{}, er
 func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 	var m = make(map[string]interface{})
 	if cfg == nil {
-		return nil
+		return []interface{}{m}
 	}
 
 	if len(cfg.EnabledBuiltInPlugins) > 0 {
@@ -229,10 +229,6 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
 			m["user_settings_override_json"] = string(b)
 		}
-	}
-
-	if len(m) == 0 {
-		return nil
 	}
 
 	return []interface{}{m}
