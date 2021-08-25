@@ -75,7 +75,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "azure-eastus2",
 				"resource_id":    "1238f19957874af69306787dca662154",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{map[string]interface{}{
 					"id":                        "hot_content",
 					"instance_configuration_id": "azure.data.highio.l32sv2",
@@ -142,7 +141,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "aws-eu-central-1",
 				"resource_id":    "1239f7ee7196439ba2d105319ac5eba7",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{map[string]interface{}{
 					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
@@ -217,7 +215,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "aws-eu-central-1",
 				"resource_id":    "1239f7ee7196439ba2d105319ac5eba7",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{map[string]interface{}{
 					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
@@ -284,7 +281,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "gcp-asia-east1",
 				"resource_id":    "123695e76d914005bf90b717e668ad4b",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{map[string]interface{}{
 					"id":                        "hot_content",
 					"instance_configuration_id": "gcp.data.highio.1",
@@ -354,7 +350,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "gcp-us-central1",
 				"resource_id":    "123e837db6ee4391bb74887be35a7a91",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{
 					map[string]interface{}{
 						"id":                        "hot_content",
@@ -432,7 +427,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "gcp-asia-east1",
 				"resource_id":    "123695e76d914005bf90b717e668ad4b",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{
 					map[string]interface{}{
 						"id":                        "hot_content",
@@ -524,7 +518,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "gcp-us-central1",
 				"resource_id":    "123e837db6ee4391bb74887be35a7a91",
-				"config":         []interface{}{map[string]interface{}{}},
 				"topology": []interface{}{
 					map[string]interface{}{
 						"id":                        "hot_content",
@@ -593,7 +586,6 @@ func Test_modelToState(t *testing.T) {
 				"ref_id":         "main-elasticsearch",
 				"region":         "eu-west-1",
 				"resource_id":    "1230b3ae633b4f51a432d50971f7f1c1",
-				"config":         []interface{}{map[string]interface{}{}},
 				"remote_cluster": []interface{}{
 					map[string]interface{}{
 						"alias":            "alias",
@@ -895,7 +887,6 @@ func Test_modelToState(t *testing.T) {
 					"elasticsearch": []interface{}{map[string]interface{}{
 						"autoscale": "false",
 						"cloud_id":  "up2d:someCloudID",
-						"config":    []interface{}{map[string]interface{}{}},
 						"extension": []interface{}{
 							map[string]interface{}{
 								"name":    "custom-bundle",
@@ -1036,7 +1027,6 @@ func Test_modelToState(t *testing.T) {
 					"region":                 "aws-eu-central-1",
 					"version":                "7.13.1",
 					"elasticsearch": []interface{}{map[string]interface{}{
-						"config": []interface{}{map[string]interface{}{}},
 						"region": "aws-eu-central-1",
 						"ref_id": "main-elasticsearch",
 						"topology": []interface{}{map[string]interface{}{
