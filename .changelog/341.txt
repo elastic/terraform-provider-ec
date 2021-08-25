@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Fix bug where the deployment alias is ignored.
+```
