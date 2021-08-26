@@ -2,15 +2,19 @@
 
 Contributions are very welcome, these can include documentation, bug reports, issues, feature requests, feature implementations or tutorials.
 
-- [Reporting Issues](#reporting-issues)
-- [Code Contribution Guidelines](#code-contribution-guidelines)
-  - [Workflow](#workflow)
-  - [Commit Messages](#commit-messages)
-- [Setting up a dev environment](#setting-up-a-dev-environment)
-  - [Environment prerequisites](#environment-prerequisites)
-- [Development](#development)
-  - [Running tests](#running-tests)
-  - [Build terraform-provider-ec locally with your changes](#build-terraform-provider-ec-locally-with-your-changes)
+- [Contributing to terraform-provider-ec](#contributing-to-terraform-provider-ec)
+  - [Reporting Issues](#reporting-issues)
+  - [Code Contribution Guidelines](#code-contribution-guidelines)
+    - [Workflow](#workflow)
+    - [Commit Messages](#commit-messages)
+  - [Setting up a dev environment](#setting-up-a-dev-environment)
+    - [Environment prerequisites](#environment-prerequisites)
+  - [Development](#development)
+    - [Running tests](#running-tests)
+      - [Unit](#unit)
+      - [Acceptance](#acceptance)
+        - [Sweepers](#sweepers)
+    - [Build terraform-provider-ec locally with your changes](#build-terraform-provider-ec-locally-with-your-changes)
 
 ## Reporting Issues
 
@@ -34,6 +38,8 @@ For the benefit of all and to maintain consistency, we have come up with some si
   - Run `make format`, `make lint` and `make fmt`.
   
   - Ensure that [unit](#unit) and [acceptance](#acceptance) tests succeed with `make unit testacc`.
+
+  - After you've opened your Pull request and have a PR number, make sure to generate a changelog entry, [See example entries](https://github.com/elastic/terraform-provider-ec/tree/95e7f5c7fe6795163aff1118a7f7add44e23de50/.changelog).
   
   - Use the provided PR template, and assign any labels which may fit your PR.
   
