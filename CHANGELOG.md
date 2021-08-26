@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * resource/ec_deployment_traffic_filter: Add support for Azure Private Link traffic rules. ([#340](https://github.com/elastic/terraform-provider-ec/issues/340))
 
+BUG FIXES:
+
+* resource/ec_deployment: Fix bug where the deployment alias is ignored. ([#341](https://github.com/elastic/terraform-provider-ec/issues/341))
+
 # 0.2.1 (Jun 17, 2021)
 
 BUG FIXES:
