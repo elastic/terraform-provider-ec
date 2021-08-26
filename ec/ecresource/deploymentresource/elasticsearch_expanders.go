@@ -253,7 +253,10 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 
 func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) error {
 	for _, rawCfg := range raw.([]interface{}) {
-		var cfg = rawCfg.(map[string]interface{})
+		cfg, ok := rawCfg.(map[string]interface{})
+		if !ok {
+			continue
+		}
 		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
 			if s, ok := settings.(string); ok && s != "" {
 				if err := json.Unmarshal([]byte(s), &esCfg.UserSettingsJSON); err != nil {

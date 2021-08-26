@@ -238,7 +238,6 @@ func elasticsearchConfig() *schema.Schema {
 					Set:         schema.HashString,
 					Description: "List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)",
 					Optional:    true,
-					MinItems:    1,
 					Elem: &schema.Schema{
 						MinItems: 1,
 						Type:     schema.TypeString,

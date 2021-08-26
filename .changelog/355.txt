@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Fix bug where setting any of the `elasticsearch.config.user_settings_* = null` would result in a provider panic.
+```

@@ -73,9 +73,7 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 			m[k] = v
 		}
 
-		if c := flattenEsConfig(plan.Elasticsearch); len(c) > 0 {
-			m["config"] = c
-		}
+		m["config"] = flattenEsConfig(plan.Elasticsearch)
 
 		if r := flattenEsRemotes(remotes); len(r) > 0 {
 			m["remote_cluster"] = r
@@ -231,6 +229,8 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 		}
 	}
 
+	// If no settings are set, there's no need to store the empty values in the
+	// state and makes the state consistent with a clean import return.
 	if len(m) == 0 {
 		return nil
 	}
