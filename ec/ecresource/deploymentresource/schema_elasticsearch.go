@@ -216,11 +216,10 @@ func elasticsearchTopologySchema() *schema.Schema {
 				// avoid unsetting already set 'topology.elasticsearch' in the
 				// deployment plan.
 				"config": {
-					Type:             schema.TypeList,
-					Computed:         true,
-					MaxItems:         1,
-					DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
-					Description:      `Computed read-only configuration to avoid unsetting plan settings from 'topology.elasticsearch'`,
+					Type:        schema.TypeList,
+					Computed:    true,
+					MaxItems:    1,
+					Description: `Computed read-only configuration to avoid unsetting plan settings from 'topology.elasticsearch'`,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							// Settings

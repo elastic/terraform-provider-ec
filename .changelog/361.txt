@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Fix bug where some of the settings that were set by the UI were unset by the Terraform provider. See #214 for more details on the bug report.
+```
