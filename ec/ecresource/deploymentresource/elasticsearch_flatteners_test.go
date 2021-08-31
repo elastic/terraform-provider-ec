@@ -158,6 +158,7 @@ func Test_flattenEsResource(t *testing.T) {
 					"config":         func() []interface{} { return nil }(),
 					"topology": []interface{}{
 						map[string]interface{}{
+							"config":                    func() []interface{} { return nil }(),
 							"id":                        "hot_content",
 							"instance_configuration_id": "aws.data.highio.i3",
 							"size":                      "2g",
@@ -238,6 +239,7 @@ func Test_flattenEsResource(t *testing.T) {
 					"user_settings_override_json": "{\"some.setting\":\"value2\"}",
 				}},
 				"topology": []interface{}{map[string]interface{}{
+					"config":                    func() []interface{} { return nil }(),
 					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"size":                      "2g",
@@ -251,7 +253,7 @@ func Test_flattenEsResource(t *testing.T) {
 			}},
 		},
 		{
-			name: "resource with a remote clusters set",
+			name: "resource with remote clusters set",
 			args: args{
 				in: []*models.ElasticsearchResourceInfo{{
 					Region: ec.String("some-region"),
@@ -327,6 +329,7 @@ func Test_flattenEsResource(t *testing.T) {
 					},
 				},
 				"topology": []interface{}{map[string]interface{}{
+					"config":                    func() []interface{} { return nil }(),
 					"id":                        "hot_content",
 					"instance_configuration_id": "aws.data.highio.i3",
 					"size":                      "2g",
@@ -388,18 +391,17 @@ func Test_flattenEsTopology(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{
-				map[string]interface{}{
-					"id":                        "hot_content",
-					"instance_configuration_id": "aws.data.highio.i3",
-					"size":                      "4g",
-					"size_resource":             "memory",
-					"zone_count":                int32(1),
-					"node_type_data":            "true",
-					"node_type_ingest":          "true",
-					"node_type_master":          "true",
-				},
-			},
+			want: []interface{}{map[string]interface{}{
+				"config":                    func() []interface{} { return nil }(),
+				"id":                        "hot_content",
+				"instance_configuration_id": "aws.data.highio.i3",
+				"size":                      "4g",
+				"size_resource":             "memory",
+				"zone_count":                int32(1),
+				"node_type_data":            "true",
+				"node_type_ingest":          "true",
+				"node_type_master":          "true",
+			}},
 		},
 	}
 	for _, tt := range tests {
