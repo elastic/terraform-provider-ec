@@ -218,7 +218,6 @@ func elasticsearchTopologySchema() *schema.Schema {
 				"config": {
 					Type:        schema.TypeList,
 					Computed:    true,
-					MaxItems:    1,
 					Description: `Computed read-only configuration to avoid unsetting plan settings from 'topology.elasticsearch'`,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
