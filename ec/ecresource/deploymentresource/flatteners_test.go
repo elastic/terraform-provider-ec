@@ -1066,6 +1066,73 @@ func Test_modelToState(t *testing.T) {
 			}),
 		},
 		{
+			name: "flattens an aws plan with topology.config set",
+			args: args{
+				d: newDeploymentRD(t, "123b7b540dfc967a7a649c18e2fce4ed", nil),
+				res: &models.DeploymentGetResponse{
+					ID:    ec.String("123b7b540dfc967a7a649c18e2fce4ed"),
+					Alias: "OH",
+					Name:  ec.String("up2d"),
+					Resources: &models.DeploymentResources{
+						Elasticsearch: []*models.ElasticsearchResourceInfo{{
+							RefID:  ec.String("main-elasticsearch"),
+							Region: ec.String("aws-eu-central-1"),
+							Info: &models.ElasticsearchClusterInfo{
+								Status: ec.String("running"),
+								PlanInfo: &models.ElasticsearchClusterPlansInfo{
+									Current: &models.ElasticsearchClusterPlanInfo{
+										Plan: &models.ElasticsearchClusterPlan{
+											DeploymentTemplate: &models.DeploymentTemplateReference{
+												ID: ec.String("aws-io-optimized-v2"),
+											},
+											Elasticsearch: &models.ElasticsearchConfiguration{
+												Version: "7.13.1",
+											},
+											ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+												ID: "hot_content",
+												Size: &models.TopologySize{
+													Value:    ec.Int32(4096),
+													Resource: ec.String("memory"),
+												},
+												Elasticsearch: &models.ElasticsearchConfiguration{
+													UserSettingsYaml: "a.setting: true",
+												},
+											}},
+										},
+									},
+								},
+								Settings: &models.ElasticsearchClusterSettings{},
+							},
+						}},
+					},
+				},
+			},
+			want: util.NewResourceData(t, util.ResDataParams{
+				ID: "123b7b540dfc967a7a649c18e2fce4ed",
+				State: map[string]interface{}{
+					"alias":                  "OH",
+					"deployment_template_id": "aws-io-optimized-v2",
+					"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+					"name":                   "up2d",
+					"region":                 "aws-eu-central-1",
+					"version":                "7.13.1",
+					"elasticsearch": []interface{}{map[string]interface{}{
+						"region": "aws-eu-central-1",
+						"ref_id": "main-elasticsearch",
+						"topology": []interface{}{map[string]interface{}{
+							"id":            "hot_content",
+							"size":          "4g",
+							"size_resource": "memory",
+							"config": []interface{}{map[string]interface{}{
+								"user_settings_yaml": "a.setting: true",
+							}},
+						}},
+					}},
+				},
+				Schema: newSchema(),
+			}),
+		},
+		{
 			name: "flattens an aws plan (io-optimized) with tags",
 			args: args{d: awsIOOptimizedTagsRD, res: awsIOOptimizedTagsRes},
 			want: wantAwsIOOptimizedDeploymentTags,

@@ -246,6 +246,12 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 				}
 			}
 		}
+
+		if cfg, ok := topology["config"]; ok {
+			if err := expandEsConfig(cfg, elem.Elasticsearch); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return res, nil

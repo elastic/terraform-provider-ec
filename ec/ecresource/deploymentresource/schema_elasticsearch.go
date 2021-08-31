@@ -211,6 +211,55 @@ func elasticsearchTopologySchema() *schema.Schema {
 						},
 					},
 				},
+
+				// Read only config block that is present in the provider to
+				// avoid unsetting already set 'topology.elasticsearch' in the
+				// deployment plan.
+				"config": {
+					Type:             schema.TypeList,
+					Computed:         true,
+					MaxItems:         1,
+					DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+					Description:      `Computed read-only configuration to avoid unsetting plan settings from 'topology.elasticsearch'`,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							// Settings
+
+							// plugins maps to the `enabled_built_in_plugins` API setting.
+							"plugins": {
+								Type:        schema.TypeSet,
+								Set:         schema.HashString,
+								Description: "List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)",
+								Computed:    true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+
+							// User settings
+							"user_settings_json": {
+								Type:        schema.TypeString,
+								Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
+								Computed:    true,
+							},
+							"user_settings_override_json": {
+								Type:        schema.TypeString,
+								Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
+								Computed:    true,
+							},
+							"user_settings_yaml": {
+								Type:        schema.TypeString,
+								Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
+								Computed:    true,
+							},
+							"user_settings_override_yaml": {
+								Type:        schema.TypeString,
+								Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
+								Computed:    true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}

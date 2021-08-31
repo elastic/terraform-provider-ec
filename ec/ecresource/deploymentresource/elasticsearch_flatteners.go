@@ -185,6 +185,9 @@ func flattenEsTopology(plan *models.ElasticsearchClusterPlan) ([]interface{}, er
 			m["autoscaling"] = []interface{}{autoscaling}
 		}
 
+		// Computed config object to avoid unsetting legacy topology config settings.
+		m["config"] = flattenEsConfig(topology.Elasticsearch)
+
 		result = append(result, m)
 	}
 
