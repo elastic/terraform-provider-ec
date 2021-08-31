@@ -92,6 +92,14 @@ func newDeploymentList() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"elasticsearch_resource_id": {
 				Type:     schema.TypeString,
 				Computed: true,

@@ -70,6 +70,8 @@ These will not be available for interpolation.
 
 * `deployments` - List of deployments which match the specified query.
   * `deployments.#.deployment_id` - The deployment unique ID.
+  * `deployments.#.alias` - Deployment alias.
+  * `deployments.#.name` - The name of the deployment.
   * `deployments.#.elasticsearch_resource_id` - The Elasticsearch resource unique ID.
   * `deployments.#.kibana_resource_id` - The Kibana resource unique ID.
   * `deployments.#.apm_resource_id` - The APM resource unique ID.

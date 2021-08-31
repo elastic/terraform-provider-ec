@@ -36,8 +36,23 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentsSchemaArg.Set("deployment_template_id", "azure-compute-optimized")
 
 	wantDeployments := util.NewResourceData(t, util.ResDataParams{
-		ID:     "myID",
-		State:  newSampleDeployments(),
+		ID: "myID",
+		State: map[string]interface{}{
+			"id":                     "myID",
+			"name_prefix":            "test",
+			"return_count":           1,
+			"deployment_template_id": "azure-compute-optimized",
+			"healthy":                "true",
+			"deployments": []interface{}{map[string]interface{}{
+				"name":                          "test-hello",
+				"alias":                         "dev",
+				"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
+				"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
+				"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
+				"enterprise_search_resource_id": "f17e4d8a61b14c12b020d85b723357ba",
+				"kibana_resource_id":            "c75297d672b54da68faecededf372f87",
+			}},
+		},
 		Schema: newSchema(),
 	})
 
@@ -48,6 +63,7 @@ func Test_modelToState(t *testing.T) {
 				Healthy: ec.Bool(true),
 				ID:      ec.String("a8f22a9b9e684a7f94a89df74aa14331"),
 				Name:    ec.String("test-hello"),
+				Alias:   "dev",
 				Resources: &models.DeploymentResources{
 					Elasticsearch: []*models.ElasticsearchResourceInfo{
 						{
@@ -87,8 +103,23 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentsSchemaArgNoID.Set("deployment_template_id", "azure-compute-optimized")
 
 	wantDeploymentsNoID := util.NewResourceData(t, util.ResDataParams{
-		ID:     "1648957651",
-		State:  newSampleDeployments(),
+		ID: "3138173215",
+		State: map[string]interface{}{
+			"id":                     "myID",
+			"name_prefix":            "test",
+			"return_count":           1,
+			"deployment_template_id": "azure-compute-optimized",
+			"healthy":                "true",
+			"deployments": []interface{}{map[string]interface{}{
+				"name":                          "test-hello",
+				"alias":                         "dev",
+				"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
+				"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
+				"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
+				"enterprise_search_resource_id": "f17e4d8a61b14c12b020d85b723357ba",
+				"kibana_resource_id":            "c75297d672b54da68faecededf372f87",
+			}},
+		},
 		Schema: newSchema(),
 	})
 
@@ -130,22 +161,5 @@ func Test_modelToState(t *testing.T) {
 
 			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
 		})
-	}
-}
-
-func newSampleDeployments() map[string]interface{} {
-	return map[string]interface{}{
-		"id":                     "myID",
-		"name_prefix":            "test",
-		"return_count":           1,
-		"deployment_template_id": "azure-compute-optimized",
-		"healthy":                "true",
-		"deployments": []interface{}{map[string]interface{}{
-			"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
-			"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
-			"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
-			"enterprise_search_resource_id": "f17e4d8a61b14c12b020d85b723357ba",
-			"kibana_resource_id":            "c75297d672b54da68faecededf372f87",
-		}},
 	}
 }
