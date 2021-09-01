@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* datasource/ec_deployments: Adds to new fields, `deployments.#.name` and `deployments.#.alias` to the data source. ([#362](https://github.com/elastic/terraform-provider-ec/issues/362))
 * resource/ec_deployment_traffic_filter: Add support for Azure Private Link traffic rules. ([#340](https://github.com/elastic/terraform-provider-ec/issues/340))
 
 BUG FIXES:
