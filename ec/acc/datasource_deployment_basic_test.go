@@ -109,6 +109,10 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", namePrefix),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 
+					// Verify Name and Alias is present
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.alias", resourceName, "alias"),
+
 					// Query results
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_resource_id", resourceName, "elasticsearch.0.resource_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.kibana_resource_id", resourceName, "kibana.0.resource_id"),

@@ -82,6 +82,11 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentsSearchResponse)
 		var m = make(map[string]interface{})
 
 		m["deployment_id"] = *deployment.ID
+		m["alias"] = deployment.Alias
+
+		if deployment.Name != nil {
+			m["name"] = deployment.Name
+		}
 
 		if len(deployment.Resources.Elasticsearch) > 0 {
 			m["elasticsearch_resource_id"] = *deployment.Resources.Elasticsearch[0].ID
