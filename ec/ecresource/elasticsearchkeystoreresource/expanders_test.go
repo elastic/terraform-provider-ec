@@ -20,6 +20,7 @@ package elasticsearchkeystoreresource
 import (
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -27,10 +28,6 @@ import (
 )
 
 func Test_expandModel(t *testing.T) {
-	esKeystoreRD := newResourceData(t, resDataParams{
-		ID:        "some-random-id",
-		Resources: newSampleElasticsearchKeystore(),
-	})
 	type args struct {
 		d *schema.ResourceData
 	}
@@ -40,13 +37,62 @@ func Test_expandModel(t *testing.T) {
 		want *models.KeystoreContents
 	}{
 		{
-			name: "parses the resource",
-			args: args{d: esKeystoreRD},
+			name: "parses the resource with a string value",
+			args: args{d: newResourceData(t, resDataParams{
+				ID: "some-random-id",
+				Resources: map[string]interface{}{
+					"deployment_id": mock.ValidClusterID,
+					"setting_name":  "my_secret",
+					"value":         "supersecret",
+				},
+			})},
+			want: &models.KeystoreContents{
+				Secrets: map[string]models.KeystoreSecret{
+					"my_secret": {
+						AsFile: ec.Bool(false),
+						Value:  "supersecret",
+					},
+				},
+			},
+		},
+		{
+			name: "parses the resource with a json formatted value",
+			args: args{d: newResourceData(t, resDataParams{
+				ID: "some-random-id",
+				Resources: map[string]interface{}{
+					"deployment_id": mock.ValidClusterID,
+					"setting_name":  "my_secret",
+					"value": `{
+    "type": "service_account",
+    "project_id": "project-id",
+    "private_key_id": "key-id",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nprivate-key\n-----END PRIVATE KEY-----\n",
+    "client_email": "service-account-email",
+    "client_id": "client-id",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-account-email"
+}`,
+					"as_file": true,
+				},
+			})},
 			want: &models.KeystoreContents{
 				Secrets: map[string]models.KeystoreSecret{
 					"my_secret": {
 						AsFile: ec.Bool(true),
-						Value:  "supersecret",
+						Value: map[string]interface{}{
+							"type":                        "service_account",
+							"project_id":                  "project-id",
+							"private_key_id":              "key-id",
+							"private_key":                 "-----BEGIN PRIVATE KEY-----\nprivate-key\n-----END PRIVATE KEY-----\n",
+							"client_email":                "service-account-email",
+							"client_id":                   "client-id",
+							"auth_uri":                    "https://accounts.google.com/o/oauth2/auth",
+							"token_uri":                   "https://accounts.google.com/o/oauth2/token",
+							"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+							"client_x509_cert_url":        "https://www.googleapis.com/robot/v1/metadata/x509/service-account-email",
+						},
 					},
 				},
 			},

@@ -19,6 +19,8 @@ package elasticsearchkeystoreresource
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -29,19 +31,22 @@ import (
 
 // create will create an item in the Elasticsearch keystore
 func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+	client := meta.(*api.API)
 	deploymentID := d.Get("deployment_id").(string)
 	settingName := d.Get("setting_name").(string)
 
-	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
+	if _, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          client,
 		DeploymentID: deploymentID,
-		Contents:     expandModel(d, false),
-	})
-	if err != nil {
+		Contents:     expandModel(d),
+	}); err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(settingName)
+	d.SetId(hashID(deploymentID, settingName))
 	return read(ctx, d, meta)
+}
+
+func hashID(elem ...string) string {
+	return strconv.Itoa(schema.HashString(strings.Join(elem, "-")))
 }

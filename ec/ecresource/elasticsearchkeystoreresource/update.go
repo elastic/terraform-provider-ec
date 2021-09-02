@@ -35,7 +35,7 @@ func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.
 	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          client,
 		DeploymentID: deploymentID,
-		Contents:     expandModel(d, false),
+		Contents:     expandModel(d),
 	})
 	if err != nil {
 		return diag.FromErr(err)

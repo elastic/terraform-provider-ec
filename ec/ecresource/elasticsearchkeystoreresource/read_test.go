@@ -28,14 +28,21 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	esKeystoreSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
-	esKeystoreSchemaArg.SetId(mock.ValidClusterID)
-	_ = esKeystoreSchemaArg.Set("deployment_id", mock.ValidClusterID)
-
-	wantKeystore := newResourceData(t, resDataParams{
-		ID:        mock.ValidClusterID,
-		Resources: newSampleElasticsearchKeystore(),
+	esKeystoreSchemaArg := schema.TestResourceDataRaw(t, newSchema(), map[string]interface{}{
+		"deployment_id": mock.ValidClusterID,
+		"setting_name":  "my_secret",
+		"value":         "supersecret",
+		"as_file":       false, // This field is overridden.
 	})
+	esKeystoreSchemaArg.SetId(mock.ValidClusterID)
+
+	esKeystoreSchemaArgMissing := schema.TestResourceDataRaw(t, newSchema(), map[string]interface{}{
+		"deployment_id": mock.ValidClusterID,
+		"setting_name":  "my_secret",
+		"value":         "supersecret",
+		"as_file":       false,
+	})
+	esKeystoreSchemaArgMissing.SetId(mock.ValidClusterID)
 
 	type args struct {
 		d   *schema.ResourceData
@@ -48,19 +55,48 @@ func Test_modelToState(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "flattens deployment resources",
-			want: wantKeystore,
+			name: "flattens the keystore secret (not really since the value is not returned)",
 			args: args{
 				d: esKeystoreSchemaArg,
 				res: &models.KeystoreContents{
 					Secrets: map[string]models.KeystoreSecret{
 						"my_secret": {
 							AsFile: ec.Bool(true),
-							Value:  "supersecret",
+						},
+						"some_other_secret": {
+							AsFile: ec.Bool(false),
 						},
 					},
 				},
 			},
+			want: newResourceData(t, resDataParams{
+				ID: mock.ValidClusterID,
+				Resources: map[string]interface{}{
+					"deployment_id": mock.ValidClusterID,
+					"setting_name":  "my_secret",
+					"value":         "supersecret",
+					"as_file":       true,
+				},
+			}),
+		},
+		{
+			name: "unsets the ID when our secret is not in the returned list of secrets",
+			args: args{
+				d: esKeystoreSchemaArgMissing,
+				res: &models.KeystoreContents{
+					Secrets: map[string]models.KeystoreSecret{
+						"my_other_secret": {
+							AsFile: ec.Bool(true),
+						},
+						"some_other_secret": {
+							AsFile: ec.Bool(false),
+						},
+					},
+				},
+			},
+			want: newResourceData(t, resDataParams{
+				Resources: map[string]interface{}{},
+			}),
 		},
 	}
 	for _, tt := range tests {
@@ -72,7 +108,13 @@ func Test_modelToState(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
+			wantState := tt.want.State()
+			gotState := tt.args.d.State()
+
+			if wantState != nil && gotState != nil {
+				assert.Equal(t, wantState.Attributes, gotState.Attributes)
+				return
+			}
 		})
 	}
 }

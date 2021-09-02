@@ -25,25 +25,25 @@ func newSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"deployment_id": {
 			Type:        schema.TypeString,
-			Description: `Required deployment ID corresponding to the Elasticsearch resource keystore`,
+			Description: `Required deployment ID of the Deployment that holds the Elasticsearch cluster where the keystore setting will be written to`,
 			Required:    true,
+			ForceNew:    true,
 		},
 		"setting_name": {
 			Type:        schema.TypeString,
-			Description: "Required name for the setting. Must be unique",
+			Description: "Required name for the keystore setting, if the setting already exists in the Elasticsearch cluster, it will be overridden",
 			ForceNew:    true,
 			Required:    true,
 		},
 		"value": {
 			Type:        schema.TypeString,
-			Description: "Value of this setting. This can either be a string or a JSON object that is stored as a JSON string in the keystore.",
+			Description: "Required value of this setting. This can either be a string or a JSON object that is stored as a JSON string in the keystore.",
 			Sensitive:   true,
 			Required:    true,
 		},
 		"as_file": {
 			Type:        schema.TypeBool,
-			Description: "Stores the keystore secret as a file. The default is false, which stores the keystore secret as string when value is a plain string",
-			Computed:    true,
+			Description: "Optionally stores the remote keystore setting as a file. The default is false, which stores the keystore setting as string when value is a plain string",
 			Optional:    true,
 		},
 	}

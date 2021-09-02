@@ -48,16 +48,12 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 	return nil
 }
 
+// This modelToState function is a little different than others in that it does
+// not set any other fields than "as_file". This is because the "value" is not
+// returned by the API for obvious reasons and thus we cannot reconcile that the
+// value of the secret is the same in the remote as it is in the configuration.
 func modelToState(d *schema.ResourceData, res *models.KeystoreContents) error {
-	for setting, secret := range res.Secrets {
-		if setting != d.Get("setting_name") {
-			continue
-		}
-
-		if err := d.Set("setting_name", setting); err != nil {
-			return err
-		}
-
+	if secret, ok := res.Secrets[d.Get("setting_name").(string)]; ok {
 		if secret.AsFile != nil {
 			if err := d.Set("as_file", *secret.AsFile); err != nil {
 				return err
@@ -66,9 +62,9 @@ func modelToState(d *schema.ResourceData, res *models.KeystoreContents) error {
 		return nil
 	}
 
-	// Defaults when keystore not found
-	d.Set("setting_name", "")
-	d.Set("as_file", false)
-
+	// When the secret is not found in the returned map of secrets, set the id
+	// to an empty string so that the resource is marked as destroyed. Would
+	// only happen if secrets are removed from the underlying Deployment.
+	d.SetId("")
 	return nil
 }

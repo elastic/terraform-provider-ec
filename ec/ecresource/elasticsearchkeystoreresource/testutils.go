@@ -20,7 +20,6 @@ package elasticsearchkeystoreresource
 import (
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -34,15 +33,4 @@ func newResourceData(t *testing.T, params resDataParams) *schema.ResourceData {
 	raw.SetId(params.ID)
 
 	return raw
-}
-
-func newSampleElasticsearchKeystore() map[string]interface{} {
-	return map[string]interface{}{
-		"deployment_id": mock.ValidClusterID,
-		"secrets": []interface{}{map[string]interface{}{
-			"setting_name": "my_secret",
-			"value":        "supersecret",
-			"as_file":      true,
-		}},
-	}
 }

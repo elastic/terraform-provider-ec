@@ -29,17 +29,23 @@ import (
 
 // delete will delete an existing element in the Elasticsearch keystore
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
-	deploymentID := d.Get("deployment_id").(string)
+	client := meta.(*api.API)
+	contents := expandModel(d)
 
-	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
+	// Since we're using the Update API (PATCH method), we need to se the Value
+	// field to nil for the keystore setting to be unset.
+	if secret, ok := contents.Secrets[d.Get("setting_name").(string)]; ok {
+		secret.Value = nil
+	}
+
+	if _, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          client,
-		DeploymentID: deploymentID,
-		Contents:     expandModel(d, true),
-	})
-	if err != nil {
+		DeploymentID: d.Get("deployment_id").(string),
+		Contents:     contents,
+	}); err != nil {
 		return diag.FromErr(err)
 	}
 
+	d.SetId("")
 	return read(ctx, d, meta)
 }
