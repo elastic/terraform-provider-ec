@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   GenerateChangelog:
+    if: contains(github.ref, '/pull/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
