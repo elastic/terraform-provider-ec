@@ -75,8 +75,8 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 
 		m["config"] = flattenEsConfig(plan.Elasticsearch)
 
-		if r := flattenEsRemotes(remotes); len(r) > 0 {
-			m["remote_cluster"] = r
+		if remotes := flattenEsRemotes(remotes); remotes.Len() > 0 {
+			m["remote_cluster"] = remotes
 		}
 
 		extensions := schema.NewSet(esExtensionHash, nil)
@@ -241,8 +241,8 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 	return []interface{}{m}
 }
 
-func flattenEsRemotes(in models.RemoteResources) []interface{} {
-	var res []interface{}
+func flattenEsRemotes(in models.RemoteResources) *schema.Set {
+	res := newElasticsearchRemoteSet()
 	for _, r := range in.Resources {
 		var m = make(map[string]interface{})
 		if r.DeploymentID != nil && *r.DeploymentID != "" {
@@ -260,10 +260,17 @@ func flattenEsRemotes(in models.RemoteResources) []interface{} {
 		if r.SkipUnavailable != nil {
 			m["skip_unavailable"] = *r.SkipUnavailable
 		}
-		res = append(res, m)
+		res.Add(m)
 	}
 
 	return res
+}
+
+func newElasticsearchRemoteSet(remotes ...interface{}) *schema.Set {
+	return schema.NewSet(
+		schema.HashResource(elasticsearchRemoteCluster().Elem.(*schema.Resource)),
+		remotes,
+	)
 }
 
 func flattenEsBundles(in []*models.ElasticsearchUserBundle) []interface{} {
