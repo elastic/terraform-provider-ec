@@ -29,7 +29,7 @@ import (
 // This test case takes that on a ccs "ec_deployment".
 func TestAccDeployment_ccs(t *testing.T) {
 	ccsResName := "ec_deployment.ccs"
-	sourceResName := "ec_deployment.source_ccs"
+	sourceResName := "ec_deployment.source_ccs.0"
 
 	ccsRandomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	sourceRandomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
@@ -51,6 +51,7 @@ func TestAccDeployment_ccs(t *testing.T) {
 				// Create a CCS deployment with the default settings.
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
+
 					// CCS Checks
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.#", "1"),
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.topology.#", "1"),
@@ -58,10 +59,15 @@ func TestAccDeployment_ccs(t *testing.T) {
 					// CCS defaults to 1g.
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.topology.0.size_resource", "memory"),
+
 					// Remote cluster settings
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.remote_cluster.#", "1"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.remote_cluster.#", "3"),
 					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.0.remote_cluster.0.deployment_id"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.remote_cluster.0.alias", "my_source_ccs"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.remote_cluster.0.alias", fmt.Sprint(sourceRandomName, "-0")),
+					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.0.remote_cluster.1.deployment_id"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.remote_cluster.1.alias", fmt.Sprint(sourceRandomName, "-1")),
+					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.0.remote_cluster.2.deployment_id"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.remote_cluster.2.alias", fmt.Sprint(sourceRandomName, "-2")),
 
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.topology.0.node_type_data", ""),
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.0.topology.0.node_type_ingest", ""),

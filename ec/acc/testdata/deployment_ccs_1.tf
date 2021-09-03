@@ -10,15 +10,19 @@ resource "ec_deployment" "ccs" {
   deployment_template_id = "%s"
 
   elasticsearch {
-    remote_cluster {
-      deployment_id = ec_deployment.source_ccs.id
-      alias         = "my_source_ccs"
+    dynamic "remote_cluster" {
+      for_each = ec_deployment.source_ccs
+      content {
+        deployment_id = remote_cluster.value.id
+        alias         = remote_cluster.value.name
+      }
     }
   }
 }
 
 resource "ec_deployment" "source_ccs" {
-  name                   = "%s"
+  count                  = 3
+  name                   = "%s-${count.index}"
   region                 = "%s"
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
