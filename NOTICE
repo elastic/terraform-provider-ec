@@ -1,13 +1,16 @@
 terraform-provider-ec
-Copyright 2020 Elasticsearch B.V.
+Copyright 2021 Elasticsearch B.V.
 
 This product includes software developed at Elasticsearch B.V. and
 third-party software developed by the licenses listed below.
 
 =========================================================================
 
-github.com/elastic/cloud-sdk-go              Apache-2.0
-github.com/stretchr/testify                  MIT
-github.com/hashicorp/terraform-plugin-sdk    MPL-2.0
+github.com/elastic/cloud-sdk-go                 Apache-2.0
+github.com/go-openapi/runtime                   Apache-2.0
+github.com/go-openapi/strfmt                    Apache-2.0
+github.com/blang/semver/v4                      MIT
+github.com/stretchr/testify                     MIT
+github.com/hashicorp/terraform-plugin-sdk/v2    MPL-2.0-no-copyleft-exception
 
 =========================================================================
