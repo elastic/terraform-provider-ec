@@ -34,6 +34,9 @@ func Test_modelToState(t *testing.T) {
 	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
 	deploymentSchemaArg.SetId(mock.ValidClusterID)
 
+	deploymentLowerVersionSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
+	deploymentLowerVersionSchemaArg.SetId(mock.ValidClusterID)
+
 	wantDeployment := util.NewResourceData(t, util.ResDataParams{
 		ID:     mock.ValidClusterID,
 		State:  newSampleLegacyDeployment(),
@@ -843,6 +846,161 @@ func Test_modelToState(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			name: "sets the global version to the lesser version",
+			args: args{
+				d: deploymentLowerVersionSchemaArg,
+				res: &models.DeploymentGetResponse{
+					Alias: "my-deployment",
+					Name:  ec.String("my_deployment_name"),
+					Settings: &models.DeploymentSettings{
+						TrafficFilterSettings: &models.TrafficFilterSettings{
+							Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
+						},
+					},
+					Resources: &models.DeploymentResources{
+						Elasticsearch: []*models.ElasticsearchResourceInfo{
+							{
+								Region: ec.String("us-east-1"),
+								RefID:  ec.String("main-elasticsearch"),
+								Info: &models.ElasticsearchClusterInfo{
+									Status:      ec.String("started"),
+									ClusterID:   &mock.ValidClusterID,
+									ClusterName: ec.String("some-name"),
+									Region:      "us-east-1",
+									ElasticsearchMonitoringInfo: &models.ElasticsearchMonitoringInfo{
+										DestinationClusterIds: []string{"some"},
+									},
+									PlanInfo: &models.ElasticsearchClusterPlansInfo{
+										Current: &models.ElasticsearchClusterPlanInfo{
+											Plan: &models.ElasticsearchClusterPlan{
+												Elasticsearch: &models.ElasticsearchConfiguration{
+													Version:                  "7.7.0",
+													UserSettingsYaml:         `some.setting: value`,
+													UserSettingsOverrideYaml: `some.setting: value2`,
+													UserSettingsJSON: map[string]interface{}{
+														"some.setting": "value",
+													},
+													UserSettingsOverrideJSON: map[string]interface{}{
+														"some.setting": "value2",
+													},
+												},
+												DeploymentTemplate: &models.DeploymentTemplateReference{
+													ID: ec.String("aws-io-optimized-v2"),
+												},
+												ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+													ID: "hot_content",
+													Elasticsearch: &models.ElasticsearchConfiguration{
+														NodeAttributes: map[string]string{"data": "hot"},
+													},
+													ZoneCount:               1,
+													InstanceConfigurationID: "aws.data.highio.i3",
+													Size: &models.TopologySize{
+														Resource: ec.String("memory"),
+														Value:    ec.Int32(2048),
+													},
+													NodeType: &models.ElasticsearchNodeType{
+														Data:   ec.Bool(true),
+														Ingest: ec.Bool(true),
+														Master: ec.Bool(true),
+														Ml:     ec.Bool(false),
+													},
+													TopologyElementControl: &models.TopologyElementControl{
+														Min: &models.TopologySize{
+															Resource: ec.String("memory"),
+															Value:    ec.Int32(1024),
+														},
+													},
+												}},
+											},
+										},
+									},
+								},
+							},
+						},
+						Kibana: []*models.KibanaResourceInfo{
+							{
+								Region:                    ec.String("us-east-1"),
+								RefID:                     ec.String("main-kibana"),
+								ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+								Info: &models.KibanaClusterInfo{
+									Status:      ec.String("started"),
+									ClusterID:   &mock.ValidClusterID,
+									ClusterName: ec.String("some-kibana-name"),
+									Region:      "us-east-1",
+									PlanInfo: &models.KibanaClusterPlansInfo{
+										Current: &models.KibanaClusterPlanInfo{
+											Plan: &models.KibanaClusterPlan{
+												Kibana: &models.KibanaConfiguration{
+													Version: "7.6.2",
+												},
+												ClusterTopology: []*models.KibanaClusterTopologyElement{
+													{
+														ZoneCount:               1,
+														InstanceConfigurationID: "aws.kibana.r5d",
+														Size: &models.TopologySize{
+															Resource: ec.String("memory"),
+															Value:    ec.Int32(1024),
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: util.NewResourceData(t, util.ResDataParams{
+				ID:     mock.ValidClusterID,
+				Schema: newSchema(),
+				State: map[string]interface{}{
+					"alias":                  "my-deployment",
+					"name":                   "my_deployment_name",
+					"deployment_template_id": "aws-io-optimized-v2",
+					"region":                 "us-east-1",
+					"version":                "7.6.2",
+					"elasticsearch": []interface{}{map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"region":      "us-east-1",
+						"config": []interface{}{map[string]interface{}{
+							"user_settings_yaml":          "some.setting: value",
+							"user_settings_override_yaml": "some.setting: value2",
+							"user_settings_json":          "{\"some.setting\":\"value\"}",
+							"user_settings_override_json": "{\"some.setting\":\"value2\"}",
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"id":                        "hot_content",
+							"instance_configuration_id": "aws.data.highio.i3",
+							"size":                      "2g",
+							"node_type_data":            "true",
+							"node_type_ingest":          "true",
+							"node_type_master":          "true",
+							"node_type_ml":              "false",
+							"zone_count":                1,
+						}},
+					}},
+					"kibana": []interface{}{map[string]interface{}{
+						"elasticsearch_cluster_ref_id": "main-elasticsearch",
+						"ref_id":                       "main-kibana",
+						"resource_id":                  mock.ValidClusterID,
+						"version":                      "7.7.0",
+						"region":                       "us-east-1",
+						"topology": []interface{}{
+							map[string]interface{}{
+								"instance_configuration_id": "aws.kibana.r5d",
+								"size":                      "1g",
+								"zone_count":                1,
+							},
+						},
+					}},
+					"traffic_filter": []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
+				},
+			}),
 		},
 		{
 			name: "flattens an azure plan (io-optimized)",
