@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Fix a bug affecting partial version upgrades, where some resources upgraded but others did not, leaving the `version` argument set to the configured value as if the upgrade was successful. The upgrade could not be retried and it was unable to detect drift.
+```
