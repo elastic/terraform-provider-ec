@@ -46,3 +46,8 @@ jobs:
     - name: Validate the examples
       run: make install validate-examples
       id: validate-examples
+
+    - name: Commit generated files
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Add auto-generated files
