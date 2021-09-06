@@ -232,6 +232,10 @@ func flattenEsConfig(cfg *models.ElasticsearchConfiguration) []interface{} {
 		}
 	}
 
+	if cfg.DockerImage != "" {
+		m["docker_image"] = cfg.DockerImage
+	}
+
 	// If no settings are set, there's no need to store the empty values in the
 	// state and makes the state consistent with a clean import return.
 	if len(m) == 0 {

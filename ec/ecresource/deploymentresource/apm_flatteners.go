@@ -121,6 +121,10 @@ func flattenApmConfig(cfg *models.ApmConfiguration) []interface{} {
 		}
 	}
 
+	if cfg.DockerImage != "" {
+		m["docker_image"] = cfg.DockerImage
+	}
+
 	for k, v := range flattenApmSystemConfig(cfg.SystemSettings) {
 		m[k] = v
 	}

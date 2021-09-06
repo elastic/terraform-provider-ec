@@ -1133,6 +1133,198 @@ func Test_modelToState(t *testing.T) {
 			}),
 		},
 		{
+			name: "flattens an plan with config.docker_image set",
+			args: args{
+				d: newDeploymentRD(t, "123b7b540dfc967a7a649c18e2fce4ed", nil),
+				res: &models.DeploymentGetResponse{
+					ID:    ec.String("123b7b540dfc967a7a649c18e2fce4ed"),
+					Alias: "OH",
+					Name:  ec.String("up2d"),
+					Resources: &models.DeploymentResources{
+						Elasticsearch: []*models.ElasticsearchResourceInfo{{
+							RefID:  ec.String("main-elasticsearch"),
+							Region: ec.String("aws-eu-central-1"),
+							Info: &models.ElasticsearchClusterInfo{
+								Status: ec.String("running"),
+								PlanInfo: &models.ElasticsearchClusterPlansInfo{
+									Current: &models.ElasticsearchClusterPlanInfo{
+										Plan: &models.ElasticsearchClusterPlan{
+											DeploymentTemplate: &models.DeploymentTemplateReference{
+												ID: ec.String("aws-io-optimized-v2"),
+											},
+											Elasticsearch: &models.ElasticsearchConfiguration{
+												Version:     "7.14.1",
+												DockerImage: "docker.elastic.com/elasticsearch/cloud:7.14.1-hash",
+											},
+											ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
+												ID: "hot_content",
+												Size: &models.TopologySize{
+													Value:    ec.Int32(4096),
+													Resource: ec.String("memory"),
+												},
+												Elasticsearch: &models.ElasticsearchConfiguration{
+													UserSettingsYaml: "a.setting: true",
+												},
+												ZoneCount: 1,
+											}},
+										},
+									},
+								},
+								Settings: &models.ElasticsearchClusterSettings{},
+							},
+						}},
+						Apm: []*models.ApmResourceInfo{{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							RefID:                     ec.String("main-apm"),
+							Region:                    ec.String("aws-eu-central-1"),
+							Info: &models.ApmInfo{
+								Status: ec.String("running"),
+								PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
+									Plan: &models.ApmPlan{
+										Apm: &models.ApmConfiguration{
+											DockerImage: "docker.elastic.com/apm/cloud:7.14.1-hash",
+											SystemSettings: &models.ApmSystemSettings{
+												DebugEnabled: ec.Bool(false),
+											},
+										},
+										ClusterTopology: []*models.ApmTopologyElement{{
+											InstanceConfigurationID: "aws.apm.r5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(512),
+											},
+											ZoneCount: 1,
+										}},
+									},
+								}},
+							},
+						}},
+						Kibana: []*models.KibanaResourceInfo{{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							RefID:                     ec.String("main-kibana"),
+							Region:                    ec.String("aws-eu-central-1"),
+							Info: &models.KibanaClusterInfo{
+								Status: ec.String("running"),
+								PlanInfo: &models.KibanaClusterPlansInfo{Current: &models.KibanaClusterPlanInfo{
+									Plan: &models.KibanaClusterPlan{
+										Kibana: &models.KibanaConfiguration{
+											DockerImage: "docker.elastic.com/kibana/cloud:7.14.1-hash",
+										},
+										ClusterTopology: []*models.KibanaClusterTopologyElement{{
+											InstanceConfigurationID: "aws.kibana.r5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
+											ZoneCount: 1,
+										}},
+									},
+								}},
+							},
+						}},
+						EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{{
+							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+							RefID:                     ec.String("main-enterprise_search"),
+							Region:                    ec.String("aws-eu-central-1"),
+							Info: &models.EnterpriseSearchInfo{
+								Status: ec.String("running"),
+								PlanInfo: &models.EnterpriseSearchPlansInfo{Current: &models.EnterpriseSearchPlanInfo{
+									Plan: &models.EnterpriseSearchPlan{
+										EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+											DockerImage: "docker.elastic.com/enterprise_search/cloud:7.14.1-hash",
+										},
+										ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+											InstanceConfigurationID: "aws.enterprisesearch.m5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(2048),
+											},
+											NodeType: &models.EnterpriseSearchNodeTypes{
+												Appserver: ec.Bool(true),
+												Connector: ec.Bool(true),
+												Worker:    ec.Bool(true),
+											},
+											ZoneCount: 2,
+										}},
+									},
+								}},
+							},
+						}},
+					},
+				},
+			},
+			want: util.NewResourceData(t, util.ResDataParams{
+				ID: "123b7b540dfc967a7a649c18e2fce4ed",
+				State: map[string]interface{}{
+					"alias":                  "OH",
+					"deployment_template_id": "aws-io-optimized-v2",
+					"id":                     "123b7b540dfc967a7a649c18e2fce4ed",
+					"name":                   "up2d",
+					"region":                 "aws-eu-central-1",
+					"version":                "7.14.1",
+					"elasticsearch": []interface{}{map[string]interface{}{
+						"region": "aws-eu-central-1",
+						"ref_id": "main-elasticsearch",
+						"config": []interface{}{map[string]interface{}{
+							"docker_image": "docker.elastic.com/elasticsearch/cloud:7.14.1-hash",
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"id":            "hot_content",
+							"size":          "4g",
+							"size_resource": "memory",
+							"zone_count":    1,
+							"config": []interface{}{map[string]interface{}{
+								"user_settings_yaml": "a.setting: true",
+							}},
+						}},
+					}},
+					"kibana": []interface{}{map[string]interface{}{
+						"region": "aws-eu-central-1",
+						"ref_id": "main-kibana",
+						"config": []interface{}{map[string]interface{}{
+							"docker_image": "docker.elastic.com/kibana/cloud:7.14.1-hash",
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.kibana.r5d",
+							"size":                      "1g",
+							"size_resource":             "memory",
+							"zone_count":                1,
+						}},
+					}},
+					"apm": []interface{}{map[string]interface{}{
+						"region": "aws-eu-central-1",
+						"ref_id": "main-apm",
+						"config": []interface{}{map[string]interface{}{
+							"docker_image": "docker.elastic.com/apm/cloud:7.14.1-hash",
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.apm.r5d",
+							"size":                      "0.5g",
+							"size_resource":             "memory",
+							"zone_count":                1,
+						}},
+					}},
+					"enterprise_search": []interface{}{map[string]interface{}{
+						"region": "aws-eu-central-1",
+						"ref_id": "main-enterprise_search",
+						"config": []interface{}{map[string]interface{}{
+							"docker_image": "docker.elastic.com/enterprise_search/cloud:7.14.1-hash",
+						}},
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.enterprisesearch.m5d",
+							"size":                      "2g",
+							"size_resource":             "memory",
+							"zone_count":                2,
+							"node_type_appserver":       "true",
+							"node_type_connector":       "true",
+							"node_type_worker":          "true",
+						}},
+					}},
+				},
+				Schema: newSchema(),
+			}),
+		},
+		{
 			name: "flattens an aws plan (io-optimized) with tags",
 			args: args{d: awsIOOptimizedTagsRD, res: awsIOOptimizedTagsRes},
 			want: wantAwsIOOptimizedDeploymentTags,

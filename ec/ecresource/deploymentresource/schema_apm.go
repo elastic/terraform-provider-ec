@@ -102,6 +102,11 @@ func apmConfig() *schema.Schema {
 		Description:      `Optionally define the Apm configuration options for the APM Server`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"docker_image": {
+					Type:        schema.TypeString,
+					Description: "Optionally override the docker image the APM nodes will use. Note that this field will only work for internal users only.",
+					Optional:    true,
+				},
 				// APM System Settings
 				"debug_enabled": {
 					Type:        schema.TypeBool,

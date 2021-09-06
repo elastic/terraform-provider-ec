@@ -291,6 +291,10 @@ func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) e
 		if v, ok := cfg["plugins"]; ok {
 			esCfg.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
 		}
+
+		if v, ok := cfg["docker_image"]; ok {
+			esCfg.DockerImage = v.(string)
+		}
 	}
 
 	return nil

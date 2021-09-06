@@ -137,6 +137,10 @@ func flattenEssConfig(cfg *models.EnterpriseSearchConfiguration) []interface{} {
 		}
 	}
 
+	if cfg.DockerImage != "" {
+		m["docker_image"] = cfg.DockerImage
+	}
+
 	if len(m) == 0 {
 		return nil
 	}

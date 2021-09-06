@@ -122,6 +122,10 @@ func flattenKibanaConfig(cfg *models.KibanaConfiguration) []interface{} {
 		}
 	}
 
+	if cfg.DockerImage != "" {
+		m["docker_image"] = cfg.DockerImage
+	}
+
 	if len(m) == 0 {
 		return nil
 	}

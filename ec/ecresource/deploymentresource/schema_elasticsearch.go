@@ -274,6 +274,12 @@ func elasticsearchConfig() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				// Settings
 
+				"docker_image": {
+					Type:        schema.TypeString,
+					Description: "Optionally override the docker image the Elasticsearch nodes will use. Note that this field will only work for internal users only.",
+					Optional:    true,
+				},
+
 				// Ignored settings are: [ user_bundles and user_plugins ].
 				// Adding support for them will allow users to specify
 				// "Extensions" as it is possible in the UI today.

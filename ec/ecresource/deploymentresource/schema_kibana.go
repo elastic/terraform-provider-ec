@@ -99,6 +99,11 @@ func kibanaConfig() *schema.Schema {
 		Description:      `Optionally define the Kibana configuration options for the Kibana Server`,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"docker_image": {
+					Type:        schema.TypeString,
+					Description: "Optionally override the docker image the Kibana nodes will use. Note that this field will only work for internal users only.",
+					Optional:    true,
+				},
 				"user_settings_json": {
 					Type:        schema.TypeString,
 					Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
