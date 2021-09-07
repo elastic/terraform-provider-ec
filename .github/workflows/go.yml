@@ -48,6 +48,9 @@ jobs:
       id: validate-examples
 
     - name: Commit generated files
-      uses: stefanzweifel/git-auto-commit-action@v4
+      uses: EndBug/add-and-commit@v7
       with:
-        commit_message: Add auto-generated files
+        default_author: user_info
+        message: 'Add auto-generated files'
+        author_name: elasticcloudclients
+        author_email: elasticcloudclients@elastic.co
