@@ -52,5 +52,6 @@ jobs:
       with:
         default_author: user_info
         message: 'Add auto-generated files'
+        branch: ${{GITHUB_HEAD_REF}}
         author_name: elasticcloudclients
         author_email: elasticcloudclients@elastic.co
