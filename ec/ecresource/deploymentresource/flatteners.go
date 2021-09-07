@@ -203,7 +203,7 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 	for _, r := range res.Elasticsearch {
 		if !util.IsCurrentEsPlanEmpty(r) {
 			v := r.Info.PlanInfo.Current.Plan.Elasticsearch.Version
-			if err := swapLowerVersion(&version, v); err != nil {
+			if err := swapLowerVersion(&version, v); err != nil && !isEsResourceStopped(r) {
 				return "", fmt.Errorf("elasticsearch version '%s' is not semver compliant: %w", v, err)
 			}
 		}
@@ -212,7 +212,7 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 	for _, r := range res.Kibana {
 		if !util.IsCurrentKibanaPlanEmpty(r) {
 			v := r.Info.PlanInfo.Current.Plan.Kibana.Version
-			if err := swapLowerVersion(&version, v); err != nil {
+			if err := swapLowerVersion(&version, v); err != nil && !isKibanaResourceStopped(r) {
 				return version.String(), fmt.Errorf("kibana version '%s' is not semver compliant: %w", v, err)
 			}
 		}
@@ -221,7 +221,7 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 	for _, r := range res.Apm {
 		if !util.IsCurrentApmPlanEmpty(r) {
 			v := r.Info.PlanInfo.Current.Plan.Apm.Version
-			if err := swapLowerVersion(&version, v); err != nil {
+			if err := swapLowerVersion(&version, v); err != nil && !isApmResourceStopped(r) {
 				return version.String(), fmt.Errorf("apm version '%s' is not semver compliant: %w", v, err)
 			}
 		}
@@ -230,7 +230,7 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 	for _, r := range res.EnterpriseSearch {
 		if !util.IsCurrentEssPlanEmpty(r) {
 			v := r.Info.PlanInfo.Current.Plan.EnterpriseSearch.Version
-			if err := swapLowerVersion(&version, v); err != nil {
+			if err := swapLowerVersion(&version, v); err != nil && !isEssResourceStopped(r) {
 				return version.String(), fmt.Errorf("enterprise search version '%s' is not semver compliant: %w", v, err)
 			}
 		}
