@@ -1,5 +1,5 @@
 locals {
-  name = "%s"
+  name                = "%s"
   region              = "%s"
   deployment_template = "%s"
 }
