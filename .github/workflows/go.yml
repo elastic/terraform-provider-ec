@@ -50,6 +50,7 @@ jobs:
     - name: Commit generated files
       uses: EndBug/add-and-commit@v7
       with:
+        branch: ${{ github.event.pull_request.base.ref }}
         message: 'Add auto-generated files'
         author_name: elasticcloudclients
         author_email: elasticcloudclients@elastic.co
