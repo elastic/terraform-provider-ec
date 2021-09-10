@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/ec_deployment: Changes the `ec_deployment.elasticsearch.remote_cluster` block to `schema.TypeSet` to allow specifying the blocks in any order. ([#368](https://github.com/elastic/terraform-provider-ec/issues/368))
 * resource/ec_deployment: Fix bug where setting any of the `elasticsearch.config.user_settings_* = null` would result in a provider panic. ([#355](https://github.com/elastic/terraform-provider-ec/issues/355))
 * resource/ec_deployment: Fix bug where some of the settings that were set by the UI were unset by the Terraform provider. See #214 for more details on the bug report. ([#361](https://github.com/elastic/terraform-provider-ec/issues/361))
 * resource/ec_deployment: Fix bug where the deployment alias is ignored. ([#341](https://github.com/elastic/terraform-provider-ec/issues/341))
