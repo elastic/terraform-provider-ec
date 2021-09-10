@@ -46,9 +46,3 @@ jobs:
     - name: Validate the examples
       run: make install validate-examples
       id: validate-examples
-
-    - name: Commit generated files
-      uses: EndBug/add-and-commit@v7
-      with:
-        branch: ${{ github.event.pull_request.base.ref }}
-        message: 'Add auto-generated files'
