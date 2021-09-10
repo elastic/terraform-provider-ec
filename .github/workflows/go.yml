@@ -52,5 +52,3 @@ jobs:
       with:
         branch: ${{ github.event.pull_request.base.ref }}
         message: 'Add auto-generated files'
-        author_name: elasticcloudclients
-        author_email: elasticcloudclients@elastic.co
