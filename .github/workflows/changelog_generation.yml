@@ -26,9 +26,7 @@ jobs:
           if [[ ! -z  $(git status --porcelain) ]]; then
             git config --local user.email elasticcloudclients@elastic.co
             git config --local user.name elasticcloudclients
-            git add CHANGELOG.md
-            git commit -m "Update CHANGELOG.md"
-            git add NOTICE
-            git commit -m "Update NOTICE"
+            git add CHANGELOG.md NOTICE
+            git commit -m "Update CHANGELOG.md and NOTICE"
             git push
           fi
