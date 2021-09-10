@@ -319,9 +319,8 @@ func elasticsearchConfig() *schema.Schema {
 
 func elasticsearchRemoteCluster() *schema.Schema {
 	return &schema.Schema{
-		Type:        schema.TypeList,
+		Type:        schema.TypeSet,
 		Optional:    true,
-		MinItems:    1,
 		Description: "Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times",
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -335,7 +334,7 @@ func elasticsearchRemoteCluster() *schema.Schema {
 					Description:  "Alias for this Cross Cluster Search binding",
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Optional:     true,
+					Required:     true,
 				},
 				"ref_id": {
 					Description: `Remote elasticsearch "ref_id", it is best left to the default value`,
