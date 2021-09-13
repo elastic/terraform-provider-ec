@@ -1340,6 +1340,7 @@ func Test_modelToState(t *testing.T) {
 								PlanInfo: &models.ApmPlansInfo{Current: &models.ApmPlanInfo{
 									Plan: &models.ApmPlan{
 										Apm: &models.ApmConfiguration{
+											Version:     "7.14.1",
 											DockerImage: "docker.elastic.com/apm/cloud:7.14.1-hash",
 											SystemSettings: &models.ApmSystemSettings{
 												DebugEnabled: ec.Bool(false),
@@ -1366,6 +1367,7 @@ func Test_modelToState(t *testing.T) {
 								PlanInfo: &models.KibanaClusterPlansInfo{Current: &models.KibanaClusterPlanInfo{
 									Plan: &models.KibanaClusterPlan{
 										Kibana: &models.KibanaConfiguration{
+											Version:     "7.14.1",
 											DockerImage: "docker.elastic.com/kibana/cloud:7.14.1-hash",
 										},
 										ClusterTopology: []*models.KibanaClusterTopologyElement{{
@@ -1389,6 +1391,7 @@ func Test_modelToState(t *testing.T) {
 								PlanInfo: &models.EnterpriseSearchPlansInfo{Current: &models.EnterpriseSearchPlanInfo{
 									Plan: &models.EnterpriseSearchPlan{
 										EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+											Version:     "7.14.1",
 											DockerImage: "docker.elastic.com/enterprise_search/cloud:7.14.1-hash",
 										},
 										ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
