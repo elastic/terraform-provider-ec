@@ -31,7 +31,7 @@ func handleRemoteClusters(d *schema.ResourceData, client *api.API) error {
 	}
 
 	remoteResources := expandRemoteClusters(
-		d.Get("elasticsearch.0.remote_cluster").([]interface{}),
+		d.Get("elasticsearch.0.remote_cluster").(*schema.Set),
 	)
 
 	return esremoteclustersapi.Update(esremoteclustersapi.UpdateParams{
@@ -42,10 +42,10 @@ func handleRemoteClusters(d *schema.ResourceData, client *api.API) error {
 	})
 }
 
-func expandRemoteClusters(raw []interface{}) *models.RemoteResources {
+func expandRemoteClusters(set *schema.Set) *models.RemoteResources {
 	res := models.RemoteResources{Resources: []*models.RemoteResourceRef{}}
 
-	for _, r := range raw {
+	for _, r := range set.List() {
 		var resourceRef models.RemoteResourceRef
 		m := r.(map[string]interface{})
 
@@ -73,7 +73,7 @@ func expandRemoteClusters(raw []interface{}) *models.RemoteResources {
 
 func keyIsEmptyUnchanged(d *schema.ResourceData, k string) bool {
 	old, new := d.GetChange(k)
-	oldSlice := old.([]interface{})
-	newSlice := new.([]interface{})
-	return len(oldSlice) == 0 && len(newSlice) == 0
+	oldSlice := old.(*schema.Set)
+	newSlice := new.(*schema.Set)
+	return oldSlice.Len() == 0 && newSlice.Len() == 0
 }

@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Changes the `ec_deployment.elasticsearch.remote_cluster` block to `schema.TypeSet` to allow specifying the blocks in any order.
+```

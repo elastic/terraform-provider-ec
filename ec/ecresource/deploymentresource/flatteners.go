@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -58,7 +59,18 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, rem
 			return err
 		}
 
-		if err := d.Set("version", getVersion(res.Resources)); err != nil {
+		// We're reconciling the version and storing the lowest version of any
+		// of the deployment resources. This ensures that if an upgrade fails,
+		// the state version will be lower than the desired version, making
+		// retries possible. Once more resource types are added, the function
+		// needs to be modified to check those as well.
+		version, err := getLowestVersion(res.Resources)
+		if err != nil {
+			// This code path is highly unlikely, but we're bubbling up the
+			// error in case one of the versions isn't parseable by semver.
+			return fmt.Errorf("failed reading deployment: %w", err)
+		}
+		if err := d.Set("version", version); err != nil {
 			return err
 		}
 
@@ -185,14 +197,58 @@ func getRegion(res *models.DeploymentResources) (region string) {
 	return region
 }
 
-func getVersion(res *models.DeploymentResources) (version string) {
+func getLowestVersion(res *models.DeploymentResources) (string, error) {
+	// We're starting off with a very high version so that it gets replaced.
+	version := semver.MustParse(`99.99.99`)
 	for _, r := range res.Elasticsearch {
 		if !util.IsCurrentEsPlanEmpty(r) {
-			return r.Info.PlanInfo.Current.Plan.Elasticsearch.Version
+			v := r.Info.PlanInfo.Current.Plan.Elasticsearch.Version
+			if err := swapLowerVersion(&version, v); err != nil && !isEsResourceStopped(r) {
+				return "", fmt.Errorf("elasticsearch version '%s' is not semver compliant: %w", v, err)
+			}
 		}
 	}
 
-	return version
+	for _, r := range res.Kibana {
+		if !util.IsCurrentKibanaPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.Kibana.Version
+			if err := swapLowerVersion(&version, v); err != nil && !isKibanaResourceStopped(r) {
+				return version.String(), fmt.Errorf("kibana version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	for _, r := range res.Apm {
+		if !util.IsCurrentApmPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.Apm.Version
+			if err := swapLowerVersion(&version, v); err != nil && !isApmResourceStopped(r) {
+				return version.String(), fmt.Errorf("apm version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	for _, r := range res.EnterpriseSearch {
+		if !util.IsCurrentEssPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.EnterpriseSearch.Version
+			if err := swapLowerVersion(&version, v); err != nil && !isEssResourceStopped(r) {
+				return version.String(), fmt.Errorf("enterprise search version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	return version.String(), nil
+}
+
+func swapLowerVersion(version *semver.Version, comp string) error {
+	v, err := semver.Parse(comp)
+	if err != nil {
+		return err
+	}
+
+	if v.LT(*version) {
+		*version = v
+	}
+	return nil
 }
 
 func hasRunningResources(res *models.DeploymentGetResponse) bool {

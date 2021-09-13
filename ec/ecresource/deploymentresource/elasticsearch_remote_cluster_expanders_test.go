@@ -105,7 +105,7 @@ func Test_handleRemoteClusters(t *testing.T) {
 
 func Test_expandRemoteClusters(t *testing.T) {
 	type args struct {
-		raw []interface{}
+		set *schema.Set
 	}
 	tests := []struct {
 		name string
@@ -114,11 +114,12 @@ func Test_expandRemoteClusters(t *testing.T) {
 	}{
 		{
 			name: "wants no error or empty res",
+			args: args{set: newElasticsearchRemoteSet()},
 			want: &models.RemoteResources{Resources: []*models.RemoteResourceRef{}},
 		},
 		{
 			name: "expands remotes",
-			args: args{raw: []interface{}{
+			args: args{set: newElasticsearchRemoteSet([]interface{}{
 				map[string]interface{}{
 					"alias":            "alias",
 					"deployment_id":    "someid",
@@ -129,24 +130,24 @@ func Test_expandRemoteClusters(t *testing.T) {
 					"deployment_id": "some other id",
 					"ref_id":        "main-elasticsearch",
 				},
-			}},
+			}...)},
 			want: &models.RemoteResources{Resources: []*models.RemoteResourceRef{
+				{
+					DeploymentID:       ec.String("some other id"),
+					ElasticsearchRefID: ec.String("main-elasticsearch"),
+				},
 				{
 					Alias:              ec.String("alias"),
 					DeploymentID:       ec.String("someid"),
 					ElasticsearchRefID: ec.String("main-elasticsearch"),
 					SkipUnavailable:    ec.Bool(true),
 				},
-				{
-					DeploymentID:       ec.String("some other id"),
-					ElasticsearchRefID: ec.String("main-elasticsearch"),
-				},
 			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := expandRemoteClusters(tt.args.raw)
+			got := expandRemoteClusters(tt.args.set)
 			assert.Equal(t, tt.want, got)
 		})
 	}
