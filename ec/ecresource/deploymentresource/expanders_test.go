@@ -2281,6 +2281,183 @@ func Test_createResourceToModel(t *testing.T) {
 		},
 		//
 		{
+			name: "deployment with docker_image overrides",
+			args: args{
+				d: util.NewResourceData(t, util.ResDataParams{
+					ID:     mock.ValidClusterID,
+					Schema: newSchema(),
+					State: map[string]interface{}{
+						"name":                   "my_deployment_name",
+						"deployment_template_id": "aws-io-optimized-v2",
+						"region":                 "us-east-1",
+						"version":                "7.14.1",
+						"elasticsearch": []interface{}{map[string]interface{}{
+							"config": []interface{}{map[string]interface{}{
+								"docker_image": "docker.elastic.com/elasticsearch/container:7.14.1-hash",
+							}},
+							"autoscale": "false",
+							"trust_account": []interface{}{
+								map[string]interface{}{
+									"account_id": "ANID",
+									"trust_all":  "true",
+								},
+							},
+							"topology": []interface{}{
+								map[string]interface{}{
+									"id":   "hot_content",
+									"size": "8g",
+								},
+							},
+						}},
+						"kibana": []interface{}{map[string]interface{}{
+							"config": []interface{}{map[string]interface{}{
+								"docker_image": "docker.elastic.com/kibana/container:7.14.1-hash",
+							}},
+						}},
+						"apm": []interface{}{map[string]interface{}{
+							"config": []interface{}{map[string]interface{}{
+								"docker_image": "docker.elastic.com/apm/container:7.14.1-hash",
+							}},
+						}},
+						"enterprise_search": []interface{}{map[string]interface{}{
+							"config": []interface{}{map[string]interface{}{
+								"docker_image": "docker.elastic.com/enterprise_search/container:7.14.1-hash",
+							}},
+						}},
+					},
+				}),
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentCreateRequest{
+				Name:     "my_deployment_name",
+				Settings: &models.DeploymentCreateSettings{},
+				Metadata: &models.DeploymentCreateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
+				Resources: &models.DeploymentCreateResources{
+					Elasticsearch: enrichWithEmptyTopologies(readerToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+						Region: ec.String("us-east-1"),
+						RefID:  ec.String("main-elasticsearch"),
+						Settings: &models.ElasticsearchClusterSettings{
+							DedicatedMastersThreshold: 6,
+							Trust: &models.ElasticsearchClusterTrustSettings{
+								Accounts: []*models.AccountTrustRelationship{
+									{
+										AccountID: ec.String("ANID"),
+										TrustAll:  ec.Bool(true),
+									},
+								},
+							},
+						},
+						Plan: &models.ElasticsearchClusterPlan{
+							AutoscalingEnabled: ec.Bool(false),
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version:     "7.14.1",
+								DockerImage: "docker.elastic.com/elasticsearch/container:7.14.1-hash",
+							},
+							DeploymentTemplate: &models.DeploymentTemplateReference{
+								ID: ec.String("aws-io-optimized-v2"),
+							},
+							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+								{
+									ID:                      "hot_content",
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(8192),
+									},
+									NodeRoles: []string{
+										"master",
+										"ingest",
+										"remote_cluster_client",
+										"data_hot",
+										"transform",
+										"data_content",
+									},
+									Elasticsearch: &models.ElasticsearchConfiguration{
+										NodeAttributes: map[string]string{"data": "hot"},
+									},
+									TopologyElementControl: &models.TopologyElementControl{
+										Min: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+									AutoscalingMax: &models.TopologySize{
+										Value:    ec.Int32(118784),
+										Resource: ec.String("memory"),
+									},
+								},
+							},
+						},
+					}),
+					Apm: []*models.ApmPayload{{
+						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						Plan: &models.ApmPlan{
+							Apm: &models.ApmConfiguration{
+								DockerImage: "docker.elastic.com/apm/container:7.14.1-hash",
+								SystemSettings: &models.ApmSystemSettings{
+									DebugEnabled: ec.Bool(false),
+								},
+							},
+							ClusterTopology: []*models.ApmTopologyElement{{
+								InstanceConfigurationID: "aws.apm.r5d",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(512),
+								},
+								ZoneCount: 1,
+							}},
+						},
+						RefID:  ec.String("main-apm"),
+						Region: ec.String("us-east-1"),
+					}},
+					Kibana: []*models.KibanaPayload{{
+						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						Plan: &models.KibanaClusterPlan{
+							Kibana: &models.KibanaConfiguration{
+								DockerImage: "docker.elastic.com/kibana/container:7.14.1-hash",
+							},
+							ClusterTopology: []*models.KibanaClusterTopologyElement{{
+								InstanceConfigurationID: "aws.kibana.r5d",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+								ZoneCount: 1,
+							}},
+						},
+						RefID:  ec.String("main-kibana"),
+						Region: ec.String("us-east-1"),
+					}},
+					EnterpriseSearch: []*models.EnterpriseSearchPayload{{
+						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						Plan: &models.EnterpriseSearchPlan{
+							EnterpriseSearch: &models.EnterpriseSearchConfiguration{
+								DockerImage: "docker.elastic.com/enterprise_search/container:7.14.1-hash",
+							},
+							ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+								InstanceConfigurationID: "aws.enterprisesearch.m5d",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(2048),
+								},
+								NodeType: &models.EnterpriseSearchNodeTypes{
+									Appserver: ec.Bool(true),
+									Connector: ec.Bool(true),
+									Worker:    ec.Bool(true),
+								},
+								ZoneCount: 2,
+							}},
+						},
+						RefID:  ec.String("main-enterprise_search"),
+						Region: ec.String("us-east-1"),
+					}},
+				},
+			},
+		},
+		{
 			name: "deployment with trust settings set",
 			args: args{
 				d: util.NewResourceData(t, util.ResDataParams{

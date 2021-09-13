@@ -160,6 +160,10 @@ func expandApmConfig(raw interface{}, res *models.ApmConfiguration) error {
 		if settings, ok := cfg["user_settings_override_yaml"]; ok {
 			res.UserSettingsOverrideYaml = settings.(string)
 		}
+
+		if v, ok := cfg["docker_image"]; ok {
+			res.DockerImage = v.(string)
+		}
 	}
 
 	return nil

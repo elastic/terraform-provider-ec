@@ -164,6 +164,10 @@ func expandEssConfig(raw interface{}, res *models.EnterpriseSearchConfiguration)
 		if settings, ok := cfg["user_settings_override_yaml"]; ok {
 			res.UserSettingsOverrideYaml = settings.(string)
 		}
+
+		if v, ok := cfg["docker_image"]; ok {
+			res.DockerImage = v.(string)
+		}
 	}
 
 	return nil
