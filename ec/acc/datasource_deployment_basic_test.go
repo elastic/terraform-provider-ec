@@ -118,6 +118,12 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.kibana_resource_id", resourceName, "kibana.0.resource_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.apm_resource_id", resourceName, "apm.0.resource_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.enterprise_search_resource_id", resourceName, "enterprise_search.0.resource_id"),
+
+					// Ref ID check.
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_ref_id", resourceName, "elasticsearch.0.ref_id"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.kibana_ref_id", resourceName, "kibana.0.ref_id"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.apm_ref_id", resourceName, "apm.0.ref_id"),
+					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.enterprise_search_ref_id", resourceName, "enterprise_search.0.ref_id"),
 				),
 			},
 		},

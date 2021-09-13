@@ -47,10 +47,14 @@ func Test_modelToState(t *testing.T) {
 				"name":                          "test-hello",
 				"alias":                         "dev",
 				"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
+				"apm_ref_id":                    "apm",
 				"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
 				"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
+				"elasticsearch_ref_id":          "elasticsearch",
 				"enterprise_search_resource_id": "f17e4d8a61b14c12b020d85b723357ba",
+				"enterprise_search_ref_id":      "enterprise_search",
 				"kibana_resource_id":            "c75297d672b54da68faecededf372f87",
+				"kibana_ref_id":                 "kibana",
 			}},
 		},
 		Schema: newSchema(),
@@ -67,7 +71,8 @@ func Test_modelToState(t *testing.T) {
 				Resources: &models.DeploymentResources{
 					Elasticsearch: []*models.ElasticsearchResourceInfo{
 						{
-							ID: ec.String("a98dd0dac15a48d5b3953384c7e571b9"),
+							RefID: ec.String("elasticsearch"),
+							ID:    ec.String("a98dd0dac15a48d5b3953384c7e571b9"),
 							Info: &models.ElasticsearchClusterInfo{
 								Healthy: ec.Bool(true),
 								PlanInfo: &models.ElasticsearchClusterPlansInfo{
@@ -83,13 +88,22 @@ func Test_modelToState(t *testing.T) {
 						},
 					},
 					Kibana: []*models.KibanaResourceInfo{
-						{ID: ec.String("c75297d672b54da68faecededf372f87")},
+						{
+							ID:    ec.String("c75297d672b54da68faecededf372f87"),
+							RefID: ec.String("kibana"),
+						},
 					},
 					Apm: []*models.ApmResourceInfo{
-						{ID: ec.String("9884c76ae1cd4521a0d9918a454a700d")},
+						{
+							ID:    ec.String("9884c76ae1cd4521a0d9918a454a700d"),
+							RefID: ec.String("apm"),
+						},
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
-						{ID: ec.String("f17e4d8a61b14c12b020d85b723357ba")},
+						{
+							ID:    ec.String("f17e4d8a61b14c12b020d85b723357ba"),
+							RefID: ec.String("enterprise_search"),
+						},
 					},
 				},
 			},
@@ -103,7 +117,7 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentsSchemaArgNoID.Set("deployment_template_id", "azure-compute-optimized")
 
 	wantDeploymentsNoID := util.NewResourceData(t, util.ResDataParams{
-		ID: "3138173215",
+		ID: "2553442026",
 		State: map[string]interface{}{
 			"id":                     "myID",
 			"name_prefix":            "test",
@@ -114,10 +128,14 @@ func Test_modelToState(t *testing.T) {
 				"name":                          "test-hello",
 				"alias":                         "dev",
 				"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
+				"apm_ref_id":                    "apm",
 				"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
 				"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
+				"elasticsearch_ref_id":          "elasticsearch",
 				"enterprise_search_resource_id": "f17e4d8a61b14c12b020d85b723357ba",
+				"enterprise_search_ref_id":      "enterprise_search",
 				"kibana_resource_id":            "c75297d672b54da68faecededf372f87",
+				"kibana_ref_id":                 "kibana",
 			}},
 		},
 		Schema: newSchema(),
