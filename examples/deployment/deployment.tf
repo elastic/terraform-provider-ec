@@ -24,7 +24,6 @@ resource "ec_deployment" "example_minimal" {
   # Optional name.
   name = "my_example_deployment"
 
-  # Mandatory fields
   region                 = "us-east-1"
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
