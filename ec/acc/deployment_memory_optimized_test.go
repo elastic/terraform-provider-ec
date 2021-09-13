@@ -89,7 +89,7 @@ func TestAccDeployment_memoryOptimized(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.zone_count", "1"),
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.#", "1"),
 					resource.TestCheckResourceAttrSet(resName, "apm.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size", "0.5g"),
+					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.#", "0"),
 				),

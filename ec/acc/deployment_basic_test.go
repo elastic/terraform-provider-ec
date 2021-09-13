@@ -196,7 +196,7 @@ func checkBasicDeploymentResource(resName, randomDeploymentName, deploymentVersi
 		resource.TestCheckResourceAttr(resName, "region", getRegion()),
 		resource.TestCheckResourceAttr(resName, "apm.#", "1"),
 		resource.TestCheckResourceAttr(resName, "apm.0.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size", "0.5g"),
+		resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size", "1g"),
 		resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size_resource", "memory"),
 		resource.TestCheckResourceAttrSet(resName, "apm_secret_token"),
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch_username"),
