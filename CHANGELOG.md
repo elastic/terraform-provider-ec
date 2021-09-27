@@ -1,5 +1,9 @@
 # 0.3.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** resource/ec_deployment_elasticsearch_keystore: Adds a new `ec_deployment_elasticsearch_keystore` resource which allows creating and updating Elasticsearch keystore settings. ([#364](https://github.com/elastic/terraform-provider-ec/issues/364))
+
 ENHANCEMENTS:
 
 * datasource/ec_deployments: Adds to new fields, `deployments.#.name` and `deployments.#.alias` to the data source. ([#362](https://github.com/elastic/terraform-provider-ec/issues/362))

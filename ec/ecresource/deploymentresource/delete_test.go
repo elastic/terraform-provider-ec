@@ -173,9 +173,31 @@ func Test_shouldRetryShutdown(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "returns true when error contains a deallocation failure string",
+			args: args{
+				err: multierror.NewPrefixed("aa",
+					errors.New(`deployment [8f3c85f97536163ad117a6d37b377120] - [elasticsearch][39dd873845bc43f9b3b21b87fe1a3c99]: caught error: "Plan change failed: Some instances were not stopped`),
+				),
+				retries:    1,
+				maxRetries: 10,
+			},
+			want: true,
+		},
+		{
 			name: "returns false when error contains timeout string but exceeds max timeouts",
 			args: args{
 				err:        errors.New("Timeout exceeded"),
+				retries:    10,
+				maxRetries: 10,
+			},
+			want: false,
+		},
+		{
+			name: "returns false when error contains a deallocation failure string",
+			args: args{
+				err: multierror.NewPrefixed("aa",
+					errors.New(`deployment [8f3c85f97536163ad117a6d37b377120] - [elasticsearch][39dd873845bc43f9b3b21b87fe1a3c99]: caught error: "Plan change failed: Some instances were not stopped`),
+				),
 				retries:    10,
 				maxRetries: 10,
 			},

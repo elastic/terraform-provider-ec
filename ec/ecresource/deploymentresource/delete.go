@@ -89,9 +89,13 @@ func shouldRetryShutdown(err error, retries, maxRetries int) bool {
 	const timeout = "Timeout exceeded"
 	needsRetry := retries < maxRetries
 
-	var isTimeout bool
+	var isTimeout, isFailDeallocate bool
 	if err != nil {
 		isTimeout = strings.Contains(err.Error(), timeout)
+		isFailDeallocate = strings.Contains(
+			err.Error(), "Some instances were not stopped",
+		)
 	}
-	return isTimeout && needsRetry
+	return (needsRetry && isTimeout) ||
+		(needsRetry && isFailDeallocate)
 }
