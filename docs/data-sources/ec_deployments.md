@@ -73,6 +73,10 @@ These will not be available for interpolation.
   * `deployments.#.alias` - Deployment alias.
   * `deployments.#.name` - The name of the deployment.
   * `deployments.#.elasticsearch_resource_id` - The Elasticsearch resource unique ID.
+  * `deployments.#.elasticsearch_ref_id` - The Elasticsearch resource reference.
   * `deployments.#.kibana_resource_id` - The Kibana resource unique ID.
+  * `deployments.#.kibana_ref_id` - The Kibana resource reference.
   * `deployments.#.apm_resource_id` - The APM resource unique ID.
+  * `deployments.#.apm_ref_id` - The APM resource reference.
   * `deployments.#.enterprise_search_resource_id` - The Enterprise Search resource unique ID.
+  * `deployments.#.enterprise_search_ref_id` - The Enterprise Search resource reference.
