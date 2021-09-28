@@ -69,7 +69,7 @@ resource "ec_deployment" "example_minimal" {
   # Mandatory fields
   region                 = local.region
   version                = data.ec_stack.latest.version
-  deployment_template_id = "aws-io-optimized-v2"
+  deployment_template_id = "azure-io-optimized-v3"
 
   traffic_filter = [
     ec_deployment_traffic_filter.azure.id
@@ -89,6 +89,50 @@ resource "ec_deployment_traffic_filter" "azure" {
   rule {
     azure_endpoint_name = "my-azure-pl"
     azure_endpoint_guid = "78c64959-fd88-41cc-81ac-1cfcdb1ac32e"
+  }
+}
+
+```
+
+### GCP Private Service Connect type
+
+```hcl
+locals {
+  region = asia-east1
+}
+
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = local.region
+}
+
+# Create an Elastic Cloud deployment
+resource "ec_deployment" "example_minimal" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
+  region                 = local.region
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "gcp-storage-optimized"
+
+  traffic_filter = [
+    ec_deployment_traffic_filter.gcp_psc.id
+  ]
+
+  # Use the deployment template defaults
+  elasticsearch {}
+
+  kibana {}
+}
+
+resource "ec_deployment_traffic_filter" "gcp_psc" {
+  name   = "my traffic filter name"
+  region = local.region
+  type   = "gcp_private_service_connect_endpoint"
+
+  rule {
+    source = "18446744072646845332"
   }
 }
 
