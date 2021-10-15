@@ -58,7 +58,7 @@ $(GOBIN)/changelog-build: $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCH
 	@ echo "-> Installing changelog-build..."
 	@ go install github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
 
-$(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP):
+$(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-versionbump-*
 	@ echo $(VERSION_VERSIONBUMP) > $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP)
 
