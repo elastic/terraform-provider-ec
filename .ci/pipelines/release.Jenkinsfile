@@ -27,7 +27,11 @@ node('docker && gobld/machineType:n1-highcpu-8') {
                 sh 'make -C .ci import-gpg-key'
             }
             stage("Cache GPG key and release the binaries") {
-                sh '. .ci/.env; make -C .ci cache-gpg-passphrase; make release'
+                script {
+                    env.GITHUB_TOKEN = readFile(".ci/.github_token").trim()
+                    env.GPG_FINGERPRINT = readFile(".ci/.gpg_fingerprint").trim()
+                }
+                sh 'make -C .ci cache-gpg-passphrase; make release'
             }
         } catch (Exception err) {
             throw err
