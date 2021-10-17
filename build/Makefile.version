@@ -1,6 +1,6 @@
 ### Manage repository versions
 
-CURRENT_VERSION=$$($(GOBIN)/versionbump list Makefile)
+CURRENT_VERSION=v$$($(GOBIN)/versionbump list Makefile)
 
 ## Bump the major version for the Terraform Provider for Elastic Cloud.
 major: $(GOBIN)/versionbump
