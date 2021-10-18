@@ -2,10 +2,10 @@
 
 arch=$(uname -m)
 case $arch in
-  x86_64) arch="amd64" ;;
-  x86) arch="386" ;;
-  i686) arch="386" ;;
-  i386) arch="386" ;;
+  x86_64) arch="x86_64" ;;
+  x86) arch="i386" ;;
+  i686) arch="i386" ;;
+  i386) arch="i386" ;;
   aarch64) arch="arm64" ;;
   armv5*) arch="armv5" ;;
   armv6*) arch="armv6" ;;
