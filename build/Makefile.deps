@@ -1,6 +1,7 @@
 
 OS:=$(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
+ARCH_GORELEASER:=$(shell $(PWD)/scripts/uname_arch_goreleaser.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLINT:=v0.0.0-20191125180803-fdd1cda4f05f
@@ -48,7 +49,7 @@ $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER): | $(VERSION_DIR)
 
 $(GOBIN)/goreleaser: $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER) | $(GOBIN)
 	@ echo "-> Installing goreleaser..."
-	@ curl -L https://github.com/goreleaser/goreleaser/releases/download/$(VERSION_GORELEASER)/goreleaser_$(OS)_$(ARCH).tar.gz \
+	@ curl -L https://github.com/goreleaser/goreleaser/releases/download/$(VERSION_GORELEASER)/goreleaser_$(OS)_$(ARCH_GORELEASER).tar.gz \
 	    --output $(GOBIN)/goreleaser.tar.gz
 	@ tar -xf $(GOBIN)/goreleaser.tar.gz -C $(GOBIN)
 
