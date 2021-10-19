@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/ec_deployment_traffic_filter: Add support for Azure Private Link traffic rules.
-```
