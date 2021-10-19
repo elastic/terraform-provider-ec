@@ -1,3 +1,0 @@
-```release-note:enhancement
-datasource/ec_deployments: Adds two new fields, `deployments.#.name` and `deployments.#.alias` to the data source.
-```

@@ -1,3 +1,0 @@
-```release-note:new-resource
-resource/ec_deployment_elasticsearch_keystore: Adds a new `ec_deployment_elasticsearch_keystore` resource which allows creating and updating Elasticsearch keystore settings.
-```

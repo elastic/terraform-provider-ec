@@ -1,3 +1,0 @@
-```release-note:enhancement
-datasource/ec_deployments: Adds four new fields, `deployments.#.elasticsearch_ref_id`, `deployments.#.kibana_ref_id`, `deployments.#.apm_ref_id`, `deployments.#.enterprise_search_ref_id` to the data source.
-```
