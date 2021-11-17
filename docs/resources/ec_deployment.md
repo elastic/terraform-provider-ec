@@ -241,7 +241,7 @@ The required `elasticsearch` block supports the following arguments:
 
 ##### Topology
 
-To set up multi-node Elasticsearch clusters, you can set the topology block multiple times. Each block must specify the `id` field referencing the data tier name. This is particularly relevant for Elasticsearch clusters with multiple data tiers or Machine lLearning.
+To set up multi-node Elasticsearch clusters, you can set the topology block multiple times. Each block must specify the `id` field referencing the data tier name. This is particularly relevant for Elasticsearch clusters with multiple data tiers or Machine Learning.
 
 -> To avoid infinite diff loops, topology blocks should be ordered alphabetically by the `topology.id` field. The order with the current data tiers at the time of this writing would be: "cold", "coordinating", "frozen", "hot_content", "master", "ml", "warm".
 
