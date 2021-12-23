@@ -15,9 +15,11 @@ _Model changes might be introduced between minors until version 1.0.0 is release
 
 The goal for a Terraform provider is to orchestrate lifecycle for deployments via common set of APIs across ESS, ESSP and ECE (see https://www.elastic.co/guide/en/cloud/current/ec-restful-api.html for API examples)
 
-Things which are currently out of scope for provider:
+Things which are out of scope for provider:
 - Configuring individual Elastic Stack components (Elasticsearch, Kibana, etc)
 - Configuring snapshots settings for deployment (since they are using Elasticsearch SLM for this now, see https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-lifecycle-management.html)
+
+We now have Terraform provider for Elastic Stack https://github.com/elastic/terraform-provider-elasticstack which should be used for any operations on Elastic Stack products.
 
 ## Example usage
 
