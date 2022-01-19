@@ -25,6 +25,12 @@ func isApmResourceStopped(res *models.ApmResourceInfo) bool {
 		*res.Info.Status == "stopped"
 }
 
+// isIntegrationsServerResourceStopped returns true if the resource is stopped.
+func isIntegrationsServerResourceStopped(res *models.IntegrationsServerResourceInfo) bool {
+	return res == nil || res.Info == nil || res.Info.Status == nil ||
+		*res.Info.Status == "stopped"
+}
+
 // isEsResourceStopped returns true if the resource is stopped.
 func isEsResourceStopped(res *models.ElasticsearchResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
