@@ -96,6 +96,13 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, rem
 			}
 		}
 
+		integrationsServerFlattened := flattenIntegrationsServerResources(res.Resources.IntegrationsServer, *res.Name)
+		if len(integrationsServerFlattened) > 0 {
+			if err := d.Set("integrations_server", integrationsServerFlattened); err != nil {
+				return err
+			}
+		}
+
 		enterpriseSearchFlattened := flattenEssResources(res.Resources.EnterpriseSearch, *res.Name)
 		if len(enterpriseSearchFlattened) > 0 {
 			if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
@@ -227,6 +234,15 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 		}
 	}
 
+	for _, r := range res.IntegrationsServer {
+		if !util.IsCurrentIntegrationsServerPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.IntegrationsServer.Version
+			if err := swapLowerVersion(&version, v); err != nil && !isIntegrationsServerResourceStopped(r) {
+				return version.String(), fmt.Errorf("integrations_server version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
 	for _, r := range res.EnterpriseSearch {
 		if !util.IsCurrentEssPlanEmpty(r) {
 			v := r.Info.PlanInfo.Current.Plan.EnterpriseSearch.Version
@@ -271,6 +287,11 @@ func hasRunningResources(res *models.DeploymentGetResponse) bool {
 		}
 		for _, r := range res.Resources.EnterpriseSearch {
 			if !isEssResourceStopped(r) {
+				hasRunning = true
+			}
+		}
+		for _, r := range res.Resources.IntegrationsServer {
+			if !isIntegrationsServerResourceStopped(r) {
 				hasRunning = true
 			}
 		}

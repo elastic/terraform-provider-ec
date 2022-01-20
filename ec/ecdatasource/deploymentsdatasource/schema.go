@@ -76,6 +76,12 @@ func newSchema() map[string]*schema.Schema {
 			MaxItems: 1,
 			Elem:     newResourceFilters(),
 		},
+		"integrations_server": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem:     newResourceFilters(),
+		},
 		"enterprise_search": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -121,6 +127,14 @@ func newDeploymentList() *schema.Resource {
 				Computed: true,
 			},
 			"apm_ref_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"integrations_server_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"integrations_server_ref_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},

@@ -199,7 +199,7 @@ func matchIntegrationsServerTopology(id string, topologies []*models.Integration
 
 // IntegrationsServerResource returns the IntegrationsServerPayload from a deployment
 // template or an empty version of the payload.
-func IntegrationsServerResource(res *models.DeploymentTemplateInfoV2) *models.IntegrationsServerPayload {
+func integrationsServerResource(res *models.DeploymentTemplateInfoV2) *models.IntegrationsServerPayload {
 	if len(res.DeploymentTemplate.Resources.IntegrationsServer) == 0 {
 		return nil
 	}
