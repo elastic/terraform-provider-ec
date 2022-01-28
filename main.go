@@ -27,6 +27,8 @@ import (
 
 //go:generate go run ./gen/gen.go
 
+const ProviderAddr = "registry.terraform.io/elastic/ec"
+
 func main() {
 	var debugMode bool
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
@@ -35,7 +37,7 @@ func main() {
 	opts := &plugin.ServeOpts{ProviderFunc: ec.Provider}
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/elastic/ec", opts)
+		err := plugin.Debug(context.Background(), ProviderAddr, opts)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
