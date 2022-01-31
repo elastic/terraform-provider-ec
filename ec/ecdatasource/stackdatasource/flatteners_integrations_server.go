@@ -25,7 +25,7 @@ import (
 
 // flattenIntegrationsServerResources takes in IntegrationsServer resource models and returns its
 // flattened form.
-func flattenIntegrationsServerResources(res *models.StackVersionApmConfig) []interface{} {
+func flattenIntegrationsServerResources(res *models.StackVersionIntegrationsServerConfig) []interface{} {
 	var m = make(map[string]interface{})
 
 	if res == nil {

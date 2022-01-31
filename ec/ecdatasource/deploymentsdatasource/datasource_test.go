@@ -46,8 +46,6 @@ func Test_modelToState(t *testing.T) {
 			"deployments": []interface{}{map[string]interface{}{
 				"name":                          "test-hello",
 				"alias":                         "dev",
-				"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
-				"apm_ref_id":                    "apm",
 				"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
 				"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
 				"elasticsearch_ref_id":          "elasticsearch",
@@ -93,12 +91,6 @@ func Test_modelToState(t *testing.T) {
 							RefID: ec.String("kibana"),
 						},
 					},
-					Apm: []*models.ApmResourceInfo{
-						{
-							ID:    ec.String("9884c76ae1cd4521a0d9918a454a700d"),
-							RefID: ec.String("apm"),
-						},
-					},
 					EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
 						{
 							ID:    ec.String("f17e4d8a61b14c12b020d85b723357ba"),
@@ -117,7 +109,7 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentsSchemaArgNoID.Set("deployment_template_id", "azure-compute-optimized")
 
 	wantDeploymentsNoID := util.NewResourceData(t, util.ResDataParams{
-		ID: "2553442026",
+		ID: "3660288003",
 		State: map[string]interface{}{
 			"id":                     "myID",
 			"name_prefix":            "test",
@@ -127,8 +119,6 @@ func Test_modelToState(t *testing.T) {
 			"deployments": []interface{}{map[string]interface{}{
 				"name":                          "test-hello",
 				"alias":                         "dev",
-				"apm_resource_id":               "9884c76ae1cd4521a0d9918a454a700d",
-				"apm_ref_id":                    "apm",
 				"deployment_id":                 "a8f22a9b9e684a7f94a89df74aa14331",
 				"elasticsearch_resource_id":     "a98dd0dac15a48d5b3953384c7e571b9",
 				"elasticsearch_ref_id":          "elasticsearch",
