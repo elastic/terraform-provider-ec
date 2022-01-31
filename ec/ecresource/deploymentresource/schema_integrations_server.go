@@ -60,6 +60,7 @@ func newIntegrationsServerResource() *schema.Resource {
 	}
 }
 
+// IntegrationsServerTopologySchema is ...
 func IntegrationsServerTopologySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -93,6 +94,7 @@ func IntegrationsServerTopologySchema() *schema.Schema {
 	}
 }
 
+// IntegrationsServerConfig is ...
 func IntegrationsServerConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeList,

@@ -138,11 +138,6 @@ func modelToState(d *schema.ResourceData, stack *models.StackVersionConfig) erro
 		return err
 	}
 
-	// Not enabled yet
-	//if err := d.Set("integrations_server", flattenIntegrationsServerResources(stack.IntegrationsServer)); err != nil {
-	//	return err
-	//}
-
 	if err := d.Set("elasticsearch", flattenElasticsearchResources(stack.Elasticsearch)); err != nil {
 		return err
 	}
