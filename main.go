@@ -27,7 +27,8 @@ import (
 
 //go:generate go run ./gen/gen.go
 
-const ProviderAddr = "registry.terraform.io/elastic/ec"
+// ProviderName contains the full name for this terraform provider.
+const ProviderName = "registry.terraform.io/elastic/ec"
 
 func main() {
 	var debugMode bool
@@ -37,7 +38,7 @@ func main() {
 	opts := &plugin.ServeOpts{ProviderFunc: ec.Provider}
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), ProviderAddr, opts)
+		err := plugin.Debug(context.Background(), ProviderName, opts)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
