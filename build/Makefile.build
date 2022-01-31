@@ -2,7 +2,6 @@ BINARY_LOCATION ?= bin/$(BINARY)
 PLUGIN_LOCATION ?= ~/.terraform.d/plugins
 OS = $(shell uname -s|tr '[:upper:]' '[:lower:]')
 ARCH = $(shell uname -m)
-GCFLAGS ?= ""  # For a delve debugging enabled executable use: make build GCFLAGS='-gcflags="all=-N -l"'
 STRIPPED_V ?= $(subst -dev,,$(VERSION))
 PLUGIN_0.13 = registry.terraform.io/elastic/ec/$(STRIPPED_V)/$(OS)_$(ARCH)/terraform-provider-ec_v$(STRIPPED_V)
 
@@ -20,7 +19,7 @@ generate: gen
 ## Builds the source code and saves the binary to bin/terraform-provider-ec.
 .PHONY: build
 build: gen
-	@ echo "-> Building binary in $(BINARY_LOCATION)..."
+	@ echo "-> Building binary with GCFLAGS=$(GCFLAGS) in $(BINARY_LOCATION)..."
 	@ go build $(GCFLAGS) -o $(BINARY_LOCATION) .
 
 ## Builds the source code and moves the binary to the user's terraform plugin location.
