@@ -205,8 +205,9 @@ func getRegion(res *models.DeploymentResources) (region string) {
 }
 
 func getLowestVersion(res *models.DeploymentResources) (string, error) {
-	// We're starting off with a very high version so that it gets replaced.
-	version := semver.MustParse(`99.99.99`)
+	// We're starting off with a very high version so it can be replaced.
+	replaceVersion := `99.99.99`
+	version := semver.MustParse(replaceVersion)
 	for _, r := range res.Elasticsearch {
 		if !util.IsCurrentEsPlanEmpty(r) {
 			v := r.Info.PlanInfo.Current.Plan.Elasticsearch.Version
@@ -252,15 +253,21 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 		}
 	}
 
-	return version.String(), nil
+	if version.String() != replaceVersion {
+		return version.String(), nil
+	}
+	return "", errors.New("Unable to determine the lowest version for any the deployment components")
 }
 
 func swapLowerVersion(version *semver.Version, comp string) error {
+	if comp == "" {
+		return nil
+	}
+
 	v, err := semver.Parse(comp)
 	if err != nil {
 		return err
 	}
-
 	if v.LT(*version) {
 		*version = v
 	}
