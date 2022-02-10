@@ -6,6 +6,6 @@ The {n} allows you to provision Elastic Cloud deployments on any Elastic Cloud p
 
 The provider lets you manage Elastic Cloud deployments as code, and introduce DevOps-driven methodologies to manage and deploy the Elastic Stack and solutions.
 
-IMPORTANT: The provider is not subject to the support service level agreement (SLA.) You can use the Elastic Cloud APIs or user console directly to perform changes as a workaround.
+IMPORTANT: The provider is not subject to the support service level agreement (SLA.) You can use the [Elastic Cloud APIs](https://www.elastic.co/guide/en/cloud/current/ec-restful-api.html) or [Elasticsearch Service Console](https://www.elastic.co/guide/en/cloud/current/ec-configure-settings.html) directly to perform changes as a workaround.
 
 To get started, see our link:https://registry.terraform.io/providers/elastic/ec/latest/docs[Elastic Cloud Terraform provider documentation].
