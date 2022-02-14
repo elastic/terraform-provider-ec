@@ -53,9 +53,6 @@ func newIntegrationsServerResource() *schema.Resource {
 			"topology": IntegrationsServerTopologySchema(),
 
 			"config": IntegrationsServerConfig(),
-
-			// TODO: Implement settings field.
-			// "settings": interface{}
 		},
 	}
 }
