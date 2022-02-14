@@ -29,8 +29,8 @@ data "ec_deployments" "example" {
     status = "started"
   }
 
-  apm {
-    version = "7.9.1"
+  integrations_server {
+    version = "8.0.0"
   }
 
   enterprise_search {
@@ -54,10 +54,10 @@ data "ec_deployments" "example" {
   * `kibana.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring, and started).
   * `kibana.#.version` - Elastic stack version.
   * `kibana.#.healthy` - Overall health status of the Kibana instances.
-* `apm` - Filter by APM resource kind status or configuration.
-  * `apm.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring, and started).
-  * `apm.#.version` - Elastic stack version.
-  * `apm.#.healthy` - Overall health status of the APM instances.
+* `integrations_server` - Filter by Integrations Server resource kind status or configuration.
+  * `integrations_server.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring, and started).
+  * `integrations_server.#.version` - Elastic stack version.
+  * `integrations_server.#.healthy` - Overall health status of the Integrations Server instances.
 * `enterprise_search` - Filter by Enterprise Search resource kind status or configuration.
   * `enterprise_search.#.status` - Resource kind status (Available statuses are: initializing, stopping, stopped, rebooting, restarting, reconfiguring, and started).
   * `enterprise_search.#.version` - Elastic stack version.
@@ -76,7 +76,7 @@ These will not be available for interpolation.
   * `deployments.#.elasticsearch_ref_id` - The Elasticsearch resource reference.
   * `deployments.#.kibana_resource_id` - The Kibana resource unique ID.
   * `deployments.#.kibana_ref_id` - The Kibana resource reference.
-  * `deployments.#.apm_resource_id` - The APM resource unique ID.
-  * `deployments.#.apm_ref_id` - The APM resource reference.
+  * `deployments.#.integrations_server_resource_id` - The Integrations Server resource unique ID.
+  * `deployments.#.integrations_server_ref_id` - The Integrations Server resource reference.
   * `deployments.#.enterprise_search_resource_id` - The Enterprise Search resource unique ID.
   * `deployments.#.enterprise_search_ref_id` - The Enterprise Search resource reference.
