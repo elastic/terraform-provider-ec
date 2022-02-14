@@ -94,7 +94,7 @@ func IntegrationsServerTopologySchema() *schema.Schema {
 	}
 }
 
-// IntegrationsServerConfig is ...
+// IntegrationsServerConfig returns the schema for an integrations server.
 func IntegrationsServerConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeList,
