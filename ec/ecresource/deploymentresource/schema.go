@@ -25,7 +25,7 @@ const (
 	minimumKibanaSize             = 1024
 	minimumApmSize                = 512
 	minimumEnterpriseSearchSize   = 2048
-	minimumIntegrationsServerSize = 512
+	minimumIntegrationsServerSize = 1024
 
 	minimumZoneCount = 1
 )

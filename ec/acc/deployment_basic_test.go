@@ -111,7 +111,7 @@ func TestAccDeployment_basic_config(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "1"),
 					resource.TestCheckResourceAttr(resName, "kibana.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.user_settings_yaml", "ent_search.login_assistance_message: somemessage"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.user_settings_yaml", "# comment"),
 				),
 			},
 			{

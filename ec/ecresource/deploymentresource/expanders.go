@@ -165,12 +165,10 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		unsetTopology(es)
 	}
 
-	nodeRolesCompatible, err := compatibleWithNodeRoles(version)
+	useNodeRoles, err := compatibleWithNodeRoles(version)
 	if err != nil {
 		return nil, err
 	}
-	useNodeRoles := d.HasChange("elasticsearch") && nodeRolesCompatible
-
 	convertLegacy, err := legacyToNodeRoles(d)
 	if err != nil {
 		return nil, err
