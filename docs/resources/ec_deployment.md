@@ -209,6 +209,7 @@ The following arguments are supported:
 
 * `integrations_server` (Optional) Integrations Server instance definition, can only be specified once. It has replaced `apm` in stack version 8.0.0.
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
+* `apm` **DEPRECATED** (Optional) APM instance definition, can only be specified once.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
 * `observability` (Optional) Observability settings that you can set to ship logs and metrics to a separate deployment.
 * `tags` (Optional) Key value map of arbitrary string tags.
@@ -378,6 +379,34 @@ The optional `integrations_server.config` block supports the following arguments
 
 * `debug_enabled` - (Optional) Enable debug mode for the component. Defaults to `false`.
 
+#### APM
+
+The optional `apm` block supports the following arguments:
+
+* `topology` - (Optional) Can be set multiple times to compose complex topologies.
+* `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
+* `ref_id` - (Optional) Can be set on the APM resource. The default value `main-apm` is recommended.
+* `config` (Optional) APM settings applied to all topologies unless overridden in the `topology` element. 
+
+##### Topology
+
+The optional `apm.topology` block supports the following arguments:
+
+* `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since APM has only one _instance type_.
+* `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
+* `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
+* `zone_count` - (Optional) Number of zones that the APM deployment will span. This is used to set HA. When omitted, it defaults to the deployment template value.
+
+##### Config
+
+The optional `apm.config` block supports the following arguments:
+
+* `debug_enabled` - (Optional) Enable debug mode for APM servers. Defaults to `false`.
+* `user_settings_json` - (Optional) JSON-formatted user level `apm.yml` setting overrides.
+* `user_settings_override_json` - (Optional) JSON-formatted admin (ECE) level `apm.yml` setting overrides.
+* `user_settings_yaml` - (Optional) YAML-formatted user level `apm.yml` setting overrides.
+* `user_settings_override_yaml` - (Optional) YAML-formatted admin (ECE) level `apm.yml` setting overrides.
+
 #### Enterprise Search
 
 The optional `enterprise_search` block supports the following arguments:
@@ -441,6 +470,10 @@ In addition to all the arguments above, the following attributes are exported:
 * `integrations_server.#.region` - Integrations Server region.
 * `integrations_server.#.http_endpoint` - Integrations Server resource HTTP endpoint.
 * `integrations_server.#.https_endpoint` - Integrations Server resource HTTPs endpoint.
+* `apm.#.resource_id` - APM resource unique identifier.
+* `apm.#.region` - APM region.
+* `apm.#.http_endpoint` - APM resource HTTP endpoint.
+* `apm.#.https_endpoint` - APM resource HTTPs endpoint.
 * `enterprise_search.#.resource_id` - Enterprise Search resource unique identifier.
 * `enterprise_search.#.region` - Enterprise Search region.
 * `enterprise_search.#.http_endpoint` - Enterprise Search resource HTTP endpoint.

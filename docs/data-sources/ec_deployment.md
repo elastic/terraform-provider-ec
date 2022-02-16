@@ -88,6 +88,19 @@ These will not be available for interpolation.
     * `integrations_server.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.
     * `integrations_server.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
     * `integrations_server.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
+* `apm` - Instance configuration of the APM type.
+  * `apm.#.elasticsearch_cluster_ref_id` - The user-specified ID of the Elasticsearch cluster to which this resource kind will link.
+  * `apm.#.healthy` - Resource kind health status.
+  * `apm.#.http_endpoint` - HTTP endpoint for the resource kind.
+  * `apm.#.https_endpoint` - HTTPS endpoint for the resource kind.
+  * `apm.#.ref_id` - User specified ref_id for the resource kind.
+  * `apm.#.resource_id` - The resource unique identifier.
+  * `apm.#.status` - Resource kind status (for example, "started", "stopped", etc).
+  * `apm.#.version` - Elastic stack version.
+  * `apm.#.topology` - Node topology element definition.
+    * `apm.#.topology.#.instance_configuration_id` - Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.
+    * `apm.#.topology.#.size` - Amount of memory (RAM) per topology element in the "<size in GB>g" notation.
+    * `apm.#.topology.#.zone_count` - Number of zones in which nodes will be placed.
 * `enterprise_search` - Instance configuration of the Enterprise Search type.
   * `enterprise_search.#.elasticsearch_cluster_ref_id` - The user-specified ID of the Elasticsearch cluster to which this resource kind will link.
   * `enterprise_search.#.healthy` - Resource kind health status.
