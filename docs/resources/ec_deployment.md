@@ -209,7 +209,7 @@ The following arguments are supported:
 
 * `integrations_server` (Optional) Integrations Server instance definition, can only be specified once. It has replaced `apm` in stack version 8.0.0.
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
-* `apm` **DEPRECATED** (Optional) APM instance definition, can only be specified once.
+* `apm` **DEPRECATED** (Optional) APM instance definition, can only be specified once. It should only be used with deployments with a version prior to 8.0.0.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
 * `observability` (Optional) Observability settings that you can set to ship logs and metrics to a separate deployment.
 * `tags` (Optional) Key value map of arbitrary string tags.

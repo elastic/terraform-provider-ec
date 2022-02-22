@@ -67,7 +67,7 @@ data "ec_deployments" "example" {
   * `enterprise_search.#.version` - Elastic stack version.
   * `enterprise_search.#.healthy` - Overall health status of the Enterprise Search instances.
 
-**Note:** `apm` resource kind has been deprecated in stack version 8.0.0. New deployments should use `integrations_server` instead.
+~> **NOTE:** The `apm` resource has been deprecated starting on the Elastic Stack Version 8.0.0. New deployments  should use `integrations_server` instead.
 
 ## Attributes Reference
 
