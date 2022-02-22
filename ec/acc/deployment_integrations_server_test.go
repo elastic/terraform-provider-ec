@@ -28,7 +28,7 @@ func TestAccDeployment_integrationsServer(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic_integrations_server_1.tf"
-	secondCfg := "testdata/deployment_basic_integrations_server_1.tf"
+	secondCfg := "testdata/deployment_basic_integrations_server_2.tf"
 	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
 	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), defaultTemplate)
 
@@ -55,7 +55,7 @@ func TestAccDeployment_integrationsServer(t *testing.T) {
 				),
 			},
 			{
-				// Change the Integrations Server topology size.
+				// Change the Integrations Server topology (increase zone count to 2).
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
