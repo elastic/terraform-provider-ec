@@ -88,6 +88,7 @@ func readEsCredentials(t *testing.T, esCreds *creds) resource.TestCheckFunc {
 	}
 }
 
+// nolint, remove comment after the test is unskipped.
 func triggerSnapshot(t *testing.T, esCreds *creds) func() {
 	t.Helper()
 	return func() {
