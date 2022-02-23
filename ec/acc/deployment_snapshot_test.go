@@ -35,6 +35,7 @@ type creds struct {
 }
 
 func TestAccDeployment_snapshot_restore(t *testing.T) {
+	t.Skip("skipped due flakiness: https://github.com/elastic/terraform-provider-ec/issues/443")
 	var esCreds creds
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
