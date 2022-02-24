@@ -1,5 +1,9 @@
 # 0.4.0 (Unreleased)
 
+FEATURES:
+
+* resource/integrations_server: Adds a new `ec_deployment_integrations_server` resource to the deployment, which has been introduced in Elastic Stack 8.0.0 ([#425](https://github.com/elastic/terraform-provider-ec/issues/425))
+
 # 0.3.0 (Oct 17, 2021)
 
 FEATURES:
