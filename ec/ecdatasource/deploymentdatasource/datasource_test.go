@@ -108,6 +108,11 @@ func Test_modelToState(t *testing.T) {
 								Healthy: ec.Bool(true),
 							},
 						}},
+						IntegrationsServer: []*models.IntegrationsServerResourceInfo{{
+							Info: &models.IntegrationsServerInfo{
+								Healthy: ec.Bool(true),
+							},
+						}},
 						EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
 							{
 								Info: &models.EnterpriseSearchInfo{
@@ -159,6 +164,9 @@ func newSampleDeployment() map[string]interface{} {
 			"healthy": true,
 		}},
 		"apm": []interface{}{map[string]interface{}{
+			"healthy": true,
+		}},
+		"integrations_server": []interface{}{map[string]interface{}{
 			"healthy": true,
 		}},
 		"enterprise_search": []interface{}{map[string]interface{}{

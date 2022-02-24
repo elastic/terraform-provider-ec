@@ -81,7 +81,7 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 	}
 
 	validResourceKinds := []string{util.Elasticsearch, util.Kibana,
-		util.Apm, util.EnterpriseSearch}
+		util.Apm, util.EnterpriseSearch, util.IntegrationsServer}
 
 	for _, resourceKind := range validResourceKinds {
 		req, err := expandResourceFilters(d.Get(resourceKind).([]interface{}), resourceKind)

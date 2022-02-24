@@ -83,6 +83,11 @@ func newSchema() map[string]*schema.Schema {
 			Computed: true,
 			Elem:     newApmResourceInfo(),
 		},
+		"integrations_server": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem:     newIntegrationsServerResourceInfo(),
+		},
 		"enterprise_search": {
 			Type:     schema.TypeList,
 			Computed: true,

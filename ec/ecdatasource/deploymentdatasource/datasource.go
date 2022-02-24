@@ -131,6 +131,11 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) err
 		return err
 	}
 
+	integrationsServerFlattened := flattenIntegrationsServerResources(res.Resources.IntegrationsServer)
+	if err := d.Set("integrations_server", integrationsServerFlattened); err != nil {
+		return err
+	}
+
 	enterpriseSearchFlattened := flattenEnterpriseSearchResources(res.Resources.EnterpriseSearch)
 	if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
 		return err

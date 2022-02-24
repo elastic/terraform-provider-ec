@@ -22,9 +22,10 @@ import (
 )
 
 const (
-	minimumKibanaSize           = 1024
-	minimumApmSize              = 512
-	minimumEnterpriseSearchSize = 2048
+	minimumKibanaSize             = 1024
+	minimumApmSize                = 512
+	minimumEnterpriseSearchSize   = 2048
+	minimumIntegrationsServerSize = 1024
 
 	minimumZoneCount = 1
 )
@@ -106,6 +107,13 @@ func newSchema() map[string]*schema.Schema {
 			Optional:    true,
 			MaxItems:    1,
 			Elem:        newApmResource(),
+		},
+		"integrations_server": {
+			Type:        schema.TypeList,
+			Description: "Optional Integrations Server resource definition",
+			Optional:    true,
+			MaxItems:    1,
+			Elem:        newIntegrationsServerResource(),
 		},
 		"enterprise_search": {
 			Type:        schema.TypeList,

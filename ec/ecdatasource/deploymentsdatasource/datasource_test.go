@@ -117,7 +117,7 @@ func Test_modelToState(t *testing.T) {
 	_ = deploymentsSchemaArgNoID.Set("deployment_template_id", "azure-compute-optimized")
 
 	wantDeploymentsNoID := util.NewResourceData(t, util.ResDataParams{
-		ID: "2553442026",
+		ID: "3825846481",
 		State: map[string]interface{}{
 			"id":                     "myID",
 			"name_prefix":            "test",

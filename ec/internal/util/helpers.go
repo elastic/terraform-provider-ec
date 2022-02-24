@@ -62,6 +62,12 @@ func IsCurrentApmPlanEmpty(res *models.ApmResourceInfo) bool {
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }
 
+// IsCurrentIntegrationsServerPlanEmpty checks the IntegrationsServer resource current plan is empty.
+func IsCurrentIntegrationsServerPlanEmpty(res *models.IntegrationsServerResourceInfo) bool {
+	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
+	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
+}
+
 // IsCurrentEssPlanEmpty checks the enterprise search resource current plan is empty.
 func IsCurrentEssPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil

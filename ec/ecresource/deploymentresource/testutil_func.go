@@ -74,7 +74,6 @@ func enrichWithEmptyTopologies(tpl, want *models.ElasticsearchPayload) []*models
 	tpl.Settings = want.Settings
 	tpl.Plan.AutoscalingEnabled = want.Plan.AutoscalingEnabled
 	tpl.Plan.Elasticsearch = want.Plan.Elasticsearch
-	tpl.Plan.ZoneCount = want.Plan.ZoneCount
 	tpl.Plan.Transient = want.Plan.Transient
 
 	for i, t := range tpl.Plan.ClusterTopology {

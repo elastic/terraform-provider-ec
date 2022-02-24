@@ -1,0 +1,322 @@
+{
+    "deployment_template": {
+        "resources": {
+            "apm": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id",
+                    "plan": {
+                        "apm": {},
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "apm",
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 512
+                                },
+                                "zone_count": 1
+                            }
+                        ]
+                    },
+                    "ref_id": "apm-ref-id",
+                    "region": "ece-region"
+                }
+            ],
+            "elasticsearch": [
+                {
+                    "plan": {
+                        "autoscaling_enabled": false,
+                        "cluster_topology": [
+                            {
+                                "autoscaling_max": {
+                                    "resource": "memory",
+                                    "value": 2097152
+                                },
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "hot"
+                                    }
+                                },
+                                "id": "hot_content",
+                                "instance_configuration_id": "data.default",
+                                "node_roles": [
+                                    "master",
+                                    "ingest",
+                                    "data_hot",
+                                    "data_content",
+                                    "remote_cluster_client",
+                                    "transform"
+                                ],
+                                "node_type": {
+                                    "data": true,
+                                    "ingest": true,
+                                    "master": true
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 4096
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 1024
+                                    }
+                                },
+                                "zone_count": 1
+                            },
+                            {
+                                "autoscaling_max": {
+                                    "resource": "memory",
+                                    "value": 2097152
+                                },
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "warm"
+                                    }
+                                },
+                                "id": "warm",
+                                "instance_configuration_id": "data.highstorage",
+                                "node_roles": [
+                                    "data_warm",
+                                    "remote_cluster_client"
+                                ],
+                                "node_type": {
+                                    "data": true,
+                                    "ingest": false,
+                                    "master": false
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 0
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 0
+                                    }
+                                },
+                                "zone_count": 1
+                            },
+                            {
+                                "autoscaling_max": {
+                                    "resource": "memory",
+                                    "value": 2097152
+                                },
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "cold"
+                                    }
+                                },
+                                "id": "cold",
+                                "instance_configuration_id": "data.highstorage",
+                                "node_roles": [
+                                    "data_cold",
+                                    "remote_cluster_client"
+                                ],
+                                "node_type": {
+                                    "data": true,
+                                    "ingest": false,
+                                    "master": false
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 0
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 0
+                                    }
+                                },
+                                "zone_count": 1
+                            },
+                            {
+                                "autoscaling_max": {
+                                    "resource": "memory",
+                                    "value": 2097152
+                                },
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "frozen"
+                                    }
+                                },
+                                "id": "frozen",
+                                "instance_configuration_id": "data.frozen",
+                                "node_roles": [
+                                    "data_frozen"
+                                ],
+                                "node_type": {
+                                    "data": true,
+                                    "ingest": false,
+                                    "master": false
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 0
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 0
+                                    }
+                                },
+                                "zone_count": 1
+                            },
+                            {
+                                "id": "coordinating",
+                                "instance_configuration_id": "coordinating",
+                                "node_roles": [
+                                    "ingest",
+                                    "remote_cluster_client"
+                                ],
+                                "node_type": {
+                                    "data": false,
+                                    "ingest": true,
+                                    "master": false
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 0
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 0
+                                    }
+                                },
+                                "zone_count": 1
+                            },
+                            {
+                                "id": "master",
+                                "instance_configuration_id": "master",
+                                "node_roles": [
+                                    "master",
+                                    "remote_cluster_client"
+                                ],
+                                "node_type": {
+                                    "data": false,
+                                    "ingest": false,
+                                    "master": true
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 0
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 0
+                                    }
+                                },
+                                "zone_count": 1
+                            },
+                            {
+                                "autoscaling_max": {
+                                    "resource": "memory",
+                                    "value": 2097152
+                                },
+                                "autoscaling_min": {
+                                    "resource": "memory",
+                                    "value": 0
+                                },
+                                "id": "ml",
+                                "instance_configuration_id": "ml",
+                                "node_roles": [
+                                    "ml",
+                                    "remote_cluster_client"
+                                ],
+                                "node_type": {
+                                    "data": false,
+                                    "ingest": false,
+                                    "master": false,
+                                    "ml": true
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 1024
+                                },
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory",
+                                        "value": 0
+                                    }
+                                },
+                                "zone_count": 1
+                            }
+                        ],
+                        "elasticsearch": {}
+                    },
+                    "ref_id": "es-ref-id",
+                    "region": "ece-region",
+                    "settings": {
+                        "dedicated_masters_threshold": 6
+                    }
+                }
+            ],
+            "enterprise_search": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id",
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "enterprise.search",
+                                "node_type": {
+                                    "appserver": true,
+                                    "connector": true,
+                                    "worker": true
+                                },
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 2048
+                                },
+                                "zone_count": 2
+                            }
+                        ],
+                        "enterprise_search": {}
+                    },
+                    "ref_id": "enterprise_search-ref-id",
+                    "region": "ece-region"
+                }
+            ],
+            "integrations_server": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id",
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "integrations.server",
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 512
+                                },
+                                "zone_count": 1
+                            }
+                        ],
+                        "integrations_server": {}
+                    },
+                    "ref_id": "integrations_server-ref-id",
+                    "region": "ece-region"
+                }
+            ],
+            "kibana": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id",
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "kibana",
+                                "size": {
+                                    "resource": "memory",
+                                    "value": 1024
+                                }
+                            }
+                        ],
+                        "kibana": {},
+                        "zone_count": 1
+                    },
+                    "ref_id": "kibana-ref-id",
+                    "region": "ece-region"
+                }
+            ]
+        }
+    }
+}

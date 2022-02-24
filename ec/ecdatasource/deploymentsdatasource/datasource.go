@@ -103,6 +103,11 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentsSearchResponse)
 			m["apm_ref_id"] = *deployment.Resources.Apm[0].RefID
 		}
 
+		if len(deployment.Resources.IntegrationsServer) > 0 {
+			m["integrations_server_resource_id"] = *deployment.Resources.IntegrationsServer[0].ID
+			m["integrations_server_ref_id"] = *deployment.Resources.IntegrationsServer[0].RefID
+		}
+
 		if len(deployment.Resources.EnterpriseSearch) > 0 {
 			m["enterprise_search_resource_id"] = *deployment.Resources.EnterpriseSearch[0].ID
 			m["enterprise_search_ref_id"] = *deployment.Resources.EnterpriseSearch[0].RefID

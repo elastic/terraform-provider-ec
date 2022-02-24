@@ -40,7 +40,7 @@ resource "ec_deployment" "basic" {
 
   enterprise_search {
     config {
-      user_settings_yaml = "ent_search.login_assistance_message: somemessage"
+      user_settings_yaml = "# comment"
     }
     topology {
       instance_configuration_id = "%s"
