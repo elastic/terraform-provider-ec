@@ -19,8 +19,8 @@ generate: gen
 ## Builds the source code and saves the binary to bin/terraform-provider-ec.
 .PHONY: build
 build: gen
-	@ echo "-> Building binary in $(BINARY_LOCATION)..."
-	@ go build -o $(BINARY_LOCATION) .
+	@ echo "-> Building binary with GCFLAGS=$(GCFLAGS) in $(BINARY_LOCATION)..."
+	@ go build $(GCFLAGS) -o $(BINARY_LOCATION) .
 
 ## Builds the source code and moves the binary to the user's terraform plugin location.
 .PHONY: install

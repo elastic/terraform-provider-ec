@@ -127,3 +127,25 @@ $ make build
 ```
 
 You can also use the `make install` target if you wish. This target will install the binary and move it to your Terraform plugin location.
+
+### Debugging
+
+This provider supports debugger-based debugging as described in the related [Terraform SDK documentation](https://www.terraform.io/plugin/sdkv2/debugging#debugger-based-debugging). To build a provider with the necessary Go compiler flags run:
+
+```console
+$ make build GCFLAGS='-gcflags="all=-N -l"'
+```
+
+To run the provider and connect it to your debugger run:
+
+```console
+dlv --listen=:60324 --headless=true --api-version=2 --accept-multiclient exec ./bin/terraform-provider-ec -- --debug
+```
+
+Connect your debugger using port 60234 as target. The provider should output a line containing the following variable:
+
+```console
+TF_REATTACH_PROVIDERS='{"registry.terraform.io/elastic/ec":{"Protocol":"grpc","ProtocolVersion":5,"Pid":13197,"Test":true,"Addr":{"Network":"unix","String":"/tmp/plugin977285207"}}}'
+```
+
+which you can export or use to prefix every Terraform command. If that variable is not printed as soon as you connect your debugger, pausing execution and restarting it might do the trick. 
