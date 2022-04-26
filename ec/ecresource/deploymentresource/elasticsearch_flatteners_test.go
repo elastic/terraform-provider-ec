@@ -313,6 +313,70 @@ func Test_flattenEsTopology(t *testing.T) {
 				"node_type_master":          "true",
 			}},
 		},
+		{
+			name: "includes unsized autoscaling topologies",
+			args: args{plan: &models.ElasticsearchClusterPlan{
+				AutoscalingEnabled: ec.Bool(true),
+				ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+					{
+						ID:                      "hot_content",
+						ZoneCount:               1,
+						InstanceConfigurationID: "aws.data.highio.i3",
+						Size: &models.TopologySize{
+							Value: ec.Int32(4096), Resource: ec.String("memory"),
+						},
+						NodeType: &models.ElasticsearchNodeType{
+							Data:   ec.Bool(true),
+							Ingest: ec.Bool(true),
+							Master: ec.Bool(true),
+						},
+					},
+					{
+						ID:                      "ml",
+						ZoneCount:               1,
+						InstanceConfigurationID: "aws.ml.m5",
+						Size: &models.TopologySize{
+							Value: ec.Int32(0), Resource: ec.String("memory"),
+						},
+						AutoscalingMax: &models.TopologySize{
+							Value: ec.Int32(8192), Resource: ec.String("memory"),
+						},
+						AutoscalingMin: &models.TopologySize{
+							Value: ec.Int32(0), Resource: ec.String("memory"),
+						},
+					},
+				},
+			}},
+			want: []interface{}{
+				map[string]interface{}{
+					"config":                    func() []interface{} { return nil }(),
+					"id":                        "hot_content",
+					"instance_configuration_id": "aws.data.highio.i3",
+					"size":                      "4g",
+					"size_resource":             "memory",
+					"zone_count":                int32(1),
+					"node_type_data":            "true",
+					"node_type_ingest":          "true",
+					"node_type_master":          "true",
+				},
+				map[string]interface{}{
+					"config":                    func() []interface{} { return nil }(),
+					"id":                        "ml",
+					"instance_configuration_id": "aws.ml.m5",
+					"size":                      "0g",
+					"size_resource":             "memory",
+					"zone_count":                int32(1),
+					"autoscaling": []interface{}{
+						map[string]interface{}{
+							"max_size":          "8g",
+							"max_size_resource": "memory",
+							"min_size":          "0g",
+							"min_size_resource": "memory",
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
