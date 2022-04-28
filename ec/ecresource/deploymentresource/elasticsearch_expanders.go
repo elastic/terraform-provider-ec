@@ -184,6 +184,7 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 		if autoscalingRaw := topology["autoscaling"]; autoscalingRaw != nil {
 			for _, autoscaleRaw := range autoscalingRaw.([]interface{}) {
 				autoscale := autoscaleRaw.(map[string]interface{})
+
 				if elem.AutoscalingMax == nil {
 					elem.AutoscalingMax = new(models.TopologySize)
 				}
@@ -192,36 +193,14 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 					elem.AutoscalingMin = new(models.TopologySize)
 				}
 
-				if minSizeRes := autoscale["min_size_resource"]; minSizeRes != nil {
-					if minSize := minSizeRes.(string); minSize != "" {
-						elem.AutoscalingMin.Resource = ec.String(minSize)
-					}
+				err := expandAutoscalingDimension(autoscale, elem.AutoscalingMax, "max")
+				if err != nil {
+					return nil, err
 				}
 
-				if minSize := autoscale["min_size"]; minSize != nil {
-					if minSize := minSize.(string); minSize != "" {
-						val, err := deploymentsize.ParseGb(minSize)
-						if err != nil {
-							return nil, err
-						}
-						elem.AutoscalingMin.Value = &val
-					}
-				}
-
-				if maxSizeRes := autoscale["max_size_resource"]; maxSizeRes != nil {
-					if maxSize := maxSizeRes.(string); maxSize != "" {
-						elem.AutoscalingMax.Resource = ec.String(maxSize)
-					}
-				}
-
-				if maxSize := autoscale["max_size"]; maxSize != nil {
-					if maxSize := maxSize.(string); maxSize != "" {
-						val, err := deploymentsize.ParseGb(maxSize)
-						if err != nil {
-							return nil, err
-						}
-						elem.AutoscalingMax.Value = &val
-					}
+				err = expandAutoscalingDimension(autoscale, elem.AutoscalingMin, "min")
+				if err != nil {
+					return nil, err
 				}
 
 				// Ensure that if the Min and Max are empty, they're nil.
@@ -258,6 +237,33 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 	}
 
 	return res, nil
+}
+
+func expandAutoscalingDimension(autoscale map[string]interface{}, model *models.TopologySize, dimension string) error {
+	sizeAttribute := fmt.Sprintf("%s_size", dimension)
+	resourceAttribute := fmt.Sprintf("%s_size_resource", dimension)
+
+	if size := autoscale[sizeAttribute]; size != nil {
+		if size := size.(string); size != "" {
+			val, err := deploymentsize.ParseGb(size)
+			if err != nil {
+				return err
+			}
+			model.Value = &val
+
+			if model.Resource == nil {
+				model.Resource = ec.String("memory")
+			}
+		}
+	}
+
+	if sizeResource := autoscale[resourceAttribute]; sizeResource != nil {
+		if sizeResource := sizeResource.(string); sizeResource != "" {
+			model.Resource = ec.String(sizeResource)
+		}
+	}
+
+	return nil
 }
 
 func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) error {
