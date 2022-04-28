@@ -76,6 +76,16 @@ func Test_expandEsResource(t *testing.T) {
 		)
 	}
 
+	eceDefaultTplPath := "testdata/template-ece-3.0.0-default.json"
+	eceDefaultTpl := func() *models.ElasticsearchPayload {
+		return enrichElasticsearchTemplate(
+			esResource(parseDeploymentTemplate(t, eceDefaultTplPath)),
+			"aws-io-optimized-v2",
+			"7.17.3",
+			true,
+		)
+	}
+
 	type args struct {
 		ess []interface{}
 		dt  *models.ElasticsearchPayload
@@ -1216,6 +1226,121 @@ func Test_expandEsResource(t *testing.T) {
 							},
 							AutoscalingMax: &models.TopologySize{
 								Value:    ec.Int32(29696),
+								Resource: ec.String("memory"),
+							},
+							AutoscalingMin: &models.TopologySize{
+								Value:    ec.Int32(1024),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+				},
+			}),
+		},
+		{
+			name: "autoscaling enabled no dimension in template, default resource",
+			args: args{
+				dt: eceDefaultTpl(),
+				ess: []interface{}{map[string]interface{}{
+					"autoscale":   "true",
+					"ref_id":      "main-elasticsearch",
+					"resource_id": mock.ValidClusterID,
+					"region":      "some-region",
+					"topology": []interface{}{
+						map[string]interface{}{
+							"id": "hot_content",
+							"autoscaling": []interface{}{
+								map[string]interface{}{
+									"max_size": "450g",
+									"min_size": "2g",
+								},
+							},
+						},
+						map[string]interface{}{
+							"id": "master",
+							"autoscaling": []interface{}{
+								map[string]interface{}{
+									"max_size": "250g",
+									"min_size": "1g",
+								},
+							},
+						},
+					},
+				}},
+			},
+			want: enrichWithEmptyTopologies(eceDefaultTpl(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+					Curation:                  nil,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(true),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version:  "7.17.3",
+						Curation: nil,
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID: "hot_content",
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							ZoneCount:               1,
+							InstanceConfigurationID: "data.default",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
+							},
+							NodeRoles: []string{
+								"master",
+								"ingest",
+								"data_hot",
+								"data_content",
+								"remote_cluster_client",
+								"transform",
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(460800),
+								Resource: ec.String("memory"),
+							},
+							AutoscalingMin: &models.TopologySize{
+								Value:    ec.Int32(2048),
+								Resource: ec.String("memory"),
+							},
+						},
+						{
+							ID:                      "master",
+							ZoneCount:               1,
+							InstanceConfigurationID: "master",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(0),
+							},
+							NodeRoles: []string{
+								"master",
+								"remote_cluster_client",
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(0),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(256000),
 								Resource: ec.String("memory"),
 							},
 							AutoscalingMin: &models.TopologySize{
