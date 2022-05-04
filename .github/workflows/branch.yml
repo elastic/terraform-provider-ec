@@ -59,6 +59,7 @@ jobs:
         with:
           ref: master
           token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v3
