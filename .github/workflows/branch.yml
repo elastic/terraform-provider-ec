@@ -46,7 +46,7 @@ jobs:
         with:
           default_author: user_info
           message: 'Update patch version'
-          branch: ${{ steps.get_branch.outputs.BRANCH }}
+          new_branch: ${{ steps.get_branch.outputs.BRANCH }}
           author_name: elasticcloudclients
           author_email: elasticcloudclients@elastic.co
 
