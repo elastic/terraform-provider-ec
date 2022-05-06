@@ -46,7 +46,7 @@ jobs:
         with:
           default_author: user_info
           message: 'Update patch version'
-          branch: ${{ steps.get_branch.outputs.BRANCH }}
+          new_branch: ${{ steps.get_branch.outputs.BRANCH }}
           author_name: elasticcloudclients
           author_email: elasticcloudclients@elastic.co
 
@@ -59,6 +59,7 @@ jobs:
         with:
           ref: master
           token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -74,6 +75,6 @@ jobs:
         with:
           default_author: user_info
           message: 'Update minor version'
-          branch: master
+          new_branch: master
           author_name: elasticcloudclients
           author_email: elasticcloudclients@elastic.co
