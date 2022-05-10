@@ -13,6 +13,18 @@ resource "ec_deployment" "autoscaling" {
     autoscale = "false"
 
     topology {
+      id         = "cold"
+      size       = "0g"
+      zone_count = 1
+    }
+
+    topology {
+      id         = "frozen"
+      size       = "0g"
+      zone_count = 1
+    }
+
+    topology {
       id         = "hot_content"
       size       = "1g"
       zone_count = 1

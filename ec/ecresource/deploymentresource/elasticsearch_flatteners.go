@@ -108,11 +108,18 @@ func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, rem
 	return result, nil
 }
 
+func isPotentiallySizedTopology(topology *models.ElasticsearchClusterTopologyElement, isAutoscaling bool) bool {
+	currentlySized := topology.Size != nil && topology.Size.Value != nil && *topology.Size.Value > 0
+	canBeSized := isAutoscaling && topology.AutoscalingMax != nil && topology.AutoscalingMax.Value != nil && *topology.AutoscalingMax.Value > 0
+
+	return currentlySized || canBeSized
+}
+
 func flattenEsTopology(plan *models.ElasticsearchClusterPlan) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var m = make(map[string]interface{})
-		if topology.Size == nil || topology.Size.Value == nil || *topology.Size.Value == 0 {
+		if !isPotentiallySizedTopology(topology, plan.AutoscalingEnabled != nil && *plan.AutoscalingEnabled) {
 			continue
 		}
 

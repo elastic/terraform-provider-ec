@@ -232,7 +232,7 @@ The required `elasticsearch` block supports the following arguments:
 
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `ref_id` - (Optional) Can be set on the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
-* `config` (Optional) Elasticsearch settings applied to all topologies unless overridden in the `topology` element. 
+* `config` (Optional) Elasticsearch settings applied to all topologies unless overridden in the `topology` element.
 * `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
 * `snapshot_source` (Optional) Restores data from a snapshot of another deployment.
 * `extension` (Optional) Custom Elasticsearch bundles or plugins. Can be set multiple times.
@@ -335,7 +335,7 @@ The optional `kibana` block supports the following arguments:
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the Kibana resource. The default value `main-kibana` is recommended.
-* `config` (Optional) Kibana settings applied to all topologies unless overridden in the `topology` element. 
+* `config` (Optional) Kibana settings applied to all topologies unless overridden in the `topology` element.
 
 ##### Topology
 
@@ -362,7 +362,7 @@ The optional `integrations_server` block supports the following arguments:
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the Integrations Server resource. The default value `main-integrations_server` is recommended.
-* `config` (Optional) Integrations Server settings applied to all topologies unless overridden in the `topology` element. 
+* `config` (Optional) Integrations Server settings applied to all topologies unless overridden in the `topology` element.
 
 ##### Topology
 
@@ -386,7 +386,7 @@ The optional `apm` block supports the following arguments:
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the APM resource. The default value `main-apm` is recommended.
-* `config` (Optional) APM settings applied to all topologies unless overridden in the `topology` element. 
+* `config` (Optional) APM settings applied to all topologies unless overridden in the `topology` element.
 
 ##### Topology
 
@@ -414,7 +414,7 @@ The optional `enterprise_search` block supports the following arguments:
 * `topology` - (Optional) Can be set multiple times to compose complex topologies.
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the Enterprise Search resource. The default value `main-enterprise_search` is recommended.
-* `config` (Optional) Enterprise Search settings applied to all topologies unless overridden in the `topology` element. 
+* `config` (Optional) Enterprise Search settings applied to all topologies unless overridden in the `topology` element.
 
 ##### Topology
 
@@ -487,6 +487,8 @@ In addition to all the arguments above, the following attributes are exported:
 * `observability.#.metrics` - Enables or disables shipping metrics. Defaults to true.
 
 ## Import
+
+~> **Note on deployment credentials** The `elastic` user credentials are only available whilst creating a deployment. Importing a deployment will not import the `elasticsearch_username` or `elasticsearch_password` attributes.
 
 ~> **Note on legacy (pre-slider) deployments** Importing deployments created prior to the addition of sliders in ECE or ESS, without being migrated to use sliders, is not supported.
 
