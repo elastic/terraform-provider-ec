@@ -1,0 +1,9 @@
+```release-note:bug
+Allow zero sized topology elements when autoscaling is enabled. Previously, including an ML topology block would result in a persistent diff loop when the underlying ML tier remained disabled by autoscaling (i.e no ML jobs were enabled).
+```
+
+```release-note:breaking-change
+To support unsized topology elements when autoscaling is enabled, we now include all potentially sized topology elements in the `ec_deployment` state.
+When autoscaling is enabled, we now require that all autoscaleable topology elements be defined in the `elasticsearch` block of an `ec_deployment` resource.
+If a topology element is not defined, Terraform will report a persistent diff during a plan/apply.
+```

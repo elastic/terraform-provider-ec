@@ -1,0 +1,2 @@
+```release-note:bug
+Provide a default for autoscaling min_size_resource and max_size_resource attributes. This avoids an API error when there is no corresponding value in the deployment template.
