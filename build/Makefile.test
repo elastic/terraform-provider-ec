@@ -7,6 +7,7 @@ TESTUNITARGS ?= -timeout 10s -p 4 -race -cover -coverprofile=reports/c.out
 TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc
 TEST_NAME ?= TestAcc
 TEST_ACC_PARALLEL = 6
+TERRAFORM_ACC_VERSION = 1.1.9
 
 REPORT_PATH ?= ./reports
 
@@ -41,8 +42,13 @@ endif
 	@ go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS) -timeout 60m
 
 .PHONY: testacc-ci
-testacc-ci:
-	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
+testacc-ci: terraform
+	@ TF_ACC_TERRAFORM_PATH=$(CURDIR)/terraform EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
+
+terraform:
+	@ apt update && apt install unzip
+	@ curl -o terraform.zip https://releases.hashicorp.com/terraform/$(TERRAFORM_ACC_VERSION)/terraform_$(TERRAFORM_ACC_VERSION)_linux_amd64.zip
+	@ unzip terraform.zip
 
 .PHONY: sweep-ci
 sweep-ci:
