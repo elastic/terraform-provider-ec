@@ -1,5 +1,17 @@
 # 0.5.0 (Unreleased)
 
+# 0.4.1 (May 11, 2022)
+
+BREAKING CHANGES:
+
+* To support unsized topology elements when autoscaling is enabled, we now include all potentially sized topology elements in the `ec_deployment` state.
+When autoscaling is enabled, we now require that all autoscaleable topology elements be defined in the `elasticsearch` block of an `ec_deployment` resource.
+If a topology element is not defined, Terraform will report a persistent diff during a plan/apply. ([#472](https://github.com/elastic/terraform-provider-ec/issues/472))
+
+BUG FIXES:
+
+* Allow zero sized topology elements when autoscaling is enabled. Previously, including an ML topology block would result in a persistent diff loop when the underlying ML tier remained disabled by autoscaling (i.e no ML jobs were enabled). ([#472](https://github.com/elastic/terraform-provider-ec/issues/472))
+* main: Adds debug mode. Instructions for debugging the provider can be found in the [CONTRIBUTING](https://github.com/elastic/terraform-provider-ec/blob/master/CONTRIBUTING.md#debugging) docs. ([#430](https://github.com/elastic/terraform-provider-ec/issues/430))
 
 # 0.4.0 (Feb 24, 2022)
 
