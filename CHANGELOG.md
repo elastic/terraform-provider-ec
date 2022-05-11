@@ -1,4 +1,6 @@
-# 0.4.1 (Unreleased)
+# 0.4.2 (Unreleased)
+
+# 0.4.1 (May 11, 2022)
 
 BREAKING CHANGES:
 

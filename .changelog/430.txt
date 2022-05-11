@@ -1,3 +1,0 @@
-```release-note:bug
-main: Adds debug mode. Instructions for debugging the provider can be found in the [CONTRIBUTING](https://github.com/elastic/terraform-provider-ec/blob/master/CONTRIBUTING.md#debugging) docs.
-```
