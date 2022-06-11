@@ -9,6 +9,8 @@ Provides an Elastic Cloud extension resource, which allows extensions to be crea
 
 Extensions allow users of Elastic Cloud to use custom plugins, scripts, or dictionaries to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official [Elasticsearch plugins](https://www.elastic.co/guide/en/elasticsearch/plugins/current/index.html) already available.
 
+-> **Note on uploading an extension through a slow network** You may need to increase [timeout setting](https://registry.terraform.io/providers/elastic/ec/latest/docs#timeout) if timeouts are experienced.
+
 ## Example Usage
 ### With extension file
 
