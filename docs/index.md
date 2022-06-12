@@ -81,6 +81,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 * `endpoint` - (Optional) This is the target endpoint. It must be provided only when
    you use the Elastic Cloud provider with an ECE installation or ESS Private.
+   It can also be sourced from the `EC_ENDPOINT` or `EC_HOST` environment variables.
 
 * `apikey` - (Optional) This is the Elastic Cloud API key. It is required with ESS, but it is also valid with ECE. It must be
   provided, but it can also be sourced from the `EC_API_KEY` environment variable.
@@ -95,18 +96,22 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   `apikey`. Not recommended.
 
 * `insecure` - (Optional) This setting allows the provider to skip TLS verification.
-  Useful when targeting installation with self-signed certificates. Not recommended when
+  Useful when targeting installation with self-signed certificates. It can also be sourced from the
+  `EC_INSECURE` or `EC_SKIP_TLS_VALIDATION` environment variables. Not recommended when
   targeting ESS.
 
 * `timeout` - (Optional) This setting allows the user to set a custom timeout in the
   individual HTTP request level. Defaults to 1 minute (`"1m"`), but might need to be tweaked if timeouts
-  are experienced.
+  are experienced. It can also be sourced from the `EC_TIMEOUT` environment variable.
 
 * `verbose` - (Optional) When set to `true`, it writes a `requests.json` file in the folder
   where Terraform runs with all the outgoing HTTP requests and responses. Defaults to `false`.
+  It can also be sourced from the `EC_VERBOSE` environment variable.
 
 * `verbose_credentials` - (Optional) When set with `verbose`, the contents of the Authorization
-header will not be redacted. Defaults to `false`.
+  header will not be redacted. Defaults to `false`. It can also be sourced from the
+  `EC_VERBOSE_CREDENTIALS` environment variable.
 
 * `verbose_file` - (Optional) Sets the file where the verbose request and response HTTP flow will
-be written to. Defaults to `request.log`.
+  be written to. Defaults to `request.log`. It can also be sourced from the `EC_VERBOSE_FILE`
+  environment variable.
