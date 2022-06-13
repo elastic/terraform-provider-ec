@@ -102,7 +102,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 * `timeout` - (Optional) This setting allows the user to set a custom timeout in the
   individual HTTP request level. Defaults to 1 minute (`"1m"`), but might need to be tweaked if timeouts
-  are experienced. It can also be sourced from the `EC_TIMEOUT` environment variable.
+  are experienced. Can also be sourced from the `EC_TIMEOUT` environment variable.
 
 * `verbose` - (Optional) When set to `true`, it writes a `requests.json` file in the folder
   where Terraform runs with all the outgoing HTTP requests and responses. Defaults to `false`.
