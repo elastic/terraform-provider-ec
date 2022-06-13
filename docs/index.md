@@ -113,5 +113,5 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   `EC_VERBOSE_CREDENTIALS` environment variable.
 
 * `verbose_file` - (Optional) Sets the file where the verbose request and response HTTP flow will
-  be written to. Defaults to `request.log`. It can also be sourced from the `EC_VERBOSE_FILE`
+  be written to. Defaults to `request.log`. Can also be sourced from the `EC_VERBOSE_FILE`
   environment variable.
