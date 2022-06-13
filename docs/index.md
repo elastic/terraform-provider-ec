@@ -106,7 +106,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 * `verbose` - (Optional) When set to `true`, it writes a `requests.json` file in the folder
   where Terraform runs with all the outgoing HTTP requests and responses. Defaults to `false`.
-  It can also be sourced from the `EC_VERBOSE` environment variable.
+  Can also be sourced from the `EC_VERBOSE` environment variable.
 
 * `verbose_credentials` - (Optional) When set with `verbose`, the contents of the Authorization
   header will not be redacted. Defaults to `false`. It can also be sourced from the
