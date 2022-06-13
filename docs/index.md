@@ -96,7 +96,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   `apikey`. Not recommended.
 
 * `insecure` - (Optional) This setting allows the provider to skip TLS verification.
-  Useful when targeting installation with self-signed certificates. It can also be sourced from the
+  Useful when targeting installation with self-signed certificates. Can also be sourced from the
   `EC_INSECURE` or `EC_SKIP_TLS_VALIDATION` environment variables. Not recommended when
   targeting ESS.
 
