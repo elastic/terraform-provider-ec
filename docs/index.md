@@ -115,3 +115,5 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 * `verbose_file` - (Optional) Sets the file where the verbose request and response HTTP flow will
   be written to. Defaults to `request.log`. Can also be sourced from the `EC_VERBOSE_FILE`
   environment variable.
+
+**Tip :** Arguments specified in the module file take precedence over environment variables.
