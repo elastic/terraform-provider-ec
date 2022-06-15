@@ -99,7 +99,7 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
   targeting ESS.
 
 * `timeout` - (Optional) This setting allows the user to set a custom timeout in the
-  individual HTTP request level. Defaults to 1 minute (`"1m"`), but might need to be tweaked if timeouts
+  individual HTTP request level. Defaults to 40 seconds (`"40s"`), but might need to be adjusted if timeouts
   are experienced.
 
 * `verbose` - (Optional) When set to `true`, it writes a `requests.json` file in the folder
