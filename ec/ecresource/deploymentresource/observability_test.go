@@ -259,6 +259,71 @@ func TestExpandObservability(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "observability targeting self without ref-id",
+			args: args{
+				API: api.NewMock(
+					mock.New200Response(
+						mock.NewStructBody(models.DeploymentGetResponse{
+							Healthy: ec.Bool(true),
+							ID:      ec.String(mock.ValidClusterID),
+							Resources: &models.DeploymentResources{
+								Elasticsearch: []*models.ElasticsearchResourceInfo{{
+									ID:    ec.String(mock.ValidClusterID),
+									RefID: ec.String("main-elasticsearch"),
+								}},
+							},
+						}),
+					),
+				),
+				v: []interface{}{map[string]interface{}{
+					"deployment_id": "self",
+					"metrics":       true,
+					"logs":          false,
+				}},
+			},
+			want: &models.DeploymentObservabilitySettings{
+				Metrics: &models.DeploymentMetricsSettings{
+					Destination: &models.ObservabilityAbsoluteDeployment{
+						DeploymentID: ec.String("self"),
+						RefID:        "",
+					},
+				},
+			},
+		},
+		{
+			name: "observability targeting self with ref-id",
+			args: args{
+				API: api.NewMock(
+					mock.New200Response(
+						mock.NewStructBody(models.DeploymentGetResponse{
+							Healthy: ec.Bool(true),
+							ID:      ec.String(mock.ValidClusterID),
+							Resources: &models.DeploymentResources{
+								Elasticsearch: []*models.ElasticsearchResourceInfo{{
+									ID:    ec.String(mock.ValidClusterID),
+									RefID: ec.String("main-elasticsearch"),
+								}},
+							},
+						}),
+					),
+				),
+				v: []interface{}{map[string]interface{}{
+					"deployment_id": "self",
+					"ref_id":        "main-elasticsearch",
+					"metrics":       true,
+					"logs":          false,
+				}},
+			},
+			want: &models.DeploymentObservabilitySettings{
+				Metrics: &models.DeploymentMetricsSettings{
+					Destination: &models.ObservabilityAbsoluteDeployment{
+						DeploymentID: ec.String("self"),
+						RefID:        "main-elasticsearch",
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

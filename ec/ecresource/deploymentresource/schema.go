@@ -163,6 +163,16 @@ func newObservabilitySettings() *schema.Resource {
 			"deployment_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					// The terraform config can contain 'self' as a deployment target
+					// However the API will return the actual deployment-id.
+					// This overrides 'self' with the deployment-id so the diff will work correctly.
+					var deploymentID = d.Id()
+					var mappedOldValue = mapSelfToDeploymentID(oldValue, deploymentID)
+					var mappedNewValue = mapSelfToDeploymentID(newValue, deploymentID)
+
+					return mappedOldValue == mappedNewValue
+				},
 			},
 			"ref_id": {
 				Type:     schema.TypeString,
@@ -181,6 +191,15 @@ func newObservabilitySettings() *schema.Resource {
 			},
 		},
 	}
+}
+
+func mapSelfToDeploymentID(value string, deploymentID string) string {
+	if value == "self" && deploymentID != "" {
+		// If the deployment has a deployment-id, replace 'self' with the deployment-id
+		return deploymentID
+	}
+
+	return value
 }
 
 // suppressMissingOptionalConfigurationBlock handles configuration block attributes in the following scenario:
