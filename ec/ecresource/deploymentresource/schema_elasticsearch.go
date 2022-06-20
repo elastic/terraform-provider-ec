@@ -92,6 +92,8 @@ func newElasticsearchResource() *schema.Resource {
 
 			"trust_account":  newTrustAccountSchema(),
 			"trust_external": newTrustExternalSchema(),
+
+			"strategy": newStrategySchema(),
 		},
 	}
 }
@@ -385,11 +387,10 @@ func newSnapshotSourceSettings() *schema.Schema {
 
 func newExtensionSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:        schema.TypeSet,
-		Set:         esExtensionHash,
+		Type:        schema.TypeList,
 		Description: "Optional Elasticsearch extensions such as custom bundles or plugins.",
 		Optional:    true,
-		MinItems:    1,
+		MaxItems:    1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -504,6 +505,29 @@ func externalResource() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+			},
+		},
+	}
+}
+
+func newStrategySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeSet,
+		Description: "Configuration strategy settings.",
+		Optional:    true,
+		Computed:    true,
+		MaxItems:    1,
+		Elem:        strategyResource(),
+	}
+}
+
+func strategyResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"type": {
+				Description: "Configuration strategy type [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 		},
 	}

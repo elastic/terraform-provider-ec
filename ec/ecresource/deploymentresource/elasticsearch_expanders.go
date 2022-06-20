@@ -41,12 +41,12 @@ const (
 	autodetect           = "autodetect"
 	growAndShrink        = "grow_and_shrink"
 	rollingGrowAndShrink = "rolling_grow_and_shrink"
-	rolling              = "rolling"
+	rollingAll           = "rolling_all"
 )
 
 // List of update strategies availables.
 var strategiesList = []string{
-	autodetect, growAndShrink, rollingGrowAndShrink, rolling,
+	autodetect, growAndShrink, rollingGrowAndShrink, rollingAll,
 }
 
 // expandEsResources expands Elasticsearch resources
@@ -145,12 +145,14 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	}
 
 	if strategy, ok := es["strategy"]; ok {
-		if res.Plan.Transient == nil {
-			res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
-				Strategy: &models.PlanStrategy{},
+		if s := strategy.([]interface{}); len(s) > 0 {
+			if res.Plan.Transient == nil {
+				res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
+					Strategy: &models.PlanStrategy{},
+				}
 			}
+			expandStrategy(s, res.Plan.Transient.Strategy)
 		}
-		expandStrategy(strategy, res.Plan.Transient.Strategy)
 	}
 
 	return res, nil
@@ -158,44 +160,33 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 
 // expandStrategy expands the Configuration Strategy.
 func expandStrategy(raw interface{}, strategy *models.PlanStrategy) (*models.PlanStrategy, error) {
-	rawStrategy := raw.(map[string]interface{})
 	res := strategy
 	var err error = nil
-
-	if _, ok := rawStrategy[autodetect]; ok {
-		res.Autodetect = new(models.AutodetectStrategyConfig)
-	} else if _, ok := rawStrategy[growAndShrink]; ok {
-		res.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
-	} else if _, ok := rawStrategy[rollingGrowAndShrink]; ok {
-		res.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
-	} else if rawValue, ok := rawStrategy[rolling]; ok {
-		value := rawValue.(map[string]interface{})
-		allowInlineResize := false
-		skipSyncedFlush := false
-		var shardInitWaitTime int64 = 600
-		groupBy := "__all__"
-		if v, ok := value["allowInlineResize"]; ok {
-			allowInlineResize = v.(bool)
+	for _, rawStrategy := range raw.([]interface{}) {
+		strategyCfg, ok := rawStrategy.(map[string]interface{})
+		if !ok {
+			continue
 		}
-		if v, ok := value["skipSyncedFlush"]; ok {
-			skipSyncedFlush = v.(bool)
+		rawValue := strategyCfg["type"].(string)
+		if rawValue == autodetect {
+			fmt.Printf("Strategy configured autodetect ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
+			strategy.Autodetect = new(models.AutodetectStrategyConfig)
+		} else if rawValue == growAndShrink {
+			fmt.Print("Strategy configured growAndShrink ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
+			strategy.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
+		} else if rawValue == rollingGrowAndShrink {
+			fmt.Print("Strategy configured rollingGrowAndShrink ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
+			strategy.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
+		} else if rawValue == rollingAll {
+			fmt.Print("Strategy configured rollingAll ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
+			strategy.Rolling = &models.RollingStrategyConfig{
+				GroupBy: "__all__",
+			}
+		} else {
+			err = fmt.Errorf(`invalid strategy: valid strategies are %s`,
+				strings.Join(strategiesList, ", "),
+			)
 		}
-		if v, ok := value["shardInitWaitTime"]; ok {
-			shardInitWaitTime = v.(int64)
-		}
-		if v, ok := value["groupBy"]; ok {
-			groupBy = v.(string)
-		}
-		res.Rolling = &models.RollingStrategyConfig{
-			AllowInlineResize: &allowInlineResize,
-			GroupBy:           groupBy,
-			ShardInitWaitTime: shardInitWaitTime,
-			SkipSyncedFlush:   &skipSyncedFlush,
-		}
-	} else {
-		err = fmt.Errorf(`invalid strategy: valid strategies are %s`,
-			strings.Join(strategiesList, ", "),
-		)
 	}
 	return res, err
 }

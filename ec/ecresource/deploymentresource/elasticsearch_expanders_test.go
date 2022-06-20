@@ -1678,9 +1678,9 @@ func Test_expandEsResource(t *testing.T) {
 							"size":       "2g",
 							"zone_count": 1,
 						}},
-						"strategy": map[string]interface{}{
-							"autodetect": "true",
-						},
+						"strategy": []interface{}{map[string]interface{}{
+							"type": "autodetect",
+						}},
 					},
 				},
 			},
@@ -1753,9 +1753,9 @@ func Test_expandEsResource(t *testing.T) {
 							"size":       "2g",
 							"zone_count": 1,
 						}},
-						"strategy": map[string]interface{}{
-							"grow_and_shrink": "true",
-						},
+						"strategy": []interface{}{map[string]interface{}{
+							"type": "grow_and_shrink",
+						}},
 					},
 				},
 			},
@@ -1828,9 +1828,9 @@ func Test_expandEsResource(t *testing.T) {
 							"size":       "2g",
 							"zone_count": 1,
 						}},
-						"strategy": map[string]interface{}{
-							"rolling_grow_and_shrink": "true",
-						},
+						"strategy": []interface{}{map[string]interface{}{
+							"type": "rolling_grow_and_shrink",
+						}},
 					},
 				},
 			},
@@ -1903,14 +1903,9 @@ func Test_expandEsResource(t *testing.T) {
 							"size":       "2g",
 							"zone_count": 1,
 						}},
-						"strategy": map[string]interface{}{
-							"rolling": map[string]interface{}{
-								"allowInlineResize": false,
-								"skipSyncedFlush":   false,
-								"shardInitWaitTime": int64(600),
-								"groupBy":           "__all__",
-							},
-						},
+						"strategy": []interface{}{map[string]interface{}{
+							"type": "rolling_all",
+						}},
 					},
 				},
 			},
@@ -1963,10 +1958,7 @@ func Test_expandEsResource(t *testing.T) {
 					Transient: &models.TransientElasticsearchPlanConfiguration{
 						Strategy: &models.PlanStrategy{
 							Rolling: &models.RollingStrategyConfig{
-								AllowInlineResize: ec.Bool(false),
-								ShardInitWaitTime: 600,
-								SkipSyncedFlush:   ec.Bool(false),
-								GroupBy:           "__all__",
+								GroupBy: "__all__",
 							},
 						},
 					},
