@@ -169,16 +169,12 @@ func expandStrategy(raw interface{}, strategy *models.PlanStrategy) (*models.Pla
 		}
 		rawValue := strategyCfg["type"].(string)
 		if rawValue == autodetect {
-			fmt.Printf("Strategy configured autodetect ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
 			strategy.Autodetect = new(models.AutodetectStrategyConfig)
 		} else if rawValue == growAndShrink {
-			fmt.Print("Strategy configured growAndShrink ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
 			strategy.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
 		} else if rawValue == rollingGrowAndShrink {
-			fmt.Print("Strategy configured rollingGrowAndShrink ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
 			strategy.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
 		} else if rawValue == rollingAll {
-			fmt.Print("Strategy configured rollingAll ---------------------------------------->>>>>>>>>>>>>>>>>>>>>>")
 			strategy.Rolling = &models.RollingStrategyConfig{
 				GroupBy: "__all__",
 			}
