@@ -59,27 +59,48 @@ resource "ec_deployment" "example_minimal" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch {
+
     autoscale = "true"
 
+# If `autoscale` is set, all topology elements that
+# - either set `size` in the plan or
+# - have non-zero default `max_size` (that is read from the deployment templates's `autoscaling_max` value)
+# have to be listed in alphabetical order of their `id` fields,
+# even if their blocks don't specify other fields beside `id`
     topology {
-      id   = "cold"
-      size = "8g"
+      id = "cold"
     }
 
     topology {
-      id   = "hot_content"
+      id = "frozen"
+    }
+
+    topology {
+      id = "hot_content"
       size = "8g"
 
       autoscaling {
-        // Optionally change the policy max size.
-        // max_size = "29g"
+        max_size = "128g"
+        max_size_resource = "memory"
       }
     }
 
     topology {
-      id   = "warm"
-      size = "16g"
+      id = "ml"
     }
+
+    topology {
+      id = "warm"
+    }
+
+  }
+
+# Initial size for `hot_content` tier is set to 8g
+# so `hot_content`'s size has to be added to the `ignore_changes` meta-argument to ignore future modifications that can be made by the autoscaler
+  lifecycle {
+    ignore_changes = [
+      elasticsearch[0].topology[2].size
+    ]
   }
 
   kibana {}
