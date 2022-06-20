@@ -1663,6 +1663,316 @@ func Test_expandEsResource(t *testing.T) {
 				},
 			}),
 		},
+		{
+			name: "parse autodetect configuration strategy",
+			args: args{
+				dt: tp770(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.7.0",
+						"region":      "some-region",
+						"topology": []interface{}{map[string]interface{}{
+							"id":         "hot_content",
+							"size":       "2g",
+							"zone_count": 1,
+						}},
+						"strategy": map[string]interface{}{
+							"autodetect": "true",
+						},
+					},
+				},
+			},
+
+			want: enrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version: "7.7.0",
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID:                      "hot_content",
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
+							},
+							NodeType: &models.ElasticsearchNodeType{
+								Data:   ec.Bool(true),
+								Ingest: ec.Bool(true),
+								Master: ec.Bool(true),
+							},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						Strategy: &models.PlanStrategy{
+							Autodetect: new(models.AutodetectStrategyConfig),
+						},
+					},
+				},
+			}),
+		},
+		{
+			name: "parse grow_and_shrink configuration strategy",
+			args: args{
+				dt: tp770(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.7.0",
+						"region":      "some-region",
+						"topology": []interface{}{map[string]interface{}{
+							"id":         "hot_content",
+							"size":       "2g",
+							"zone_count": 1,
+						}},
+						"strategy": map[string]interface{}{
+							"grow_and_shrink": "true",
+						},
+					},
+				},
+			},
+
+			want: enrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version: "7.7.0",
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID:                      "hot_content",
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
+							},
+							NodeType: &models.ElasticsearchNodeType{
+								Data:   ec.Bool(true),
+								Ingest: ec.Bool(true),
+								Master: ec.Bool(true),
+							},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						Strategy: &models.PlanStrategy{
+							GrowAndShrink: new(models.GrowShrinkStrategyConfig),
+						},
+					},
+				},
+			}),
+		},
+		{
+			name: "parse rolling_grow_and_shrink configuration strategy",
+			args: args{
+				dt: tp770(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.7.0",
+						"region":      "some-region",
+						"topology": []interface{}{map[string]interface{}{
+							"id":         "hot_content",
+							"size":       "2g",
+							"zone_count": 1,
+						}},
+						"strategy": map[string]interface{}{
+							"rolling_grow_and_shrink": "true",
+						},
+					},
+				},
+			},
+
+			want: enrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version: "7.7.0",
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID:                      "hot_content",
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
+							},
+							NodeType: &models.ElasticsearchNodeType{
+								Data:   ec.Bool(true),
+								Ingest: ec.Bool(true),
+								Master: ec.Bool(true),
+							},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						Strategy: &models.PlanStrategy{
+							RollingGrowAndShrink: new(models.RollingGrowShrinkStrategyConfig),
+						},
+					},
+				},
+			}),
+		},
+		{
+			name: "parse rolling configuration strategy",
+			args: args{
+				dt: tp770(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":      "main-elasticsearch",
+						"resource_id": mock.ValidClusterID,
+						"version":     "7.7.0",
+						"region":      "some-region",
+						"topology": []interface{}{map[string]interface{}{
+							"id":         "hot_content",
+							"size":       "2g",
+							"zone_count": 1,
+						}},
+						"strategy": map[string]interface{}{
+							"rolling": map[string]interface{}{
+								"allowInlineResize": false,
+								"skipSyncedFlush":   false,
+								"shardInitWaitTime": int64(600),
+								"groupBy":           "__all__",
+							},
+						},
+					},
+				},
+			},
+
+			want: enrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version: "7.7.0",
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID:                      "hot_content",
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
+							},
+							NodeType: &models.ElasticsearchNodeType{
+								Data:   ec.Bool(true),
+								Ingest: ec.Bool(true),
+								Master: ec.Bool(true),
+							},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						Strategy: &models.PlanStrategy{
+							Rolling: &models.RollingStrategyConfig{
+								AllowInlineResize: ec.Bool(false),
+								ShardInitWaitTime: 600,
+								SkipSyncedFlush:   ec.Bool(false),
+								GroupBy:           "__all__",
+							},
+						},
+					},
+				},
+			}),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
