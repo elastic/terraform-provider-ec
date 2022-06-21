@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -516,19 +517,27 @@ func newStrategySchema() *schema.Schema {
 		Type:        schema.TypeSet,
 		Description: "Configuration strategy settings.",
 		Optional:    true,
-		Computed:    true,
 		MaxItems:    1,
 		Elem:        strategyResource(),
 	}
 }
 
 func strategyResource() *schema.Resource {
+	validValues := strings.Join(strategiesList, ", ")
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"type": {
-				Description: "Configuration strategy type [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].",
+				Description: "Configuration strategy type " + validValues,
 				Type:        schema.TypeString,
 				Required:    true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					t := val.(string)
+					fmt.Printf("Validating %s in %v", t, validValues)
+					if !slice.HasString(strategiesList, t) {
+						errs = append(errs, fmt.Errorf(`invalid %s '%s': valid strategies are %v`, key, t, validValues))
+					}
+					return
+				},
 			},
 		},
 	}

@@ -159,9 +159,8 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 }
 
 // expandStrategy expands the Configuration Strategy.
-func expandStrategy(raw interface{}, strategy *models.PlanStrategy) (*models.PlanStrategy, error) {
+func expandStrategy(raw interface{}, strategy *models.PlanStrategy) *models.PlanStrategy {
 	res := strategy
-	var err error = nil
 	for _, rawStrategy := range raw.([]interface{}) {
 		strategyCfg, ok := rawStrategy.(map[string]interface{})
 		if !ok {
@@ -178,13 +177,9 @@ func expandStrategy(raw interface{}, strategy *models.PlanStrategy) (*models.Pla
 			strategy.Rolling = &models.RollingStrategyConfig{
 				GroupBy: "__all__",
 			}
-		} else {
-			err = fmt.Errorf(`invalid strategy: valid strategies are %s`,
-				strings.Join(strategiesList, ", "),
-			)
 		}
 	}
-	return res, err
+	return res
 }
 
 // expandEsTopology expands a flattened topology
