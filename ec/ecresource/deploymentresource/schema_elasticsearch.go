@@ -387,10 +387,11 @@ func newSnapshotSourceSettings() *schema.Schema {
 
 func newExtensionSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:        schema.TypeList,
+		Type:        schema.TypeSet,
+		Set:         esExtensionHash,
 		Description: "Optional Elasticsearch extensions such as custom bundles or plugins.",
 		Optional:    true,
-		MaxItems:    1,
+		MinItems:    1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
