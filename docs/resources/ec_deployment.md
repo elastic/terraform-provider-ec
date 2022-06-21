@@ -387,8 +387,8 @@ The optional `elasticsearch.strategy` allow to choose the configuration strategy
 * `type` Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
   * `autodetect` try to use the best associated with the type of change in the plan.
   * `grow_and_shrink` Add all nodes with the new changes before to stop any node.
-  * `rolling_grow_and_shrink` Add nodes one by one replacing the existing ones when the new node es ready.
-  * `rolling_all` Strop all nodes perform the changes and start all nodes.
+  * `rolling_grow_and_shrink` Add nodes one by one replacing the existing ones when the new node is ready.
+  * `rolling_all` Stop all nodes, perform the changes and start all nodes.
  
 #### Kibana
 
