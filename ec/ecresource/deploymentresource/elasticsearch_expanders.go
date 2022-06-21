@@ -145,13 +145,13 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	}
 
 	if strategy, ok := es["strategy"]; ok {
-		if s := strategy.(*schema.Set); s.Len() > 0 {
+		if s := strategy.([]interface{}); len(s) > 0 {
 			if res.Plan.Transient == nil {
 				res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
 					Strategy: &models.PlanStrategy{},
 				}
 			}
-			expandStrategy(s.List(), res.Plan.Transient.Strategy)
+			expandStrategy(s, res.Plan.Transient.Strategy)
 		}
 	}
 

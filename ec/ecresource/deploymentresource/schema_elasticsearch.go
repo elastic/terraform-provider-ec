@@ -514,7 +514,7 @@ func externalResource() *schema.Resource {
 
 func newStrategySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:        schema.TypeSet,
+		Type:        schema.TypeList,
 		Description: "Configuration strategy settings.",
 		Optional:    true,
 		MaxItems:    1,
