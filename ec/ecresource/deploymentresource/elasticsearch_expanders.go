@@ -159,27 +159,25 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 }
 
 // expandStrategy expands the Configuration Strategy.
-func expandStrategy(raw interface{}, strategy *models.PlanStrategy) *models.PlanStrategy {
-	res := strategy
-	for _, rawStrategy := range raw.([]interface{}) {
-		strategyCfg, ok := rawStrategy.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		rawValue := strategyCfg["type"].(string)
-		if rawValue == autodetect {
-			strategy.Autodetect = new(models.AutodetectStrategyConfig)
-		} else if rawValue == growAndShrink {
-			strategy.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
-		} else if rawValue == rollingGrowAndShrink {
-			strategy.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
-		} else if rawValue == rollingAll {
-			strategy.Rolling = &models.RollingStrategyConfig{
-				GroupBy: "__all__",
-			}
-		}
-	}
-	return res
+func expandStrategy(raw interface{}, strategy *models.PlanStrategy) {
+   for _, rawStrategy := range raw.([]interface{}) {
+   	strategyCfg, ok := rawStrategy.(map[string]interface{})
+   	if !ok {
+   		continue
+   	}
+   	rawValue := strategyCfg["type"].(string)
+   	if rawValue == autodetect {
+   		strategy.Autodetect = new(models.AutodetectStrategyConfig)
+   	} else if rawValue == growAndShrink {
+   		strategy.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
+   	} else if rawValue == rollingGrowAndShrink {
+   		strategy.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
+   	} else if rawValue == rollingAll {
+   		strategy.Rolling = &models.RollingStrategyConfig{
+   			GroupBy: "__all__",
+   		}
+   	}
+   }
 }
 
 // expandEsTopology expands a flattened topology
