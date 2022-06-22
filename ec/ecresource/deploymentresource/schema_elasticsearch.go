@@ -538,6 +538,10 @@ func strategyResource() *schema.Resource {
 					}
 					return
 				},
+				// changes on this setting do not change the plan.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return true
+				},
 			},
 		},
 	}
