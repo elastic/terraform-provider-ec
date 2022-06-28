@@ -382,7 +382,7 @@ The optional `elasticsearch.trust_external` block, allows external trust relatio
 
 ##### Strategy
 
-The optional `elasticsearch.strategy` allows choosing the configuration strategy used to apply the changes. This is a fine tune setting, you do not change it unless you have a specific case where the `autodetect` do not cover your use case.
+The optional `elasticsearch.strategy` allows you to choose the configuration strategy used to apply the changes. You do not need to change this setting unless you have a specific case where the `autodetect` does not cover your use case.
 
 * `type` Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
   * `autodetect` try to use the best associated with the type of change in the plan.
