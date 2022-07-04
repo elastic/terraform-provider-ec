@@ -7,6 +7,6 @@ require (
 	github.com/elastic/cloud-sdk-go v1.9.0
 	github.com/go-openapi/runtime v0.24.0
 	github.com/go-openapi/strfmt v0.21.2
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.16.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.17.0
 	github.com/stretchr/testify v1.7.1
 )
