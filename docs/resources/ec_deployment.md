@@ -207,6 +207,36 @@ resource "ec_deployment" "with_tags" {
 }
 ```
 
+### With configuration strategy
+
+```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
+resource "ec_deployment" "with_tags" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "aws-io-optimized-v2"
+
+  elasticsearch {
+    strategy {
+      type = "rolling_all"
+    }
+  }
+
+  tags = {
+    owner     = "elastic cloud"
+    component = "search"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -260,6 +290,7 @@ The required `elasticsearch` block supports the following arguments:
 * `autoscale` (Optional) Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are `"true"` or `"false"`.
 * `trust_account` (Optional) The trust relationships with other ESS accounts.
 * `trust_external` (Optional) The trust relationship with external entities (remote environments, remote accounts...).
+* `strategy` (Optional) Choose the configuration strategy used to apply the changes.
 
 ##### Topology
 
@@ -349,6 +380,16 @@ The optional `elasticsearch.trust_external` block, allows external trust relatio
 * `trust_all` (Optional) If true, all clusters in this external entity will be trusted and the `trust_allowlist` is ignored.
 * `trust_allowlist` (Optional) The list of clusters to trust. Only used when `trust_all` is `false`.
 
+##### Strategy
+
+The optional `elasticsearch.strategy` allows you to choose the configuration strategy used to apply the changes. You do not need to change this setting unless you have a specific case where the `autodetect` does not cover your use case.
+
+* `type` Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
+  * `autodetect` try to use the best associated with the type of change in the plan.
+  * `grow_and_shrink` Add all nodes with the new changes before to stop any node.
+  * `rolling_grow_and_shrink` Add nodes one by one replacing the existing ones when the new node is ready.
+  * `rolling_all` Stop all nodes, perform the changes and start all nodes.
+ 
 #### Kibana
 
 The optional `kibana` block supports the following arguments:

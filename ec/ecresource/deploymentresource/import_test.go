@@ -121,6 +121,7 @@ func Test_importFunc(t *testing.T) {
 				"elasticsearch.0.topology.#":        "0",
 				"elasticsearch.0.trust_account.#":   "0",
 				"elasticsearch.0.trust_external.#":  "0",
+				"elasticsearch.0.strategy.#":        "0",
 			},
 		},
 		{
@@ -169,6 +170,7 @@ func Test_importFunc(t *testing.T) {
 				"elasticsearch.0.topology.#":        "0",
 				"elasticsearch.0.trust_account.#":   "0",
 				"elasticsearch.0.trust_external.#":  "0",
+				"elasticsearch.0.strategy.#":        "0",
 			},
 		},
 		{
@@ -217,6 +219,7 @@ func Test_importFunc(t *testing.T) {
 				"elasticsearch.0.topology.#":        "0",
 				"elasticsearch.0.trust_account.#":   "0",
 				"elasticsearch.0.trust_external.#":  "0",
+				"elasticsearch.0.strategy.#":        "0",
 			},
 		},
 	}
