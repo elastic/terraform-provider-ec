@@ -62,11 +62,11 @@ resource "ec_deployment" "example_minimal" {
 
     autoscale = "true"
 
-# If `autoscale` is set, all topology elements that
-# - either set `size` in the plan or
-# - have non-zero default `max_size` (that is read from the deployment templates's `autoscaling_max` value)
-# have to be listed in alphabetical order of their `id` fields,
-# even if their blocks don't specify other fields beside `id`
+    # If `autoscale` is set, all topology elements that
+    # - either set `size` in the plan or
+    # - have non-zero default `max_size` (that is read from the deployment templates's `autoscaling_max` value)
+    # have to be listed in alphabetical order of their `id` fields,
+    # even if their blocks don't specify other fields beside `id`
     topology {
       id = "cold"
     }
@@ -76,11 +76,11 @@ resource "ec_deployment" "example_minimal" {
     }
 
     topology {
-      id = "hot_content"
+      id   = "hot_content"
       size = "8g"
 
       autoscaling {
-        max_size = "128g"
+        max_size          = "128g"
         max_size_resource = "memory"
       }
     }
@@ -95,8 +95,8 @@ resource "ec_deployment" "example_minimal" {
 
   }
 
-# Initial size for `hot_content` tier is set to 8g
-# so `hot_content`'s size has to be added to the `ignore_changes` meta-argument to ignore future modifications that can be made by the autoscaler
+  # Initial size for `hot_content` tier is set to 8g
+  # so `hot_content`'s size has to be added to the `ignore_changes` meta-argument to ignore future modifications that can be made by the autoscaler
   lifecycle {
     ignore_changes = [
       elasticsearch[0].topology[2].size

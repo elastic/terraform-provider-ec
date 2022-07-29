@@ -122,7 +122,7 @@ func Test_expandFilters(t *testing.T) {
 		{
 			name: "fails to parse the data source",
 			args: args{d: invalidDS},
-			err:  errors.New("strconv.ParseBool: parsing \"invalid value\": invalid syntax"),
+			err:  errors.New("invalid value for healthy (true|false): 'invalid value'"),
 		},
 	}
 	for _, tt := range tests {
@@ -199,7 +199,7 @@ func newTestQuery() []*models.QueryContainer {
 		},
 		{
 			Term: map[string]models.TermQuery{
-				"healthy": {Value: true},
+				"healthy": {Value: ec.String("true")},
 			},
 		},
 		{
@@ -252,7 +252,7 @@ func newTestQuery() []*models.QueryContainer {
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.kibana.info.status": {
-							Value: "started",
+							Value: ec.String("started"),
 						},
 					},
 				},
@@ -264,7 +264,7 @@ func newTestQuery() []*models.QueryContainer {
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.apm.info.healthy": {
-							Value: true,
+							Value: ec.String("true"),
 						},
 					},
 				},
@@ -276,7 +276,7 @@ func newTestQuery() []*models.QueryContainer {
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.enterprise_search.info.healthy": {
-							Value: false,
+							Value: ec.String("false"),
 						},
 					},
 				},

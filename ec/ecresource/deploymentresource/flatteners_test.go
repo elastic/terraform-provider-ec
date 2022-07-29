@@ -670,15 +670,15 @@ func Test_modelToState(t *testing.T) {
 						},
 						Observability: &models.DeploymentObservabilitySettings{
 							Logging: &models.DeploymentLoggingSettings{
-								Destination: &models.AbsoluteRefID{
+								Destination: &models.ObservabilityAbsoluteDeployment{
 									DeploymentID: &mock.ValidClusterID,
-									RefID:        ec.String("main-elasticsearch"),
+									RefID:        "main-elasticsearch",
 								},
 							},
 							Metrics: &models.DeploymentMetricsSettings{
-								Destination: &models.AbsoluteRefID{
+								Destination: &models.ObservabilityAbsoluteDeployment{
 									DeploymentID: &mock.ValidClusterID,
-									RefID:        ec.String("main-elasticsearch"),
+									RefID:        "main-elasticsearch",
 								},
 							},
 						},
