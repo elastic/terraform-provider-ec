@@ -89,18 +89,18 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 
 		if logging := obs["logs"]; logging.(bool) {
 			req.Logging = &models.DeploymentLoggingSettings{
-				Destination: &models.AbsoluteRefID{
+				Destination: &models.ObservabilityAbsoluteDeployment{
 					DeploymentID: ec.String(depID.(string)),
-					RefID:        ec.String(refID.(string)),
+					RefID:        refID.(string),
 				},
 			}
 		}
 
 		if metrics := obs["metrics"]; metrics.(bool) {
 			req.Metrics = &models.DeploymentMetricsSettings{
-				Destination: &models.AbsoluteRefID{
+				Destination: &models.ObservabilityAbsoluteDeployment{
 					DeploymentID: ec.String(depID.(string)),
-					RefID:        ec.String(refID.(string)),
+					RefID:        refID.(string),
 				},
 			}
 		}
