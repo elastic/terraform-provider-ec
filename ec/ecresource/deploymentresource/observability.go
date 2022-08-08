@@ -72,7 +72,14 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 		}
 
 		refID, ok := obs["ref_id"]
-		if !ok || refID == "" {
+		if depID == "self" {
+			// For self monitoring, the refID is not mandatory
+			if !ok {
+				refID = ""
+			}
+		} else if !ok || refID == "" {
+			// Since ms-77, the refID is optional.
+			// To not break ECE users with older versions, we still pre-calculate the refID here
 			params := deploymentapi.PopulateRefIDParams{
 				Kind:         util.Elasticsearch,
 				API:          client,

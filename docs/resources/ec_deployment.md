@@ -139,6 +139,13 @@ resource "ec_deployment" "example_observability" {
 }
 ```
 
+It is possible to enable observability without using a second deployment, by storing the observability data in the current deployment. To enable this, set `deployment_id` to `self`.
+```hcl
+observability {
+  deployment_id = "self"
+}
+```
+
 ### With Cross Cluster Search settings
 
 ```hcl
@@ -262,7 +269,7 @@ The following arguments are supported:
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
 * `apm` **DEPRECATED** (Optional) APM instance definition, can only be specified once. It should only be used with deployments with a version prior to 8.0.0.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
-* `observability` (Optional) Observability settings that you can set to ship logs and metrics to a separate deployment.
+* `observability` (Optional) Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself.
 * `tags` (Optional) Key value map of arbitrary string tags.
 
 ### Resources
@@ -543,7 +550,7 @@ In addition to all the arguments above, the following attributes are exported:
 * `enterprise_search.#.topology.#.node_type_appserver` - Node type (Appserver) for the Enterprise Search topology element.
 * `enterprise_search.#.topology.#.node_type_connector` - Node type (Connector) for the Enterprise Search topology element.
 * `enterprise_search.#.topology.#.node_type_worker` - Node type (worker) for the Enterprise Search topology element.
-* `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics.
+* `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics. Use `self` as destination deployment ID to target the current deployment.
 * `observability.#.ref_id` - (Optional) Elasticsearch resource kind ref_id of the destination deployment.
 * `observability.#.logs` - Enables or disables shipping logs. Defaults to true.
 * `observability.#.metrics` - Enables or disables shipping metrics. Defaults to true.
