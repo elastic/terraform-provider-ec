@@ -139,7 +139,7 @@ resource "ec_deployment" "example_observability" {
 }
 ```
 
-It is possible to enable observability without a second deployment, by keeping observability data in the current deployment. To enable this use `self` as `deployment_id`.
+It is possible to enable observability without using a second deployment, by storing the observability data in the current deployment. To enable this, set `deployment_id` to `self`.
 ```hcl
 observability {
   deployment_id = "self"
