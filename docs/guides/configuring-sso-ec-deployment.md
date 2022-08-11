@@ -75,7 +75,7 @@ Then, using a variable in our es.yml file, and a terraform templating mechanism,
         }
 ```
 
-This specific template, will use our name and UUID to determine the url for our Elasticsearch deployment before its even created, and put it in our ```es.yml``` file.
+This specific template, will use our name and UUID to determine the url for our Elasticsearch deployment before its even created, and put it in our `es.yml` file.
 
 ```yaml
 xpack.security.authc.realms.saml.auth0:
