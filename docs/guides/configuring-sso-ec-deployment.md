@@ -23,7 +23,7 @@ This will allow us to use a randomally generated uuid in our deployment name, so
 
 Creating the "ec_deployment" resource, will look like this:
 
-```terraform
+```hcl
 resource "ec_deployment" "elastic-sso" {
     name = format("%s-%s",var.name,substr("${random_uuid.uuid.result}",0,6))
     alias = format("%s-%s",var.name,substr("${random_uuid.uuid.result}",0,6))
