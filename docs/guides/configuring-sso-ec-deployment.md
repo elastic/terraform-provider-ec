@@ -100,4 +100,4 @@ xpack.security.authc.providers:
         description: "Log in with Auth0"
 ```
 
-And that's it! spinning up the above ec_deployment will created a deployment on Elastic Cloud, with a preconfigured name & an additional Auth0 SSO identity provider and login option, that's alreday configured when the deployment is spun up.
+And that's it! Spinning up the above ec_deployment resource will create a deployment on Elastic Cloud, with a preconfigured name and an additional Auth0 SSO identity provider and login option, that's already configured when the deployment is spun up.
