@@ -2,7 +2,7 @@
 subcategory: ""
 page_title: "Configuring an SSO provider for a deployment"
 description: |-
-    An example of how to spin up a deployment preconfigured with a SAML provider
+    An example of how to create a deployment preconfigured with a SAML provider
 ---
 
 # Configuring a SAML provider for an Elastic Cloud Deployment
