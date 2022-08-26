@@ -35,10 +35,19 @@ import (
 // These constants are only used to determine whether or not a dedicated
 // tier of masters or ingest (coordinating) nodes are set.
 const (
-	dataTierRolePrefix = "data_"
-	ingestDataTierRole = "ingest"
-	masterDataTierRole = "master"
+	dataTierRolePrefix   = "data_"
+	ingestDataTierRole   = "ingest"
+	masterDataTierRole   = "master"
+	autodetect           = "autodetect"
+	growAndShrink        = "grow_and_shrink"
+	rollingGrowAndShrink = "rolling_grow_and_shrink"
+	rollingAll           = "rolling_all"
 )
+
+// List of update strategies availables.
+var strategiesList = []string{
+	autodetect, growAndShrink, rollingGrowAndShrink, rollingAll,
+}
 
 // expandEsResources expands Elasticsearch resources
 func expandEsResources(ess []interface{}, tpl *models.ElasticsearchPayload) ([]*models.ElasticsearchPayload, error) {
@@ -135,7 +144,40 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 		}
 	}
 
+	if strategy, ok := es["strategy"]; ok {
+		if s := strategy.([]interface{}); len(s) > 0 {
+			if res.Plan.Transient == nil {
+				res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
+					Strategy: &models.PlanStrategy{},
+				}
+			}
+			expandStrategy(s, res.Plan.Transient.Strategy)
+		}
+	}
+
 	return res, nil
+}
+
+// expandStrategy expands the Configuration Strategy.
+func expandStrategy(raw interface{}, strategy *models.PlanStrategy) {
+	for _, rawStrategy := range raw.([]interface{}) {
+		strategyCfg, ok := rawStrategy.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		rawValue := strategyCfg["type"].(string)
+		if rawValue == autodetect {
+			strategy.Autodetect = new(models.AutodetectStrategyConfig)
+		} else if rawValue == growAndShrink {
+			strategy.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
+		} else if rawValue == rollingGrowAndShrink {
+			strategy.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
+		} else if rawValue == rollingAll {
+			strategy.Rolling = &models.RollingStrategyConfig{
+				GroupBy: "__all__",
+			}
+		}
+	}
 }
 
 // expandEsTopology expands a flattened topology

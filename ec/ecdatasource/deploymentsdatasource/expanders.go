@@ -18,8 +18,7 @@
 package deploymentsdatasource
 
 import (
-	"strconv"
-
+	"fmt"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -45,21 +44,19 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 	if depTemplateID != "" {
 		esPath := "resources.elasticsearch"
 		tplTermPath := esPath + ".info.plan_info.current.plan.deployment_template.id"
-		tplID := ec.String(depTemplateID)
 
-		queries = append(queries, newNestedTermQuery(esPath, tplTermPath, tplID))
+		queries = append(queries, newNestedTermQuery(esPath, tplTermPath, depTemplateID))
 	}
 
 	healthy := d.Get("healthy").(string)
 	if healthy != "" {
-		h, err := strconv.ParseBool(healthy)
-		if err != nil {
-			return nil, err
+		if healthy != "true" && healthy != "false" {
+			return nil, fmt.Errorf("invalid value for healthy (true|false): '%s'", healthy)
 		}
 
 		queries = append(queries, &models.QueryContainer{
 			Term: map[string]models.TermQuery{
-				"healthy": {Value: h},
+				"healthy": {Value: &healthy},
 			},
 		})
 	}
@@ -68,7 +65,7 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 	var tagQueries []*models.QueryContainer
 	for key, value := range tags {
 		tagQueries = append(tagQueries,
-			newNestedTagQuery(key, value),
+			newNestedTagQuery(key, value.(string)),
 		)
 	}
 	if len(tagQueries) > 0 {
@@ -126,46 +123,44 @@ func expandResourceFilters(resources []interface{}, resourceKind string) ([]*mod
 
 		resourceKindPath := "resources." + resourceKind
 
-		if status, ok := q["status"]; ok && status != "" {
+		if status, ok := q["status"].(string); ok && status != "" {
 			statusTermPath := resourceKindPath + ".info.status"
 
 			queries = append(queries,
 				newNestedTermQuery(resourceKindPath, statusTermPath, status))
 		}
 
-		if version, ok := q["version"]; ok && version != "" {
+		if version, ok := q["version"].(string); ok && version != "" {
 			versionTermPath := resourceKindPath + ".info.plan_info.current.plan." +
 				resourceKind + ".version"
-			v := ec.String(version.(string))
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, versionTermPath, v))
+				newNestedTermQuery(resourceKindPath, versionTermPath, version))
 		}
 
-		if healthy, ok := q["healthy"]; ok && healthy != "" {
-			h, err := strconv.ParseBool(healthy.(string))
-			if err != nil {
-				return nil, err
-			}
-
+		if healthy, ok := q["healthy"].(string); ok && healthy != "" {
 			healthyTermPath := resourceKindPath + ".info.healthy"
 
+			if healthy != "true" && healthy != "false" {
+				return nil, fmt.Errorf("invalid value for healthy (true|false): '%s'", healthy)
+			}
+
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, healthyTermPath, h))
+				newNestedTermQuery(resourceKindPath, healthyTermPath, healthy))
 		}
 	}
 
 	return queries, nil
 }
 
-func newNestedTermQuery(path, term string, value interface{}) *models.QueryContainer {
+func newNestedTermQuery(path, term string, value string) *models.QueryContainer {
 	return &models.QueryContainer{
 		Nested: &models.NestedQuery{
 			Path: ec.String(path),
 			Query: &models.QueryContainer{
 				Term: map[string]models.TermQuery{
 					term: {
-						Value: value,
+						Value: ec.String(value),
 					},
 				},
 			},
@@ -174,7 +169,7 @@ func newNestedTermQuery(path, term string, value interface{}) *models.QueryConta
 }
 
 // newNestedTagQuery returns a nested query for a metadata tag
-func newNestedTagQuery(key interface{}, value interface{}) *models.QueryContainer {
+func newNestedTagQuery(key string, value string) *models.QueryContainer {
 	return &models.QueryContainer{
 		Nested: &models.NestedQuery{
 			Path: ec.String("metadata.tags"),

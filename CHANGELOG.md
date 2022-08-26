@@ -1,5 +1,9 @@
 # 0.5.0 (Unreleased)
 
+FEATURES:
+
+* resource/elasticsearch: Adds support for the `strategy` property to the `elasticsearch` resource. This allows users to define how different plan changes are coordinated. ([#507](https://github.com/elastic/terraform-provider-ec/issues/507))
+
 # 0.4.1 (May 11, 2022)
 
 BREAKING CHANGES:

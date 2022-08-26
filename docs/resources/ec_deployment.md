@@ -62,11 +62,11 @@ resource "ec_deployment" "example_minimal" {
 
     autoscale = "true"
 
-# If `autoscale` is set, all topology elements that
-# - either set `size` in the plan or
-# - have non-zero default `max_size` (that is read from the deployment templates's `autoscaling_max` value)
-# have to be listed in alphabetical order of their `id` fields,
-# even if their blocks don't specify other fields beside `id`
+    # If `autoscale` is set, all topology elements that
+    # - either set `size` in the plan or
+    # - have non-zero default `max_size` (that is read from the deployment templates's `autoscaling_max` value)
+    # have to be listed in alphabetical order of their `id` fields,
+    # even if their blocks don't specify other fields beside `id`
     topology {
       id = "cold"
     }
@@ -76,11 +76,11 @@ resource "ec_deployment" "example_minimal" {
     }
 
     topology {
-      id = "hot_content"
+      id   = "hot_content"
       size = "8g"
 
       autoscaling {
-        max_size = "128g"
+        max_size          = "128g"
         max_size_resource = "memory"
       }
     }
@@ -95,8 +95,8 @@ resource "ec_deployment" "example_minimal" {
 
   }
 
-# Initial size for `hot_content` tier is set to 8g
-# so `hot_content`'s size has to be added to the `ignore_changes` meta-argument to ignore future modifications that can be made by the autoscaler
+  # Initial size for `hot_content` tier is set to 8g
+  # so `hot_content`'s size has to be added to the `ignore_changes` meta-argument to ignore future modifications that can be made by the autoscaler
   lifecycle {
     ignore_changes = [
       elasticsearch[0].topology[2].size
@@ -136,6 +136,13 @@ resource "ec_deployment" "example_observability" {
   observability {
     deployment_id = ec_deployment.example_minimal.id
   }
+}
+```
+
+It is possible to enable observability without using a second deployment, by storing the observability data in the current deployment. To enable this, set `deployment_id` to `self`.
+```hcl
+observability {
+  deployment_id = "self"
 }
 ```
 
@@ -207,6 +214,36 @@ resource "ec_deployment" "with_tags" {
 }
 ```
 
+### With configuration strategy
+
+```hcl
+data "ec_stack" "latest" {
+  version_regex = "latest"
+  region        = "us-east-1"
+}
+
+resource "ec_deployment" "with_tags" {
+  # Optional name.
+  name = "my_example_deployment"
+
+  # Mandatory fields
+  region                 = "us-east-1"
+  version                = data.ec_stack.latest.version
+  deployment_template_id = "aws-io-optimized-v2"
+
+  elasticsearch {
+    strategy {
+      type = "rolling_all"
+    }
+  }
+
+  tags = {
+    owner     = "elastic cloud"
+    component = "search"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -232,7 +269,7 @@ The following arguments are supported:
 * `enterprise_search` (Optional) Enterprise Search server definition, can only be specified once. For multi-node Enterprise Search deployments, use multiple `topology` blocks.
 * `apm` **DEPRECATED** (Optional) APM instance definition, can only be specified once. It should only be used with deployments with a version prior to 8.0.0.
 * `traffic_filter` (Optional) List of traffic filter rule identifiers that will be applied to the deployment.
-* `observability` (Optional) Observability settings that you can set to ship logs and metrics to a separate deployment.
+* `observability` (Optional) Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself.
 * `tags` (Optional) Key value map of arbitrary string tags.
 
 ### Resources
@@ -260,6 +297,7 @@ The required `elasticsearch` block supports the following arguments:
 * `autoscale` (Optional) Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are `"true"` or `"false"`.
 * `trust_account` (Optional) The trust relationships with other ESS accounts.
 * `trust_external` (Optional) The trust relationship with external entities (remote environments, remote accounts...).
+* `strategy` (Optional) Choose the configuration strategy used to apply the changes.
 
 ##### Topology
 
@@ -349,6 +387,16 @@ The optional `elasticsearch.trust_external` block, allows external trust relatio
 * `trust_all` (Optional) If true, all clusters in this external entity will be trusted and the `trust_allowlist` is ignored.
 * `trust_allowlist` (Optional) The list of clusters to trust. Only used when `trust_all` is `false`.
 
+##### Strategy
+
+The optional `elasticsearch.strategy` allows you to choose the configuration strategy used to apply the changes. You do not need to change this setting unless you have a specific case where the `autodetect` does not cover your use case.
+
+* `type` Set the type of configuration strategy [autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all].
+  * `autodetect` try to use the best associated with the type of change in the plan.
+  * `grow_and_shrink` Add all nodes with the new changes before to stop any node.
+  * `rolling_grow_and_shrink` Add nodes one by one replacing the existing ones when the new node is ready.
+  * `rolling_all` Stop all nodes, perform the changes and start all nodes.
+ 
 #### Kibana
 
 The optional `kibana` block supports the following arguments:
@@ -502,7 +550,7 @@ In addition to all the arguments above, the following attributes are exported:
 * `enterprise_search.#.topology.#.node_type_appserver` - Node type (Appserver) for the Enterprise Search topology element.
 * `enterprise_search.#.topology.#.node_type_connector` - Node type (Connector) for the Enterprise Search topology element.
 * `enterprise_search.#.topology.#.node_type_worker` - Node type (worker) for the Enterprise Search topology element.
-* `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics.
+* `observability.#.deployment_id` - Destination deployment ID for the shipped logs and monitoring metrics. Use `self` as destination deployment ID to target the current deployment.
 * `observability.#.ref_id` - (Optional) Elasticsearch resource kind ref_id of the destination deployment.
 * `observability.#.logs` - Enables or disables shipping logs. Defaults to true.
 * `observability.#.metrics` - Enables or disables shipping metrics. Defaults to true.

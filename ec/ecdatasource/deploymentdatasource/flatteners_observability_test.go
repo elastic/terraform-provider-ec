@@ -22,7 +22,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,16 +51,16 @@ func TestFlattenObservability(t *testing.T) {
 			args: args{settings: &models.DeploymentSettings{
 				Observability: &models.DeploymentObservabilitySettings{
 					Logging: &models.DeploymentLoggingSettings{
-						Destination: &models.AbsoluteRefID{
+						Destination: &models.ObservabilityAbsoluteDeployment{
 							DeploymentID: &mock.ValidClusterID,
-							RefID:        ec.String("main-elasticsearch"),
+							RefID:        "main-elasticsearch",
 						},
 					},
 				},
 			}},
 			want: []interface{}{map[string]interface{}{
 				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        ec.String("main-elasticsearch"),
+				"ref_id":        "main-elasticsearch",
 				"logs":          true,
 			}},
 		},
@@ -70,16 +69,16 @@ func TestFlattenObservability(t *testing.T) {
 			args: args{settings: &models.DeploymentSettings{
 				Observability: &models.DeploymentObservabilitySettings{
 					Metrics: &models.DeploymentMetricsSettings{
-						Destination: &models.AbsoluteRefID{
+						Destination: &models.ObservabilityAbsoluteDeployment{
 							DeploymentID: &mock.ValidClusterID,
-							RefID:        ec.String("main-elasticsearch"),
+							RefID:        "main-elasticsearch",
 						},
 					},
 				},
 			}},
 			want: []interface{}{map[string]interface{}{
 				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        ec.String("main-elasticsearch"),
+				"ref_id":        "main-elasticsearch",
 				"metrics":       true,
 			}},
 		},
@@ -88,22 +87,22 @@ func TestFlattenObservability(t *testing.T) {
 			args: args{settings: &models.DeploymentSettings{
 				Observability: &models.DeploymentObservabilitySettings{
 					Logging: &models.DeploymentLoggingSettings{
-						Destination: &models.AbsoluteRefID{
+						Destination: &models.ObservabilityAbsoluteDeployment{
 							DeploymentID: &mock.ValidClusterID,
-							RefID:        ec.String("main-elasticsearch"),
+							RefID:        "main-elasticsearch",
 						},
 					},
 					Metrics: &models.DeploymentMetricsSettings{
-						Destination: &models.AbsoluteRefID{
+						Destination: &models.ObservabilityAbsoluteDeployment{
 							DeploymentID: &mock.ValidClusterID,
-							RefID:        ec.String("main-elasticsearch"),
+							RefID:        "main-elasticsearch",
 						},
 					},
 				},
 			}},
 			want: []interface{}{map[string]interface{}{
 				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        ec.String("main-elasticsearch"),
+				"ref_id":        "main-elasticsearch",
 				"logs":          true,
 				"metrics":       true,
 			}},

@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -92,6 +93,8 @@ func newElasticsearchResource() *schema.Resource {
 
 			"trust_account":  newTrustAccountSchema(),
 			"trust_external": newTrustExternalSchema(),
+
+			"strategy": newStrategySchema(),
 		},
 	}
 }
@@ -503,6 +506,41 @@ func externalResource() *schema.Resource {
 				Optional:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+				},
+			},
+		},
+	}
+}
+
+func newStrategySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:        schema.TypeList,
+		Description: "Configuration strategy settings.",
+		Optional:    true,
+		MaxItems:    1,
+		Elem:        strategyResource(),
+	}
+}
+
+func strategyResource() *schema.Resource {
+	validValues := strings.Join(strategiesList, ", ")
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"type": {
+				Description: "Configuration strategy type " + validValues,
+				Type:        schema.TypeString,
+				Required:    true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					t := val.(string)
+					fmt.Printf("Validating %s in %v", t, validValues)
+					if !slice.HasString(strategiesList, t) {
+						errs = append(errs, fmt.Errorf(`invalid %s '%s': valid strategies are %v`, key, t, validValues))
+					}
+					return
+				},
+				// changes on this setting do not change the plan.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return true
 				},
 			},
 		},

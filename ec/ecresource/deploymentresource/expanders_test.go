@@ -190,15 +190,15 @@ func Test_createResourceToModel(t *testing.T) {
 					},
 					Observability: &models.DeploymentObservabilitySettings{
 						Logging: &models.DeploymentLoggingSettings{
-							Destination: &models.AbsoluteRefID{
+							Destination: &models.ObservabilityAbsoluteDeployment{
 								DeploymentID: &mock.ValidClusterID,
-								RefID:        ec.String("main-elasticsearch"),
+								RefID:        "main-elasticsearch",
 							},
 						},
 						Metrics: &models.DeploymentMetricsSettings{
-							Destination: &models.AbsoluteRefID{
+							Destination: &models.ObservabilityAbsoluteDeployment{
 								DeploymentID: &mock.ValidClusterID,
-								RefID:        ec.String("main-elasticsearch"),
+								RefID:        "main-elasticsearch",
 							},
 						},
 					},
@@ -388,15 +388,15 @@ func Test_createResourceToModel(t *testing.T) {
 					},
 					Observability: &models.DeploymentObservabilitySettings{
 						Logging: &models.DeploymentLoggingSettings{
-							Destination: &models.AbsoluteRefID{
+							Destination: &models.ObservabilityAbsoluteDeployment{
 								DeploymentID: &mock.ValidClusterID,
-								RefID:        ec.String("main-elasticsearch"),
+								RefID:        "main-elasticsearch",
 							},
 						},
 						Metrics: &models.DeploymentMetricsSettings{
-							Destination: &models.AbsoluteRefID{
+							Destination: &models.ObservabilityAbsoluteDeployment{
 								DeploymentID: &mock.ValidClusterID,
-								RefID:        ec.String("main-elasticsearch"),
+								RefID:        "main-elasticsearch",
 							},
 						},
 					},
@@ -3199,15 +3199,15 @@ func Test_updateResourceToModel(t *testing.T) {
 				Settings: &models.DeploymentUpdateSettings{
 					Observability: &models.DeploymentObservabilitySettings{
 						Logging: &models.DeploymentLoggingSettings{
-							Destination: &models.AbsoluteRefID{
+							Destination: &models.ObservabilityAbsoluteDeployment{
 								DeploymentID: &mock.ValidClusterID,
-								RefID:        ec.String("main-elasticsearch"),
+								RefID:        "main-elasticsearch",
 							},
 						},
 						Metrics: &models.DeploymentMetricsSettings{
-							Destination: &models.AbsoluteRefID{
+							Destination: &models.ObservabilityAbsoluteDeployment{
 								DeploymentID: &mock.ValidClusterID,
-								RefID:        ec.String("main-elasticsearch"),
+								RefID:        "main-elasticsearch",
 							},
 						},
 					},
