@@ -15,7 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ec
+package awsprivatelinkdatasource
 
-// Version contains the current terraform provider version.
-const Version = "0.5.0-dev"
+import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+func newSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"region": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+
+		// Computed
+		"vpc_service_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"domain_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"zone_ids": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+	}
+}
