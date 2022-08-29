@@ -18,7 +18,6 @@
 package deploymentresource
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -28,13 +27,13 @@ import (
 )
 
 func Test_parseDeploymentTemplate(t *testing.T) {
-	var contents = `{"id": "deployment-template-name","deployment_template": 
+	var contents = `{"id": "deployment-template-name","deployment_template":
 	{"resources": {
 		"elasticsearch": [{
 			"plan": { "deployment_template": {}}
 		}]
 	}}}`
-	if err := ioutil.WriteFile("test.json", []byte(contents), 0660); err != nil {
+	if err := os.WriteFile("test.json", []byte(contents), 0660); err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove("test.json")

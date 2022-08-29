@@ -20,7 +20,6 @@ package ec
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -37,7 +36,7 @@ import (
 )
 
 func Test_verboseSettings(t *testing.T) {
-	f, err := ioutil.TempFile("", "request")
+	f, err := os.CreateTemp("", "request")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +160,7 @@ func Test_newAPIConfig(t *testing.T) {
 		os.Remove("request.log")
 	}()
 
-	customFile, err := ioutil.TempFile("", "request-custom-verbose")
+	customFile, err := os.CreateTemp("", "request-custom-verbose")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -50,7 +49,7 @@ func fileAsResponseBody(t *testing.T, name string) io.ReadCloser {
 	}
 	buf.WriteString("\n")
 
-	return ioutil.NopCloser(buf)
+	return io.NopCloser(buf)
 }
 
 func Test_createResourceToModel(t *testing.T) {
