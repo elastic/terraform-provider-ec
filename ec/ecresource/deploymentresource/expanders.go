@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/blang/semver/v4"
+	semver "github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -307,7 +307,7 @@ func ensurePartialSnapshotStrategy(ess []*models.ElasticsearchPayload) {
 // migrated over to node_roles. Which will be true when:
 // * The version field doesn't change.
 // * The version field changes but:
-//   * The Elasticsearch.0.toplogy doesn't have any node_type_* set.
+//   - The Elasticsearch.0.toplogy doesn't have any node_type_* set.
 func legacyToNodeRoles(d *schema.ResourceData) (bool, error) {
 	if !d.HasChange("version") {
 		return true, nil
