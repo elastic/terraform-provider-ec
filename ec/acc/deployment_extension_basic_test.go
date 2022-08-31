@@ -34,9 +34,9 @@ func TestAccDeploymentExtension_basic(t *testing.T) {
 	cfg2 := fixtureAccExtensionBasicWithTF(t, "testdata/extension_basic.tf", randomName, "updated desc")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccExtensionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,

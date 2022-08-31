@@ -31,8 +31,8 @@ func TestAccDatasourceStack_latest(t *testing.T) {
 	cfg := fixtureAccStackDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
 		Steps: []resource.TestStep{
 			{
 				Config:             cfg,
@@ -53,8 +53,8 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 	cfg := fixtureAccStackDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
 		Steps: []resource.TestStep{
 			{
 				Config:             cfg,

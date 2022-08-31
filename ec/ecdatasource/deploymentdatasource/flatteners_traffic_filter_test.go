@@ -18,6 +18,7 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -31,7 +32,7 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []string
 	}{
 		{
 			name: "parses no rules when they're empty",
@@ -54,9 +55,10 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 					Rulesets: []string{},
 				},
 			}},
+			want: []string{},
 		},
 		{
-			name: "parses no rules when they're empty",
+			name: "parses rules",
 			args: args{settings: &models.DeploymentSettings{
 				TrafficFilterSettings: &models.TrafficFilterSettings{
 					Rulesets: []string{
@@ -65,7 +67,7 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{
+			want: []string{
 				"one-id-of-a-rule",
 				"another-id-of-another-rule",
 			},
@@ -73,7 +75,11 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenTrafficFiltering(tt.args.settings)
+			var newState modelV0
+			diags := flattenTrafficFiltering(context.Background(), tt.args.settings, &newState.TrafficFilter)
+			assert.Empty(t, diags)
+			var got []string
+			newState.TrafficFilter.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})
 	}
