@@ -18,13 +18,8 @@
 package ec
 
 import (
+	"context"
 	"fmt"
-	"time"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
@@ -33,6 +28,25 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"time"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
+	//"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
 
 const (
@@ -59,8 +73,8 @@ var (
 	defaultTimeout = 40 * time.Second
 )
 
-// Provider returns a schema.Provider.
-func Provider() *schema.Provider {
+// LegacyProvider returns a schema.Provider.
+func LegacyProvider() *schema.Provider {
 	return &schema.Provider{
 		ConfigureContextFunc: configureAPI,
 		Schema:               newSchema(),
@@ -160,4 +174,205 @@ func newSchema() map[string]*schema.Schema {
 			),
 		},
 	}
+}
+
+func Provider() provider.Provider {
+	return &ecProvider{}
+	//ConfigureContextFunc: configureAPI,
+	//DataSourcesMap: map[string]*schema.Resource{
+	//	"ec_deployment":  deploymentdatasource.DataSource(),
+	//	"ec_deployments": deploymentsdatasource.DataSource(),
+	//	"ec_stack":       stackdatasource.DataSource(),
+	//},
+	//ResourcesMap: map[string]*schema.Resource{
+	//	"ec_deployment":                            deploymentresource.Resource(),
+	//	"ec_deployment_elasticsearch_keystore":     elasticsearchkeystoreresource.Resource(),
+	//	"ec_deployment_traffic_filter":             trafficfilterresource.Resource(),
+	//	"ec_deployment_traffic_filter_association": trafficfilterassocresource.Resource(),
+	//	"ec_deployment_extension":                  extensionresource.Resource(),
+	//},
+}
+
+var _ provider.Provider = (*ecProvider)(nil)
+
+type ecProvider struct{}
+
+func (p *ecProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"endpoint": {
+				Description: fmt.Sprintf(endpointDesc, api.ESSEndpoint),
+				Type:        types.StringType,
+				Optional:    true,
+				Validators:  []tfsdk.AttributeValidator{validators.Known(), validators.IsURLWithSchemeValidator(validURLSchemes)},
+			},
+			"apikey": {
+				Description: apikeyDesc,
+				Type:        types.StringType,
+				Optional:    true,
+				Sensitive:   true,
+			},
+			"username": {
+				Description: usernameDesc,
+				Type:        types.StringType,
+				Optional:    true,
+			},
+			"password": {
+				Description: passwordDesc,
+				Type:        types.StringType,
+				Optional:    true,
+				Sensitive:   true,
+			},
+			"insecure": {
+				Description: insecureDesc,
+				Type:        types.BoolType,
+				Optional:    true,
+			},
+			"timeout": {
+				Description: timeoutDesc,
+				Type:        types.StringType,
+				Optional:    true,
+			},
+			"verbose": {
+				Description: verboseDesc,
+				Type:        types.BoolType,
+				Optional:    true,
+			},
+			"verbose_credentials": {
+				Description: verboseCredsDesc,
+				Type:        types.BoolType,
+				Optional:    true,
+			},
+			"verbose_file": {
+				Description: timeoutDesc,
+				Type:        types.StringType,
+				Optional:    true,
+			},
+		},
+	}, diags
+}
+
+type providerData struct {
+	Endpoint           types.String `tfsdk:"endpoint"`
+	ApiKey             types.String `tfsdk:"apikey"`
+	Username           types.String `tfsdk:"username"`
+	Password           types.String `tfsdk:"password"`
+	Insecure           types.Bool   `tfsdk:"insecure"`
+	Timeout            types.String `tfsdk:"timeout"`
+	Verbose            types.Bool   `tfsdk:"verbose"`
+	VerboseCredentials types.Bool   `tfsdk:"verbose_credentials"`
+	VerboseFile        types.String `tfsdk:"verbose_file"`
+}
+
+func (p *ecProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+	// Retrieve provider data from configuration
+	var config providerData
+	diags := req.Config.Get(ctx, &config)
+	res.Diagnostics.Append(diags...)
+	if res.Diagnostics.HasError() {
+		return
+	}
+
+	var endpoint string
+	if config.Endpoint.Null {
+		endpoint = util.MultiGetenv([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
+		/* TODO validate endpoint (see validators used above)
+			res.Diagnostics.AddWarning(
+				"Unable to create client",
+				"Cannot use unknown value as endpoint",
+			)
+			return
+		}
+		*/
+	} else {
+		endpoint = config.Endpoint.Value
+	}
+
+	var apiKey string
+	if config.ApiKey.Null {
+		apiKey = util.MultiGetenv([]string{"EC_API_KEY"}, "")
+	} else {
+		apiKey = config.ApiKey.Value
+	}
+
+	var username string
+	if config.Username.Null {
+		username = util.MultiGetenv([]string{"EC_USER", "EC_USERNAME"}, "")
+	} else {
+		username = config.Username.Value
+	}
+
+	var password string
+	if config.Password.Null {
+		password = util.MultiGetenv([]string{"EC_PASS", "EC_PASSWORD"}, "")
+	} else {
+		password = config.Password.Value
+	}
+
+	var err error
+	var insecure bool
+	if config.Insecure.Null {
+		insecureStr := util.MultiGetenv([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
+		if insecure, err = util.StringToBool(insecureStr); err != nil {
+			res.Diagnostics.AddWarning(
+				"Unable to create client",
+				fmt.Sprintf("Invalid value %v for insecure", insecureStr),
+			)
+			return
+		}
+	} else {
+		insecure = config.Insecure.Value
+	}
+
+	var timeout string
+	if config.Timeout.Null {
+		timeout = util.MultiGetenv([]string{"EC_TIMEOUT"}, defaultTimeout.String())
+	} else {
+		timeout = config.Timeout.Value
+	}
+
+	var verbose bool
+	if config.Verbose.Null {
+		verboseStr := util.MultiGetenv([]string{"EC_VERBOSE"}, "")
+		if verbose, err = util.StringToBool(verboseStr); err != nil {
+			res.Diagnostics.AddWarning(
+				"Unable to create client",
+				fmt.Sprintf("Invalid value %v for verbose", verboseStr),
+			)
+			return
+		}
+	} else {
+		verbose = config.Verbose.Value
+	}
+
+	var verboseCredentials bool
+	if config.VerboseCredentials.Null {
+		verboseCredentialsStr := util.MultiGetenv([]string{"EC_VERBOSE_CREDENTIALS"}, "")
+		if verboseCredentials, err = util.StringToBool(verboseCredentialsStr); err != nil {
+			res.Diagnostics.AddWarning(
+				"Unable to create client",
+				fmt.Sprintf("Invalid value %v for verboseCredentials", verboseCredentialsStr),
+			)
+			return
+		}
+	} else {
+		verboseCredentials = config.VerboseCredentials.Value
+	}
+
+	var verboseFile string
+	if config.VerboseFile.Null {
+		verboseFile = util.MultiGetenv([]string{"EC_VERBOSE_FILE"}, "request.log")
+	} else {
+		verboseFile = config.VerboseFile.Value
+	}
+}
+
+func (p *ecProvider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+	return map[string]provider.ResourceType{}, nil
+}
+
+func (p *ecProvider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+	return map[string]provider.DataSourceType{}, nil
 }

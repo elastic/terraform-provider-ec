@@ -20,6 +20,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"log"
 
 	"github.com/elastic/terraform-provider-ec/ec"
@@ -40,7 +41,7 @@ func main() {
 
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(
 		context.Background(),
-		ec.Provider().GRPCProvider,
+		ec.LegacyProvider().GRPCProvider,
 	)
 
 	if err != nil {
@@ -50,6 +51,9 @@ func main() {
 	ctx := context.Background()
 	providers := []func() tfprotov6.ProviderServer{
 		func() tfprotov6.ProviderServer { return upgradedSdkProvider },
+		func() tfprotov6.ProviderServer {
+			return providerserver.NewProtocol6(ec.Provider())()
+		},
 		// TODO
 		// add new v6 provider with `ec_deployment` resource
 	}

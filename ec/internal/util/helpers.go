@@ -19,6 +19,8 @@ package util
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
@@ -72,4 +74,29 @@ func IsCurrentIntegrationsServerPlanEmpty(res *models.IntegrationsServerResource
 func IsCurrentEssPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
+}
+
+// MultiGetenv returns the value of the first environment variable in the
+// given list that has a non-empty value. If none of the environment
+// variables have a value, the default value is returned.
+func MultiGetenv(keys []string, defaultValue string) string {
+	for _, key := range keys {
+		if value := os.Getenv(key); value != "" {
+			return value
+		}
+	}
+	return defaultValue
+}
+
+func StringToBool(str string) (bool, error) {
+	if str == "" {
+		return false, nil
+	}
+
+	v, err := strconv.ParseBool(str)
+	if err != nil {
+		return false, err
+	}
+
+	return v, nil
 }
