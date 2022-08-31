@@ -18,10 +18,12 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +34,7 @@ func TestFlattenObservability(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []observabilitySettingsModel
 	}{
 		{
 			name: "flattens no observability settings when empty",
@@ -58,10 +60,11 @@ func TestFlattenObservability(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        "main-elasticsearch",
-				"logs":          true,
+			want: []observabilitySettingsModel{{
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				RefID:        types.String{Value: "main-elasticsearch"},
+				Logs:         types.Bool{Value: true},
+				Metrics:      types.Bool{Value: false},
 			}},
 		},
 		{
@@ -76,10 +79,11 @@ func TestFlattenObservability(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        "main-elasticsearch",
-				"metrics":       true,
+			want: []observabilitySettingsModel{{
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				RefID:        types.String{Value: "main-elasticsearch"},
+				Logs:         types.Bool{Value: false},
+				Metrics:      types.Bool{Value: true},
 			}},
 		},
 		{
@@ -100,17 +104,21 @@ func TestFlattenObservability(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        "main-elasticsearch",
-				"logs":          true,
-				"metrics":       true,
+			want: []observabilitySettingsModel{{
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				RefID:        types.String{Value: "main-elasticsearch"},
+				Logs:         types.Bool{Value: true},
+				Metrics:      types.Bool{Value: true},
 			}},
 		},
 	}
 	for _, tt := range tests {
+		var newState modelV0
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenObservability(tt.args.settings)
+			diags := flattenObservability(context.Background(), tt.args.settings, &newState.Observability)
+			assert.Empty(t, diags)
+			var got []observabilitySettingsModel
+			newState.Observability.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})
 	}

@@ -38,9 +38,9 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	updateLargeConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateLargeCfg, randomName, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -96,9 +96,9 @@ func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, "azure-australiaeast")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,

@@ -15,28 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentdatasource
+package internal
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-// flattenTags takes in Deployment Metadata resource models and returns its
-// Tags in flattened form.
-func flattenTags(metadata *models.DeploymentMetadata) types.Map {
-
-	if metadata == nil || metadata.Tags == nil {
-		return types.Map{ElemType: types.StringType, Elems: map[string]attr.Value{}}
-	}
-
-	var tags = make(map[string]attr.Value)
-	for _, res := range metadata.Tags {
-		if res.Key != nil {
-			tags[*res.Key] = types.String{Value: *res.Value}
-		}
-	}
-	return types.Map{ElemType: types.StringType, Elems: tags}
-
+// Provider is an interface required to avoid import cycles in datasource / resource packages
+type Provider interface {
+	provider.Provider
+	GetClient() *api.API
 }

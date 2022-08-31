@@ -343,7 +343,7 @@ func Test_newAPIConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newAPIConfig(tt.args.d)
+			got, err := newAPIConfigLegacy(tt.args.d)
 			assert.Equal(t, tt.err, err)
 
 			if got.Verbose && err == nil {
