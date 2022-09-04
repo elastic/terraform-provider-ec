@@ -18,11 +18,14 @@
 package stackdatasource
 
 import (
+	"context"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_flattenApmResource(t *testing.T) {
@@ -32,7 +35,7 @@ func Test_flattenApmResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []resourceKindConfigModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
@@ -54,17 +57,25 @@ func Test_flattenApmResource(t *testing.T) {
 				},
 				DockerImage: ec.String("docker.elastic.co/cloud-assets/apm:7.9.1-0"),
 			}},
-			want: []interface{}{map[string]interface{}{
-				"denylist":                 []interface{}{"some"},
-				"capacity_constraints_max": 8192,
-				"capacity_constraints_min": 512,
-				"docker_image":             "docker.elastic.co/cloud-assets/apm:7.9.1-0",
+			want: []resourceKindConfigModelV0{{
+				DenyList:               util.StringListAsType([]string{"some"}),
+				CapacityConstraintsMax: types.Int64{Value: 8192},
+				CapacityConstraintsMin: types.Int64{Value: 512},
+				CompatibleNodeTypes:    util.StringListAsType(nil),
+				DockerImage:            types.String{Value: "docker.elastic.co/cloud-assets/apm:7.9.1-0"},
+				Plugins:                util.StringListAsType(nil),
+				DefaultPlugins:         util.StringListAsType(nil),
 			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenApmResources(tt.args.res)
+			var newState modelV0
+			diags := flattenStackVersionApmConfig(context.Background(), tt.args.res, &newState.Apm)
+			assert.Empty(t, diags)
+
+			var got []resourceKindConfigModelV0
+			newState.Apm.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})
 	}

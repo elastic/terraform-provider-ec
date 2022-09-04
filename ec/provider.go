@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
+	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -39,14 +40,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
 )
 
 const (
@@ -81,7 +74,6 @@ func LegacyProvider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_deployment":  deploymentdatasource.DataSource(),
 			"ec_deployments": deploymentsdatasource.DataSource(),
-			"ec_stack":       stackdatasource.DataSource(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ec_deployment":                            deploymentresource.Resource(),
@@ -176,8 +168,8 @@ func newSchema() map[string]*schema.Schema {
 	}
 }
 
-func Provider() provider.Provider {
-	return &ecProvider{}
+func New() provider.Provider {
+	return &Provider{}
 	//ConfigureContextFunc: configureAPI,
 	//DataSourcesMap: map[string]*schema.Resource{
 	//	"ec_deployment":  deploymentdatasource.DataSource(),
@@ -193,11 +185,17 @@ func Provider() provider.Provider {
 	//},
 }
 
-var _ provider.Provider = (*ecProvider)(nil)
+var _ internal.Provider = (*Provider)(nil)
 
-type ecProvider struct{}
+func (p *Provider) GetClient() *api.API {
+	return p.Client
+}
 
-func (p *ecProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+type Provider struct {
+	Client *api.API
+}
+
+func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	return tfsdk.Schema{
@@ -266,7 +264,7 @@ type providerData struct {
 	VerboseFile        types.String `tfsdk:"verbose_file"`
 }
 
-func (p *ecProvider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
 	// Retrieve provider data from configuration
 	var config providerData
 	diags := req.Config.Get(ctx, &config)
@@ -280,7 +278,7 @@ func (p *ecProvider) Configure(ctx context.Context, req provider.ConfigureReques
 		endpoint = util.MultiGetenv([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
 		/* TODO validate endpoint (see validators used above)
 			res.Diagnostics.AddWarning(
-				"Unable to create client",
+				"Unable to create Client",
 				"Cannot use unknown value as endpoint",
 			)
 			return
@@ -367,12 +365,42 @@ func (p *ecProvider) Configure(ctx context.Context, req provider.ConfigureReques
 	} else {
 		verboseFile = config.VerboseFile.Value
 	}
+
+	cfg, err := newAPIConfig(
+		endpoint,
+		apiKey,
+		username,
+		password,
+		insecure,
+		timeout,
+		verbose,
+		verboseCredentials,
+		verboseFile,
+	)
+	if err != nil {
+		res.Diagnostics.AddWarning(
+			"Unable to create api Client config",
+			fmt.Sprintf("Unexpected error: %+v", err),
+		)
+		return
+	}
+
+	p.Client, err = api.NewAPI(cfg)
+	if err != nil {
+		res.Diagnostics.AddWarning(
+			"Unable to create api Client config",
+			fmt.Sprintf("Unexpected error: %+v", err),
+		)
+		return
+	}
 }
 
-func (p *ecProvider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+func (p *Provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
 	return map[string]provider.ResourceType{}, nil
 }
 
-func (p *ecProvider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-	return map[string]provider.DataSourceType{}, nil
+func (p *Provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+	return map[string]provider.DataSourceType{
+		"ec_stack": stackdatasource.StackDataSourceType{},
+	}, nil
 }

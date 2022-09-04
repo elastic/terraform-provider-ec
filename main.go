@@ -52,10 +52,8 @@ func main() {
 	providers := []func() tfprotov6.ProviderServer{
 		func() tfprotov6.ProviderServer { return upgradedSdkProvider },
 		func() tfprotov6.ProviderServer {
-			return providerserver.NewProtocol6(ec.Provider())()
+			return providerserver.NewProtocol6(ec.New())()
 		},
-		// TODO
-		// add new v6 provider with `ec_deployment` resource
 	}
 
 	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
