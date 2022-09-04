@@ -73,7 +73,6 @@ func LegacyProvider() *schema.Provider {
 		Schema:               newSchema(),
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_deployment":  deploymentdatasource.DataSource(),
-			"ec_deployments": deploymentsdatasource.DataSource(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ec_deployment":                            deploymentresource.Resource(),
@@ -401,6 +400,7 @@ func (p *Provider) GetResources(_ context.Context) (map[string]provider.Resource
 
 func (p *Provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 	return map[string]provider.DataSourceType{
-		"ec_stack": stackdatasource.StackDataSourceType{},
+		"ec_stack":       stackdatasource.DataSourceType{},
+		"ec_deployments": deploymentsdatasource.DataSourceType{},
 	}, nil
 }

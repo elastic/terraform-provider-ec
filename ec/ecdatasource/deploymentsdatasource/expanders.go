@@ -18,18 +18,21 @@
 package deploymentsdatasource
 
 import (
+	"context"
 	"fmt"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // expandFilters expands all filters into a search request model
-func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
+func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	var queries []*models.QueryContainer
 
-	namePrefix := d.Get("name_prefix").(string)
+	namePrefix := state.NamePrefix.Value
 	if namePrefix != "" {
 		queries = append(queries, &models.QueryContainer{
 			Prefix: map[string]models.PrefixQuery{
@@ -40,7 +43,7 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 		})
 	}
 
-	depTemplateID := d.Get("deployment_template_id").(string)
+	depTemplateID := state.DeploymentTemplateID.Value
 	if depTemplateID != "" {
 		esPath := "resources.elasticsearch"
 		tplTermPath := esPath + ".info.plan_info.current.plan.deployment_template.id"
@@ -48,10 +51,12 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 		queries = append(queries, newNestedTermQuery(esPath, tplTermPath, depTemplateID))
 	}
 
-	healthy := d.Get("healthy").(string)
+	healthy := state.Healthy.Value
 	if healthy != "" {
 		if healthy != "true" && healthy != "false" {
-			return nil, fmt.Errorf("invalid value for healthy (true|false): '%s'", healthy)
+			diags.AddError("invalid value for healthy",
+				fmt.Sprintf("invalid value for healthy (true|false): '%s'", healthy))
+			return nil, diags
 		}
 
 		queries = append(queries, &models.QueryContainer{
@@ -61,11 +66,16 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 		})
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
+	var tags = make(map[string]string)
+	diags.Append(state.Tags.ElementsAs(ctx, &tags, false)...)
+	if diags.HasError() {
+		return nil, diags
+	}
+
 	var tagQueries []*models.QueryContainer
 	for key, value := range tags {
 		tagQueries = append(tagQueries,
-			newNestedTagQuery(key, value.(string)),
+			newNestedTagQuery(key, value),
 		)
 	}
 	if len(tagQueries) > 0 {
@@ -76,20 +86,29 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 			},
 		})
 	}
+	type resourceFilter struct {
+		resourceKind string
+		settings     *types.List
+	}
 
-	validResourceKinds := []string{util.Elasticsearch, util.Kibana,
-		util.Apm, util.EnterpriseSearch, util.IntegrationsServer}
+	resourceFilters := []resourceFilter{
+		{resourceKind: util.Elasticsearch, settings: &state.Elasticsearch},
+		{resourceKind: util.Kibana, settings: &state.Kibana},
+		{resourceKind: util.Apm, settings: &state.Apm},
+		{resourceKind: util.EnterpriseSearch, settings: &state.EnterpriseSearch},
+		{resourceKind: util.IntegrationsServer, settings: &state.IntegrationsServer},
+	}
 
-	for _, resourceKind := range validResourceKinds {
-		req, err := expandResourceFilters(d.Get(resourceKind).([]interface{}), resourceKind)
-		if err != nil {
-			return nil, err
+	for _, filter := range resourceFilters {
+		req, diags := expandResourceFilters(ctx, filter.settings, filter.resourceKind)
+		if diags.HasError() {
+			return nil, diags
 		}
 		queries = append(queries, req...)
 	}
 
 	searchReq := models.SearchRequest{
-		Size: int32(d.Get("size").(int)),
+		Size: int32(state.Size.Value),
 		Sort: []interface{}{"id"},
 	}
 
@@ -111,42 +130,45 @@ func expandFilters(d *schema.ResourceData) (*models.SearchRequest, error) {
 }
 
 // expandResourceFilters expands filters from a specific resource kind into query models
-func expandResourceFilters(resources []interface{}, resourceKind string) ([]*models.QueryContainer, error) {
-	if len(resources) == 0 {
+func expandResourceFilters(ctx context.Context, resources *types.List, resourceKind string) ([]*models.QueryContainer, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if len(resources.Elems) == 0 {
 		return nil, nil
 	}
-
+	var filters []resourceFiltersModelV0
 	var queries []*models.QueryContainer
-
-	for _, raw := range resources {
-		var q = raw.(map[string]interface{})
-
+	diags.Append(resources.ElementsAs(ctx, &filters, false)...)
+	if diags.HasError() {
+		return nil, diags
+	}
+	for _, filter := range filters {
 		resourceKindPath := "resources." + resourceKind
 
-		if status, ok := q["status"].(string); ok && status != "" {
+		if filter.Status.Value != "" {
 			statusTermPath := resourceKindPath + ".info.status"
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, statusTermPath, status))
+				newNestedTermQuery(resourceKindPath, statusTermPath, filter.Status.Value))
 		}
 
-		if version, ok := q["version"].(string); ok && version != "" {
+		if filter.Version.Value != "" {
 			versionTermPath := resourceKindPath + ".info.plan_info.current.plan." +
 				resourceKind + ".version"
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, versionTermPath, version))
+				newNestedTermQuery(resourceKindPath, versionTermPath, filter.Version.Value))
 		}
 
-		if healthy, ok := q["healthy"].(string); ok && healthy != "" {
+		if filter.Healthy.Value != "" {
 			healthyTermPath := resourceKindPath + ".info.healthy"
 
-			if healthy != "true" && healthy != "false" {
-				return nil, fmt.Errorf("invalid value for healthy (true|false): '%s'", healthy)
+			if filter.Healthy.Value != "true" && filter.Healthy.Value != "false" {
+				diags.AddError("invalid value for healthy", fmt.Sprintf("invalid value for healthy (true|false): '%s'", filter.Healthy.Value))
+				return nil, diags
 			}
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, healthyTermPath, healthy))
+				newNestedTermQuery(resourceKindPath, healthyTermPath, filter.Healthy.Value))
 		}
 	}
 
