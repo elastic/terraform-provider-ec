@@ -20,6 +20,7 @@ package ec
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -298,6 +299,7 @@ func (p *Provider) GetResources(_ context.Context) (map[string]provider.Resource
 
 func (p *Provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 	return map[string]provider.DataSourceType{
-		"ec_stack": stackdatasource.StackDataSourceType{},
+		"ec_stack":       stackdatasource.DataSourceType{},
+		"ec_deployments": deploymentsdatasource.DataSourceType{},
 	}, nil
 }

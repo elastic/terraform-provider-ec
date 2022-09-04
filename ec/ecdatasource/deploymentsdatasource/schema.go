@@ -17,154 +17,159 @@
 
 package deploymentsdatasource
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"context"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-func newSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"name_prefix": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"healthy": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"deployment_template_id": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"tags": {
-			Type:     schema.TypeMap,
-			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+func (s DataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"name_prefix": {
+				Type:     types.StringType,
+				Optional: true,
 			},
-		},
-		"size": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			Default:  100,
-		},
-
-		// Computed
-		"return_count": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-		"deployments": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newDeploymentList(),
-		},
-
-		// Deployment resources
-		"elasticsearch": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"kibana": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"apm": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"integrations_server": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"enterprise_search": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-	}
-}
-
-func newDeploymentList() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"deployment_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"alias": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"elasticsearch_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"elasticsearch_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"kibana_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"kibana_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"apm_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"apm_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"integrations_server_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"integrations_server_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"enterprise_search_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"enterprise_search_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
-	}
-}
-
-func newResourceFilters() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
 			"healthy": {
-				Type:     schema.TypeString,
+				Type:     types.StringType,
 				Optional: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
+			"deployment_template_id": {
+				Type:     types.StringType,
 				Optional: true,
 			},
-			"version": {
-				Type:     schema.TypeString,
+			"tags": {
+				Type:     types.MapType{ElemType: types.StringType},
 				Optional: true,
 			},
+			"size": {
+				Type:     types.Int64Type,
+				Optional: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Int64{Value: 100}),
+				},
+			},
+
+			// Computed
+			"id": {
+				Type:                types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Unique identifier of this data source.",
+			},
+			"return_count": {
+				Type:     types.Int64Type,
+				Computed: true,
+			},
+			"deployments": deploymentsListSchema(),
+			/*
+				TODO (same for above)
+				{
+					Type:     types.ListType{ElemType: types.StringType},
+					Computed: true,
+					Elem:     newDeploymentList(),
+				},*/
+
+			// Deployment resources
+			"elasticsearch":       resourceFiltersSchema(),
+			"kibana":              resourceFiltersSchema(),
+			"apm":                 resourceFiltersSchema(),
+			"integrations_server": resourceFiltersSchema(),
+			"enterprise_search":   resourceFiltersSchema(),
+			/*
+				TODO (same for above)
+					{
+					Type:     types.ListType{ElemType: types.StringType},
+					Optional: true,
+					MaxItems: 1,
+					Elem:     newResourceFilters(),
+				},*/
 		},
+	}, nil
+}
+
+func deploymentsListSchema() tfsdk.Attribute {
+	// TODO should we use tfsdk.ListNestedAttributes here? - see https://github.com/hashicorp/terraform-provider-hashicups-pf/blob/8f222d805d39445673e442a674168349a45bc054/hashicups/data_source_coffee.go#L22
+	return tfsdk.Attribute{
+		Computed: true,
+		Type: types.ListType{ElemType: types.ObjectType{
+			AttrTypes: deploymentAttrTypes(),
+		}},
 	}
+}
+
+func deploymentAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"deployment_id":                   types.StringType,
+		"name":                            types.StringType,
+		"alias":                           types.StringType,
+		"elasticsearch_resource_id":       types.StringType,
+		"elasticsearch_ref_id":            types.StringType,
+		"kibana_resource_id":              types.StringType,
+		"kibana_ref_id":                   types.StringType,
+		"apm_resource_id":                 types.StringType,
+		"apm_ref_id":                      types.StringType,
+		"integrations_server_resource_id": types.StringType,
+		"integrations_server_ref_id":      types.StringType,
+		"enterprise_search_resource_id":   types.StringType,
+		"enterprise_search_ref_id":        types.StringType,
+	}
+}
+
+func resourceFiltersSchema() tfsdk.Attribute {
+	// TODO should we use tfsdk.ListNestedAttributes here? - see https://github.com/hashicorp/terraform-provider-hashicups-pf/blob/8f222d805d39445673e442a674168349a45bc054/hashicups/data_source_coffee.go#L22
+	return tfsdk.Attribute{
+		Computed: true,
+		Type: types.ListType{ElemType: types.ObjectType{
+			AttrTypes: resourceFiltersAttrTypes(),
+		}},
+	}
+}
+
+func resourceFiltersAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"healthy": types.StringType,
+		"status":  types.StringType,
+		"version": types.StringType,
+	}
+}
+
+type modelV0 struct {
+	ID                   types.String `tfsdk:"id"`
+	NamePrefix           types.String `tfsdk:"name_prefix"`
+	Healthy              types.String `tfsdk:"healthy"`
+	DeploymentTemplateID types.String `tfsdk:"deployment_template_id"`
+	Tags                 types.Map    `tfsdk:"tags"`
+	Size                 types.Int64  `tfsdk:"size"`
+	ReturnCount          types.Int64  `tfsdk:"return_count"`
+	Deployments          types.List   `tfsdk:"deployments"`         //< deploymentModelV0
+	Elasticsearch        types.List   `tfsdk:"elasticsearch"`       //< resourceFiltersModelV0
+	Kibana               types.List   `tfsdk:"kibana"`              //< resourceFiltersModelV0
+	Apm                  types.List   `tfsdk:"apm"`                 //< resourceFiltersModelV0
+	IntegrationsServer   types.List   `tfsdk:"integrations_server"` //< resourceFiltersModelV0
+	EnterpriseSearch     types.List   `tfsdk:"enterprise_search"`   //< resourceFiltersModelV0
+}
+
+type deploymentModelV0 struct {
+	DeploymentID                 types.String `tfsdk:"deployment_id"`
+	Name                         types.String `tfsdk:"name"`
+	Alias                        types.String `tfsdk:"alias"`
+	ElasticSearchResourceID      types.String `tfsdk:"elasticsearch_resource_id"`
+	ElasticSearchRefID           types.String `tfsdk:"elasticsearch_ref_id"`
+	KibanaResourceID             types.String `tfsdk:"kibana_resource_id"`
+	KibanaRefID                  types.String `tfsdk:"kibana_ref_id"`
+	ApmResourceID                types.String `tfsdk:"apm_resource_id"`
+	ApmRefID                     types.String `tfsdk:"apm_ref_id"`
+	IntegrationsServerResourceID types.String `tfsdk:"integrations_server_resource_id"`
+	IntegrationsServerRefID      types.String `tfsdk:"integrations_server_ref_id"`
+	EnterpriseSearchResourceID   types.String `tfsdk:"enterprise_search_resource_id"`
+	EnterpriseSearchRefID        types.String `tfsdk:"enterprise_search_ref_id"`
+}
+
+type resourceFiltersModelV0 struct {
+	Healthy types.String `tfsdk:"healthy"`
+	Status  types.String `tfsdk:"status"`
+	Version types.String `tfsdk:"version"`
 }
