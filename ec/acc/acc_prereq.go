@@ -37,7 +37,7 @@ var testAccProviderFactory = map[string]func() (*schema.Provider, error){
 }
 
 func providerFactory() (*schema.Provider, error) {
-	return ec.Provider(), nil
+	return ec.New(), nil
 }
 
 func testAccPreCheck(t *testing.T) {

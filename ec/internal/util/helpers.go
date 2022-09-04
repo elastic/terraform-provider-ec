@@ -19,6 +19,8 @@ package util
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"os"
 	"strconv"
 
@@ -99,4 +101,13 @@ func StringToBool(str string) (bool, error) {
 	}
 
 	return v, nil
+}
+
+func StringListAsType(in []string) types.List {
+	//goland:noinspection GoPreferNilSlice
+	out := []attr.Value{}
+	for _, value := range in {
+		out = append(out, types.String{Value: value})
+	}
+	return types.List{ElemType: types.StringType, Elems: out}
 }

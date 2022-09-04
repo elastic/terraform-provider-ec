@@ -15,32 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package internal
 
 import (
-	"context"
-	"flag"
-	"log"
-
-	"github.com/elastic/terraform-provider-ec/ec"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-//go:generate go run ./gen/gen.go
-
-// ProviderAddr contains the full name for this terraform provider.
-const ProviderAddr = "registry.terraform.io/elastic/ec"
-
-func main() {
-	var debugMode bool
-	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
-	flag.Parse()
-
-	err := providerserver.Serve(context.Background(), ec.New, providerserver.ServeOpts{
-		Address: ProviderAddr,
-		Debug:   debugMode,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+// Provider is an interface required to avoid import cycles in datasource / resource packages
+type Provider interface {
+	provider.Provider
+	GetClient() *api.API
 }
