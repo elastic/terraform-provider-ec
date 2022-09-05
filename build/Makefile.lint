@@ -1,6 +1,6 @@
 ## Lints all of the source files
 .PHONY: lint
-lint: golint golangci-lint check-license tfproviderlint tfproviderdocs terrafmt fmt
+lint: golangci-lint check-license tfproviderlint tfproviderdocs terrafmt fmt
 
 .PHONY: tfproviderlint
 tfproviderlint: tools
@@ -22,11 +22,6 @@ check-license: deps
 golangci-lint: deps
 	@ echo "-> Running golangci-lint..."
 	@ $(GOBIN)/golangci-lint run
-
-.PHONY: golint
-golint: deps
-	@ echo "-> Running golint..."
-	@ $(GOBIN)/golint -set_exit_status ./...
 
 .PHONY: terrafmt
 terrafmt:
