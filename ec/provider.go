@@ -25,9 +25,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/awsprivatelinkdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/privatelinkdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
@@ -69,7 +69,8 @@ func Provider() *schema.Provider {
 			"ec_deployment":               deploymentdatasource.DataSource(),
 			"ec_deployments":              deploymentsdatasource.DataSource(),
 			"ec_stack":                    stackdatasource.DataSource(),
-			"ec_aws_privatelink_endpoint": awsprivatelinkdatasource.DataSource(),
+			"ec_aws_privatelink_endpoint": privatelinkdatasource.AwsDataSource(),
+			"ec_gcp_private_service_connect_endpoint": privatelinkdatasource.GcpDataSource(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ec_deployment":                            deploymentresource.Resource(),

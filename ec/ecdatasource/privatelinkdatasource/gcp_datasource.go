@@ -15,11 +15,31 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package awsprivatelinkdatasource
+package privatelinkdatasource
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"time"
 
-func newSchema() map[string]*schema.Schema {
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+// GcpDataSource returns the ec_gcp_privateserviceconnect_endpoint data source schema.
+func GcpDataSource() *schema.Resource {
+	return &schema.Resource{
+		ReadContext: readContextFor(provider{
+			name:             "gcp",
+			populateResource: populateGcpResource,
+		}),
+
+		Schema: newGcpSchema(),
+
+		Timeouts: &schema.ResourceTimeout{
+			Default: schema.DefaultTimeout(5 * time.Minute),
+		},
+	}
+}
+
+func newGcpSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"region": {
 			Type:     schema.TypeString,
@@ -27,7 +47,7 @@ func newSchema() map[string]*schema.Schema {
 		},
 
 		// Computed
-		"vpc_service_name": {
+		"service_attachment_uri": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -35,12 +55,17 @@ func newSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"zone_ids": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-		},
 	}
+}
+
+func populateGcpResource(regionData map[string]interface{}, d *schema.ResourceData) error {
+	if err := copyToStateAs[string]("service_attachment_uri", regionData, d); err != nil {
+		return err
+	}
+
+	if err := copyToStateAs[string]("domain_name", regionData, d); err != nil {
+		return err
+	}
+
+	return nil
 }
