@@ -66,10 +66,11 @@ func Provider() *schema.Provider {
 		ConfigureContextFunc: configureAPI,
 		Schema:               newSchema(),
 		DataSourcesMap: map[string]*schema.Resource{
-			"ec_deployment":               deploymentdatasource.DataSource(),
-			"ec_deployments":              deploymentsdatasource.DataSource(),
-			"ec_stack":                    stackdatasource.DataSource(),
-			"ec_aws_privatelink_endpoint": privatelinkdatasource.AwsDataSource(),
+			"ec_deployment":                           deploymentdatasource.DataSource(),
+			"ec_deployments":                          deploymentsdatasource.DataSource(),
+			"ec_stack":                                stackdatasource.DataSource(),
+			"ec_aws_privatelink_endpoint":             privatelinkdatasource.AwsDataSource(),
+			"ec_azure_privatelink_endpoint":           privatelinkdatasource.AzureDataSource(),
 			"ec_gcp_private_service_connect_endpoint": privatelinkdatasource.GcpDataSource(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
