@@ -18,25 +18,33 @@
 package deploymentdatasource
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// flattenTags takes in Deployment Metadata resource models and returns its
-// Tags in flattened form.
-func flattenTags(metadata *models.DeploymentMetadata) types.Map {
-
-	if metadata == nil || metadata.Tags == nil {
-		return types.Map{ElemType: types.StringType, Elems: map[string]attr.Value{}}
+func observabilitySettingsSchema() tfsdk.Attribute {
+	// TODO should we use tfsdk.ListNestedAttributes here? - see https://github.com/hashicorp/terraform-provider-hashicups-pf/blob/8f222d805d39445673e442a674168349a45bc054/hashicups/data_source_coffee.go#L22
+	return tfsdk.Attribute{
+		Computed: true,
+		Type: types.ListType{ElemType: types.ObjectType{
+			AttrTypes: observabilitySettingsAttrTypes(),
+		}},
 	}
+}
 
-	var tags = make(map[string]attr.Value)
-	for _, res := range metadata.Tags {
-		if res.Key != nil {
-			tags[*res.Key] = types.String{Value: *res.Value}
-		}
+func observabilitySettingsAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"deployment_id": types.StringType,
+		"ref_id":        types.StringType,
+		"logs":          types.BoolType,
+		"metrics":       types.BoolType,
 	}
-	return types.Map{ElemType: types.StringType, Elems: tags}
+}
 
+type observabilitySettingsModel struct {
+	DeploymentID types.String `tfsdk:"deployment_id"`
+	RefID        types.String `tfsdk:"ref_id"`
+	Logs         types.Bool   `tfsdk:"logs"`
+	Metrics      types.Bool   `tfsdk:"metrics"`
 }

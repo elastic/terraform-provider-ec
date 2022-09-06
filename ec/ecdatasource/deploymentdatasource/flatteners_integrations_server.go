@@ -18,84 +18,107 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // flattenIntegrationsServerResources takes in IntegrationsServer resource models and returns its
 // flattened form.
-func flattenIntegrationsServerResources(in []*models.IntegrationsServerResourceInfo) []interface{} {
-	var result = make([]interface{}, 0, len(in))
+func flattenIntegrationsServerResources(ctx context.Context, in []*models.IntegrationsServerResourceInfo, target interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	var result = make([]integrationsServerResourceModelV0, 0, len(in))
+
 	for _, res := range in {
-		var m = make(map[string]interface{})
+		model := integrationsServerResourceModelV0{
+			Topology: types.List{ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()}},
+		}
 
 		if res.ElasticsearchClusterRefID != nil {
-			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
+			model.ElasticsearchClusterRefID = types.String{Value: *res.ElasticsearchClusterRefID}
 		}
 
 		if res.RefID != nil {
-			m["ref_id"] = *res.RefID
+			model.RefID = types.String{Value: *res.RefID}
 		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
-				m["healthy"] = *res.Info.Healthy
+				model.Healthy = types.Bool{Value: *res.Info.Healthy}
 			}
 
 			if res.Info.ID != nil {
-				m["resource_id"] = *res.Info.ID
+				model.ResourceID = types.String{Value: *res.Info.ID}
 			}
 
 			if res.Info.Status != nil {
-				m["status"] = *res.Info.Status
+				model.Status = types.String{Value: *res.Info.Status}
 			}
 
 			if !util.IsCurrentIntegrationsServerPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.IntegrationsServer != nil {
-					m["version"] = plan.IntegrationsServer.Version
+					model.Version = types.String{Value: plan.IntegrationsServer.Version}
 				}
 
-				m["topology"] = flattenIntegrationsServerTopology(plan)
+				diags.Append(flattenIntegrationsServerTopology(ctx, plan, &model.Topology)...)
 			}
 
 			if res.Info.Metadata != nil {
-				for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
-					m[k] = v
+				endpoints := util.FlattenClusterEndpoint(res.Info.Metadata)
+				if endpoints != nil {
+					model.HttpEndpoint = types.String{Value: endpoints["http_endpoint"].(string)}
+					model.HttpsEndpoint = types.String{Value: endpoints["https_endpoint"].(string)}
 				}
 			}
 		}
 
-		result = append(result, m)
+		result = append(result, model)
 	}
 
-	return result
+	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: integrationsServerResourceInfoAttrTypes(),
+		},
+	}, target)...)
+
+	return diags
 }
 
-func flattenIntegrationsServerTopology(plan *models.IntegrationsServerPlan) []interface{} {
-	var result = make([]interface{}, 0, len(plan.ClusterTopology))
+func flattenIntegrationsServerTopology(ctx context.Context, plan *models.IntegrationsServerPlan, target interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	var result = make([]integrationsServerTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
-		var m = make(map[string]interface{})
+		var model integrationsServerTopologyModelV0
 
 		if isIntegrationsServerSizePopulated(topology) && *topology.Size.Value == 0 {
 			continue
 		}
 
-		m["instance_configuration_id"] = topology.InstanceConfigurationID
+		model.InstanceConfigurationID = types.String{Value: topology.InstanceConfigurationID}
 
 		if isIntegrationsServerSizePopulated(topology) {
-			m["size"] = util.MemoryToState(*topology.Size.Value)
-			m["size_resource"] = *topology.Size.Resource
+			model.Size = types.String{Value: util.MemoryToState(*topology.Size.Value)}
+			model.SizeResource = types.String{Value: *topology.Size.Resource}
 		}
 
-		m["zone_count"] = topology.ZoneCount
+		model.ZoneCount = types.Int64{Value: int64(topology.ZoneCount)}
 
-		result = append(result, m)
+		result = append(result, model)
 	}
 
-	return result
+	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: apmTopologyAttrTypes(),
+		},
+	}, target)...)
+
+	return diags
 }
 
 func isIntegrationsServerSizePopulated(topology *models.IntegrationsServerTopologyElement) bool {
