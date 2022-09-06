@@ -20,6 +20,7 @@ package ec
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
@@ -33,8 +34,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
-	//"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	//"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	//"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
 	//"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
@@ -300,6 +299,7 @@ func (p *Provider) GetResources(_ context.Context) (map[string]provider.Resource
 func (p *Provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
 	return map[string]provider.DataSourceType{
 		"ec_stack":       stackdatasource.DataSourceType{},
+		"ec_deployment":  deploymentdatasource.DataSourceType{},
 		"ec_deployments": deploymentsdatasource.DataSourceType{},
 	}, nil
 }

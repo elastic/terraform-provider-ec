@@ -18,103 +18,72 @@
 package deploymentdatasource
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func newSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"alias": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"healthy": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-		"id": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"region": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"deployment_template_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"traffic_filter": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+func (s DataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"alias": {
+				Type:     types.StringType,
+				Computed: true,
 			},
-		},
-		"observability": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newObservabilitySettings(),
-		},
-		"tags": {
-			Type:     schema.TypeMap,
-			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			"healthy": {
+				Type:     types.BoolType,
+				Computed: true,
 			},
-		},
+			"id": {
+				Type:     types.StringType,
+				Required: true,
+			},
+			"name": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"region": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"deployment_template_id": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"traffic_filter": {
+				Type:     types.ListType{ElemType: types.StringType},
+				Computed: true,
+			},
+			"observability": observabilitySettingsSchema(),
+			"tags": {
+				Type:     types.MapType{ElemType: types.StringType},
+				Computed: true,
+			},
 
-		// Deployment resources
-		"elasticsearch": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newElasticsearchResourceInfo(),
+			// Deployment resources
+			"elasticsearch":       elasticsearchResourceInfoSchema(),
+			"kibana":              kibanaResourceInfoSchema(),
+			"apm":                 apmResourceInfoSchema(),
+			"integrations_server": integrationsServerResourceInfoSchema(),
+			"enterprise_search":   enterpriseSearchResourceInfoSchema(),
 		},
-		"kibana": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newKibanaResourceInfo(),
-		},
-		"apm": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newApmResourceInfo(),
-		},
-		"integrations_server": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newIntegrationsServerResourceInfo(),
-		},
-		"enterprise_search": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newEnterpriseSearchResourceInfo(),
-		},
-	}
+	}, nil
 }
 
-func newObservabilitySettings() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"deployment_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"logs": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"metrics": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-		},
-	}
+type modelV0 struct {
+	Alias                types.String `tfsdk:"alias"`
+	Healthy              types.Bool   `tfsdk:"healthy"`
+	ID                   types.String `tfsdk:"id"`
+	Name                 types.String `tfsdk:"name"`
+	Region               types.String `tfsdk:"region"`
+	DeploymentTemplateID types.String `tfsdk:"deployment_template_id"`
+	TrafficFilter        types.List   `tfsdk:"traffic_filter"`      //< string
+	Observability        types.List   `tfsdk:"observability"`       //< observabilitySettingsModel
+	Tags                 types.Map    `tfsdk:"tags"`                //< string
+	Elasticsearch        types.List   `tfsdk:"elasticsearch"`       //< elasticsearchResourceModelV0
+	Kibana               types.List   `tfsdk:"kibana"`              //< kibanaResourceModelV0
+	Apm                  types.List   `tfsdk:"apm"`                 //< apmResourceModelV0
+	IntegrationsServer   types.List   `tfsdk:"integrations_server"` //< integrationsServerResourceModelV0
+	EnterpriseSearch     types.List   `tfsdk:"enterprise_search"`   //< enterpriseSearchResourceModelV0
 }

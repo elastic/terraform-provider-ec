@@ -17,33 +17,52 @@
 
 package deploymentdatasource
 
-import "github.com/elastic/cloud-sdk-go/pkg/models"
+import (
+	"context"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 // flattenObservability parses a deployment's observability settings.
-func flattenObservability(settings *models.DeploymentSettings) []interface{} {
-	if settings == nil || settings.Observability == nil {
-		return nil
+func flattenObservability(ctx context.Context, settings *models.DeploymentSettings, target interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	model := observabilitySettingsModel{
+		Metrics: types.Bool{Value: false},
+		Logs:    types.Bool{Value: false},
 	}
+	empty := true
 
-	var m = make(map[string]interface{})
+	if settings == nil || settings.Observability == nil {
+		return diags
+	}
 
 	// We are only accepting a single deployment ID and refID for both logs and metrics.
 	// If either of them is not nil the deployment ID and refID will be filled.
 	if settings.Observability.Metrics != nil {
-		m["deployment_id"] = settings.Observability.Metrics.Destination.DeploymentID
-		m["ref_id"] = settings.Observability.Metrics.Destination.RefID
-		m["metrics"] = true
+		model.DeploymentID = types.String{Value: *settings.Observability.Metrics.Destination.DeploymentID}
+		model.RefID = types.String{Value: settings.Observability.Metrics.Destination.RefID}
+		model.Metrics = types.Bool{Value: true}
+		empty = false
 	}
 
 	if settings.Observability.Logging != nil {
-		m["deployment_id"] = settings.Observability.Logging.Destination.DeploymentID
-		m["ref_id"] = settings.Observability.Logging.Destination.RefID
-		m["logs"] = true
+		model.DeploymentID = types.String{Value: *settings.Observability.Logging.Destination.DeploymentID}
+		model.RefID = types.String{Value: settings.Observability.Logging.Destination.RefID}
+		model.Logs = types.Bool{Value: true}
+		empty = false
 	}
 
-	if len(m) == 0 {
-		return nil
+	if empty {
+		return diags
 	}
 
-	return []interface{}{m}
+	diags.Append(tfsdk.ValueFrom(ctx, []observabilitySettingsModel{model}, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: observabilitySettingsAttrTypes(),
+		},
+	}, target)...)
+
+	return diags
 }

@@ -18,6 +18,7 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -32,15 +33,17 @@ func TestFlattenTags(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want map[string]interface{}
+		want map[string]string
 	}{
 		{
 			name: "flattens no metadata tags when empty",
 			args: args{},
+			want: map[string]string{},
 		},
 		{
 			name: "flattens no metadata tags when empty",
 			args: args{metadata: &models.DeploymentMetadata{}},
+			want: map[string]string{},
 		},
 		{
 			name: "flatten metadata tags",
@@ -52,7 +55,7 @@ func TestFlattenTags(t *testing.T) {
 					},
 				},
 			}},
-			want: map[string]interface{}{"foo": "bar"},
+			want: map[string]string{"foo": "bar"},
 		},
 		{
 			name: "flatten metadata tags",
@@ -68,12 +71,14 @@ func TestFlattenTags(t *testing.T) {
 					},
 				},
 			}},
-			want: map[string]interface{}{"foo": "bar", "bar": "baz"},
+			want: map[string]string{"foo": "bar", "bar": "baz"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenTags(tt.args.metadata)
+			result := flattenTags(tt.args.metadata)
+			got := make(map[string]string, len(result.Elems))
+			result.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})
 	}

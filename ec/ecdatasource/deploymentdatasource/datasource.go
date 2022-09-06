@@ -19,39 +19,46 @@ package deploymentdatasource
 
 import (
 	"context"
-	"time"
+	"fmt"
+	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-// DataSource returns the ec_deployment data source schema.
-func DataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: read,
+var _ provider.DataSourceType = (*DataSourceType)(nil)
 
-		Schema: newSchema(),
+type DataSourceType struct{}
 
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(5 * time.Minute),
-		},
-	}
+func (s DataSourceType) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+	return &deploymentDataSource{
+		p: p.(internal.Provider),
+	}, nil
 }
 
-func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-	deploymentID := d.Get("id").(string)
+var _ datasource.DataSource = (*deploymentDataSource)(nil)
+
+type deploymentDataSource struct {
+	p internal.Provider
+}
+
+func (d deploymentDataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
+	var newState modelV0
+	response.Diagnostics.Append(request.Config.Get(ctx, &newState)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
-		API:          client,
-		DeploymentID: deploymentID,
+		API:          d.p.GetClient(),
+		DeploymentID: newState.ID.Value,
 		QueryParams: deputil.QueryParams{
 			ShowPlans:        true,
 			ShowSettings:     true,
@@ -60,92 +67,55 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 		},
 	})
 	if err != nil {
-		return diag.FromErr(
-			multierror.NewPrefixed("failed retrieving deployment information", err),
+		response.Diagnostics.AddError(
+			"Failed retrieving deployment information",
+			fmt.Sprintf("Failed retrieving deployment information: %s", err),
 		)
+		return
 	}
 
-	d.SetId(deploymentID)
-
-	if err := modelToState(d, res); err != nil {
-		return diag.FromErr(err)
+	response.Diagnostics.Append(modelToState(ctx, res, &newState)...)
+	if response.Diagnostics.HasError() {
+		return
 	}
 
-	return nil
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
 
-func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) error {
-	if err := d.Set("name", res.Name); err != nil {
-		return err
-	}
+/*
+	TODO - see https://github.com/multani/terraform-provider-camunda/pull/16/files
 
-	if err := d.Set("healthy", res.Healthy); err != nil {
-		return err
-	}
+	Timeouts: &schema.ResourceTimeout{
+		Default: schema.DefaultTimeout(5 * time.Minute),
+	},
+*/
 
-	if err := d.Set("alias", res.Alias); err != nil {
-		return err
-	}
+func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state *modelV0) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	state.Name = types.String{Value: *res.Name}
+	state.Healthy = types.Bool{Value: *res.Healthy}
+	state.Alias = types.String{Value: res.Alias}
 
 	es := res.Resources.Elasticsearch[0]
 	if es.Region != nil {
-		if err := d.Set("region", *es.Region); err != nil {
-			return err
-		}
+		state.Region = types.String{Value: *es.Region}
 	}
 
 	if !util.IsCurrentEsPlanEmpty(es) {
-		if err := d.Set("deployment_template_id",
-			*es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID); err != nil {
-			return err
-		}
+		state.DeploymentTemplateID = types.String{Value: *es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID}
 	}
 
-	if settings := flattenTrafficFiltering(res.Settings); settings != nil {
-		if err := d.Set("traffic_filter", settings); err != nil {
-			return err
-		}
-	}
+	diags.Append(flattenTrafficFiltering(ctx, res.Settings, &state.TrafficFilter)...)
+	diags.Append(flattenObservability(ctx, res.Settings, &state.Observability)...)
+	diags.Append(flattenElasticsearchResources(ctx, res.Resources.Elasticsearch, &state.Elasticsearch)...)
+	diags.Append(flattenKibanaResources(ctx, res.Resources.Kibana, &state.Kibana)...)
+	diags.Append(flattenApmResources(ctx, res.Resources.Apm, &state.Apm)...)
+	diags.Append(flattenIntegrationsServerResources(ctx, res.Resources.IntegrationsServer, &state.IntegrationsServer)...)
+	diags.Append(flattenEnterpriseSearchResources(ctx, res.Resources.EnterpriseSearch, &state.EnterpriseSearch)...)
 
-	if observability := flattenObservability(res.Settings); len(observability) > 0 {
-		if err := d.Set("observability", observability); err != nil {
-			return err
-		}
-	}
+	state.Tags = flattenTags(res.Metadata)
 
-	elasticsearchFlattened, err := flattenElasticsearchResources(res.Resources.Elasticsearch)
-	if err != nil {
-		return err
-	}
-	if err := d.Set("elasticsearch", elasticsearchFlattened); err != nil {
-		return err
-	}
-
-	kibanaFlattened := flattenKibanaResources(res.Resources.Kibana)
-	if err := d.Set("kibana", kibanaFlattened); err != nil {
-		return err
-	}
-
-	apmFlattened := flattenApmResources(res.Resources.Apm)
-	if err := d.Set("apm", apmFlattened); err != nil {
-		return err
-	}
-
-	integrationsServerFlattened := flattenIntegrationsServerResources(res.Resources.IntegrationsServer)
-	if err := d.Set("integrations_server", integrationsServerFlattened); err != nil {
-		return err
-	}
-
-	enterpriseSearchFlattened := flattenEnterpriseSearchResources(res.Resources.EnterpriseSearch)
-	if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
-		return err
-	}
-
-	if tagsFlattened := flattenTags(res.Metadata); tagsFlattened != nil {
-		if err := d.Set("tags", tagsFlattened); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return diags
 }
