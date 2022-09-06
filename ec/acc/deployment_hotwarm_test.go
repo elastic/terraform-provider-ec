@@ -38,9 +38,9 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 	secondConfigCfg := fixtureAccDeploymentResourceBasic(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Create a Hot / Warm deployment with the default settings.

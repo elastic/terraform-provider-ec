@@ -42,9 +42,9 @@ func TestAccDeployment_basic_defaults(t *testing.T) {
 	thirdConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, thirdCfg, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -161,9 +161,9 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 	hotWarmCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,

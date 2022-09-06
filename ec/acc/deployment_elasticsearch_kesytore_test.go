@@ -46,8 +46,8 @@ func TestAccDeploymentElasticsearchKeystore_full(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
 		CheckDestroy: resource.ComposeAggregateTestCheckFunc(
 			testAccDeploymentDestroy,
 			testAccDeploymentElasticsearchKeystoreDestroy,
