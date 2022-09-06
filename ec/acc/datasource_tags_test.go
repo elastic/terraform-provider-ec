@@ -43,9 +43,9 @@ func TestAccDatasource_basic_tags(t *testing.T) {
 	cfg := fixtureAccTagsDataSource(t, depCfg, randomName, getRegion(), defaultTemplate, testID)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,

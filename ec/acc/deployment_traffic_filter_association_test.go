@@ -38,9 +38,9 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, updateCfg, randomNameSecond, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Expects a non-empty plan since "ec_deployment.traffic_filter"

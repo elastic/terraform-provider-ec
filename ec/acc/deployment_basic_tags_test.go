@@ -42,9 +42,9 @@ func TestAccDeployment_basic_tags(t *testing.T) {
 	fourthConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, fourthCfg, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Create a deployment with tags.

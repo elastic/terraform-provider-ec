@@ -33,9 +33,9 @@ func TestAccDeployment_observability_createWithSelfObservability(t *testing.T) {
 	config := fixtureAccDeploymentResourceSelfObs(t, configFile, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Create a deployment with observability-target 'self'
