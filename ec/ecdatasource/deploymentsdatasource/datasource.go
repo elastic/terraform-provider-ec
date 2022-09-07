@@ -20,13 +20,14 @@ package deploymentsdatasource
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -37,10 +38,12 @@ var _ provider.DataSourceType = (*DataSourceType)(nil)
 
 type DataSourceType struct{}
 
-func (s DataSourceType) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+func (s DataSourceType) NewDataSource(ctx context.Context, in provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+	p, diags := internal.ConvertProviderType(in)
+
 	return &deploymentsDataSource{
-		p: p.(internal.Provider),
-	}, nil
+		p: p,
+	}, diags
 }
 
 var _ datasource.DataSource = (*deploymentsDataSource)(nil)

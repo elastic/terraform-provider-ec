@@ -20,6 +20,8 @@ package stackdatasource
 import (
 	"context"
 	"fmt"
+	"regexp"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/stackapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
@@ -28,17 +30,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
 )
 
 var _ provider.DataSourceType = (*DataSourceType)(nil)
 
 type DataSourceType struct{}
 
-func (s DataSourceType) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+func (s DataSourceType) NewDataSource(ctx context.Context, in provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+	p, diags := internal.ConvertProviderType(in)
+
 	return &stackDataSource{
-		p: p.(internal.Provider),
-	}, nil
+		p: p,
+	}, diags
 }
 
 var _ datasource.DataSource = (*stackDataSource)(nil)

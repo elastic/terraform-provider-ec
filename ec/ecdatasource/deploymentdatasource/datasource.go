@@ -20,7 +20,7 @@ package deploymentdatasource
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/terraform-provider-ec/ec/internal"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -30,6 +30,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/elastic/terraform-provider-ec/ec/internal/flatteners"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
@@ -37,10 +39,12 @@ var _ provider.DataSourceType = (*DataSourceType)(nil)
 
 type DataSourceType struct{}
 
-func (s DataSourceType) NewDataSource(ctx context.Context, p provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+func (s DataSourceType) NewDataSource(ctx context.Context, in provider.Provider) (datasource.DataSource, diag.Diagnostics) {
+	p, diags := internal.ConvertProviderType(in)
+
 	return &deploymentDataSource{
-		p: p.(internal.Provider),
-	}, nil
+		p: p,
+	}, diags
 }
 
 var _ datasource.DataSource = (*deploymentDataSource)(nil)
@@ -115,7 +119,9 @@ func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state 
 	diags.Append(flattenIntegrationsServerResources(ctx, res.Resources.IntegrationsServer, &state.IntegrationsServer)...)
 	diags.Append(flattenEnterpriseSearchResources(ctx, res.Resources.EnterpriseSearch, &state.EnterpriseSearch)...)
 
-	state.Tags = flattenTags(res.Metadata)
+	if res.Metadata != nil {
+		state.Tags = flatteners.FlattenTags(res.Metadata.Tags)
+	}
 
 	return diags
 }

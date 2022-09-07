@@ -15,28 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentdatasource
+package flatteners
 
 import (
+	"fmt"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// flattenTags takes in Deployment Metadata resource models and returns its
-// Tags in flattened form.
-func flattenTags(metadata *models.DeploymentMetadata) types.Map {
-
-	if metadata == nil || metadata.Tags == nil {
-		return types.Map{ElemType: types.StringType, Elems: map[string]attr.Value{}}
+// FlattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
+// https endpoints and returns a map with two keys: `http_endpoint` and
+// `https_endpoint`
+func FlattenEndpoints(metadata *models.ClusterMetadataInfo) (httpEndpoint string, httpsEndpoint string) {
+	if metadata == nil || metadata.Endpoint == "" || metadata.Ports == nil {
+		return
 	}
 
-	var tags = make(map[string]attr.Value)
-	for _, res := range metadata.Tags {
-		if res.Key != nil {
-			tags[*res.Key] = types.String{Value: *res.Value}
-		}
+	if metadata.Ports.HTTP != nil {
+		httpEndpoint = fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP)
 	}
-	return types.Map{ElemType: types.StringType, Elems: tags}
 
+	if metadata.Ports.HTTPS != nil {
+		httpsEndpoint = fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS)
+	}
+	return
 }

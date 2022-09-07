@@ -20,12 +20,13 @@ package ec
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
@@ -129,7 +130,7 @@ func verboseSettings(name string, verbose, redactAuth bool) (api.VerboseSettings
 	}
 
 	return api.VerboseSettings{
-		Verbose:    true,
+		Verbose:    verbose,
 		RedactAuth: redactAuth,
 		Device:     f,
 	}, nil
