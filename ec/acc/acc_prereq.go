@@ -19,12 +19,13 @@ package acc
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
@@ -44,9 +45,7 @@ func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, err
 				func() tfprotov5.ProviderServer {
 					return ec.LegacyProvider().GRPCProvider()
 				},
-				func() tfprotov5.ProviderServer {
-					return providerserver.NewProtocol5(ec.New())()
-				},
+				providerserver.NewProtocol5(ec.New("acc-tests")),
 			)
 		},
 	}

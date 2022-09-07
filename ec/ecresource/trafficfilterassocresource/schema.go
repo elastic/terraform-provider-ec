@@ -18,23 +18,68 @@
 package trafficfilterassocresource
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"context"
+	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	tpfprovider "github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// newSchema returns the schema for an "ec_deployment_traffic_filter_association" resource.
-func newSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"deployment_id": {
-			Type:        schema.TypeString,
-			Description: `Required deployment ID where the traffic filter will be associated`,
-			Required:    true,
-			ForceNew:    true,
+// Ensure provider defined types fully satisfy framework interfaces
+var _ tpfprovider.ResourceType = ResourceType{}
+var _ resource.Resource = trafficFilterAssocResource{}
+
+var _ resource.ResourceWithImportState = trafficFilterAssocResource{}
+
+type ResourceType struct{}
+
+const entityTypeDeployment = "deployment"
+
+func (t ResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"deployment_id": {
+				Type:        types.StringType,
+				Description: `Required deployment ID where the traffic filter will be associated`,
+				Required:    true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.RequiresReplace(),
+				},
+			},
+			"traffic_filter_id": {
+				Type:        types.StringType,
+				Description: "Required traffic filter ruleset ID to tie to a deployment",
+				Required:    true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.RequiresReplace(),
+				},
+			},
+			// Computed attributes
+			"id": {
+				Type:                types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Unique identifier of this resource.",
+			},
 		},
-		"traffic_filter_id": {
-			Type:        schema.TypeString,
-			Description: "Required traffic filter ruleset ID to tie to a deployment",
-			Required:    true,
-			ForceNew:    true,
-		},
-	}
+	}, nil
+}
+
+func (t ResourceType) NewResource(_ context.Context, provider tpfprovider.Provider) (resource.Resource, diag.Diagnostics) {
+	p, diags := internal.ConvertProviderType(provider)
+
+	return &trafficFilterAssocResource{
+		provider: p,
+	}, diags
+}
+
+type trafficFilterAssocResource struct {
+	provider internal.Provider
+}
+
+type modelV0 struct {
+	ID              types.String `tfsdk:"id"`
+	DeploymentID    types.String `tfsdk:"deployment_id"`
+	TrafficFilterID types.String `tfsdk:"traffic_filter_id"`
 }

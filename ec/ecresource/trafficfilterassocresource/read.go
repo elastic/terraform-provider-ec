@@ -19,35 +19,48 @@ package trafficfilterassocresource
 
 import (
 	"context"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// read queries the remote deployment traffic filter ruleset association and
-// updates the local state.
-func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+func (t trafficFilterAssocResource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
+	var state modelV0
+
+	diags := request.State.Get(ctx, &state)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
-		API:                 client,
-		ID:                  d.Get("traffic_filter_id").(string),
+		API:                 t.provider.GetClient(),
+		ID:                  state.TrafficFilterID.Value,
 		IncludeAssociations: true,
 	})
 	if err != nil {
 		if util.TrafficFilterNotFound(err) {
-			d.SetId("")
-			return nil
+			response.State.RemoveResource(ctx)
+			return
 		}
-		return diag.FromErr(err)
+		response.Diagnostics.AddError(err.Error(), err.Error())
+		return
 	}
 
-	if err := flatten(res, d); err != nil {
-		return diag.FromErr(err)
+	if res == nil {
+		response.State.RemoveResource(ctx)
+		return
 	}
 
-	return nil
+	var found bool
+	for _, assoc := range res.Associations {
+		if *assoc.EntityType == entityTypeDeployment && *assoc.ID == state.DeploymentID.Value {
+			found = true
+		}
+	}
+
+	if !found {
+		response.State.RemoveResource(ctx)
+		return
+	}
 }
