@@ -18,40 +18,53 @@
 package stackdatasource
 
 import (
+	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// flattenEnterpriseSearchResources takes in EnterpriseSearch resource models and returns its
-// flattened form.
-func flattenEnterpriseSearchResources(res *models.StackVersionEnterpriseSearchConfig) []interface{} {
-	var m = make(map[string]interface{})
+// flattenStackVersionEnterpriseSearchConfig takes a StackVersionEnterpriseSearchConfig and flattens it.
+func flattenStackVersionEnterpriseSearchConfig(ctx context.Context, res *models.StackVersionEnterpriseSearchConfig, target interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	model := newResourceKindConfigModelV0()
+	empty := true
 
 	if res == nil {
-		return nil
+		return diags
 	}
 
 	if len(res.Blacklist) > 0 {
-		m["denylist"] = util.StringToItems(res.Blacklist...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.Blacklist, types.ListType{ElemType: types.StringType}, &model.DenyList)...)
+		empty = false
 	}
 
 	if res.CapacityConstraints != nil {
-		m["capacity_constraints_max"] = int(*res.CapacityConstraints.Max)
-		m["capacity_constraints_min"] = int(*res.CapacityConstraints.Min)
+		model.CapacityConstraintsMax = types.Int64{Value: int64(*res.CapacityConstraints.Max)}
+		model.CapacityConstraintsMin = types.Int64{Value: int64(*res.CapacityConstraints.Min)}
+		empty = false
 	}
 
 	if len(res.CompatibleNodeTypes) > 0 {
-		m["compatible_node_types"] = res.CompatibleNodeTypes
+		diags.Append(tfsdk.ValueFrom(ctx, res.CompatibleNodeTypes, types.ListType{ElemType: types.StringType}, &model.CompatibleNodeTypes)...)
+		empty = false
 	}
 
 	if res.DockerImage != nil && *res.DockerImage != "" {
-		m["docker_image"] = *res.DockerImage
+		model.DockerImage = types.String{Value: *res.DockerImage}
+		empty = false
 	}
 
-	if len(m) == 0 {
-		return nil
+	if empty {
+		return diags
 	}
 
-	return []interface{}{m}
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: resourceKindConfigAttrTypes(),
+		},
+	}, target)...)
+
+	return diags
 }

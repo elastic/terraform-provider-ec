@@ -32,9 +32,9 @@ func TestAccDeployment_failed_upgrade_retry(t *testing.T) {
 	var esCreds creds
 	resName := "ec_deployment.upgrade_retry"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fixtureDeploymentDefaults(t, "testdata/deployment_upgrade_retry_1.tf"),

@@ -20,14 +20,15 @@ package ec
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
@@ -35,17 +36,15 @@ const (
 )
 
 var (
-	// DefaultHTTPRetries to use for the provider's HTTP client.
+	// DefaultHTTPRetries to use for the provider's HTTP Client.
 	DefaultHTTPRetries = 2
 )
 
-// configureAPI implements schema.ConfigureContextFunc
 func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	cfg, err := newAPIConfig(d)
+	cfg, err := newAPIConfigLegacy(d)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
-
 	client, err := api.NewAPI(cfg)
 	if err != nil {
 		return nil, diag.FromErr(err)
@@ -54,27 +53,52 @@ func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.
 	return client, nil
 }
 
-func newAPIConfig(d *schema.ResourceData) (api.Config, error) {
+func newAPIConfigLegacy(d *schema.ResourceData) (api.Config, error) {
+	endpoint := util.GetStringFromSchemaOrEnv(d, "endpoint", []string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
+	apiKey := util.GetStringFromSchemaOrEnv(d, "apikey", []string{"EC_API_KEY"}, "")
+	username := util.GetStringFromSchemaOrEnv(d, "username", []string{"EC_USER", "EC_USERNAME"}, "")
+	password := util.GetStringFromSchemaOrEnv(d, "password", []string{"EC_PASS", "EC_PASSWORD"}, "")
+	timeout := util.GetStringFromSchemaOrEnv(d, "timeout", []string{"EC_TIMEOUT"}, defaultTimeout.String())
+	insecure := util.GetBoolFromSchemaOrEnv(d, "insecure", []string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"})
+	verbose := util.GetBoolFromSchemaOrEnv(d, "verbose", []string{"EC_VERBOSE"})
+	verboseCredentials := util.GetBoolFromSchemaOrEnv(d, "verbose_credentials", []string{"EC_VERBOSE_CREDENTIALS"})
+	verboseFile := util.GetStringFromSchemaOrEnv(d, "verbose_file", []string{"EC_VERBOSE_FILE"}, "request.log")
+	cfg, err := newAPIConfig(endpoint, apiKey, username, password, insecure, timeout, verbose, verboseCredentials, verboseFile)
+	if err != nil {
+		return api.Config{}, err
+	}
+	return cfg, nil
+}
+
+func newAPIConfig(endpoint string,
+	apiKey string,
+	username string,
+	password string,
+	insecure bool,
+	timeout string,
+	verbose bool,
+	verboseCredentials bool,
+	verboseFile string) (api.Config, error) {
 	var cfg api.Config
 
-	timeout, err := time.ParseDuration(d.Get("timeout").(string))
+	timeoutDuration, err := time.ParseDuration(timeout)
 	if err != nil {
 		return cfg, err
 	}
 
 	authWriter, err := auth.NewAuthWriter(auth.Config{
-		APIKey:   d.Get("apikey").(string),
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
+		APIKey:   apiKey,
+		Username: username,
+		Password: password,
 	})
 	if err != nil {
 		return cfg, err
 	}
 
 	verboseCfg, err := verboseSettings(
-		d.Get("verbose_file").(string),
-		d.Get("verbose").(bool),
-		!d.Get("verbose_credentials").(bool),
+		verboseFile,
+		verbose,
+		!verboseCredentials,
 	)
 	if err != nil {
 		return cfg, err
@@ -85,9 +109,9 @@ func newAPIConfig(d *schema.ResourceData) (api.Config, error) {
 		Client:          &http.Client{},
 		VerboseSettings: verboseCfg,
 		AuthWriter:      authWriter,
-		Host:            d.Get("endpoint").(string),
-		SkipTLSVerify:   d.Get("insecure").(bool),
-		Timeout:         timeout,
+		Host:            endpoint,
+		SkipTLSVerify:   insecure,
+		Timeout:         timeoutDuration,
 		UserAgent:       userAgent(Version),
 		Retries:         DefaultHTTPRetries,
 	}, nil

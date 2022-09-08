@@ -18,42 +18,33 @@
 package deploymentdatasource
 
 import (
+	"context"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_modelToState(t *testing.T) {
-	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
-	deploymentSchemaArg.SetId(mock.ValidClusterID)
-
-	wantDeployment := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleDeployment(),
-		Schema: newSchema(),
-	})
-
+	wantDeployment := newSampleDeployment()
 	type args struct {
-		d   *schema.ResourceData
 		res *models.DeploymentGetResponse
 	}
 	tests := []struct {
 		name string
 		args args
-		want *schema.ResourceData
+		want modelV0
 		err  error
 	}{
 		{
 			name: "flattens deployment resources",
 			want: wantDeployment,
 			args: args{
-				d: deploymentSchemaArg,
 				res: &models.DeploymentGetResponse{
 					Alias:   "some-alias",
 					ID:      &mock.ValidClusterID,
@@ -135,54 +126,155 @@ func Test_modelToState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := modelToState(tt.args.d, tt.args.res)
+			model := modelV0{
+				ID: types.String{Value: mock.ValidClusterID},
+			}
+			diags := modelToState(context.Background(), tt.args.res, &model)
 			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
+				assert.Equal(t, diags, tt.err)
 			} else {
-				assert.NoError(t, err)
+				assert.Empty(t, diags)
 			}
 
-			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
+			assert.Equal(t, tt.want, model)
 		})
 	}
 }
 
-func newSampleDeployment() map[string]interface{} {
-	return map[string]interface{}{
-		"id":                     mock.ValidClusterID,
-		"name":                   "my_deployment_name",
-		"alias":                  "some-alias",
-		"deployment_template_id": "aws-io-optimized",
-		"healthy":                true,
-		"region":                 "us-east-1",
-		"traffic_filter":         []interface{}{"0.0.0.0/0", "192.168.10.0/24"},
-		"observability":          []interface{}{newObservabilitySample()},
-		"elasticsearch": []interface{}{map[string]interface{}{
-			"healthy": true,
-		}},
-		"kibana": []interface{}{map[string]interface{}{
-			"healthy": true,
-		}},
-		"apm": []interface{}{map[string]interface{}{
-			"healthy": true,
-		}},
-		"integrations_server": []interface{}{map[string]interface{}{
-			"healthy": true,
-		}},
-		"enterprise_search": []interface{}{map[string]interface{}{
-			"healthy": true,
-		}},
-		"tags": map[string]interface{}{
-			"foo": "bar",
+func newSampleDeployment() modelV0 {
+	return modelV0{
+		ID:                   types.String{Value: mock.ValidClusterID},
+		Name:                 types.String{Value: "my_deployment_name"},
+		Alias:                types.String{Value: "some-alias"},
+		DeploymentTemplateID: types.String{Value: "aws-io-optimized"},
+		Healthy:              types.Bool{Value: true},
+		Region:               types.String{Value: "us-east-1"},
+		TrafficFilter:        util.StringListAsType([]string{"0.0.0.0/0", "192.168.10.0/24"}),
+		Observability: types.List{
+			ElemType: types.ObjectType{AttrTypes: observabilitySettingsAttrTypes()},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: observabilitySettingsAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"deployment_id": types.String{Value: mock.ValidClusterID},
+						"ref_id":        types.String{Value: "main-elasticsearch"},
+						"logs":          types.Bool{Value: true},
+						"metrics":       types.Bool{Value: true},
+					},
+				},
+			},
 		},
-	}
-}
-
-func newObservabilitySample() map[string]interface{} {
-	return map[string]interface{}{
-		"deployment_id": mock.ValidClusterID,
-		"ref_id":        "main-elasticsearch",
-		"logs":          true,
-		"metrics":       true,
+		Elasticsearch: types.List{
+			ElemType: types.ObjectType{AttrTypes: elasticsearchResourceInfoAttrTypes()},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: elasticsearchResourceInfoAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"cloud_id":       types.String{Value: ""},
+						"healthy":        types.Bool{Value: true},
+						"autoscale":      types.String{Value: ""},
+						"http_endpoint":  types.String{Value: ""},
+						"https_endpoint": types.String{Value: ""},
+						"ref_id":         types.String{Value: ""},
+						"resource_id":    types.String{Value: ""},
+						"status":         types.String{Value: ""},
+						"version":        types.String{Value: ""},
+						"topology": types.List{
+							ElemType: types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()},
+							Elems:    []attr.Value{},
+						},
+					},
+				},
+			},
+		},
+		Kibana: types.List{
+			ElemType: types.ObjectType{AttrTypes: kibanaResourceInfoAttrTypes()},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: kibanaResourceInfoAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"elasticsearch_cluster_ref_id": types.String{Value: ""},
+						"healthy":                      types.Bool{Value: true},
+						"http_endpoint":                types.String{Value: ""},
+						"https_endpoint":               types.String{Value: ""},
+						"ref_id":                       types.String{Value: ""},
+						"resource_id":                  types.String{Value: ""},
+						"status":                       types.String{Value: ""},
+						"version":                      types.String{Value: ""},
+						"topology": types.List{
+							ElemType: types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()},
+							Elems:    []attr.Value{},
+						},
+					},
+				},
+			},
+		},
+		Apm: types.List{
+			ElemType: types.ObjectType{AttrTypes: apmResourceInfoAttrTypes()},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: apmResourceInfoAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"elasticsearch_cluster_ref_id": types.String{Value: ""},
+						"healthy":                      types.Bool{Value: true},
+						"http_endpoint":                types.String{Value: ""},
+						"https_endpoint":               types.String{Value: ""},
+						"ref_id":                       types.String{Value: ""},
+						"resource_id":                  types.String{Value: ""},
+						"status":                       types.String{Value: ""},
+						"version":                      types.String{Value: ""},
+						"topology": types.List{
+							ElemType: types.ObjectType{AttrTypes: apmTopologyAttrTypes()},
+							Elems:    []attr.Value{},
+						},
+					},
+				},
+			},
+		},
+		IntegrationsServer: types.List{
+			ElemType: types.ObjectType{AttrTypes: integrationsServerResourceInfoAttrTypes()},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: integrationsServerResourceInfoAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"elasticsearch_cluster_ref_id": types.String{Value: ""},
+						"healthy":                      types.Bool{Value: true},
+						"http_endpoint":                types.String{Value: ""},
+						"https_endpoint":               types.String{Value: ""},
+						"ref_id":                       types.String{Value: ""},
+						"resource_id":                  types.String{Value: ""},
+						"status":                       types.String{Value: ""},
+						"version":                      types.String{Value: ""},
+						"topology": types.List{
+							ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()},
+							Elems:    []attr.Value{},
+						},
+					},
+				},
+			},
+		},
+		EnterpriseSearch: types.List{
+			ElemType: types.ObjectType{AttrTypes: enterpriseSearchResourceInfoAttrTypes()},
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: enterpriseSearchResourceInfoAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"elasticsearch_cluster_ref_id": types.String{Value: ""},
+						"healthy":                      types.Bool{Value: true},
+						"http_endpoint":                types.String{Value: ""},
+						"https_endpoint":               types.String{Value: ""},
+						"ref_id":                       types.String{Value: ""},
+						"resource_id":                  types.String{Value: ""},
+						"status":                       types.String{Value: ""},
+						"version":                      types.String{Value: ""},
+						"topology": types.List{
+							ElemType: types.ObjectType{AttrTypes: enterpriseSearchTopologyAttrTypes()},
+							Elems:    []attr.Value{},
+						},
+					},
+				},
+			},
+		},
+		Tags: util.StringMapAsType(map[string]string{"foo": "bar"}),
 	}
 }
