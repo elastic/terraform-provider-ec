@@ -19,6 +19,11 @@ package util
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"os"
+	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
@@ -72,4 +77,65 @@ func IsCurrentIntegrationsServerPlanEmpty(res *models.IntegrationsServerResource
 func IsCurrentEssPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
+}
+
+// MultiGetenv returns the value of the first environment variable in the
+// given list that has a non-empty value. If none of the environment
+// variables have a value, the default value is returned.
+func MultiGetenv(keys []string, defaultValue string) string {
+	for _, key := range keys {
+		if value := os.Getenv(key); value != "" {
+			return value
+		}
+	}
+	return defaultValue
+}
+
+func GetStringFromSchemaOrEnv(d *schema.ResourceData, key string, envKeys []string, defaultValue string) string {
+	if value, ok := d.GetOk(key); ok {
+		return value.(string)
+	}
+	return MultiGetenv(envKeys, defaultValue)
+}
+func GetBoolFromSchemaOrEnv(d *schema.ResourceData, key string, envKeys []string) bool {
+	if value, ok := d.GetOk(key); ok {
+		return value.(bool)
+	}
+
+	strValue := MultiGetenv(envKeys, "false")
+	value, err := StringToBool(strValue)
+	if err != nil {
+		return false
+	}
+	return value
+}
+
+func StringToBool(str string) (bool, error) {
+	if str == "" {
+		return false, nil
+	}
+
+	v, err := strconv.ParseBool(str)
+	if err != nil {
+		return false, err
+	}
+
+	return v, nil
+}
+
+func StringListAsType(in []string) types.List {
+	//goland:noinspection GoPreferNilSlice
+	out := []attr.Value{}
+	for _, value := range in {
+		out = append(out, types.String{Value: value})
+	}
+	return types.List{ElemType: types.StringType, Elems: out}
+}
+func StringMapAsType(in map[string]string) types.Map {
+	//goland:noinspection GoPreferNilSlice
+	out := make(map[string]attr.Value, len(in))
+	for key, value := range in {
+		out[key] = types.String{Value: value}
+	}
+	return types.Map{ElemType: types.StringType, Elems: out}
 }

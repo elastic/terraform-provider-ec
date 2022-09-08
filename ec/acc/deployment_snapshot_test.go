@@ -38,9 +38,9 @@ func TestAccDeployment_snapshot_restore(t *testing.T) {
 	t.Skip("skipped due flakiness: https://github.com/elastic/terraform-provider-ec/issues/443")
 	var esCreds creds
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fixtureDeploymentDefaults(t, "testdata/deployment_snapshot_1.tf"),
