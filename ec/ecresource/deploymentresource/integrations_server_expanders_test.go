@@ -175,6 +175,30 @@ func Test_expandIntegrationsServerResources(t *testing.T) {
 			},
 		},
 		{
+			name: "parses an Integrations Server resource with multiple topology elements but no instance_configuration_id",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":                       "main-integrations_server",
+						"resource_id":                  mock.ValidClusterID,
+						"region":                       "some-region",
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"topology": []interface{}{
+							map[string]interface{}{
+								"size":          "2g",
+								"size_resource": "memory",
+							}, map[string]interface{}{
+								"size":          "2g",
+								"size_resource": "memory",
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("IntegrationsServer topology: invalid instance_configuration_id: \"\" doesn't match any of the deployment template instance configurations"),
+		},
+		{
 			name: "parses an Integrations Server resource with explicit topology and some config",
 			args: args{
 				tpl: tpl(),
