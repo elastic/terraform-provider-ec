@@ -58,7 +58,6 @@ variable "google_cloud_region" {
 
 variable "google_cloud_service_account_path" {
   type = string
-  default = "/mnt/c/Users/FelixRoessel/Documents/Projekte/patent/solution-accelerators/patent-search/GCP/local_env/elastic-pme-team-5b48f6d94eb4.json"
 }
 
 # -------------------------------------------------------------
@@ -121,7 +120,7 @@ variable "google_pubsub_lb_filter" {
 }
 
 # -------------------------------------------------------------
-# BigQuery configuration
+# BigQuery configuration -- Not used at the moment
 # -------------------------------------------------------------
 
 variable "google_cloud_container_spec_gcs_path"  {
