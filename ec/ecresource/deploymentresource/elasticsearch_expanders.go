@@ -71,21 +71,19 @@ func expandEsResources(ess []interface{}, tpl *models.ElasticsearchPayload) ([]*
 func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*models.ElasticsearchPayload, error) {
 	es := raw.(map[string]interface{})
 
-	if refID, ok := es["ref_id"]; ok {
-		res.RefID = ec.String(refID.(string))
+	if refID, ok := es["ref_id"].(string); ok {
+		res.RefID = ec.String(refID)
 	}
 
-	if region, ok := es["region"]; ok {
-		if r := region.(string); r != "" {
-			res.Region = ec.String(r)
-		}
+	if region, ok := es["region"].(string); ok && region != "" {
+		res.Region = ec.String(region)
 	}
 
 	// Unsetting the curation properties is since they're deprecated since
 	// >= 6.6.0 which is when ILM is introduced in Elasticsearch.
 	unsetElasticsearchCuration(res)
 
-	if rt, ok := es["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := es["topology"].([]interface{}); ok && len(rt) > 0 {
 		topology, err := expandEsTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
@@ -97,75 +95,70 @@ func expandEsResource(raw interface{}, res *models.ElasticsearchPayload) (*model
 	// list when these are set as a dedicated tier as a topology element.
 	updateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
 
-	if cfg, ok := es["config"]; ok {
+	if cfg, ok := es["config"].([]interface{}); ok {
 		if err := expandEsConfig(cfg, res.Plan.Elasticsearch); err != nil {
 			return nil, err
 		}
 	}
 
-	if snap, ok := es["snapshot_source"]; ok && len(snap.([]interface{})) > 0 {
+	if snap, ok := es["snapshot_source"].([]interface{}); ok && len(snap) > 0 {
 		res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
 			RestoreSnapshot: &models.RestoreSnapshotConfiguration{},
 		}
 		expandSnapshotSource(snap, res.Plan.Transient.RestoreSnapshot)
 	}
 
-	if ext, ok := es["extension"]; ok {
-		if e := ext.(*schema.Set); e.Len() > 0 {
-			expandEsExtension(e.List(), res.Plan.Elasticsearch)
-		}
+	if ext, ok := es["extension"].(*schema.Set); ok && ext.Len() > 0 {
+		expandEsExtension(ext.List(), res.Plan.Elasticsearch)
 	}
 
-	if auto := es["autoscale"]; auto != nil {
-		if autoscale := auto.(string); autoscale != "" {
-			autoscaleBool, err := strconv.ParseBool(autoscale)
-			if err != nil {
-				return nil, fmt.Errorf("failed parsing autoscale value: %w", err)
-			}
-			res.Plan.AutoscalingEnabled = &autoscaleBool
+	if autoscale, ok := es["autoscale"].(string); ok && autoscale != "" {
+		autoscaleBool, err := strconv.ParseBool(autoscale)
+		if err != nil {
+			return nil, fmt.Errorf("failed parsing autoscale value: %w", err)
 		}
+		res.Plan.AutoscalingEnabled = &autoscaleBool
 	}
 
-	if trust, ok := es["trust_account"]; ok {
-		if t := trust.(*schema.Set); t.Len() > 0 {
-			if res.Settings == nil {
-				res.Settings = &models.ElasticsearchClusterSettings{}
-			}
-			expandAccountTrust(t.List(), res.Settings)
+	if trust, ok := es["trust_account"].(*schema.Set); ok && trust.Len() > 0 {
+		if res.Settings == nil {
+			res.Settings = &models.ElasticsearchClusterSettings{}
 		}
+		expandAccountTrust(trust.List(), res.Settings)
 	}
 
-	if trust, ok := es["trust_external"]; ok {
-		if t := trust.(*schema.Set); t.Len() > 0 {
-			if res.Settings == nil {
-				res.Settings = &models.ElasticsearchClusterSettings{}
-			}
-			expandExternalTrust(t.List(), res.Settings)
+	if trust, ok := es["trust_external"].(*schema.Set); ok && trust.Len() > 0 {
+		if res.Settings == nil {
+			res.Settings = &models.ElasticsearchClusterSettings{}
 		}
+		expandExternalTrust(trust.List(), res.Settings)
 	}
 
-	if strategy, ok := es["strategy"]; ok {
-		if s := strategy.([]interface{}); len(s) > 0 {
-			if res.Plan.Transient == nil {
-				res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
-					Strategy: &models.PlanStrategy{},
-				}
+	if strategy, ok := es["strategy"].([]interface{}); ok && len(strategy) > 0 {
+		if res.Plan.Transient == nil {
+			res.Plan.Transient = &models.TransientElasticsearchPlanConfiguration{
+				Strategy: &models.PlanStrategy{},
 			}
-			expandStrategy(s, res.Plan.Transient.Strategy)
 		}
+		expandStrategy(strategy, res.Plan.Transient.Strategy)
 	}
 
 	return res, nil
 }
 
 // expandStrategy expands the Configuration Strategy.
-func expandStrategy(raw interface{}, strategy *models.PlanStrategy) {
-	for _, rawStrategy := range raw.([]interface{}) {
+func expandStrategy(raw []interface{}, strategy *models.PlanStrategy) {
+	for _, rawStrategy := range raw {
 		strategyCfg, ok := rawStrategy.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		rawValue := strategyCfg["type"].(string)
+
+		rawValue, ok := strategyCfg["type"].(string)
+		if !ok {
+			continue
+		}
+
 		if rawValue == autodetect {
 			strategy.Autodetect = new(models.AutodetectStrategyConfig)
 		} else if rawValue == growAndShrink {
@@ -181,16 +174,18 @@ func expandStrategy(raw interface{}, strategy *models.PlanStrategy) {
 }
 
 // expandEsTopology expands a flattened topology
-func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchClusterTopologyElement) ([]*models.ElasticsearchClusterTopologyElement, error) {
-	rawTopologies := raw.([]interface{})
+func expandEsTopology(rawTopologies []interface{}, topologies []*models.ElasticsearchClusterTopologyElement) ([]*models.ElasticsearchClusterTopologyElement, error) {
 	res := topologies
 
 	for _, rawTop := range rawTopologies {
-		topology := rawTop.(map[string]interface{})
+		topology, ok := rawTop.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
 		var topologyID string
-		if id, ok := topology["id"]; ok {
-			topologyID = id.(string)
+		if id, ok := topology["id"].(string); ok {
+			topologyID = id
 		}
 
 		size, err := util.ParseTopologySize(topology)
@@ -206,26 +201,25 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 			elem.Size = size
 		}
 
-		if zones, ok := topology["zone_count"]; ok {
-			if z := zones.(int); z > 0 {
-				elem.ZoneCount = int32(z)
-			}
+		if zones, ok := topology["zone_count"].(int); ok && zones > 0 {
+			elem.ZoneCount = int32(zones)
 		}
 
 		if err := parseLegacyNodeType(topology, elem.NodeType); err != nil {
 			return nil, err
 		}
 
-		if nr, ok := topology["node_roles"]; ok {
-			if nrSet, ok := nr.(*schema.Set); ok && nrSet.Len() > 0 {
-				elem.NodeRoles = util.ItemsToString(nrSet.List())
-				elem.NodeType = nil
-			}
+		if nrSet, ok := topology["node_roles"].(*schema.Set); ok && nrSet.Len() > 0 {
+			elem.NodeRoles = util.ItemsToString(nrSet.List())
+			elem.NodeType = nil
 		}
 
-		if autoscalingRaw := topology["autoscaling"]; autoscalingRaw != nil {
-			for _, autoscaleRaw := range autoscalingRaw.([]interface{}) {
-				autoscale := autoscaleRaw.(map[string]interface{})
+		if autoscalingRaw, ok := topology["autoscaling"].([]interface{}); ok && len(autoscalingRaw) > 0 {
+			for _, autoscaleRaw := range autoscalingRaw {
+				autoscale, ok := autoscaleRaw.(map[string]interface{})
+				if !ok {
+					continue
+				}
 
 				if elem.AutoscalingMax == nil {
 					elem.AutoscalingMax = new(models.TopologySize)
@@ -253,22 +247,20 @@ func expandEsTopology(raw interface{}, topologies []*models.ElasticsearchCluster
 					elem.AutoscalingMax = nil
 				}
 
-				if policy := autoscale["policy_override_json"]; policy != nil {
-					if policyString := policy.(string); policyString != "" {
-						if err := json.Unmarshal([]byte(policyString),
-							&elem.AutoscalingPolicyOverrideJSON,
-						); err != nil {
-							return nil, fmt.Errorf(
-								"elasticsearch topology %s: unable to load policy_override_json: %w",
-								topologyID, err,
-							)
-						}
+				if policy, ok := autoscale["policy_override_json"].(string); ok && policy != "" {
+					if err := json.Unmarshal([]byte(policy),
+						&elem.AutoscalingPolicyOverrideJSON,
+					); err != nil {
+						return nil, fmt.Errorf(
+							"elasticsearch topology %s: unable to load policy_override_json: %w",
+							topologyID, err,
+						)
 					}
 				}
 			}
 		}
 
-		if cfg, ok := topology["config"]; ok {
+		if cfg, ok := topology["config"].([]interface{}); ok {
 			if elem.Elasticsearch == nil {
 				elem.Elasticsearch = &models.ElasticsearchConfiguration{}
 			}
@@ -290,81 +282,77 @@ func expandAutoscalingDimension(autoscale map[string]interface{}, model *models.
 	sizeAttribute := fmt.Sprintf("%s_size", dimension)
 	resourceAttribute := fmt.Sprintf("%s_size_resource", dimension)
 
-	if size := autoscale[sizeAttribute]; size != nil {
-		if size := size.(string); size != "" {
-			val, err := deploymentsize.ParseGb(size)
-			if err != nil {
-				return err
-			}
-			model.Value = &val
+	if size, ok := autoscale[sizeAttribute].(string); ok && size != "" {
+		val, err := deploymentsize.ParseGb(size)
+		if err != nil {
+			return err
+		}
+		model.Value = &val
 
-			if model.Resource == nil {
-				model.Resource = ec.String("memory")
-			}
+		if model.Resource == nil {
+			model.Resource = ec.String("memory")
 		}
 	}
 
-	if sizeResource := autoscale[resourceAttribute]; sizeResource != nil {
-		if sizeResource := sizeResource.(string); sizeResource != "" {
-			model.Resource = ec.String(sizeResource)
-		}
+	if sizeResource, ok := autoscale[resourceAttribute].(string); ok && sizeResource != "" {
+		model.Resource = ec.String(sizeResource)
 	}
 
 	return nil
 }
 
-func expandEsConfig(raw interface{}, esCfg *models.ElasticsearchConfiguration) error {
-	for _, rawCfg := range raw.([]interface{}) {
+func expandEsConfig(raw []interface{}, esCfg *models.ElasticsearchConfiguration) error {
+	for _, rawCfg := range raw {
 		cfg, ok := rawCfg.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &esCfg.UserSettingsJSON); err != nil {
-					return fmt.Errorf(
-						"failed expanding elasticsearch user_settings_json: %w", err,
-					)
-				}
+		if settings, ok := cfg["user_settings_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &esCfg.UserSettingsJSON); err != nil {
+				return fmt.Errorf(
+					"failed expanding elasticsearch user_settings_json: %w", err,
+				)
 			}
 		}
-		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &esCfg.UserSettingsOverrideJSON); err != nil {
-					return fmt.Errorf(
-						"failed expanding elasticsearch user_settings_override_json: %w", err,
-					)
-				}
+		if settings, ok := cfg["user_settings_override_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &esCfg.UserSettingsOverrideJSON); err != nil {
+				return fmt.Errorf(
+					"failed expanding elasticsearch user_settings_override_json: %w", err,
+				)
 			}
 		}
-		if settings, ok := cfg["user_settings_yaml"]; ok {
-			esCfg.UserSettingsYaml = settings.(string)
+		if settings, ok := cfg["user_settings_yaml"].(string); ok && settings != "" {
+			esCfg.UserSettingsYaml = settings
 		}
-		if settings, ok := cfg["user_settings_override_yaml"]; ok {
-			esCfg.UserSettingsOverrideYaml = settings.(string)
-		}
-
-		if v, ok := cfg["plugins"]; ok {
-			esCfg.EnabledBuiltInPlugins = util.ItemsToString(v.(*schema.Set).List())
+		if settings, ok := cfg["user_settings_override_yaml"].(string); ok && settings != "" {
+			esCfg.UserSettingsOverrideYaml = settings
 		}
 
-		if v, ok := cfg["docker_image"]; ok {
-			esCfg.DockerImage = v.(string)
+		if v, ok := cfg["plugins"].(*schema.Set); ok && v.Len() > 0 {
+			esCfg.EnabledBuiltInPlugins = util.ItemsToString(v.List())
+		}
+
+		if v, ok := cfg["docker_image"].(string); ok {
+			esCfg.DockerImage = v
 		}
 	}
 
 	return nil
 }
 
-func expandSnapshotSource(raw interface{}, restore *models.RestoreSnapshotConfiguration) {
-	for _, rawRestore := range raw.([]interface{}) {
-		var rs = rawRestore.(map[string]interface{})
-		if clusterID, ok := rs["source_elasticsearch_cluster_id"]; ok {
-			restore.SourceClusterID = clusterID.(string)
+func expandSnapshotSource(raw []interface{}, restore *models.RestoreSnapshotConfiguration) {
+	for _, rawRestore := range raw {
+		var rs, ok = rawRestore.(map[string]interface{})
+		if !ok {
+			continue
 		}
 
-		if snapshotName, ok := rs["snapshot_name"]; ok {
-			restore.SnapshotName = ec.String(snapshotName.(string))
+		if clusterID, ok := rs["source_elasticsearch_cluster_id"].(string); ok {
+			restore.SourceClusterID = clusterID
+		}
+
+		if snapshotName, ok := rs["snapshot_name"].(string); ok {
+			restore.SnapshotName = ec.String(snapshotName)
 		}
 	}
 }
@@ -428,32 +416,32 @@ func parseLegacyNodeType(topology map[string]interface{}, nodeType *models.Elast
 		return nil
 	}
 
-	if ntData, ok := topology["node_type_data"]; ok && ntData.(string) != "" {
-		nt, err := strconv.ParseBool(ntData.(string))
+	if ntData, ok := topology["node_type_data"].(string); ok && ntData != "" {
+		nt, err := strconv.ParseBool(ntData)
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_data value: %w", err)
 		}
 		nodeType.Data = ec.Bool(nt)
 	}
 
-	if ntMaster, ok := topology["node_type_master"]; ok && ntMaster.(string) != "" {
-		nt, err := strconv.ParseBool(ntMaster.(string))
+	if ntMaster, ok := topology["node_type_master"].(string); ok && ntMaster != "" {
+		nt, err := strconv.ParseBool(ntMaster)
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_master value: %w", err)
 		}
 		nodeType.Master = ec.Bool(nt)
 	}
 
-	if ntIngest, ok := topology["node_type_ingest"]; ok && ntIngest.(string) != "" {
-		nt, err := strconv.ParseBool(ntIngest.(string))
+	if ntIngest, ok := topology["node_type_ingest"].(string); ok && ntIngest != "" {
+		nt, err := strconv.ParseBool(ntIngest)
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_ingest value: %w", err)
 		}
 		nodeType.Ingest = ec.Bool(nt)
 	}
 
-	if ntMl, ok := topology["node_type_ml"]; ok && ntMl.(string) != "" {
-		nt, err := strconv.ParseBool(ntMl.(string))
+	if ntMl, ok := topology["node_type_ml"].(string); ok && ntMl != "" {
+		nt, err := strconv.ParseBool(ntMl)
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_ml value: %w", err)
 		}
@@ -539,21 +527,21 @@ func expandEsExtension(raw []interface{}, es *models.ElasticsearchConfiguration)
 		m := rawExt.(map[string]interface{})
 
 		var version string
-		if v, ok := m["version"]; ok {
-			version = v.(string)
+		if v, ok := m["version"].(string); ok {
+			version = v
 		}
 
 		var url string
-		if u, ok := m["url"]; ok {
-			url = u.(string)
+		if u, ok := m["url"].(string); ok {
+			url = u
 		}
 
 		var name string
-		if n, ok := m["name"]; ok {
-			name = n.(string)
+		if n, ok := m["name"].(string); ok {
+			name = n
 		}
 
-		if t, ok := m["type"]; ok && t.(string) == "bundle" {
+		if t, ok := m["type"].(string); ok && t == "bundle" {
 			es.UserBundles = append(es.UserBundles, &models.ElasticsearchUserBundle{
 				Name:                 &name,
 				ElasticsearchVersion: &version,
@@ -561,7 +549,7 @@ func expandEsExtension(raw []interface{}, es *models.ElasticsearchConfiguration)
 			})
 		}
 
-		if t, ok := m["type"]; ok && t.(string) == "plugin" {
+		if t, ok := m["type"].(string); ok && t == "plugin" {
 			es.UserPlugins = append(es.UserPlugins, &models.ElasticsearchUserPlugin{
 				Name:                 &name,
 				ElasticsearchVersion: &version,
@@ -577,21 +565,18 @@ func expandAccountTrust(raw []interface{}, es *models.ElasticsearchClusterSettin
 		m := rawTrust.(map[string]interface{})
 
 		var id string
-		if v, ok := m["account_id"]; ok {
-			id = v.(string)
+		if v, ok := m["account_id"].(string); ok {
+			id = v
 		}
 
 		var all bool
-		if a, ok := m["trust_all"]; ok {
-			all = a.(bool)
+		if a, ok := m["trust_all"].(bool); ok {
+			all = a
 		}
 
 		var allowlist []string
-		if al, ok := m["trust_allowlist"]; ok {
-			set := al.(*schema.Set)
-			if set.Len() > 0 {
-				allowlist = util.ItemsToString(set.List())
-			}
+		if al, ok := m["trust_allowlist"].(*schema.Set); ok && al.Len() > 0 {
+			allowlist = util.ItemsToString(al.List())
 		}
 
 		accounts = append(accounts, &models.AccountTrustRelationship{
@@ -618,21 +603,18 @@ func expandExternalTrust(raw []interface{}, es *models.ElasticsearchClusterSetti
 		m := rawTrust.(map[string]interface{})
 
 		var id string
-		if v, ok := m["relationship_id"]; ok {
-			id = v.(string)
+		if v, ok := m["relationship_id"].(string); ok {
+			id = v
 		}
 
 		var all bool
-		if a, ok := m["trust_all"]; ok {
-			all = a.(bool)
+		if a, ok := m["trust_all"].(bool); ok {
+			all = a
 		}
 
 		var allowlist []string
-		if al, ok := m["trust_allowlist"]; ok {
-			set := al.(*schema.Set)
-			if set.Len() > 0 {
-				allowlist = util.ItemsToString(set.List())
-			}
+		if al, ok := m["trust_allowlist"].(*schema.Set); ok && al.Len() > 0 {
+			allowlist = util.ItemsToString(al.List())
 		}
 
 		external = append(external, &models.ExternalTrustRelationship{
