@@ -1,0 +1,3 @@
+```release-note:feature
+datasource/privatelink: Adds data sources to obtain AWS/Azure Private Link, and GCP Private Service Connect configuration data.
+```
