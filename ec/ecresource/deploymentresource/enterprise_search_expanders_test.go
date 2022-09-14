@@ -163,6 +163,27 @@ func Test_expandEssResources(t *testing.T) {
 			}},
 		},
 		{
+			name: "parses an enterprise_search resource with multiple topologies but no instance_configuration_id",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{map[string]interface{}{
+					"ref_id":                       "main-enterprise_search",
+					"resource_id":                  mock.ValidClusterID,
+					"version":                      "7.7.0",
+					"region":                       "some-region",
+					"elasticsearch_cluster_ref_id": "somerefid",
+					"topology": []interface{}{
+						map[string]interface{}{
+							"size": "4g",
+						}, map[string]interface{}{
+							"size": "4g",
+						},
+					},
+				}},
+			},
+			err: errors.New("enterprise_search topology: invalid instance_configuration_id: \"\" doesn't match any of the deployment template instance configurations"),
+		},
+		{
 			name: "parses an enterprise_search resource with topology but instance_configuration_id",
 			args: args{
 				tpl: tpl(),
