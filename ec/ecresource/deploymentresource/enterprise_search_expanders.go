@@ -103,7 +103,7 @@ func expandEssTopology(raw interface{}, topologies []*models.EnterpriseSearchTop
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
 		// element.
-		if t := defaultEssTopology(topologies); icID == "" && len(t) >= i {
+		if t := defaultEssTopology(topologies); icID == "" && len(t) > i {
 			icID = t[i].InstanceConfigurationID
 		}
 		size, err := util.ParseTopologySize(topology)
