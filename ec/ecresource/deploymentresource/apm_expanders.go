@@ -53,27 +53,25 @@ func expandApmResources(apms []interface{}, tpl *models.ApmPayload) ([]*models.A
 func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayload, error) {
 	var apm = raw.(map[string]interface{})
 
-	if esRefID, ok := apm["elasticsearch_cluster_ref_id"]; ok {
-		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
+	if esRefID, ok := apm["elasticsearch_cluster_ref_id"].(string); ok {
+		res.ElasticsearchClusterRefID = ec.String(esRefID)
 	}
 
-	if refID, ok := apm["ref_id"]; ok {
-		res.RefID = ec.String(refID.(string))
+	if refID, ok := apm["ref_id"].(string); ok {
+		res.RefID = ec.String(refID)
 	}
 
-	if region, ok := apm["region"]; ok {
-		if r := region.(string); r != "" {
-			res.Region = ec.String(r)
-		}
+	if region, ok := apm["region"].(string); ok && region != "" {
+		res.Region = ec.String(region)
 	}
 
-	if cfg, ok := apm["config"]; ok {
+	if cfg, ok := apm["config"].([]interface{}); ok {
 		if err := expandApmConfig(cfg, res.Plan.Apm); err != nil {
 			return nil, err
 		}
 	}
 
-	if rt, ok := apm["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := apm["topology"].([]interface{}); ok && len(rt) > 0 {
 		topology, err := expandApmTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
@@ -86,15 +84,18 @@ func expandApmResource(raw interface{}, res *models.ApmPayload) (*models.ApmPayl
 	return res, nil
 }
 
-func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement) ([]*models.ApmTopologyElement, error) {
-	rawTopologies := raw.([]interface{})
+func expandApmTopology(rawTopologies []interface{}, topologies []*models.ApmTopologyElement) ([]*models.ApmTopologyElement, error) {
 	res := make([]*models.ApmTopologyElement, 0, len(rawTopologies))
 
 	for i, rawTop := range rawTopologies {
-		topology := rawTop.(map[string]interface{})
+		topology, ok := rawTop.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
 		var icID string
-		if id, ok := topology["instance_configuration_id"]; ok {
-			icID = id.(string)
+		if id, ok := topology["instance_configuration_id"].(string); ok {
+			icID = id
 		}
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
@@ -116,11 +117,8 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 			elem.Size = size
 		}
 
-		if zones, ok := topology["zone_count"]; ok {
-			if z := zones.(int); z > 0 {
-				elem.ZoneCount = int32(z)
-			}
-
+		if zones, ok := topology["zone_count"].(int); ok && zones > 0 {
+			elem.ZoneCount = int32(zones)
 		}
 
 		res = append(res, elem)
@@ -129,40 +127,39 @@ func expandApmTopology(raw interface{}, topologies []*models.ApmTopologyElement)
 	return res, nil
 }
 
-func expandApmConfig(raw interface{}, res *models.ApmConfiguration) error {
-	for _, rawCfg := range raw.([]interface{}) {
-		var cfg = rawCfg.(map[string]interface{})
+func expandApmConfig(raw []interface{}, res *models.ApmConfiguration) error {
+	for _, rawCfg := range raw {
+		cfg, ok := rawCfg.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
-		if debugEnabled, ok := cfg["debug_enabled"]; ok {
+		if debugEnabled, ok := cfg["debug_enabled"].(bool); ok {
 			if res.SystemSettings == nil {
 				res.SystemSettings = &models.ApmSystemSettings{}
 			}
-			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
+			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled)
 		}
 
-		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
-					return fmt.Errorf("failed expanding apm user_settings_json: %w", err)
-				}
+		if settings, ok := cfg["user_settings_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &res.UserSettingsJSON); err != nil {
+				return fmt.Errorf("failed expanding apm user_settings_json: %w", err)
 			}
 		}
-		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &res.UserSettingsOverrideJSON); err != nil {
-					return fmt.Errorf("failed expanding apm user_settings_override_json: %w", err)
-				}
+		if settings, ok := cfg["user_settings_override_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &res.UserSettingsOverrideJSON); err != nil {
+				return fmt.Errorf("failed expanding apm user_settings_override_json: %w", err)
 			}
 		}
-		if settings, ok := cfg["user_settings_yaml"]; ok {
-			res.UserSettingsYaml = settings.(string)
+		if settings, ok := cfg["user_settings_yaml"].(string); ok && settings != "" {
+			res.UserSettingsYaml = settings
 		}
-		if settings, ok := cfg["user_settings_override_yaml"]; ok {
-			res.UserSettingsOverrideYaml = settings.(string)
+		if settings, ok := cfg["user_settings_override_yaml"].(string); ok && settings != "" {
+			res.UserSettingsOverrideYaml = settings
 		}
 
-		if v, ok := cfg["docker_image"]; ok {
-			res.DockerImage = v.(string)
+		if v, ok := cfg["docker_image"].(string); ok {
+			res.DockerImage = v
 		}
 	}
 
