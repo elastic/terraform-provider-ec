@@ -20,10 +20,11 @@ package planmodifier
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // defaultFromEnvAttributePlanModifier specifies a default value (attr.Value) for an attribute.

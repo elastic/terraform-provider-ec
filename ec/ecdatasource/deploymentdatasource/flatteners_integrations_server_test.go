@@ -21,12 +21,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_flattenIntegrationsServerResource(t *testing.T) {

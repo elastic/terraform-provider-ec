@@ -21,10 +21,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 func TestFlattenObservability(t *testing.T) {

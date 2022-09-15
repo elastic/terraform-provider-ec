@@ -22,10 +22,11 @@ import (
 	"fmt"
 	"strings"
 
-	semver "github.com/blang/semver/v4"
+	"github.com/blang/semver/v4"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )

@@ -19,15 +19,18 @@ package deploymentdatasource
 
 import (
 	"context"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_modelToState(t *testing.T) {

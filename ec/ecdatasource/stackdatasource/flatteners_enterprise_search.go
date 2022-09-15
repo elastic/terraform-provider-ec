@@ -19,10 +19,12 @@ package stackdatasource
 
 import (
 	"context"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 // flattenStackVersionEnterpriseSearchConfig takes a StackVersionEnterpriseSearchConfig and flattens it.

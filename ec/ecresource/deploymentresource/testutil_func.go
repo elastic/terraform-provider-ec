@@ -23,8 +23,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 // parseDeploymentTemplate is a test helper which parse a file by path and
