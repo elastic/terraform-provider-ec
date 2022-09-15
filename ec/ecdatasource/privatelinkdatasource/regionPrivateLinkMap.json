@@ -1,0 +1,315 @@
+{
+    "aws": {
+        "af-south-1": {
+            "vpc_service_name": "com.amazonaws.vpce.af-south-1.vpce-svc-0d3d7b74f60a6c32c",
+            "domain_name": "vpce.af-south-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "afs1-az1",
+                "afs1-az2",
+                "afs1-az3"
+            ]
+        },
+        "ap-east-1": {
+            "vpc_service_name": "com.amazonaws.vpce.ap-east-1.vpce-svc-0f96fbfaf55558d5c",
+            "domain_name": "vpce-ap-east-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "ape1-az1",
+                "ape1-az2",
+                "ape1-az3"
+            ]
+        },
+        "ap-northeast-1": {
+            "vpc_service_name": "com.amazonaws.vpce.ap-northeast-1.vpce-svc-0e1046d7b48d5cf5f",
+            "domain_name": "vpce.ap-northeast-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "apne1-az1",
+                "apne1-az2",
+                "apne1-az4"
+            ]
+        },
+        "ap-northeast-2": {
+            "vpc_service_name": "com.amazonaws.vpce.ap-northeast-2.vpce-svc-0d90cf62dae682b84",
+            "domain_name": "vpce.ap-northeast-2.aws.elastic-cloud.com",
+            "zone_ids": [
+                "apne2-az1",
+                "apne2-az2",
+                "apne2-az3"
+            ]
+        },
+        "ap-south-1": {
+            "vpc_service_name": "com.amazonaws.vpce.ap-south-1.vpce-svc-0e9c1ae5caa269d1b",
+            "domain_name": "vpce.ap-south-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "aps1-az1",
+                "aps1-az2",
+                "aps1-az3"
+            ]
+        },
+        "ap-southeast-1": {
+            "vpc_service_name": "com.amazonaws.vpce.ap-southeast-1.vpce-svc-0cbc6cb9bdb683a95",
+            "domain_name": "vpce.ap-southeast-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "apse1-az1",
+                "apse1-az2",
+                "apse1-az"
+            ]
+        },
+        "ap-southeast-2": {
+            "vpc_service_name": "com.amazonaws.vpce.ap-southeast-2.vpce-svc-0cde7432c1436ef13",
+            "domain_name": "vpce.ap-southeast-2.aws.elastic-cloud.com",
+            "zone_ids": [
+                "apse2-az1",
+                "apse2-az2",
+                "apse2-az3"
+            ]
+        },
+        "ca-central-1": {
+            "vpc_service_name": "com.amazonaws.vpce.ca-central-1.vpce-svc-0d3e69dd6dd336c28",
+            "domain_name": "vpce.ca-central-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "cac1-az1",
+                "cac1-az2",
+                "cac1-az4"
+            ]
+        },
+        "eu-central-1": {
+            "vpc_service_name": "com.amazonaws.vpce.eu-central-1.vpce-svc-081b2960e915a0861",
+            "domain_name": "vpce.eu-central-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "euc1-az1",
+                "euc1-az2",
+                "euc1-az3"
+            ]
+        },
+        "eu-south-1": {
+            "vpc_service_name": "com.amazonaws.vpce.eu-south-1.vpce-svc-03d8fc8a66a755237",
+            "domain_name": "vpce.eu-south-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "eus1-az1",
+                "eus1-az2",
+                "eus1-az3"
+            ]
+        },
+        "eu-west-1": {
+            "vpc_service_name": "com.amazonaws.vpce.eu-west-1.vpce-svc-01f2afe87944eb12b",
+            "domain_name": "vpce.eu-west-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "euw1-az1",
+                "euw1-az2",
+                "euw1-az3"
+            ]
+        },
+        "eu-west-2": {
+            "vpc_service_name": "com.amazonaws.vpce.eu-west-2.vpce-svc-0e42a2c194c97a1d0",
+            "domain_name": "vpce.eu-west-2.aws.elastic-cloud.com",
+            "zone_ids": [
+                "euw2-az1",
+                "euw2-az2",
+                "euw2-az3"
+            ]
+        },
+        "eu-west-3": {
+            "vpc_service_name": "com.amazonaws.vpce.eu-west-3.vpce-svc-0d6912d10db9693d1",
+            "domain_name": "vpce.eu-west-3.aws.elastic-cloud.com",
+            "zone_ids": [
+                "euw3-az1",
+                "euw3-az2",
+                "euw3-az3"
+            ]
+        },
+        "me-south-1": {
+            "vpc_service_name": "com.amazonaws.vpce.me-south-1.vpce-svc-0381de3eb670dcb48",
+            "domain_name": "vpce.me-south-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "mes1-az1",
+                "mes1-az2",
+                "mes1-az3"
+            ]
+        },
+        "sa-east-1": {
+            "vpc_service_name": "com.amazonaws.vpce.sa-east-1.vpce-svc-0b2dbce7e04dae763",
+            "domain_name": "vpce.sa-east-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "sae1-az1",
+                "sae1-az2",
+                "sae1-az3"
+            ]
+        },
+        "us-east-1": {
+            "vpc_service_name": "com.amazonaws.vpce.us-east-1.vpce-svc-0e42e1e06ed010238",
+            "domain_name": "vpce.us-east-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "use1-az2",
+                "use1-az4",
+                "use1-az6"
+            ]
+        },
+        "us-east-2": {
+            "vpc_service_name": "com.amazonaws.vpce.us-east-2.vpce-svc-02d187d2849ffb478",
+            "domain_name": "vpce.us-east-2.aws.elastic-cloud.com",
+            "zone_ids": [
+                "use2-az1",
+                "use2-az2",
+                "use2-az3"
+            ]
+        },
+        "us-west-1": {
+            "vpc_service_name": "com.amazonaws.vpce.us-west-1.vpce-svc-00def4a16a26cb1b4",
+            "domain_name": "vpce.us-west-1.aws.elastic-cloud.com",
+            "zone_ids": [
+                "usw1-az1",
+                "usw1-az3"
+            ]
+        },
+        "us-west-2": {
+            "vpc_service_name": "com.amazonaws.vpce.us-west-2.vpce-svc-0e69febae1fb91870",
+            "domain_name": "vpce.us-west-2.aws.elastic-cloud.com",
+            "zone_ids": [
+                "usw2-az1",
+                "usw2-az2",
+                "usw2-az3"
+            ]
+        },
+        "us-gov-east-1": {
+            "vpc_service_name": "com.amazonaws.vpce.us-gov-east-1.vpce-svc-0bba5ffa04f0cb26d",
+            "domain_name": "vpce.us-gov-east-1.aws.elastic-cloud.com",
+            "zone_ids": []
+        }
+    },
+    "gcp": {
+        "asia-east1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/asia-east1/serviceAttachments/proxy-psc-production-asia-east1-v1-attachment",
+            "domain_name": "psc.asia-east1.gcp.elastic-cloud.com"
+        },
+        "asia-northeast1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/asia-northeast1/serviceAttachments/proxy-psc-production-asia-northeast1-v1-attachment",
+            "domain_name": "psc.asia-northeast1.gcp.cloud.es.io"
+        },
+        "asia-northeast3": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/asia-northeast3/serviceAttachments/proxy-psc-production-asia-northeast3-v1-attachment",
+            "domain_name": "psc.asia-northeast3.gcp.elastic-cloud.com"
+        },
+        "asia-south1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/asia-south1/serviceAttachments/proxy-psc-production-asia-south1-v1-attachment",
+            "domain_name": "psc.asia-south1.gcp.elastic-cloud.com"
+        },
+        "asia-southeast1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/asia-southeast1/serviceAttachments/proxy-psc-production-asia-southeast1-v1-attachment",
+            "domain_name": "psc.asia-southeast1.gcp.elastic-cloud.com"
+        },
+        "australia-southeast1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/australia-southeast1/serviceAttachments/proxy-psc-production-australia-southeast1-v1-attachment",
+            "domain_name": "psc.australia-southeast1.gcp.elastic-cloud.com"
+        },
+        "europe-north1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/europe-north1/serviceAttachments/proxy-psc-production-europe-north1-v1-attachment",
+            "domain_name": "psc.europe-north1.gcp.elastic-cloud.com"
+        },
+        "europe-west1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/europe-west1/serviceAttachments/proxy-psc-production-europe-west1-v1-attachment",
+            "domain_name": "psc.europe-west1.gcp.cloud.es.io"
+        },
+        "europe-west2": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/europe-west2/serviceAttachments/proxy-psc-production-europe-west2-v1-attachment",
+            "domain_name": "psc.europe-west2.gcp.elastic-cloud.com"
+        },
+        "europe-west3": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/europe-west3/serviceAttachments/proxy-psc-production-europe-west3-v1-attachment",
+            "domain_name": "psc.europe-west3.gcp.cloud.es.io"
+        },
+        "europe-west4": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/europe-west4/serviceAttachments/proxy-psc-production-europe-west4-v1-attachment",
+            "domain_name": "psc.europe-west4.gcp.elastic-cloud.com"
+        },
+        "northamerica-northeast1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/northamerica-northeast1/serviceAttachments/proxy-psc-production-northamerica-northeast1-v1-attachment",
+            "domain_name": "psc.northamerica-northeast.gcp.elastic-cloud.com"
+        },
+        "southamerica-east1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/southamerica-east1/serviceAttachments/proxy-psc-production-southamerica-east1-v1-attachment",
+            "domain_name": "psc.southamerica-east1.gcp.elastic-cloud.com"
+        },
+        "us-central1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/us-central1/serviceAttachments/proxy-psc-production-us-central1-v1-attachment",
+            "domain_name": "psc.us-central1.gcp.cloud.es.io"
+        },
+        "us-east1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/us-east1/serviceAttachments/proxy-psc-production-us-east1-v1-attachment",
+            "domain_name": "psc.us-east1.gcp.elastic-cloud.com"
+        },
+        "us-east4": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/us-east4/serviceAttachments/proxy-psc-production-us-east4-v1-attachment",
+            "domain_name": "psc.us-east4.gcp.elastic-cloud.com"
+        },
+        "us-west1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/us-west1/serviceAttachments/proxy-psc-production-us-west1-v1-attachment",
+            "domain_name": "psc.us-west1.gcp.cloud.es.io"
+        }
+    },
+    "azure": {
+        "australiaeast": {
+            "service_alias": "australiaeast-prod-012-privatelink-service.a0cf0c1a-33ab-4528-81e7-9cb23608f94e.australiaeast.azure.privatelinkservice",
+            "domain_name": "privatelink.australiaeast.azure.elastic-cloud.com"
+        },
+        "centralus": {
+            "service_alias": "centralus-prod-009-privatelink-service.49a041f7-2ad1-4bd2-9898-fba7f7a1ff77.centralus.azure.privatelinkservice",
+            "domain_name": "privatelink.centralus.azure.elastic-cloud.com"
+        },
+        "eastus2": {
+            "service_alias": "eastus2-prod-002-privatelink-service.64359fdd-7893-4215-9929-ece3287e1371.eastus2.azure.privatelinkservice",
+            "domain_name": "privatelink.eastus2.azure.elastic-cloud.com"
+        },
+        "francecentral": {
+            "service_alias": "francecentral-prod-008-privatelink-service.8ab667fd-e8af-44b2-a347-bd48d109afec.francecentral.azure.privatelinkservice",
+            "domain_name": "privatelink.francecentral.azure.elastic-cloud.com"
+        },
+        "japaneast": {
+            "service_alias": "japaneast-prod-006-privatelink-service.cfcf2172-917a-4260-b002-3e7183e56fd0.japaneast.azure.privatelinkservice",
+            "domain_name": "privatelink.japaneast.azure.elastic-cloud.com"
+        },
+        "northeurope": {
+            "service_alias": "northeurope-prod-005-privatelink-service.163e4238-bdde-4a0b-a812-04650bfa41c4.northeurope.azure.privatelinkservice",
+            "domain_name": "privatelink.northeurope.azure.elastic-cloud.com"
+        },
+        "southeastasia": {
+            "service_alias": "southeastasia-prod-004-privatelink-service.20d67dc0-2a36-40a0-af8d-0e1f997a419d.southeastasia.azure.privatelinkservice",
+            "domain_name": "privatelink.southeastasia.azure.elastic-cloud.com"
+        },
+        "uksouth": {
+            "service_alias": "uksouth-prod-007-privatelink-service.98758729-06f7-438d-baaa-0cb63e737cdf.uksouth.azure.privatelinkservice",
+            "domain_name": "privatelink.uksouth.azure.elastic-cloud.com"
+        },
+        "westeurope": {
+            "service_alias": "westeurope-prod-001-privatelink-service.190cd496-6d79-4ee2-8f23-0667fd5a8ec1.westeurope.azure.privatelinkservice",
+            "domain_name": "privatelink.westeurope.azure.elastic-cloud.com"
+        },
+        "westus2": {
+            "service_alias": "westus2-prod-003-privatelink-service.b9c176b8-4fe9-41f9-916c-67cacd753ca1.westus2.azure.privatelinkservice",
+            "domain_name": "privatelink.westus2.azure.elastic-cloud.com"
+        },
+        "eastus": {
+            "service_alias": "eastus-prod-010-privatelink-service.b5765cd8-1fc8-45e9-91fc-a9b208369f9a.eastus.azure.privatelinkservice",
+            "domain_name": "privatelink.eastus2.azure.elastic-cloud.com"
+        },
+        "southcentralus": {
+            "service_alias": "southcentralus-prod-013-privatelink-service.f8030986-5fb9-4b0e-8463-69604233b07e.southcentralus.azure.privatelinkservice",
+            "domain_name": "privatelink.southcentralus.azure.elastic-cloud.com"
+        },
+        "canadacentral": {
+            "service_alias": "canadacentral-prod-011-privatelink-service.203896f1-da53-4c40-b7db-0ba4e17a1019.canadacentral.azure.privatelinkservice",
+            "domain_name": "privatelink.canadacentral.azure.elastic-cloud.com"
+        },
+        "brazilsouth": {
+            "service_alias": "brazilsouth-prod-014-privatelink-service.05813ca4-cd0f-4692-ad69-a339d023f666.brazilsouth.azure.privatelinkservice",
+            "domain_name": "privatelink.brazilsouth.azure.elastic-cloud.com"
+        },
+        "centralindia": {
+            "service_alias": "centralindia-prod-016-privatelink-service.071806ca-8101-425b-ae86-737935a719d3.centralindia.azure.privatelinkservice",
+            "domain_name": "privatelink.centralindia.azure.elastic-cloud.com"
+        },
+        "southafricanorth": {
+            "service_alias": "southafricanorth-prod-015-privatelink-service.b443098d-6382-42aa-9025-e0cd3ec9c103.southafricanorth.azure.privatelinkservice",
+            "domain_name": "privatelink.southafricanorth.azure.elastic-cloud.com"
+        }
+    }
+}
