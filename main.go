@@ -20,10 +20,11 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"log"
 
 	"github.com/elastic/terraform-provider-ec/ec"
+
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
@@ -51,9 +52,7 @@ func main() {
 	ctx := context.Background()
 	providers := []func() tfprotov6.ProviderServer{
 		func() tfprotov6.ProviderServer { return upgradedSdkProvider },
-		func() tfprotov6.ProviderServer {
-			return providerserver.NewProtocol6(ec.New())()
-		},
+		providerserver.NewProtocol6(ec.New(ec.Version)),
 	}
 
 	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
