@@ -20,42 +20,27 @@ package internal
 import (
 	"fmt"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api"
 )
 
-// Provider is an interface required to avoid import cycles in datasource / resource packages
-type Provider interface {
-	provider.Provider
-	GetClient() *api.API
-}
-
-// ConvertProviderType is a helper function for NewResource and NewDataSource
-// implementations to associate the concrete provider type. Alternatively,
-// this helper can be skipped and the provider type can be directly type
-// asserted (e.g. provider: in.(*provider)), however using this can prevent
-// potential panics.
-func ConvertProviderType(in provider.Provider) (Provider, diag.Diagnostics) {
+// ConvertProviderData is a helper function for DataSource.Configure and Resource.Configure implementations
+func ConvertProviderData(providerData any) (*api.API, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	p, ok := in.(Provider)
+	if providerData == nil {
+		return nil, diags
+	}
 
+	client, ok := providerData.(*api.API)
 	if !ok {
 		diags.AddError(
-			"Unexpected Provider Instance Type",
-			fmt.Sprintf("While creating the data source or resource, an unexpected provider type (%T) was received. This is always a bug in the provider code and should be reported to the provider developers.", p),
+			"Unexpected Provider Data",
+			fmt.Sprintf("Expected *api.API, got: %T. Please report this issue to the provider developers.", providerData),
 		)
-		return p, diags
-	}
 
-	if p == nil {
-		diags.AddError(
-			"Unexpected Provider Instance Type",
-			"While creating the data source or resource, an unexpected empty provider instance was received. This is always a bug in the provider code and should be reported to the provider developers.",
-		)
-		return p, diags
+		return nil, diags
 	}
-
-	return p, diags
+	return client, diags
 }

@@ -20,12 +20,24 @@ package trafficfilterassocresource
 import (
 	"context"
 	"errors"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (t trafficFilterAssocResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+	// Prevent panic if the provider has not been configured.
+	if r.client == nil {
+		response.Diagnostics.AddError(
+			"Unconfigured API Client",
+			"Expected configured API client. Please report this issue to the provider developers.",
+		)
+
+		return
+	}
+
 	var state modelV0
 
 	diags := request.State.Get(ctx, &state)
@@ -35,7 +47,7 @@ func (t trafficFilterAssocResource) Delete(ctx context.Context, request resource
 	}
 
 	if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
-		API:        t.provider.GetClient(),
+		API:        r.client,
 		ID:         state.TrafficFilterID.Value,
 		EntityID:   state.DeploymentID.Value,
 		EntityType: entityTypeDeployment,

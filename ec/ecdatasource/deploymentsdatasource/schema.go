@@ -19,14 +19,16 @@ package deploymentsdatasource
 
 import (
 	"context"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 )
 
-func (s DataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"name_prefix": {

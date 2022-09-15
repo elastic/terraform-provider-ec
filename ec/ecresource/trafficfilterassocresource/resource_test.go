@@ -18,16 +18,18 @@
 package trafficfilterassocresource_test
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/elastic/terraform-provider-ec/ec"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"net/url"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	r "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+
+	"github.com/elastic/terraform-provider-ec/ec"
 )
 
 func TestResourceTrafficFilterAssoc(t *testing.T) {
