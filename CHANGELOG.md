@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* datasource/privatelink: Adds data sources to obtain AWS/Azure Private Link, and GCP Private Service Connect configuration data. ([#533](https://github.com/elastic/terraform-provider-ec/issues/533))
 * resource/elasticsearch: Adds support for the `strategy` property to the `elasticsearch` resource. This allows users to define how different plan changes are coordinated. ([#507](https://github.com/elastic/terraform-provider-ec/issues/507))
 
 BUG FIXES:
