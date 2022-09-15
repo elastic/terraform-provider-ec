@@ -20,12 +20,24 @@ package trafficfilterassocresource
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 )
 
-func (t trafficFilterAssocResource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
+func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
+	// Prevent panic if the provider has not been configured.
+	if r.client == nil {
+		response.Diagnostics.AddError(
+			"Unconfigured API Client",
+			"Expected configured API client. Please report this issue to the provider developers.",
+		)
+
+		return
+	}
+
 	var newState modelV0
 
 	diags := request.Plan.Get(ctx, &newState)
@@ -35,7 +47,7 @@ func (t trafficFilterAssocResource) Create(ctx context.Context, request resource
 	}
 
 	if err := trafficfilterapi.CreateAssociation(trafficfilterapi.CreateAssociationParams{
-		API:        t.provider.GetClient(),
+		API:        r.client,
 		ID:         newState.TrafficFilterID.Value,
 		EntityID:   newState.DeploymentID.Value,
 		EntityType: entityTypeDeployment,

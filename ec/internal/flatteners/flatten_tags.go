@@ -18,9 +18,10 @@
 package flatteners
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 // flattenTags takes in Deployment Metadata resource models and returns its

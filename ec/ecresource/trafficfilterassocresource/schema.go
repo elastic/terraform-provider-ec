@@ -19,25 +19,29 @@ package trafficfilterassocresource
 
 import (
 	"context"
-	"github.com/elastic/terraform-provider-ec/ec/internal"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	tpfprovider "github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ tpfprovider.ResourceType = ResourceType{}
-var _ resource.Resource = trafficFilterAssocResource{}
-
-var _ resource.ResourceWithImportState = trafficFilterAssocResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithConfigure = &Resource{}
+var _ resource.ResourceWithGetSchema = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
+var _ resource.ResourceWithMetadata = &Resource{}
 
 type ResourceType struct{}
 
 const entityTypeDeployment = "deployment"
 
-func (t ResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"deployment_id": {
@@ -66,16 +70,18 @@ func (t ResourceType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnosti
 	}, nil
 }
 
-func (t ResourceType) NewResource(_ context.Context, provider tpfprovider.Provider) (resource.Resource, diag.Diagnostics) {
-	p, diags := internal.ConvertProviderType(provider)
-
-	return &trafficFilterAssocResource{
-		provider: p,
-	}, diags
+type Resource struct {
+	client *api.API
 }
 
-type trafficFilterAssocResource struct {
-	provider internal.Provider
+func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
+	client, diags := internal.ConvertProviderData(request.ProviderData)
+	response.Diagnostics.Append(diags...)
+	r.client = client
+}
+
+func (r *Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = request.ProviderTypeName + "_deployment_traffic_filter_association"
 }
 
 type modelV0 struct {

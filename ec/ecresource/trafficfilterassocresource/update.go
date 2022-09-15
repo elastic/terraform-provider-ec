@@ -19,9 +19,10 @@ package trafficfilterassocresource
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (t trafficFilterAssocResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	panic("ec_deployment_traffic_filter_association resources can not be updated!")
 }

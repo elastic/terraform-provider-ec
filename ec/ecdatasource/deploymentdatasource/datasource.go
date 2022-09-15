@@ -23,9 +23,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -35,25 +35,36 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-var _ provider.DataSourceType = (*DataSourceType)(nil)
+var _ datasource.DataSource = &DataSource{}
+var _ datasource.DataSourceWithConfigure = &DataSource{}
+var _ datasource.DataSourceWithGetSchema = &DataSource{}
+var _ datasource.DataSourceWithMetadata = &DataSource{}
 
-type DataSourceType struct{}
-
-func (s DataSourceType) NewDataSource(ctx context.Context, in provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-	p, diags := internal.ConvertProviderType(in)
-
-	return &deploymentDataSource{
-		p: p,
-	}, diags
+type DataSource struct {
+	client *api.API
 }
 
-var _ datasource.DataSource = (*deploymentDataSource)(nil)
-
-type deploymentDataSource struct {
-	p internal.Provider
+func (d *DataSource) Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse) {
+	client, diags := internal.ConvertProviderData(request.ProviderData)
+	response.Diagnostics.Append(diags...)
+	d.client = client
 }
 
-func (d deploymentDataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
+func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
+	response.TypeName = request.ProviderTypeName + "_deployment"
+}
+
+func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
+	// Prevent panic if the provider has not been configured.
+	if d.client == nil {
+		response.Diagnostics.AddError(
+			"Unconfigured API Client",
+			"Expected configured API client. Please report this issue to the provider developers.",
+		)
+
+		return
+	}
+
 	var newState modelV0
 	response.Diagnostics.Append(request.Config.Get(ctx, &newState)...)
 	if response.Diagnostics.HasError() {
@@ -61,7 +72,7 @@ func (d deploymentDataSource) Read(ctx context.Context, request datasource.ReadR
 	}
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
-		API:          d.p.GetClient(),
+		API:          d.client,
 		DeploymentID: newState.ID.Value,
 		QueryParams: deputil.QueryParams{
 			ShowPlans:        true,

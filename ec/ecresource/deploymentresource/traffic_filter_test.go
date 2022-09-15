@@ -20,9 +20,10 @@ package deploymentresource
 import (
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 func TestParseTrafficFiltering(t *testing.T) {

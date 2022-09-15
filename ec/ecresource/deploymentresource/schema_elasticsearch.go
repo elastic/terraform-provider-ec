@@ -23,9 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/elastic/cloud-sdk-go/pkg/util/slice"
 )
 
 func newElasticsearchResource() *schema.Resource {

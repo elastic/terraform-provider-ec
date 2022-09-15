@@ -20,10 +20,11 @@ package extensionresource
 import (
 	"os"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func uploadExtension(client *api.API, d *schema.ResourceData) error {

@@ -29,6 +29,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
+
 	"github.com/elastic/terraform-provider-ec/ec"
 )
 
