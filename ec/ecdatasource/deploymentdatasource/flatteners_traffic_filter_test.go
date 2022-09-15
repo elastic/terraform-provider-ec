@@ -21,8 +21,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 func Test_flattenTrafficFiltering(t *testing.T) {

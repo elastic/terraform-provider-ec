@@ -19,11 +19,12 @@ package util
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"os"
-	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )

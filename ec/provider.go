@@ -22,6 +22,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
@@ -30,18 +42,9 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
-	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 const (
@@ -146,15 +149,32 @@ func ProviderWithClient(client *api.API, version string) provider.Provider {
 	return &Provider{client: client, version: version}
 }
 
-var _ internal.Provider = (*Provider)(nil)
-
-func (p *Provider) GetClient() *api.API {
-	return p.client
-}
+var _ provider.Provider = (*Provider)(nil)
+var _ provider.ProviderWithMetadata = (*Provider)(nil)
+var _ provider.ProviderWithDataSources = (*Provider)(nil)
+var _ provider.ProviderWithResources = (*Provider)(nil)
 
 type Provider struct {
 	version string
 	client  *api.API
+}
+
+func (p *Provider) Metadata(ctx context.Context, request provider.MetadataRequest, response *provider.MetadataResponse) {
+	response.TypeName = "ec"
+}
+
+func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		func() datasource.DataSource { return &deploymentdatasource.DataSource{} },
+		func() datasource.DataSource { return &deploymentsdatasource.DataSource{} },
+		func() datasource.DataSource { return &stackdatasource.DataSource{} },
+	}
+}
+
+func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
+	}
 }
 
 func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -229,6 +249,9 @@ type providerData struct {
 
 func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
 	if p.client != nil {
+		// Required for unit tests, because a mock client is pre-created there.
+		res.DataSourceData = p.client
+		res.ResourceData = p.client
 		return
 	}
 
@@ -345,7 +368,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
-	p.client, err = api.NewAPI(cfg)
+	client, err := api.NewAPI(cfg)
 	if err != nil {
 		res.Diagnostics.AddWarning(
 			"Unable to create api Client config",
@@ -353,18 +376,8 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		)
 		return
 	}
-}
 
-func (p *Provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-	return map[string]provider.ResourceType{
-		"ec_deployment_traffic_filter_association": trafficfilterassocresource.ResourceType{},
-	}, nil
-}
-
-func (p *Provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-	return map[string]provider.DataSourceType{
-		"ec_stack":       stackdatasource.DataSourceType{},
-		"ec_deployment":  deploymentdatasource.DataSourceType{},
-		"ec_deployments": deploymentsdatasource.DataSourceType{},
-	}, nil
+	p.client = client
+	res.DataSourceData = client
+	res.ResourceData = client
 }
