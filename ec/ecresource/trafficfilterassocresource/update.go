@@ -18,23 +18,10 @@
 package trafficfilterassocresource
 
 import (
-	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// Resource returns the ec_deployment_traffic_filter_association resource schema.
-func Resource() *schema.Resource {
-	return &schema.Resource{
-		Description: "Elastic Cloud deployment traffic filtering association",
-		Schema:      newSchema(),
-
-		CreateContext: create,
-		ReadContext:   read,
-		DeleteContext: delete,
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(10 * time.Minute),
-		},
-	}
+func (t trafficFilterAssocResource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	panic("ec_deployment_traffic_filter_association resources can not be updated!")
 }

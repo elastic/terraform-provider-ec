@@ -20,6 +20,8 @@ package ec
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
@@ -34,7 +36,6 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -74,11 +75,10 @@ func LegacyProvider() *schema.Provider {
 		Schema:               newSchema(),
 		DataSourcesMap:       map[string]*schema.Resource{},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment":                            deploymentresource.Resource(),
-			"ec_deployment_elasticsearch_keystore":     elasticsearchkeystoreresource.Resource(),
-			"ec_deployment_traffic_filter":             trafficfilterresource.Resource(),
-			"ec_deployment_traffic_filter_association": trafficfilterassocresource.Resource(),
-			"ec_deployment_extension":                  extensionresource.Resource(),
+			"ec_deployment":                        deploymentresource.Resource(),
+			"ec_deployment_elasticsearch_keystore": elasticsearchkeystoreresource.Resource(),
+			"ec_deployment_traffic_filter":         trafficfilterresource.Resource(),
+			"ec_deployment_extension":              extensionresource.Resource(),
 		},
 	}
 }
@@ -138,18 +138,23 @@ func newSchema() map[string]*schema.Schema {
 	}
 }
 
-func New() provider.Provider {
-	return &Provider{}
+func New(version string) provider.Provider {
+	return &Provider{version: version}
+}
+
+func ProviderWithClient(client *api.API, version string) provider.Provider {
+	return &Provider{client: client, version: version}
 }
 
 var _ internal.Provider = (*Provider)(nil)
 
 func (p *Provider) GetClient() *api.API {
-	return p.Client
+	return p.client
 }
 
 type Provider struct {
-	Client *api.API
+	version string
+	client  *api.API
 }
 
 func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -223,6 +228,10 @@ type providerData struct {
 }
 
 func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+	if p.client != nil {
+		return
+	}
+
 	// Retrieve provider data from configuration
 	var config providerData
 	diags := req.Config.Get(ctx, &config)
@@ -336,7 +345,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
-	p.Client, err = api.NewAPI(cfg)
+	p.client, err = api.NewAPI(cfg)
 	if err != nil {
 		res.Diagnostics.AddWarning(
 			"Unable to create api Client config",
@@ -347,7 +356,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 }
 
 func (p *Provider) GetResources(_ context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-	return map[string]provider.ResourceType{}, nil
+	return map[string]provider.ResourceType{
+		"ec_deployment_traffic_filter_association": trafficfilterassocresource.ResourceType{},
+	}, nil
 }
 
 func (p *Provider) GetDataSources(_ context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {

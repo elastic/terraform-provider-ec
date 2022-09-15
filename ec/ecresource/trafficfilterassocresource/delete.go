@@ -20,31 +20,31 @@ package trafficfilterassocresource
 import (
 	"context"
 	"errors"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// delete will delete an existing deployment traffic filter ruleset association.
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+func (t trafficFilterAssocResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+	var state modelV0
 
-	params := expand(d)
-	params.API = client
-
-	if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams(params)); err != nil {
-		if associationDeleted(err) {
-			d.SetId("")
-			return nil
-		}
-		return diag.FromErr(err)
+	diags := request.State.Get(ctx, &state)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
 	}
 
-	d.SetId("")
-	return nil
+	if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+		API:        t.provider.GetClient(),
+		ID:         state.TrafficFilterID.Value,
+		EntityID:   state.DeploymentID.Value,
+		EntityType: entityTypeDeployment,
+	}); err != nil {
+		if !associationDeleted(err) {
+			response.Diagnostics.AddError(err.Error(), err.Error())
+			return
+		}
+	}
 }
 
 func associationDeleted(err error) bool {

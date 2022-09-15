@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentdatasource
+package flatteners
 
 import (
 	"context"
@@ -35,11 +35,6 @@ func TestFlattenTags(t *testing.T) {
 		args args
 		want map[string]string
 	}{
-		{
-			name: "flattens no metadata tags when empty",
-			args: args{},
-			want: map[string]string{},
-		},
 		{
 			name: "flattens no metadata tags when empty",
 			args: args{metadata: &models.DeploymentMetadata{}},
@@ -76,7 +71,7 @@ func TestFlattenTags(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := flattenTags(tt.args.metadata)
+			result := FlattenTags(tt.args.metadata.Tags)
 			got := make(map[string]string, len(result.Elems))
 			result.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)

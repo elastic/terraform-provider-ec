@@ -15,19 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package trafficfilterassocresource
+package flatteners
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-const entityType = "deployment"
-
-func expand(d *schema.ResourceData) trafficfilterapi.CreateAssociationParams {
-	return trafficfilterapi.CreateAssociationParams{
-		ID:         d.Get("traffic_filter_id").(string),
-		EntityID:   d.Get("deployment_id").(string),
-		EntityType: entityType,
+// flattenTags takes in Deployment Metadata resource models and returns its
+// Tags in flattened form.
+func FlattenTags(metadataItems []*models.MetadataItem) types.Map {
+	var tags = make(map[string]attr.Value)
+	for _, res := range metadataItems {
+		if res.Key != nil {
+			tags[*res.Key] = types.String{Value: *res.Value}
+		}
 	}
+	return types.Map{ElemType: types.StringType, Elems: tags}
 }
