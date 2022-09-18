@@ -17,19 +17,38 @@
 
 package trafficfilterresource
 
-func newSampleTrafficFilter() map[string]interface{} {
-	return map[string]interface{}{
-		"name":               "my traffic filter",
-		"type":               "ip",
-		"include_by_default": false,
-		"region":             "us-east-1",
-		"rule": []interface{}{
-			map[string]interface{}{
-				"source": "1.1.1.1",
+import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+func newSampleTrafficFilter(id string) modelV0 {
+	return modelV0{
+		ID:               types.String{Value: id},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Description:      types.String{Null: true},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.1", "", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "", "", "", ""),
 			},
-			map[string]interface{}{
-				"source": "0.0.0.0/0",
-			},
+		},
+	}
+}
+
+func newSampleTrafficFilterRule(source string, description string, azureEndpointName string, azureEndpointGUID string, id string) types.Object {
+	return types.Object{
+		AttrTypes: trafficFilterRuleAttrTypes(),
+		Attrs: map[string]attr.Value{
+			"source":              types.String{Value: source, Null: source == ""},
+			"description":         types.String{Value: description, Null: description == ""},
+			"azure_endpoint_name": types.String{Value: azureEndpointName, Null: azureEndpointName == ""},
+			"azure_endpoint_guid": types.String{Value: azureEndpointGUID, Null: azureEndpointGUID == ""},
+			"id":                  types.String{Value: id},
 		},
 	}
 }

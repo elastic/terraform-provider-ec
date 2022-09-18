@@ -32,7 +32,7 @@ func TestAccDatasourceStack_latest(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProviderFactory,
+		ProtoV6ProviderFactories: testAccProviderFactory,
 		Steps: []resource.TestStep{
 			{
 				Config:             cfg,
@@ -54,7 +54,7 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProviderFactory,
+		ProtoV6ProviderFactories: testAccProviderFactory,
 		Steps: []resource.TestStep{
 			{
 				Config:             cfg,

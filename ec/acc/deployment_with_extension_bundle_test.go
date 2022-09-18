@@ -45,7 +45,7 @@ func TestAccDeployment_withExtension(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProviderFactory,
+		ProtoV6ProviderFactories: testAccProviderFactory,
 		CheckDestroy: func(s *terraform.State) error {
 			merr := multierror.NewPrefixed("checking resource with extension")
 

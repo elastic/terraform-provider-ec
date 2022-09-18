@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	r "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -35,7 +35,7 @@ import (
 func TestResourceTrafficFilterAssoc(t *testing.T) {
 
 	r.UnitTest(t, r.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse(),
 				readResponse(),
@@ -65,7 +65,7 @@ func TestResourceTrafficFilterAssoc(t *testing.T) {
 
 func TestResourceTrafficFilterAssoc_externalDeletion1(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse(),
 				readResponse(),
@@ -86,9 +86,10 @@ func TestResourceTrafficFilterAssoc_externalDeletion1(t *testing.T) {
 		},
 	})
 }
+
 func TestResourceTrafficFilterAssoc_externalDeletion2(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse(),
 				readResponse(),
@@ -112,7 +113,7 @@ func TestResourceTrafficFilterAssoc_externalDeletion2(t *testing.T) {
 
 func TestResourceTrafficFilterAssoc_gracefulDeletion(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse(),
 				readResponse(),
@@ -135,7 +136,7 @@ func TestResourceTrafficFilterAssoc_gracefulDeletion(t *testing.T) {
 
 func TestResourceTrafficFilterAssoc_failedDeletion(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse(),
 				readResponse(),
@@ -159,7 +160,7 @@ func TestResourceTrafficFilterAssoc_failedDeletion(t *testing.T) {
 
 func TestResourceTrafficFilterAssoc_importState(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
-		ProtoV5ProviderFactories: protoV5ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				readResponse(),
 			),
@@ -303,6 +304,7 @@ func alreadyDeletedResponse() mock.Response {
 		mock.NewStringBody(`{	}`),
 	)
 }
+
 func failedDeletionResponse() mock.Response {
 	mock.SampleInternalError()
 	return mock.New500ResponseAssertion(
@@ -317,10 +319,10 @@ func failedDeletionResponse() mock.Response {
 	)
 }
 
-func protoV5ProviderFactoriesWithMockClient(client *api.API) map[string]func() (tfprotov5.ProviderServer, error) {
-	return map[string]func() (tfprotov5.ProviderServer, error){
-		"ec": func() (tfprotov5.ProviderServer, error) {
-			return providerserver.NewProtocol5(ec.ProviderWithClient(client, "unit-tests"))(), nil
+func protoV6ProviderFactoriesWithMockClient(client *api.API) map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		"ec": func() (tfprotov6.ProviderServer, error) {
+			return providerserver.NewProtocol6(ec.ProviderWithClient(client, "unit-tests"))(), nil
 		},
 	}
 }

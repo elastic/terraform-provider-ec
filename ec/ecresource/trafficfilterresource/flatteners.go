@@ -18,67 +18,66 @@
 package trafficfilterresource
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-func modelToState(d *schema.ResourceData, res *models.TrafficFilterRulesetInfo) error {
-	if err := d.Set("name", *res.Name); err != nil {
-		return err
+func modelToState(ctx context.Context, res *models.TrafficFilterRulesetInfo, state *modelV0) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	state.Name = types.String{Value: *res.Name}
+	state.Region = types.String{Value: *res.Region}
+	state.Type = types.String{Value: *res.Type}
+	state.IncludeByDefault = types.Bool{Value: *res.IncludeByDefault}
+
+	diags.Append(flattenRules(ctx, res.Rules, &state.Rule)...)
+
+	if res.Description == "" {
+		state.Description = types.String{Null: true}
+	} else {
+		state.Description = types.String{Value: res.Description}
 	}
 
-	if err := d.Set("region", *res.Region); err != nil {
-		return err
-	}
-
-	if err := d.Set("type", *res.Type); err != nil {
-		return err
-	}
-
-	if err := d.Set("rule", flattenRules(res.Rules)); err != nil {
-		return err
-	}
-
-	if err := d.Set("include_by_default", res.IncludeByDefault); err != nil {
-		return err
-	}
-
-	if res.Description != "" {
-		if err := d.Set("description", res.Description); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return diags
 }
 
-func flattenRules(rules []*models.TrafficFilterRule) *schema.Set {
-	result := schema.NewSet(trafficFilterRuleHash, []interface{}{})
+func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule, target interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	var result = make([]trafficFilterRuleModelV0, 0, len(rules))
 	for _, rule := range rules {
-		var m = make(map[string]interface{})
+		model := trafficFilterRuleModelV0{
+			ID:                types.String{Value: rule.ID},
+			Source:            types.String{Null: true},
+			Description:       types.String{Null: true},
+			AzureEndpointGUID: types.String{Null: true},
+			AzureEndpointName: types.String{Null: true},
+		}
+
 		if rule.Source != "" {
-			m["source"] = rule.Source
+			model.Source = types.String{Value: rule.Source}
 		}
 
 		if rule.Description != "" {
-			m["description"] = rule.Description
-		}
-
-		if rule.ID != "" {
-			m["id"] = rule.ID
+			model.Description = types.String{Value: rule.Description}
 		}
 
 		if rule.AzureEndpointGUID != "" {
-			m["azure_endpoint_guid"] = rule.AzureEndpointGUID
+			model.AzureEndpointGUID = types.String{Value: rule.AzureEndpointGUID}
 		}
 
 		if rule.AzureEndpointName != "" {
-			m["azure_endpoint_name"] = rule.AzureEndpointName
+			model.AzureEndpointName = types.String{Value: rule.AzureEndpointName}
 		}
 
-		result.Add(m)
+		result = append(result, model)
 	}
 
-	return result
+	diags.Append(tfsdk.ValueFrom(ctx, result, trafficFilterRuleSetType(), target)...)
+
+	return diags
 }
