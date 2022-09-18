@@ -39,7 +39,7 @@ func TestAccDeployment_pre_node_roles(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProviderFactory,
+		ProtoV6ProviderFactories: testAccProviderFactory,
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{

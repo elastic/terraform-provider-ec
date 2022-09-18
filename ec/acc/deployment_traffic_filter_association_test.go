@@ -39,7 +39,7 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProviderFactory,
+		ProtoV6ProviderFactories: testAccProviderFactory,
 		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -116,7 +116,7 @@ terraform {
 			},
 			{
 				PlanOnly:                 true,
-				ProtoV5ProviderFactories: testAccProviderFactory,
+				ProtoV6ProviderFactories: testAccProviderFactory,
 				Config:                   ignoreChangesCfg,
 				Check: checkBasicDeploymentTrafficFilterAssociationResource(
 					resName, resAssocName, randomName,
