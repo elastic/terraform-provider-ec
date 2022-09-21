@@ -30,7 +30,7 @@ import (
 // flattenStackVersionElasticsearchConfig takes a StackVersionElasticsearchConfig and flattens it.
 func flattenStackVersionElasticsearchConfig(ctx context.Context, res *models.StackVersionElasticsearchConfig, target interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	model := newResourceKindConfigModelV0()
+	model := newElasticsearchConfigModelV0()
 	empty := true
 
 	if res == nil {
@@ -72,9 +72,9 @@ func flattenStackVersionElasticsearchConfig(ctx context.Context, res *models.Sta
 		return diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, types.ListType{
+	diags.Append(tfsdk.ValueFrom(ctx, []elasticSearchConfigModelV0{model}, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: resourceKindConfigAttrTypes(),
+			AttrTypes: elasticSearchConfigAttrTypes(),
 		},
 	}, target)...)
 

@@ -33,10 +33,10 @@ import (
 // flattened form.
 func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo, target interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var result = make([]kibanaResourceModelV0, 0, len(in))
+	var result = make([]kibanaResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
-		model := kibanaResourceModelV0{
+		model := kibanaResourceInfoModelV0{
 			Topology: types.List{ElemType: types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()}},
 		}
 

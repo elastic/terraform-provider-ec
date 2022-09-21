@@ -29,40 +29,46 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"alias": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "Deployment alias.",
+				Computed:    true,
 			},
 			"healthy": {
-				Type:     types.BoolType,
-				Computed: true,
+				Type:        types.BoolType,
+				Description: "Overall health status of the deployment.",
+				Computed:    true,
 			},
 			"id": {
-				Type:     types.StringType,
-				Required: true,
+				Type:        types.StringType,
+				Description: "The unique ID of the deployment.",
+				Required:    true,
 			},
 			"name": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The name of the deployment.",
+				Computed:    true,
 			},
 			"region": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "Region where the deployment can be found.",
+				Computed:    true,
 			},
 			"deployment_template_id": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "ID of the deployment template used to create the deployment.",
+				Computed:    true,
 			},
 			"traffic_filter": {
-				Type:     types.ListType{ElemType: types.StringType},
-				Computed: true,
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "Traffic filter block, which contains a list of traffic filter rule identifiers.",
+				Computed:    true,
 			},
-			"observability": observabilitySettingsSchema(),
 			"tags": {
-				Type:     types.MapType{ElemType: types.StringType},
-				Computed: true,
+				Type:        types.MapType{ElemType: types.StringType},
+				Description: "Key value map of arbitrary string tags.",
+				Computed:    true,
 			},
-
-			// Deployment resources
+			"observability":       observabilitySettingsSchema(),
 			"elasticsearch":       elasticsearchResourceInfoSchema(),
 			"kibana":              kibanaResourceInfoSchema(),
 			"apm":                 apmResourceInfoSchema(),
@@ -82,9 +88,9 @@ type modelV0 struct {
 	TrafficFilter        types.List   `tfsdk:"traffic_filter"`      //< string
 	Observability        types.List   `tfsdk:"observability"`       //< observabilitySettingsModel
 	Tags                 types.Map    `tfsdk:"tags"`                //< string
-	Elasticsearch        types.List   `tfsdk:"elasticsearch"`       //< elasticsearchResourceModelV0
-	Kibana               types.List   `tfsdk:"kibana"`              //< kibanaResourceModelV0
-	Apm                  types.List   `tfsdk:"apm"`                 //< apmResourceModelV0
-	IntegrationsServer   types.List   `tfsdk:"integrations_server"` //< integrationsServerResourceModelV0
-	EnterpriseSearch     types.List   `tfsdk:"enterprise_search"`   //< enterpriseSearchResourceModelV0
+	Elasticsearch        types.List   `tfsdk:"elasticsearch"`       //< elasticsearchResourceInfoModelV0
+	Kibana               types.List   `tfsdk:"kibana"`              //< kibanaResourceInfoModelV0
+	Apm                  types.List   `tfsdk:"apm"`                 //< apmResourceInfoModelV0
+	IntegrationsServer   types.List   `tfsdk:"integrations_server"` //< integrationsServerResourceInfoModelV0
+	EnterpriseSearch     types.List   `tfsdk:"enterprise_search"`   //< enterpriseSearchResourceInfoModelV0
 }

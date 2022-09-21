@@ -64,7 +64,7 @@ func flattenStackVersionApmConfig(ctx context.Context, res *models.StackVersionA
 
 	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: resourceKindConfigAttrTypes(),
+			AttrTypes: resourceKindConfigAttrTypes(Apm),
 		},
 	}, target)...)
 

@@ -37,12 +37,12 @@ func Test_flattenKibanaResources(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []kibanaResourceModelV0
+		want []kibanaResourceInfoModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.KibanaResourceInfo{}},
-			want: []kibanaResourceModelV0{},
+			want: []kibanaResourceInfoModelV0{},
 		},
 		{
 			name: "parses the kibana resource",
@@ -91,7 +91,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 					},
 				},
 			}},
-			want: []kibanaResourceModelV0{{
+			want: []kibanaResourceInfoModelV0{{
 				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
 				RefID:                     types.String{Value: "main-kibana"},
 				ResourceID:                types.String{Value: mock.ValidClusterID},
@@ -119,7 +119,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 			var model modelV0
 			diags := flattenKibanaResources(context.Background(), tt.args.in, &model.Kibana)
 			assert.Empty(t, diags)
-			var got []kibanaResourceModelV0
+			var got []kibanaResourceInfoModelV0
 			model.Kibana.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})

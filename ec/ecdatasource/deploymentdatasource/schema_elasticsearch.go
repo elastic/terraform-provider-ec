@@ -18,74 +18,178 @@
 package deploymentdatasource
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func elasticsearchResourceInfoSchema() tfsdk.Attribute {
-	// TODO should we use tfsdk.ListNestedAttributes here? - see https://github.com/hashicorp/terraform-provider-hashicups-pf/blob/8f222d805d39445673e442a674168349a45bc054/hashicups/data_source_coffee.go#L22
 	return tfsdk.Attribute{
-		Computed: true,
-		Type: types.ListType{ElemType: types.ObjectType{
-			AttrTypes: elasticsearchResourceInfoAttrTypes(),
-		}},
+		Description: "Instance configuration of the Elasticsearch resource kind.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"autoscale": {
+				Type:        types.StringType,
+				Description: "Whether or not Elasticsearch autoscaling is enabled.",
+				Computed:    true,
+			},
+			"healthy": {
+				Type:        types.BoolType,
+				Description: "Resource kind health status.",
+				Computed:    true,
+			},
+			"cloud_id": {
+				Type:                types.StringType,
+				Description:         "The encoded Elasticsearch credentials to use in Beats or Logstash.",
+				MarkdownDescription: "The encoded Elasticsearch credentials to use in Beats or Logstash. See [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html) for more information.",
+				Computed:            true,
+			},
+			"http_endpoint": {
+				Type:        types.StringType,
+				Description: "HTTP endpoint for the resource kind.",
+				Computed:    true,
+			},
+			"https_endpoint": {
+				Type:        types.StringType,
+				Description: "HTTPS endpoint for the resource kind.",
+				Computed:    true,
+			},
+			"ref_id": {
+				Type:        types.StringType,
+				Description: "User specified ref_id for the resource kind.",
+				Computed:    true,
+			},
+			"resource_id": {
+				Type:        types.StringType,
+				Description: "The resource unique identifier.",
+				Computed:    true,
+			},
+			"status": {
+				Type:        types.StringType,
+				Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
+				Computed:    true,
+			},
+			"version": {
+				Type:        types.StringType,
+				Description: "Elastic stack version.",
+				Computed:    true,
+			},
+			"topology": elasticsearchTopologySchema(),
+		}),
 	}
 }
 
 func elasticsearchResourceInfoAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"autoscale":      types.StringType,
-		"healthy":        types.BoolType,
-		"cloud_id":       types.StringType,
-		"http_endpoint":  types.StringType,
-		"https_endpoint": types.StringType,
-		"ref_id":         types.StringType,
-		"resource_id":    types.StringType,
-		"status":         types.StringType,
-		"version":        types.StringType,
-		"topology":       elasticsearchTopologySchema(),
-	}
+	return elasticsearchResourceInfoSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
-func elasticsearchTopologySchema() attr.Type {
-	return types.ListType{ElemType: types.ObjectType{
-		AttrTypes: elasticsearchTopologyAttrTypes(),
-	}}
+func elasticsearchTopologySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Node topology element definition.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"instance_configuration_id": {
+				Type:        types.StringType,
+				Description: "Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.",
+				Computed:    true,
+			},
+			"size": {
+				Type:        types.StringType,
+				Description: "Amount of resource per topology element in the \"g\" notation.",
+				Computed:    true,
+			},
+			"size_resource": {
+				Type:        types.StringType,
+				Description: "Type of resource (\"memory\" or \"storage\")",
+				Computed:    true,
+			},
+			"zone_count": {
+				Type:        types.Int64Type,
+				Description: "Number of zones in which nodes will be placed.",
+				Computed:    true,
+			},
+			"node_type_data": {
+				Type:        types.BoolType,
+				Description: "Defines whether this node can hold data (<7.10.0).",
+				Computed:    true,
+			},
+			"node_type_master": {
+				Type:        types.BoolType,
+				Description: " Defines whether this node can be elected master (<7.10.0).",
+				Computed:    true,
+			},
+			"node_type_ingest": {
+				Type:        types.BoolType,
+				Description: "Defines whether this node can run an ingest pipeline (<7.10.0).",
+				Computed:    true,
+			},
+			"node_type_ml": {
+				Type:        types.BoolType,
+				Description: "Defines whether this node can run ML jobs (<7.10.0).",
+				Computed:    true,
+			},
+			"node_roles": {
+				Type:        types.SetType{ElemType: types.StringType},
+				Description: "Defines the list of Elasticsearch node roles assigned to the topology element (>=7.10.0).",
+				Computed:    true,
+			},
+			"autoscaling": elasticsearchAutoscalingSchema(),
+		}),
+	}
 }
 
 func elasticsearchTopologyAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"instance_configuration_id": types.StringType,
-		"size":                      types.StringType,
-		"size_resource":             types.StringType,
-		"zone_count":                types.Int64Type,
-		"node_type_data":            types.BoolType,
-		"node_type_master":          types.BoolType,
-		"node_type_ingest":          types.BoolType,
-		"node_type_ml":              types.BoolType,
-		"node_roles":                types.SetType{ElemType: types.StringType},
-		"autoscaling":               elasticsearchAutoscalingSchema(), // Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.
+	return elasticsearchTopologySchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
+
+func elasticsearchAutoscalingSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"max_size_resource": {
+				Type:        types.StringType,
+				Description: "Maximum resource type for the maximum autoscaling setting.",
+				Computed:    true,
+			},
+			"max_size": {
+				Type:        types.StringType,
+				Description: "Maximum size value for the maximum autoscaling setting.",
+				Computed:    true,
+			},
+			"min_size_resource": {
+				Type:        types.StringType,
+				Description: "Minimum resource type for the minimum autoscaling setting.",
+				Computed:    true,
+			},
+			"min_size": {
+				Type:        types.StringType,
+				Description: "Minimum size value for the minimum autoscaling setting.",
+				Computed:    true,
+			},
+			"policy_override_json": {
+				Type:        types.StringType,
+				Description: "Computed policy overrides set directly via the API or other clients.",
+				Computed:    true,
+			},
+		}),
 	}
 }
 
-func elasticsearchAutoscalingSchema() attr.Type {
-	return types.ListType{ElemType: types.ObjectType{
-		AttrTypes: elasticsearchAutoscalingAttrTypes(),
-	}}
+func elasticsearchAutoscalingListType() attr.Type {
+	return elasticsearchAutoscalingSchema().Attributes.Type()
 }
 
 func elasticsearchAutoscalingAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"max_size_resource":    types.StringType, // Maximum resource type for the maximum autoscaling setting.
-		"max_size":             types.StringType, // Maximum size value for the maximum autoscaling setting.
-		"min_size_resource":    types.StringType, // Minimum resource type for the minimum autoscaling setting.
-		"min_size":             types.StringType, // Minimum size value for the minimum autoscaling setting.
-		"policy_override_json": types.StringType, // Computed policy overrides set directly via the API or other clients.
-	}
+	return elasticsearchAutoscalingListType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+
 }
 
-type elasticsearchResourceModelV0 struct {
+type elasticsearchResourceInfoModelV0 struct {
 	Autoscale     types.String `tfsdk:"autoscale"`
 	Healthy       types.Bool   `tfsdk:"healthy"`
 	CloudID       types.String `tfsdk:"cloud_id"`

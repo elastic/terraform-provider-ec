@@ -33,10 +33,10 @@ import (
 // flattened form.
 func flattenIntegrationsServerResources(ctx context.Context, in []*models.IntegrationsServerResourceInfo, target interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var result = make([]integrationsServerResourceModelV0, 0, len(in))
+	var result = make([]integrationsServerResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
-		model := integrationsServerResourceModelV0{
+		model := integrationsServerResourceInfoModelV0{
 			Topology: types.List{ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()}},
 		}
 

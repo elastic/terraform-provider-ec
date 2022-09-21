@@ -18,28 +18,44 @@
 package deploymentdatasource
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func observabilitySettingsSchema() tfsdk.Attribute {
-	// TODO should we use tfsdk.ListNestedAttributes here? - see https://github.com/hashicorp/terraform-provider-hashicups-pf/blob/8f222d805d39445673e442a674168349a45bc054/hashicups/data_source_coffee.go#L22
 	return tfsdk.Attribute{
-		Computed: true,
-		Type: types.ListType{ElemType: types.ObjectType{
-			AttrTypes: observabilitySettingsAttrTypes(),
-		}},
+		Description: "Observability settings. Information about logs and metrics shipped to a dedicated deployment.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"deployment_id": {
+				Type:        types.StringType,
+				Description: "Destination deployment ID for the shipped logs and monitoring metrics.",
+				Computed:    true,
+			},
+			"ref_id": {
+				Type:        types.StringType,
+				Description: "Elasticsearch resource kind ref_id of the destination deployment.",
+				Computed:    true,
+			},
+			"logs": {
+				Type:        types.BoolType,
+				Description: "Defines whether logs are enabled or disabled.",
+				Computed:    true,
+			},
+			"metrics": {
+				Type:        types.BoolType,
+				Description: "Defines whether metrics are enabled or disabled.",
+				Computed:    true,
+			},
+		}),
 	}
 }
 
 func observabilitySettingsAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"deployment_id": types.StringType,
-		"ref_id":        types.StringType,
-		"logs":          types.BoolType,
-		"metrics":       types.BoolType,
-	}
+	return observabilitySettingsSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 type observabilitySettingsModel struct {

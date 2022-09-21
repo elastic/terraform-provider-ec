@@ -37,12 +37,12 @@ func Test_flattenApmResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []apmResourceModelV0
+		want []apmResourceInfoModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.ApmResourceInfo{}},
-			want: []apmResourceModelV0{},
+			want: []apmResourceInfoModelV0{},
 		},
 		{
 			name: "parses the apm resource",
@@ -89,7 +89,7 @@ func Test_flattenApmResource(t *testing.T) {
 					},
 				},
 			}},
-			want: []apmResourceModelV0{{
+			want: []apmResourceInfoModelV0{{
 				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
 				RefID:                     types.String{Value: "main-apm"},
 				ResourceID:                types.String{Value: mock.ValidClusterID},
@@ -118,7 +118,7 @@ func Test_flattenApmResource(t *testing.T) {
 			diags := flattenApmResources(context.Background(), tt.args.in, &newState.Apm)
 			assert.Empty(t, diags)
 
-			var got []apmResourceModelV0
+			var got []apmResourceInfoModelV0
 			newState.Apm.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})

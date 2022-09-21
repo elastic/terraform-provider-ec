@@ -65,8 +65,6 @@ func Test_flattenApmResource(t *testing.T) {
 				CapacityConstraintsMin: types.Int64{Value: 512},
 				CompatibleNodeTypes:    util.StringListAsType(nil),
 				DockerImage:            types.String{Value: "docker.elastic.co/cloud-assets/apm:7.9.1-0"},
-				Plugins:                util.StringListAsType(nil),
-				DefaultPlugins:         util.StringListAsType(nil),
 			}},
 		},
 	}

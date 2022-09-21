@@ -72,9 +72,9 @@ func Test_expandFilters(t *testing.T) {
 					Size:       types.Int64{Value: 200},
 					Tags:       util.StringMapAsType(map[string]string{"foo": "bar"}),
 					Elasticsearch: types.List{
-						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Elasticsearch)},
 						Elems: []attr.Value{types.Object{
-							AttrTypes: resourceFiltersAttrTypes(),
+							AttrTypes: resourceFiltersAttrTypes(Elasticsearch),
 							Attrs: map[string]attr.Value{
 								"healthy": types.String{Null: true},
 								"status":  types.String{Null: true},
@@ -83,9 +83,9 @@ func Test_expandFilters(t *testing.T) {
 						}},
 					},
 					Kibana: types.List{
-						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Kibana)},
 						Elems: []attr.Value{types.Object{
-							AttrTypes: resourceFiltersAttrTypes(),
+							AttrTypes: resourceFiltersAttrTypes(Kibana),
 							Attrs: map[string]attr.Value{
 								"healthy": types.String{Null: true},
 								"status":  types.String{Value: "started"},
@@ -94,9 +94,9 @@ func Test_expandFilters(t *testing.T) {
 						}},
 					},
 					Apm: types.List{
-						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Apm)},
 						Elems: []attr.Value{types.Object{
-							AttrTypes: resourceFiltersAttrTypes(),
+							AttrTypes: resourceFiltersAttrTypes(Apm),
 							Attrs: map[string]attr.Value{
 								"healthy": types.String{Value: "true"},
 								"status":  types.String{Null: true},
@@ -105,9 +105,9 @@ func Test_expandFilters(t *testing.T) {
 						}},
 					},
 					EnterpriseSearch: types.List{
-						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(EnterpriseSearch)},
 						Elems: []attr.Value{types.Object{
-							AttrTypes: resourceFiltersAttrTypes(),
+							AttrTypes: resourceFiltersAttrTypes(EnterpriseSearch),
 							Attrs: map[string]attr.Value{
 								"status":  types.String{Null: true},
 								"healthy": types.String{Value: "false"},
@@ -167,9 +167,9 @@ func newInvalidFilters() modelV0 {
 	return modelV0{
 		Healthy: types.String{Value: "invalid value"},
 		Apm: types.List{
-			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Apm)},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceFiltersAttrTypes(),
+				AttrTypes: resourceFiltersAttrTypes(Apm),
 				Attrs: map[string]attr.Value{
 					"healthy": types.String{Value: "invalid value"},
 				},
@@ -187,9 +187,9 @@ func newSampleFilters() modelV0 {
 			"foo": types.String{Value: "bar"},
 		}},
 		Elasticsearch: types.List{
-			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Elasticsearch)},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceFiltersAttrTypes(),
+				AttrTypes: resourceFiltersAttrTypes(Elasticsearch),
 				Attrs: map[string]attr.Value{
 					"healthy": types.String{Null: true},
 					"status":  types.String{Null: true},
@@ -198,9 +198,9 @@ func newSampleFilters() modelV0 {
 			}},
 		},
 		Kibana: types.List{
-			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Kibana)},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceFiltersAttrTypes(),
+				AttrTypes: resourceFiltersAttrTypes(Kibana),
 				Attrs: map[string]attr.Value{
 					"healthy": types.String{Null: true},
 					"status":  types.String{Value: "started"},
@@ -209,9 +209,9 @@ func newSampleFilters() modelV0 {
 			}},
 		},
 		Apm: types.List{
-			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(Apm)},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceFiltersAttrTypes(),
+				AttrTypes: resourceFiltersAttrTypes(Apm),
 				Attrs: map[string]attr.Value{
 					"healthy": types.String{Value: "true"},
 					"status":  types.String{Null: true},
@@ -220,9 +220,9 @@ func newSampleFilters() modelV0 {
 			}},
 		},
 		EnterpriseSearch: types.List{
-			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes()},
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(EnterpriseSearch)},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceFiltersAttrTypes(),
+				AttrTypes: resourceFiltersAttrTypes(EnterpriseSearch),
 				Attrs: map[string]attr.Value{
 					"status":  types.String{Null: true},
 					"healthy": types.String{Value: "false"},

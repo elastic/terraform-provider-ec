@@ -37,12 +37,12 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []integrationsServerResourceModelV0
+		want []integrationsServerResourceInfoModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.IntegrationsServerResourceInfo{}},
-			want: []integrationsServerResourceModelV0{},
+			want: []integrationsServerResourceInfoModelV0{},
 		},
 		{
 			name: "parses the integrations_server resource",
@@ -91,7 +91,7 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 					},
 				},
 			}},
-			want: []integrationsServerResourceModelV0{{
+			want: []integrationsServerResourceInfoModelV0{{
 				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
 				RefID:                     types.String{Value: "main-integrations_server"},
 				ResourceID:                types.String{Value: mock.ValidClusterID},
@@ -120,7 +120,7 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 			diags := flattenIntegrationsServerResources(context.Background(), tt.args.in, &newState.IntegrationsServer)
 			assert.Empty(t, diags)
 
-			var got []integrationsServerResourceModelV0
+			var got []integrationsServerResourceInfoModelV0
 			newState.IntegrationsServer.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})
