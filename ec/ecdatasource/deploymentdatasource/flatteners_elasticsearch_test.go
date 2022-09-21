@@ -37,13 +37,13 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []elasticsearchResourceModelV0
+		want []elasticsearchResourceInfoModelV0
 		err  string
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.ElasticsearchResourceInfo{}},
-			want: []elasticsearchResourceModelV0{},
+			want: []elasticsearchResourceInfoModelV0{},
 		},
 		{
 			name: "parses elasticsearch resource",
@@ -121,7 +121,7 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 					},
 				},
 			}},
-			want: []elasticsearchResourceModelV0{{
+			want: []elasticsearchResourceInfoModelV0{{
 				Autoscale:     types.String{Value: "true"},
 				RefID:         types.String{Value: "main-elasticsearch"},
 				ResourceID:    types.String{Value: mock.ValidClusterID},
@@ -168,7 +168,7 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 			diags := flattenElasticsearchResources(context.Background(), tt.args.in, &model.Elasticsearch)
 			assert.Empty(t, diags)
 
-			var got []elasticsearchResourceModelV0
+			var got []elasticsearchResourceInfoModelV0
 			model.Elasticsearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})

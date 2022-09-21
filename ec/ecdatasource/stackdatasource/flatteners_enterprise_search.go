@@ -64,7 +64,7 @@ func flattenStackVersionEnterpriseSearchConfig(ctx context.Context, res *models.
 
 	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: resourceKindConfigAttrTypes(),
+			AttrTypes: resourceKindConfigAttrTypes(EnterpriseSearch),
 		},
 	}, target)...)
 

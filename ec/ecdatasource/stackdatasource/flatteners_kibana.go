@@ -64,7 +64,7 @@ func flattenStackVersionKibanaConfig(ctx context.Context, res *models.StackVersi
 
 	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: resourceKindConfigAttrTypes(),
+			AttrTypes: resourceKindConfigAttrTypes(Kibana),
 		},
 	}, target)...)
 

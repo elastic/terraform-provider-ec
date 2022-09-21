@@ -36,10 +36,10 @@ import (
 // flattened form.
 func flattenElasticsearchResources(ctx context.Context, in []*models.ElasticsearchResourceInfo, target interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var result = make([]elasticsearchResourceModelV0, 0, len(in))
+	var result = make([]elasticsearchResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
-		model := elasticsearchResourceModelV0{
+		model := elasticsearchResourceInfoModelV0{
 			Topology: types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()}},
 		}
 
@@ -168,7 +168,7 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 		}
 
 		if !empty {
-			diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchAutoscalingModel{autoscaling}, elasticsearchAutoscalingSchema(), &model.Autoscaling)...)
+			diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchAutoscalingModel{autoscaling}, elasticsearchAutoscalingListType(), &model.Autoscaling)...)
 		}
 
 		result = append(result, model)

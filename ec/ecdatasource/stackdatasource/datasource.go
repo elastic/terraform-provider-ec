@@ -155,11 +155,17 @@ func stackFromFilters(expr, version string, locked bool, stacks []*models.StackV
 	)
 }
 
-func newResourceKindConfigModelV0() resourceKindConfigModelV0 {
-	return resourceKindConfigModelV0{
+func newElasticsearchConfigModelV0() elasticSearchConfigModelV0 {
+	return elasticSearchConfigModelV0{
 		DenyList:            types.List{ElemType: types.StringType},
 		CompatibleNodeTypes: types.List{ElemType: types.StringType},
 		Plugins:             types.List{ElemType: types.StringType},
 		DefaultPlugins:      types.List{ElemType: types.StringType},
+	}
+}
+func newResourceKindConfigModelV0() resourceKindConfigModelV0 {
+	return resourceKindConfigModelV0{
+		DenyList:            types.List{ElemType: types.StringType},
+		CompatibleNodeTypes: types.List{ElemType: types.StringType},
 	}
 }

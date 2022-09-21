@@ -60,7 +60,7 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 				Config:             cfg,
 				PreventDiskCleanup: true,
 				Check: checkDataSourceStack(datasourceName,
-					resource.TestCheckResourceAttr(datasourceName, "version_regex", "7.0.?"),
+					resource.TestCheckResourceAttr(datasourceName, "version_regex", "8.4.?"),
 					resource.TestCheckResourceAttr(datasourceName, "region", getRegion()),
 				),
 			},

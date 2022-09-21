@@ -33,10 +33,10 @@ import (
 // flattened form.
 func flattenApmResources(ctx context.Context, in []*models.ApmResourceInfo, target interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var result = make([]apmResourceModelV0, 0, len(in))
+	var result = make([]apmResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
-		model := apmResourceModelV0{
+		model := apmResourceInfoModelV0{
 			Topology: types.List{ElemType: types.ObjectType{AttrTypes: apmTopologyAttrTypes()}},
 		}
 

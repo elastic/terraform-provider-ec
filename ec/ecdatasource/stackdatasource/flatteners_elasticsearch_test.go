@@ -37,7 +37,7 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []resourceKindConfigModelV0
+		want []elasticSearchConfigModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
@@ -75,7 +75,7 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 					"repository-gcs",
 				},
 			}},
-			want: []resourceKindConfigModelV0{{
+			want: []elasticSearchConfigModelV0{{
 				DenyList:               util.StringListAsType([]string{"some"}),
 				CapacityConstraintsMax: types.Int64{Value: 8192},
 				CapacityConstraintsMin: types.Int64{Value: 512},
@@ -106,7 +106,7 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 			diags := flattenStackVersionElasticsearchConfig(context.Background(), tt.args.res, &newState.Elasticsearch)
 			assert.Empty(t, diags)
 
-			var got []resourceKindConfigModelV0
+			var got []elasticSearchConfigModelV0
 			newState.Elasticsearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
 		})

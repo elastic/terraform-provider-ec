@@ -33,10 +33,10 @@ import (
 // flattened form.
 func flattenEnterpriseSearchResources(ctx context.Context, in []*models.EnterpriseSearchResourceInfo, target interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var result = make([]enterpriseSearchResourceModelV0, 0, len(in))
+	var result = make([]enterpriseSearchResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
-		model := enterpriseSearchResourceModelV0{
+		model := enterpriseSearchResourceInfoModelV0{
 			Topology: types.List{ElemType: types.ObjectType{AttrTypes: enterpriseSearchTopologyAttrTypes()}},
 		}
 

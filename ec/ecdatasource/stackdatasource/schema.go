@@ -19,11 +19,21 @@ package stackdatasource
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+type ResourceKind int
+
+const (
+	Apm ResourceKind = iota
+	EnterpriseSearch
+	Kibana
 )
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -68,39 +78,111 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 				Type:     types.BoolType,
 				Computed: true,
 			},
-
-			"apm":               kindResourceSchema(),
-			"enterprise_search": kindResourceSchema(),
-			"elasticsearch":     kindResourceSchema(),
-			"kibana":            kindResourceSchema(),
+			"apm":               resourceKindConfigSchema(Apm),
+			"enterprise_search": resourceKindConfigSchema(EnterpriseSearch),
+			"elasticsearch":     elasticSearchConfigSchema(),
+			"kibana":            resourceKindConfigSchema(Kibana),
 		},
 	}, nil
 }
 
-func kindResourceSchema() tfsdk.Attribute {
-	// TODO should we use tfsdk.ListNestedAttributes here? - see https://github.com/hashicorp/terraform-provider-hashicups-pf/blob/8f222d805d39445673e442a674168349a45bc054/hashicups/data_source_coffee.go#L22
+func elasticSearchConfigSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Computed: true,
-		Type: types.ListType{ElemType: types.ObjectType{
-			AttrTypes: resourceKindConfigAttrTypes(),
-		}},
+		Description: "Information for Elasticsearch workloads on this stack version.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"denylist": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of configuration options that cannot be overridden by user settings.",
+				Computed:    true,
+			},
+			"capacity_constraints_max": {
+				Type:        types.Int64Type,
+				Description: "Minimum size of the instances.",
+				Computed:    true,
+			},
+			"capacity_constraints_min": {
+				Type:        types.Int64Type,
+				Description: "Maximum size of the instances.",
+				Computed:    true,
+			},
+			"compatible_node_types": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of node types compatible with this one.",
+				Computed:    true,
+			},
+			"docker_image": {
+				Type:        types.StringType,
+				Description: "Docker image to use for the Elasticsearch cluster instances.",
+				Computed:    true,
+			},
+			"plugins": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of available plugins to be specified by users in Elasticsearch cluster instances.",
+				Computed:    true,
+			},
+			"default_plugins": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of default plugins.",
+				Computed:    true,
+			},
+			// node_types not added. It is highly unlikely they will be used
+			// for anything, and if they're needed in the future, then we can
+			// invest on adding them.
+		}),
 	}
 }
 
-func resourceKindConfigAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"denylist":                 types.ListType{ElemType: types.StringType},
-		"capacity_constraints_max": types.Int64Type,
-		"capacity_constraints_min": types.Int64Type,
-		"compatible_node_types":    types.ListType{ElemType: types.StringType},
-		"docker_image":             types.StringType,
-		"plugins":                  types.ListType{ElemType: types.StringType},
-		"default_plugins":          types.ListType{ElemType: types.StringType},
+func elasticSearchConfigAttrTypes() map[string]attr.Type {
+	return elasticSearchConfigSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
 
-		// node_types not added. It is highly unlikely they will be used
-		// for anything, and if they're needed in the future, then we can
-		// invest on adding them.
+func resourceKindConfigSchema(resourceKind ResourceKind) tfsdk.Attribute {
+	var names = map[ResourceKind]string{
+		Apm:              "APM",
+		EnterpriseSearch: "Enterprise Search",
+		Kibana:           "Kibana",
 	}
+	return tfsdk.Attribute{
+		Description: fmt.Sprintf("Information for %s workloads on this stack version.", names[resourceKind]),
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"denylist": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of configuration options that cannot be overridden by user settings.",
+				Computed:    true,
+			},
+			"capacity_constraints_max": {
+				Type:        types.Int64Type,
+				Description: "Minimum size of the instances.",
+				Computed:    true,
+			},
+			"capacity_constraints_min": {
+				Type:        types.Int64Type,
+				Description: "Maximum size of the instances.",
+				Computed:    true,
+			},
+			"compatible_node_types": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of node types compatible with this one.",
+				Computed:    true,
+			},
+			"docker_image": {
+				Type:        types.StringType,
+				Description: fmt.Sprintf("Docker image to use for the %s instance.", names[resourceKind]),
+				Computed:    true,
+			},
+			// node_types not added. It is highly unlikely they will be used
+			// for anything, and if they're needed in the future, then we can
+			// invest on adding them.
+		}),
+	}
+}
+
+func resourceKindConfigAttrTypes(resourceKind ResourceKind) map[string]attr.Type {
+	return resourceKindConfigSchema(resourceKind).Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 type modelV0 struct {
@@ -115,8 +197,18 @@ type modelV0 struct {
 	AllowListed       types.Bool   `tfsdk:"allowlisted"`
 	Apm               types.List   `tfsdk:"apm"`               //< resourceKindConfigModelV0
 	EnterpriseSearch  types.List   `tfsdk:"enterprise_search"` //< resourceKindConfigModelV0
-	Elasticsearch     types.List   `tfsdk:"elasticsearch"`     //< resourceKindConfigModelV0
+	Elasticsearch     types.List   `tfsdk:"elasticsearch"`     //< elasticSearchConfigModelV0
 	Kibana            types.List   `tfsdk:"kibana"`            //< resourceKindConfigModelV0
+}
+
+type elasticSearchConfigModelV0 struct {
+	DenyList               types.List   `tfsdk:"denylist"`
+	CapacityConstraintsMax types.Int64  `tfsdk:"capacity_constraints_max"`
+	CapacityConstraintsMin types.Int64  `tfsdk:"capacity_constraints_min"`
+	CompatibleNodeTypes    types.List   `tfsdk:"compatible_node_types"`
+	DockerImage            types.String `tfsdk:"docker_image"`
+	Plugins                types.List   `tfsdk:"plugins"`
+	DefaultPlugins         types.List   `tfsdk:"default_plugins"`
 }
 
 type resourceKindConfigModelV0 struct {
@@ -125,6 +217,4 @@ type resourceKindConfigModelV0 struct {
 	CapacityConstraintsMin types.Int64  `tfsdk:"capacity_constraints_min"`
 	CompatibleNodeTypes    types.List   `tfsdk:"compatible_node_types"`
 	DockerImage            types.String `tfsdk:"docker_image"`
-	Plugins                types.List   `tfsdk:"plugins"`
-	DefaultPlugins         types.List   `tfsdk:"default_plugins"`
 }
