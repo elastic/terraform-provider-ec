@@ -37,8 +37,6 @@ var _ resource.ResourceWithGetSchema = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 var _ resource.ResourceWithMetadata = &Resource{}
 
-type ResourceType struct{}
-
 const entityTypeDeployment = "deployment"
 
 func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -72,6 +70,18 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 type Resource struct {
 	client *api.API
+}
+
+func resourceReady(r Resource, dg *diag.Diagnostics) bool {
+	if r.client == nil {
+		dg.AddError(
+			"Unconfigured API Client",
+			"Expected configured API client. Please report this issue to the provider developers.",
+		)
+
+		return false
+	}
+	return true
 }
 
 func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
