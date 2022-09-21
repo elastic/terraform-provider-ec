@@ -24,8 +24,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
+	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
@@ -37,16 +38,20 @@ const (
 	prefix = "terraform_acc_"
 )
 
-var testAccProviderFactory = protoV5ProviderFactories()
+var testAccProviderFactory = protoV6ProviderFactories()
 
-func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
-	return map[string]func() (tfprotov5.ProviderServer, error){
-		"ec": func() (tfprotov5.ProviderServer, error) {
-			return tf5muxserver.NewMuxServer(context.Background(),
-				func() tfprotov5.ProviderServer {
-					return ec.LegacyProvider().GRPCProvider()
+func protoV6ProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		"ec": func() (tfprotov6.ProviderServer, error) {
+			return tf6muxserver.NewMuxServer(context.Background(),
+				func() tfprotov6.ProviderServer {
+					upgradedSdkProvider, _ := tf5to6server.UpgradeServer(
+						context.Background(),
+						ec.LegacyProvider().GRPCProvider,
+					)
+					return upgradedSdkProvider
 				},
-				providerserver.NewProtocol5(ec.New("acc-tests")),
+				providerserver.NewProtocol6(ec.New("acc-tests")),
 			)
 		},
 	}

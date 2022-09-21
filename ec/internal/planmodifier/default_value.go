@@ -47,14 +47,7 @@ func (m *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Cont
 }
 
 func (m *defaultValueAttributePlanModifier) Modify(_ context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
-	// If the attribute configuration is not null, we are done here
 	if !req.AttributeConfig.IsNull() {
-		return
-	}
-
-	// If the attribute plan is "known" and "not null", then a previous plan m in the sequence
-	// has already been applied, and we don't want to interfere.
-	if !req.AttributePlan.IsUnknown() && !req.AttributePlan.IsNull() {
 		return
 	}
 

@@ -28,13 +28,7 @@ import (
 )
 
 func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
-	// Prevent panic if the provider has not been configured.
-	if r.client == nil {
-		response.Diagnostics.AddError(
-			"Unconfigured API Client",
-			"Expected configured API client. Please report this issue to the provider developers.",
-		)
-
+	if !resourceReady(r, &response.Diagnostics) {
 		return
 	}
 
