@@ -76,6 +76,8 @@ Meaning the service account need to have the following roles as well as the role
 
 - Terraform installation roles need
 	- resourcemanager.projectIamAdmin
+	- roles/compute.instanceAdmin.v1 (To create compute instances)
+	- roles/logging.admin (To create log sinks)
 	- pubsub.editor (This one usually includes the roles the Elastic Agent needs)
 	
 Example roles assignment via `gcloud`
