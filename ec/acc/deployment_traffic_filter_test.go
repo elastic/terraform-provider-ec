@@ -119,16 +119,6 @@ func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
 	startCfg := "testdata/deployment_traffic_filter_basic.tf"
 	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
 
-	// Required because of a bug - see https://discuss.hashicorp.com/t/acceptance-testing-sdk-framework-upgrade-issue/44166/2
-	externalProviderConfig := `
-terraform {
-  required_providers {
-    ec = {
-      source = "elastic/ec"
-      version = "0.4.1"
-    }
-  }
-}`
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccDeploymentTrafficFilterDestroy,
@@ -140,7 +130,7 @@ terraform {
 						Source:            "elastic/ec",
 					},
 				},
-				Config: cfg + externalProviderConfig,
+				Config: cfg,
 				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
