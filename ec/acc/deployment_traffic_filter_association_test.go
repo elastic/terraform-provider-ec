@@ -81,16 +81,6 @@ func TestAccDeploymentTrafficFilterAssociation_UpgradeFrom0_4_1(t *testing.T) {
 	cfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
 	ignoreChangesCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, ignoreChangesCfgFile, randomName, getRegion(), defaultTemplate)
 
-	// Required because of a bug - see https://discuss.hashicorp.com/t/acceptance-testing-sdk-framework-upgrade-issue/44166/2
-	externalProviderConfig := `
-terraform {
-  required_providers {
-    ec = {
-      source = "elastic/ec"
-      version = "0.4.1"
-    }
-  }
-}`
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccDeploymentTrafficFilterDestroy,
@@ -105,7 +95,7 @@ terraform {
 				// Expects a non-empty plan since "ec_deployment.traffic_filter"
 				// will have changes due to the traffic filter association.
 				ExpectNonEmptyPlan: true,
-				Config:             cfg + externalProviderConfig,
+				Config:             cfg,
 				Check: checkBasicDeploymentTrafficFilterAssociationResource(
 					resName, resAssocName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),

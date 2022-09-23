@@ -149,8 +149,6 @@ func ProviderWithClient(client *api.API, version string) provider.Provider {
 
 var _ provider.Provider = (*Provider)(nil)
 var _ provider.ProviderWithMetadata = (*Provider)(nil)
-var _ provider.ProviderWithDataSources = (*Provider)(nil)
-var _ provider.ProviderWithResources = (*Provider)(nil)
 
 type Provider struct {
 	version string

@@ -33,9 +33,6 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
-var _ resource.ResourceWithGetSchema = &Resource{}
-
-var _ resource.ResourceWithMetadata = &Resource{}
 
 func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{

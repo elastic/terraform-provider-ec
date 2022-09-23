@@ -33,9 +33,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
-var _ resource.ResourceWithGetSchema = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
-var _ resource.ResourceWithMetadata = &Resource{}
 
 const entityTypeDeployment = "deployment"
 
