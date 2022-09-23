@@ -18,10 +18,12 @@
 package elasticsearchkeystoreresource
 
 import (
+	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -30,7 +32,7 @@ import (
 
 func Test_expandModel(t *testing.T) {
 	type args struct {
-		d *schema.ResourceData
+		state modelV0
 	}
 	tests := []struct {
 		name string
@@ -39,14 +41,14 @@ func Test_expandModel(t *testing.T) {
 	}{
 		{
 			name: "parses the resource with a string value",
-			args: args{d: newResourceData(t, resDataParams{
-				ID: "some-random-id",
-				Resources: map[string]interface{}{
-					"deployment_id": mock.ValidClusterID,
-					"setting_name":  "my_secret",
-					"value":         "supersecret",
-				},
-			})},
+			args: args{state: modelV0{
+
+				ID:           types.String{Value: "some-random-id"},
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				SettingName:  types.String{Value: "my_secret"},
+				Value:        types.String{Value: "supersecret"},
+				AsFile:       types.Bool{Value: false},
+			}},
 			want: &models.KeystoreContents{
 				Secrets: map[string]models.KeystoreSecret{
 					"my_secret": {
@@ -58,12 +60,12 @@ func Test_expandModel(t *testing.T) {
 		},
 		{
 			name: "parses the resource with a json formatted value",
-			args: args{d: newResourceData(t, resDataParams{
-				ID: "some-random-id",
-				Resources: map[string]interface{}{
-					"deployment_id": mock.ValidClusterID,
-					"setting_name":  "my_secret",
-					"value": `{
+			args: args{state: modelV0{
+
+				ID:           types.String{Value: "some-random-id"},
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				SettingName:  types.String{Value: "my_secret"},
+				Value: types.String{Value: `{
     "type": "service_account",
     "project_id": "project-id",
     "private_key_id": "key-id",
@@ -74,10 +76,10 @@ func Test_expandModel(t *testing.T) {
     "token_uri": "https://accounts.google.com/o/oauth2/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
     "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-account-email"
-}`,
-					"as_file": true,
-				},
-			})},
+}`},
+				AsFile: types.Bool{Value: true},
+			},
+			},
 			want: &models.KeystoreContents{
 				Secrets: map[string]models.KeystoreSecret{
 					"my_secret": {
@@ -101,7 +103,7 @@ func Test_expandModel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := expandModel(tt.args.d)
+			got := expandModel(context.Background(), tt.args.state)
 			assert.Equal(t, tt.want, got)
 		})
 	}

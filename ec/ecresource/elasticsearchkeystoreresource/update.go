@@ -20,27 +20,48 @@ package elasticsearchkeystoreresource
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
 )
 
-// update will update an existing element in the Elasticsearch keystore
-func update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
-	deploymentID := d.Get("deployment_id").(string)
-
-	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
-		API:          client,
-		DeploymentID: deploymentID,
-		Contents:     expandModel(d),
-	})
-	if err != nil {
-		return diag.FromErr(err)
+// Update will update an existing element in the Elasticsearch keystore
+func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
 	}
 
-	return read(ctx, d, meta)
+	var newState modelV0
+
+	diags := request.Plan.Get(ctx, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
+		API:          r.client,
+		DeploymentID: newState.DeploymentID.Value,
+		Contents:     expandModel(ctx, newState),
+	})
+	if err != nil {
+		response.Diagnostics.AddError(err.Error(), err.Error())
+	}
+
+	found, diags := r.read(ctx, newState.DeploymentID.Value, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		// We can't unset the state here, and must make sure to set the state according to the plan below.
+		// So all we do is add a warning.
+		diags.AddWarning(
+			"Failed to read Elasticsearch keystore.",
+			"Please run terraform refresh to ensure a consistent state.",
+		)
+	}
+
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
