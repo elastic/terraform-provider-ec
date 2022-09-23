@@ -1,5 +1,20 @@
 # elastic-terraform-examples
 
+The first example in the repository is creating a Google Cloud Monitoring and Enhanced Security environment. It creates all necessary Google Cloud Services as well as the Elastic Cloud Cluster for you. The only thing you need to provide is an appropriate Google Cloud Service account that has the right permissions and the Elastic Cloud API Key. It works both: In Elastic Cloud directly or via the Google Cloud Marketplace option for Elastic Cloud.
+
+This example will install and configure:
+- Elastic Cluster
+- Google Cloud Compute engine with Elastic Agent installed and configured to talk to the Elastic Cluster
+- Google Cloud Log routers (Log sinks) with the appropriate filters for Audit, Firewall, VPC Flow, DNS and Loadbalancer Logs. 
+- Google Cloud PubSub topics to collects the log types above
+- Elastic Agent will be configured to collect all the logs and all available Google Cloud Metric datasets with zero manual configuration
+- The Elastic Cluster will be configured with the following additional capabilities
+	- Single pane of glass Google Cloud Dashboard
+	- Google Cloud Cost optimizer dashboard
+	- Google Cloud Storage bucket analyzer dashboard
+	- Elastic transforms to prepare the data for the installed dashboards
+	- Preloaded all Elastic Security Detection rules and enabled all Google Cloud related rules
+
 ## Prepare
 
 #### Prepare software dependencies
