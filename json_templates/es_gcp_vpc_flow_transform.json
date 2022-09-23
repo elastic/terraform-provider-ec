@@ -1,0 +1,88 @@
+{
+  "source": {
+    "index": [
+      "logs*"
+    ],
+    "query": {
+      "bool": {
+        "should": [
+          {
+            "match_phrase": {
+              "event.dataset": "gcp.vpcflow"
+            }
+          }
+        ],
+        "minimum_should_match": 1
+      }
+    }
+  },
+  "pivot": {
+    "group_by": {
+      "gcp.source.vpc.vpc_name": {
+        "terms": {
+          "field": "gcp.source.vpc.vpc_name"
+        }
+      },
+      "gcp.source.vpc.project_id": {
+        "terms": {
+          "field": "gcp.source.vpc.project_id"
+        }
+      },
+      "gcp.source.vpc.subnetwork_name": {
+        "terms": {
+          "field": "gcp.source.vpc.subnetwork_name"
+        }
+      },
+      "source.ip": {
+        "terms": {
+          "field": "source.ip"
+        }
+      },
+      "gcp.source.instance.region": {
+        "terms": {
+          "field": "gcp.source.instance.region"
+        }
+      },
+      "gcp.destination.vpc.vpc_name": {
+        "terms": {
+          "field": "gcp.destination.vpc.vpc_name"
+        }
+      },
+      "gcp.destination.vpc.project_id": {
+        "terms": {
+          "field": "gcp.destination.vpc.project_id"
+        }
+      },
+      "gcp.destination.vpc.subnetwork_name": {
+        "terms": {
+          "field": "gcp.destination.vpc.subnetwork_name"
+        }
+      },
+      "destination.ip": {
+        "terms": {
+          "field": "destination.ip"
+        }
+      },
+      "gcp.destination.instance.region": {
+        "terms": {
+          "field": "gcp.destination.instance.region"
+        }
+      }
+    },
+    "aggregations": {
+      "network.bytes.sum": {
+        "sum": {
+          "field": "network.bytes"
+        }
+      }
+    }
+  },
+  "dest": {
+    "index": "gcp_vpc_flow_summary"
+  },
+  "sync": {
+    "time": {
+      "field": "@timestamp"
+    }
+  }
+}

@@ -39,7 +39,7 @@ data "external" "elastic_create_gcp_policy" {
     kibana_endpoint  = ec_deployment.elastic_gc_deployment.kibana[0].https_endpoint
     elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
     elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
-    elastic_json_body = templatefile("../json_templates/default-policy.json", {"policy_name": "GCP"})
+    elastic_json_body = templatefile("../json_templates/default-policy.json", {"policy_name": "GC_${var.google_cloud_project}"})
   }
   program = ["sh", "../scripts/kb_create_agent_policy.sh" ]
   depends_on = [ec_deployment.elastic_gc_deployment]
@@ -75,4 +75,147 @@ data "external" "elastic_add_gcp_integration" {
 output "elastic_add_gcp_integration" {
   value = data.external.elastic_add_gcp_integration.result
   depends_on = [data.external.elastic_add_gcp_integration]
+}
+
+# -------------------------------------------------------------
+#  Load Rules
+# -------------------------------------------------------------
+
+data "external" "elastic_load_rules" {
+  query = {
+    kibana_endpoint  = ec_deployment.elastic_gc_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+  }
+  program = ["sh", "../scripts/kb_load_detection_rules.sh" ]
+  depends_on = [ec_deployment.elastic_gc_deployment]
+}
+
+data "external" "elastic_enable_gcp_rules" {
+  query = {
+    kibana_endpoint  = ec_deployment.elastic_gc_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    elastic_json_body = templatefile("../json_templates/es_gcp_rule_activation.json",{})
+  }
+  program = ["sh", "../scripts/kb_enable_detection_rules.sh" ]
+  depends_on = [data.external.elastic_load_rules]
+}
+
+output "elastic_enable_gcp_rules" {
+  value = data.external.elastic_enable_gcp_rules.result
+  depends_on = [data.external.elastic_enable_gcp_rules]
+}
+
+# -------------------------------------------------------------
+#  Create and Start transforms
+# -------------------------------------------------------------
+
+data "external" "elastic_gcp_create_transform_gcs" {
+  query = {
+    elastic_endpoint  = ec_deployment.elastic_gc_deployment.elasticsearch[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    transform_name    = "gcs-repo-transform"
+    elastic_json_body = templatefile("../json_templates/es_gcp_repo_transform.json",{})
+  }
+  program = ["sh", "../scripts/es_create_transform.sh" ]
+  depends_on = [ec_deployment.elastic_gc_deployment]
+}
+
+data "external" "elastic_gcp_start_transform_gcs" {
+  query = {
+    elastic_endpoint  = ec_deployment.elastic_gc_deployment.elasticsearch[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    transform_name    = "gcs-repo-transform"
+  }
+  program = ["sh", "../scripts/es_start_transform.sh" ]
+  depends_on = [data.external.elastic_gcp_create_transform_gcs]
+}
+
+output "elastic_gcp_start_transform_gcs" {
+  value = data.external.elastic_gcp_start_transform_gcs.result
+  depends_on = [data.external.elastic_gcp_start_transform_gcs]
+}
+
+################################################################################
+
+data "external" "elastic_gcp_create_transform_host_metrics" {
+  query = {
+    elastic_endpoint  = ec_deployment.elastic_gc_deployment.elasticsearch[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    transform_name    = "host-profile-transform"
+    elastic_json_body = templatefile("../json_templates/es_gcp_host_transform.json",{})
+  }
+  program = ["sh", "../scripts/es_create_transform.sh" ]
+  depends_on = [ec_deployment.elastic_gc_deployment]
+}
+
+data "external" "elastic_gcp_start_transform_host_metrics" {
+  query = {
+    elastic_endpoint  = ec_deployment.elastic_gc_deployment.elasticsearch[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    transform_name    = "host-profile-transform"
+  }
+  program = ["sh", "../scripts/es_start_transform.sh" ]
+  depends_on = [data.external.elastic_gcp_create_transform_host_metrics]
+}
+
+output "elastic_gcp_start_transform_host_metrics" {
+  value = data.external.elastic_gcp_start_transform_host_metrics.result
+  depends_on = [data.external.elastic_gcp_start_transform_host_metrics]
+}
+
+################################################################################
+
+data "external" "elastic_gcp_create_transform_vpc_flow" {
+  query = {
+    elastic_endpoint  = ec_deployment.elastic_gc_deployment.elasticsearch[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    transform_name    = "vpc_flow-transform"
+    elastic_json_body = templatefile("../json_templates/es_gcp_vpc_flow_transform.json",{})
+  }
+  program = ["sh", "../scripts/es_create_transform.sh" ]
+  depends_on = [ec_deployment.elastic_gc_deployment]
+}
+
+data "external" "elastic_gcp_start_transform_vpc_flow" {
+  query = {
+    elastic_endpoint  = ec_deployment.elastic_gc_deployment.elasticsearch[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    transform_name    = "vpc_flow-transform"
+  }
+  program = ["sh", "../scripts/es_start_transform.sh" ]
+  depends_on = [data.external.elastic_gcp_create_transform_vpc_flow]
+}
+
+output "elastic_gcp_start_transform_vpc_flow" {
+  value = data.external.elastic_gcp_start_transform_vpc_flow.result
+  depends_on = [data.external.elastic_gcp_start_transform_vpc_flow]
+}
+
+# -------------------------------------------------------------
+#  Load Dashboards
+# -------------------------------------------------------------
+
+data "external" "elastic_upload_gcp_saved_objects" {
+  query = {
+	elastic_http_method = "POST"
+    kibana_endpoint  = ec_deployment.elastic_gc_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_gc_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_gc_deployment.elasticsearch_password
+    so_file      		= "../dashboards/google_cloud_dashboards.ndjson"
+  }
+  program = ["sh", "../scripts/kb_upload_saved_objects.sh" ]
+  depends_on = [ec_deployment.elastic_gc_deployment]
+}
+
+output "elastic_upload_gcp_saved_objects" {
+  value = data.external.elastic_upload_gcp_saved_objects.result
+  depends_on = [data.external.elastic_upload_gcp_saved_objects]
 }
