@@ -37,8 +37,6 @@ import (
 
 var _ datasource.DataSource = &DataSource{}
 var _ datasource.DataSourceWithConfigure = &DataSource{}
-var _ datasource.DataSourceWithGetSchema = &DataSource{}
-var _ datasource.DataSourceWithMetadata = &DataSource{}
 
 type DataSource struct {
 	client *api.API
