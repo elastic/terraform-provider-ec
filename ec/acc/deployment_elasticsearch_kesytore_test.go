@@ -131,17 +131,6 @@ func TestAccDeploymentElasticsearchKeystore_UpgradeFrom0_4_1(t *testing.T) {
 		)
 	}
 
-	// Required because of a bug - see https://discuss.hashicorp.com/t/acceptance-testing-sdk-framework-upgrade-issue/44166/2
-	externalProviderConfig := `
-terraform {
-  required_providers {
-    ec = {
-      source = "elastic/ec"
-      version = "0.4.1"
-    }
-  }
-}`
-
 	resource.ParallelTest(t, resource.TestCase{
 		Steps: []resource.TestStep{
 			{
@@ -151,7 +140,7 @@ terraform {
 						Source:            "elastic/ec",
 					},
 				},
-				Config: cfgF(startCfg) + externalProviderConfig,
+				Config: cfgF(startCfg),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(firstResName, "setting_name", "xpack.notification.slack.account.hello.secure_url"),
 					resource.TestCheckResourceAttr(firstResName, "value", "hella"),
