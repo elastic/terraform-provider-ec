@@ -20,33 +20,37 @@ package elasticsearchkeystoreresource
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
 )
 
-// delete will delete an existing element in the Elasticsearch keystore
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-	contents := expandModel(d)
+// Delete will delete an existing element in the Elasticsearch keystore
+func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+
+	if !resourceReady(r, &response.Diagnostics) {
+		return
+	}
+
+	var state modelV0
+
+	diags := request.State.Get(ctx, &state)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	// Since we're using the Update API (PATCH method), we need to se the Value
 	// field to nil for the keystore setting to be unset.
-	if secret, ok := contents.Secrets[d.Get("setting_name").(string)]; ok {
-		secret.Value = nil
-	}
+	state.Value = types.String{Null: true}
+	contents := expandModel(ctx, state)
 
 	if _, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
-		API:          client,
-		DeploymentID: d.Get("deployment_id").(string),
+		API:          r.client,
+		DeploymentID: state.DeploymentID.Value,
 		Contents:     contents,
 	}); err != nil {
-		return diag.FromErr(err)
+		response.Diagnostics.AddError(err.Error(), err.Error())
 	}
-
-	d.SetId("")
-	return read(ctx, d, meta)
 }

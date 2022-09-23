@@ -18,18 +18,17 @@
 package elasticsearchkeystoreresource
 
 import (
+	"context"
 	"encoding/json"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
-func expandModel(d *schema.ResourceData) *models.KeystoreContents {
+func expandModel(ctx context.Context, state modelV0) *models.KeystoreContents {
 	var value interface{}
-	secretName := d.Get("setting_name").(string)
-	strVal := d.Get("value").(string)
+	secretName := state.SettingName.Value
+	strVal := state.Value.Value
 
 	// Tries to unmarshal the contents of the value into an `interface{}`,
 	// if it fails, then the contents aren't a JSON object.
@@ -40,7 +39,7 @@ func expandModel(d *schema.ResourceData) *models.KeystoreContents {
 	return &models.KeystoreContents{
 		Secrets: map[string]models.KeystoreSecret{
 			secretName: {
-				AsFile: ec.Bool(d.Get("as_file").(bool)),
+				AsFile: ec.Bool(state.AsFile.Value),
 				Value:  value,
 			},
 		},

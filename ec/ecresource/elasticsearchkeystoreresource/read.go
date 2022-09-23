@@ -20,52 +20,68 @@ package elasticsearchkeystoreresource
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// read queries the remote Elasticsearch keystore state and updates the local state.
-func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
-	deploymentID := d.Get("deployment_id").(string)
+// Read queries the remote Elasticsearch keystore state and updates the local state.
+func (r Resource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
+	}
 
+	var newState modelV0
+
+	diags := request.State.Get(ctx, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	found, diags := r.read(ctx, newState.DeploymentID.Value, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		response.State.RemoveResource(ctx)
+		return
+	}
+
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
+}
+
+func (r Resource) read(ctx context.Context, deploymentID string, state *modelV0) (found bool, diags diag.Diagnostics) {
 	res, err := eskeystoreapi.Get(eskeystoreapi.GetParams{
-		API:          client,
+		API:          r.client,
 		DeploymentID: deploymentID,
 	})
 	if err != nil {
-		return diag.FromErr(err)
+		diags.AddError(err.Error(), err.Error())
+		return true, diags
 	}
 
-	if err := modelToState(d, res); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return modelToState(ctx, res, state)
 }
 
-// This modelToState function is a little different than others in that it does
+// This modelToState function is a little different from others in that it does
 // not set any other fields than "as_file". This is because the "value" is not
-// returned by the API for obvious reasons and thus we cannot reconcile that the
+// returned by the API for obvious reasons, and thus we cannot reconcile that the
 // value of the secret is the same in the remote as it is in the configuration.
-func modelToState(d *schema.ResourceData, res *models.KeystoreContents) error {
-	if secret, ok := res.Secrets[d.Get("setting_name").(string)]; ok {
+func modelToState(ctx context.Context, res *models.KeystoreContents, state *modelV0) (found bool, diags diag.Diagnostics) {
+	if secret, ok := res.Secrets[state.SettingName.Value]; ok {
 		if secret.AsFile != nil {
-			if err := d.Set("as_file", *secret.AsFile); err != nil {
-				return err
-			}
+			state.AsFile = types.Bool{Value: *secret.AsFile}
 		}
-		return nil
+		return true, nil
 	}
 
-	// When the secret is not found in the returned map of secrets, set the id
-	// to an empty string so that the resource is marked as destroyed. Would
-	// only happen if secrets are removed from the underlying Deployment.
-	d.SetId("")
-	return nil
+	// When the secret is not found in the returned map of secrets, the resource should be removed from state.
+	// Would only happen if secrets are removed from the underlying Deployment.
+	return false, nil
 }

@@ -33,12 +33,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
 
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
@@ -78,9 +78,8 @@ func LegacyProvider() *schema.Provider {
 		Schema:               newSchema(),
 		DataSourcesMap:       map[string]*schema.Resource{},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment":                        deploymentresource.Resource(),
-			"ec_deployment_elasticsearch_keystore": elasticsearchkeystoreresource.Resource(),
-			"ec_deployment_extension":              extensionresource.Resource(),
+			"ec_deployment":           deploymentresource.Resource(),
+			"ec_deployment_extension": extensionresource.Resource(),
 		},
 	}
 }
@@ -172,6 +171,7 @@ func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSour
 
 func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		func() resource.Resource { return &elasticsearchkeystoreresource.Resource{} },
 		func() resource.Resource { return &trafficfilterresource.Resource{} },
 		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
 	}
