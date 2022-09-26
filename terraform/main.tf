@@ -24,7 +24,7 @@ provider "ec" {
 # -------------------------------------------------------------
 variable "elastic_version" {
   type = string
-  default = "8.4.1"
+  default = "latest"
 }
 
 variable "elastic_gc_region" {
