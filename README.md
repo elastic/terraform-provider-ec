@@ -45,13 +45,14 @@ Modify the terraform env settings. The service account explanation you find belo
 }
 ```
 
-List of other optional parameters that can be added to terraform.tfvars.json
+List of other optional parameters that can be added to terraform.tfvars.json 
 | Parameter Name  | Default value | Example | Description |
 | ------------- | ------------- | ------------- | ------------- |
 | elastic_version  | latest  | 8.4.1  | Used to define the Elastic Search version  |
 | elastic_gc_region  | gcp-europe-west3  | gcp-europe-west3  | Used to set the Elastic Cloud region for the Google Cloud deployment  |
 | elastic_gc_deployment_name  | Google Cloud Observe and Protect  | Google Cloud Observe and Protect  | Used to define the name for the Elastic deployment  |
 | google_cloud_region  | europe-west3  | europe-west3  | Used to change the region where the Google Cloud objects getting installed  |
+| google_cloud_network  | default | my-network  | Used to change the network the Elastic Agent VM is installed in. (Network needs to be existent)  |
 
 
 #### Create Elastic Cloud ID following this steps.

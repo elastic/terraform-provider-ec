@@ -60,6 +60,11 @@ variable "google_cloud_service_account_path" {
   type = string
 }
 
+variable "google_cloud_network" {
+  type = string
+  default = "default"
+}
+
 # -------------------------------------------------------------
 # PubSub configuration
 # -------------------------------------------------------------
