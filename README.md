@@ -72,17 +72,36 @@ export EC_API_KEY="[PUT YOUR ELASTIC CLOUD API KEY HERE]"
 Use [Google Cloud Console](https://console.cloud.google.com/iam-admin/serviceaccounts) for the initial creation
 
 
-##### Set permission for the Google Cloud service account.
+##### Set permission for the Google Cloud service account
+We are using this service also to connect the Elastic Agent to your Google Cloud Project.
+Because of that you should also take care that your Service Account is following the Elastic Agent Integration docs.
+Meaning the service account need to have the following roles as well as the roles for creating the terraformed services
+
+- Elastic Agent integration roles needed
+	- pubsub.subscriptions.consume
+	- pubsub.subscriptions.create 
+	- pubsub.subscriptions.get
+	- pubsub.topics.attachSubscription
+
+- Terraform installation roles need
+	- resourcemanager.projectIamAdmin
+	- roles/compute.instanceAdmin.v1 (To create compute instances)
+	- roles/logging.admin (To create log sinks)
+	- pubsub.editor (This one usually includes the roles the Elastic Agent needs)
+	
+Example roles assignment via `gcloud`
 
 ```bash
 gcloud projects add-iam-policy-binding "[PUT YOUR GOOGLE CLOUD PROJECT NAME HERE]" \
 --member=serviceAccount:[PUT YOUR SERVICE ACCOUNT MEMBER HERE] \
---role=roles/resourcemanager.projectIamAdmin
+--role=roles/[PUT THE ROLE NAME IN HERE]
 ```
 
+Example
+
 ```bash
-gcloud projects add-iam-policy-binding "[PUT YOUR GOOGLE CLOUD PROJECT NAME HERE]" \
---member=serviceAccount:[PUT YOUR SERVICE ACCOUNT MEMBER HERE] \
+gcloud projects add-iam-policy-binding "my-project-name" \
+--member=serviceAccount:terraform@elastic-product.iam.gserviceaccount.com \
 --role=roles/pubsub.editor
 ```
 
