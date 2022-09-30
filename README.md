@@ -12,9 +12,9 @@ First of all you need to decide which setup you would like to use. Installing ea
 
 For the all in setup you need to init and apply the terraform configuration in the [MultiCloud](MultiCloud) folder. This folder also contains more description on how to prepare your local environment for that.
 
-### Each example sparately
+### Each example separately
 
-To install each setup independenly from each other you can go into the folder of your preferred CloudProvider. Each module can run on its own. 
+To install each setup independenly from each other you can go into the folder of your preferred Cloud Provider. Each module can run on its own. 
 If you want to switch to the all in one setup later you may need to import / destroy some of the objects that where created independenly.
 
 ## More examples
