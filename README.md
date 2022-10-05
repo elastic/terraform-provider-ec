@@ -1,4 +1,4 @@
-# elastic-terraform-examples
+# Elastic Terraform Examples to build an Multi Cloud Monitoring environment
 
 The project in this repository is creating an Elastic Cloud environment in order to getting started with monitoring and protecting your Cloud Service Providers(CSP) environment in Google, AWS and/or Azure. It is creating all necessary components within the CSPs as well as the in Elastic Cloud using terraform. The whole process will be done in less than 1h. 
 

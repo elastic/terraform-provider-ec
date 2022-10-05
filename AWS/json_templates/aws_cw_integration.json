@@ -1,49 +1,119 @@
 {
-    "name": "aws",
+    "name": "aws-${name_suffix}",
+    "description": "Cloudwatch log group: $${log_group_name}",
     "namespace": "default",
-    "description": "Terraformed AWS integration",
-    "package": {
-      "name": "aws",
-      "title": "AWS",
-      "version": "1.23.4"
-    },
-    "enabled": true,
     "policy_id": "${policy_id}",
+    "enabled": true,
     "output_id": "",
-    "vars": {
-      "shared_credential_file": {
-        "type": "text"
+    "package": {
+        "name": "aws",
+        "title": "AWS",
+        "version": "1.23.4"
       },
-      "credential_profile_name": {
-        "type": "text"
+      "vars": {
+        "shared_credential_file": {
+          "type": "text"
+        },
+        "credential_profile_name": {
+          "type": "text"
+        },
+        "access_key_id": {
+          "type": "text",
+          "value": "${access_key}"
+        },
+        "secret_access_key": {
+          "type": "text",
+          "value": "${access_secret}"
+        },
+        "session_token": {
+          "type": "text"
+        },
+        "role_arn": {
+          "type": "text"
+        },
+        "endpoint": {
+          "value": "",
+          "type": "text"
+        },
+        "proxy_url": {
+          "type": "text"
+        }
       },
-      "access_key_id": {
-        "type": "text",
-        "value": "${access_key}"
-      },
-      "secret_access_key": {
-        "type": "text",
-        "value": "${access_secret}"
-      },
-      "session_token": {
-        "type": "text"
-      },
-      "role_arn": {
-        "type": "text"
-      },
-      "endpoint": {
-        "value": "",
-        "type": "text"
-      },
-      "proxy_url": {
-        "type": "text"
-      }
-    },
     "inputs": [
-      {
+        {
+            "type": "aws-cloudwatch",
+            "policy_template": "cloudwatch",
+            "enabled": true,
+            "streams": [
+              {
+                "enabled": true,
+                "data_stream": {
+                  "type": "logs",
+                  "dataset": "aws.cloudwatch_logs"
+                },
+                "vars": {
+                  "log_group_arn": {
+                    "type": "text",
+                    "value": "${log_group_arn}"
+                  },
+                  "log_group_name": {
+                    "type": "text"
+                  },
+                  "log_group_name_prefix": {
+                    "type": "text"
+                  },
+                  "region_name": {
+                    "type": "text"
+                  },
+                  "log_streams": {
+                    "value": [],
+                    "type": "text"
+                  },
+                  "log_stream_prefix": {
+                    "type": "text"
+                  },
+                  "start_position": {
+                    "value": "beginning",
+                    "type": "text"
+                  },
+                  "scan_frequency": {
+                    "value": "1m",
+                    "type": "text"
+                  },
+                  "api_timeput": {
+                    "value": "120s",
+                    "type": "text"
+                  },
+                  "api_sleep": {
+                    "value": "200ms",
+                    "type": "text"
+                  },
+                  "tags": {
+                    "value": [
+                      "forwarded",
+                      "aws-cloudwatch-logs"
+                    ],
+                    "type": "text"
+                  },
+                  "processors": {
+                    "type": "yaml"
+                  },
+                  "preserve_original_event": {
+                    "value": false,
+                    "type": "bool"
+                  },
+                  "data_stream.dataset": {
+                    "value": "generic",
+                    "type": "text"
+                  }
+                }
+              }
+            ]
+          },
+        {
         "type": "aws/metrics",
         "policy_template": "billing",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -74,8 +144,7 @@
                 ],
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.billing-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -85,7 +154,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.cloudtrail"
@@ -134,8 +203,7 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.cloudtrail-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -200,8 +268,7 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.cloudtrail-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -256,8 +323,7 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "httpjson-aws.cloudtrail-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -304,88 +370,17 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.cloudwatch_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
-          }
-        ]
-      },
-      {
-        "type": "aws-cloudwatch",
-        "policy_template": "cloudwatch",
-        "enabled": false,
-        "streams": [
-          {
-            "enabled": false,
-            "data_stream": {
-              "type": "logs",
-              "dataset": "aws.cloudwatch_logs"
-            },
-            "vars": {
-              "log_group_arn": {
-                "type": "text"
-              },
-              "log_group_name": {
-                "type": "text"
-              },
-              "log_group_name_prefix": {
-                "type": "text"
-              },
-              "region_name": {
-                "type": "text"
-              },
-              "log_streams": {
-                "value": [],
-                "type": "text"
-              },
-              "log_stream_prefix": {
-                "type": "text"
-              },
-              "start_position": {
-                "value": "beginning",
-                "type": "text"
-              },
-              "scan_frequency": {
-                "value": "1m",
-                "type": "text"
-              },
-              "api_timeput": {
-                "value": "120s",
-                "type": "text"
-              },
-              "api_sleep": {
-                "value": "200ms",
-                "type": "text"
-              },
-              "tags": {
-                "value": [
-                  "forwarded",
-                  "aws-cloudwatch-logs"
-                ],
-                "type": "text"
-              },
-              "processors": {
-                "type": "yaml"
-              },
-              "preserve_original_event": {
-                "value": false,
-                "type": "bool"
-              },
-              "data_stream.dataset": {
-                "value": "generic",
-                "type": "text"
-              }
-            },
-            "id": "aws-cloudwatch-aws.cloudwatch_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "cloudwatch",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
-            "enabled": true,
+            "enabled": false,
             "data_stream": {
               "type": "metrics",
               "dataset": "aws.cloudwatch_metrics"
@@ -406,15 +401,14 @@
                 "value": "- namespace: AWS/EC2\n  resource_type: ec2:instance\n  name:\n    - CPUUtilization\n    - DiskWriteOps\n  statistic:\n    - Average\n    - Maximum\n  # dimensions:\n   # - name: InstanceId\n      # value: i-123456\n  # tags:\n    # - key: created-by\n      # value: foo\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.cloudwatch_metrics-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "dynamodb",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -438,15 +432,14 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.dynamodb-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "ebs",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -470,8 +463,7 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.ebs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -518,8 +510,7 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.ec2_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -529,7 +520,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.ec2_logs"
@@ -584,15 +575,14 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.ec2_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "ec2",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -616,15 +606,14 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.ec2_metrics-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "ecs",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -648,8 +637,7 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.ecs_metrics-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -659,7 +647,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.elb_logs"
@@ -696,8 +684,7 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.elb_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -762,15 +749,14 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.elb_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "elb",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -794,15 +780,14 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.elb_metrics-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "lambda",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -826,15 +811,14 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.lambda-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "natgateway",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -854,8 +838,7 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.natgateway-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -865,7 +848,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.firewall_logs"
@@ -902,8 +885,7 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.firewall_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -968,15 +950,14 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.firewall_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "firewall",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1000,15 +981,14 @@
                 "value": "- namespace: AWS/NetworkFirewall\n  name:\n    - DroppedPackets\n    - PassedPackets\n    - ReceivedPackets\n    - Packets\n  statistic:\n    - Sum\n  # dimensions:\n   # - name: FirewallName\n      # value: SampleFirewall\n  # tags:\n    # - key: created-by\n      # value: sample\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.firewall_metrics-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "rds",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1032,8 +1012,7 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.rds-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1043,7 +1022,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.s3access"
@@ -1080,15 +1059,14 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.s3access-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "s3",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1108,8 +1086,7 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.s3_daily_storage-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           },
           {
             "enabled": true,
@@ -1129,15 +1106,14 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.s3_request-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "s3_storage_lens",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1157,15 +1133,14 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.s3_storage_lens-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "sns",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1189,15 +1164,14 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.sns-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "sqs",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1217,15 +1191,14 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.sqs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "transitgateway",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1245,15 +1218,14 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.transitgateway-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "usage",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1273,8 +1245,7 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.usage-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1321,8 +1292,7 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.vpcflow-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1332,7 +1302,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.vpcflow"
@@ -1387,15 +1357,14 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.vpcflow-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "vpn",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1419,8 +1388,7 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.vpn-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1430,7 +1398,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.waf"
@@ -1467,8 +1435,7 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.waf-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1533,8 +1500,7 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.waf-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1544,7 +1510,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.route53_public_logs"
@@ -1596,11 +1562,10 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.route53_public_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           },
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.route53_resolver_logs"
@@ -1652,8 +1617,7 @@
                 "value": false,
                 "type": "bool"
               }
-            },
-            "id": "aws-cloudwatch-aws.route53_resolver_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1663,7 +1627,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.cloudfront_logs"
@@ -1700,15 +1664,14 @@
                 "value": 5,
                 "type": "integer"
               }
-            },
-            "id": "aws-s3-aws.cloudfront_logs-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "redshift",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1728,15 +1691,14 @@
               "latency": {
                 "type": "text"
               }
-            },
-            "id": "aws/metrics-aws.redshift-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
       {
         "type": "aws/metrics",
         "policy_template": "kinesis",
-        "enabled": true,
+        "enabled": false,
         "streams": [
           {
             "enabled": true,
@@ -1760,8 +1722,7 @@
                 "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
                 "type": "yaml"
               }
-            },
-            "id": "aws/metrics-aws.kinesis-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       },
@@ -1771,7 +1732,7 @@
         "enabled": false,
         "streams": [
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.securityhub_findings"
@@ -1813,11 +1774,10 @@
               "processors": {
                 "type": "yaml"
               }
-            },
-            "id": "httpjson-aws.securityhub_findings-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           },
           {
-            "enabled": false,
+            "enabled": true,
             "data_stream": {
               "type": "logs",
               "dataset": "aws.securityhub_insights"
@@ -1855,8 +1815,7 @@
               "processors": {
                 "type": "yaml"
               }
-            },
-            "id": "httpjson-aws.securityhub_insights-6ed9ee36-5623-4ddc-b5b9-96ef1a132c54"
+            }
           }
         ]
       }
