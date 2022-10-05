@@ -8,6 +8,7 @@ FEATURES:
 BUG FIXES:
 
 * resource/deployment: Correctly restrict stateless (Kibana/Enterprise Search/Integrations Server) resources to a single topology element. Fixes a provider crash when multiple elements without an instance_configuration_id were specified. ([#536](https://github.com/elastic/terraform-provider-ec/issues/536))
+* resource/elasticsearchkeystore: Correctly delete keystore items when removed from the module definition. ([#546](https://github.com/elastic/terraform-provider-ec/issues/546))
 
 # 0.4.1 (May 11, 2022)
 
