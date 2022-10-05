@@ -1,32 +1,6 @@
 # -------------------------------------------------------------
-# Terraform provider configuration
-# -------------------------------------------------------------
-terraform {
-  required_version = ">= 1.0.2"
-
-  required_providers {
-    ec = {
-      source  = "elastic/ec"
-      version = "0.4.1"
-    }
-	  google = {
-      source = "hashicorp/google"
-      version = "4.35.0" 
-    }
-  }
-}
-
-provider "ec" {
-}
-
-# -------------------------------------------------------------
 # Elastic configuration
 # -------------------------------------------------------------
-variable "elastic_version" {
-  type = string
-  default = "latest"
-}
-
 variable "elastic_gc_region" {
   type = string
   default = "gcp-europe-west3"
@@ -147,7 +121,3 @@ variable "google_cloud_maxRetryDuration" {
   type = string
   default = 30
 }
-
-
-
-
