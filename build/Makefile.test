@@ -10,6 +10,12 @@ TEST_ACC_PARALLEL = 6
 
 REPORT_PATH ?= ./reports
 
+ifdef TF_VERSION
+ifneq "$(TF_VERSION)" "latest"
+export TF_ACC_TERRAFORM_VERSION=$(TF_VERSION)
+endif
+endif
+
 ### Test targets
 
 .PHONY: _report_path
@@ -42,7 +48,7 @@ endif
 
 .PHONY: testacc-ci
 testacc-ci:
-	@ EC_API_KEY=$(shell cat .ci/.apikey) TF_ACC_TERRAFORM_VERSION=1.2.9 $(MAKE) testacc
+	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
 
 .PHONY: sweep-ci
 sweep-ci:

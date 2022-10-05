@@ -3,6 +3,7 @@
 node('docker && gobld/machineType:n1-highcpu-8') {
     String DOCKER_IMAGE = "golang:1.19"
     String APP_PATH = "/go/src/github.com/elastic/terraform-provider-ec"
+    String STABLE_TF_VERSION = "1.2.9"
 
     stage('Checkout from GitHub') {
 	    checkout scm
@@ -23,8 +24,19 @@ node('docker && gobld/machineType:n1-highcpu-8') {
             stage("Download dependencies") {
                 sh 'make vendor'
             }
-            stage("Run acceptance tests") {
-                sh 'make testacc-ci'
+            matrix {
+                axes {
+                    axis {
+                        name 'TF_VERSION'
+                        values "${STABLE_TF_VERSION}" 'latest'
+                    }
+                }
+                stage("Run acceptance tests") {
+                    acc_env = TF_VERSION != 'latest' ? ["TF_ACC_TERRAFORM_VERSION=${TF_VERSION}"] : []
+                    withEnv(acc_env) {
+                        sh "${TF_ACC_TERRAFORM_VERSION} make testacc-ci"
+                    }
+                }
             }
         } catch (Exception err) {
             throw err
