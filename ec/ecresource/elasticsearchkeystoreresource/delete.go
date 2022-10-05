@@ -31,11 +31,13 @@ import (
 func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*api.API)
 	contents := expandModel(d)
+	settingName := d.Get("setting_name").(string)
 
 	// Since we're using the Update API (PATCH method), we need to se the Value
 	// field to nil for the keystore setting to be unset.
-	if secret, ok := contents.Secrets[d.Get("setting_name").(string)]; ok {
+	if secret, ok := contents.Secrets[settingName]; ok {
 		secret.Value = nil
+		contents.Secrets[settingName] = secret
 	}
 
 	if _, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{

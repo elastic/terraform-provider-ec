@@ -1,0 +1,3 @@
+```release-note:bug
+resource/elasticsearchkeystore: Correctly delete keystore items when removed from the module definition.
+```
