@@ -155,7 +155,7 @@ func checkExpectedKeystoreKeysExist(deploymentResource string, expectedKeys ...s
 			}
 		}
 
-		for key, _ := range keystoreContents.Secrets {
+		for key := range keystoreContents.Secrets {
 			if !slice.HasString(expectedKeys, key) {
 				extraKeys = append(extraKeys, key)
 			}
@@ -164,11 +164,11 @@ func checkExpectedKeystoreKeysExist(deploymentResource string, expectedKeys ...s
 		mErr := multierror.NewPrefixed("unexpected keystore contents")
 
 		if len(missingKeys) > 0 {
-			mErr.Append(fmt.Errorf("keys missing from the deployment keystore %v", missingKeys))
+			mErr = mErr.Append(fmt.Errorf("keys missing from the deployment keystore %v", missingKeys))
 		}
 
 		if len(extraKeys) > 0 {
-			mErr.Append(fmt.Errorf("extra keys present in the deployment keystore: %v", extraKeys))
+			mErr = mErr.Append(fmt.Errorf("extra keys present in the deployment keystore: %v", extraKeys))
 		}
 
 		return mErr.ErrorOrNil()
