@@ -87,6 +87,45 @@ func Test_expandKibanaResources(t *testing.T) {
 			},
 		},
 		{
+			name: "parses a kibana resource with explicit nils",
+			args: args{
+				tpl: tpl(),
+				ess: []interface{}{
+					map[string]interface{}{
+						"ref_id":                       "main-kibana",
+						"resource_id":                  mock.ValidClusterID,
+						"region":                       nil,
+						"elasticsearch_cluster_ref_id": "somerefid",
+						"topology": []interface{}{map[string]interface{}{
+							"instance_configuration_id": "aws.kibana.r5d",
+							"size":                      nil,
+							"zone_count":                1,
+						}},
+					},
+				},
+			},
+			want: []*models.KibanaPayload{
+				{
+					ElasticsearchClusterRefID: ec.String("somerefid"),
+					Region:                    ec.String("us-east-1"),
+					RefID:                     ec.String("main-kibana"),
+					Plan: &models.KibanaClusterPlan{
+						Kibana: &models.KibanaConfiguration{},
+						ClusterTopology: []*models.KibanaClusterTopologyElement{
+							{
+								ZoneCount:               1,
+								InstanceConfigurationID: "aws.kibana.r5d",
+								Size: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "parses a kibana resource with incorrect instance_configuration_id",
 			args: args{
 				tpl: tpl(),

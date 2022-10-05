@@ -35,8 +35,12 @@ func expandModel(d *schema.ResourceData) *models.TrafficFilterRulesetRequest {
 	}
 
 	for _, r := range ruleSet.List() {
-		var m = r.(map[string]interface{})
-		var rule = models.TrafficFilterRule{
+		m, ok := r.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		rule := models.TrafficFilterRule{
 			Source: m["source"].(string),
 		}
 
@@ -44,16 +48,16 @@ func expandModel(d *schema.ResourceData) *models.TrafficFilterRulesetRequest {
 			rule.ID = val.(string)
 		}
 
-		if val, ok := m["description"]; ok {
-			rule.Description = val.(string)
+		if val, ok := m["description"].(string); ok {
+			rule.Description = val
 		}
 
-		if val, ok := m["azure_endpoint_name"]; ok {
-			rule.AzureEndpointName = val.(string)
+		if val, ok := m["azure_endpoint_name"].(string); ok {
+			rule.AzureEndpointName = val
 		}
 
-		if val, ok := m["azure_endpoint_guid"]; ok {
-			rule.AzureEndpointGUID = val.(string)
+		if val, ok := m["azure_endpoint_guid"].(string); ok {
+			rule.AzureEndpointGUID = val
 		}
 
 		request.Rules = append(request.Rules, &rule)

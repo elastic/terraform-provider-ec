@@ -53,18 +53,16 @@ func expandKibanaResources(kibanas []interface{}, tpl *models.KibanaPayload) ([]
 func expandKibanaResource(raw interface{}, res *models.KibanaPayload) (*models.KibanaPayload, error) {
 	kibana := raw.(map[string]interface{})
 
-	if esRefID, ok := kibana["elasticsearch_cluster_ref_id"]; ok {
-		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
+	if esRefID, ok := kibana["elasticsearch_cluster_ref_id"].(string); ok {
+		res.ElasticsearchClusterRefID = ec.String(esRefID)
 	}
 
-	if refID, ok := kibana["ref_id"]; ok {
-		res.RefID = ec.String(refID.(string))
+	if refID, ok := kibana["ref_id"].(string); ok {
+		res.RefID = ec.String(refID)
 	}
 
-	if region, ok := kibana["region"]; ok {
-		if r := region.(string); r != "" {
-			res.Region = ec.String(r)
-		}
+	if region, ok := kibana["region"].(string); ok && region != "" {
+		res.Region = ec.String(region)
 	}
 
 	if cfg, ok := kibana["config"]; ok {
@@ -73,7 +71,7 @@ func expandKibanaResource(raw interface{}, res *models.KibanaPayload) (*models.K
 		}
 	}
 
-	if rt, ok := kibana["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := kibana["topology"].([]interface{}); ok && len(rt) > 0 {
 		topology, err := expandKibanaTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
@@ -86,14 +84,17 @@ func expandKibanaResource(raw interface{}, res *models.KibanaPayload) (*models.K
 	return res, nil
 }
 
-func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTopologyElement) ([]*models.KibanaClusterTopologyElement, error) {
-	var rawTopologies = raw.([]interface{})
+func expandKibanaTopology(rawTopologies []interface{}, topologies []*models.KibanaClusterTopologyElement) ([]*models.KibanaClusterTopologyElement, error) {
 	var res = make([]*models.KibanaClusterTopologyElement, 0, len(rawTopologies))
 	for i, rawTop := range rawTopologies {
-		var topology = rawTop.(map[string]interface{})
+		var topology, ok = rawTop.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
 		var icID string
-		if id, ok := topology["instance_configuration_id"]; ok {
-			icID = id.(string)
+		if id, ok := topology["instance_configuration_id"].(string); ok {
+			icID = id
 		}
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
@@ -114,10 +115,8 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 			elem.Size = size
 		}
 
-		if zones, ok := topology["zone_count"]; ok {
-			if z := zones.(int); z > 0 {
-				elem.ZoneCount = int32(z)
-			}
+		if zones, ok := topology["zone_count"].(int); ok && zones > 0 {
+			elem.ZoneCount = int32(zones)
 		}
 
 		res = append(res, elem)
@@ -128,30 +127,29 @@ func expandKibanaTopology(raw interface{}, topologies []*models.KibanaClusterTop
 
 func expandKibanaConfig(raw interface{}, res *models.KibanaConfiguration) error {
 	for _, rawCfg := range raw.([]interface{}) {
-		var cfg = rawCfg.(map[string]interface{})
-		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
-					return fmt.Errorf("failed expanding kibana user_settings_json: %w", err)
-				}
+		cfg, ok := rawCfg.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if settings, ok := cfg["user_settings_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &res.UserSettingsJSON); err != nil {
+				return fmt.Errorf("failed expanding kibana user_settings_json: %w", err)
 			}
 		}
-		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &res.UserSettingsOverrideJSON); err != nil {
-					return fmt.Errorf("failed expanding kibana user_settings_override_json: %w", err)
-				}
+		if settings, ok := cfg["user_settings_override_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &res.UserSettingsOverrideJSON); err != nil {
+				return fmt.Errorf("failed expanding kibana user_settings_override_json: %w", err)
 			}
 		}
-		if settings, ok := cfg["user_settings_yaml"]; ok {
-			res.UserSettingsYaml = settings.(string)
+		if settings, ok := cfg["user_settings_yaml"].(string); ok && settings != "" {
+			res.UserSettingsYaml = settings
 		}
-		if settings, ok := cfg["user_settings_override_yaml"]; ok {
-			res.UserSettingsOverrideYaml = settings.(string)
+		if settings, ok := cfg["user_settings_override_yaml"].(string); ok && settings != "" {
+			res.UserSettingsOverrideYaml = settings
 		}
 
-		if v, ok := cfg["docker_image"]; ok {
-			res.DockerImage = v.(string)
+		if v, ok := cfg["docker_image"].(string); ok && v != "" {
+			res.DockerImage = v
 		}
 	}
 

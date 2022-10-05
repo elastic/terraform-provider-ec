@@ -29,8 +29,8 @@ import (
 )
 
 // expandIntegrationsServerResources expands IntegrationsServer resources into their models.
-func expandIntegrationsServerResources(IntegrationsServers []interface{}, tpl *models.IntegrationsServerPayload) ([]*models.IntegrationsServerPayload, error) {
-	if len(IntegrationsServers) == 0 {
+func expandIntegrationsServerResources(integrationsServers []interface{}, tpl *models.IntegrationsServerPayload) ([]*models.IntegrationsServerPayload, error) {
+	if len(integrationsServers) == 0 {
 		return nil, nil
 	}
 
@@ -38,8 +38,8 @@ func expandIntegrationsServerResources(IntegrationsServers []interface{}, tpl *m
 		return nil, errors.New("IntegrationsServer specified but deployment template is not configured for it. Use a different template if you wish to add IntegrationsServer")
 	}
 
-	result := make([]*models.IntegrationsServerPayload, 0, len(IntegrationsServers))
-	for _, raw := range IntegrationsServers {
+	result := make([]*models.IntegrationsServerPayload, 0, len(integrationsServers))
+	for _, raw := range integrationsServers {
 		resResource, err := expandIntegrationsServerResource(raw, tpl)
 		if err != nil {
 			return nil, err
@@ -51,29 +51,27 @@ func expandIntegrationsServerResources(IntegrationsServers []interface{}, tpl *m
 }
 
 func expandIntegrationsServerResource(raw interface{}, res *models.IntegrationsServerPayload) (*models.IntegrationsServerPayload, error) {
-	var IntegrationsServer = raw.(map[string]interface{})
+	var integrationsServer = raw.(map[string]interface{})
 
-	if esRefID, ok := IntegrationsServer["elasticsearch_cluster_ref_id"]; ok {
-		res.ElasticsearchClusterRefID = ec.String(esRefID.(string))
+	if esRefID, ok := integrationsServer["elasticsearch_cluster_ref_id"].(string); ok {
+		res.ElasticsearchClusterRefID = ec.String(esRefID)
 	}
 
-	if refID, ok := IntegrationsServer["ref_id"]; ok {
-		res.RefID = ec.String(refID.(string))
+	if refID, ok := integrationsServer["ref_id"].(string); ok {
+		res.RefID = ec.String(refID)
 	}
 
-	if region, ok := IntegrationsServer["region"]; ok {
-		if r := region.(string); r != "" {
-			res.Region = ec.String(r)
-		}
+	if region, ok := integrationsServer["region"].(string); ok && region != "" {
+		res.Region = ec.String(region)
 	}
 
-	if cfg, ok := IntegrationsServer["config"]; ok {
+	if cfg, ok := integrationsServer["config"].([]interface{}); ok {
 		if err := expandIntegrationsServerConfig(cfg, res.Plan.IntegrationsServer); err != nil {
 			return nil, err
 		}
 	}
 
-	if rt, ok := IntegrationsServer["topology"]; ok && len(rt.([]interface{})) > 0 {
+	if rt, ok := integrationsServer["topology"].([]interface{}); ok && len(rt) > 0 {
 		topology, err := expandIntegrationsServerTopology(rt, res.Plan.ClusterTopology)
 		if err != nil {
 			return nil, err
@@ -86,15 +84,18 @@ func expandIntegrationsServerResource(raw interface{}, res *models.IntegrationsS
 	return res, nil
 }
 
-func expandIntegrationsServerTopology(raw interface{}, topologies []*models.IntegrationsServerTopologyElement) ([]*models.IntegrationsServerTopologyElement, error) {
-	rawTopologies := raw.([]interface{})
+func expandIntegrationsServerTopology(rawTopologies []interface{}, topologies []*models.IntegrationsServerTopologyElement) ([]*models.IntegrationsServerTopologyElement, error) {
 	res := make([]*models.IntegrationsServerTopologyElement, 0, len(rawTopologies))
 
 	for i, rawTop := range rawTopologies {
-		topology := rawTop.(map[string]interface{})
+		topology, ok := rawTop.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
 		var icID string
-		if id, ok := topology["instance_configuration_id"]; ok {
-			icID = id.(string)
+		if id, ok := topology["instance_configuration_id"].(string); ok {
+			icID = id
 		}
 		// When a topology element is set but no instance_configuration_id
 		// is set, then obtain the instance_configuration_id from the topology
@@ -116,11 +117,8 @@ func expandIntegrationsServerTopology(raw interface{}, topologies []*models.Inte
 			elem.Size = size
 		}
 
-		if zones, ok := topology["zone_count"]; ok {
-			if z := zones.(int); z > 0 {
-				elem.ZoneCount = int32(z)
-			}
-
+		if zones, ok := topology["zone_count"].(int); ok && zones > 0 {
+			elem.ZoneCount = int32(zones)
 		}
 
 		res = append(res, elem)
@@ -129,40 +127,39 @@ func expandIntegrationsServerTopology(raw interface{}, topologies []*models.Inte
 	return res, nil
 }
 
-func expandIntegrationsServerConfig(raw interface{}, res *models.IntegrationsServerConfiguration) error {
-	for _, rawCfg := range raw.([]interface{}) {
-		var cfg = rawCfg.(map[string]interface{})
+func expandIntegrationsServerConfig(raw []interface{}, res *models.IntegrationsServerConfiguration) error {
+	for _, rawCfg := range raw {
+		cfg, ok := rawCfg.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
-		if debugEnabled, ok := cfg["debug_enabled"]; ok {
+		if debugEnabled, ok := cfg["debug_enabled"].(bool); ok {
 			if res.SystemSettings == nil {
 				res.SystemSettings = &models.IntegrationsServerSystemSettings{}
 			}
-			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled.(bool))
+			res.SystemSettings.DebugEnabled = ec.Bool(debugEnabled)
 		}
 
-		if settings, ok := cfg["user_settings_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &res.UserSettingsJSON); err != nil {
-					return fmt.Errorf("failed expanding IntegrationsServer user_settings_json: %w", err)
-				}
+		if settings, ok := cfg["user_settings_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &res.UserSettingsJSON); err != nil {
+				return fmt.Errorf("failed expanding IntegrationsServer user_settings_json: %w", err)
 			}
 		}
-		if settings, ok := cfg["user_settings_override_json"]; ok && settings != nil {
-			if s, ok := settings.(string); ok && s != "" {
-				if err := json.Unmarshal([]byte(s), &res.UserSettingsOverrideJSON); err != nil {
-					return fmt.Errorf("failed expanding IntegrationsServer user_settings_override_json: %w", err)
-				}
+		if settings, ok := cfg["user_settings_override_json"].(string); ok && settings != "" {
+			if err := json.Unmarshal([]byte(settings), &res.UserSettingsOverrideJSON); err != nil {
+				return fmt.Errorf("failed expanding IntegrationsServer user_settings_override_json: %w", err)
 			}
 		}
-		if settings, ok := cfg["user_settings_yaml"]; ok {
-			res.UserSettingsYaml = settings.(string)
+		if settings, ok := cfg["user_settings_yaml"].(string); ok && settings != "" {
+			res.UserSettingsYaml = settings
 		}
-		if settings, ok := cfg["user_settings_override_yaml"]; ok {
-			res.UserSettingsOverrideYaml = settings.(string)
+		if settings, ok := cfg["user_settings_override_yaml"].(string); ok && settings != "" {
+			res.UserSettingsOverrideYaml = settings
 		}
 
-		if v, ok := cfg["docker_image"]; ok {
-			res.DockerImage = v.(string)
+		if v, ok := cfg["docker_image"].(string); ok {
+			res.DockerImage = v
 		}
 	}
 

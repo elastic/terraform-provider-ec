@@ -158,6 +158,18 @@ func TestExpandObservability(t *testing.T) {
 			},
 		},
 		{
+			name: "handles explicit nils",
+			args: args{
+				v: []interface{}{map[string]interface{}{
+					"deployment_id": mock.ValidClusterID,
+					"ref_id":        "main-elasticsearch",
+					"metrics":       nil,
+					"logs":          nil,
+				}},
+			},
+			want: &models.DeploymentObservabilitySettings{},
+		},
+		{
 			name: "expands all observability settings",
 			args: args{
 				API: api.NewMock(
