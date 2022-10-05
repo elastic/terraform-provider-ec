@@ -37,23 +37,21 @@ func MemoryToState(mem int32) string {
 
 // ParseTopologySize parses a flattened topology into its model.
 func ParseTopologySize(topology map[string]interface{}) (*models.TopologySize, error) {
-	if mem, ok := topology["size"]; ok {
-		if m := mem.(string); m != "" {
-			val, err := deploymentsize.ParseGb(m)
-			if err != nil {
-				return nil, err
-			}
-
-			var sizeResource = defaultSizeResource
-			if sr, ok := topology["size_resource"]; ok {
-				sizeResource = sr.(string)
-			}
-
-			return &models.TopologySize{
-				Value:    ec.Int32(val),
-				Resource: ec.String(sizeResource),
-			}, nil
+	if mem, ok := topology["size"].(string); ok && mem != "" {
+		val, err := deploymentsize.ParseGb(mem)
+		if err != nil {
+			return nil, err
 		}
+
+		var sizeResource = defaultSizeResource
+		if sr, ok := topology["size_resource"].(string); ok {
+			sizeResource = sr
+		}
+
+		return &models.TopologySize{
+			Value:    ec.Int32(val),
+			Resource: ec.String(sizeResource),
+		}, nil
 	}
 
 	return nil, nil

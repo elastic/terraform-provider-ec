@@ -1,0 +1,3 @@
+```release-note:bug
+resource: Updates all nested field accesses to validate type casts. This prevents a provider crash when a field is explicitly set to `null`.
+```

@@ -66,12 +66,12 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 	for _, rawObs := range raw {
 		var obs = rawObs.(map[string]interface{})
 
-		depID, ok := obs["deployment_id"]
+		depID, ok := obs["deployment_id"].(string)
 		if !ok {
 			return nil, nil
 		}
 
-		refID, ok := obs["ref_id"]
+		refID, ok := obs["ref_id"].(string)
 		if depID == "self" {
 			// For self monitoring, the refID is not mandatory
 			if !ok {
@@ -83,7 +83,7 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 			params := deploymentapi.PopulateRefIDParams{
 				Kind:         util.Elasticsearch,
 				API:          client,
-				DeploymentID: depID.(string),
+				DeploymentID: depID,
 				RefID:        ec.String(""),
 			}
 
@@ -94,20 +94,20 @@ func expandObservability(raw []interface{}, client *api.API) (*models.Deployment
 			refID = *params.RefID
 		}
 
-		if logging := obs["logs"]; logging.(bool) {
+		if logging, ok := obs["logs"].(bool); ok && logging {
 			req.Logging = &models.DeploymentLoggingSettings{
 				Destination: &models.ObservabilityAbsoluteDeployment{
-					DeploymentID: ec.String(depID.(string)),
-					RefID:        refID.(string),
+					DeploymentID: ec.String(depID),
+					RefID:        refID,
 				},
 			}
 		}
 
-		if metrics := obs["metrics"]; metrics.(bool) {
+		if metrics, ok := obs["metrics"].(bool); ok && metrics {
 			req.Metrics = &models.DeploymentMetricsSettings{
 				Destination: &models.ObservabilityAbsoluteDeployment{
-					DeploymentID: ec.String(depID.(string)),
-					RefID:        refID.(string),
+					DeploymentID: ec.String(depID),
+					RefID:        refID,
 				},
 			}
 		}
