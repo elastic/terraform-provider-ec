@@ -396,7 +396,7 @@ The optional `elasticsearch.strategy` allows you to choose the configuration str
   * `grow_and_shrink` Add all nodes with the new changes before to stop any node.
   * `rolling_grow_and_shrink` Add nodes one by one replacing the existing ones when the new node is ready.
   * `rolling_all` Stop all nodes, perform the changes and start all nodes.
- 
+
 #### Kibana
 
 The optional `kibana` block supports the following arguments:
@@ -539,6 +539,8 @@ In addition to all the arguments above, the following attributes are exported:
 * `integrations_server.#.region` - Integrations Server region.
 * `integrations_server.#.http_endpoint` - Integrations Server resource HTTP endpoint.
 * `integrations_server.#.https_endpoint` - Integrations Server resource HTTPs endpoint.
+* `integrations_server.#.fleet_https_endpoint` - HTTPs endpoint for Fleet Server.
+* `integrations_server.#.apm_https_endpoint` - HTTPs endpoint for APM Server.
 * `apm.#.resource_id` - APM resource unique identifier.
 * `apm.#.region` - APM region.
 * `apm.#.http_endpoint` - APM resource HTTP endpoint.

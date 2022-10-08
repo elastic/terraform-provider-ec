@@ -72,6 +72,16 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
 							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
+							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
 							Plan: &models.IntegrationsServerPlan{
@@ -101,6 +111,8 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 					"region":                       "some-region",
 					"http_endpoint":                "http://integrations_serverresource.cloud.elastic.co:9200",
 					"https_endpoint":               "https://integrations_serverresource.cloud.elastic.co:9243",
+					"fleet_https_endpoint":         "https://fleet_endpoint.cloud.elastic.co",
+					"apm_https_endpoint":           "https://apm_endpoint.cloud.elastic.co",
 					"topology": []interface{}{
 						map[string]interface{}{
 							"instance_configuration_id": "aws.integrations_server.r4",
@@ -129,6 +141,16 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 							Ports: &models.ClusterMetadataPortInfo{
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
+							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
 							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
@@ -174,6 +196,16 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
 							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
+							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
 							Plan: &models.IntegrationsServerPlan{
@@ -211,6 +243,8 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 				"region":                       "some-region",
 				"http_endpoint":                "http://integrations_serverresource.cloud.elastic.co:9200",
 				"https_endpoint":               "https://integrations_serverresource.cloud.elastic.co:9243",
+				"fleet_https_endpoint":         "https://fleet_endpoint.cloud.elastic.co",
+				"apm_https_endpoint":           "https://apm_endpoint.cloud.elastic.co",
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.integrations_server.r4",
 					"size":                      "1g",
@@ -242,6 +276,16 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 							Ports: &models.ClusterMetadataPortInfo{
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
+							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
 							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
@@ -282,6 +326,8 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 				"region":                       "some-region",
 				"http_endpoint":                "http://integrations_serverresource.cloud.elastic.co:9200",
 				"https_endpoint":               "https://integrations_serverresource.cloud.elastic.co:9243",
+				"fleet_https_endpoint":         "https://fleet_endpoint.cloud.elastic.co",
+				"apm_https_endpoint":           "https://apm_endpoint.cloud.elastic.co",
 				"topology": []interface{}{map[string]interface{}{
 					"instance_configuration_id": "aws.integrations_server.r4",
 					"size":                      "1g",
