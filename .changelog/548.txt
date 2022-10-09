@@ -1,0 +1,2 @@
+```release-note:feature
+resource/deployment: Adds fleet_https_endpoint and apm_https_endpoint to integrations server resources. This allows consumers to explicitly capture service urls for dependent modules.```
