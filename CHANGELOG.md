@@ -3,6 +3,7 @@
 FEATURES:
 
 * datasource/privatelink: Adds data sources to obtain AWS/Azure Private Link, and GCP Private Service Connect configuration data. ([#533](https://github.com/elastic/terraform-provider-ec/issues/533))
+* resource/deployment: Adds fleet_https_endpoint and apm_https_endpoint to integrations server resources. This allows consumers to explicitly capture service urls for dependent modules. ([#548](https://github.com/elastic/terraform-provider-ec/issues/548))
 * resource/elasticsearch: Adds support for the `strategy` property to the `elasticsearch` resource. This allows users to define how different plan changes are coordinated. ([#507](https://github.com/elastic/terraform-provider-ec/issues/507))
 
 BUG FIXES:
