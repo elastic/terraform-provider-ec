@@ -6,7 +6,7 @@ You can either install every Cloud Environment separatly or choose the MultiClou
 
 ## Getting started
 
-First of all you need to decide which setup you would like to use. Installing each needed example separatly or all in one.
+First of all you need to decide which setup you would like to use. Installing each example separatly or all in one.
 
 ### All in one
 
@@ -14,8 +14,8 @@ For the all in setup you need to init and apply the terraform configuration in t
 
 ### Each example separately
 
-To install each setup independenly from each other you can go into the folder of your preferred Cloud Provider. Each module can run on its own. 
-If you want to switch to the all in one setup later you may need to import / destroy some of the objects that where created independenly.
+To install each setup independenly from each other you can disable the creation of the unnecessary clusters also within the [MultiCloud](MultiCloud) folder. Each module can run on its own. 
+If you want to add more environments later you just need to change the configuration.
 
 ## More examples
 

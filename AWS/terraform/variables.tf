@@ -57,3 +57,8 @@ variable "elb_names" {
   type = list
   default = []
 }
+
+variable "eks_cluster" {
+  type = string
+  default = ""
+}
