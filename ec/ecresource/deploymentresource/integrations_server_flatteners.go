@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
@@ -58,6 +59,10 @@ func flattenIntegrationsServerResources(in []*models.IntegrationsServerResourceI
 
 		for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
 			m[k] = v
+		}
+
+		for _, url := range res.Info.Metadata.ServicesUrls {
+			m[fmt.Sprintf("%s_https_endpoint", *url.Service)] = *url.URL
 		}
 
 		if cfg := flattenIntegrationsServerConfig(plan.IntegrationsServer); len(cfg) > 0 {
