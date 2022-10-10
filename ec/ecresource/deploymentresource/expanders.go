@@ -24,6 +24,7 @@ import (
 	semver "github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -123,6 +124,70 @@ func createResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	return &result, nil
 }
 
+func getBaseUpdatePayloads(d *schema.ResourceData, client *api.API) (*models.DeploymentUpdateResources, error) {
+	prevDtId, dtIdIf := d.GetChange("deployment_template_id")
+	dtId := dtIdIf.(string)
+	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
+		API:                        client,
+		TemplateID:                 dtId,
+		Region:                     d.Get("region").(string),
+		HideInstanceConfigurations: true,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	baseUpdatePayloads := &models.DeploymentUpdateResources{
+		Apm:                template.DeploymentTemplate.Resources.Apm,
+		Appsearch:          template.DeploymentTemplate.Resources.Appsearch,
+		Elasticsearch:      template.DeploymentTemplate.Resources.Elasticsearch,
+		EnterpriseSearch:   template.DeploymentTemplate.Resources.EnterpriseSearch,
+		IntegrationsServer: template.DeploymentTemplate.Resources.IntegrationsServer,
+		Kibana:             template.DeploymentTemplate.Resources.Kibana,
+	}
+
+	// If the deployment template has changed then we should use the template migration API
+	// to build the base update payloads
+	if d.HasChange("deployment_template_id") && prevDtId.(string) != "" {
+		// Get an update request from the template migration API
+		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(d.Id()).WithTemplateID(dtId),
+			client.AuthWriter,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 {
+			baseUpdatePayloads.Apm = migrateUpdateRequest.Payload.Resources.Apm
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Appsearch) > 0 {
+			baseUpdatePayloads.Appsearch = migrateUpdateRequest.Payload.Resources.Appsearch
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Elasticsearch) > 0 {
+			baseUpdatePayloads.Elasticsearch = migrateUpdateRequest.Payload.Resources.Elasticsearch
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 {
+			baseUpdatePayloads.EnterpriseSearch = migrateUpdateRequest.Payload.Resources.EnterpriseSearch
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 {
+			baseUpdatePayloads.IntegrationsServer = migrateUpdateRequest.Payload.Resources.IntegrationsServer
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 {
+			baseUpdatePayloads.Kibana = migrateUpdateRequest.Payload.Resources.Kibana
+		}
+	}
+
+	return baseUpdatePayloads, nil
+}
+
 func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.DeploymentUpdateRequest, error) {
 	var result = models.DeploymentUpdateRequest{
 		Name:         d.Get("name").(string),
@@ -133,37 +198,18 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 		Metadata:     &models.DeploymentUpdateMetadata{},
 	}
 
-	dtID := d.Get("deployment_template_id").(string)
-	version := d.Get("version").(string)
-	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
-		API:                        client,
-		TemplateID:                 dtID,
-		Region:                     d.Get("region").(string),
-		HideInstanceConfigurations: true,
-	})
+	updatePayloads, err := getBaseUpdatePayloads(d, client)
 	if err != nil {
 		return nil, err
 	}
 
+	dtID := d.Get("deployment_template_id").(string)
+	version := d.Get("version").(string)
 	es := d.Get("elasticsearch").([]interface{})
 	kibana := d.Get("kibana").([]interface{})
 	apm := d.Get("apm").([]interface{})
 	integrationsServer := d.Get("integrations_server").([]interface{})
 	enterpriseSearch := d.Get("enterprise_search").([]interface{})
-
-	// When the deployment template is changed, we need to unset the missing
-	// resource topologies to account for a new instance_configuration_id and
-	// a different default value.
-	prevDT, _ := d.GetChange("deployment_template_id")
-	if d.HasChange("deployment_template_id") && prevDT.(string) != "" {
-		// If the deployment_template_id is changed, then we unset the
-		// Elasticsearch topology to account for the case where the
-		// instance_configuration_id changes, i.e. Hot / Warm, etc.
-
-		// This might not be necessary going forward as we move to
-		// tiered Elasticsearch nodes.
-		unsetTopology(es)
-	}
 
 	useNodeRoles, err := compatibleWithNodeRoles(version)
 	if err != nil {
@@ -178,7 +224,7 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	merr := multierror.NewPrefixed("invalid configuration")
 	esRes, err := expandEsResources(
 		es, enrichElasticsearchTemplate(
-			esResource(template), dtID, version, useNodeRoles,
+			esResourceFromUpdate(updatePayloads), dtID, version, useNodeRoles,
 		),
 	)
 	if err != nil {
@@ -191,25 +237,25 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	// to "partial".
 	ensurePartialSnapshotStrategy(esRes)
 
-	kibanaRes, err := expandKibanaResources(kibana, kibanaResource(template))
+	kibanaRes, err := expandKibanaResources(kibana, kibanaResourceFromUpdate(updatePayloads))
 	if err != nil {
 		merr = merr.Append(err)
 	}
 	result.Resources.Kibana = append(result.Resources.Kibana, kibanaRes...)
 
-	apmRes, err := expandApmResources(apm, apmResource(template))
+	apmRes, err := expandApmResources(apm, apmResourceFromUpdate(updatePayloads))
 	if err != nil {
 		merr = merr.Append(err)
 	}
 	result.Resources.Apm = append(result.Resources.Apm, apmRes...)
 
-	integrationsServerRes, err := expandIntegrationsServerResources(integrationsServer, integrationsServerResource(template))
+	integrationsServerRes, err := expandIntegrationsServerResources(integrationsServer, integrationsServerResourceFromUpdate(updatePayloads))
 	if err != nil {
 		merr = merr.Append(err)
 	}
 	result.Resources.IntegrationsServer = append(result.Resources.IntegrationsServer, integrationsServerRes...)
 
-	enterpriseSearchRes, err := expandEssResources(enterpriseSearch, essResource(template))
+	enterpriseSearchRes, err := expandEssResources(enterpriseSearch, essResourceFromUpdate(updatePayloads))
 	if err != nil {
 		merr = merr.Append(err)
 	}
@@ -259,12 +305,6 @@ func enrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, dt, version s
 	}
 
 	return tpl
-}
-
-func unsetTopology(rawRes []interface{}) {
-	for _, r := range rawRes {
-		delete(r.(map[string]interface{}), "topology")
-	}
 }
 
 func expandTags(raw map[string]interface{}) []*models.MetadataItem {

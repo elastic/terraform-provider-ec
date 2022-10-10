@@ -202,3 +202,12 @@ func integrationsServerResource(res *models.DeploymentTemplateInfoV2) *models.In
 	}
 	return res.DeploymentTemplate.Resources.IntegrationsServer[0]
 }
+
+// integrationsServerResourceFromUpdate returns the IntegrationsServerPayload from a deployment
+// update request or an empty version of the payload.
+func integrationsServerResourceFromUpdate(res *models.DeploymentUpdateResources) *models.IntegrationsServerPayload {
+	if len(res.IntegrationsServer) == 0 {
+		return nil
+	}
+	return res.IntegrationsServer[0]
+}

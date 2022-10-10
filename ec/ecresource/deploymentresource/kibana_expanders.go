@@ -192,3 +192,12 @@ func kibanaResource(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload 
 	}
 	return res.DeploymentTemplate.Resources.Kibana[0]
 }
+
+// kibanaResourceFromUpdate returns the KibanaPayload from a deployment
+// update request or an empty version of the payload.
+func kibanaResourceFromUpdate(res *models.DeploymentUpdateResources) *models.KibanaPayload {
+	if len(res.Kibana) == 0 {
+		return nil
+	}
+	return res.Kibana[0]
+}
