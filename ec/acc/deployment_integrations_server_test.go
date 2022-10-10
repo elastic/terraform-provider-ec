@@ -52,6 +52,8 @@ func TestAccDeployment_integrationsServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.topology.0.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.apm_https_endpoint"),
+					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.fleet_https_endpoint"),
 				),
 			},
 			{

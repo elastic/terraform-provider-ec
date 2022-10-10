@@ -50,6 +50,14 @@ func newIntegrationsServerResource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"fleet_https_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"apm_https_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"topology": integrationsServerTopologySchema(),
 
 			"config": integrationsServerConfig(),
