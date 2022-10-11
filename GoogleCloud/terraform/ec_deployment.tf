@@ -26,28 +26,23 @@ resource "ec_deployment" "elastic_deployment" {
   integrations_server {}
 }
 
-output "elastic_cluster_id" {
+output "elastic_cluster_id_google" {
   value = ec_deployment.elastic_deployment.id
 }
 
-output "elastic_cluster_alias" {
+output "elastic_cluster_alia_google" {
   value = ec_deployment.elastic_deployment.name
 }
 
-output "elastic_endpoint" {
-  value = ec_deployment.elastic_deployment.elasticsearch[0].https_endpoint
+output "elastic_endpoint_google" {
+  value = ec_deployment.elastic_deployment.kibana[0].https_endpoint
 }
 
-output "elastic_password" {
-  value = ec_deployment.elastic_deployment.elasticsearch_password
-  sensitive=true
-}
-
-output "elastic_cloud_id" {
+output "elastic_cloud_id_google" {
   value = ec_deployment.elastic_deployment.elasticsearch[0].cloud_id
 }
 
-output "elastic_username" {
+output "elastic_username_google" {
   value = ec_deployment.elastic_deployment.elasticsearch_username
 }
 

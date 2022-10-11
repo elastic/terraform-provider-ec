@@ -1,0 +1,14 @@
+{
+    "name": "k8s-endpoint",
+    "description": "Terraformed k8s integration to protect your endpoints",
+    "namespace": "default",
+    "policy_id": "${policy_id}",
+    "enabled": true,
+    "output_id": "",
+    "inputs": [],
+    "package": {
+      "name": "endpoint",
+      "title": "Endpoint and Cloud Security",
+      "version": "8.4.1"
+    }
+  }

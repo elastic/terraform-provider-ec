@@ -26,31 +26,30 @@ resource "ec_deployment" "elastic_deployment" {
   integrations_server {}
 }
 
-output "elastic_cluster_id" {
+output "elastic_cluster_id_aws" {
   value = ec_deployment.elastic_deployment.id
 }
 
-output "elastic_cluster_alias" {
+output "elastic_cluster_alias_aws" {
   value = ec_deployment.elastic_deployment.name
 }
 
-output "elastic_endpoint" {
-  value = ec_deployment.elastic_deployment.elasticsearch[0].https_endpoint
+output "elastic_endpoint_aws" {
+  value = ec_deployment.elastic_deployment.kibana[0].https_endpoint
+}
+
+output "elastic_cloud_id_aws" {
+  value = ec_deployment.elastic_deployment.elasticsearch[0].cloud_id
+}
+
+output "elastic_username_aws" {
+  value = ec_deployment.elastic_deployment.elasticsearch_username
 }
 
 output "elastic_password" {
   value = ec_deployment.elastic_deployment.elasticsearch_password
-  sensitive=true
+  sensitive = true
 }
-
-output "elastic_cloud_id" {
-  value = ec_deployment.elastic_deployment.elasticsearch[0].cloud_id
-}
-
-output "elastic_username" {
-  value = ec_deployment.elastic_deployment.elasticsearch_username
-}
-
 
 
 # -------------------------------------------------------------
@@ -68,11 +67,6 @@ data "external" "elastic_create_policy" {
   depends_on = [ec_deployment.elastic_deployment]
 }
 
-output "elastic_create_policy" {
-  value = data.external.elastic_create_policy.result
-  depends_on = [data.external.elastic_create_policy]
-}
-
 data "external" "elastic_add_integration" {
   query = {
     kibana_endpoint  = ec_deployment.elastic_deployment.kibana[0].https_endpoint
@@ -88,11 +82,6 @@ data "external" "elastic_add_integration" {
   }
   program = ["sh", "${path.module}/../../lib/elastic_api/kb_add_integration_to_policy.sh" ]
   depends_on = [data.external.elastic_create_policy]
-}
-
-output "elastic_add_integration" {
-  value = data.external.elastic_add_integration.result
-  depends_on = [data.external.elastic_add_integration]
 }
 
 # -------------------------------------------------------------
@@ -118,11 +107,6 @@ data "external" "elastic_enable_rules" {
   }
   program = ["sh", "${path.module}/../../lib/elastic_api/kb_enable_detection_rules.sh" ]
   depends_on = [data.external.elastic_load_rules]
-}
-
-output "elastic_enable_rules" {
-  value = data.external.elastic_enable_rules.result
-  depends_on = [data.external.elastic_enable_rules]
 }
 
 # -------------------------------------------------------------

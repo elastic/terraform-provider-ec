@@ -1,40 +1,5 @@
-# elastic-terraform-examples
+# Google Cloud environment
 
-This example is creating a Google Cloud Monitoring and Enhanced Security environment. It creates all necessary Google Cloud Services as well as the Elastic Cloud Cluster for you. The only thing you need to provide is an appropriate Google Cloud Service account that has the right permissions and the Elastic Cloud API Key. It works both: In [Elastic Cloud directly](https://cloud.elastic.co) or via the [Google Cloud Marketplace option for Elastic Cloud](https://ela.st/google).
-
-This example will install and configure:
-- Elastic Cluster
-- Google Cloud Compute engine with Elastic Agent installed and configured to talk to the Elastic Cluster
-- Google Cloud Log routers (Log sinks) with the appropriate filters for Audit, Firewall, VPC Flow, DNS and Loadbalancer Logs. 
-- Google Cloud PubSub topics to collects the log types above
-- Elastic Agent will be configured to collect all the logs and all available Google Cloud Metric datasets with zero manual configuration
-- The Elastic Cluster will be configured with the following additional capabilities
-	- Single pane of glass Google Cloud Dashboard
-	- Google Cloud Cost optimizer dashboard
-	- Google Cloud Storage bucket analyzer dashboard
-	- Elastic transforms to prepare the data for the installed dashboards
-	- Preloaded all Elastic Security Detection rules and enabled all Google Cloud related rules
-
-## Get started
-
-#### Prepare software dependencies
-
-- [jq](https://stedolan.github.io/jq/download/)
-- [terraform](https://www.terraform.io/downloads)
-
-
-#### Clone the repository
-
-```bash
-git clone https://github.com/felix-lessoer/elastic-terraform-examples.git
-```
-
-#### Create local env files within the repo
-
-```bash
-mkdir local_env
-touch terraform.tfvars.json
-```
 
 Modify the terraform env settings. The service account explanation you find below
 
@@ -53,17 +18,6 @@ List of other optional parameters that can be added to terraform.tfvars.json
 | elastic_deployment_name  | Google Cloud Observe and Protect  | Google Cloud Observe and Protect  | Used to define the name for the Elastic deployment  |
 | google_cloud_region  | europe-west3  | europe-west3  | Used to change the region where the Google Cloud objects getting installed  |
 | google_cloud_network  | default | my-network  | Used to change the network the Elastic Agent VM is installed in. (Network needs to be existent)  |
-
-
-#### Create Elastic Cloud ID following this steps.
-
-[Create EC API key](https://registry.terraform.io/providers/elastic/ec/latest/docs#api-key-authentication-recommended)
-
-Set env variable for Elastic Cloud:
-
-```bash
-export EC_API_KEY="[PUT YOUR ELASTIC CLOUD API KEY HERE]"
-```
 
 
 #### Create Google Cloud service account following this steps.
@@ -111,33 +65,8 @@ gcloud projects add-iam-policy-binding "my-project-name" \
 gcloud projects get-iam-policy "[PUT YOUR GOOGLE CLOUD PROJECT NAME HERE]" \
 --flatten="bindings[].members" \
 --format='table(bindings.role)' \
---filter="bindings.members:[PUT YOUR SERVICE ACCOUNT MEMBER HERE]"
-```
+--filter="bindings.members:[PUT YOUR SERVICE ACCOUNT MEMBER HERE]"``
 
-### Deploy
 
-##### Initialize within 'terraform' folder
-
-```bash
-terraform init
-```
-
-##### Check plan
-
-```bash
-terraform plan -var-file="../local_env/terraform.tfvars.json"
-```
-
-##### Run
-
-```bash
-terraform apply -var-file="../local_env/terraform.tfvars.json" -auto-approve
-```
-
-### Cleanup
-
-```bash
-terraform destroy -var-file="../local_env/terraform.tfvars.json" -auto-approve
-```
 
  
