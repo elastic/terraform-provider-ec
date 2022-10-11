@@ -31,6 +31,7 @@ export EC_API_KEY="[PUT YOUR ELASTIC CLOUD API KEY HERE]"
 
 ### Create local env files within the repo
 
+Target is to have the *aws.json* file and the *gcp.json* file in *<Repo root>MultiCloud/local_env/* to make the terraform commands below working correctly. 
 ```bash
 mkdir local_env
 touch aws.json
@@ -40,7 +41,7 @@ touch gcp.json
 Modify the terraform environment settings to prepare your local env.
 
 #### For AWS
-More AWS configuration remarks you can find in the [AWS](AWS) folder.
+More AWS configuration remarks you can find in the [AWS](../AWS) folder.
 
 Minimal config:
 ```json
@@ -60,7 +61,7 @@ List of other optional parameters that can be added to terraform.tfvars.json
 | elastic_deployment_name  | AWS Observe and Protect  | AWS Observe and Protect  | Used to define the name for the Elastic deployment  |
 
 #### For Google Cloud
-More Google CLoud configuration remarks you can find in the [Google Cloud](GoogleCloud) folder.
+More Google CLoud configuration remarks you can find in the [Google Cloud](../GoogleCloud) folder.
 
 Minimal config:
 ```json
