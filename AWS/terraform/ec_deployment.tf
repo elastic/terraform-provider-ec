@@ -30,7 +30,7 @@ output "elastic_cluster_id_aws" {
   value = ec_deployment.elastic_deployment.id
 }
 
-output "elastic_cluster_alia_aws" {
+output "elastic_cluster_alias_aws" {
   value = ec_deployment.elastic_deployment.name
 }
 

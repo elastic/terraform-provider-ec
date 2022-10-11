@@ -22,7 +22,7 @@ module "aws_environment" {
   ###
   # Uncomment the following line to make the AWS cluster the All in One Cluster via CCS
   ###
-  //elastic_remotes = [{id = module.gc_environment.elastic_cluster_id, alias = module.gc_environment.elastic_cluster_alias}]
+  //elastic_remotes = [{id = module.gc_environment[0].elastic_cluster_id_google, alias = module.gc_environment[0].elastic_cluster_alias_google}]
 
   count  = (var.deploy_aws == true) ? 1 : 0
 }
@@ -43,7 +43,7 @@ module "gc_environment" {
   ###
   # Uncomment the following line to make the Google Cloud cluster the All in One Cluster via CCS
   ###
-  //elastic_remotes = [{id = module.aws_environment.elastic_cluster_id, alias = module.aws_environment.elastic_cluster_alias}]
+  elastic_remotes = [{id = module.aws_environment[0].elastic_cluster_id_aws, alias = module.aws_environment[0].elastic_cluster_alias_aws}]
 
   count  = (var.deploy_gc == true) ? 1 : 0
 }
