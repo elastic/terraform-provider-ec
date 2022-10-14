@@ -1,0 +1,45 @@
+{
+  "source": {
+    "index": [
+      "logs*"
+    ],
+    "runtime_mappings": {
+      "repo": {
+        "type": "keyword",
+        "script": {
+          "source": "if (doc.containsKey('repository')) {\r\n    emit (doc['repository'].value);\r\n    return;\r\n}\r\n\r\ndef fieldname = \"gcp.audit.resource_name\";\r\nif (!doc.containsKey(fieldname)) {\r\n    return;\r\n}\r\nif (doc[fieldname].size()>0) {\r\n    def field_value = doc[fieldname].value;\r\n    if (field_value != null) {\r\n        String repo=grok('objects/%%{HOSTNAME:repo}').extract(field_value)?.repo;\r\n        if (repo != null) emit(repo); \r\n        return;\r\n    }\r\n}"
+        }
+      }
+    }
+  },
+  "pivot": {
+    "group_by": {
+      "repository": {
+        "terms": {
+          "field": "repo"
+        }
+      },
+      "resource.labels.bucket_name": {
+        "terms": {
+          "field": "resource.labels.bucket_name"
+        }
+      }
+    },
+    "aggregations": {
+      "last_access": {
+        "max": {
+          "field": "@timestamp"
+        }
+      }
+    }
+  },
+  "description": "Transforms logs data into GCS usage profile",
+  "dest": {
+    "index": "gcs-repos"
+  },
+  "sync": {
+    "time": {
+      "field": "@timestamp"
+    }
+  }
+}
