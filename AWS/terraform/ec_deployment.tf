@@ -116,3 +116,26 @@ data "external" "elastic_enable_rules" {
 # -------------------------------------------------------------
 #  Load Dashboards
 # -------------------------------------------------------------
+data "external" "elastic_upload_saved_objects1" {
+  query = {
+	elastic_http_method = "POST"
+    kibana_endpoint  = ec_deployment.elastic_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_deployment.elasticsearch_password
+    so_file      		= "${path.module}/../dashboards/CloudTrail Summary.ndjson"
+  }
+  program = ["sh", "${path.module}/../../lib/elastic_api/kb_upload_saved_objects.sh" ]
+  depends_on = [ec_deployment.elastic_deployment]
+}
+
+data "external" "elastic_upload_saved_objects2" {
+  query = {
+	elastic_http_method = "POST"
+    kibana_endpoint  = ec_deployment.elastic_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_deployment.elasticsearch_password
+    so_file      		= "${path.module}/../dashboards/VPCFlow Summary.ndjson"
+  }
+  program = ["sh", "${path.module}/../../lib/elastic_api/kb_upload_saved_objects.sh" ]
+  depends_on = [ec_deployment.elastic_deployment]
+}

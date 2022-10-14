@@ -66,27 +66,48 @@ data "external" "elastic_create_policy" {
   depends_on = [ec_deployment.elastic_deployment]
 }
 
-# data "external" "elastic_add_integration" {
-#   query = {
-#     kibana_endpoint  = ec_deployment.elastic_deployment.kibana[0].https_endpoint
-#     elastic_username  = ec_deployment.elastic_deployment.elasticsearch_username
-#     elastic_password  = ec_deployment.elastic_deployment.elasticsearch_password
-#     elastic_json_body = templatefile("${path.module}/../json_templates/gcp_integration.json", 
-#     {
-#     "policy_id": data.external.elastic_create_policy.result.id,
-#     "gcp_project": var.google_cloud_project,
-#     "gcp_credentials_json": jsonencode(file(var.google_cloud_service_account_path)),
-#     "audit_log_topic": var.google_pubsub_audit_topic,
-#     "firewall_log_topic": var.google_pubsub_firewall_topic,
-#     "vpcflow_log_topic": var.google_pubsub_vpcflow_topic,
-#     "dns_log_topic": var.google_pubsub_dns_topic,
-#     "lb_log_topic": var.google_pubsub_lb_topic     
-#     }
-#     )
-#   }
-#   program = ["sh", "${path.module}/../../lib/elastic_api/kb_add_integration_to_policy.sh" ]
-#   depends_on = [data.external.elastic_create_policy]
-# }
+data "external" "elastic_add_metrics_integration" {
+  query = {
+    kibana_endpoint  = ec_deployment.elastic_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_deployment.elasticsearch_password
+    elastic_json_body = templatefile("${path.module}/../json_templates/azure-metrics-integration.json", 
+    {
+    "policy_id": data.external.elastic_create_policy.result.id,
+    "client_id": var.azure_client_id,
+    "client_secret": var.azure_client_secret,
+    "tenant_id": var.azure_tenant_id,
+    "subscription_id": var.azure_subscription_id
+    }
+    )
+  }
+  program = ["sh", "${path.module}/../../lib/elastic_api/kb_add_integration_to_policy.sh" ]
+  depends_on = [data.external.elastic_create_policy]
+}
+
+data "external" "elastic_add_logs_integration" {
+  query = {
+    kibana_endpoint  = ec_deployment.elastic_deployment.kibana[0].https_endpoint
+    elastic_username  = ec_deployment.elastic_deployment.elasticsearch_username
+    elastic_password  = ec_deployment.elastic_deployment.elasticsearch_password
+    elastic_json_body = templatefile("${path.module}/../json_templates/azure-logs-integration.json", 
+    {
+    "policy_id": data.external.elastic_create_policy.result.id,
+    "eventhub": azurerm_eventhub.elastic.name,
+    "connection_string": azurerm_eventhub_authorization_rule.elastic.primary_connection_string ,
+    "storage_account": azurerm_storage_account.elastic.id ,
+    "storage_account_key": azurerm_storage_account.elastic.primary_access_key
+    }
+    )
+  }
+  program = ["sh", "${path.module}/../../lib/elastic_api/kb_add_integration_to_policy.sh" ]
+  depends_on = [
+    data.external.elastic_create_policy,
+    azurerm_eventhub.elastic,
+    azurerm_eventhub_authorization_rule.elastic,
+    azurerm_storage_account.elastic
+  ]
+}
 
 # -------------------------------------------------------------
 #  Load Rules

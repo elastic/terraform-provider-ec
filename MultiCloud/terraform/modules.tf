@@ -8,6 +8,11 @@ variable "deploy_gc" {
   default = true
 }
 
+variable "deploy_azure" {
+  type = bool
+  default = true
+}
+
 module "aws_environment" {
   source = "../../AWS/terraform"
 
@@ -43,7 +48,30 @@ module "gc_environment" {
   ###
   # Uncomment the following line to make the Google Cloud cluster the All in One Cluster via CCS
   ###
-  elastic_remotes = [{id = module.aws_environment[0].elastic_cluster_id_aws, alias = module.aws_environment[0].elastic_cluster_alias_aws}]
+  //elastic_remotes = [{id = module.aws_environment[0].elastic_cluster_id_aws, alias = module.aws_environment[0].elastic_cluster_alias_aws}]
 
   count  = (var.deploy_gc == true) ? 1 : 0
+}
+
+module "azure_environment" {
+  source = "../../Azure/terraform"
+
+  elastic_version = var.elastic_version
+  elastic_region = var.elastic_azure_region
+  elastic_deployment_name = var.elastic_azure_deployment_name
+  elastic_deployment_template_id = var.elastic_azure_deployment_template_id
+  elastic_agent_vm_name = var.elastic_agent_vm_name
+
+  azure_region = var.azure_region
+  azure_client_id = var.azure_client_id
+  azure_client_secret = var.azure_client_secret
+  azure_subscription_id = var.azure_subscription_id
+  azure_tenant_id = var.azure_tenant_id
+  
+  ###
+  # Uncomment the following line to make the Google Cloud cluster the All in One Cluster via CCS
+  ###
+  //elastic_remotes = [{id = module.aws_environment[0].elastic_cluster_id_aws, alias = module.aws_environment[0].elastic_cluster_alias_aws}]
+
+  count  = (var.deploy_azure == true) ? 1 : 0
 }

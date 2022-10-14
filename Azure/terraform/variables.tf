@@ -8,7 +8,7 @@ variable "elastic_version" {
 
 variable "elastic_region" {
   type = string
-  default = "azure-europe-west3"
+  default = "azure-westeurope"
 }
 
 variable "elastic_deployment_name" {
@@ -18,7 +18,7 @@ variable "elastic_deployment_name" {
 
 variable "elastic_deployment_template_id" {
   type = string
-  default = "azure-io-optimized-v2"
+  default = "azure-general-purpose"
 }
 
 variable "elastic_remotes" {
@@ -31,7 +31,32 @@ variable "elastic_remotes" {
     default = []
 }
 
+variable "elastic_agent_vm_name" {
+  type = string
+  default = "elastic-agent"
+}
+
 # -------------------------------------------------------------
 # Azure configuration
 # -------------------------------------------------------------
 
+variable "azure_region" {
+  type = string
+  default = "West Europe"
+}
+
+variable  "azure_subscription_id" {
+ type = string   
+}
+
+variable  "azure_client_id" {
+ type = string   
+}
+
+variable  "azure_client_secret" {
+ type = string   
+}
+
+variable  "azure_tenant_id" {
+ type = string   
+}
