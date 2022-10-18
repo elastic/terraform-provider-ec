@@ -57,12 +57,12 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 	found, diags := r.read(ctx, newState.DeploymentID.Value, &newState)
 	response.Diagnostics.Append(diags...)
 	if !found {
-		// We can't unset the state here, and must make sure to set the state according to the plan below.
-		// So all we do is add a warning.
-		diags.AddWarning(
-			"Failed to read Elasticsearch keystore.",
-			"Please run terraform refresh to ensure a consistent state.",
+		response.Diagnostics.AddError(
+			"Failed to read Elasticsearch keystore after create.",
+			"Failed to read Elasticsearch keystore after create.",
 		)
+		response.State.RemoveResource(ctx)
+		return
 	}
 	if response.Diagnostics.HasError() {
 		return

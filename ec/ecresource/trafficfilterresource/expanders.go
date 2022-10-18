@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func expandModel(ctx context.Context, state modelV0) (*models.TrafficFilterRulesetRequest, diag.Diagnostics) {
@@ -36,11 +35,11 @@ func expandModel(ctx context.Context, state modelV0) (*models.TrafficFilterRules
 	}
 
 	var request = models.TrafficFilterRulesetRequest{
-		Name:             ec.String(state.Name.Value),
-		Type:             ec.String(state.Type.Value),
-		Region:           ec.String(state.Region.Value),
+		Name:             &state.Name.Value,
+		Type:             &state.Type.Value,
+		Region:           &state.Region.Value,
 		Description:      state.Description.Value,
-		IncludeByDefault: ec.Bool(state.IncludeByDefault.Value),
+		IncludeByDefault: &state.IncludeByDefault.Value,
 		Rules:            make([]*models.TrafficFilterRule, 0, len(ruleSet)),
 	}
 

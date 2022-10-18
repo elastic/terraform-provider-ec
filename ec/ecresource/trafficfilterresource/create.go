@@ -59,7 +59,12 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 	found, diags := r.read(ctx, newState.ID.Value, &newState)
 	response.Diagnostics.Append(diags...)
 	if !found {
+		response.Diagnostics.AddError(
+			"Failed to read deployment traffic filter ruleset after create.",
+			"Failed to read deployment traffic filter ruleset after create.",
+		)
 		response.State.RemoveResource(ctx)
+		return
 	}
 	if response.Diagnostics.HasError() {
 		return

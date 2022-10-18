@@ -78,8 +78,7 @@ func LegacyProvider() *schema.Provider {
 		Schema:               newSchema(),
 		DataSourcesMap:       map[string]*schema.Resource{},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment":           deploymentresource.Resource(),
-			"ec_deployment_extension": extensionresource.Resource(),
+			"ec_deployment": deploymentresource.Resource(),
 		},
 	}
 }
@@ -170,6 +169,7 @@ func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSour
 func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		func() resource.Resource { return &elasticsearchkeystoreresource.Resource{} },
+		func() resource.Resource { return &extensionresource.Resource{} },
 		func() resource.Resource { return &trafficfilterresource.Resource{} },
 		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
 	}

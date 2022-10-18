@@ -20,28 +20,29 @@ package extensionresource
 import (
 	"os"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 )
 
-func uploadExtension(client *api.API, d *schema.ResourceData) error {
-	filePath := d.Get("file_path").(string)
-	reader, err := os.Open(filePath)
+func (r *Resource) uploadExtension(state modelV0) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	reader, err := os.Open(state.FilePath.Value)
 	if err != nil {
-		return multierror.NewPrefixed("failed to open file", err)
+		diags.AddError("failed to open file", err.Error())
+		return diags
 	}
 
 	_, err = extensionapi.Upload(extensionapi.UploadParams{
-		API:         client,
-		ExtensionID: d.Id(),
+		API:         r.client,
+		ExtensionID: state.ID.Value,
 		File:        reader,
 	})
 	if err != nil {
-		return err
+		diags.AddError("failed to upload file", err.Error())
+		return diags
 	}
 
-	return nil
+	return diags
 }

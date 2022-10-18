@@ -125,9 +125,9 @@ func TestResourceElasticsearchKeyStore_notFoundAfterCreate_and_gracefulDeletion(
 		),
 		Steps: []r.TestStep{
 			{ // Create resource
-				Config:             externalKeystore1,
-				Check:              checkResource1(),
-				ExpectNonEmptyPlan: true,
+				Config:      externalKeystore1,
+				Check:       checkResource1(),
+				ExpectError: regexp.MustCompile(`Failed to read Elasticsearch keystore after create.`),
 			},
 		},
 	})

@@ -40,7 +40,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 			Prefix: map[string]models.PrefixQuery{
 				// The "keyword" addition denotes that the query will be using a keyword
 				// field rather than a text field in order to ensure the query is not analyzed
-				"name.keyword": {Value: ec.String(namePrefix)},
+				"name.keyword": {Value: &namePrefix},
 			},
 		})
 	}
@@ -180,11 +180,11 @@ func expandResourceFilters(ctx context.Context, resources *types.List, resourceK
 func newNestedTermQuery(path, term string, value string) *models.QueryContainer {
 	return &models.QueryContainer{
 		Nested: &models.NestedQuery{
-			Path: ec.String(path),
+			Path: &path,
 			Query: &models.QueryContainer{
 				Term: map[string]models.TermQuery{
 					term: {
-						Value: ec.String(value),
+						Value: &value,
 					},
 				},
 			},
