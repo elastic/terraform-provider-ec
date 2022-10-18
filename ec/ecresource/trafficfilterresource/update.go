@@ -40,6 +40,7 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 	}
 
 	trafficFilterRulesetRequest, diags := expandModel(ctx, newState)
+	response.Diagnostics.Append(diags...)
 	_, err := trafficfilterapi.Update(trafficfilterapi.UpdateParams{
 		API: r.client, ID: newState.ID.Value,
 		Req: trafficFilterRulesetRequest,
@@ -55,12 +56,12 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 		return
 	}
 	if !found {
-		// We can't unset the state here, and must make sure to set the state according to the plan below.
-		// So all we do is add a warning.
-		diags.AddWarning(
-			"Failed to read traffic filter rule.",
-			"Please run terraform refresh to ensure a consistent state.",
+		response.Diagnostics.AddError(
+			"Failed to read deployment traffic filter ruleset after update.",
+			"Failed to read deployment traffic filter ruleset after update.",
 		)
+		response.State.RemoveResource(ctx)
+		return
 	}
 
 	// Finally, set the state

@@ -125,7 +125,7 @@ func TestResourceTrafficFilter_failedRead1(t *testing.T) {
 	})
 }
 
-func TestResourceTrafficFilter_gracefulDeletionOnUpdate(t *testing.T) {
+func TestResourceTrafficFilter_notFoundAfterUpdate(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
@@ -135,7 +135,7 @@ func TestResourceTrafficFilter_gracefulDeletionOnUpdate(t *testing.T) {
 				readResponse("false", "true"),
 				updateResponse("false"),
 				notFoundReadResponse("false"),
-				notFoundReadResponse("false"),
+				notFoundReadResponse("true"),
 			),
 		),
 		Steps: []r.TestStep{
@@ -144,9 +144,8 @@ func TestResourceTrafficFilter_gracefulDeletionOnUpdate(t *testing.T) {
 				Check:  checkResource("true"),
 			},
 			{ // Update resource
-				Config:             trafficFilterWithoutIncludeByDefault,
-				Check:              checkResource("false"), // Update can't remove the resource, so it should stay the same.
-				ExpectNonEmptyPlan: true,                   // terraform refresh will detect the removed resource, so we will end up with a non-empty plan.
+				Config:      trafficFilterWithoutIncludeByDefault,
+				ExpectError: regexp.MustCompile(`Failed to read deployment traffic filter ruleset after update.`),
 			},
 		},
 	})

@@ -132,6 +132,7 @@ func StringListAsType(in []string) types.List {
 	}
 	return types.List{ElemType: types.StringType, Elems: out}
 }
+
 func StringMapAsType(in map[string]string) types.Map {
 	//goland:noinspection GoPreferNilSlice
 	out := make(map[string]attr.Value, len(in))
