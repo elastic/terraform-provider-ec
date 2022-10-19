@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Correctly restrict stateless (Kibana/Enterprise Search/Integrations Server) resources to a single topology element. Fixes a provider crash when multiple elements without an instance_configuration_id were specified.
-```

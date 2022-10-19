@@ -1,3 +1,0 @@
-```release-note:feature
-resource/elasticsearch: Adds support for the `strategy` property to the `elasticsearch` resource. This allows users to define how different plan changes are coordinated.
-```
