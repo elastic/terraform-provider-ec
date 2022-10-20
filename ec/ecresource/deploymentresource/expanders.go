@@ -211,6 +211,13 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	integrationsServer := d.Get("integrations_server").([]interface{})
 	enterpriseSearch := d.Get("enterprise_search").([]interface{})
 
+	prevDT, _ := d.GetChange("deployment_template_id")
+	if d.HasChange("deployment_template_id") && prevDT != "" {
+		unsetInstanceConfigurations([][]interface{}{
+			es, kibana, apm, integrationsServer, enterpriseSearch,
+		})
+	}
+
 	useNodeRoles, err := compatibleWithNodeRoles(version)
 	if err != nil {
 		return nil, err
@@ -281,6 +288,17 @@ func updateResourceToModel(d *schema.ResourceData, client *api.API) (*models.Dep
 	result.Metadata.Tags = expandTags(d.Get("tags").(map[string]interface{}))
 
 	return &result, nil
+}
+
+func unsetInstanceConfigurations(rawResources [][]interface{}) {
+	for _, resource := range rawResources {
+		for _, r := range resource {
+			topologies := r.(map[string]interface{})["topology"].([]interface{})
+			for _, topology := range topologies {
+				delete(topology.(map[string]interface{}), "instance_configuration_id")
+			}
+		}
+	}
 }
 
 func enrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, dt, version string, useNodeRoles bool) *models.ElasticsearchPayload {
