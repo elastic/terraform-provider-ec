@@ -8,7 +8,7 @@ require (
 	github.com/go-openapi/runtime v0.24.2
 	github.com/go-openapi/strfmt v0.21.3
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 )
 
 require (
