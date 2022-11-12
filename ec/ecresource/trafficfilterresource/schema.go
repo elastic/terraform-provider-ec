@@ -33,7 +33,7 @@ func newSchema() map[string]*schema.Schema {
 		},
 		"type": {
 			Type:        schema.TypeString,
-			Description: `Required type of the ruleset ("ip", "vpce" or "azure_private_endpoint")`,
+			Description: `Required type of the ruleset ("ip", "vpce", "azure_private_endpoint", or "gcp_private_service_connect_endpoint")`,
 			Required:    true,
 		},
 		"region": {
