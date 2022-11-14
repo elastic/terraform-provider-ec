@@ -35,7 +35,7 @@ jobs:
           echo ::set-output name=BRANCH::$(echo ${BRANCH} | cut -d '.' -f1-2 | tr -d 'v')
 
       - name: Create a github branch
-        uses: peterjgrainger/action-create-branch@v2.2.0
+        uses: peterjgrainger/action-create-branch@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
