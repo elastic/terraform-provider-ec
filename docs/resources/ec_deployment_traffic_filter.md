@@ -143,7 +143,7 @@ resource "ec_deployment_traffic_filter" "gcp_psc" {
 The following arguments are supported:
 
 * `name` - (Required) Name of the ruleset.
-* `type` - (Required) Type of the ruleset.  It can be `"ip"`, `"vpce"` or `"azure_private_endpoint"`.
+* `type` - (Required) Type of the ruleset.  It can be `"ip"`, `"vpce"`, `"azure_private_endpoint"`, or `"gcp_private_service_connect_endpoint"`.
 * `region` - (Required) Filter region, the ruleset can only be attached to deployments in the specific region.
 * `rule` (Required) Rule block, which can be specified multiple times for multiple rules.
 * `include_by_default` - (Optional) To automatically include the ruleset in the new deployments. Defaults to `false`.
