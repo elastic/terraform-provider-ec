@@ -2956,6 +2956,9 @@ func Test_updateResourceToModel(t *testing.T) {
 	ccsTpl := func() io.ReadCloser {
 		return fileAsResponseBody(t, "testdata/template-aws-cross-cluster-search-v2.json")
 	}
+	ccsDeploymentUpdate := func() io.ReadCloser {
+		return fileAsResponseBody(t, "testdata/deployment-update-aws-cross-cluster-search-v2.json")
+	}
 	deploymentEmptyRDWithTemplateChange := util.NewResourceData(t, util.ResDataParams{
 		ID:    mock.ValidClusterID,
 		State: newSampleLegacyDeployment(),
@@ -3018,9 +3021,6 @@ func Test_updateResourceToModel(t *testing.T) {
 		Schema: newSchema(),
 	})
 
-	emptyTpl := func() io.ReadCloser {
-		return fileAsResponseBody(t, "testdata/template-empty.json")
-	}
 	deploymentChangeFromExplicitSizingToEmpty := util.NewResourceData(t, util.ResDataParams{
 		ID: mock.ValidClusterID,
 		State: map[string]interface{}{
@@ -3061,56 +3061,6 @@ func Test_updateResourceToModel(t *testing.T) {
 		Change: map[string]interface{}{
 			"name":                   "my_deployment_name",
 			"deployment_template_id": "aws-io-optimized-v2",
-			"region":                 "us-east-1",
-			"version":                "7.9.2",
-			"elasticsearch":          []interface{}{map[string]interface{}{}},
-			"kibana":                 []interface{}{map[string]interface{}{}},
-			"apm":                    []interface{}{map[string]interface{}{}},
-			"enterprise_search":      []interface{}{map[string]interface{}{}},
-		},
-		Schema: newSchema(),
-	})
-
-	deploymentChangeToEmptyDT := util.NewResourceData(t, util.ResDataParams{
-		ID: mock.ValidClusterID,
-		State: map[string]interface{}{
-			"name":                   "my_deployment_name",
-			"deployment_template_id": "aws-io-optimized-v2",
-			"region":                 "us-east-1",
-			"version":                "7.9.2",
-			"elasticsearch": []interface{}{
-				map[string]interface{}{
-					"topology": []interface{}{map[string]interface{}{
-						"id":   "hot_content",
-						"size": "16g",
-					}},
-				},
-				map[string]interface{}{
-					"topology": []interface{}{map[string]interface{}{
-						"id":   "coordinating",
-						"size": "16g",
-					}},
-				},
-			},
-			"kibana": []interface{}{map[string]interface{}{
-				"topology": []interface{}{map[string]interface{}{
-					"size": "2g",
-				}},
-			}},
-			"apm": []interface{}{map[string]interface{}{
-				"topology": []interface{}{map[string]interface{}{
-					"size": "1g",
-				}},
-			}},
-			"enterprise_search": []interface{}{map[string]interface{}{
-				"topology": []interface{}{map[string]interface{}{
-					"size": "8g",
-				}},
-			}},
-		},
-		Change: map[string]interface{}{
-			"name":                   "my_deployment_name",
-			"deployment_template_id": "empty-deployment-template",
 			"region":                 "us-east-1",
 			"version":                "7.9.2",
 			"elasticsearch":          []interface{}{map[string]interface{}{}},
@@ -3699,8 +3649,11 @@ func Test_updateResourceToModel(t *testing.T) {
 		{
 			name: "toplogy change from hot / warm to cross cluster search",
 			args: args{
-				d:      deploymentEmptyRDWithTemplateChange,
-				client: api.NewMock(mock.New200Response(ccsTpl())),
+				d: deploymentEmptyRDWithTemplateChange,
+				client: api.NewMock(
+					mock.New200Response(ccsTpl()),
+					mock.New200Response(ccsDeploymentUpdate()),
+				),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -3713,7 +3666,7 @@ func Test_updateResourceToModel(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentUpdateResources{
-					Elasticsearch: enrichWithEmptyTopologies(readerToESPayload(t, ccsTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: enrichWithEmptyTopologies(readerDeploymentUpdateToESPayload(t, ccsDeploymentUpdate(), false, "aws-cross-cluster-search-v2"), &models.ElasticsearchPayload{
 						Region:   ec.String("us-east-1"),
 						RefID:    ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{},
@@ -3726,16 +3679,18 @@ func Test_updateResourceToModel(t *testing.T) {
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID:                      "hot_content",
+								Elasticsearch:           &models.ElasticsearchConfiguration{},
 								ZoneCount:               1,
 								InstanceConfigurationID: "aws.ccs.r5d",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
-									Value:    ec.Int32(1024),
+									Value:    ec.Int32(2048),
 								},
 								NodeType: &models.ElasticsearchNodeType{
 									Data:   ec.Bool(true),
 									Ingest: ec.Bool(true),
 									Master: ec.Bool(true),
+									Ml:     ec.Bool(false),
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
@@ -3768,14 +3723,16 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 		},
 		// The behavior of this change should be:
-		// * Resets the Elasticsearch topology: from 16g (due to unsetTopology call on DT change).
 		// * Keeps the kibana toplogy size to 2g even though the topology element has been removed (saved value persists).
 		// * Removes all other non present resources
 		{
 			name: "topology change with sizes not default from io optimized to cross cluster search",
 			args: args{
-				d:      deploymentEmptyRDWithTemplateChangeWithDiffSize,
-				client: api.NewMock(mock.New200Response(ccsTpl())),
+				d: deploymentEmptyRDWithTemplateChangeWithDiffSize,
+				client: api.NewMock(
+					mock.New200Response(ccsTpl()),
+					mock.New200Response(ccsDeploymentUpdate()),
+				),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -3785,7 +3742,7 @@ func Test_updateResourceToModel(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentUpdateResources{
-					Elasticsearch: enrichWithEmptyTopologies(readerToESPayload(t, ccsTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: enrichWithEmptyTopologies(readerDeploymentUpdateToESPayload(t, ccsDeploymentUpdate(), false, "aws-cross-cluster-search-v2"), &models.ElasticsearchPayload{
 						Region:   ec.String("us-east-1"),
 						RefID:    ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{},
@@ -3798,12 +3755,12 @@ func Test_updateResourceToModel(t *testing.T) {
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID:                      "hot_content",
+								Elasticsearch:           &models.ElasticsearchConfiguration{},
 								ZoneCount:               1,
 								InstanceConfigurationID: "aws.ccs.r5d",
 								Size: &models.TopologySize{
 									Resource: ec.String("memory"),
-									// This field's value is reset.
-									Value: ec.Int32(1024),
+									Value:    ec.Int32(16384),
 								},
 								NodeType: &models.ElasticsearchNodeType{
 									Data:   ec.Bool(true),
@@ -5028,18 +4985,6 @@ func Test_updateResourceToModel(t *testing.T) {
 					}),
 				},
 			},
-		},
-		{
-			name: "topology change with invalid resources returns an error",
-			args: args{
-				d:      deploymentChangeToEmptyDT,
-				client: api.NewMock(mock.New200Response(emptyTpl())),
-			},
-			err: multierror.NewPrefixed("invalid configuration",
-				errors.New("kibana specified but deployment template is not configured for it. Use a different template if you wish to add kibana"),
-				errors.New("apm specified but deployment template is not configured for it. Use a different template if you wish to add apm"),
-				errors.New("enterprise_search specified but deployment template is not configured for it. Use a different template if you wish to add enterprise_search"),
-			),
 		},
 	}
 	for _, tt := range tests {
