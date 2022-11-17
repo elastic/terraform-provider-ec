@@ -202,3 +202,12 @@ func apmResource(res *models.DeploymentTemplateInfoV2) *models.ApmPayload {
 	}
 	return res.DeploymentTemplate.Resources.Apm[0]
 }
+
+// apmResourceFromUpdate returns the ApmPayload from a deployment
+// update request or an empty version of the payload.
+func apmResourceFromUpdate(res *models.DeploymentUpdateResources) *models.ApmPayload {
+	if len(res.Apm) == 0 {
+		return nil
+	}
+	return res.Apm[0]
+}
