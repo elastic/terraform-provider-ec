@@ -8,7 +8,10 @@ third-party software developed by the licenses listed below.
 
 github.com/davecgh/go-spew                         0BSD
 github.com/agext/levenshtein                       Apache-2.0
+github.com/apparentlymart/go-textseg/v13           Apache-2.0
 github.com/elastic/cloud-sdk-go                    Apache-2.0
+github.com/go-logr/logr                            Apache-2.0
+github.com/go-logr/stdr                            Apache-2.0
 github.com/go-openapi/analysis                     Apache-2.0
 github.com/go-openapi/errors                       Apache-2.0
 github.com/go-openapi/jsonpointer                  Apache-2.0
@@ -23,6 +26,8 @@ github.com/oklog/run                               Apache-2.0
 github.com/oklog/ulid                              Apache-2.0
 github.com/opentracing/opentracing-go              Apache-2.0
 go.mongodb.org/mongo-driver                        Apache-2.0
+go.opentelemetry.io/otel/trace                     Apache-2.0
+go.opentelemetry.io/otel                           Apache-2.0
 google.golang.org/appengine                        Apache-2.0
 google.golang.org/genproto                         Apache-2.0
 google.golang.org/grpc                             Apache-2.0
@@ -58,24 +63,23 @@ github.com/mitchellh/mapstructure                  MIT
 github.com/mitchellh/reflectwalk                   MIT
 github.com/stretchr/testify                        MIT
 github.com/zclconf/go-cty                          MIT
-github.com/hashicorp/errwrap                       MPL-2.0
-github.com/hashicorp/go-multierror                 MPL-2.0
+github.com/hashicorp/go-checkpoint                 MPL-2.0
+github.com/hashicorp/go-cleanhttp                  MPL-2.0
 github.com/hashicorp/go-uuid                       MPL-2.0
-github.com/hashicorp/hcl/v2                        MPL-2.0
-github.com/hashicorp/logutils                      MPL-2.0
-github.com/hashicorp/terraform-exec                MPL-2.0
-github.com/hashicorp/terraform-json                MPL-2.0
-github.com/hashicorp/terraform-plugin-go           MPL-2.0
 github.com/hashicorp/terraform-registry-address    MPL-2.0
-github.com/hashicorp/yamux                         MPL-2.0
-github.com/hashicorp/go-checkpoint                 MPL-2.0-no-copyleft-exception
-github.com/hashicorp/go-cleanhttp                  MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-svchost             MPL-2.0
+github.com/hashicorp/errwrap                       MPL-2.0-no-copyleft-exception
+github.com/hashicorp/go-multierror                 MPL-2.0-no-copyleft-exception
 github.com/hashicorp/go-plugin                     MPL-2.0-no-copyleft-exception
 github.com/hashicorp/go-version                    MPL-2.0-no-copyleft-exception
 github.com/hashicorp/hc-install                    MPL-2.0-no-copyleft-exception
+github.com/hashicorp/hcl/v2                        MPL-2.0-no-copyleft-exception
+github.com/hashicorp/logutils                      MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-exec                MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-json                MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-plugin-go           MPL-2.0-no-copyleft-exception
 github.com/hashicorp/terraform-plugin-log          MPL-2.0-no-copyleft-exception
 github.com/hashicorp/terraform-plugin-sdk/v2       MPL-2.0-no-copyleft-exception
-github.com/hashicorp/terraform-svchost             MPL-2.0-no-copyleft-exception
-github.com/apparentlymart/go-textseg/v13           Unicode-TOU
+github.com/hashicorp/yamux                         MPL-2.0-no-copyleft-exception
 
 =========================================================================
