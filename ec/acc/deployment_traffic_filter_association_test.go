@@ -73,6 +73,8 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 }
 
 func TestAccDeploymentTrafficFilterAssociation_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
 	resName := "ec_deployment_traffic_filter.tf_assoc"
 	resAssocName := "ec_deployment_traffic_filter_association.tf_assoc"
 	randomName := acctest.RandomWithPrefix(prefix)

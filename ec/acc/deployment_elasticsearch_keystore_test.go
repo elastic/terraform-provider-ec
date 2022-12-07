@@ -119,6 +119,8 @@ func TestAccDeploymentElasticsearchKeystore_full(t *testing.T) {
 }
 
 func TestAccDeploymentElasticsearchKeystore_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
 	resType := "ec_deployment_elasticsearch_keystore"
 	firstResName := resType + ".test"
 	secondResName := resType + ".gcs_creds"

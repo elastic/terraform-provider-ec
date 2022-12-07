@@ -66,6 +66,8 @@ func TestAccDeploymentExtension_basic(t *testing.T) {
 }
 
 func TestAccDeploymentExtension_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
 	resName := "ec_deployment_extension.my_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
