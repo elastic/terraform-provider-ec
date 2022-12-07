@@ -9,6 +9,8 @@ third-party software developed by the licenses listed below.
 github.com/davecgh/go-spew                         0BSD
 github.com/agext/levenshtein                       Apache-2.0
 github.com/elastic/cloud-sdk-go                    Apache-2.0
+github.com/go-logr/logr                            Apache-2.0
+github.com/go-logr/stdr                            Apache-2.0
 github.com/go-openapi/analysis                     Apache-2.0
 github.com/go-openapi/errors                       Apache-2.0
 github.com/go-openapi/jsonpointer                  Apache-2.0
@@ -23,6 +25,8 @@ github.com/oklog/run                               Apache-2.0
 github.com/oklog/ulid                              Apache-2.0
 github.com/opentracing/opentracing-go              Apache-2.0
 go.mongodb.org/mongo-driver                        Apache-2.0
+go.opentelemetry.io/otel/trace                     Apache-2.0
+go.opentelemetry.io/otel                           Apache-2.0
 google.golang.org/appengine                        Apache-2.0
 google.golang.org/genproto                         Apache-2.0
 google.golang.org/grpc                             Apache-2.0
