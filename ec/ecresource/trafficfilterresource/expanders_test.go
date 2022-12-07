@@ -117,36 +117,6 @@ func Test_expandModel(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "parses an privatelink resource with explicit nils",
-			args: args{d: util.NewResourceData(t, util.ResDataParams{
-				ID: "some-random-id",
-				State: map[string]interface{}{
-					"name":               "my traffic filter",
-					"type":               "azure_private_endpoint",
-					"include_by_default": false,
-					"region":             "azure-australiaeast",
-					"rule": []interface{}{map[string]interface{}{
-						"description":         nil,
-						"azure_endpoint_guid": "1231312-1231-1231-1231-1231312",
-						"azure_endpoint_name": "my-azure-pl",
-					}},
-				},
-				Schema: newSchema(),
-			})},
-			want: &models.TrafficFilterRulesetRequest{
-				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("azure_private_endpoint"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("azure-australiaeast"),
-				Rules: []*models.TrafficFilterRule{
-					{
-						AzureEndpointGUID: "1231312-1231-1231-1231-1231312",
-						AzureEndpointName: "my-azure-pl",
-					},
-				},
-			},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
