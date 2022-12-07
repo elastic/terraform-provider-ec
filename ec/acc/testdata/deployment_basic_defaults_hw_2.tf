@@ -9,7 +9,14 @@ resource "ec_deployment" "defaults" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {}
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
+    }
+    warm = {
+      autoscaling = {}
+    }
+  }
 
-  kibana {}
+  kibana = {}
 }

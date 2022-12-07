@@ -20,65 +20,53 @@ package deploymentresource
 import (
 	"context"
 	"errors"
-	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
+	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// Delete shuts down and deletes the remote deployment retrying up to 3 times
-// the Shutdown API call in case the plan returns with a failure that contains
-// the "Timeout Exceeded" string, which is a fairly common transient error state
-// returned from the API.
-func deleteResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	const maxRetries = 3
-	var retries int
-	timeout := d.Timeout(schema.TimeoutDelete)
-	client := meta.(*api.API)
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	if !r.ready(&resp.Diagnostics) {
+		return
+	}
 
-	return diag.FromErr(resource.RetryContext(ctx, timeout, func() *resource.RetryError {
-		if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
-			API: client, DeploymentID: d.Id(),
-		}); err != nil {
-			if alreadyDestroyed(err) {
-				d.SetId("")
-				return nil
-			}
-			return resource.NonRetryableError(multierror.NewPrefixed(
-				"failed shutting down the deployment", err,
-			))
+	var state deploymentv2.DeploymentTF
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	//TODO retries
+
+	if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
+		API: r.client, DeploymentID: state.Id.Value,
+	}); err != nil {
+		if alreadyDestroyed(err) {
+			return
 		}
+	}
 
-		if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-			if shouldRetryShutdown(err, retries, maxRetries) {
-				retries++
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
+	if err := WaitForPlanCompletion(r.client, state.Id.Value); err != nil {
+		resp.Diagnostics.AddError("deployment deletion error", err.Error())
+		return
+	}
 
-		if err := handleTrafficFilterChange(d, client); err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		// We don't particularly care if delete succeeds or not. It's better to
-		// remove it, but it might fail on ESS. For example, when user's aren't
-		// allowed to delete deployments, or on ECE when the cluster is "still
-		// being shutdown". Sumarizing, even if the call fails the deployment
-		// won't be there.
-		_, _ = deploymentapi.Delete(deploymentapi.DeleteParams{
-			API: client, DeploymentID: d.Id(),
-		})
-
-		d.SetId("")
-		return nil
-	}))
+	// We don't particularly care if delete succeeds or not. It's better to
+	// remove it, but it might fail on ESS. For example, when user's aren't
+	// allowed to delete deployments, or on ECE when the cluster is "still
+	// being shutdown". Sumarizing, even if the call fails the deployment
+	// won't be there.
+	_, _ = deploymentapi.Delete(deploymentapi.DeleteParams{
+		API: r.client, DeploymentID: state.Id.Value,
+	})
 }
 
 func alreadyDestroyed(err error) bool {
@@ -86,17 +74,30 @@ func alreadyDestroyed(err error) bool {
 	return errors.As(err, &destroyed)
 }
 
-func shouldRetryShutdown(err error, retries, maxRetries int) bool {
-	const timeout = "Timeout exceeded"
-	needsRetry := retries < maxRetries
+func removeRule(ruleID, deploymentID string, client *api.API) error {
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: ruleID, IncludeAssociations: true,
+	})
 
-	var isTimeout, isFailDeallocate bool
+	// If the rule is gone (403 or 404), return nil.
 	if err != nil {
-		isTimeout = strings.Contains(err.Error(), timeout)
-		isFailDeallocate = strings.Contains(
-			err.Error(), "Some instances were not stopped",
-		)
+		if util.TrafficFilterNotFound(err) {
+			return nil
+		}
+		return err
 	}
-	return (needsRetry && isTimeout) ||
-		(needsRetry && isFailDeallocate)
+
+	// If the rule is found, then delete the association.
+	for _, assoc := range res.Associations {
+		if deploymentID == *assoc.ID {
+			return trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+				API:        client,
+				ID:         ruleID,
+				EntityID:   *assoc.ID,
+				EntityType: *assoc.EntityType,
+			})
+		}
+	}
+
+	return nil
 }

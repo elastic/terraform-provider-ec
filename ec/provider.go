@@ -33,12 +33,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
-
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
@@ -70,18 +69,6 @@ var (
 	// automatically by the SDK 2 times.
 	defaultTimeout = 40 * time.Second
 )
-
-// LegacyProvider returns a schema.Provider.
-func LegacyProvider() *schema.Provider {
-	return &schema.Provider{
-		ConfigureContextFunc: configureAPI,
-		Schema:               newSchema(),
-		DataSourcesMap:       map[string]*schema.Resource{},
-		ResourcesMap: map[string]*schema.Resource{
-			"ec_deployment": deploymentresource.Resource(),
-		},
-	}
-}
 
 func newSchema() map[string]*schema.Schema {
 	// This schema must match exactly the Terraform Protocol v6 (Terraform Plugin Framework) provider's schema.
@@ -170,6 +157,7 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		func() resource.Resource { return &elasticsearchkeystoreresource.Resource{} },
 		func() resource.Resource { return &extensionresource.Resource{} },
+		func() resource.Resource { return &deploymentresource.Resource{} },
 		func() resource.Resource { return &trafficfilterresource.Resource{} },
 		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
 	}

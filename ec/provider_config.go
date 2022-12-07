@@ -18,13 +18,11 @@
 package ec
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -41,19 +39,6 @@ var (
 	// DefaultHTTPRetries to use for the provider's HTTP Client.
 	DefaultHTTPRetries = 2
 )
-
-func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	cfg, err := newAPIConfigLegacy(d)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-	client, err := api.NewAPI(cfg)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	return client, nil
-}
 
 func newAPIConfigLegacy(d *schema.ResourceData) (api.Config, error) {
 	endpoint := util.GetStringFromSchemaOrEnv(d, "endpoint", []string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)

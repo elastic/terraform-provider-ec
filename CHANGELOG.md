@@ -1,8 +1,22 @@
-# 0.5.0 (Unreleased)
+# 0.6.0 (Unreleased)
 
 FEATURES:
 
+* resource/deployment: Utilise the template migration API to build the base update request when changing `deployment_template_id`. This results in more reliable changes between deployment templates. ([#547](https://github.com/elastic/terraform-provider-ec/issues/547))
+
+# 0.5.0 (Oct 12, 2022)
+
+FEATURES:
+
+* datasource/privatelink: Adds data sources to obtain AWS/Azure Private Link, and GCP Private Service Connect configuration data. ([#533](https://github.com/elastic/terraform-provider-ec/issues/533))
+* resource/deployment: Adds fleet_https_endpoint and apm_https_endpoint to integrations server resources. This allows consumers to explicitly capture service urls for dependent modules. ([#548](https://github.com/elastic/terraform-provider-ec/issues/548))
 * resource/elasticsearch: Adds support for the `strategy` property to the `elasticsearch` resource. This allows users to define how different plan changes are coordinated. ([#507](https://github.com/elastic/terraform-provider-ec/issues/507))
+
+BUG FIXES:
+
+* resource/deployment: Correctly restrict stateless (Kibana/Enterprise Search/Integrations Server) resources to a single topology element. Fixes a provider crash when multiple elements without an instance_configuration_id were specified. ([#536](https://github.com/elastic/terraform-provider-ec/issues/536))
+* resource/elasticsearchkeystore: Correctly delete keystore items when removed from the module definition. ([#546](https://github.com/elastic/terraform-provider-ec/issues/546))
+* resource: Updates all nested field accesses to validate type casts. This prevents a provider crash when a field is explicitly set to `null`. ([#534](https://github.com/elastic/terraform-provider-ec/issues/534))
 
 # 0.4.1 (May 11, 2022)
 

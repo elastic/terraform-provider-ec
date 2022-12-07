@@ -18,15 +18,12 @@
 package acc
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
-	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
@@ -42,18 +39,7 @@ var testAccProviderFactory = protoV6ProviderFactories()
 
 func protoV6ProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
-		"ec": func() (tfprotov6.ProviderServer, error) {
-			return tf6muxserver.NewMuxServer(context.Background(),
-				func() tfprotov6.ProviderServer {
-					upgradedSdkProvider, _ := tf5to6server.UpgradeServer(
-						context.Background(),
-						ec.LegacyProvider().GRPCProvider,
-					)
-					return upgradedSdkProvider
-				},
-				providerserver.NewProtocol6(ec.New("acc-tests")),
-			)
-		},
+		"ec": providerserver.NewProtocol6WithError(ec.New("acc-tests")),
 	}
 }
 

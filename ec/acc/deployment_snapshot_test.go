@@ -80,7 +80,7 @@ func readEsCredentials(t *testing.T, esCreds *creds) resource.TestCheckFunc {
 				continue
 			}
 
-			esCreds.URL = rs.Primary.Attributes["elasticsearch.0.https_endpoint"]
+			esCreds.URL = rs.Primary.Attributes["elasticsearch.https_endpoint"]
 			esCreds.User = rs.Primary.Attributes["elasticsearch_username"]
 			esCreds.Pass = rs.Primary.Attributes["elasticsearch_password"]
 		}

@@ -18,39 +18,51 @@
 package deploymentresource
 
 import (
-	"time"
+	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// Resource returns the ec_deployment resource schema.
-func Resource() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: createResource,
-		ReadContext:   readResource,
-		UpdateContext: updateResource,
-		DeleteContext: deleteResource,
+// Ensure provider defined types fully satisfy framework interfaces
+// var _ tpfprovider.ResourceType = DeploymentResourceType{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-		Schema: newSchema(),
+type Resource struct {
+	client *api.API
+}
 
-		Description: "Elastic Cloud Deployment resource",
-		Importer: &schema.ResourceImporter{
-			StateContext: importFunc,
-		},
+func (r *Resource) ready(dg *diag.Diagnostics) bool {
+	if r.client == nil {
+		dg.AddError(
+			"Unconfigured API Client",
+			"Expected configured API client. Please report this issue to the provider developers.",
+		)
 
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(40 * time.Minute),
-			Update:  schema.DefaultTimeout(60 * time.Minute),
-			Delete:  schema.DefaultTimeout(60 * time.Minute),
-		},
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceStateUpgradeV0,
-				Version: 0,
-			},
-		},
+		return false
 	}
+	return true
+}
+
+func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
+	client, diags := internal.ConvertProviderData(request.ProviderData)
+	response.Diagnostics.Append(diags...)
+	r.client = client
+}
+
+func (t *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return v2.DeploymentSchema(), nil
+}
+
+func (r *Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = request.ProviderTypeName + "_deployment"
+}
+
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

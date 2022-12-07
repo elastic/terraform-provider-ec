@@ -43,14 +43,10 @@ func TestAccDeployment_emptyconfig(t *testing.T) {
 			{
 				Config: cfgF(startCfg),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
+					// config has 6 attributes
+					resource.TestCheckResourceAttr(resName, "elasticsearch.config.%", "6"),
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.config.user_settings_yaml"),
 				),
-				// Since the configuration specifies a `config {}` block but
-				// the setting itself is `null`, the config {} block will be
-				// set to empty and will cause the plan to always have a diff:
-				// + config {}.
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

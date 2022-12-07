@@ -9,14 +9,14 @@ resource "ec_deployment" "tf_assoc" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id   = "hot_content"
-      size = "1g"
+  elasticsearch = {
+    hot = {
+      size        = "1g"
+      autoscaling = {}
     }
   }
 
-  kibana {}
+  kibana = {}
 
   lifecycle {
     ignore_changes = [traffic_filter]
