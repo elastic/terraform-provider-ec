@@ -123,9 +123,9 @@ After doing so, you can navigate to any of our examples in `./examples` and try 
 
 ### Moving to TF Framework and schema change for `ec_deployment` resource.
 
-v6.0.0 contains migration to [the TF Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) and intoducing version 2 for `ec_deployment` resource:
+v0.6.0 contains migration to [TF Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) and intoduces new schema for `ec_deployment` resource:
 
-- switching to attributes syntax instead of blocks for almost all definitions that used to be blocks. It means that, for example, a definition like `config {}` has to be changed to `config = {}`, e.g.
+- switching to attributes syntax instead of blocks for almost all definitions that used to be blocks. It means that, for example, a definition like `elasticsearch {...}` has to be changed to `elasticsearch = {...}`, e.g.
 
 ```hcl
 resource "ec_deployment" "defaults" {
@@ -209,7 +209,7 @@ resource "ec_deployment" "defaults" {
 }
 ```
 
-Please note that the configuration explicitly mentions `hot` tier and the tier has `autoscaling` and `config` attributes even despite the fact that they are empty. If they were omitted, TF (at least up to version 1.3.3) could complain `Error: Provider produced inconsistent result after apply`.
+Please note that the snippet explicitly mentions `hot` tier with `autoscaling` attribute even despite the fact that they are empty.
 
 - a lot of attributes that used to be collections (e.g. lists and sets) are converted to sigletons, e.g. `elasticsearch`, `apm`, `kibana`, `enterprise_search`, `observability`, `topology`, `autoscaling`, etc. Please note that, generally, users are not expected to make any change to their existing configuration to address this particular change (besides moving from block to attribute syntax). All these components used to exist in single instances, so the change is mostly syntactical, taking into account the switch to attributes instead of blocks (otherwise if we kept list for configs,  `config {}` had to be rewritten in `config = [{}]` with the move to the attribute syntax). However this change is a breaking one from the schema perspective and requires state upgrade for existing resources that is performed by TF (by calling the provider's API).
 
@@ -227,6 +227,8 @@ There are 2 ways to tackle this
 - state upgrade that is performed by TF by calling the provider's API so no action is required from user perspective
 
 Currently the state upgrade functionality is still in development so importing existing resources is the recommended way to deal with existing TF states.
+Please mind the fact that state import doesn't import user passwords and secret tokens that can be the case if your TF modules make use of them.
+State upgrade doesn't have this limitation.
 
 #### Known issues.
 
@@ -235,4 +237,4 @@ This happens because TF Framework treats all `computed` attributes as `unknown` 
 `ec_deployment` schema contains quite a few of such attributes, so `terraform plan`'s output can be quite big for the resource due to the mentioned reason.
 However, it doesn't mean that all attributes that marked as `unknown` in the plan will get new values after apply.
 To mitigitate the problem, the provider uses plan modifiers that is a recommended way to reduce plan output. 
-However, currently plan modifiers don't cover the all `computed` attributes.
+However, currently plan modifiers don't cover all the `computed` attributes.
