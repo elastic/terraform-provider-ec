@@ -9,7 +9,7 @@ FEATURES:
 FEATURES:
 
 Migration to [TF Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework)
-  
+
 BREAKING CHANGES:
 
 New schema for `ec_deployment`
