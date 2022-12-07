@@ -1,8 +1,32 @@
-# 0.6.0 (Unreleased)
+# 0.7.0 (Unreleased)
 
 FEATURES:
 
 * resource/deployment: Utilise the template migration API to build the base update request when changing `deployment_template_id`. This results in more reliable changes between deployment templates. ([#547](https://github.com/elastic/terraform-provider-ec/issues/547))
+
+# 0.6.0 (Unreleased)
+
+FEATURES:
+
+Migration to [TF Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework)
+  
+BREAKING CHANGES:
+
+New schema for `ec_deployment`
+
+BUG FIXES:
+
+[#336](https://github.com/elastic/terraform-provider-ec/issues/336)
+[#467](https://github.com/elastic/terraform-provider-ec/issues/467)
+[#445](https://github.com/elastic/terraform-provider-ec/issues/445)
+
+NOTES
+
+* The migration is based on 0.4.1, so all changes from 0.5.0 are omitted.
+
+* State upgrade is not yet implemented for `ec_deployment`. 
+  The recommended way to proceed with existing TF resources is [state import](https://developer.hashicorp.com/terraform/cli/import#state-only). 
+  However, this doesn't import user passwords and secret tokens.
 
 # 0.5.0 (Oct 12, 2022)
 
