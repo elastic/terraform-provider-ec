@@ -9,9 +9,13 @@ resource "ec_deployment" "observability_tpl" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {}
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
+    }
+  }
 
-  kibana {}
+  kibana = {}
 
-  apm {}
+  apm = {}
 }

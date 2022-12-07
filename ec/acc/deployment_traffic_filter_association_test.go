@@ -76,7 +76,7 @@ func TestAccDeploymentTrafficFilterAssociation_UpgradeFrom0_4_1(t *testing.T) {
 	resName := "ec_deployment_traffic_filter.tf_assoc"
 	resAssocName := "ec_deployment_traffic_filter_association.tf_assoc"
 	randomName := acctest.RandomWithPrefix(prefix)
-	startCfg := "testdata/deployment_traffic_filter_association_basic.tf"
+	startCfg := "testdata/deployment_traffic_filter_association_basic_041.tf"
 	ignoreChangesCfgFile := "testdata/deployment_traffic_filter_association_basic_ignore_changes.tf"
 	cfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
 	ignoreChangesCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, ignoreChangesCfgFile, randomName, getRegion(), defaultTemplate)

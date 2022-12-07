@@ -9,10 +9,10 @@ resource "ec_deployment" "defaults" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id   = "hot_content"
-      size = "1g"
+  elasticsearch = {
+    hot = {
+      size        = "1g"
+      autoscaling = {}
     }
   }
 }

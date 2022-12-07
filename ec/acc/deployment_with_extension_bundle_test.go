@@ -36,7 +36,10 @@ func TestAccDeployment_withExtension(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	filePath := filepath.Join(os.TempDir(), "extension.zip")
-	defer os.Remove(filePath)
+
+	// TODO: this causes the test to fail with the invalid file error
+	// however we need find a way to delete the temp file
+	// defer os.Remove(filePath)
 
 	cfg := fixtureAccDeploymentWithExtensionBundle(t,
 		"testdata/deployment_with_extension_bundle_file.tf",
@@ -68,8 +71,8 @@ func TestAccDeployment_withExtension(t *testing.T) {
 					resource.TestCheckResourceAttr(extResName, "description", "desc"),
 					resource.TestCheckResourceAttr(extResName, "extension_type", "bundle"),
 					resource.TestCheckResourceAttr(extResName, "file_path", filePath),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.extension.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(resName, "elasticsearch.0.extension.*", map[string]string{
+					resource.TestCheckResourceAttr(resName, "elasticsearch.extension.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resName, "elasticsearch.extension.*", map[string]string{
 						"type": "bundle",
 						"name": randomName,
 					}),

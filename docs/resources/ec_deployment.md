@@ -35,13 +35,17 @@ resource "ec_deployment" "example_minimal" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {}
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
+    }
+  }
 
-  kibana {}
+  kibana = {}
 
-  integrations_server {}
+  integrations_server = {}
 
-  enterprise_search {}
+  enterprise_search = {}
 }
 ```
 
@@ -58,56 +62,54 @@ resource "ec_deployment" "example_minimal" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
+  elasticsearch = {
 
     autoscale = "true"
 
     # If `autoscale` is set, all topology elements that
     # - either set `size` in the plan or
     # - have non-zero default `max_size` (that is read from the deployment templates's `autoscaling_max` value)
-    # have to be listed in alphabetical order of their `id` fields,
-    # even if their blocks don't specify other fields beside `id`
-    topology {
-      id = "cold"
+    # have to be listed even if their blocks don't specify other fields beside `id`
+
+    cold = {
+      autoscaling = {}
     }
 
-    topology {
-      id = "frozen"
+    frozen = {
+      autoscaling = {}
     }
 
-    topology {
-      id   = "hot_content"
+    hot = {
       size = "8g"
 
-      autoscaling {
+      autoscaling = {
         max_size          = "128g"
         max_size_resource = "memory"
       }
     }
 
-    topology {
-      id = "ml"
+    ml = {
+      autoscaling = {}
     }
 
-    topology {
-      id = "warm"
+    warm = {
+      autoscaling = {}
     }
-
   }
 
   # Initial size for `hot_content` tier is set to 8g
   # so `hot_content`'s size has to be added to the `ignore_changes` meta-argument to ignore future modifications that can be made by the autoscaler
   lifecycle {
     ignore_changes = [
-      elasticsearch[0].topology[2].size
+      elasticsearch.hot.size
     ]
   }
 
-  kibana {}
+  kibana = {}
 
-  integrations_server {}
+  integrations_server = {}
 
-  enterprise_search {}
+  enterprise_search = {}
 }
 ```
 
@@ -128,12 +130,16 @@ resource "ec_deployment" "example_observability" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {}
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
+    }
+  }
 
-  kibana {}
+  kibana = {}
 
   # Optional observability settings
-  observability {
+  observability = {
     deployment_id = ec_deployment.example_minimal.id
   }
 }
@@ -141,7 +147,7 @@ resource "ec_deployment" "example_observability" {
 
 It is possible to enable observability without using a second deployment, by storing the observability data in the current deployment. To enable this, set `deployment_id` to `self`.
 ```hcl
-observability {
+observability = {
   deployment_id = "self"
 }
 ```
@@ -161,10 +167,10 @@ resource "ec_deployment" "source_deployment" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
-    topology {
-      id   = "hot_content"
-      size = "1g"
+  elasticsearch = {
+    hot = {
+      size        = "1g"
+      autoscaling = {}
     }
   }
 }
@@ -176,15 +182,18 @@ resource "ec_deployment" "ccs" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-cross-cluster-search-v2"
 
-  elasticsearch {
-    remote_cluster {
+  elasticsearch = {
+    hot = {
+      autoscalign = {}
+    }
+    remote_cluster = [{
       deployment_id = ec_deployment.source_deployment.id
       alias         = ec_deployment.source_deployment.name
       ref_id        = ec_deployment.source_deployment.elasticsearch.0.ref_id
-    }
+    }]
   }
 
-  kibana {}
+  kibana = {}
 }
 ```
 
@@ -205,7 +214,11 @@ resource "ec_deployment" "with_tags" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {}
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
+    }
+  }
 
   tags = {
     owner     = "elastic cloud"
@@ -231,10 +244,13 @@ resource "ec_deployment" "with_tags" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
-    strategy {
-      type = "rolling_all"
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
     }
+    strategy = [{
+      type = "rolling_all"
+    }]
   }
 
   tags = {
@@ -396,7 +412,7 @@ The optional `elasticsearch.strategy` allows you to choose the configuration str
   * `grow_and_shrink` Add all nodes with the new changes before to stop any node.
   * `rolling_grow_and_shrink` Add nodes one by one replacing the existing ones when the new node is ready.
   * `rolling_all` Stop all nodes, perform the changes and start all nodes.
- 
+
 #### Kibana
 
 The optional `kibana` block supports the following arguments:
@@ -405,11 +421,6 @@ The optional `kibana` block supports the following arguments:
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the Kibana resource. The default value `main-kibana` is recommended.
 * `config` (Optional) Kibana settings applied to all topologies unless overridden in the `topology` element.
-
-##### Topology
-
-The optional `kibana.topology` block supports the following arguments:
-
 * `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since Kibana has only one _instance type_.
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
@@ -432,11 +443,6 @@ The optional `integrations_server` block supports the following arguments:
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the Integrations Server resource. The default value `main-integrations_server` is recommended.
 * `config` (Optional) Integrations Server settings applied to all topologies unless overridden in the `topology` element.
-
-##### Topology
-
-The optional `integrations_server.topology` block supports the following arguments:
-
 * `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since Integrations Server has only one _instance type_.
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
@@ -456,11 +462,6 @@ The optional `apm` block supports the following arguments:
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the APM resource. The default value `main-apm` is recommended.
 * `config` (Optional) APM settings applied to all topologies unless overridden in the `topology` element.
-
-##### Topology
-
-The optional `apm.topology` block supports the following arguments:
-
 * `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. No need to change this value since APM has only one _instance type_.
 * `size` - (Optional) Amount of memory (RAM) per topology element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
@@ -484,11 +485,6 @@ The optional `enterprise_search` block supports the following arguments:
 * `elasticsearch_cluster_ref_id` - (Optional) This field references the `ref_id` of the deployment Elasticsearch cluster. The default value `main-elasticsearch` is recommended.
 * `ref_id` - (Optional) Can be set on the Enterprise Search resource. The default value `main-enterprise_search` is recommended.
 * `config` (Optional) Enterprise Search settings applied to all topologies unless overridden in the `topology` element.
-
-##### Topology
-
-The optional `enterprise_search.topology` block supports the following settings:
-
 * `instance_configuration_id` - (Optional) Default instance configuration of the deployment template. To change it, use the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.
 * `size` - (Optional) Amount of memory (RAM) per `topology` element in the "<size in GB>g" notation. When omitted, it defaults to the deployment template value.
 * `size_resource` - (Optional) Type of resource to which the size is assigned. Defaults to `"memory"`.
@@ -539,6 +535,8 @@ In addition to all the arguments above, the following attributes are exported:
 * `integrations_server.#.region` - Integrations Server region.
 * `integrations_server.#.http_endpoint` - Integrations Server resource HTTP endpoint.
 * `integrations_server.#.https_endpoint` - Integrations Server resource HTTPs endpoint.
+* `integrations_server.#.fleet_https_endpoint` - HTTPs endpoint for Fleet Server.
+* `integrations_server.#.apm_https_endpoint` - HTTPs endpoint for APM Server.
 * `apm.#.resource_id` - APM resource unique identifier.
 * `apm.#.region` - APM region.
 * `apm.#.http_endpoint` - APM resource HTTP endpoint.

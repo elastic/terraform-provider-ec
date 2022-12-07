@@ -1,0 +1,669 @@
+{
+    "name": "my_deployment_name", 
+    "settings": {
+        "autoscaling_enabled": false
+    }, 
+    "healthy": true, 
+    "alias": "my-deployment-name", 
+    "id": "accd2e61fa835a5a32bb6b2938ce91f3", 
+    "resources": {
+        "enterprise_search": [], 
+        "kibana": [], 
+        "elasticsearch": [
+            {
+                "info": {
+                    "status": "started", 
+                    "associated_apm_clusters": [], 
+                    "associated_kibana_clusters": [], 
+                    "locked": false, 
+                    "links": {}, 
+                    "associated_enterprise_search_clusters": [], 
+                    "settings": {
+                        "trust": {
+                            "accounts": [
+                                {
+                                    "trust_all": true, 
+                                    "account_id": "222222", 
+                                    "name": "Default trust for own organization"
+                                }
+                            ]
+                        }, 
+                        "curation": {
+                            "specs": []
+                        }, 
+                        "dedicated_masters_threshold": 6, 
+                        "snapshot": {
+                            "slm": true, 
+                            "enabled": true, 
+                            "suspended": [], 
+                            "repository": {
+                                "static": {
+                                    "repository_type": "s3-resource", 
+                                    "settings": {
+                                        "aws_account": "operations-40-us-east-1", 
+                                        "region": "us-east-1", 
+                                        "bucket_name": "edf5c1f724604fe6b4ab7757509400c6", 
+                                        "client_name": "elastic-internal-0589dd"
+                                    }
+                                }
+                            }, 
+                            "retention": {}
+                        }, 
+                        "metadata": {
+                            "name": "my_deployment_name", 
+                            "organization_id": "222222", 
+                            "subscription_level": "standard", 
+                            "hidden": false, 
+                            "system_owned": false, 
+                            "resources": {
+                                "cpu": {
+                                    "boost": true, 
+                                    "hard_limit": true
+                                }
+                            }, 
+                            "owner_id": "111111"
+                        }
+                    }, 
+                    "healthy": true, 
+                    "associated_appsearch_clusters": [], 
+                    "region": "us-east-1", 
+                    "snapshots": {
+                        "healthy": true, 
+                        "count": 0, 
+                        "recent_success": false
+                    }, 
+                    "cluster_name": "my_deployment_name", 
+                    "plan_info": {
+                        "healthy": true, 
+                        "current": {
+                            "attempt_end_time": "2022-10-06T09:47:29.673Z", 
+                            "warnings": [], 
+                            "healthy": true, 
+                            "source": {
+                                "action": "deployments.create-deployment", 
+                                "date": "2022-10-06T09:45:59.875Z", 
+                                "user_id": "111111", 
+                                "facilitator": "adminconsole", 
+                                "remote_addresses": [
+                                    "18.192.28.203", 
+                                    "3.88.142.49"
+                                ]
+                            }, 
+                            "plan_attempt_log": [], 
+                            "plan": {
+                                "autoscaling_enabled": false, 
+                                "cluster_topology": [
+                                    {
+                                        "zone_count": 2, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }
+                                        }, 
+                                        "instance_configuration_id": "aws.coordinating.m5d", 
+                                        "node_roles": [
+                                            "ingest", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "coordinating", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 2, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 1024
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }, 
+                                            "node_attributes": {
+                                                "data": "hot"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 118784
+                                        }, 
+                                        "instance_configuration_id": "aws.data.highio.i3", 
+                                        "node_roles": [
+                                            "master", 
+                                            "ingest", 
+                                            "transform", 
+                                            "data_hot", 
+                                            "remote_cluster_client", 
+                                            "data_content"
+                                        ], 
+                                        "id": "hot_content", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 8192
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 2, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }, 
+                                            "node_attributes": {
+                                                "data": "warm"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 118784
+                                        }, 
+                                        "instance_configuration_id": "aws.data.highstorage.d3", 
+                                        "node_roles": [
+                                            "data_warm", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "warm", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 1, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }, 
+                                            "node_attributes": {
+                                                "data": "cold"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 59392
+                                        }, 
+                                        "instance_configuration_id": "aws.data.highstorage.d3", 
+                                        "node_roles": [
+                                            "data_cold", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "cold", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 1, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }, 
+                                            "node_attributes": {
+                                                "data": "frozen"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 122880
+                                        }, 
+                                        "instance_configuration_id": "aws.es.datafrozen.i3en", 
+                                        "node_roles": [
+                                            "data_frozen"
+                                        ], 
+                                        "id": "frozen", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 3, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }
+                                        }, 
+                                        "instance_configuration_id": "aws.master.r5d", 
+                                        "node_roles": [
+                                            "master", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "master", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 1, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "autoscaling_min": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }, 
+                                        "elasticsearch": {
+                                            "system_settings": {
+                                                "reindex_whitelist": [], 
+                                                "http": {
+                                                    "cors_enabled": false, 
+                                                    "cors_allow_credentials": false, 
+                                                    "cors_max_age": 1728000, 
+                                                    "compression": true
+                                                }, 
+                                                "monitoring_history_duration": "3d", 
+                                                "monitoring_collection_interval": -1, 
+                                                "destructive_requires_name": false, 
+                                                "auto_create_index": true, 
+                                                "scripting": {
+                                                    "inline": {
+                                                        "enabled": true
+                                                    }, 
+                                                    "stored": {
+                                                        "enabled": true
+                                                    }
+                                                }, 
+                                                "enable_close_index": true
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 61440
+                                        }, 
+                                        "instance_configuration_id": "aws.ml.m5d", 
+                                        "node_roles": [
+                                            "ml", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "ml", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }
+                                ], 
+                                "tiebreaker_topology": {
+                                    "memory_per_node": 1024
+                                }, 
+                                "transient": {
+                                    "plan_configuration": {
+                                        "move_allocators": [], 
+                                        "skip_upgrade_checker": false, 
+                                        "reallocate_instances": false, 
+                                        "skip_post_upgrade_steps": false, 
+                                        "skip_snapshot": false, 
+                                        "preferred_allocators": [], 
+                                        "skip_data_migration": false, 
+                                        "calm_wait_time": 5, 
+                                        "timeout": 32768, 
+                                        "override_failsafe": false, 
+                                        "move_only": false, 
+                                        "extended_maintenance": false, 
+                                        "max_snapshot_attempts": 3, 
+                                        "move_instances": [], 
+                                        "max_snapshot_age": 300, 
+                                        "skip_snapshot_post_major_upgrade": false
+                                    }, 
+                                    "strategy": {
+                                        "autodetect": {}
+                                    }
+                                }, 
+                                "elasticsearch": {
+                                    "version": "8.4.3"
+                                }, 
+                                "deployment_template": {
+                                    "id": "aws-io-optimized-v2"
+                                }
+                            }, 
+                            "plan_attempt_id": "c656a76c-0567-4efc-84e0-ee317912a41e", 
+                            "attempt_start_time": "2022-10-06T09:46:00.619Z"
+                        }, 
+                        "history": []
+                    }, 
+                    "cluster_id": "0589ddb3acee4641b95833022bf04d2b", 
+                    "external_links": [], 
+                    "system_alerts": [], 
+                    "elasticsearch": {
+                        "healthy": true, 
+                        "cluster_blocking_issues": {
+                            "healthy": true, 
+                            "blocks": []
+                        }, 
+                        "master_info": {
+                            "healthy": true, 
+                            "instances_with_no_master": [], 
+                            "masters": [
+                                {
+                                    "instances": [
+                                        "tiebreaker-0000000002", 
+                                        "instance-0000000001", 
+                                        "instance-0000000000"
+                                    ], 
+                                    "master_node_id": "U3kdKRNCQ3ym06KKyojljQ", 
+                                    "master_instance_name": "instance-0000000001"
+                                }
+                            ]
+                        }, 
+                        "shards_status": {
+                            "status": "green"
+                        }, 
+                        "blocking_issues": {
+                            "healthy": true, 
+                            "cluster_level": [], 
+                            "index_level": []
+                        }, 
+                        "shard_info": {
+                            "healthy": true, 
+                            "unavailable_shards": [], 
+                            "unavailable_replicas": [], 
+                            "available_shards": []
+                        }
+                    }, 
+                    "deployment_id": "accd2e61fa835a5a32bb6b2938ce91f3", 
+                    "topology": {
+                        "healthy": true, 
+                        "instances": [
+                            {
+                                "service_roles": [
+                                    "ingest", 
+                                    "master", 
+                                    "data"
+                                ], 
+                                "instance_set_id": "hot_content", 
+                                "zone": "us-east-1b", 
+                                "container_started": true, 
+                                "service_version": "8.4.3", 
+                                "healthy": true, 
+                                "maintenance_mode": false, 
+                                "instance_name": "instance-0000000000", 
+                                "logical_zone": "zone-0", 
+                                "instance_configuration": {
+                                    "resource": "memory", 
+                                    "id": "aws.data.highio.i3", 
+                                    "name": "aws.data.highio.i3"
+                                }, 
+                                "memory": {
+                                    "instance_capacity": 8192, 
+                                    "memory_pressure": 1
+                                }, 
+                                "disk": {
+                                    "disk_space_available": 245760, 
+                                    "storage_multiplier": 30.0, 
+                                    "disk_space_used": 117
+                                }, 
+                                "node_roles": [
+                                    "master", 
+                                    "ingest", 
+                                    "transform", 
+                                    "data_hot", 
+                                    "remote_cluster_client", 
+                                    "data_content"
+                                ], 
+                                "allocator_id": "i-03b043eb9cee5566b", 
+                                "service_running": true
+                            }, 
+                            {
+                                "service_roles": [
+                                    "ingest", 
+                                    "master", 
+                                    "data"
+                                ], 
+                                "instance_set_id": "hot_content", 
+                                "zone": "us-east-1e", 
+                                "container_started": true, 
+                                "service_version": "8.4.3", 
+                                "healthy": true, 
+                                "maintenance_mode": false, 
+                                "instance_name": "instance-0000000001", 
+                                "logical_zone": "zone-1", 
+                                "instance_configuration": {
+                                    "resource": "memory", 
+                                    "id": "aws.data.highio.i3", 
+                                    "name": "aws.data.highio.i3"
+                                }, 
+                                "memory": {
+                                    "instance_capacity": 8192, 
+                                    "memory_pressure": 1, 
+                                    "native_memory_pressure": 55
+                                }, 
+                                "disk": {
+                                    "disk_space_available": 245760, 
+                                    "storage_multiplier": 30.0, 
+                                    "disk_space_used": 117
+                                }, 
+                                "node_roles": [
+                                    "master", 
+                                    "ingest", 
+                                    "transform", 
+                                    "data_hot", 
+                                    "remote_cluster_client", 
+                                    "data_content"
+                                ], 
+                                "allocator_id": "i-0af729d3a795a93a3", 
+                                "service_running": true
+                            }, 
+                            {
+                                "service_roles": [
+                                    "master"
+                                ], 
+                                "instance_set_id": "hot_content", 
+                                "zone": "us-east-1a", 
+                                "container_started": true, 
+                                "service_version": "8.4.3", 
+                                "healthy": true, 
+                                "maintenance_mode": false, 
+                                "instance_name": "tiebreaker-0000000002", 
+                                "logical_zone": "tiebreaker", 
+                                "instance_configuration": {
+                                    "resource": "memory", 
+                                    "id": "aws.master.r5d", 
+                                    "name": "aws.master.r5d"
+                                }, 
+                                "memory": {
+                                    "instance_capacity": 1024, 
+                                    "memory_pressure": 10, 
+                                    "native_memory_pressure": 79
+                                }, 
+                                "disk": {
+                                    "disk_space_available": 2048, 
+                                    "storage_multiplier": 2.0, 
+                                    "disk_space_used": 0
+                                }, 
+                                "node_roles": [
+                                    "master", 
+                                    "voting_only"
+                                ], 
+                                "allocator_id": "i-04712f4bbc8e7072e", 
+                                "service_running": true
+                            }
+                        ]
+                    }, 
+                    "metadata": {
+                        "endpoint": "0589ddb3acee4641b95833022bf04d2b.us-east-1.aws.found.io", 
+                        "sso_deep_linking_supported": false, 
+                        "last_modified": "2022-10-06T09:47:29.809Z", 
+                        "aliased_endpoint": "my-deployment-name.es.us-east-1.aws.found.io", 
+                        "ccr": true, 
+                        "version": 20, 
+                        "service_url": "https://0589ddb3acee4641b95833022bf04d2b.us-east-1.aws.found.io", 
+                        "aliased_url": "https://my-deployment-name.es.us-east-1.aws.found.io", 
+                        "ports": {
+                            "transport_passthrough": 9400, 
+                            "http": 9200, 
+                            "https": 443
+                        }, 
+                        "cloud_id": "my_deployment_name:someCloudID"
+                    }
+                }, 
+                "region": "us-east-1", 
+                "id": "0589ddb3acee4641b95833022bf04d2b", 
+                "ref_id": "main-elasticsearch"
+            }
+        ], 
+        "apm": [], 
+        "appsearch": [], 
+        "integrations_server": []
+    }, 
+    "metadata": {
+        "last_resource_plan_modified": "2022-10-06T09:47:29.673Z", 
+        "tags": [], 
+        "organization_id": "222222", 
+        "subscription_level": "standard", 
+        "last_modified": "2022-10-06T09:47:29.809Z", 
+        "hidden": false, 
+        "system_owned": false, 
+        "owner_id": "111111"
+    }
+}
