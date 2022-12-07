@@ -114,6 +114,8 @@ func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 }
 
 func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
 	resName := "ec_deployment_traffic_filter.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_traffic_filter_basic.tf"
