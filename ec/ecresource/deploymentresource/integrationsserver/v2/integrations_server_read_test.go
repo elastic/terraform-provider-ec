@@ -75,6 +75,16 @@ func Test_readIntegrationsServer(t *testing.T) {
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
 							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
+							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
 							Plan: &models.IntegrationsServerPlan{
@@ -127,6 +137,16 @@ func Test_readIntegrationsServer(t *testing.T) {
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
 							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
+							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
 							Plan: &models.IntegrationsServerPlan{
@@ -170,6 +190,16 @@ func Test_readIntegrationsServer(t *testing.T) {
 							Ports: &models.ClusterMetadataPortInfo{
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
+							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
 							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
@@ -237,6 +267,16 @@ func Test_readIntegrationsServer(t *testing.T) {
 							Ports: &models.ClusterMetadataPortInfo{
 								HTTP:  ec.Int32(9200),
 								HTTPS: ec.Int32(9243),
+							},
+							ServicesUrls: []*models.ServiceURL{
+								{
+									Service: ec.String("apm"),
+									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("fleet"),
+									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
 							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{

@@ -32,6 +32,7 @@ func TestAccDeploymentElasticsearchKeystore_full(t *testing.T) {
 	var previousID, currentID string
 
 	resType := "ec_deployment_elasticsearch_keystore"
+	deploymentResName := "ec_deployment.keystore"
 	firstResName := resType + ".test"
 	secondResName := resType + ".gcs_creds"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
@@ -66,6 +67,8 @@ func TestAccDeploymentElasticsearchKeystore_full(t *testing.T) {
 					resource.TestCheckResourceAttr(secondResName, "value", "{\n  \"type\": \"service_account\",\n  \"project_id\": \"project-id\",\n  \"private_key_id\": \"key-id\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nprivate-key\\n-----END PRIVATE KEY-----\\n\",\n  \"client_email\": \"service-account-email\",\n  \"client_id\": \"client-id\",\n  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n  \"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\n  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/service-account-email\"\n}"),
 					resource.TestCheckResourceAttr(secondResName, "as_file", "false"),
 					resource.TestCheckResourceAttrSet(secondResName, "deployment_id"),
+
+					checkExpectedKeystoreKeysExist(deploymentResName, "xpack.notification.slack.account.hello.secure_url", "gcs.client.secondary.credentials_file"),
 				),
 			},
 			{
@@ -82,6 +85,8 @@ func TestAccDeploymentElasticsearchKeystore_full(t *testing.T) {
 					resource.TestCheckResourceAttr(secondResName, "value", "{\n  \"type\": \"service_account\",\n  \"project_id\": \"project-id\",\n  \"private_key_id\": \"key-id\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nprivate-key\\n-----END PRIVATE KEY-----\\n\",\n  \"client_email\": \"service-account-email\",\n  \"client_id\": \"client-id\",\n  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n  \"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\n  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/service-account-email\"\n}"),
 					resource.TestCheckResourceAttr(secondResName, "as_file", "false"),
 					resource.TestCheckResourceAttrSet(secondResName, "deployment_id"),
+
+					checkExpectedKeystoreKeysExist(deploymentResName, "xpack.notification.slack.account.hello.secure_url", "gcs.client.secondary.credentials_file"),
 				),
 			},
 			{
@@ -98,6 +103,8 @@ func TestAccDeploymentElasticsearchKeystore_full(t *testing.T) {
 					resource.TestCheckResourceAttr(secondResName, "value", "{\n  \"type\": \"service_account\",\n  \"project_id\": \"project-id\",\n  \"private_key_id\": \"key-id\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nprivate-key\\n-----END PRIVATE KEY-----\\n\",\n  \"client_email\": \"service-account-email\",\n  \"client_id\": \"client-id\",\n  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n  \"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\n  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/service-account-email\"\n}"),
 					resource.TestCheckResourceAttr(secondResName, "as_file", "false"),
 					resource.TestCheckResourceAttrSet(secondResName, "deployment_id"),
+
+					checkExpectedKeystoreKeysExist(deploymentResName, "xpack.notification.slack.account.hello.secure_urla", "gcs.client.secondary.credentials_file"),
 				),
 			},
 			{
