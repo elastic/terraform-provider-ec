@@ -31,7 +31,6 @@ import (
 )
 
 const (
-	minimumApmSize              = 512
 	minimumEnterpriseSearchSize = 2048
 )
 
