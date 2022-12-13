@@ -35,7 +35,6 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"ref_id": {
@@ -44,7 +43,6 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-integrations_server"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"resource_id": {
@@ -98,7 +96,6 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "memory"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"zone_count": {
@@ -128,7 +125,6 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 						Computed:    true,
 						PlanModifiers: []tfsdk.AttributePlanModifier{
 							planmodifier.DefaultValue(types.Bool{Value: false}),
-							resource.UseStateForUnknown(),
 						},
 					},
 					"user_settings_json": {

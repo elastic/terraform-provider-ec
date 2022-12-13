@@ -71,24 +71,17 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"resource_id": {
 				Type:        types.StringType,
 				Description: "The Elasticsearch resource unique identifier",
 				Computed:    true,
-				// PlanModifiers: tfsdk.AttributePlanModifiers{
-				// 	resource.UseStateForUnknown(),
-				// },
 			},
 			"region": {
 				Type:        types.StringType,
 				Description: "The Elasticsearch resource region",
 				Computed:    true,
-				// PlanModifiers: tfsdk.AttributePlanModifiers{
-				// 	resource.UseStateForUnknown(),
-				// },
 			},
 			"cloud_id": {
 				Type:        types.StringType,
@@ -105,17 +98,11 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Type:        types.StringType,
 				Description: "The Elasticsearch resource HTTP endpoint",
 				Computed:    true,
-				// PlanModifiers: tfsdk.AttributePlanModifiers{
-				// 	resource.UseStateForUnknown(),
-				// },
 			},
 			"https_endpoint": {
 				Type:        types.StringType,
 				Description: "The Elasticsearch resource HTTPs endpoint",
 				Computed:    true,
-				// PlanModifiers: tfsdk.AttributePlanModifiers{
-				// 	resource.UseStateForUnknown(),
-				// },
 			},
 			"topology": ElasticsearchTopologySchema(),
 
@@ -322,7 +309,6 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 				Optional: true,
 			},
@@ -354,7 +340,6 @@ func ElasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 				Type:        types.StringType,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "__latest_success__"}),
-					resource.UseStateForUnknown(),
 				},
 				Optional: true,
 				Computed: true,

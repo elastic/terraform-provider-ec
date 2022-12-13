@@ -37,7 +37,6 @@ func EnterpriseSearchSchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"ref_id": {
@@ -46,7 +45,6 @@ func EnterpriseSearchSchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-enterprise_search"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"resource_id": {
@@ -108,7 +106,6 @@ func EnterpriseSearchSchema() tfsdk.Attribute {
 						Computed:    true,
 						PlanModifiers: []tfsdk.AttributePlanModifier{
 							planmodifier.DefaultValue(types.String{Value: "memory"}),
-							resource.UseStateForUnknown(),
 						},
 					},
 					"zone_count": {

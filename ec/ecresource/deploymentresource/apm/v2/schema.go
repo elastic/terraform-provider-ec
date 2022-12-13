@@ -43,7 +43,6 @@ func ApmConfigSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.Bool{Value: false}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"user_settings_json": {
@@ -81,8 +80,6 @@ func ApmSchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					// resource.UseStateForUnknown(),
-					// planmodifier.UseStateForNoChange(),
 				},
 			},
 			"ref_id": {
@@ -91,41 +88,23 @@ func ApmSchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-apm"}),
-					// resource.UseStateForUnknown(),
-					// planmodifier.UseStateForNoChange(),
 				},
 			},
 			"resource_id": {
-				Type:          types.StringType,
-				Computed:      true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					// resource.UseStateForUnknown(),
-					// planmodifier.UseStateForNoChange(),
-				},
+				Type:     types.StringType,
+				Computed: true,
 			},
 			"region": {
-				Type:          types.StringType,
-				Computed:      true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					// resource.UseStateForUnknown(),
-					// planmodifier.UseStateForNoChange(),
-				},
+				Type:     types.StringType,
+				Computed: true,
 			},
 			"http_endpoint": {
-				Type:          types.StringType,
-				Computed:      true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					// resource.UseStateForUnknown(),
-					// planmodifier.UseStateForNoChange(),
-				},
+				Type:     types.StringType,
+				Computed: true,
 			},
 			"https_endpoint": {
-				Type:          types.StringType,
-				Computed:      true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					// resource.UseStateForUnknown(),
-					// planmodifier.UseStateForNoChange(),
-				},
+				Type:     types.StringType,
+				Computed: true,
 			},
 			"instance_configuration_id": {
 				Type:     types.StringType,
@@ -150,7 +129,6 @@ func ApmSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "memory"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"zone_count": {

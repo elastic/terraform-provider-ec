@@ -103,9 +103,6 @@ func DeploymentSchema() tfsdk.Schema {
 				Type:      types.StringType,
 				Computed:  true,
 				Sensitive: true,
-				// PlanModifiers: tfsdk.AttributePlanModifiers{
-				// 	ApmSecretTokenPlanModifier(),
-				// },
 			},
 			"traffic_filter": {
 				Type: types.SetType{
