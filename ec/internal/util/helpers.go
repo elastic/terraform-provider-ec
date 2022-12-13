@@ -80,10 +80,10 @@ func IsCurrentEssPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
 }
 
-// MultiGetenv returns the value of the first environment variable in the
+// MultiGetenvOrDefault returns the value of the first environment variable in the
 // given list that has a non-empty value. If none of the environment
 // variables have a value, the default value is returned.
-func MultiGetenv(keys []string, defaultValue string) string {
+func MultiGetenvOrDefault(keys []string, defaultValue string) string {
 	for _, key := range keys {
 		if value := os.Getenv(key); value != "" {
 			return value
@@ -96,14 +96,14 @@ func GetStringFromSchemaOrEnv(d *schema.ResourceData, key string, envKeys []stri
 	if value, ok := d.GetOk(key); ok {
 		return value.(string)
 	}
-	return MultiGetenv(envKeys, defaultValue)
+	return MultiGetenvOrDefault(envKeys, defaultValue)
 }
 func GetBoolFromSchemaOrEnv(d *schema.ResourceData, key string, envKeys []string) bool {
 	if value, ok := d.GetOk(key); ok {
 		return value.(bool)
 	}
 
-	strValue := MultiGetenv(envKeys, "false")
+	strValue := MultiGetenvOrDefault(envKeys, "false")
 	value, err := StringToBool(strValue)
 	if err != nil {
 		return false
