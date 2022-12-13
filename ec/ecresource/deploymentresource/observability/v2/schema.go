@@ -47,7 +47,6 @@ func ObservabilitySchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.Bool{Value: true}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"metrics": {
@@ -56,7 +55,6 @@ func ObservabilitySchema() tfsdk.Attribute {
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.Bool{Value: true}),
-					resource.UseStateForUnknown(),
 				},
 			},
 		}),

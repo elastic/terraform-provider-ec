@@ -33,7 +33,6 @@ func KibanaSchema() tfsdk.Attribute {
 				Type: types.StringType,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 				Computed: true,
 				Optional: true,
@@ -42,7 +41,6 @@ func KibanaSchema() tfsdk.Attribute {
 				Type: types.StringType,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-kibana"}),
-					resource.UseStateForUnknown(),
 				},
 				Computed: true,
 				Optional: true,
@@ -96,7 +94,6 @@ func KibanaSchema() tfsdk.Attribute {
 				Description: `Optional size type, defaults to "memory".`,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "memory"}),
-					resource.UseStateForUnknown(),
 				},
 				Computed: true,
 				Optional: true,

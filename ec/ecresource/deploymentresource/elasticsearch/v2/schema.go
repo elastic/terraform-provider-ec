@@ -65,7 +65,6 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 			},
 			"resource_id": {
@@ -174,9 +173,7 @@ func ElasticsearchConfigSchema() tfsdk.Attribute {
 func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
-		// Optional:    true,
-		// Computed:    true,
-		Required: true,
+		Required:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"max_size_resource": {
 				Description: "Maximum resource type for the maximum autoscaling setting.",
@@ -251,7 +248,6 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
-					resource.UseStateForUnknown(),
 				},
 				Optional: true,
 			},
@@ -283,7 +279,6 @@ func ElasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 				Type:        types.StringType,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "__latest_success__"}),
-					resource.UseStateForUnknown(),
 				},
 				Optional: true,
 				Computed: true,
@@ -414,7 +409,6 @@ func ElasticsearchTierSchema(description string, required bool, tierName string)
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					planmodifier.DefaultValue(types.String{Value: "memory"}),
-					UseTierStateForUnknown(tierName),
 				},
 			},
 			"zone_count": {
