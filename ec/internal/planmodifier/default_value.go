@@ -46,10 +46,19 @@ func (m *defaultValueAttributePlanModifier) MarkdownDescription(ctx context.Cont
 	return fmt.Sprintf("Sets the default value %q (%s) if the attribute is not set", m.DefaultValue, m.DefaultValue.Type(ctx))
 }
 
-func (m *defaultValueAttributePlanModifier) Modify(_ context.Context, req tfsdk.ModifyAttributePlanRequest, res *tfsdk.ModifyAttributePlanResponse) {
+func (m *defaultValueAttributePlanModifier) Modify(_ context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+	if resp.AttributePlan == nil || req.AttributeConfig == nil {
+		return
+	}
+
 	if !req.AttributeConfig.IsNull() {
 		return
 	}
 
-	res.AttributePlan = m.DefaultValue
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	if req.AttributeConfig.IsUnknown() {
+		return
+	}
+
+	resp.AttributePlan = m.DefaultValue
 }
