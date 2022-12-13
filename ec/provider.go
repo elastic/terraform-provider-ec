@@ -29,9 +29,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
@@ -41,7 +38,6 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 )
@@ -69,61 +65,6 @@ var (
 	// automatically by the SDK 2 times.
 	defaultTimeout = 40 * time.Second
 )
-
-func newSchema() map[string]*schema.Schema {
-	// This schema must match exactly the Terraform Protocol v6 (Terraform Plugin Framework) provider's schema.
-	// Notably the attributes can have no Default values.
-	return map[string]*schema.Schema{
-		"endpoint": {
-			Description:  fmt.Sprintf(endpointDesc, api.ESSEndpoint),
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsURLWithScheme(validURLSchemes),
-		},
-		"apikey": {
-			Description: apikeyDesc,
-			Type:        schema.TypeString,
-			Optional:    true,
-			Sensitive:   true,
-		},
-		"username": {
-			Description: usernameDesc,
-			Type:        schema.TypeString,
-			Optional:    true,
-		},
-		"password": {
-			Description: passwordDesc,
-			Type:        schema.TypeString,
-			Optional:    true,
-			Sensitive:   true,
-		},
-		"insecure": {
-			Description: insecureDesc,
-			Type:        schema.TypeBool,
-			Optional:    true,
-		},
-		"timeout": {
-			Description: timeoutDesc,
-			Type:        schema.TypeString,
-			Optional:    true,
-		},
-		"verbose": {
-			Description: verboseDesc,
-			Type:        schema.TypeBool,
-			Optional:    true,
-		},
-		"verbose_credentials": {
-			Description: verboseCredsDesc,
-			Type:        schema.TypeBool,
-			Optional:    true,
-		},
-		"verbose_file": {
-			Description: timeoutDesc,
-			Type:        schema.TypeString,
-			Optional:    true,
-		},
-	}
-}
 
 func New(version string) provider.Provider {
 	return &Provider{version: version}
@@ -175,11 +116,10 @@ func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
 				Validators:  []tfsdk.AttributeValidator{validators.Known(), validators.IsURLWithSchemeValidator(validURLSchemes)},
 			},
 			"apikey": {
-				Description:   apikeyDesc,
-				Type:          types.StringType,
-				Optional:      true,
-				Sensitive:     true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{planmodifier.DefaultFromEnv([]string{"EC_API_KEY"})},
+				Description: apikeyDesc,
+				Type:        types.StringType,
+				Optional:    true,
+				Sensitive:   true,
 			},
 			"username": {
 				Description: usernameDesc,
@@ -251,7 +191,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	var endpoint string
 	if config.Endpoint.Null {
-		endpoint = util.MultiGetenv([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
+		endpoint = util.MultiGetenvOrDefault([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
 		// TODO We need to validate the endpoint here, similar to how it is done if the value is passed via terraform (isURLWithSchemeValidator)
 	} else {
 		endpoint = config.Endpoint.Value
@@ -259,21 +199,21 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	var apiKey string
 	if config.ApiKey.Null {
-		apiKey = util.MultiGetenv([]string{"EC_API_KEY"}, "")
+		apiKey = util.MultiGetenvOrDefault([]string{"EC_API_KEY"}, "")
 	} else {
 		apiKey = config.ApiKey.Value
 	}
 
 	var username string
 	if config.Username.Null {
-		username = util.MultiGetenv([]string{"EC_USER", "EC_USERNAME"}, "")
+		username = util.MultiGetenvOrDefault([]string{"EC_USER", "EC_USERNAME"}, "")
 	} else {
 		username = config.Username.Value
 	}
 
 	var password string
 	if config.Password.Null {
-		password = util.MultiGetenv([]string{"EC_PASS", "EC_PASSWORD"}, "")
+		password = util.MultiGetenvOrDefault([]string{"EC_PASS", "EC_PASSWORD"}, "")
 	} else {
 		password = config.Password.Value
 	}
@@ -281,7 +221,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	var err error
 	var insecure bool
 	if config.Insecure.Null {
-		insecureStr := util.MultiGetenv([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
+		insecureStr := util.MultiGetenvOrDefault([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
 		if insecure, err = util.StringToBool(insecureStr); err != nil {
 			res.Diagnostics.AddWarning(
 				"Unable to create client",
@@ -295,14 +235,14 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	var timeout string
 	if config.Timeout.Null {
-		timeout = util.MultiGetenv([]string{"EC_TIMEOUT"}, defaultTimeout.String())
+		timeout = util.MultiGetenvOrDefault([]string{"EC_TIMEOUT"}, defaultTimeout.String())
 	} else {
 		timeout = config.Timeout.Value
 	}
 
 	var verbose bool
 	if config.Verbose.Null {
-		verboseStr := util.MultiGetenv([]string{"EC_VERBOSE"}, "")
+		verboseStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE"}, "")
 		if verbose, err = util.StringToBool(verboseStr); err != nil {
 			res.Diagnostics.AddWarning(
 				"Unable to create client",
@@ -316,7 +256,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	var verboseCredentials bool
 	if config.VerboseCredentials.Null {
-		verboseCredentialsStr := util.MultiGetenv([]string{"EC_VERBOSE_CREDENTIALS"}, "")
+		verboseCredentialsStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE_CREDENTIALS"}, "")
 		if verboseCredentials, err = util.StringToBool(verboseCredentialsStr); err != nil {
 			res.Diagnostics.AddWarning(
 				"Unable to create client",
@@ -330,22 +270,23 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	var verboseFile string
 	if config.VerboseFile.Null {
-		verboseFile = util.MultiGetenv([]string{"EC_VERBOSE_FILE"}, "request.log")
+		verboseFile = util.MultiGetenvOrDefault([]string{"EC_VERBOSE_FILE"}, "request.log")
 	} else {
 		verboseFile = config.VerboseFile.Value
 	}
 
-	cfg, err := newAPIConfig(
-		endpoint,
-		apiKey,
-		username,
-		password,
-		insecure,
-		timeout,
-		verbose,
-		verboseCredentials,
-		verboseFile,
-	)
+	cfg, err := newAPIConfig(apiSetup{
+		endpoint:           endpoint,
+		apikey:             apiKey,
+		username:           username,
+		password:           password,
+		insecure:           insecure,
+		timeout:            timeout,
+		verbose:            verbose,
+		verboseCredentials: verboseCredentials,
+		verboseFile:        verboseFile,
+	})
+
 	if err != nil {
 		res.Diagnostics.AddWarning(
 			"Unable to create api Client config",

@@ -26,14 +26,11 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_verboseSettings(t *testing.T) {
@@ -102,61 +99,14 @@ func Test_verboseSettings(t *testing.T) {
 }
 
 func Test_newAPIConfig(t *testing.T) {
-	defer unsetECAPIKey(t)()
+	apiKeyObj := auth.APIKey("secret")
 
-	defaultCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State:  map[string]interface{}{},
-	})
-	invalidTimeoutCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"timeout": "invalid",
-		},
-	})
-
-	apiKeyCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"apikey": "blih",
-		},
-	})
-	apiKeyObj := auth.APIKey("blih")
-
-	userPassCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"username": "my-user",
-			"password": "my-pass",
-		},
-	})
 	userPassObj := auth.UserLogin{
 		Username: "my-user",
 		Password: "my-pass",
 		Holder:   new(auth.GenericHolder),
 	}
 
-	insecureCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"apikey":   "blih",
-			"insecure": true,
-		},
-	})
-
-	verboseCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"apikey":  "blih",
-			"verbose": true,
-		},
-	})
 	defer func() {
 		os.Remove("request.log")
 	}()
@@ -165,43 +115,18 @@ func Test_newAPIConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer func() {
 		customFile.Close()
 		os.Remove(customFile.Name())
 	}()
-	verboseCustomFileCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"apikey":       "blih",
-			"verbose":      true,
-			"verbose_file": customFile.Name(),
-		},
-	})
-	verboseAndCredsCustomFileCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"apikey":              "blih",
-			"verbose":             true,
-			"verbose_file":        customFile.Name(),
-			"verbose_credentials": true,
-		},
-	})
+
 	invalidPath := filepath.Join("a", "b", "c", "d", "e", "f", "g", "h", "invalid!")
-	verboseInvalidFileCfg := util.NewResourceData(t, util.ResDataParams{
-		ID:     "whocares",
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"apikey":              "blih",
-			"verbose":             true,
-			"verbose_file":        invalidPath,
-			"verbose_credentials": true,
-		},
-	})
+
 	type args struct {
-		d *schema.ResourceData
+		apiSetup apiSetup
 	}
+
 	tests := []struct {
 		name         string
 		args         args
@@ -211,19 +136,36 @@ func Test_newAPIConfig(t *testing.T) {
 	}{
 		{
 			name: "default config returns with authwriter error",
-			args: args{d: defaultCfg},
+			args: args{
+				apiSetup: apiSetup{
+					timeout: defaultTimeout.String(),
+				},
+			},
 			err: multierror.NewPrefixed("authwriter",
 				errors.New("one of apikey or username and password must be specified"),
 			),
 		},
+
 		{
-			name: "default config with  invalid timeout returns with authwriter error",
-			args: args{d: invalidTimeoutCfg},
-			err:  errors.New(`time: invalid duration "invalid"`),
+			name: "default config with invalid timeout returns with authwriter error",
+			args: args{
+				apiSetup: apiSetup{
+					timeout: "invalid",
+					apikey:  "secret",
+				},
+			},
+			err: errors.New(`time: invalid duration "invalid"`),
 		},
+
 		{
 			name: "custom config with apikey auth succeeds",
-			args: args{d: apiKeyCfg},
+			args: args{
+				apiSetup: apiSetup{
+					apikey:   "secret",
+					timeout:  defaultTimeout.String(),
+					endpoint: api.ESSEndpoint,
+				},
+			},
 			want: api.Config{
 				UserAgent:   fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
 				ErrorDevice: os.Stdout,
@@ -234,9 +176,17 @@ func Test_newAPIConfig(t *testing.T) {
 				Retries:     DefaultHTTPRetries,
 			},
 		},
+
 		{
 			name: "custom config with username/password auth succeeds",
-			args: args{d: userPassCfg},
+			args: args{
+				apiSetup: apiSetup{
+					username: "my-user",
+					password: "my-pass",
+					timeout:  defaultTimeout.String(),
+					endpoint: api.ESSEndpoint,
+				},
+			},
 			want: api.Config{
 				UserAgent:   fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
 				ErrorDevice: os.Stdout,
@@ -247,9 +197,17 @@ func Test_newAPIConfig(t *testing.T) {
 				Retries:     DefaultHTTPRetries,
 			},
 		},
+
 		{
 			name: "custom config with insecure succeeds",
-			args: args{d: insecureCfg},
+			args: args{
+				apiSetup: apiSetup{
+					apikey:   "secret",
+					insecure: true,
+					timeout:  defaultTimeout.String(),
+					endpoint: api.ESSEndpoint,
+				},
+			},
 			want: api.Config{
 				UserAgent:     fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
 				ErrorDevice:   os.Stdout,
@@ -261,23 +219,18 @@ func Test_newAPIConfig(t *testing.T) {
 				SkipTLSVerify: true,
 			},
 		},
-		{
-			name: "custom config with insecure succeeds",
-			args: args{d: insecureCfg},
-			want: api.Config{
-				UserAgent:     fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
-				ErrorDevice:   os.Stdout,
-				Host:          api.ESSEndpoint,
-				AuthWriter:    &apiKeyObj,
-				Client:        &http.Client{},
-				Timeout:       defaultTimeout,
-				Retries:       DefaultHTTPRetries,
-				SkipTLSVerify: true,
-			},
-		},
+
 		{
 			name: "custom config with verbose (default file) succeeds",
-			args: args{d: verboseCfg},
+			args: args{
+				apiSetup: apiSetup{
+					apikey:      "secret",
+					verbose:     true,
+					verboseFile: "request.log",
+					timeout:     defaultTimeout.String(),
+					endpoint:    api.ESSEndpoint,
+				},
+			},
 			want: api.Config{
 				UserAgent:   fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
 				ErrorDevice: os.Stdout,
@@ -293,9 +246,18 @@ func Test_newAPIConfig(t *testing.T) {
 			},
 			wantFileName: "request.log",
 		},
+
 		{
 			name: "custom config with verbose (custom file) succeeds",
-			args: args{d: verboseCustomFileCfg},
+			args: args{
+				apiSetup: apiSetup{
+					apikey:      "secret",
+					verbose:     true,
+					verboseFile: customFile.Name(),
+					timeout:     defaultTimeout.String(),
+					endpoint:    api.ESSEndpoint,
+				},
+			},
 			want: api.Config{
 				UserAgent:   fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
 				ErrorDevice: os.Stdout,
@@ -311,9 +273,19 @@ func Test_newAPIConfig(t *testing.T) {
 			},
 			wantFileName: filepath.Base(customFile.Name()),
 		},
+
 		{
 			name: "custom config with verbose and verbose_credentials (custom file) succeeds",
-			args: args{d: verboseAndCredsCustomFileCfg},
+			args: args{
+				apiSetup: apiSetup{
+					apikey:             "secret",
+					verbose:            true,
+					verboseFile:        customFile.Name(),
+					verboseCredentials: true,
+					timeout:            defaultTimeout.String(),
+					endpoint:           api.ESSEndpoint,
+				},
+			},
 			want: api.Config{
 				UserAgent:   fmt.Sprintf(providerUserAgentFmt, Version, api.DefaultUserAgent),
 				ErrorDevice: os.Stdout,
@@ -329,9 +301,18 @@ func Test_newAPIConfig(t *testing.T) {
 			},
 			wantFileName: filepath.Base(customFile.Name()),
 		},
+
 		{
 			name: "custom config with verbose and verbose_credentials (invalid file) fails ",
-			args: args{d: verboseInvalidFileCfg},
+			args: args{
+				apiSetup: apiSetup{
+					apikey:             "secret",
+					verbose:            true,
+					verboseFile:        invalidPath,
+					verboseCredentials: true,
+					timeout:            defaultTimeout.String(),
+				},
+			},
 			err: fmt.Errorf(`failed creating verbose file "%s": %w`,
 				invalidPath,
 				&os.PathError{
@@ -344,7 +325,7 @@ func Test_newAPIConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newAPIConfigLegacy(tt.args.d)
+			got, err := newAPIConfig(tt.args.apiSetup)
 			assert.Equal(t, tt.err, err)
 
 			if got.Verbose && err == nil {
@@ -358,21 +339,4 @@ func Test_newAPIConfig(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-}
-
-func unsetECAPIKey(t *testing.T) func() {
-	t.Helper()
-	// This is necessary to avoid any EC_API_KEY which might be set to cause
-	// test flakyness.
-	if k := os.Getenv("EC_API_KEY"); k != "" {
-		if err := os.Unsetenv("EC_API_KEY"); err != nil {
-			t.Fatal(err)
-		}
-		return func() {
-			if err := os.Setenv("EC_API_KEY", k); err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
-	return func() {}
 }
