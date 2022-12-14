@@ -45,6 +45,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	var curState deploymentv2.DeploymentTF
 
 	diags := request.State.Get(ctx, &curState)
+
 	response.Diagnostics.Append(diags...)
 
 	if response.Diagnostics.HasError() {
@@ -52,12 +53,11 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	}
 
 	var newState *deploymentv2.DeploymentTF
-	var err error
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	if newState, diags = r.read(ctx, curState.Id.Value, &curState, curState, nil); err != nil {
-		response.Diagnostics.Append(diags...)
-	}
+	newState, diags = r.read(ctx, curState.Id.Value, &curState, curState, nil)
+
+	response.Diagnostics.Append(diags...)
 
 	if newState == nil {
 		response.State.RemoveResource(ctx)
