@@ -34,9 +34,9 @@ const (
 	minimumEnterpriseSearchSize = 2048
 )
 
-type EnterpriseSearchTopologies v1.EnterpriseSearchTopologies
+type enterpriseSearchTopologies v1.EnterpriseSearchTopologies
 
-func ReadEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*v1.EnterpriseSearchTopology, error) {
+func readEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*v1.EnterpriseSearchTopology, error) {
 	var topology v1.EnterpriseSearchTopology
 
 	topology.InstanceConfigurationId = ec.String(in.InstanceConfigurationID)
@@ -65,18 +65,18 @@ func ReadEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*
 	return &topology, nil
 }
 
-func ReadEnterpriseSearchTopologies(in []*models.EnterpriseSearchTopologyElement) (EnterpriseSearchTopologies, error) {
+func ReadEnterpriseSearchTopologies(in []*models.EnterpriseSearchTopologyElement) (enterpriseSearchTopologies, error) {
 	if len(in) == 0 {
 		return nil, nil
 	}
 
-	topologies := make(EnterpriseSearchTopologies, 0, len(in))
+	topologies := make(enterpriseSearchTopologies, 0, len(in))
 	for _, model := range in {
 		if model.Size == nil || model.Size.Value == nil || *model.Size.Value == 0 {
 			continue
 		}
 
-		topology, err := ReadEnterpriseSearchTopology(model)
+		topology, err := readEnterpriseSearchTopology(model)
 		if err != nil {
 			return nil, err
 		}

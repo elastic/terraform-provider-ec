@@ -30,7 +30,7 @@ import (
 
 type EnterpriseSearchConfig v1.EnterpriseSearchConfig
 
-func ReadEnterpriseSearchConfig(in *models.EnterpriseSearchConfiguration) (*EnterpriseSearchConfig, error) {
+func readEnterpriseSearchConfig(in *models.EnterpriseSearchConfiguration) (*EnterpriseSearchConfig, error) {
 	var cfg EnterpriseSearchConfig
 
 	if in == nil {
@@ -68,7 +68,7 @@ func ReadEnterpriseSearchConfig(in *models.EnterpriseSearchConfiguration) (*Ente
 	return &cfg, nil
 }
 
-func EnterpriseSearchConfigPayload(ctx context.Context, cfg v1.EnterpriseSearchConfigTF, res *models.EnterpriseSearchConfiguration) diag.Diagnostics {
+func enterpriseSearchConfigPayload(ctx context.Context, cfg v1.EnterpriseSearchConfigTF, res *models.EnterpriseSearchConfiguration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if cfg.UserSettingsJson.Value != "" {
