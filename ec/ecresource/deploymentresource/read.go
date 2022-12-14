@@ -178,8 +178,6 @@ func deploymentNotFound(err error) bool {
 	return apierror.IsRuntimeStatusCode(err, 403)
 }
 
-// Setting this variable here so that it is parsed at compile time in case
-// any errors are thrown, they are at compile time not when the user runs it.
 var minimumSupportedVersion = semver.MustParse("6.6.0")
 
 func checkVersion(version string) error {
