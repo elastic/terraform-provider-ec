@@ -101,7 +101,7 @@ func ReadEnterpriseSearch(in *models.EnterpriseSearchResourceInfo) (*EnterpriseS
 
 	ess.HttpEndpoint, ess.HttpsEndpoint = converters.ExtractEndpoints(in.Info.Metadata)
 
-	cfg, err := ReadEnterpriseSearchConfig(plan.EnterpriseSearch)
+	cfg, err := readEnterpriseSearchConfig(plan.EnterpriseSearch)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (es *EnterpriseSearchTF) Payload(ctx context.Context, payload models.Enterp
 		diags.Append(ds...)
 
 		if !ds.HasError() && config != nil {
-			diags.Append(EnterpriseSearchConfigPayload(ctx, *config, payload.Plan.EnterpriseSearch)...)
+			diags.Append(enterpriseSearchConfigPayload(ctx, *config, payload.Plan.EnterpriseSearch)...)
 		}
 	}
 
@@ -188,7 +188,7 @@ func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template
 		return nil, nil
 	}
 
-	templatePayload := EssResource(template)
+	templatePayload := payloadFromTemplate(template)
 
 	if templatePayload == nil {
 		diags.AddError(
@@ -207,9 +207,9 @@ func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template
 	return payload, nil
 }
 
-// EssResource returns the EnterpriseSearchPayload from a deployment
+// payloadFromTemplate returns the EnterpriseSearchPayload from a deployment
 // template or an empty version of the payload.
-func EssResource(template *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
+func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
 	if template == nil || len(template.DeploymentTemplate.Resources.EnterpriseSearch) == 0 {
 		return nil
 	}
