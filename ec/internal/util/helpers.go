@@ -24,7 +24,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
@@ -90,25 +89,6 @@ func MultiGetenvOrDefault(keys []string, defaultValue string) string {
 		}
 	}
 	return defaultValue
-}
-
-func GetStringFromSchemaOrEnv(d *schema.ResourceData, key string, envKeys []string, defaultValue string) string {
-	if value, ok := d.GetOk(key); ok {
-		return value.(string)
-	}
-	return MultiGetenvOrDefault(envKeys, defaultValue)
-}
-func GetBoolFromSchemaOrEnv(d *schema.ResourceData, key string, envKeys []string) bool {
-	if value, ok := d.GetOk(key); ok {
-		return value.(bool)
-	}
-
-	strValue := MultiGetenvOrDefault(envKeys, "false")
-	value, err := StringToBool(strValue)
-	if err != nil {
-		return false
-	}
-	return value
 }
 
 func StringToBool(str string) (bool, error) {
