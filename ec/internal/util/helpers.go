@@ -28,6 +28,9 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
+// used in tests
+var GetEnv = os.Getenv
+
 // FlattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
 // https endpoints and returns a map with two keys: `http_endpoint` and
 // `https_endpoint`
@@ -84,7 +87,7 @@ func IsCurrentEssPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 // variables have a value, the default value is returned.
 func MultiGetenvOrDefault(keys []string, defaultValue string) string {
 	for _, key := range keys {
-		if value := os.Getenv(key); value != "" {
+		if value := GetEnv(key); value != "" {
 			return value
 		}
 	}

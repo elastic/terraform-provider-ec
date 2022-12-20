@@ -24,6 +24,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -161,37 +162,53 @@ func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	}, diags
 }
 
-func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
+// Retrieve provider data from configuration
+type providerConfig struct {
+	Endpoint           types.String `tfsdk:"endpoint"`
+	ApiKey             types.String `tfsdk:"apikey"`
+	Username           types.String `tfsdk:"username"`
+	Password           types.String `tfsdk:"password"`
+	Insecure           types.Bool   `tfsdk:"insecure"`
+	Timeout            types.String `tfsdk:"timeout"`
+	Verbose            types.Bool   `tfsdk:"verbose"`
+	VerboseCredentials types.Bool   `tfsdk:"verbose_credentials"`
+	VerboseFile        types.String `tfsdk:"verbose_file"`
+}
+
+func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	if p.client != nil {
 		// Required for unit tests, because a mock client is pre-created there.
-		res.DataSourceData = p.client
-		res.ResourceData = p.client
+		resp.DataSourceData = p.client
+		resp.ResourceData = p.client
 		return
 	}
 
 	// Retrieve provider data from configuration
-	var config struct {
-		Endpoint           types.String `tfsdk:"endpoint"`
-		ApiKey             types.String `tfsdk:"apikey"`
-		Username           types.String `tfsdk:"username"`
-		Password           types.String `tfsdk:"password"`
-		Insecure           types.Bool   `tfsdk:"insecure"`
-		Timeout            types.String `tfsdk:"timeout"`
-		Verbose            types.Bool   `tfsdk:"verbose"`
-		VerboseCredentials types.Bool   `tfsdk:"verbose_credentials"`
-		VerboseFile        types.String `tfsdk:"verbose_file"`
-	}
+	var config providerConfig
 
 	diags := req.Config.Get(ctx, &config)
-	res.Diagnostics.Append(diags...)
-	if res.Diagnostics.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	var endpoint string
 	if config.Endpoint.Null {
 		endpoint = util.MultiGetenvOrDefault([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
-		// TODO We need to validate the endpoint here, similar to how it is done if the value is passed via terraform (isURLWithSchemeValidator)
+
+		validateReq := tfsdk.ValidateAttributeRequest{
+			AttributePath:   path.Root("endpoint"),
+			AttributeConfig: types.String{Value: endpoint},
+		}
+
+		validateResp := tfsdk.ValidateAttributeResponse{}
+
+		validators.IsURLWithSchemeValidator(validURLSchemes).Validate(ctx, validateReq, &validateResp)
+
+		if validateResp.Diagnostics.HasError() {
+			resp.Diagnostics.Append(validateResp.Diagnostics...)
+			return
+		}
 	} else {
 		endpoint = config.Endpoint.Value
 	}
@@ -222,7 +239,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	if config.Insecure.Null {
 		insecureStr := util.MultiGetenvOrDefault([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
 		if insecure, err = util.StringToBool(insecureStr); err != nil {
-			res.Diagnostics.AddWarning(
+			resp.Diagnostics.AddError(
 				"Unable to create client",
 				fmt.Sprintf("Invalid value %v for insecure", insecureStr),
 			)
@@ -243,7 +260,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	if config.Verbose.Null {
 		verboseStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE"}, "")
 		if verbose, err = util.StringToBool(verboseStr); err != nil {
-			res.Diagnostics.AddWarning(
+			resp.Diagnostics.AddError(
 				"Unable to create client",
 				fmt.Sprintf("Invalid value %v for verbose", verboseStr),
 			)
@@ -257,7 +274,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	if config.VerboseCredentials.Null {
 		verboseCredentialsStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE_CREDENTIALS"}, "")
 		if verboseCredentials, err = util.StringToBool(verboseCredentialsStr); err != nil {
-			res.Diagnostics.AddWarning(
+			resp.Diagnostics.AddError(
 				"Unable to create client",
 				fmt.Sprintf("Invalid value %v for verboseCredentials", verboseCredentialsStr),
 			)
@@ -287,23 +304,23 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	})
 
 	if err != nil {
-		res.Diagnostics.AddWarning(
+		resp.Diagnostics.AddError(
 			"Unable to create api Client config",
-			fmt.Sprintf("Unexpected error: %+v", err),
+			err.Error(),
 		)
 		return
 	}
 
 	client, err := api.NewAPI(cfg)
 	if err != nil {
-		res.Diagnostics.AddWarning(
+		resp.Diagnostics.AddError(
 			"Unable to create api Client config",
-			fmt.Sprintf("Unexpected error: %+v", err),
+			err.Error(),
 		)
 		return
 	}
 
 	p.client = client
-	res.DataSourceData = client
-	res.ResourceData = client
+	resp.DataSourceData = client
+	resp.ResourceData = client
 }
