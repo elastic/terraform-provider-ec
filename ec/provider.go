@@ -161,18 +161,6 @@ func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	}, diags
 }
 
-type providerData struct {
-	Endpoint           types.String `tfsdk:"endpoint"`
-	ApiKey             types.String `tfsdk:"apikey"`
-	Username           types.String `tfsdk:"username"`
-	Password           types.String `tfsdk:"password"`
-	Insecure           types.Bool   `tfsdk:"insecure"`
-	Timeout            types.String `tfsdk:"timeout"`
-	Verbose            types.Bool   `tfsdk:"verbose"`
-	VerboseCredentials types.Bool   `tfsdk:"verbose_credentials"`
-	VerboseFile        types.String `tfsdk:"verbose_file"`
-}
-
 func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, res *provider.ConfigureResponse) {
 	if p.client != nil {
 		// Required for unit tests, because a mock client is pre-created there.
@@ -182,7 +170,18 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 
 	// Retrieve provider data from configuration
-	var config providerData
+	var config struct {
+		Endpoint           types.String `tfsdk:"endpoint"`
+		ApiKey             types.String `tfsdk:"apikey"`
+		Username           types.String `tfsdk:"username"`
+		Password           types.String `tfsdk:"password"`
+		Insecure           types.Bool   `tfsdk:"insecure"`
+		Timeout            types.String `tfsdk:"timeout"`
+		Verbose            types.Bool   `tfsdk:"verbose"`
+		VerboseCredentials types.Bool   `tfsdk:"verbose_credentials"`
+		VerboseFile        types.String `tfsdk:"verbose_file"`
+	}
+
 	diags := req.Config.Get(ctx, &config)
 	res.Diagnostics.Append(diags...)
 	if res.Diagnostics.HasError() {
