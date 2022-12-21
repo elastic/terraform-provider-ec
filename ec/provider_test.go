@@ -47,9 +47,6 @@ func Test_Configure(t *testing.T) {
 				env: map[string]string{
 					"EC_ENDPOINT": "invalid",
 				},
-				config: providerConfig{
-					Endpoint: types.String{Null: true},
-				},
 			},
 			diags: func() diag.Diagnostics {
 				var diags diag.Diagnostics
@@ -63,10 +60,6 @@ func Test_Configure(t *testing.T) {
 			args: args{
 				env: map[string]string{
 					"EC_ENDPOINT": "https://cloud.elastic.co/api",
-				},
-				config: providerConfig{
-					Endpoint: types.String{Null: true},
-					Username: types.String{Null: true},
 				},
 			},
 			diags: func() diag.Diagnostics {

@@ -138,7 +138,7 @@ func Test_newAPIConfig(t *testing.T) {
 			name: "default config returns with authwriter error",
 			args: args{
 				apiSetup: apiSetup{
-					timeout: defaultTimeout.String(),
+					timeout: defaultTimeout,
 				},
 			},
 			err: multierror.NewPrefixed("authwriter",
@@ -147,22 +147,11 @@ func Test_newAPIConfig(t *testing.T) {
 		},
 
 		{
-			name: "default config with invalid timeout returns with authwriter error",
-			args: args{
-				apiSetup: apiSetup{
-					timeout: "invalid",
-					apikey:  "secret",
-				},
-			},
-			err: errors.New(`time: invalid duration "invalid"`),
-		},
-
-		{
 			name: "custom config with apikey auth succeeds",
 			args: args{
 				apiSetup: apiSetup{
 					apikey:   "secret",
-					timeout:  defaultTimeout.String(),
+					timeout:  defaultTimeout,
 					endpoint: api.ESSEndpoint,
 				},
 			},
@@ -183,7 +172,7 @@ func Test_newAPIConfig(t *testing.T) {
 				apiSetup: apiSetup{
 					username: "my-user",
 					password: "my-pass",
-					timeout:  defaultTimeout.String(),
+					timeout:  defaultTimeout,
 					endpoint: api.ESSEndpoint,
 				},
 			},
@@ -204,7 +193,7 @@ func Test_newAPIConfig(t *testing.T) {
 				apiSetup: apiSetup{
 					apikey:   "secret",
 					insecure: true,
-					timeout:  defaultTimeout.String(),
+					timeout:  defaultTimeout,
 					endpoint: api.ESSEndpoint,
 				},
 			},
@@ -227,7 +216,7 @@ func Test_newAPIConfig(t *testing.T) {
 					apikey:      "secret",
 					verbose:     true,
 					verboseFile: "request.log",
-					timeout:     defaultTimeout.String(),
+					timeout:     defaultTimeout,
 					endpoint:    api.ESSEndpoint,
 				},
 			},
@@ -254,7 +243,7 @@ func Test_newAPIConfig(t *testing.T) {
 					apikey:      "secret",
 					verbose:     true,
 					verboseFile: customFile.Name(),
-					timeout:     defaultTimeout.String(),
+					timeout:     defaultTimeout,
 					endpoint:    api.ESSEndpoint,
 				},
 			},
@@ -282,7 +271,7 @@ func Test_newAPIConfig(t *testing.T) {
 					verbose:            true,
 					verboseFile:        customFile.Name(),
 					verboseCredentials: true,
-					timeout:            defaultTimeout.String(),
+					timeout:            defaultTimeout,
 					endpoint:           api.ESSEndpoint,
 				},
 			},
@@ -310,7 +299,7 @@ func Test_newAPIConfig(t *testing.T) {
 					verbose:            true,
 					verboseFile:        invalidPath,
 					verboseCredentials: true,
-					timeout:            defaultTimeout.String(),
+					timeout:            defaultTimeout,
 				},
 			},
 			err: fmt.Errorf(`failed creating verbose file "%s": %w`,
