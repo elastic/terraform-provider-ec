@@ -129,7 +129,7 @@ func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state 
 	diags.Append(flattenEnterpriseSearchResources(ctx, res.Resources.EnterpriseSearch, &state.EnterpriseSearch)...)
 
 	if res.Metadata != nil {
-		state.Tags = converters.TagsToTypeMap(res.Metadata.Tags)
+		state.Tags = converters.ModelsTagsToTypesMap(res.Metadata.Tags)
 	}
 
 	return diags

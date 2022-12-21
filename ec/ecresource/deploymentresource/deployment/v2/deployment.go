@@ -138,7 +138,7 @@ func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteRes
 	dep.Name = *res.Name
 
 	if res.Metadata != nil {
-		dep.Tags = converters.TagsToMap(res.Metadata.Tags)
+		dep.Tags = converters.ModelsTagsToMap(res.Metadata.Tags)
 	}
 
 	if res.Resources == nil {
@@ -296,7 +296,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 
 	result.Settings.Observability = observabilityPayload
 
-	result.Metadata.Tags, diags = converters.TFmapToTags(ctx, dep.Tags)
+	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, dep.Tags)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
@@ -505,7 +505,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		result.Settings.Observability = &models.DeploymentObservabilitySettings{}
 	}
 
-	result.Metadata.Tags, diags = converters.TFmapToTags(ctx, plan.Tags)
+	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, plan.Tags)
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
 	}

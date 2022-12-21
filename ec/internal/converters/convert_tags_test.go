@@ -72,7 +72,7 @@ func TestFlattenTags(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := TagsToTypeMap(tt.args.metadata.Tags)
+			result := ModelsTagsToTypesMap(tt.args.metadata.Tags)
 			got := make(map[string]string, len(result.Elems))
 			result.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)

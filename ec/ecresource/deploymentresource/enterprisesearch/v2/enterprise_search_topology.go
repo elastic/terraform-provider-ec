@@ -105,7 +105,7 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 		return nil, diags
 	}
 
-	size, err := converters.ParseTopologySizeTF(topology.Size, topology.SizeResource)
+	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
 
 	if err != nil {
 		diags.AddError("failed parse enterprise search topology size", err.Error())
