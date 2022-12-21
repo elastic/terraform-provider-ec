@@ -95,7 +95,7 @@ func verboseSettings(name string, verbose, redactAuth bool) (api.VerboseSettings
 	}
 
 	return api.VerboseSettings{
-		Verbose:    verbose,
+		Verbose:    true,
 		RedactAuth: redactAuth,
 		Device:     f,
 	}, nil
