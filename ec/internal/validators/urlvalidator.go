@@ -91,7 +91,7 @@ func (v isURLWithSchemeValidator) Validate(ctx context.Context, req tfsdk.Valida
 		resp.Diagnostics.AddAttributeError(
 			req.AttributePath,
 			v.Description(ctx),
-			fmt.Sprintf("URL is expected to have a valid scheme, got %v (%v)", u.Scheme, str.Value),
+			fmt.Sprintf("URL is expected to have a valid scheme (one of '%v'), got %v (%v)", v.ValidSchemes, u.Scheme, str.Value),
 		)
 	}
 }
