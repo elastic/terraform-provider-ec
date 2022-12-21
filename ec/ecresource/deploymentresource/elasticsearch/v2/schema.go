@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -120,7 +120,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
 				Type:        types.StringType,
 				Optional:    true,
-				Validators:  []tfsdk.AttributeValidator{validators.OneOf(strategiesList)},
+				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
 			},
 		}),
 	}
@@ -301,7 +301,7 @@ func ElasticsearchExtensionSchema() tfsdk.Attribute {
 				Description: "Extension type, only `bundle` or `plugin` are supported.",
 				Type:        types.StringType,
 				Required:    true,
-				Validators:  []tfsdk.AttributeValidator{validators.OneOf([]string{`"bundle"`, `"plugin"`})},
+				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
 			},
 			"version": {
 				Description: "Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.",
