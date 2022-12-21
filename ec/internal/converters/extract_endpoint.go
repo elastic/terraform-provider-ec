@@ -28,7 +28,7 @@ import (
 // FlattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
 // https endpoints and returns a map with two keys: `http_endpoint` and
 // `https_endpoint`
-func ExtractEndpointsTF(metadata *models.ClusterMetadataInfo) (httpEndpoint, httpsEndpoint types.String) {
+func ExtractEndpointsToTypes(metadata *models.ClusterMetadataInfo) (httpEndpoint, httpsEndpoint types.String) {
 	httpEndpointStr, httpsEndpointStr := ExtractEndpoints(metadata)
 
 	if httpEndpointStr != nil {

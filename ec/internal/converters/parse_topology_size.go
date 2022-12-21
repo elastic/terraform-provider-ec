@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ParseTopologySizeTF(size, sizeResource types.String) (*models.TopologySize, error) {
+func ParseTopologySizeTypes(size, sizeResource types.String) (*models.TopologySize, error) {
 	return ParseTopologySize(&size.Value, &sizeResource.Value)
 }
 

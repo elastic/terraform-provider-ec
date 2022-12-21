@@ -32,7 +32,7 @@ import (
 
 // flattenTags takes in Deployment Metadata resource models and returns its
 // Tags in flattened form.
-func TagsToTypeMap(metadataItems []*models.MetadataItem) types.Map {
+func ModelsTagsToTypesMap(metadataItems []*models.MetadataItem) types.Map {
 	var tags = make(map[string]attr.Value)
 	for _, res := range metadataItems {
 		if res.Key != nil {
@@ -44,7 +44,7 @@ func TagsToTypeMap(metadataItems []*models.MetadataItem) types.Map {
 
 // flattenTags takes in Deployment Metadata resource models and returns its
 // Tags as Go map
-func TagsToMap(metadataItems []*models.MetadataItem) map[string]string {
+func ModelsTagsToMap(metadataItems []*models.MetadataItem) map[string]string {
 	if len(metadataItems) == 0 {
 		return nil
 	}
@@ -57,7 +57,7 @@ func TagsToMap(metadataItems []*models.MetadataItem) map[string]string {
 	return res
 }
 
-func MapToTags(raw map[string]string) []*models.MetadataItem {
+func MapToModelsTags(raw map[string]string) []*models.MetadataItem {
 	result := make([]*models.MetadataItem, 0, len(raw))
 	for k, v := range raw {
 		result = append(result, &models.MetadataItem{
@@ -74,7 +74,7 @@ func MapToTags(raw map[string]string) []*models.MetadataItem {
 	return result
 }
 
-func TFmapToTags(ctx context.Context, raw types.Map) ([]*models.MetadataItem, diag.Diagnostics) {
+func TypesMapToModelsTags(ctx context.Context, raw types.Map) ([]*models.MetadataItem, diag.Diagnostics) {
 	result := make([]*models.MetadataItem, 0, len(raw.Elems))
 	for k, v := range raw.Elems {
 		var tag string

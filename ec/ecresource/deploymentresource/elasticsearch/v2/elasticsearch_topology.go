@@ -81,7 +81,7 @@ func (topology ElasticsearchTopologyTF) Payload(ctx context.Context, topologyID 
 		return diags
 	}
 
-	size, err := converters.ParseTopologySizeTF(topology.Size, topology.SizeResource)
+	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
 	if err != nil {
 		diags.AddError("size parsing error", err.Error())
 	}
