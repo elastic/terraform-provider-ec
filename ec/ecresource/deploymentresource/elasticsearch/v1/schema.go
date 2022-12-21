@@ -22,8 +22,8 @@ import (
 	"strings"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -362,7 +362,7 @@ func ElasticsearchExtensionSchema() tfsdk.Attribute {
 				Description: "Extension type, only `bundle` or `plugin` are supported.",
 				Type:        types.StringType,
 				Required:    true,
-				Validators:  []tfsdk.AttributeValidator{validators.OneOf([]string{`"bundle"`, `"plugin"`})},
+				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
 			},
 			"version": {
 				Description: "Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.",
@@ -448,7 +448,7 @@ func ElasticsearchStrategySchema() tfsdk.Attribute {
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
 				Type:        types.StringType,
 				Required:    true,
-				Validators:  []tfsdk.AttributeValidator{validators.OneOf(strategiesList)},
+				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
 				// TODO
 				// changes on this setting do not change the plan.
 				// DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
