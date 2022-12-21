@@ -57,6 +57,7 @@ func Test_Configure(t *testing.T) {
 				return diags
 			}(),
 		},
+
 		{
 			name: `provider config and env vars don't define either api key or user login/passwords`,
 			args: args{
@@ -74,6 +75,64 @@ func Test_Configure(t *testing.T) {
 				return diags
 			}(),
 		},
+
+		{
+			name: `provider config doesn't define "insecure" and "EC_INSECURE" contains invalid value`,
+			args: args{
+				env: map[string]string{
+					"EC_INSECURE": "invalid",
+				},
+				config: providerConfig{
+					Endpoint: types.String{Value: "https://cloud.elastic.co/api"},
+					ApiKey:   types.String{Value: "secret"},
+					Insecure: types.Bool{Null: true},
+				},
+			},
+			diags: func() diag.Diagnostics {
+				var diags diag.Diagnostics
+				diags.AddError("Unable to create client", "Invalid value 'invalid' in 'EC_INSECURE' or 'EC_SKIP_TLS_VALIDATION'")
+				return diags
+			}(),
+		},
+
+		{
+			name: `provider config doesn't define "verbose" and "EC_VERBOSE" contains invalid value`,
+			args: args{
+				env: map[string]string{
+					"EC_VERBOSE": "invalid",
+				},
+				config: providerConfig{
+					Endpoint: types.String{Value: "https://cloud.elastic.co/api"},
+					ApiKey:   types.String{Value: "secret"},
+					Verbose:  types.Bool{Null: true},
+				},
+			},
+			diags: func() diag.Diagnostics {
+				var diags diag.Diagnostics
+				diags.AddError("Unable to create client", "Invalid value 'invalid' in 'EC_VERBOSE'")
+				return diags
+			}(),
+		},
+
+		{
+			name: `provider config doesn't define "verbose" and "EC_VERBOSE_CREDENTIALS" contains invalid value`,
+			args: args{
+				env: map[string]string{
+					"EC_VERBOSE_CREDENTIALS": "invalid",
+				},
+				config: providerConfig{
+					Endpoint:           types.String{Value: "https://cloud.elastic.co/api"},
+					ApiKey:             types.String{Value: "secret"},
+					VerboseCredentials: types.Bool{Null: true},
+				},
+			},
+			diags: func() diag.Diagnostics {
+				var diags diag.Diagnostics
+				diags.AddError("Unable to create client", "Invalid value 'invalid' in 'EC_VERBOSE_CREDENTIALS'")
+				return diags
+			}(),
+		},
+
 		{
 			name: `provider config is read from environment variables`,
 			args: args{

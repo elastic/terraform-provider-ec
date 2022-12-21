@@ -183,112 +183,106 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
-	// Retrieve provider data from configuration
 	var config providerConfig
 
 	diags := req.Config.Get(ctx, &config)
+
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var endpoint string
+	endpoint := config.Endpoint.Value
+
 	if config.Endpoint.Null {
 		endpoint = util.MultiGetenvOrDefault([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
 
-		validateReq := tfsdk.ValidateAttributeRequest{
-			AttributePath:   path.Root("endpoint"),
-			AttributeConfig: types.String{Value: endpoint},
-		}
+		diags := validateEndpoint(ctx, endpoint)
 
-		validateResp := tfsdk.ValidateAttributeResponse{}
+		resp.Diagnostics.Append(diags...)
 
-		validators.IsURLWithSchemeValidator(validURLSchemes).Validate(ctx, validateReq, &validateResp)
-
-		if validateResp.Diagnostics.HasError() {
-			resp.Diagnostics.Append(validateResp.Diagnostics...)
+		if diags.HasError() {
 			return
 		}
-	} else {
-		endpoint = config.Endpoint.Value
 	}
 
-	var apiKey string
+	apiKey := config.ApiKey.Value
+
 	if config.ApiKey.Null {
 		apiKey = util.MultiGetenvOrDefault([]string{"EC_API_KEY"}, "")
-	} else {
-		apiKey = config.ApiKey.Value
 	}
 
-	var username string
+	username := config.Username.Value
+
 	if config.Username.Null {
 		username = util.MultiGetenvOrDefault([]string{"EC_USER", "EC_USERNAME"}, "")
-	} else {
-		username = config.Username.Value
 	}
 
-	var password string
+	password := config.Password.Value
+
 	if config.Password.Null {
 		password = util.MultiGetenvOrDefault([]string{"EC_PASS", "EC_PASSWORD"}, "")
-	} else {
-		password = config.Password.Value
 	}
 
-	var err error
-	var insecure bool
+	insecure := config.Insecure.Value
+
 	if config.Insecure.Null {
 		insecureStr := util.MultiGetenvOrDefault([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
+
+		var err error
+
 		if insecure, err = util.StringToBool(insecureStr); err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create client",
-				fmt.Sprintf("Invalid value %v for insecure", insecureStr),
+				fmt.Sprintf("Invalid value '%v' in 'EC_INSECURE' or 'EC_SKIP_TLS_VALIDATION'", insecureStr),
 			)
 			return
 		}
-	} else {
-		insecure = config.Insecure.Value
 	}
 
-	var timeout string
+	timeout := config.Timeout.Value
+
 	if config.Timeout.Null {
 		timeout = util.MultiGetenvOrDefault([]string{"EC_TIMEOUT"}, defaultTimeout.String())
-	} else {
-		timeout = config.Timeout.Value
 	}
 
-	var verbose bool
+	verbose := config.Verbose.Value
+
 	if config.Verbose.Null {
 		verboseStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE"}, "")
+
+		var err error
+
 		if verbose, err = util.StringToBool(verboseStr); err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create client",
-				fmt.Sprintf("Invalid value %v for verbose", verboseStr),
+				fmt.Sprintf("Invalid value '%v' in 'EC_VERBOSE'", verboseStr),
 			)
 			return
 		}
-	} else {
-		verbose = config.Verbose.Value
 	}
 
-	var verboseCredentials bool
+	verboseCredentials := config.VerboseCredentials.Value
+
 	if config.VerboseCredentials.Null {
 		verboseCredentialsStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE_CREDENTIALS"}, "")
+
+		var err error
+
 		if verboseCredentials, err = util.StringToBool(verboseCredentialsStr); err != nil {
 			resp.Diagnostics.AddError(
 				"Unable to create client",
-				fmt.Sprintf("Invalid value %v for verboseCredentials", verboseCredentialsStr),
+				fmt.Sprintf("Invalid value '%v' in 'EC_VERBOSE_CREDENTIALS'", verboseCredentialsStr),
 			)
 			return
 		}
-	} else {
-		verboseCredentials = config.VerboseCredentials.Value
 	}
 
-	var verboseFile string
+	verboseFile := config.VerboseFile.Value
+
 	if config.VerboseFile.Null {
 		verboseFile = util.MultiGetenvOrDefault([]string{"EC_VERBOSE_FILE"}, "request.log")
-	} else {
-		verboseFile = config.VerboseFile.Value
 	}
 
 	cfg, err := newAPIConfig(apiSetup{
@@ -312,6 +306,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 
 	client, err := api.NewAPI(cfg)
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create api Client config",
@@ -323,4 +318,17 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	p.client = client
 	resp.DataSourceData = client
 	resp.ResourceData = client
+}
+
+func validateEndpoint(ctx context.Context, endpoint string) diag.Diagnostics {
+	validateReq := tfsdk.ValidateAttributeRequest{
+		AttributePath:   path.Root("endpoint"),
+		AttributeConfig: types.String{Value: endpoint},
+	}
+
+	validateResp := tfsdk.ValidateAttributeResponse{}
+
+	validators.IsURLWithSchemeValidator(validURLSchemes).Validate(ctx, validateReq, &validateResp)
+
+	return validateResp.Diagnostics
 }
