@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	// DefaultHTTPRetries to use for the provider's HTTP Client.
+	// DefaultHTTPRetries to use for the provider's HTTP client.
 	DefaultHTTPRetries = 2
 )
 
@@ -42,7 +42,7 @@ type apiSetup struct {
 	username           string
 	password           string
 	insecure           bool
-	timeout            string
+	timeout            time.Duration
 	verbose            bool
 	verboseCredentials bool
 	verboseFile        string
@@ -57,11 +57,6 @@ func newAPIConfig(setup apiSetup) (api.Config, error) {
 		Username: setup.username,
 		Password: setup.password,
 	})
-	if err != nil {
-		return cfg, err
-	}
-
-	timeoutDuration, err := time.ParseDuration(setup.timeout)
 	if err != nil {
 		return cfg, err
 	}
@@ -82,7 +77,7 @@ func newAPIConfig(setup apiSetup) (api.Config, error) {
 		AuthWriter:      authWriter,
 		Host:            setup.endpoint,
 		SkipTLSVerify:   setup.insecure,
-		Timeout:         timeoutDuration,
+		Timeout:         setup.timeout,
 		UserAgent:       userAgent(Version),
 		Retries:         DefaultHTTPRetries,
 	}, nil

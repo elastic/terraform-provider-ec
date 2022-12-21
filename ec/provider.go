@@ -195,7 +195,7 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	endpoint := config.Endpoint.Value
 
-	if config.Endpoint.Null {
+	if config.Endpoint.Null || config.Endpoint.Value == "" {
 		endpoint = util.MultiGetenvOrDefault([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
 
 		diags := validateEndpoint(ctx, endpoint)
@@ -209,28 +209,39 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	apiKey := config.ApiKey.Value
 
-	if config.ApiKey.Null {
+	if config.ApiKey.Null || config.ApiKey.Value == "" {
 		apiKey = util.MultiGetenvOrDefault([]string{"EC_API_KEY"}, "")
 	}
 
 	username := config.Username.Value
 
-	if config.Username.Null {
+	if config.Username.Null || config.Username.Value == "" {
 		username = util.MultiGetenvOrDefault([]string{"EC_USER", "EC_USERNAME"}, "")
 	}
 
 	password := config.Password.Value
 
-	if config.Password.Null {
+	if config.Password.Null || config.Password.Value == "" {
 		password = util.MultiGetenvOrDefault([]string{"EC_PASS", "EC_PASSWORD"}, "")
+	}
+
+	timeoutStr := config.Timeout.Value
+
+	if config.Timeout.Null || config.Timeout.Value == "" {
+		timeoutStr = util.MultiGetenvOrDefault([]string{"EC_TIMEOUT"}, defaultTimeout.String())
+	}
+
+	timeout, err := time.ParseDuration(timeoutStr)
+
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to create client", err.Error())
+		return
 	}
 
 	insecure := config.Insecure.Value
 
 	if config.Insecure.Null {
 		insecureStr := util.MultiGetenvOrDefault([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
-
-		var err error
 
 		if insecure, err = util.StringToBool(insecureStr); err != nil {
 			resp.Diagnostics.AddError(
@@ -241,18 +252,10 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		}
 	}
 
-	timeout := config.Timeout.Value
-
-	if config.Timeout.Null {
-		timeout = util.MultiGetenvOrDefault([]string{"EC_TIMEOUT"}, defaultTimeout.String())
-	}
-
 	verbose := config.Verbose.Value
 
 	if config.Verbose.Null {
 		verboseStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE"}, "")
-
-		var err error
 
 		if verbose, err = util.StringToBool(verboseStr); err != nil {
 			resp.Diagnostics.AddError(
@@ -267,8 +270,6 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	if config.VerboseCredentials.Null {
 		verboseCredentialsStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE_CREDENTIALS"}, "")
-
-		var err error
 
 		if verboseCredentials, err = util.StringToBool(verboseCredentialsStr); err != nil {
 			resp.Diagnostics.AddError(
