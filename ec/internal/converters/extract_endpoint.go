@@ -29,16 +29,14 @@ import (
 // https endpoints and returns a map with two keys: `http_endpoint` and
 // `https_endpoint`
 func ExtractEndpointsTF(metadata *models.ClusterMetadataInfo) (httpEndpoint, httpsEndpoint types.String) {
-	if metadata == nil || metadata.Endpoint == "" || metadata.Ports == nil {
-		return
+	httpEndpointStr, httpsEndpointStr := ExtractEndpoints(metadata)
+
+	if httpEndpointStr != nil {
+		httpEndpoint = types.String{Value: *httpEndpointStr}
 	}
 
-	if metadata.Ports.HTTP != nil {
-		httpEndpoint = types.String{Value: fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP)}
-	}
-
-	if metadata.Ports.HTTPS != nil {
-		httpsEndpoint = types.String{Value: fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS)}
+	if httpsEndpointStr != nil {
+		httpsEndpoint = types.String{Value: *httpsEndpointStr}
 	}
 
 	return
