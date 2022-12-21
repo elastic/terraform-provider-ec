@@ -96,14 +96,6 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
 
-/*
-	TODO - see https://github.com/multani/terraform-provider-camunda/pull/16/files
-
-	Timeouts: &schema.ResourceTimeout{
-		Default: schema.DefaultTimeout(5 * time.Minute),
-	},
-*/
-
 func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state *modelV0) diag.Diagnostics {
 	var diags diag.Diagnostics
 
