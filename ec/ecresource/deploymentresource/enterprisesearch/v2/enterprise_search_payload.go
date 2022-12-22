@@ -22,9 +22,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v1"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
-	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,69 +42,6 @@ type EnterpriseSearchTF struct {
 	NodeTypeConnector         types.Bool   `tfsdk:"node_type_connector"`
 	NodeTypeWorker            types.Bool   `tfsdk:"node_type_worker"`
 	Config                    types.Object `tfsdk:"config"`
-}
-
-type EnterpriseSearch struct {
-	ElasticsearchClusterRefId *string                 `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     *string                 `tfsdk:"ref_id"`
-	ResourceId                *string                 `tfsdk:"resource_id"`
-	Region                    *string                 `tfsdk:"region"`
-	HttpEndpoint              *string                 `tfsdk:"http_endpoint"`
-	HttpsEndpoint             *string                 `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   *string                 `tfsdk:"instance_configuration_id"`
-	Size                      *string                 `tfsdk:"size"`
-	SizeResource              *string                 `tfsdk:"size_resource"`
-	ZoneCount                 int                     `tfsdk:"zone_count"`
-	NodeTypeAppserver         *bool                   `tfsdk:"node_type_appserver"`
-	NodeTypeConnector         *bool                   `tfsdk:"node_type_connector"`
-	NodeTypeWorker            *bool                   `tfsdk:"node_type_worker"`
-	Config                    *EnterpriseSearchConfig `tfsdk:"config"`
-}
-
-type EnterpriseSearches []EnterpriseSearch
-
-func ReadEnterpriseSearch(in *models.EnterpriseSearchResourceInfo) (*EnterpriseSearch, error) {
-	if util.IsCurrentEssPlanEmpty(in) || utils.IsEssResourceStopped(in) {
-		return nil, nil
-	}
-
-	var ess EnterpriseSearch
-
-	ess.RefId = in.RefID
-
-	ess.ResourceId = in.Info.ID
-
-	ess.Region = in.Region
-
-	plan := in.Info.PlanInfo.Current.Plan
-
-	topologies, err := ReadEnterpriseSearchTopologies(plan.ClusterTopology)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(topologies) > 0 {
-		ess.InstanceConfigurationId = topologies[0].InstanceConfigurationId
-		ess.Size = topologies[0].Size
-		ess.SizeResource = topologies[0].SizeResource
-		ess.ZoneCount = topologies[0].ZoneCount
-		ess.NodeTypeAppserver = topologies[0].NodeTypeAppserver
-		ess.NodeTypeConnector = topologies[0].NodeTypeConnector
-		ess.NodeTypeWorker = topologies[0].NodeTypeWorker
-	}
-
-	ess.ElasticsearchClusterRefId = in.ElasticsearchClusterRefID
-
-	ess.HttpEndpoint, ess.HttpsEndpoint = converters.ExtractEndpoints(in.Info.Metadata)
-
-	cfg, err := readEnterpriseSearchConfig(plan.EnterpriseSearch)
-	if err != nil {
-		return nil, err
-	}
-	ess.Config = cfg
-
-	return &ess, nil
 }
 
 func (es *EnterpriseSearchTF) Payload(ctx context.Context, payload models.EnterpriseSearchPayload) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
@@ -156,23 +90,6 @@ func (es *EnterpriseSearchTF) Payload(ctx context.Context, payload models.Enterp
 	}
 
 	return &payload, diags
-}
-
-func ReadEnterpriseSearches(in []*models.EnterpriseSearchResourceInfo) (*EnterpriseSearch, error) {
-	for _, model := range in {
-		if util.IsCurrentEssPlanEmpty(model) || utils.IsEssResourceStopped(model) {
-			continue
-		}
-
-		es, err := ReadEnterpriseSearch(model)
-		if err != nil {
-			return nil, err
-		}
-
-		return es, nil
-	}
-
-	return nil, nil
 }
 
 func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template *models.DeploymentTemplateInfoV2) (*models.EnterpriseSearchPayload, diag.Diagnostics) {

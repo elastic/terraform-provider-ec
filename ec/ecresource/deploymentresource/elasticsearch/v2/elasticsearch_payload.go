@@ -108,7 +108,7 @@ func (es *ElasticsearchTF) Payload(ctx context.Context, res *models.Elasticsearc
 
 	// Fixes the node_roles field to remove the dedicated tier roles from the
 	// list when these are set as a dedicated tier as a topology element.
-	UpdateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
+	updateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
 
 	res.Plan.Elasticsearch, ds = ElasticsearchConfigPayload(ctx, es.Config, res.Plan.Elasticsearch)
 	diags.Append(ds...)
@@ -178,7 +178,7 @@ func unsetElasticsearchCuration(payload *models.ElasticsearchPayload) {
 	}
 }
 
-func UpdateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTopologyElement) {
+func updateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTopologyElement) {
 	dataTier, hasMasterTier, hasIngestTier := dedicatedTopoogies(topologies)
 	// This case is not very likely since all deployments will have a data tier.
 	// It's here because the code path is technically possible and it's better
