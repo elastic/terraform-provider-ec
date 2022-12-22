@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
@@ -72,11 +73,7 @@ func flattenEnterpriseSearchResources(ctx context.Context, in []*models.Enterpri
 			}
 
 			if res.Info.Metadata != nil {
-				endpoints := util.FlattenClusterEndpoint(res.Info.Metadata)
-				if endpoints != nil {
-					model.HttpEndpoint = types.String{Value: endpoints["http_endpoint"].(string)}
-					model.HttpsEndpoint = types.String{Value: endpoints["https_endpoint"].(string)}
-				}
+				model.HttpEndpoint, model.HttpsEndpoint = converters.ExtractEndpointsToTypes(res.Info.Metadata)
 			}
 		}
 

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package util
+package converters
 
 import (
 	"testing"
@@ -30,10 +30,14 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 	type args struct {
 		metadata *models.ClusterMetadataInfo
 	}
+	type want struct {
+		httpEndpoint  *string
+		httpsEndpoint *string
+	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]interface{}
+		want want
 	}{
 		{
 			name: "returns nil when the endpoint info is empty",
@@ -48,9 +52,9 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 					HTTPS: ec.Int32(9243),
 				},
 			}},
-			want: map[string]interface{}{
-				"http_endpoint":  "http://xyz.us-east-1.aws.found.io:9200",
-				"https_endpoint": "https://xyz.us-east-1.aws.found.io:9243",
+			want: want{
+				httpEndpoint:  ec.String("http://xyz.us-east-1.aws.found.io:9200"),
+				httpsEndpoint: ec.String("https://xyz.us-east-1.aws.found.io:9243"),
 			},
 		},
 		{
@@ -62,16 +66,17 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 					HTTPS: ec.Int32(20000),
 				},
 			}},
-			want: map[string]interface{}{
-				"http_endpoint":  "http://rst.us-east-1.aws.found.io:10000",
-				"https_endpoint": "https://rst.us-east-1.aws.found.io:20000",
+			want: want{
+				httpEndpoint:  ec.String("http://rst.us-east-1.aws.found.io:10000"),
+				httpsEndpoint: ec.String("https://rst.us-east-1.aws.found.io:20000"),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := FlattenClusterEndpoint(tt.args.metadata)
-			assert.Equal(t, tt.want, got)
+			httpEndpoint, httpsEndpoint := ExtractEndpoints(tt.args.metadata)
+			assert.Equal(t, tt.want.httpEndpoint, httpEndpoint)
+			assert.Equal(t, tt.want.httpsEndpoint, httpsEndpoint)
 		})
 	}
 }
