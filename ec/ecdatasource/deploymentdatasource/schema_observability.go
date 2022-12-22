@@ -42,12 +42,12 @@ func observabilitySettingsSchema() tfsdk.Attribute {
 			},
 			"logs": {
 				Type:        types.BoolType,
-				Description: "Defines whether logs are enabled or disabled.",
+				Description: "Defines whether logs are shipped to the destination deployment.",
 				Computed:    true,
 			},
 			"metrics": {
 				Type:        types.BoolType,
-				Description: "Defines whether metrics are enabled or disabled.",
+				Description: "Defines whether metrics are shipped to the destination deployment.",
 				Computed:    true,
 			},
 		}),

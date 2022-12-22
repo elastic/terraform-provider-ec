@@ -42,8 +42,8 @@ func elasticsearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"cloud_id": {
 				Type:                types.StringType,
-				Description:         "The encoded Elasticsearch credentials to use in Beats or Logstash.",
-				MarkdownDescription: "The encoded Elasticsearch credentials to use in Beats or Logstash. See [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html) for more information.",
+				Description:         "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.",
+				MarkdownDescription: "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana. See [Configure Beats and Logstash with Cloud ID](https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html) for more information.",
 				Computed:            true,
 			},
 			"http_endpoint": {
@@ -58,7 +58,7 @@ func elasticsearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"ref_id": {
 				Type:        types.StringType,
-				Description: "User specified ref_id for the resource kind.",
+				Description: "A locally-unique friendly alias for this Elasticsearch cluster.",
 				Computed:    true,
 			},
 			"resource_id": {
@@ -113,7 +113,7 @@ func elasticsearchTopologySchema() tfsdk.Attribute {
 			},
 			"node_type_data": {
 				Type:        types.BoolType,
-				Description: "Defines whether this node can hold data (<7.10.0).",
+				Description: "Defines whether this node can hold data (<8.0).",
 				Computed:    true,
 			},
 			"node_type_master": {
@@ -133,7 +133,7 @@ func elasticsearchTopologySchema() tfsdk.Attribute {
 			},
 			"node_roles": {
 				Type:        types.SetType{ElemType: types.StringType},
-				Description: "Defines the list of Elasticsearch node roles assigned to the topology element (>=7.10.0).",
+				Description: "Defines the list of Elasticsearch node roles assigned to the topology element. This is supported from v7.10, and required from v8.",
 				Computed:    true,
 			},
 			"autoscaling": elasticsearchAutoscalingSchema(),
@@ -153,27 +153,27 @@ func elasticsearchAutoscalingSchema() tfsdk.Attribute {
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"max_size_resource": {
 				Type:        types.StringType,
-				Description: "Maximum resource type for the maximum autoscaling setting.",
+				Description: "Resource type used when specifying the maximum size the tier can scale up to.",
 				Computed:    true,
 			},
 			"max_size": {
 				Type:        types.StringType,
-				Description: "Maximum size value for the maximum autoscaling setting.",
+				Description: "Maximum size the tier can scale up to, e.g \"64g\".",
 				Computed:    true,
 			},
 			"min_size_resource": {
 				Type:        types.StringType,
-				Description: "Minimum resource type for the minimum autoscaling setting.",
+				Description: "Resource type used when specifying the minimum size the tier can scale down to when bidirectional autoscaling is supported.",
 				Computed:    true,
 			},
 			"min_size": {
 				Type:        types.StringType,
-				Description: "Minimum size value for the minimum autoscaling setting.",
+				Description: "Minimum size the tier can scale down to when bidirectional autoscaling is supported.",
 				Computed:    true,
 			},
 			"policy_override_json": {
 				Type:        types.StringType,
-				Description: "Computed policy overrides set directly via the API or other clients.",
+				Description: "An arbitrary JSON object overriding the default autoscaling policy. Don't set unless you really know what you are doing.",
 				Computed:    true,
 			},
 		}),

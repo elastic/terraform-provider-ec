@@ -99,12 +99,12 @@ func elasticSearchConfigSchema() tfsdk.Attribute {
 			},
 			"capacity_constraints_max": {
 				Type:        types.Int64Type,
-				Description: "Minimum size of the instances.",
+				Description: "Maximum size of the instances.",
 				Computed:    true,
 			},
 			"capacity_constraints_min": {
 				Type:        types.Int64Type,
-				Description: "Maximum size of the instances.",
+				Description: "Minimum size of the instances.",
 				Computed:    true,
 			},
 			"compatible_node_types": {
@@ -156,12 +156,12 @@ func resourceKindConfigSchema(resourceKind ResourceKind) tfsdk.Attribute {
 			},
 			"capacity_constraints_max": {
 				Type:        types.Int64Type,
-				Description: "Minimum size of the instances.",
+				Description: "Maximum size of the instances.",
 				Computed:    true,
 			},
 			"capacity_constraints_min": {
 				Type:        types.Int64Type,
-				Description: "Maximum size of the instances.",
+				Description: "Minimum size of the instances.",
 				Computed:    true,
 			},
 			"compatible_node_types": {

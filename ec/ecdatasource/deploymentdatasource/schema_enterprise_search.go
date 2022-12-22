@@ -32,7 +32,7 @@ func enterpriseSearchResourceInfoSchema() tfsdk.Attribute {
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {
 				Type:        types.StringType,
-				Description: "The user-specified ID of the Elasticsearch cluster to which this resource kind will link.",
+				Description: "A locally-unique friendly alias for an Elasticsearch resource in this deployment.",
 				Computed:    true,
 			},
 			"healthy": {
@@ -52,7 +52,7 @@ func enterpriseSearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"ref_id": {
 				Type:        types.StringType,
-				Description: "User specified ref_id for the resource kind.",
+				Description: "A locally-unique friendly alias for this Enterprise Search resource.",
 				Computed:    true,
 			},
 			"resource_id": {

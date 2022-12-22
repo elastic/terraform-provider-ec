@@ -32,7 +32,7 @@ func apmResourceInfoSchema() tfsdk.Attribute {
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {
 				Type:        types.StringType,
-				Description: "The user-specified ID of the Elasticsearch cluster to which this resource kind will link.",
+				Description: "The locally-unique user-specified id of an Elasticsearch Resource.",
 				Computed:    true,
 			},
 			"healthy": {
@@ -52,7 +52,7 @@ func apmResourceInfoSchema() tfsdk.Attribute {
 			},
 			"ref_id": {
 				Type:        types.StringType,
-				Description: "User specified ref_id for the resource kind.",
+				Description: "A locally-unique friendly alias for this APM resource.",
 				Computed:    true,
 			},
 			"resource_id": {
@@ -92,7 +92,7 @@ func apmTopologySchema() tfsdk.Attribute {
 			},
 			"size": {
 				Type:        types.StringType,
-				Description: "Amount of resource per topology element in the \"g\" notation.",
+				Description: "Amount of size_resource in Gigabytes. For example \"4g\".",
 				Computed:    true,
 			},
 			"size_resource": {

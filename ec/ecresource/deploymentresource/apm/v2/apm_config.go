@@ -57,10 +57,8 @@ func readApmConfigs(in *models.ApmConfiguration) (v1.ApmConfigs, error) {
 		cfg.DockerImage = &in.DockerImage
 	}
 
-	if in.SystemSettings != nil {
-		if in.SystemSettings.DebugEnabled != nil {
-			cfg.DebugEnabled = in.SystemSettings.DebugEnabled
-		}
+	if in.SystemSettings != nil && in.SystemSettings.DebugEnabled != nil {
+		cfg.DebugEnabled = in.SystemSettings.DebugEnabled
 	}
 
 	if cfg == (ApmConfig{}) {
