@@ -34,7 +34,6 @@ func Test_parseCredentials(t *testing.T) {
 		name string
 		args args
 		want Deployment
-		err  error
 	}{
 		{
 			name: "Parses credentials",
@@ -75,13 +74,8 @@ func Test_parseCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.args.dep.parseCredentials(tt.args.resources)
-			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, tt.args.dep)
-			}
+			tt.args.dep.parseCredentials(tt.args.resources)
+			assert.Equal(t, tt.want, tt.args.dep)
 		})
 	}
 }
