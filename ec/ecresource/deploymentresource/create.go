@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
-	deploymentv "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -32,14 +32,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	var config deploymentv.DeploymentTF
+	var config v2.DeploymentTF
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var plan deploymentv.DeploymentTF
+	var plan v2.DeploymentTF
 	diags = req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -78,7 +78,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	tflog.Trace(ctx, "created deployment resource")
 
-	resp.Diagnostics.Append(deploymentv.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
+	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
 
 	deployment, diags := r.read(ctx, *res.ID, nil, plan, res.Resources)
 

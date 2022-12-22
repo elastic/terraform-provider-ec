@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -164,5 +165,33 @@ func associateRule(ruleID, deploymentID string, client *api.API) error {
 	}); err != nil {
 		return err
 	}
+	return nil
+}
+
+func removeRule(ruleID, deploymentID string, client *api.API) error {
+	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+		API: client, ID: ruleID, IncludeAssociations: true,
+	})
+
+	// If the rule is gone (403 or 404), return nil.
+	if err != nil {
+		if util.TrafficFilterNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	// If the rule is found, then delete the association.
+	for _, assoc := range res.Associations {
+		if deploymentID == *assoc.ID {
+			return trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+				API:        client,
+				ID:         ruleID,
+				EntityID:   *assoc.ID,
+				EntityType: *assoc.EntityType,
+			})
+		}
+	}
+
 	return nil
 }

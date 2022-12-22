@@ -18,6 +18,5 @@
 package utils
 
 const (
-	// minimumEnterpriseSearchSize   = 2048
 	MinimumZoneCount = 1
 )
