@@ -37,7 +37,7 @@ func (c *ElasticsearchConfig) IsEmpty() bool {
 	return c == nil || reflect.ValueOf(*c).IsZero()
 }
 
-func ReadElasticsearchConfig(in *models.ElasticsearchConfiguration) (*ElasticsearchConfig, error) {
+func readElasticsearchConfig(in *models.ElasticsearchConfiguration) (*ElasticsearchConfig, error) {
 	var config ElasticsearchConfig
 
 	if in == nil {
@@ -75,7 +75,7 @@ func ReadElasticsearchConfig(in *models.ElasticsearchConfiguration) (*Elasticsea
 	return &config, nil
 }
 
-func ElasticsearchConfigPayload(ctx context.Context, cfgObj attr.Value, model *models.ElasticsearchConfiguration) (*models.ElasticsearchConfiguration, diag.Diagnostics) {
+func elasticsearchConfigPayload(ctx context.Context, cfgObj attr.Value, model *models.ElasticsearchConfiguration) (*models.ElasticsearchConfiguration, diag.Diagnostics) {
 	if cfgObj.IsNull() || cfgObj.IsUnknown() {
 		return model, nil
 	}

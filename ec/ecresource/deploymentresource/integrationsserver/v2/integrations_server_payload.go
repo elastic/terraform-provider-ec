@@ -41,7 +41,7 @@ type IntegrationsServerTF struct {
 	Config                    types.Object `tfsdk:"config"`
 }
 
-func (srv IntegrationsServerTF) Payload(ctx context.Context, payload models.IntegrationsServerPayload) (*models.IntegrationsServerPayload, diag.Diagnostics) {
+func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.IntegrationsServerPayload) (*models.IntegrationsServerPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !srv.ElasticsearchClusterRefId.IsNull() {
@@ -97,7 +97,7 @@ func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, templat
 		return nil, diags
 	}
 
-	payload, diags := srv.Payload(ctx, *templatePayload)
+	payload, diags := srv.payload(ctx, *templatePayload)
 
 	if diags.HasError() {
 		return nil, diags

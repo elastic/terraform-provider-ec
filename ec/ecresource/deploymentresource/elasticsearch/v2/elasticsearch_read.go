@@ -57,7 +57,7 @@ func ReadElasticsearches(in []*models.ElasticsearchResourceInfo, remotes *models
 		if util.IsCurrentEsPlanEmpty(model) || utils.IsEsResourceStopped(model) {
 			continue
 		}
-		es, err := ReadElasticsearch(model, remotes)
+		es, err := readElasticsearch(model, remotes)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func ReadElasticsearches(in []*models.ElasticsearchResourceInfo, remotes *models
 	return nil, nil
 }
 
-func ReadElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.RemoteResources) (*Elasticsearch, error) {
+func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.RemoteResources) (*Elasticsearch, error) {
 	var es Elasticsearch
 
 	if util.IsCurrentEsPlanEmpty(in) || utils.IsEsResourceStopped(in) {
@@ -105,7 +105,7 @@ func ReadElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 
 	es.HttpEndpoint, es.HttpsEndpoint = converters.ExtractEndpoints(in.Info.Metadata)
 
-	es.Config, err = ReadElasticsearchConfig(plan.Elasticsearch)
+	es.Config, err = readElasticsearchConfig(plan.Elasticsearch)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func ReadElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	}
 	es.RemoteCluster = clusters
 
-	extensions, err := ReadElasticsearchExtensions(plan.Elasticsearch)
+	extensions, err := readElasticsearchExtensions(plan.Elasticsearch)
 	if err != nil {
 		return nil, err
 	}

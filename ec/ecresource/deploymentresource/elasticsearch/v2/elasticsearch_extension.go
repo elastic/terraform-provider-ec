@@ -30,7 +30,7 @@ import (
 
 type ElasticsearchExtensions v1.ElasticsearchExtensions
 
-func ReadElasticsearchExtensions(in *models.ElasticsearchConfiguration) (ElasticsearchExtensions, error) {
+func readElasticsearchExtensions(in *models.ElasticsearchConfiguration) (ElasticsearchExtensions, error) {
 	if len(in.UserBundles) == 0 && len(in.UserPlugins) == 0 {
 		return nil, nil
 	}
@@ -38,7 +38,7 @@ func ReadElasticsearchExtensions(in *models.ElasticsearchConfiguration) (Elastic
 	extensions := make(ElasticsearchExtensions, 0, len(in.UserBundles)+len(in.UserPlugins))
 
 	for _, model := range in.UserBundles {
-		extension, err := ReadFromUserBundle(model)
+		extension, err := readFromUserBundle(model)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func ReadElasticsearchExtensions(in *models.ElasticsearchConfiguration) (Elastic
 	}
 
 	for _, model := range in.UserPlugins {
-		extension, err := ReadFromUserPlugin(model)
+		extension, err := readFromUserPlugin(model)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +89,7 @@ func elasticsearchExtensionPayload(ctx context.Context, extensions types.Set, es
 	return nil
 }
 
-func ReadFromUserBundle(in *models.ElasticsearchUserBundle) (*v1.ElasticsearchExtension, error) {
+func readFromUserBundle(in *models.ElasticsearchUserBundle) (*v1.ElasticsearchExtension, error) {
 	var ext v1.ElasticsearchExtension
 
 	ext.Type = "bundle"
@@ -112,7 +112,7 @@ func ReadFromUserBundle(in *models.ElasticsearchUserBundle) (*v1.ElasticsearchEx
 	return &ext, nil
 }
 
-func ReadFromUserPlugin(in *models.ElasticsearchUserPlugin) (*v1.ElasticsearchExtension, error) {
+func readFromUserPlugin(in *models.ElasticsearchUserPlugin) (*v1.ElasticsearchExtension, error) {
 	var ext v1.ElasticsearchExtension
 
 	ext.Type = "plugin"
