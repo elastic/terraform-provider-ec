@@ -67,7 +67,6 @@ func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagn
 		return true, nil
 	}
 
-
 	var diags diag.Diagnostics
 	oldV, err := semver.Parse(stateVersion.Value)
 	if err != nil {
