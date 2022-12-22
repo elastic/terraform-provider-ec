@@ -63,7 +63,7 @@ func ReadApm(in *models.ApmResourceInfo) (*Apm, error) {
 	apm.Region = in.Region
 	plan := in.Info.PlanInfo.Current.Plan
 
-	topologies, err := ReadApmTopologies(plan.ClusterTopology)
+	topologies, err := readApmTopologies(plan.ClusterTopology)
 	if err != nil {
 		return nil, err
 	}

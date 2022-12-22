@@ -27,9 +27,8 @@ import (
 
 func ApmTopologySchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional topology attribute",
-		Optional:    true,
-		Computed:    true,
+		Optional: true,
+		Computed: true,
 		PlanModifiers: []tfsdk.AttributePlanModifier{
 			resource.UseStateForUnknown(),
 		},
