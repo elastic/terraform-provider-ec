@@ -28,35 +28,34 @@ import (
 )
 
 func HasRunningResources(res *models.DeploymentGetResponse) bool {
-	var hasRunning bool
 	if res.Resources != nil {
 		for _, r := range res.Resources.Elasticsearch {
 			if !IsEsResourceStopped(r) {
-				hasRunning = true
+				return true
 			}
 		}
 		for _, r := range res.Resources.Kibana {
 			if !IsKibanaResourceStopped(r) {
-				hasRunning = true
+				return true
 			}
 		}
 		for _, r := range res.Resources.Apm {
 			if !IsApmResourceStopped(r) {
-				hasRunning = true
+				return true
 			}
 		}
 		for _, r := range res.Resources.EnterpriseSearch {
 			if !IsEssResourceStopped(r) {
-				hasRunning = true
+				return true
 			}
 		}
 		for _, r := range res.Resources.IntegrationsServer {
 			if !IsIntegrationsServerResourceStopped(r) {
-				hasRunning = true
+				return true
 			}
 		}
 	}
-	return hasRunning
+	return false
 }
 
 func GetDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
@@ -94,14 +93,14 @@ func GetDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 	return deploymentTemplateID, nil
 }
 
-func GetRegion(res *models.DeploymentResources) (region string) {
+func GetRegion(res *models.DeploymentResources) (string) {
 	for _, r := range res.Elasticsearch {
 		if r.Region != nil && *r.Region != "" {
 			return *r.Region
 		}
 	}
 
-	return region
+	return ""
 }
 
 func GetLowestVersion(res *models.DeploymentResources) (string, error) {
