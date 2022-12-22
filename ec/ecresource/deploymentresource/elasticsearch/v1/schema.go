@@ -129,8 +129,6 @@ func ElasticsearchConfigSchema() tfsdk.Attribute {
 		Optional:    true,
 		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-			// TODO
-			// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			"docker_image": {
 				Type:        types.StringType,
 				Description: "Optionally override the docker image the Elasticsearch nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",
@@ -449,11 +447,6 @@ func ElasticsearchStrategySchema() tfsdk.Attribute {
 				Type:        types.StringType,
 				Required:    true,
 				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
-				// TODO
-				// changes on this setting do not change the plan.
-				// DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-				// 	return true
-				// },
 			},
 		}),
 	}

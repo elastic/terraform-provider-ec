@@ -144,8 +144,6 @@ func EnterpriseSearchSchema() tfsdk.Attribute {
 				Optional:    true,
 				Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					// TODO
-					// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 					"docker_image": {
 						Type:        types.StringType,
 						Description: "Optionally override the docker image the Enterprise Search nodes will use. Note that this field will only work for internal users only.",
