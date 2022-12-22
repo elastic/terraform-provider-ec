@@ -44,7 +44,7 @@ type EnterpriseSearchTF struct {
 	Config                    types.Object `tfsdk:"config"`
 }
 
-func (es *EnterpriseSearchTF) Payload(ctx context.Context, payload models.EnterpriseSearchPayload) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
+func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.EnterpriseSearchPayload) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.ElasticsearchClusterRefId.IsNull() {
@@ -115,7 +115,7 @@ func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template
 		return nil, diags
 	}
 
-	payload, diags := es.Payload(ctx, *templatePayload)
+	payload, diags := es.payload(ctx, *templatePayload)
 
 	if diags.HasError() {
 		return nil, diags

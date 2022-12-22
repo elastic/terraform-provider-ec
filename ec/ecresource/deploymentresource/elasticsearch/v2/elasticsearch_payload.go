@@ -69,15 +69,9 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *mod
 		return nil, nil
 	}
 
-	if es == nil {
-		var diags diag.Diagnostics
-		diags.AddError("Elasticsearch payload error", "cannot find elasticsearch data")
-		return nil, diags
-	}
-
 	templatePayload := utils.EnrichElasticsearchTemplate(utils.EsResource(template), dtID, version, useNodeRoles)
 
-	payload, diags := es.Payload(ctx, templatePayload, skipTopologies)
+	payload, diags := es.payload(ctx, templatePayload, skipTopologies)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -85,7 +79,7 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *mod
 	return payload, nil
 }
 
-func (es *ElasticsearchTF) Payload(ctx context.Context, res *models.ElasticsearchPayload, skipTopologies bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, skipTopologies bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
@@ -110,7 +104,7 @@ func (es *ElasticsearchTF) Payload(ctx context.Context, res *models.Elasticsearc
 	// list when these are set as a dedicated tier as a topology element.
 	updateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
 
-	res.Plan.Elasticsearch, ds = ElasticsearchConfigPayload(ctx, es.Config, res.Plan.Elasticsearch)
+	res.Plan.Elasticsearch, ds = elasticsearchConfigPayload(ctx, es.Config, res.Plan.Elasticsearch)
 	diags.Append(ds...)
 
 	diags.Append(elasticsearchSnapshotSourcePayload(ctx, es.SnapshotSource, res.Plan)...)

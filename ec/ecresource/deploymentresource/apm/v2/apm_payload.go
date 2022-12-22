@@ -42,7 +42,7 @@ type ApmTF struct {
 	Config                    types.Object `tfsdk:"config"`
 }
 
-func (apm ApmTF) Payload(ctx context.Context, payload models.ApmPayload) (*models.ApmPayload, diag.Diagnostics) {
+func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*models.ApmPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !apm.ElasticsearchClusterRefId.IsNull() {
@@ -107,7 +107,7 @@ func ApmPayload(ctx context.Context, apmObj types.Object, template *models.Deplo
 		return nil, diags
 	}
 
-	payload, diags := apm.Payload(ctx, *templatePayload)
+	payload, diags := apm.payload(ctx, *templatePayload)
 
 	if diags.HasError() {
 		return nil, diags

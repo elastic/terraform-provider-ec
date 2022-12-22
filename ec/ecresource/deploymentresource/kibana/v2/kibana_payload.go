@@ -42,7 +42,7 @@ type KibanaTF struct {
 	Config                    types.Object `tfsdk:"config"`
 }
 
-func (kibana KibanaTF) Payload(ctx context.Context, payload models.KibanaPayload) (*models.KibanaPayload, diag.Diagnostics) {
+func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload) (*models.KibanaPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !kibana.ElasticsearchClusterRefId.IsNull() {
@@ -107,7 +107,7 @@ func KibanaPayload(ctx context.Context, kibanaObj types.Object, template *models
 		return nil, diags
 	}
 
-	payload, diags := kibanaTF.Payload(ctx, *templatePlayload)
+	payload, diags := kibanaTF.payload(ctx, *templatePlayload)
 
 	if diags.HasError() {
 		return nil, diags
