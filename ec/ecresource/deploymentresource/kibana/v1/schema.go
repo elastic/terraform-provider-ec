@@ -119,9 +119,7 @@ func KibanaSchema() tfsdk.Attribute {
 				}),
 			},
 			"config": {
-				Optional: true,
-				// TODO
-				// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				Optional:    true,
 				Description: `Optionally define the Kibana configuration options for the Kibana Server`,
 				Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
