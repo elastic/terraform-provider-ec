@@ -65,7 +65,7 @@ func readEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*
 	return &topology, nil
 }
 
-func ReadEnterpriseSearchTopologies(in []*models.EnterpriseSearchTopologyElement) (enterpriseSearchTopologies, error) {
+func readEnterpriseSearchTopologies(in []*models.EnterpriseSearchTopologyElement) (enterpriseSearchTopologies, error) {
 	if len(in) == 0 {
 		return nil, nil
 	}
@@ -99,7 +99,7 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 		icID = planModels[index].InstanceConfigurationID
 	}
 
-	elem, err := matchEssTopology(icID, planModels)
+	elem, err := matchTopology(icID, planModels)
 	if err != nil {
 		diags.AddError("cannot match enterprise search topology", err.Error())
 		return nil, diags
@@ -131,10 +131,10 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 	return elem, nil
 }
 
-// defaultApmTopology iterates over all the templated topology elements and
+// defaultTopology iterates over all the templated topology elements and
 // sets the size to the default when the template size is smaller than the
 // deployment template default, the same is done on the ZoneCount.
-func defaultEssTopology(topology []*models.EnterpriseSearchTopologyElement) []*models.EnterpriseSearchTopologyElement {
+func defaultTopology(topology []*models.EnterpriseSearchTopologyElement) []*models.EnterpriseSearchTopologyElement {
 	for _, t := range topology {
 		if *t.Size.Value < minimumEnterpriseSearchSize || *t.Size.Value == 0 {
 			t.Size.Value = ec.Int32(minimumEnterpriseSearchSize)
@@ -147,7 +147,7 @@ func defaultEssTopology(topology []*models.EnterpriseSearchTopologyElement) []*m
 	return topology
 }
 
-func matchEssTopology(id string, topologies []*models.EnterpriseSearchTopologyElement) (*models.EnterpriseSearchTopologyElement, error) {
+func matchTopology(id string, topologies []*models.EnterpriseSearchTopologyElement) (*models.EnterpriseSearchTopologyElement, error) {
 	for _, t := range topologies {
 		if t.InstanceConfigurationID == id {
 			return t, nil
