@@ -93,7 +93,7 @@ func GetDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
 	return deploymentTemplateID, nil
 }
 
-func GetRegion(res *models.DeploymentResources) (string) {
+func GetRegion(res *models.DeploymentResources) string {
 	for _, r := range res.Elasticsearch {
 		if r.Region != nil && *r.Region != "" {
 			return *r.Region
