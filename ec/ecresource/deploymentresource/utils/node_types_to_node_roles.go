@@ -39,7 +39,7 @@ func UseNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostic
 		return false, diags
 	}
 
-	convertLegacy, diags := LegacyToNodeRoles(stateVersion, planVersion)
+	convertLegacy, diags := legacyToNodeRoles(stateVersion, planVersion)
 
 	if diags.HasError() {
 		return false, diags
@@ -57,12 +57,12 @@ func CompatibleWithNodeRoles(version string) (bool, error) {
 	return deploymentVersion.GE(DataTiersVersion), nil
 }
 
-// LegacyToNodeRoles returns true when the legacy  "node_type_*" should be
+// legacyToNodeRoles returns true when the legacy  "node_type_*" should be
 // migrated over to node_roles. Which will be true when:
 // * The version field doesn't change.
 // * The version field changes but:
 //   - The Elasticsearch.0.toplogy doesn't have any node_type_* set.
-func LegacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
+func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
 	if stateVersion.Value == "" || stateVersion.Value == planVersion.Value {
 		return true, nil
 	}
