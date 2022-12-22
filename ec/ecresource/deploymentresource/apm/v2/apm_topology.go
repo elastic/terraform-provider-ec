@@ -34,7 +34,7 @@ const (
 	minimumApmSize = 512
 )
 
-func ReadApmTopology(in *models.ApmTopologyElement) (*v1.Topology, error) {
+func readApmTopology(in *models.ApmTopologyElement) (*v1.Topology, error) {
 	var top v1.Topology
 
 	if in.InstanceConfigurationID != "" {
@@ -51,7 +51,7 @@ func ReadApmTopology(in *models.ApmTopologyElement) (*v1.Topology, error) {
 	return &top, nil
 }
 
-func ReadApmTopologies(in []*models.ApmTopologyElement) (v1.Topologies, error) {
+func readApmTopologies(in []*models.ApmTopologyElement) (v1.Topologies, error) {
 	topologies := make([]v1.Topology, 0, len(in))
 
 	for _, model := range in {
@@ -59,7 +59,7 @@ func ReadApmTopologies(in []*models.ApmTopologyElement) (v1.Topologies, error) {
 			continue
 		}
 
-		topology, err := ReadApmTopology(model)
+		topology, err := readApmTopology(model)
 		if err != nil {
 			return nil, nil
 		}
