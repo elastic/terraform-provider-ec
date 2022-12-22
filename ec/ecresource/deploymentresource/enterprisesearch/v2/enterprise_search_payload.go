@@ -81,7 +81,7 @@ func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.Enterp
 		NodeTypeWorker:          es.NodeTypeWorker,
 	}
 
-	topology, ds := enterpriseSearchTopologyPayload(ctx, topologyTF, defaultEssTopology(payload.Plan.ClusterTopology), 0)
+	topology, ds := enterpriseSearchTopologyPayload(ctx, topologyTF, defaultTopology(payload.Plan.ClusterTopology), 0)
 
 	diags = append(diags, ds...)
 

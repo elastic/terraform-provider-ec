@@ -58,7 +58,7 @@ func ReadEnterpriseSearch(in *models.EnterpriseSearchResourceInfo) (*EnterpriseS
 
 	plan := in.Info.PlanInfo.Current.Plan
 
-	topologies, err := ReadEnterpriseSearchTopologies(plan.ClusterTopology)
+	topologies, err := readEnterpriseSearchTopologies(plan.ClusterTopology)
 
 	if err != nil {
 		return nil, err
