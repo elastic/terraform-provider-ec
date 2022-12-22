@@ -76,7 +76,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	tflog.Trace(ctx, "created a resource")
+	tflog.Trace(ctx, "created deployment resource")
 
 	resp.Diagnostics.Append(deploymentv.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
 

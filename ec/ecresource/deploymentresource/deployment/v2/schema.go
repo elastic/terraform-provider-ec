@@ -40,7 +40,7 @@ func DeploymentSchema() tfsdk.Schema {
 			"id": {
 				Type:                types.StringType,
 				Computed:            true,
-				MarkdownDescription: "Unique identifier of this resource.",
+				MarkdownDescription: "Unique identifier of this deployment.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
@@ -55,27 +55,27 @@ func DeploymentSchema() tfsdk.Schema {
 			},
 			"version": {
 				Type:        types.StringType,
-				Description: "Required Elastic Stack version to use for all of the deployment resources",
+				Description: "Elastic Stack version to use for all of the deployment resources.",
 				Required:    true,
 			},
 			"region": {
 				Type:        types.StringType,
-				Description: `Required ESS region where to create the deployment, for ECE environments "ece-region" must be set`,
+				Description: `Region when the deployment should be hosted. For ECE environments this should be set to "ece-region".`,
 				Required:    true,
 			},
 			"deployment_template_id": {
 				Type:        types.StringType,
-				Description: "Required Deployment Template identifier to create the deployment from",
+				Description: "Deployment Template identifier to base the deployment from.",
 				Required:    true,
 			},
 			"name": {
 				Type:        types.StringType,
-				Description: "Optional name for the deployment",
+				Description: "Name for the deployment",
 				Optional:    true,
 			},
 			"request_id": {
 				Type:        types.StringType,
-				Description: "Optional request_id to set on the create operation, only use when previous create attempts return with an error and a request_id is returned as part of the error",
+				Description: "request_id to set on the create operation, only used when a previous create attempt returns an error including a request_id.",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
@@ -84,7 +84,7 @@ func DeploymentSchema() tfsdk.Schema {
 			},
 			"elasticsearch_username": {
 				Type:        types.StringType,
-				Description: "Computed username obtained upon creating the Elasticsearch resource",
+				Description: "Username for authenticating to the Elasticsearch resource.",
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
@@ -92,7 +92,7 @@ func DeploymentSchema() tfsdk.Schema {
 			},
 			"elasticsearch_password": {
 				Type:        types.StringType,
-				Description: "Computed password obtained upon creating the Elasticsearch resource",
+				Description: "Password for authenticating to the Elasticsearch resource.",
 				Computed:    true,
 				Sensitive:   true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{

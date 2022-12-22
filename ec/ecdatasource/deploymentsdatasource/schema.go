@@ -44,22 +44,22 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 		Attributes: map[string]tfsdk.Attribute{
 			"name_prefix": {
 				Type:        types.StringType,
-				Description: "Prefix that one or several deployment names have in common.",
+				Description: "Prefix to filter the returned deployment list by.",
 				Optional:    true,
 			},
 			"healthy": {
 				Type:        types.StringType,
-				Description: "Overall health status of the deployment.",
+				Description: "Filter the result set by their health status.",
 				Optional:    true,
 			},
 			"deployment_template_id": {
 				Type:        types.StringType,
-				Description: "ID of the deployment template used to create the deployment.",
+				Description: "Filter the result set by the ID of the deployment template the deployment is based off.",
 				Optional:    true,
 			},
 			"tags": {
 				Type:        types.MapType{ElemType: types.StringType},
-				Description: "Key value map of arbitrary string tags for the deployment.\n",
+				Description: "Filter the result set by their assigned tags.",
 				Optional:    true,
 			},
 			"size": {

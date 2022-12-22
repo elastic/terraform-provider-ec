@@ -80,11 +80,8 @@ func ReadApm(in *models.ApmResourceInfo) (*Apm, error) {
 	var apm Apm
 
 	apm.RefId = in.RefID
-
 	apm.ResourceId = in.Info.ID
-
 	apm.Region = in.Region
-
 	plan := in.Info.PlanInfo.Current.Plan
 
 	topologies, err := ReadApmTopologies(plan.ClusterTopology)

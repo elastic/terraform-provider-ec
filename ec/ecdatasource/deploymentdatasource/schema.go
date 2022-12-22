@@ -50,12 +50,12 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 			},
 			"region": {
 				Type:        types.StringType,
-				Description: "Region where the deployment can be found.",
+				Description: "Region where the deployment is hosted.",
 				Computed:    true,
 			},
 			"deployment_template_id": {
 				Type:        types.StringType,
-				Description: "ID of the deployment template used to create the deployment.",
+				Description: "ID of the deployment template this deployment is based off.",
 				Computed:    true,
 			},
 			"traffic_filter": {

@@ -52,7 +52,7 @@ func kibanaResourceInfoSchema() tfsdk.Attribute {
 			},
 			"ref_id": {
 				Type:        types.StringType,
-				Description: "User specified ref_id for the resource kind.",
+				Description: "A locally-unique friendly alias for this Kibana resource.",
 				Computed:    true,
 			},
 			"resource_id": {

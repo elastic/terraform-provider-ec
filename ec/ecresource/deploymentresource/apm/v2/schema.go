@@ -33,7 +33,7 @@ func ApmConfigSchema() tfsdk.Attribute {
 			// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			"docker_image": {
 				Type:        types.StringType,
-				Description: "Optionally override the docker image the APM nodes will use. Note that this field will only work for internal users only.",
+				Description: "Optionally override the docker image the APM nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",
 				Optional:    true,
 			},
 			"debug_enabled": {
