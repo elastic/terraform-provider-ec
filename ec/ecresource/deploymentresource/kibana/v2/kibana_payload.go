@@ -23,9 +23,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v1"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
-	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,75 +40,6 @@ type KibanaTF struct {
 	SizeResource              types.String `tfsdk:"size_resource"`
 	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
 	Config                    types.Object `tfsdk:"config"`
-}
-
-type Kibana struct {
-	ElasticsearchClusterRefId *string       `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     *string       `tfsdk:"ref_id"`
-	ResourceId                *string       `tfsdk:"resource_id"`
-	Region                    *string       `tfsdk:"region"`
-	HttpEndpoint              *string       `tfsdk:"http_endpoint"`
-	HttpsEndpoint             *string       `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   *string       `tfsdk:"instance_configuration_id"`
-	Size                      *string       `tfsdk:"size"`
-	SizeResource              *string       `tfsdk:"size_resource"`
-	ZoneCount                 int           `tfsdk:"zone_count"`
-	Config                    *KibanaConfig `tfsdk:"config"`
-}
-
-func ReadKibanas(in []*models.KibanaResourceInfo) (*Kibana, error) {
-	for _, model := range in {
-		if util.IsCurrentKibanaPlanEmpty(model) || utils.IsKibanaResourceStopped(model) {
-			continue
-		}
-
-		kibana, err := ReadKibana(model)
-		if err != nil {
-			return nil, err
-		}
-
-		return kibana, nil
-	}
-
-	return nil, nil
-}
-
-func ReadKibana(in *models.KibanaResourceInfo) (*Kibana, error) {
-	var kibana Kibana
-
-	kibana.RefId = in.RefID
-
-	kibana.ResourceId = in.Info.ClusterID
-
-	kibana.Region = in.Region
-
-	plan := in.Info.PlanInfo.Current.Plan
-	var err error
-
-	topologies, err := readKibanaTopologies(plan.ClusterTopology)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(topologies) > 0 {
-		kibana.InstanceConfigurationId = topologies[0].InstanceConfigurationId
-		kibana.Size = topologies[0].Size
-		kibana.SizeResource = topologies[0].SizeResource
-		kibana.ZoneCount = topologies[0].ZoneCount
-	}
-
-	kibana.ElasticsearchClusterRefId = in.ElasticsearchClusterRefID
-
-	kibana.HttpEndpoint, kibana.HttpsEndpoint = converters.ExtractEndpoints(in.Info.Metadata)
-
-	config, err := readKibanaConfig(plan.Kibana)
-	if err != nil {
-		return nil, err
-	}
-
-	kibana.Config = config
-
-	return &kibana, nil
 }
 
 func (kibana KibanaTF) Payload(ctx context.Context, payload models.KibanaPayload) (*models.KibanaPayload, diag.Diagnostics) {
@@ -172,7 +100,7 @@ func KibanaPayload(ctx context.Context, kibanaObj types.Object, template *models
 		return nil, nil
 	}
 
-	templatePlayload := kibanaResource(template)
+	templatePlayload := payloadFromTemplate(template)
 
 	if templatePlayload == nil {
 		diags.AddError("kibana payload error", "kibana specified but deployment template is not configured for it. Use a different template if you wish to add kibana")
@@ -188,9 +116,9 @@ func KibanaPayload(ctx context.Context, kibanaObj types.Object, template *models
 	return payload, nil
 }
 
-// kibanaResource returns the KibanaPayload from a deployment
+// payloadFromTemplate returns the KibanaPayload from a deployment
 // template or an empty version of the payload.
-func kibanaResource(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
+func payloadFromTemplate(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
 	if res == nil || len(res.DeploymentTemplate.Resources.Kibana) == 0 {
 		return nil
 	}
