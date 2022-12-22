@@ -77,7 +77,7 @@ func TestParseTrafficFiltering(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReadTrafficFilters(tt.args.settings)
+			got, err := readTrafficFilters(tt.args.settings)
 			assert.Nil(t, err)
 			assert.Equal(t, tt.want, got)
 		})
@@ -153,7 +153,7 @@ func Test_trafficFilterToModel(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.filters, types.SetType{ElemType: types.StringType}, &filters)
 			assert.Nil(t, diags)
 
-			diags = TrafficFilterToModel(context.Background(), filters, tt.args.req)
+			diags = trafficFilterToModel(context.Background(), filters, tt.args.req)
 			assert.Nil(t, diags)
 			assert.Equal(t, tt.want, tt.args.req)
 		})
