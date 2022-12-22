@@ -391,7 +391,7 @@ func Test_readElasticsearchTopology(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReadElasticsearchTopologies(tt.args.plan)
+			got, err := readElasticsearchTopologies(tt.args.plan)
 			if err != nil && !assert.EqualError(t, err, tt.err) {
 				t.Error(err)
 			}

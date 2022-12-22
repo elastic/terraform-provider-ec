@@ -29,7 +29,7 @@ import (
 
 type ElasticsearchTrustExternals v1.ElasticsearchTrustExternals
 
-func ReadElasticsearchTrustExternals(in *models.ElasticsearchClusterSettings) (ElasticsearchTrustExternals, error) {
+func readElasticsearchTrustExternals(in *models.ElasticsearchClusterSettings) (ElasticsearchTrustExternals, error) {
 	if in == nil || in.Trust == nil {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func ReadElasticsearchTrustExternals(in *models.ElasticsearchClusterSettings) (E
 	externals := make(ElasticsearchTrustExternals, 0, len(in.Trust.External))
 
 	for _, model := range in.Trust.External {
-		external, err := ReadElasticsearchTrustExternal(model)
+		external, err := readElasticsearchTrustExternal(model)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func ReadElasticsearchTrustExternals(in *models.ElasticsearchClusterSettings) (E
 	return externals, nil
 }
 
-func ElasticsearchTrustExternalPayload(ctx context.Context, externals types.Set, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
+func elasticsearchTrustExternalPayload(ctx context.Context, externals types.Set, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	payloads := make([]*models.ExternalTrustRelationship, 0, len(externals.Elems))
@@ -99,7 +99,7 @@ func ElasticsearchTrustExternalPayload(ctx context.Context, externals types.Set,
 	return model, nil
 }
 
-func ReadElasticsearchTrustExternal(in *models.ExternalTrustRelationship) (*v1.ElasticsearchTrustExternal, error) {
+func readElasticsearchTrustExternal(in *models.ExternalTrustRelationship) (*v1.ElasticsearchTrustExternal, error) {
 	var ext v1.ElasticsearchTrustExternal
 
 	if in.TrustRelationshipID != nil {
@@ -115,7 +115,7 @@ func ReadElasticsearchTrustExternal(in *models.ExternalTrustRelationship) (*v1.E
 	return &ext, nil
 }
 
-func ElasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
+func elasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	payloads := make([]*models.AccountTrustRelationship, 0, len(accounts.Elems))

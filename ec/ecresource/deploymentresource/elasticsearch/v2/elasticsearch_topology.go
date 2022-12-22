@@ -72,7 +72,7 @@ func CreateTierForTest(tierId string, tier ElasticsearchTopology) *Elasticsearch
 
 type ElasticsearchTopologyAutoscaling v1.ElasticsearchTopologyAutoscaling
 
-func (topology ElasticsearchTopologyTF) Payload(ctx context.Context, topologyID string, planTopologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
+func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID string, planTopologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	topologyElem, err := matchEsTopologyID(topologyID, planTopologies)
@@ -94,7 +94,7 @@ func (topology ElasticsearchTopologyTF) Payload(ctx context.Context, topologyID 
 		topologyElem.ZoneCount = int32(topology.ZoneCount.Value)
 	}
 
-	if err := topology.ParseLegacyNodeType(topologyElem.NodeType); err != nil {
+	if err := topology.parseLegacyNodeType(topologyElem.NodeType); err != nil {
 		diags.AddError("topology legacy node type error", err.Error())
 	}
 
@@ -107,14 +107,14 @@ func (topology ElasticsearchTopologyTF) Payload(ctx context.Context, topologyID 
 		topologyElem.NodeType = nil
 	}
 
-	diags.Append(ElasticsearchTopologyAutoscalingPayload(ctx, topology.Autoscaling, topologyID, topologyElem)...)
+	diags.Append(elasticsearchTopologyAutoscalingPayload(ctx, topology.Autoscaling, topologyID, topologyElem)...)
 
 	diags = append(diags, ds...)
 
 	return diags
 }
 
-func ReadElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (ElasticsearchTopologies, error) {
+func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (ElasticsearchTopologies, error) {
 	if len(in.ClusterTopology) == 0 {
 		return nil, nil
 	}
@@ -122,11 +122,7 @@ func ReadElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 	tops := make([]ElasticsearchTopology, 0, len(in.ClusterTopology))
 
 	for _, model := range in.ClusterTopology {
-		// if !v1.IsPotentiallySizedTopology(model, in.AutoscalingEnabled != nil && *in.AutoscalingEnabled) {
-		// 	continue
-		// }
-
-		topology, err := ReadElasticsearchTopology(model)
+		topology, err := readElasticsearchTopology(model)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +132,7 @@ func ReadElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 	return tops, nil
 }
 
-func ReadElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopology, error) {
+func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopology, error) {
 	var topology ElasticsearchTopology
 
 	topology.id = model.ID
@@ -172,7 +168,7 @@ func ReadElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 
 	topology.NodeRoles = model.NodeRoles
 
-	autoscaling, err := ReadElasticsearchTopologyAutoscaling(model)
+	autoscaling, err := readElasticsearchTopologyAutoscaling(model)
 	if err != nil {
 		return nil, err
 	}
@@ -181,17 +177,17 @@ func ReadElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 	return &topology, nil
 }
 
-func ReadElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopologyAutoscaling, error) {
+func readElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopologyAutoscaling, error) {
 	var a ElasticsearchTopologyAutoscaling
 
-	if ascale := topology.AutoscalingMax; ascale != nil {
-		a.MaxSizeResource = ascale.Resource
-		a.MaxSize = ec.String(util.MemoryToState(*ascale.Value))
+	if max := topology.AutoscalingMax; max != nil {
+		a.MaxSizeResource = max.Resource
+		a.MaxSize = ec.String(util.MemoryToState(*max.Value))
 	}
 
-	if ascale := topology.AutoscalingMin; ascale != nil {
-		a.MinSizeResource = ascale.Resource
-		a.MinSize = ec.String(util.MemoryToState(*ascale.Value))
+	if min := topology.AutoscalingMin; min != nil {
+		a.MinSizeResource = min.Resource
+		a.MinSize = ec.String(util.MemoryToState(*min.Value))
 	}
 
 	if topology.AutoscalingPolicyOverrideJSON != nil {
@@ -205,7 +201,7 @@ func ReadElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterT
 	return &a, nil
 }
 
-func (topology *ElasticsearchTopologyTF) ParseLegacyNodeType(nodeType *models.ElasticsearchNodeType) error {
+func (topology *ElasticsearchTopologyTF) parseLegacyNodeType(nodeType *models.ElasticsearchNodeType) error {
 	if nodeType == nil {
 		return nil
 	}
@@ -268,7 +264,7 @@ func ObjectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopo
 
 type ElasticsearchTopologies []ElasticsearchTopology
 
-func (tops ElasticsearchTopologies) Set() map[string]ElasticsearchTopology {
+func (tops ElasticsearchTopologies) AsSet() map[string]ElasticsearchTopology {
 	set := make(map[string]ElasticsearchTopology, len(tops))
 
 	for _, top := range tops {
@@ -306,7 +302,7 @@ func topologyIDs(topologies []*models.ElasticsearchClusterTopologyElement) []str
 	return result
 }
 
-func ElasticsearchTopologyAutoscalingPayload(ctx context.Context, autoObj attr.Value, topologyID string, payload *models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
+func elasticsearchTopologyAutoscalingPayload(ctx context.Context, autoObj attr.Value, topologyID string, payload *models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
 	var diag diag.Diagnostics
 
 	if autoObj.IsNull() || autoObj.IsUnknown() {

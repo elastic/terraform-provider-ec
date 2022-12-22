@@ -24,7 +24,7 @@ import (
 
 type ElasticsearchTrustAccounts v1.ElasticsearchTrustAccounts
 
-func ReadElasticsearchTrustAccounts(in *models.ElasticsearchClusterSettings) (ElasticsearchTrustAccounts, error) {
+func readElasticsearchTrustAccounts(in *models.ElasticsearchClusterSettings) (ElasticsearchTrustAccounts, error) {
 	if in == nil || in.Trust == nil {
 		return nil, nil
 	}
@@ -32,7 +32,7 @@ func ReadElasticsearchTrustAccounts(in *models.ElasticsearchClusterSettings) (El
 	accounts := make(ElasticsearchTrustAccounts, 0, len(in.Trust.Accounts))
 
 	for _, model := range in.Trust.Accounts {
-		account, err := ReadElasticsearchTrustAccount(model)
+		account, err := readElasticsearchTrustAccount(model)
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +42,7 @@ func ReadElasticsearchTrustAccounts(in *models.ElasticsearchClusterSettings) (El
 	return accounts, nil
 }
 
-func ReadElasticsearchTrustAccount(in *models.AccountTrustRelationship) (*v1.ElasticsearchTrustAccount, error) {
+func readElasticsearchTrustAccount(in *models.AccountTrustRelationship) (*v1.ElasticsearchTrustAccount, error) {
 	var acc v1.ElasticsearchTrustAccount
 
 	if in.AccountID != nil {
