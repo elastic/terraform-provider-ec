@@ -67,10 +67,6 @@ func LegacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagn
 		return true, nil
 	}
 
-	// If the previous version is empty, node_roles should be used.
-	if stateVersion.Value == "" {
-		return true, nil
-	}
 
 	var diags diag.Diagnostics
 	oldV, err := semver.Parse(stateVersion.Value)
