@@ -89,7 +89,7 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	plan := in.Info.PlanInfo.Current.Plan
 	var err error
 
-	topologies, err := ReadElasticsearchTopologies(plan)
+	topologies, err := readElasticsearchTopologies(plan)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 		return nil, err
 	}
 
-	clusters, err := ReadElasticsearchRemoteClusters(remotes.Resources)
+	clusters, err := readElasticsearchRemoteClusters(remotes.Resources)
 	if err != nil {
 		return nil, err
 	}
@@ -122,13 +122,13 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	}
 	es.Extension = extensions
 
-	accounts, err := ReadElasticsearchTrustAccounts(in.Info.Settings)
+	accounts, err := readElasticsearchTrustAccounts(in.Info.Settings)
 	if err != nil {
 		return nil, err
 	}
 	es.TrustAccount = accounts
 
-	externals, err := ReadElasticsearchTrustExternals(in.Info.Settings)
+	externals, err := readElasticsearchTrustExternals(in.Info.Settings)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 }
 
 func (es *Elasticsearch) setTopology(topologies ElasticsearchTopologies) {
-	set := topologies.Set()
+	set := topologies.AsSet()
 
 	for id, topology := range set {
 		topology := topology

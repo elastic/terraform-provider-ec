@@ -120,10 +120,10 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 		}
 	}
 
-	res.Settings, ds = ElasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
+	res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
 	diags.Append(ds...)
 
-	res.Settings, ds = ElasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
+	res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
 	diags.Append(ds...)
 
 	elasticsearchStrategyPayload(es.Strategy, res.Plan)
@@ -155,7 +155,7 @@ func topologyPayload(ctx context.Context, topologyObj types.Object, id string, t
 		diags.Append(ds...)
 
 		if !ds.HasError() {
-			diags.Append(topology.Payload(ctx, id, topologies)...)
+			diags.Append(topology.payload(ctx, id, topologies)...)
 		}
 	}
 
