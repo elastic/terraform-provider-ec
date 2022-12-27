@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Use `self` as value of `observability`'s `deployment_id` attribute
 func UseNodeRolesDefault() tfsdk.AttributePlanModifier {
 	return nodeRolesDefault{}
 }
