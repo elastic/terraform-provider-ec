@@ -68,12 +68,12 @@ func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagn
 	}
 
 	var diags diag.Diagnostics
-	oldV, err := semver.Parse(stateVersion.Value)
+	oldVersion, err := semver.Parse(stateVersion.Value)
 	if err != nil {
 		diags.AddError("failed to parse previous Elasticsearch version", err.Error())
 		return false, diags
 	}
-	newV, err := semver.Parse(planVersion.Value)
+	newVersion, err := semver.Parse(planVersion.Value)
 	if err != nil {
 		diags.AddError("failed to parse new Elasticsearch version", err.Error())
 		return false, diags
@@ -81,7 +81,7 @@ func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagn
 
 	// if the version change moves from non-node_roles to one
 	// that supports node roles, do not migrate on that step.
-	if oldV.LT(DataTiersVersion) && newV.GE(DataTiersVersion) {
+	if oldVersion.LT(DataTiersVersion) && newVersion.GE(DataTiersVersion) {
 		return false, nil
 	}
 
