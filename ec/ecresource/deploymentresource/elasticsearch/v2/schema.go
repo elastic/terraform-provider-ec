@@ -50,7 +50,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 		Required:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"autoscale": {
-				Type:        types.StringType,
+				Type:        types.BoolType,
 				Description: `Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".`,
 				Computed:    true,
 				Optional:    true,

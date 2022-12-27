@@ -911,7 +911,7 @@ func Test_writeElasticsearch(t *testing.T) {
 			name: "autoscaling enabled",
 			args: args{
 				es: Elasticsearch{
-					Autoscale:  ec.String("true"),
+					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1044,7 +1044,7 @@ func Test_writeElasticsearch(t *testing.T) {
 			name: "autoscaling enabled overriding the size with ml",
 			args: args{
 				es: Elasticsearch{
-					Autoscale:  ec.String("true"),
+					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1221,7 +1221,7 @@ func Test_writeElasticsearch(t *testing.T) {
 			name: "autoscaling enabled no dimension in template, default resource",
 			args: args{
 				es: Elasticsearch{
-					Autoscale:  ec.String("true"),
+					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1333,7 +1333,7 @@ func Test_writeElasticsearch(t *testing.T) {
 			name: "autoscaling enabled overriding the size and resources",
 			args: args{
 				es: Elasticsearch{
-					Autoscale:  ec.String("true"),
+					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),

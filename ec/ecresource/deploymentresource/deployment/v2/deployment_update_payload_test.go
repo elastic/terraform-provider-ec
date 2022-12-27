@@ -1557,7 +1557,7 @@ func Test_updateResourceToModel(t *testing.T) {
 					Version:              "7.12.1",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.String("true"),
+						Autoscale: ec.Bool(true),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
@@ -1582,7 +1582,7 @@ func Test_updateResourceToModel(t *testing.T) {
 					Version:              "7.12.1",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.String("true"),
+						Autoscale: ec.Bool(true),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
