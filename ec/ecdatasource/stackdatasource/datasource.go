@@ -153,8 +153,8 @@ func stackFromFilters(expr, version string, locked bool, stacks []*models.StackV
 	)
 }
 
-func newElasticsearchConfigModelV0() elasticSearchConfigModelV0 {
-	return elasticSearchConfigModelV0{
+func newElasticsearchConfigModelV0() elasticsearchConfigModelV0 {
+	return elasticsearchConfigModelV0{
 		DenyList:            types.List{ElemType: types.StringType},
 		CompatibleNodeTypes: types.List{ElemType: types.StringType},
 		Plugins:             types.List{ElemType: types.StringType},

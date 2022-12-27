@@ -135,10 +135,10 @@ func newSampleStack() modelV0 {
 		MinUpgradableFrom: types.String{Value: "6.8.0"},
 		Elasticsearch: types.List{
 			ElemType: types.ObjectType{
-				AttrTypes: elasticSearchConfigAttrTypes(),
+				AttrTypes: elasticsearchConfigAttrTypes(),
 			},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: elasticSearchConfigAttrTypes(),
+				AttrTypes: elasticsearchConfigAttrTypes(),
 				Attrs: map[string]attr.Value{
 					"denylist":                 util.StringListAsType([]string{"some"}),
 					"capacity_constraints_max": types.Int64{Value: 8192},

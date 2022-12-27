@@ -72,9 +72,9 @@ func flattenStackVersionElasticsearchConfig(ctx context.Context, res *models.Sta
 		return diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []elasticSearchConfigModelV0{model}, types.ListType{
+	diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchConfigModelV0{model}, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: elasticSearchConfigAttrTypes(),
+			AttrTypes: elasticsearchConfigAttrTypes(),
 		},
 	}, target)...)
 

@@ -122,8 +122,8 @@ func modelToState(ctx context.Context, res *models.DeploymentsSearchResponse, st
 		}
 
 		if len(deployment.Resources.Elasticsearch) > 0 {
-			m.ElasticSearchResourceID = types.String{Value: *deployment.Resources.Elasticsearch[0].ID}
-			m.ElasticSearchRefID = types.String{Value: *deployment.Resources.Elasticsearch[0].RefID}
+			m.ElasticsearchResourceID = types.String{Value: *deployment.Resources.Elasticsearch[0].ID}
+			m.ElasticsearchRefID = types.String{Value: *deployment.Resources.Elasticsearch[0].RefID}
 		}
 
 		if len(deployment.Resources.Kibana) > 0 {

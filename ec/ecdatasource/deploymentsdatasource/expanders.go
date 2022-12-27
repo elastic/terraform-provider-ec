@@ -57,7 +57,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 	if healthy != "" {
 		if healthy != "true" && healthy != "false" {
 			diags.AddError("invalid value for healthy",
-				fmt.Sprintf("invalid value for healthy (true|false): '%s'", healthy))
+				fmt.Sprintf("expected either [true] or [false] but got [%s]", healthy))
 			return nil, diags
 		}
 
