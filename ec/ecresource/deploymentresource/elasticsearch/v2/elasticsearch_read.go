@@ -18,10 +18,7 @@
 package v2
 
 import (
-	"strconv"
-
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
@@ -29,7 +26,7 @@ import (
 )
 
 type Elasticsearch struct {
-	Autoscale        *string                      `tfsdk:"autoscale"`
+	Autoscale        *bool                        `tfsdk:"autoscale"`
 	RefId            *string                      `tfsdk:"ref_id"`
 	ResourceId       *string                      `tfsdk:"resource_id"`
 	Region           *string                      `tfsdk:"region"`
@@ -96,7 +93,7 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	es.setTopology(topologies)
 
 	if plan.AutoscalingEnabled != nil {
-		es.Autoscale = ec.String(strconv.FormatBool(*plan.AutoscalingEnabled))
+		es.Autoscale = plan.AutoscalingEnabled
 	}
 
 	if meta := in.Info.Metadata; meta != nil && meta.CloudID != "" {

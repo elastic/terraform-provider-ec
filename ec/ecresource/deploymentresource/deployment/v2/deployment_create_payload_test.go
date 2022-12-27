@@ -1603,7 +1603,7 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.String("true"),
+						Autoscale: ec.Bool(true),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
@@ -1755,7 +1755,7 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.String("true"),
+						Autoscale: ec.Bool(true),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
@@ -2475,7 +2475,7 @@ func Test_createRequest(t *testing.T) {
 						Config: &elasticsearchv2.ElasticsearchConfig{
 							DockerImage: ec.String("docker.elastic.com/elasticsearch/container:7.14.1-hash"),
 						},
-						Autoscale: ec.String("false"),
+						Autoscale: ec.Bool(false),
 						TrustAccount: elasticsearchv2.ElasticsearchTrustAccounts{
 							{
 								AccountId: ec.String("ANID"),
@@ -2655,7 +2655,7 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.String("false"),
+						Autoscale: ec.Bool(false),
 						TrustAccount: elasticsearchv2.ElasticsearchTrustAccounts{
 							{
 								AccountId: ec.String("ANID"),

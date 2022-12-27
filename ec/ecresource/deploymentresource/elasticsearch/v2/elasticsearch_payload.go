@@ -19,7 +19,6 @@ package v2
 
 import (
 	"context"
-	"strconv"
 	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -31,7 +30,7 @@ import (
 )
 
 type ElasticsearchTF struct {
-	Autoscale        types.String `tfsdk:"autoscale"`
+	Autoscale        types.Bool   `tfsdk:"autoscale"`
 	RefId            types.String `tfsdk:"ref_id"`
 	ResourceId       types.String `tfsdk:"resource_id"`
 	Region           types.String `tfsdk:"region"`
@@ -111,13 +110,8 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 
 	diags.Append(elasticsearchExtensionPayload(ctx, es.Extension, res.Plan.Elasticsearch)...)
 
-	if es.Autoscale.Value != "" {
-		autoscaleBool, err := strconv.ParseBool(es.Autoscale.Value)
-		if err != nil {
-			diags.AddError("failed parsing autoscale value", err.Error())
-		} else {
-			res.Plan.AutoscalingEnabled = &autoscaleBool
-		}
+	if !es.Autoscale.IsNull() && !es.Autoscale.IsUnknown() {
+		res.Plan.AutoscalingEnabled = &es.Autoscale.Value
 	}
 
 	res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
