@@ -238,8 +238,8 @@ type deploymentModelV0 struct {
 	DeploymentID                 types.String `tfsdk:"deployment_id"`
 	Name                         types.String `tfsdk:"name"`
 	Alias                        types.String `tfsdk:"alias"`
-	ElasticSearchResourceID      types.String `tfsdk:"elasticsearch_resource_id"`
-	ElasticSearchRefID           types.String `tfsdk:"elasticsearch_ref_id"`
+	ElasticsearchResourceID      types.String `tfsdk:"elasticsearch_resource_id"`
+	ElasticsearchRefID           types.String `tfsdk:"elasticsearch_ref_id"`
 	KibanaResourceID             types.String `tfsdk:"kibana_resource_id"`
 	KibanaRefID                  types.String `tfsdk:"kibana_ref_id"`
 	ApmResourceID                types.String `tfsdk:"apm_resource_id"`

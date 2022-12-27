@@ -80,13 +80,13 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 			},
 			"apm":               resourceKindConfigSchema(Apm),
 			"enterprise_search": resourceKindConfigSchema(EnterpriseSearch),
-			"elasticsearch":     elasticSearchConfigSchema(),
+			"elasticsearch":     elasticsearchConfigSchema(),
 			"kibana":            resourceKindConfigSchema(Kibana),
 		},
 	}, nil
 }
 
-func elasticSearchConfigSchema() tfsdk.Attribute {
+func elasticsearchConfigSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Information for Elasticsearch workloads on this stack version.",
 		Computed:    true,
@@ -134,8 +134,8 @@ func elasticSearchConfigSchema() tfsdk.Attribute {
 	}
 }
 
-func elasticSearchConfigAttrTypes() map[string]attr.Type {
-	return elasticSearchConfigSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+func elasticsearchConfigAttrTypes() map[string]attr.Type {
+	return elasticsearchConfigSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 func resourceKindConfigSchema(resourceKind ResourceKind) tfsdk.Attribute {
@@ -197,11 +197,11 @@ type modelV0 struct {
 	AllowListed       types.Bool   `tfsdk:"allowlisted"`
 	Apm               types.List   `tfsdk:"apm"`               //< resourceKindConfigModelV0
 	EnterpriseSearch  types.List   `tfsdk:"enterprise_search"` //< resourceKindConfigModelV0
-	Elasticsearch     types.List   `tfsdk:"elasticsearch"`     //< elasticSearchConfigModelV0
+	Elasticsearch     types.List   `tfsdk:"elasticsearch"`     //< elasticsearchConfigModelV0
 	Kibana            types.List   `tfsdk:"kibana"`            //< resourceKindConfigModelV0
 }
 
-type elasticSearchConfigModelV0 struct {
+type elasticsearchConfigModelV0 struct {
 	DenyList               types.List   `tfsdk:"denylist"`
 	CapacityConstraintsMax types.Int64  `tfsdk:"capacity_constraints_max"`
 	CapacityConstraintsMin types.Int64  `tfsdk:"capacity_constraints_min"`
