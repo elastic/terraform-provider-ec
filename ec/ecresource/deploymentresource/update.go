@@ -72,7 +72,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	resp.Diagnostics.Append(handleTrafficFilterChange(ctx, r.client, plan, state)...)
+	resp.Diagnostics.Append(HandleTrafficFilterChange(ctx, r.client, plan, state)...)
 
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.Value, plan.Elasticsearch)...)
 
@@ -89,7 +89,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, deployment)...)
 }
 
-func handleTrafficFilterChange(ctx context.Context, client *api.API, plan, state v2.DeploymentTF) diag.Diagnostics {
+func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan, state v2.DeploymentTF) diag.Diagnostics {
 	if plan.TrafficFilter.IsNull() || plan.TrafficFilter.Equal(state.TrafficFilter) {
 		return nil
 	}
@@ -144,8 +144,14 @@ func (rs ruleSet) exist(rule string) bool {
 	return false
 }
 
+var (
+	GetAssociation    = trafficfilterapi.Get
+	CreateAssociation = trafficfilterapi.CreateAssociation
+	DeleteAssociation = trafficfilterapi.DeleteAssociation
+)
+
 func associateRule(ruleID, deploymentID string, client *api.API) error {
-	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+	res, err := GetAssociation(trafficfilterapi.GetParams{
 		API: client, ID: ruleID, IncludeAssociations: true,
 	})
 	if err != nil {
@@ -160,7 +166,7 @@ func associateRule(ruleID, deploymentID string, client *api.API) error {
 	}
 
 	// Create assignment.
-	if err := trafficfilterapi.CreateAssociation(trafficfilterapi.CreateAssociationParams{
+	if err := CreateAssociation(trafficfilterapi.CreateAssociationParams{
 		API: client, ID: ruleID, EntityType: "deployment", EntityID: deploymentID,
 	}); err != nil {
 		return err
@@ -169,7 +175,7 @@ func associateRule(ruleID, deploymentID string, client *api.API) error {
 }
 
 func removeRule(ruleID, deploymentID string, client *api.API) error {
-	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
+	res, err := GetAssociation(trafficfilterapi.GetParams{
 		API: client, ID: ruleID, IncludeAssociations: true,
 	})
 
@@ -184,7 +190,7 @@ func removeRule(ruleID, deploymentID string, client *api.API) error {
 	// If the rule is found, then delete the association.
 	for _, assoc := range res.Associations {
 		if deploymentID == *assoc.ID {
-			return trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+			return DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
 				API:        client,
 				ID:         ruleID,
 				EntityID:   *assoc.ID,
