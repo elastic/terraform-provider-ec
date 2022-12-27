@@ -29,8 +29,6 @@ func ApmConfigSchema() tfsdk.Attribute {
 		Description: `Optionally define the Apm configuration options for the APM Server`,
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			// TODO
-			// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			"docker_image": {
 				Type:        types.StringType,
 				Description: "Optionally override the docker image the APM nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",

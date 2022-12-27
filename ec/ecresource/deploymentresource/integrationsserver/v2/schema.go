@@ -110,14 +110,11 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 				Description: `Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server`,
 				Optional:    true,
 				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					// TODO
-					// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 					"docker_image": {
 						Type:        types.StringType,
 						Description: "Optionally override the docker image the IntegrationsServer nodes will use. Note that this field will only work for internal users only.",
 						Optional:    true,
 					},
-					// IntegrationsServer System Settings
 					"debug_enabled": {
 						Type:        types.BoolType,
 						Description: `Optionally enable debug mode for IntegrationsServer servers - defaults to false`,

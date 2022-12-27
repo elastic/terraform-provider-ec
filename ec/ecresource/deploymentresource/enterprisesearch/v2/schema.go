@@ -131,8 +131,6 @@ func EnterpriseSearchSchema() tfsdk.Attribute {
 				Description: `Optionally define the Enterprise Search configuration options for the Enterprise Search Server`,
 				Optional:    true,
 				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					// TODO
-					// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 					"docker_image": {
 						Type:        types.StringType,
 						Description: "Optionally override the docker image the Enterprise Search nodes will use. Note that this field will only work for internal users only.",

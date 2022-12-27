@@ -107,9 +107,7 @@ func KibanaSchema() tfsdk.Attribute {
 				},
 			},
 			"config": {
-				Optional: true,
-				// TODO
-				// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				Optional:    true,
 				Description: `Optionally define the Kibana configuration options for the Kibana Server`,
 				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 					"docker_image": {
