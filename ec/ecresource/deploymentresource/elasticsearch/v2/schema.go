@@ -128,11 +128,9 @@ func ElasticsearchSchema() tfsdk.Attribute {
 
 func ElasticsearchConfigSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: `Optional Elasticsearch settings which will be applied to all topologies unless overridden on the topology element`,
+		Description: `Optional Elasticsearch settings which will be applied to all topologies`,
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			// TODO
-			// DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
 			"docker_image": {
 				Type:        types.StringType,
 				Description: "Optionally override the docker image the Elasticsearch nodes will use. Note that this field will only work for internal users only.",
