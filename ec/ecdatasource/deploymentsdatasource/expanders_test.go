@@ -136,7 +136,7 @@ func Test_expandFilters(t *testing.T) {
 		{
 			name:  "fails to parse the data source",
 			args:  args{state: newInvalidFilters()},
-			diags: diag.Diagnostics{diag.NewErrorDiagnostic("invalid value for healthy", "invalid value for healthy (true|false): 'invalid value'")},
+			diags: diag.Diagnostics{diag.NewErrorDiagnostic("invalid value for healthy", "expected either [true] or [false] but got [invalid value]")},
 		},
 	}
 	for _, tt := range tests {
