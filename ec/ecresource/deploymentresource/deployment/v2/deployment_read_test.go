@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
@@ -28,7 +29,6 @@ import (
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -466,7 +466,7 @@ func Test_readDeployment(t *testing.T) {
 		{
 			name: "flattens an azure plan (io-optimized)",
 			args: args{
-				res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-azure-io-optimized.json"),
+				res: deploymentGetResponseFromFile(t, "../../testdata/deployment-azure-io-optimized.json"),
 			},
 			want: Deployment{
 				Id:                   "123e79d8109c4a0790b0b333110bf715",
@@ -528,7 +528,7 @@ func Test_readDeployment(t *testing.T) {
 
 		{
 			name: "flattens an aws plan (io-optimized)",
-			args: args{res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-aws-io-optimized.json")},
+			args: args{res: deploymentGetResponseFromFile(t, "../../testdata/deployment-aws-io-optimized.json")},
 			want: Deployment{
 				Id:                   "123365f2805e46808d40849b1c0b266b",
 				Alias:                "my-deployment",
@@ -590,7 +590,7 @@ func Test_readDeployment(t *testing.T) {
 		{
 			name: "flattens an aws plan with extensions (io-optimized)",
 			args: args{
-				res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-aws-io-optimized-extension.json"),
+				res: deploymentGetResponseFromFile(t, "../../testdata/deployment-aws-io-optimized-extension.json"),
 			},
 			want: Deployment{
 				Id:                   "123365f2805e46808d40849b1c0b266b",
@@ -1043,7 +1043,7 @@ func Test_readDeployment(t *testing.T) {
 
 		{
 			name: "flattens an aws plan (io-optimized) with tags",
-			args: args{res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-aws-io-optimized-tags.json")},
+			args: args{res: deploymentGetResponseFromFile(t, "../../testdata/deployment-aws-io-optimized-tags.json")},
 			want: Deployment{
 				Id:                   "123365f2805e46808d40849b1c0b266b",
 				Alias:                "my-deployment",
@@ -1109,7 +1109,7 @@ func Test_readDeployment(t *testing.T) {
 
 		{
 			name: "flattens a gcp plan (io-optimized)",
-			args: args{res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-gcp-io-optimized.json")},
+			args: args{res: deploymentGetResponseFromFile(t, "../../testdata/deployment-gcp-io-optimized.json")},
 			want: Deployment{
 				Id:                   "1239e402d6df471ea374bd68e3f91cc5",
 				Alias:                "my-deployment",
@@ -1170,7 +1170,7 @@ func Test_readDeployment(t *testing.T) {
 
 		{
 			name: "flattens a gcp plan with autoscale set (io-optimized)",
-			args: args{res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-gcp-io-optimized-autoscale.json")},
+			args: args{res: deploymentGetResponseFromFile(t, "../../testdata/deployment-gcp-io-optimized-autoscale.json")},
 			want: Deployment{
 				Id:                   "1239e402d6df471ea374bd68e3f91cc5",
 				Alias:                "",
@@ -1282,7 +1282,7 @@ func Test_readDeployment(t *testing.T) {
 
 		{
 			name: "flattens a gcp plan (hot-warm)",
-			args: args{res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-gcp-hot-warm.json")},
+			args: args{res: deploymentGetResponseFromFile(t, "../../testdata/deployment-gcp-hot-warm.json")},
 			want: Deployment{
 				Id:                   "123d148423864552aa57b59929d4bf4d",
 				Name:                 "up2d-hot-warm",
@@ -1370,7 +1370,7 @@ func Test_readDeployment(t *testing.T) {
 
 		{
 			name: "flattens a gcp plan (hot-warm) with node_roles",
-			args: args{res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-gcp-hot-warm-node_roles.json")},
+			args: args{res: deploymentGetResponseFromFile(t, "../../testdata/deployment-gcp-hot-warm-node_roles.json")},
 			want: Deployment{
 				Id:                   "123d148423864552aa57b59929d4bf4d",
 				Name:                 "up2d-hot-warm",
@@ -1482,7 +1482,7 @@ func Test_readDeployment(t *testing.T) {
 		{
 			name: "flattens an aws plan (Cross Cluster Search)",
 			args: args{
-				res: testutil.OpenDeploymentGet(t, "../../testdata/deployment-aws-ccs.json"),
+				res: deploymentGetResponseFromFile(t, "../../testdata/deployment-aws-ccs.json"),
 				remotes: models.RemoteResources{Resources: []*models.RemoteResourceRef{
 					{
 						Alias:              ec.String("alias"),
@@ -1563,6 +1563,112 @@ func Test_readDeployment(t *testing.T) {
 				assert.NotNil(t, dep)
 				assert.Equal(t, tt.want, *dep)
 			}
+		})
+	}
+}
+
+func Test_getDeploymentTemplateID(t *testing.T) {
+	type args struct {
+		res *models.DeploymentResources
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+		err  error
+	}{
+		{
+			name: "empty resources returns an error",
+			args: args{res: &models.DeploymentResources{}},
+			err:  errors.New("failed to obtain the deployment template id"),
+		},
+		{
+			name: "single empty current plan returns error",
+			args: args{res: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{
+						Info: &models.ElasticsearchClusterInfo{
+							PlanInfo: &models.ElasticsearchClusterPlansInfo{
+								Pending: &models.ElasticsearchClusterPlanInfo{
+									Plan: &models.ElasticsearchClusterPlan{
+										DeploymentTemplate: &models.DeploymentTemplateReference{
+											ID: ec.String("aws-io-optimized"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+			err: errors.New("failed to obtain the deployment template id"),
+		},
+		{
+			name: "multiple deployment templates returns an error",
+			args: args{res: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{
+						Info: &models.ElasticsearchClusterInfo{
+							PlanInfo: &models.ElasticsearchClusterPlansInfo{
+								Current: &models.ElasticsearchClusterPlanInfo{
+									Plan: &models.ElasticsearchClusterPlan{
+										DeploymentTemplate: &models.DeploymentTemplateReference{
+											ID: ec.String("someid"),
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Info: &models.ElasticsearchClusterInfo{
+							PlanInfo: &models.ElasticsearchClusterPlansInfo{
+								Current: &models.ElasticsearchClusterPlanInfo{
+									Plan: &models.ElasticsearchClusterPlan{
+										DeploymentTemplate: &models.DeploymentTemplateReference{
+											ID: ec.String("someotherid"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+			err: errors.New("there are more than 1 deployment templates specified on the deployment: \"someid, someotherid\""),
+		},
+		{
+			name: "single deployment template returns it",
+			args: args{res: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{
+						Info: &models.ElasticsearchClusterInfo{
+							PlanInfo: &models.ElasticsearchClusterPlansInfo{
+								Current: &models.ElasticsearchClusterPlanInfo{
+									Plan: &models.ElasticsearchClusterPlan{
+										DeploymentTemplate: &models.DeploymentTemplateReference{
+											ID: ec.String("aws-io-optimized"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+			want: "aws-io-optimized",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getDeploymentTemplateID(tt.args.res)
+			if tt.err != nil {
+				assert.EqualError(t, err, tt.err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

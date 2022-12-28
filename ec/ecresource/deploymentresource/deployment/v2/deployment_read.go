@@ -19,8 +19,11 @@ package v2
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
@@ -31,6 +34,7 @@ import (
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -118,21 +122,21 @@ func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteRes
 		return nil, nil
 	}
 
-	templateID, err := utils.GetDeploymentTemplateID(res.Resources)
+	templateID, err := getDeploymentTemplateID(res.Resources)
 	if err != nil {
 		return nil, err
 	}
 
 	dep.DeploymentTemplateId = templateID
 
-	dep.Region = utils.GetRegion(res.Resources)
+	dep.Region = getRegion(res.Resources)
 
 	// We're reconciling the version and storing the lowest version of any
 	// of the deployment resources. This ensures that if an upgrade fails,
 	// the state version will be lower than the desired version, making
 	// retries possible. Once more resource types are added, the function
 	// needs to be modified to check those as well.
-	version, err := utils.GetLowestVersion(res.Resources)
+	version, err := getLowestVersion(res.Resources)
 	if err != nil {
 		// This code path is highly unlikely, but we're bubbling up the
 		// error in case one of the versions isn't parseable by semver.
@@ -238,4 +242,119 @@ func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
 	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.Value != "" {
 		dep.ApmSecretToken = &state.ApmSecretToken.Value
 	}
+}
+
+func getLowestVersion(res *models.DeploymentResources) (string, error) {
+	// We're starting off with a very high version so it can be replaced.
+	replaceVersion := `99.99.99`
+	version := semver.MustParse(replaceVersion)
+	for _, r := range res.Elasticsearch {
+		if !util.IsCurrentEsPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.Elasticsearch.Version
+			if err := swapLowerVersion(&version, v); err != nil && !elasticsearchv2.IsElasticsearchStopped(r) {
+				return "", fmt.Errorf("elasticsearch version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	for _, r := range res.Kibana {
+		if !util.IsCurrentKibanaPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.Kibana.Version
+			if err := swapLowerVersion(&version, v); err != nil && !kibanav2.IsKibanaStopped(r) {
+				return version.String(), fmt.Errorf("kibana version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	for _, r := range res.Apm {
+		if !util.IsCurrentApmPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.Apm.Version
+			if err := swapLowerVersion(&version, v); err != nil && !apmv2.IsApmStopped(r) {
+				return version.String(), fmt.Errorf("apm version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	for _, r := range res.IntegrationsServer {
+		if !util.IsCurrentIntegrationsServerPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.IntegrationsServer.Version
+			if err := swapLowerVersion(&version, v); err != nil && !integrationsserverv2.IsIntegrationsServerStopped(r) {
+				return version.String(), fmt.Errorf("integrations_server version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	for _, r := range res.EnterpriseSearch {
+		if !util.IsCurrentEssPlanEmpty(r) {
+			v := r.Info.PlanInfo.Current.Plan.EnterpriseSearch.Version
+			if err := swapLowerVersion(&version, v); err != nil && !enterprisesearchv2.IsEnterpriseSearchStopped(r) {
+				return version.String(), fmt.Errorf("enterprise search version '%s' is not semver compliant: %w", v, err)
+			}
+		}
+	}
+
+	if version.String() != replaceVersion {
+		return version.String(), nil
+	}
+	return "", errors.New("unable to determine the lowest version for any the deployment components")
+}
+
+func swapLowerVersion(version *semver.Version, comp string) error {
+	if comp == "" {
+		return nil
+	}
+
+	v, err := semver.Parse(comp)
+	if err != nil {
+		return err
+	}
+	if v.LT(*version) {
+		*version = v
+	}
+	return nil
+}
+
+func getRegion(res *models.DeploymentResources) string {
+	for _, r := range res.Elasticsearch {
+		if r.Region != nil && *r.Region != "" {
+			return *r.Region
+		}
+	}
+
+	return ""
+}
+
+func getDeploymentTemplateID(res *models.DeploymentResources) (string, error) {
+	var deploymentTemplateID string
+	var foundTemplates []string
+	for _, esRes := range res.Elasticsearch {
+		if util.IsCurrentEsPlanEmpty(esRes) {
+			continue
+		}
+
+		var emptyDT = esRes.Info.PlanInfo.Current.Plan.DeploymentTemplate == nil
+		if emptyDT {
+			continue
+		}
+
+		if deploymentTemplateID == "" {
+			deploymentTemplateID = *esRes.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID
+		}
+
+		foundTemplates = append(foundTemplates,
+			*esRes.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID,
+		)
+	}
+
+	if deploymentTemplateID == "" {
+		return "", errors.New("failed to obtain the deployment template id")
+	}
+
+	if len(foundTemplates) > 1 {
+		return "", fmt.Errorf(
+			"there are more than 1 deployment templates specified on the deployment: \"%s\"", strings.Join(foundTemplates, ", "),
+		)
+	}
+
+	return deploymentTemplateID, nil
 }

@@ -31,7 +31,6 @@ import (
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
@@ -71,7 +70,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	// This might not be necessary going forward as we move to
 	// tiered Elasticsearch nodes.
 
-	useNodeRoles, diags := utils.UseNodeRoles(state.Version, plan.Version)
+	useNodeRoles, diags := elasticsearchv2.UseNodeRoles(state.Version, plan.Version)
 
 	if diags.HasError() {
 		return nil, diags

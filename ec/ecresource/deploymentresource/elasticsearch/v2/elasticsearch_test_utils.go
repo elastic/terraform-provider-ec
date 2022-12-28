@@ -15,14 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package utils
+package v2
 
-import "github.com/blang/semver"
+import "github.com/elastic/cloud-sdk-go/pkg/models"
 
-const (
-	MinimumZoneCount = 1
-)
+func CreateTierForTest(tierId string, tier ElasticsearchTopology) *ElasticsearchTopology {
+	res := tier
+	res.id = tierId
+	return &res
+}
 
-var (
-	DataTiersVersion = semver.MustParse("7.10.0")
-)
+func EnrichWithEmptyTopologies(tpl, want *models.ElasticsearchPayload) *models.ElasticsearchPayload {
+	tpl.DisplayName = want.DisplayName
+	tpl.RefID = want.RefID
+	tpl.Region = want.Region
+	tpl.Settings = want.Settings
+	tpl.Plan.AutoscalingEnabled = want.Plan.AutoscalingEnabled
+	tpl.Plan.Elasticsearch = want.Plan.Elasticsearch
+	tpl.Plan.Transient = want.Plan.Transient
+
+	for i, t := range tpl.Plan.ClusterTopology {
+		for _, w := range want.Plan.ClusterTopology {
+			if t.ID == w.ID {
+				tpl.Plan.ClusterTopology[i] = w
+			}
+		}
+	}
+
+	return tpl
+}

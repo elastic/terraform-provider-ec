@@ -31,14 +31,13 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 )
 
 func Test_writeElasticsearch(t *testing.T) {
 	tplPath := "../../testdata/template-aws-io-optimized-v2.json"
 	tp770 := func() *models.ElasticsearchPayload {
-		return utils.EnrichElasticsearchTemplate(
-			utils.EsResource(testutil.ParseDeploymentTemplate(t, tplPath)),
+		return EnrichElasticsearchTemplate(
+			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, tplPath)),
 			"aws-io-optimized-v2",
 			"7.7.0",
 			false,
@@ -46,8 +45,8 @@ func Test_writeElasticsearch(t *testing.T) {
 	}
 
 	create710 := func() *models.ElasticsearchPayload {
-		return utils.EnrichElasticsearchTemplate(
-			utils.EsResource(testutil.ParseDeploymentTemplate(t, tplPath)),
+		return EnrichElasticsearchTemplate(
+			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, tplPath)),
 			"aws-io-optimized-v2",
 			"7.10.0",
 			true,
@@ -55,8 +54,8 @@ func Test_writeElasticsearch(t *testing.T) {
 	}
 
 	update711 := func() *models.ElasticsearchPayload {
-		return utils.EnrichElasticsearchTemplate(
-			utils.EsResource(testutil.ParseDeploymentTemplate(t, tplPath)),
+		return EnrichElasticsearchTemplate(
+			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, tplPath)),
 			"aws-io-optimized-v2",
 			"7.11.0",
 			true,
@@ -65,8 +64,8 @@ func Test_writeElasticsearch(t *testing.T) {
 
 	hotWarmTplPath := "../../testdata/template-aws-hot-warm-v2.json"
 	hotWarmTpl770 := func() *models.ElasticsearchPayload {
-		return utils.EnrichElasticsearchTemplate(
-			utils.EsResource(testutil.ParseDeploymentTemplate(t, hotWarmTplPath)),
+		return EnrichElasticsearchTemplate(
+			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, hotWarmTplPath)),
 			"aws-io-optimized-v2",
 			"7.7.0",
 			false,
@@ -74,8 +73,8 @@ func Test_writeElasticsearch(t *testing.T) {
 	}
 
 	hotWarm7111Tpl := func() *models.ElasticsearchPayload {
-		return utils.EnrichElasticsearchTemplate(
-			utils.EsResource(testutil.ParseDeploymentTemplate(t, hotWarmTplPath)),
+		return EnrichElasticsearchTemplate(
+			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, hotWarmTplPath)),
 			"aws-io-optimized-v2",
 			"7.11.1",
 			true,
@@ -84,8 +83,8 @@ func Test_writeElasticsearch(t *testing.T) {
 
 	eceDefaultTplPath := "../../testdata/template-ece-3.0.0-default.json"
 	eceDefaultTpl := func() *models.ElasticsearchPayload {
-		return utils.EnrichElasticsearchTemplate(
-			utils.EsResource(testutil.ParseDeploymentTemplate(t, eceDefaultTplPath)),
+		return EnrichElasticsearchTemplate(
+			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, eceDefaultTplPath)),
 			"aws-io-optimized-v2",
 			"7.17.3",
 			true,
@@ -123,7 +122,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -189,7 +188,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.10.0",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(create710(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(create710(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -259,7 +258,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.11.0",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(update711(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(update711(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -318,7 +317,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -389,7 +388,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -494,7 +493,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -587,7 +586,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -690,7 +689,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -798,7 +797,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.11.1",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -931,7 +930,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.11.1",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1081,7 +1080,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.11.1",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1245,7 +1244,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.17.3",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(eceDefaultTpl(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(eceDefaultTpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1367,7 +1366,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.11.1",
 				useNodeRoles: true,
 			},
-			want: testutil.EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1505,7 +1504,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1582,7 +1581,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1653,7 +1652,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1725,7 +1724,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1797,7 +1796,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				version:      "7.7.0",
 				useNodeRoles: false,
 			},
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{
@@ -1870,7 +1869,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				useNodeRoles: false,
 			},
 
-			want: testutil.EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
 				RefID:  ec.String("main-elasticsearch"),
 				Settings: &models.ElasticsearchClusterSettings{

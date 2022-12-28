@@ -309,3 +309,35 @@ func Test_readApm(t *testing.T) {
 		})
 	}
 }
+
+func Test_IsApmResourceStopped(t *testing.T) {
+	type args struct {
+		res *models.ApmResourceInfo
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "started resource returns false",
+			args: args{res: &models.ApmResourceInfo{Info: &models.ApmInfo{
+				Status: ec.String("started"),
+			}}},
+			want: false,
+		},
+		{
+			name: "stopped resource returns true",
+			args: args{res: &models.ApmResourceInfo{Info: &models.ApmInfo{
+				Status: ec.String("stopped"),
+			}}},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsApmStopped(tt.args.res)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

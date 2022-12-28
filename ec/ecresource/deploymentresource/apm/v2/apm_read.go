@@ -19,7 +19,6 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -40,7 +39,7 @@ type Apm struct {
 
 func ReadApms(in []*models.ApmResourceInfo) (*Apm, error) {
 	for _, model := range in {
-		if util.IsCurrentApmPlanEmpty(model) || utils.IsApmResourceStopped(model) {
+		if util.IsCurrentApmPlanEmpty(model) || IsApmStopped(model) {
 			continue
 		}
 
@@ -89,4 +88,10 @@ func ReadApm(in *models.ApmResourceInfo) (*Apm, error) {
 	}
 
 	return &apm, nil
+}
+
+// IsApmStopped returns true if the resource is stopped.
+func IsApmStopped(res *models.ApmResourceInfo) bool {
+	return res == nil || res.Info == nil || res.Info.Status == nil ||
+		*res.Info.Status == "stopped"
 }

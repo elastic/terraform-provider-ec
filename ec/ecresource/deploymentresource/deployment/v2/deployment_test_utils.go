@@ -15,37 +15,46 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package testutil
+package v2
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+
+	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 )
 
-// parseDeploymentTemplate is a test helper which parse a file by path and
-// returns a models.DeploymentTemplateInfoV2.
-func ParseDeploymentTemplate(t *testing.T, name string) *models.DeploymentTemplateInfoV2 {
+func elasticsearchPayloadFromReader(t *testing.T, rc io.Reader, useNodeRoles bool) *models.ElasticsearchPayload {
 	t.Helper()
-	f, err := os.Open(name)
+
+	var tpl models.DeploymentTemplateInfoV2
+	if err := json.NewDecoder(rc).Decode(&tpl); err != nil {
+		t.Fatal(err)
+	}
+
+	return elasticsearchv2.EnrichElasticsearchTemplate(
+		tpl.DeploymentTemplate.Resources.Elasticsearch[0],
+		*tpl.ID,
+		"",
+		useNodeRoles,
+	)
+}
+
+func deploymentGetResponseFromFile(t *testing.T, filename string) *models.DeploymentGetResponse {
+	t.Helper()
+	f, err := os.Open(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer f.Close()
 
-	var res models.DeploymentTemplateInfoV2
+	var res models.DeploymentGetResponse
 	if err := json.NewDecoder(f).Decode(&res); err != nil {
 		t.Fatal(err)
 	}
-
-	// Enriches the elasticsearch DT with the current DT.
-	if len(res.DeploymentTemplate.Resources.Elasticsearch) > 0 {
-		res.DeploymentTemplate.Resources.Elasticsearch[0].Plan.DeploymentTemplate = &models.DeploymentTemplateReference{
-			ID: res.ID,
-		}
-	}
-
 	return &res
 }

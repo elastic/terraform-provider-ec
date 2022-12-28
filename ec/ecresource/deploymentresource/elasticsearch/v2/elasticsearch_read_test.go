@@ -431,3 +431,35 @@ func Test_readElasticsearchConfig(t *testing.T) {
 		})
 	}
 }
+
+func Test_IsEsResourceStopped(t *testing.T) {
+	type args struct {
+		res *models.ElasticsearchResourceInfo
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "started resource returns false",
+			args: args{res: &models.ElasticsearchResourceInfo{Info: &models.ElasticsearchClusterInfo{
+				Status: ec.String("started"),
+			}}},
+			want: false,
+		},
+		{
+			name: "stopped resource returns true",
+			args: args{res: &models.ElasticsearchResourceInfo{Info: &models.ElasticsearchClusterInfo{
+				Status: ec.String("stopped"),
+			}}},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsElasticsearchStopped(tt.args.res)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
