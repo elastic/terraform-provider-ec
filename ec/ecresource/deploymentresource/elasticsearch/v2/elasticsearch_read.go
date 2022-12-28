@@ -20,7 +20,6 @@ package v2
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -51,7 +50,7 @@ type Elasticsearch struct {
 
 func ReadElasticsearches(in []*models.ElasticsearchResourceInfo, remotes *models.RemoteResources) (*Elasticsearch, error) {
 	for _, model := range in {
-		if util.IsCurrentEsPlanEmpty(model) || utils.IsEsResourceStopped(model) {
+		if util.IsCurrentEsPlanEmpty(model) || IsElasticsearchStopped(model) {
 			continue
 		}
 		es, err := readElasticsearch(model, remotes)
@@ -67,7 +66,7 @@ func ReadElasticsearches(in []*models.ElasticsearchResourceInfo, remotes *models
 func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.RemoteResources) (*Elasticsearch, error) {
 	var es Elasticsearch
 
-	if util.IsCurrentEsPlanEmpty(in) || utils.IsEsResourceStopped(in) {
+	if util.IsCurrentEsPlanEmpty(in) || IsElasticsearchStopped(in) {
 		return &es, nil
 	}
 
@@ -156,4 +155,10 @@ func (es *Elasticsearch) setTopology(topologies ElasticsearchTopologies) {
 			es.MlTier = &topology
 		}
 	}
+}
+
+// IsElasticsearchStopped returns true if the resource is stopped.
+func IsElasticsearchStopped(res *models.ElasticsearchResourceInfo) bool {
+	return res == nil || res.Info == nil || res.Info.Status == nil ||
+		*res.Info.Status == "stopped"
 }

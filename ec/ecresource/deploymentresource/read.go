@@ -29,9 +29,12 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
+	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
+	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
+	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -91,7 +94,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		return nil, diags
 	}
 
-	if !utils.HasRunningResources(response) {
+	if !HasRunningResources(response) {
 		return nil, nil
 	}
 
@@ -200,4 +203,35 @@ func checkVersion(version string) error {
 	}
 
 	return nil
+}
+
+func HasRunningResources(res *models.DeploymentGetResponse) bool {
+	if res.Resources != nil {
+		for _, r := range res.Resources.Elasticsearch {
+			if !elasticsearchv2.IsElasticsearchStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.Kibana {
+			if !kibanav2.IsKibanaStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.Apm {
+			if !apmv2.IsApmStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.EnterpriseSearch {
+			if !enterprisesearchv2.IsEnterpriseSearchStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.IntegrationsServer {
+			if !integrationsserverv2.IsIntegrationsServerStopped(r) {
+				return true
+			}
+		}
+	}
+	return false
 }

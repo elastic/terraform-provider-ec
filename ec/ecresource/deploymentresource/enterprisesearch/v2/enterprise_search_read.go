@@ -19,7 +19,6 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -44,7 +43,7 @@ type EnterpriseSearch struct {
 type EnterpriseSearches []EnterpriseSearch
 
 func ReadEnterpriseSearch(in *models.EnterpriseSearchResourceInfo) (*EnterpriseSearch, error) {
-	if util.IsCurrentEssPlanEmpty(in) || utils.IsEssResourceStopped(in) {
+	if util.IsCurrentEssPlanEmpty(in) || IsEnterpriseSearchStopped(in) {
 		return nil, nil
 	}
 
@@ -89,7 +88,7 @@ func ReadEnterpriseSearch(in *models.EnterpriseSearchResourceInfo) (*EnterpriseS
 
 func ReadEnterpriseSearches(in []*models.EnterpriseSearchResourceInfo) (*EnterpriseSearch, error) {
 	for _, model := range in {
-		if util.IsCurrentEssPlanEmpty(model) || utils.IsEssResourceStopped(model) {
+		if util.IsCurrentEssPlanEmpty(model) || IsEnterpriseSearchStopped(model) {
 			continue
 		}
 
@@ -102,4 +101,10 @@ func ReadEnterpriseSearches(in []*models.EnterpriseSearchResourceInfo) (*Enterpr
 	}
 
 	return nil, nil
+}
+
+// IsEnterpriseSearchStopped returns true if the resource is stopped.
+func IsEnterpriseSearchStopped(res *models.EnterpriseSearchResourceInfo) bool {
+	return res == nil || res.Info == nil || res.Info.Status == nil ||
+		*res.Info.Status == "stopped"
 }

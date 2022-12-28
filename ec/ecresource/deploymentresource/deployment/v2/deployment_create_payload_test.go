@@ -33,7 +33,6 @@ import (
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/stretchr/testify/assert"
@@ -274,7 +273,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -473,7 +472,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -625,7 +624,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -764,7 +763,7 @@ func Test_createRequest(t *testing.T) {
 				// Ref ids are taken from template, not from defaults values in this test.
 				// Defaults are processed by TF during config processing.
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -929,7 +928,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1085,7 +1084,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1216,7 +1215,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, hotWarmTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), false), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1337,7 +1336,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1488,7 +1487,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1636,7 +1635,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1792,7 +1791,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -1951,7 +1950,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -2129,7 +2128,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -2315,7 +2314,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -2521,7 +2520,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -2714,7 +2713,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -2877,7 +2876,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ccsTpl(), false), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ccsTpl(), false), &models.ElasticsearchPayload{
 						Region:   ec.String("us-east-1"),
 						RefID:    ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{},
@@ -2972,7 +2971,7 @@ func Test_createRequest(t *testing.T) {
 					{Key: ec.String("owner"), Value: ec.String("elastic")},
 				}},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
@@ -3054,7 +3053,7 @@ func Test_createRequest(t *testing.T) {
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
-					Elasticsearch: []*models.ElasticsearchPayload{testutil.EnrichWithEmptyTopologies(testutil.ReaderToESPayload(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
 						Region: ec.String("us-east-1"),
 						RefID:  ec.String("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{

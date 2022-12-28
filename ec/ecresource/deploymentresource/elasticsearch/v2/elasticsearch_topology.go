@@ -64,12 +64,6 @@ type ElasticsearchTopology struct {
 	Autoscaling             *ElasticsearchTopologyAutoscaling `tfsdk:"autoscaling"`
 }
 
-func CreateTierForTest(tierId string, tier ElasticsearchTopology) *ElasticsearchTopology {
-	res := tier
-	res.id = tierId
-	return &res
-}
-
 type ElasticsearchTopologyAutoscaling v1.ElasticsearchTopologyAutoscaling
 
 func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID string, planTopologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {

@@ -19,7 +19,6 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -40,7 +39,7 @@ type IntegrationsServer struct {
 
 func ReadIntegrationsServers(in []*models.IntegrationsServerResourceInfo) (*IntegrationsServer, error) {
 	for _, model := range in {
-		if util.IsCurrentIntegrationsServerPlanEmpty(model) || utils.IsIntegrationsServerResourceStopped(model) {
+		if util.IsCurrentIntegrationsServerPlanEmpty(model) || IsIntegrationsServerStopped(model) {
 			continue
 		}
 
@@ -93,4 +92,10 @@ func readIntegrationsServer(in *models.IntegrationsServerResourceInfo) (*Integra
 	srv.Config = cfg
 
 	return &srv, nil
+}
+
+// IsIntegrationsServerStopped returns true if the resource is stopped.
+func IsIntegrationsServerStopped(res *models.IntegrationsServerResourceInfo) bool {
+	return res == nil || res.Info == nil || res.Info.Status == nil ||
+		*res.Info.Status == "stopped"
 }

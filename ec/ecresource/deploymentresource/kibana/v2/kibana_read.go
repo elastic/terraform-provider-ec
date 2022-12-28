@@ -19,7 +19,6 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -40,7 +39,7 @@ type Kibana struct {
 
 func ReadKibanas(in []*models.KibanaResourceInfo) (*Kibana, error) {
 	for _, model := range in {
-		if util.IsCurrentKibanaPlanEmpty(model) || utils.IsKibanaResourceStopped(model) {
+		if util.IsCurrentKibanaPlanEmpty(model) || IsKibanaStopped(model) {
 			continue
 		}
 
@@ -91,4 +90,10 @@ func readKibana(in *models.KibanaResourceInfo) (*Kibana, error) {
 	kibana.Config = config
 
 	return &kibana, nil
+}
+
+// IsKibanaStopped returns true if the resource is stopped.
+func IsKibanaStopped(res *models.KibanaResourceInfo) bool {
+	return res == nil || res.Info == nil || res.Info.Status == nil ||
+		*res.Info.Status == "stopped"
 }

@@ -19,14 +19,16 @@ package v2
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 )
 
 type ElasticsearchTF struct {
@@ -68,7 +70,7 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *mod
 		return nil, nil
 	}
 
-	templatePayload := utils.EnrichElasticsearchTemplate(utils.EsResource(template), dtID, version, useNodeRoles)
+	templatePayload := EnrichElasticsearchTemplate(payloadFromTemplate(template), dtID, version, useNodeRoles)
 
 	payload, diags := es.payload(ctx, templatePayload, skipTopologies)
 	if diags.HasError() {
@@ -262,4 +264,99 @@ func elasticsearchStrategyPayload(strategy types.String, payload *models.Elastic
 			GroupBy: "__all__",
 		}
 	}
+}
+
+func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.ElasticsearchPayload {
+	if template == nil || len(template.DeploymentTemplate.Resources.Elasticsearch) == 0 {
+		return &models.ElasticsearchPayload{
+			Plan: &models.ElasticsearchClusterPlan{
+				Elasticsearch: &models.ElasticsearchConfiguration{},
+			},
+			Settings: &models.ElasticsearchClusterSettings{},
+		}
+	}
+	return template.DeploymentTemplate.Resources.Elasticsearch[0]
+}
+
+func EnrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, templateId, version string, useNodeRoles bool) *models.ElasticsearchPayload {
+	if tpl.Plan.DeploymentTemplate == nil {
+		tpl.Plan.DeploymentTemplate = &models.DeploymentTemplateReference{}
+	}
+
+	if tpl.Plan.DeploymentTemplate.ID == nil || *tpl.Plan.DeploymentTemplate.ID == "" {
+		tpl.Plan.DeploymentTemplate.ID = ec.String(templateId)
+	}
+
+	if tpl.Plan.Elasticsearch.Version == "" {
+		tpl.Plan.Elasticsearch.Version = version
+	}
+
+	for _, topology := range tpl.Plan.ClusterTopology {
+		if useNodeRoles {
+			topology.NodeType = nil
+			continue
+		}
+		topology.NodeRoles = nil
+	}
+
+	return tpl
+}
+
+func CompatibleWithNodeRoles(version string) (bool, error) {
+	deploymentVersion, err := semver.Parse(version)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse Elasticsearch version: %w", err)
+	}
+
+	return deploymentVersion.GE(utils.DataTiersVersion), nil
+}
+
+func UseNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
+
+	useNodeRoles, err := CompatibleWithNodeRoles(planVersion.Value)
+
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.AddError("Failed to determine whether to use node_roles", err.Error())
+		return false, diags
+	}
+
+	convertLegacy, diags := legacyToNodeRoles(stateVersion, planVersion)
+
+	if diags.HasError() {
+		return false, diags
+	}
+
+	return useNodeRoles && convertLegacy, nil
+}
+
+// legacyToNodeRoles returns true when the legacy  "node_type_*" should be
+// migrated over to node_roles. Which will be true when:
+// * The version field doesn't change.
+// * The version field changes but:
+//   - The Elasticsearch.0.toplogy doesn't have any node_type_* set.
+func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
+	if stateVersion.Value == "" || stateVersion.Value == planVersion.Value {
+		return true, nil
+	}
+
+	var diags diag.Diagnostics
+	oldVersion, err := semver.Parse(stateVersion.Value)
+	if err != nil {
+		diags.AddError("failed to parse previous Elasticsearch version", err.Error())
+		return false, diags
+	}
+	newVersion, err := semver.Parse(planVersion.Value)
+	if err != nil {
+		diags.AddError("failed to parse new Elasticsearch version", err.Error())
+		return false, diags
+	}
+
+	// if the version change moves from non-node_roles to one
+	// that supports node roles, do not migrate on that step.
+	if oldVersion.LT(utils.DataTiersVersion) && newVersion.GE(utils.DataTiersVersion) {
+		return false, nil
+	}
+
+	return true, nil
 }

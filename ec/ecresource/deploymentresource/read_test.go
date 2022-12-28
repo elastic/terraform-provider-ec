@@ -15,122 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package utils
+package deploymentresource_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 )
-
-func Test_getDeploymentTemplateID(t *testing.T) {
-	type args struct {
-		res *models.DeploymentResources
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-		err  error
-	}{
-		{
-			name: "empty resources returns an error",
-			args: args{res: &models.DeploymentResources{}},
-			err:  errors.New("failed to obtain the deployment template id"),
-		},
-		{
-			name: "single empty current plan returns error",
-			args: args{res: &models.DeploymentResources{
-				Elasticsearch: []*models.ElasticsearchResourceInfo{
-					{
-						Info: &models.ElasticsearchClusterInfo{
-							PlanInfo: &models.ElasticsearchClusterPlansInfo{
-								Pending: &models.ElasticsearchClusterPlanInfo{
-									Plan: &models.ElasticsearchClusterPlan{
-										DeploymentTemplate: &models.DeploymentTemplateReference{
-											ID: ec.String("aws-io-optimized"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}},
-			err: errors.New("failed to obtain the deployment template id"),
-		},
-		{
-			name: "multiple deployment templates returns an error",
-			args: args{res: &models.DeploymentResources{
-				Elasticsearch: []*models.ElasticsearchResourceInfo{
-					{
-						Info: &models.ElasticsearchClusterInfo{
-							PlanInfo: &models.ElasticsearchClusterPlansInfo{
-								Current: &models.ElasticsearchClusterPlanInfo{
-									Plan: &models.ElasticsearchClusterPlan{
-										DeploymentTemplate: &models.DeploymentTemplateReference{
-											ID: ec.String("someid"),
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Info: &models.ElasticsearchClusterInfo{
-							PlanInfo: &models.ElasticsearchClusterPlansInfo{
-								Current: &models.ElasticsearchClusterPlanInfo{
-									Plan: &models.ElasticsearchClusterPlan{
-										DeploymentTemplate: &models.DeploymentTemplateReference{
-											ID: ec.String("someotherid"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}},
-			err: errors.New("there are more than 1 deployment templates specified on the deployment: \"someid, someotherid\""),
-		},
-		{
-			name: "single deployment template returns it",
-			args: args{res: &models.DeploymentResources{
-				Elasticsearch: []*models.ElasticsearchResourceInfo{
-					{
-						Info: &models.ElasticsearchClusterInfo{
-							PlanInfo: &models.ElasticsearchClusterPlansInfo{
-								Current: &models.ElasticsearchClusterPlanInfo{
-									Plan: &models.ElasticsearchClusterPlan{
-										DeploymentTemplate: &models.DeploymentTemplateReference{
-											ID: ec.String("aws-io-optimized"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}},
-			want: "aws-io-optimized",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetDeploymentTemplateID(tt.args.res)
-			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
-			} else {
-				assert.NoError(t, err)
-			}
-
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
 
 func Test_hasRunningResources(t *testing.T) {
 	type args struct {
@@ -198,7 +91,7 @@ func Test_hasRunningResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := HasRunningResources(tt.args.res); got != tt.want {
+			if got := deploymentresource.HasRunningResources(tt.args.res); got != tt.want {
 				t.Errorf("hasRunningResources() = %v, want %v", got, tt.want)
 			}
 		})

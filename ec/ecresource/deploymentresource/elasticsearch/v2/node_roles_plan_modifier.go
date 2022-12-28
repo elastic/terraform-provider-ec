@@ -20,7 +20,6 @@ package v2
 import (
 	"context"
 
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -80,7 +79,7 @@ func (r nodeRolesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 		return
 	}
 
-	useNodeRoles, diags := utils.UseNodeRoles(stateVersion, planVersion)
+	useNodeRoles, diags := UseNodeRoles(stateVersion, planVersion)
 
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)

@@ -343,3 +343,35 @@ func Test_readIntegrationsServer(t *testing.T) {
 		})
 	}
 }
+
+func Test_IsIntegrationsServerStopped(t *testing.T) {
+	type args struct {
+		res *models.IntegrationsServerResourceInfo
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "started resource returns false",
+			args: args{res: &models.IntegrationsServerResourceInfo{Info: &models.IntegrationsServerInfo{
+				Status: ec.String("started"),
+			}}},
+			want: false,
+		},
+		{
+			name: "stopped resource returns true",
+			args: args{res: &models.IntegrationsServerResourceInfo{Info: &models.IntegrationsServerInfo{
+				Status: ec.String("stopped"),
+			}}},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsIntegrationsServerStopped(tt.args.res)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
