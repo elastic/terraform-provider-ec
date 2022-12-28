@@ -1941,3 +1941,42 @@ func Test_writeElasticsearch(t *testing.T) {
 		})
 	}
 }
+
+func Test_removeItemFromSlice(t *testing.T) {
+	type args struct {
+		slice []string
+		item  string
+	}
+
+	tests := []struct {
+		name     string
+		args     args
+		expected []string
+	}{
+		{
+			name: "it should NOT modify slice if the slice doesn't contain item",
+			args: args{
+				slice: []string{"second"},
+				item:  "first",
+			},
+			expected: []string{"second"},
+		},
+
+		{
+			name: "it should remove an item from slice if the slice contains it",
+			args: args{
+				slice: []string{"first", "second"},
+				item:  "first",
+			},
+			expected: []string{"second"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := removeItemFromSlice(tt.args.slice, tt.args.item)
+
+			assert.Equal(t, tt.expected, got)
+		})
+	}
+}

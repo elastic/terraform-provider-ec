@@ -19,16 +19,14 @@ package v2
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"golang.org/x/exp/slices"
 )
 
 type ElasticsearchTF struct {
@@ -190,19 +188,13 @@ func updateNodeRolesOnDedicatedTiers(topologies []*models.ElasticsearchClusterTo
 }
 
 func removeItemFromSlice(slice []string, item string) []string {
-	var hasItem bool
-	var itemIndex int
-	for i, str := range slice {
-		if str == item {
-			hasItem = true
-			itemIndex = i
-		}
+	i := slices.Index(slice, item)
+
+	if i == -1 {
+		return slice
 	}
-	if hasItem {
-		copy(slice[itemIndex:], slice[itemIndex+1:])
-		return slice[:len(slice)-1]
-	}
-	return slice
+
+	return slices.Delete(slice, i, i+1)
 }
 
 func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement) (dataTier *models.ElasticsearchClusterTopologyElement, hasMasterTier, hasIngestTier bool) {
@@ -300,63 +292,4 @@ func EnrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, templateId, v
 	}
 
 	return tpl
-}
-
-func CompatibleWithNodeRoles(version string) (bool, error) {
-	deploymentVersion, err := semver.Parse(version)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse Elasticsearch version: %w", err)
-	}
-
-	return deploymentVersion.GE(utils.DataTiersVersion), nil
-}
-
-func UseNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
-
-	useNodeRoles, err := CompatibleWithNodeRoles(planVersion.Value)
-
-	if err != nil {
-		var diags diag.Diagnostics
-		diags.AddError("Failed to determine whether to use node_roles", err.Error())
-		return false, diags
-	}
-
-	convertLegacy, diags := legacyToNodeRoles(stateVersion, planVersion)
-
-	if diags.HasError() {
-		return false, diags
-	}
-
-	return useNodeRoles && convertLegacy, nil
-}
-
-// legacyToNodeRoles returns true when the legacy  "node_type_*" should be
-// migrated over to node_roles. Which will be true when:
-// * The version field doesn't change.
-// * The version field changes but:
-//   - The Elasticsearch.0.toplogy doesn't have any node_type_* set.
-func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
-	if stateVersion.Value == "" || stateVersion.Value == planVersion.Value {
-		return true, nil
-	}
-
-	var diags diag.Diagnostics
-	oldVersion, err := semver.Parse(stateVersion.Value)
-	if err != nil {
-		diags.AddError("failed to parse previous Elasticsearch version", err.Error())
-		return false, diags
-	}
-	newVersion, err := semver.Parse(planVersion.Value)
-	if err != nil {
-		diags.AddError("failed to parse new Elasticsearch version", err.Error())
-		return false, diags
-	}
-
-	// if the version change moves from non-node_roles to one
-	// that supports node roles, do not migrate on that step.
-	if oldVersion.LT(utils.DataTiersVersion) && newVersion.GE(utils.DataTiersVersion) {
-		return false, nil
-	}
-
-	return true, nil
 }
