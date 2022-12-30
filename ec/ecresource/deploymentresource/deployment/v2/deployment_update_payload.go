@@ -70,7 +70,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	// This might not be necessary going forward as we move to
 	// tiered Elasticsearch nodes.
 
-	useNodeRoles, diags := elasticsearchv2.UseNodeRoles(state.Version, plan.Version)
+	useNodeRoles, diags := elasticsearchv2.UseNodeRoles(ctx, state.Version, plan.Version, plan.Elasticsearch)
 
 	if diags.HasError() {
 		return nil, diags

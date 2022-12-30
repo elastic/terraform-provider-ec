@@ -18,11 +18,14 @@
 package v2
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/blang/semver"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -35,7 +38,7 @@ func CompatibleWithNodeRoles(version string) (bool, error) {
 	return deploymentVersion.GE(utils.DataTiersVersion), nil
 }
 
-func UseNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
+func UseNodeRoles(ctx context.Context, stateVersion, planVersion types.String, planElasticsearch types.Object) (bool, diag.Diagnostics) {
 
 	useNodeRoles, err := CompatibleWithNodeRoles(planVersion.Value)
 
@@ -45,7 +48,7 @@ func UseNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostic
 		return false, diags
 	}
 
-	convertLegacy, diags := legacyToNodeRoles(stateVersion, planVersion)
+	convertLegacy, diags := legacyToNodeRoles(ctx, stateVersion, planVersion, planElasticsearch)
 
 	if diags.HasError() {
 		return false, diags
@@ -59,7 +62,7 @@ func UseNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostic
 // * The version field doesn't change.
 // * The version field changes but:
 //   - The Elasticsearch.0.toplogy doesn't have any node_type_* set.
-func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagnostics) {
+func legacyToNodeRoles(ctx context.Context, stateVersion, planVersion types.String, planElasticsearch types.Object) (bool, diag.Diagnostics) {
 	if stateVersion.Value == "" || stateVersion.Value == planVersion.Value {
 		return true, nil
 	}
@@ -82,5 +85,100 @@ func legacyToNodeRoles(stateVersion, planVersion types.String) (bool, diag.Diagn
 		return false, nil
 	}
 
+	// When any topology elements in the state have the node_type_*
+	// properties set, the node_role field cannot be used, since
+	// we'd be changing the version AND migrating over `node_role`s
+	// which is not permitted by the API.
+
+	var es *ElasticsearchTF
+
+	if diags := tfsdk.ValueAs(ctx, planElasticsearch, &es); diags.HasError() {
+		return false, diags
+	}
+
+	if es == nil {
+		diags.AddError("Cannot migrate node types to node roles", "cannot find elasticsearch object")
+		return false, diags
+	}
+
+	tiers, diags := es.topologies(ctx)
+
+	if diags.HasError() {
+		return false, diags
+	}
+
+	for _, tier := range tiers {
+		if tier != nil && tier.HasNodeType() {
+			return false, nil
+		}
+	}
+
 	return true, nil
+}
+
+func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) (useState, useNodeRoles bool) {
+	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
+		return false, false
+	}
+
+	if !resp.AttributePlan.IsUnknown() {
+		return false, false
+	}
+
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	if req.AttributeConfig.IsUnknown() {
+		return false, false
+	}
+
+	// if there is no state for "version" return
+	var stateVersion types.String
+
+	if diags := req.State.GetAttribute(ctx, path.Root("version"), &stateVersion); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
+	}
+
+	if stateVersion.IsNull() {
+		return false, false
+	}
+
+	// if template changed return
+	templateChanged, diags := isAttributeChanged(ctx, path.Root("deployment_template_id"), req)
+
+	resp.Diagnostics.Append(diags...)
+
+	if diags.HasError() {
+		return false, false
+	}
+
+	if templateChanged {
+		return false, false
+	}
+
+	// get version for plan and state and calculate useNodeRoles
+
+	var planVersion types.String
+
+	if diags := req.Plan.GetAttribute(ctx, path.Root("version"), &planVersion); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
+	}
+
+	var elasticsearch types.Object
+
+	if diags := req.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &elasticsearch); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
+	}
+
+	useNodeRoles, diags = UseNodeRoles(ctx, stateVersion, planVersion, elasticsearch)
+
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
+	}
+
+	useState = true
+
+	return
 }

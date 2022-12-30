@@ -1301,6 +1301,109 @@ func Test_updateResourceToModel(t *testing.T) {
 		},
 
 		{
+			name: "does not migrate node_type to node_role on version upgrade that's higher than 7.10.0",
+			args: args{
+				plan: Deployment{
+					Id:                   mock.ValidClusterID,
+					Name:                 "my_deployment_name",
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Region:               "us-east-1",
+					Version:              "7.11.1",
+					Elasticsearch: &elasticsearchv2.Elasticsearch{
+						RefId: ec.String("main-elasticsearch"),
+						HotTier: elasticsearchv2.CreateTierForTest(
+							"hot_content",
+							elasticsearchv2.ElasticsearchTopology{
+								Size:           ec.String("16g"),
+								NodeTypeData:   ec.String("true"),
+								NodeTypeIngest: ec.String("true"),
+								NodeTypeMaster: ec.String("true"),
+								NodeTypeMl:     ec.String("false"),
+							},
+						),
+					},
+				},
+				state: &Deployment{
+					Id:                   mock.ValidClusterID,
+					Name:                 "my_deployment_name",
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Region:               "us-east-1",
+					Version:              "7.10.1",
+					Elasticsearch: &elasticsearchv2.Elasticsearch{
+						RefId: ec.String("main-elasticsearch"),
+						HotTier: elasticsearchv2.CreateTierForTest(
+							"hot_content",
+							elasticsearchv2.ElasticsearchTopology{
+								Size:           ec.String("16g"),
+								NodeTypeData:   ec.String("true"),
+								NodeTypeIngest: ec.String("true"),
+								NodeTypeMaster: ec.String("true"),
+								NodeTypeMl:     ec.String("false"),
+							},
+						),
+					},
+				},
+				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
+			},
+			want: &models.DeploymentUpdateRequest{
+				Name:         "my_deployment_name",
+				PruneOrphans: ec.Bool(true),
+				Settings:     &models.DeploymentUpdateSettings{},
+				Metadata: &models.DeploymentUpdateMetadata{
+					Tags: []*models.MetadataItem{},
+				},
+				Resources: &models.DeploymentUpdateResources{
+					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
+						Region: ec.String("us-east-1"),
+						RefID:  ec.String("main-elasticsearch"),
+						Settings: &models.ElasticsearchClusterSettings{
+							DedicatedMastersThreshold: 6,
+						},
+						Plan: &models.ElasticsearchClusterPlan{
+							AutoscalingEnabled: ec.Bool(false),
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								Version: "7.11.1",
+							},
+							DeploymentTemplate: &models.DeploymentTemplateReference{
+								ID: ec.String("aws-io-optimized-v2"),
+							},
+							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+								{
+									ID: "hot_content",
+									Elasticsearch: &models.ElasticsearchConfiguration{
+										NodeAttributes: map[string]string{"data": "hot"},
+									},
+									ZoneCount:               2,
+									InstanceConfigurationID: "aws.data.highio.i3",
+									Size: &models.TopologySize{
+										Resource: ec.String("memory"),
+										Value:    ec.Int32(16384),
+									},
+									NodeType: &models.ElasticsearchNodeType{
+										Data:   ec.Bool(true),
+										Ingest: ec.Bool(true),
+										Master: ec.Bool(true),
+										Ml:     ec.Bool(false),
+									},
+									TopologyElementControl: &models.TopologyElementControl{
+										Min: &models.TopologySize{
+											Resource: ec.String("memory"),
+											Value:    ec.Int32(1024),
+										},
+									},
+									AutoscalingMax: &models.TopologySize{
+										Value:    ec.Int32(118784),
+										Resource: ec.String("memory"),
+									},
+								},
+							},
+						},
+					})},
+				},
+			},
+		},
+
+		{
 			name: "migrates node_type to node_role when the existing topology element size is updated",
 			args: args{
 				plan: Deployment{

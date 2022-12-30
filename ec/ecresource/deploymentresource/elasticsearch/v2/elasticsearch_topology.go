@@ -242,7 +242,7 @@ func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
 		topology.NodeTypeMl.Value != ""
 }
 
-func ObjectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopologyTF, diag.Diagnostics) {
+func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopologyTF, diag.Diagnostics) {
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil, nil
 	}
