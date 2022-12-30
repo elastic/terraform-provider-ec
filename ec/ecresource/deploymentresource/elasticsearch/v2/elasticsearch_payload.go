@@ -125,31 +125,43 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	return res, diags
 }
 
-func (es *ElasticsearchTF) topologiesPayload(ctx context.Context, topologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	diags.Append(topologyPayload(ctx, es.HotContentTier, "hot_content", topologies)...)
-	diags.Append(topologyPayload(ctx, es.CoordinatingTier, "coordinating", topologies)...)
-	diags.Append(topologyPayload(ctx, es.MasterTier, "master", topologies)...)
-	diags.Append(topologyPayload(ctx, es.WarmTier, "warm", topologies)...)
-	diags.Append(topologyPayload(ctx, es.ColdTier, "cold", topologies)...)
-	diags.Append(topologyPayload(ctx, es.FrozenTier, "frozen", topologies)...)
-	diags.Append(topologyPayload(ctx, es.MlTier, "ml", topologies)...)
-
-	return diags
+func (es *ElasticsearchTF) topologyObjects() map[string]types.Object {
+	return map[string]types.Object{
+		"hot_content":  es.HotContentTier,
+		"warm":         es.WarmTier,
+		"cold":         es.ColdTier,
+		"frozen":       es.FrozenTier,
+		"ml":           es.MlTier,
+		"master":       es.MasterTier,
+		"coordinating": es.CoordinatingTier,
+	}
 }
 
-func topologyPayload(ctx context.Context, topologyObj types.Object, id string, topologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (es *ElasticsearchTF) topologies(ctx context.Context) (map[string]*ElasticsearchTopologyTF, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
 
-	if !topologyObj.IsNull() && !topologyObj.IsUnknown() {
-		var topology ElasticsearchTopologyTF
+	tierObjects := es.topologyObjects()
+	res := make(map[string]*ElasticsearchTopologyTF, len(tierObjects))
 
-		ds := tfsdk.ValueAs(ctx, topologyObj, &topology)
-		diags.Append(ds...)
+	for topologyId, topologyObject := range tierObjects {
+		tier, diags := objectToTopology(ctx, topologyObject)
+		diagnostics.Append(diags...)
+		res[topologyId] = tier
+	}
 
-		if !ds.HasError() {
-			diags.Append(topology.payload(ctx, id, topologies)...)
+	return res, diagnostics
+}
+
+func (es *ElasticsearchTF) topologiesPayload(ctx context.Context, topologyModels []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
+	tiers, diags := es.topologies(ctx)
+
+	if diags.HasError() {
+		return diags
+	}
+
+	for tierId, tier := range tiers {
+		if tier != nil {
+			diags.Append(tier.payload(ctx, tierId, topologyModels)...)
 		}
 	}
 

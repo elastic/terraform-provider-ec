@@ -20,9 +20,7 @@ package v2
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func UseNodeRolesDefault() tfsdk.AttributePlanModifier {
@@ -32,60 +30,28 @@ func UseNodeRolesDefault() tfsdk.AttributePlanModifier {
 type nodeRolesDefault struct{}
 
 func (r nodeRolesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
+	useState, useNodeRoles := useStateAndNodeRolesInPlanModifiers(ctx, req, resp)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if !resp.AttributePlan.IsUnknown() {
+	if !useState {
 		return
 	}
 
-	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.AttributeConfig.IsUnknown() {
+	// If useNodeRoles is false, we can use the current state and
+	// 	it should be null in this case - we don't migrate back from node_roles to node_types
+	if !useNodeRoles && !req.AttributeState.IsNull() {
+		// it should not happen
 		return
 	}
 
-	// if there is no state for "version" return
-	var stateVersion types.String
-
-	if diags := req.State.GetAttribute(ctx, path.Root("version"), &stateVersion); diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	if stateVersion.IsNull() {
-		return
-	}
-
-	// if template changed return
-	templateChanged, diags := isAttributeChanged(ctx, path.Root("deployment_template_id"), req)
-
-	resp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
-		return
-	}
-
-	if templateChanged {
-		return
-	}
-
-	// get version for plan and state and calculate useNodeRoles
-
-	var planVersion types.String
-
-	if diags := req.Plan.GetAttribute(ctx, path.Root("version"), &planVersion); diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	useNodeRoles, diags := UseNodeRoles(stateVersion, planVersion)
-
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
+	// If useNodeRoles is true, then there is either
+	// 	* state already uses node_roles or
+	// 	* state uses node_types but we need to migrate to node_roles.
+	// We cannot use state in the second case (migration to node_roles)
+	// It happens when the attriubute state is null.
 	if useNodeRoles && req.AttributeState.IsNull() {
 		return
 	}
