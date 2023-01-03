@@ -236,10 +236,12 @@ func (topology *ElasticsearchTopologyTF) parseLegacyNodeType(nodeType *models.El
 }
 
 func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
-	return topology.NodeTypeData.Value != "" ||
-		topology.NodeTypeIngest.Value != "" ||
-		topology.NodeTypeMaster.Value != "" ||
-		topology.NodeTypeMl.Value != ""
+	for _, nodeType := range []types.String{topology.NodeTypeData, topology.NodeTypeIngest, topology.NodeTypeMaster, topology.NodeTypeMl} {
+		if !nodeType.IsUnknown() && !nodeType.IsNull() && nodeType.Value != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopologyTF, diag.Diagnostics) {
