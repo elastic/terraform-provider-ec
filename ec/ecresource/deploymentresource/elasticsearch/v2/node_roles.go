@@ -23,6 +23,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -181,4 +182,20 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 	useState = true
 
 	return
+}
+
+func isAttributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
+	var planValue attr.Value
+
+	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
+		return false, diags
+	}
+
+	var stateValue attr.Value
+
+	if diags := req.State.GetAttribute(ctx, p, &stateValue); diags.HasError() {
+		return false, diags
+	}
+
+	return !planValue.Equal(stateValue), nil
 }
