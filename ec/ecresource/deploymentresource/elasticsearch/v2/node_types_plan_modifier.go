@@ -20,9 +20,6 @@ package v2
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -44,7 +41,10 @@ func (r nodeTypesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 		return
 	}
 
-	// If useNodeRoles is false, we can use the current state
+	// If useNodeRoles is false, we can use the current state if it's not null
+	if !useNodeRoles && req.AttributeState.IsNull() {
+		return
+	}
 
 	// If useNodeRoles is true, then there is either
 	// 	* state already uses node_roles or
@@ -66,20 +66,4 @@ func (r nodeTypesDefault) Description(ctx context.Context) string {
 // MarkdownDescription returns a markdown description of the plan modifier.
 func (r nodeTypesDefault) MarkdownDescription(ctx context.Context) string {
 	return "Use current state if it's still valid."
-}
-
-func isAttributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
-	var planValue attr.Value
-
-	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
-		return false, diags
-	}
-
-	var stateValue attr.Value
-
-	if diags := req.State.GetAttribute(ctx, p, &stateValue); diags.HasError() {
-		return false, diags
-	}
-
-	return !planValue.Equal(stateValue), nil
 }
