@@ -40,13 +40,16 @@ func CompatibleWithNodeRoles(version string) (bool, error) {
 }
 
 func UseNodeRoles(ctx context.Context, stateVersion, planVersion types.String, planElasticsearch types.Object) (bool, diag.Diagnostics) {
-
-	useNodeRoles, err := CompatibleWithNodeRoles(planVersion.Value)
+	compatibleWithNodeRoles, err := CompatibleWithNodeRoles(planVersion.Value)
 
 	if err != nil {
 		var diags diag.Diagnostics
 		diags.AddError("Failed to determine whether to use node_roles", err.Error())
 		return false, diags
+	}
+
+	if !compatibleWithNodeRoles {
+		return false, nil
 	}
 
 	convertLegacy, diags := legacyToNodeRoles(ctx, stateVersion, planVersion, planElasticsearch)
@@ -55,7 +58,7 @@ func UseNodeRoles(ctx context.Context, stateVersion, planVersion types.String, p
 		return false, diags
 	}
 
-	return useNodeRoles && convertLegacy, nil
+	return convertLegacy, nil
 }
 
 // legacyToNodeRoles returns true when the legacy  "node_type_*" should be
@@ -127,6 +130,7 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 	}
 
 	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	// it's the precaution taken from the Framework's `UseStateForUnknown` plan modifier
 	if req.AttributeConfig.IsUnknown() {
 		return false, false
 	}

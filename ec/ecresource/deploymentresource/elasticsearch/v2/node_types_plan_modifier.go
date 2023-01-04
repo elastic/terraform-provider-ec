@@ -23,14 +23,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// Use `self` as value of `observability`'s `deployment_id` attribute
 func UseNodeTypesDefault() tfsdk.AttributePlanModifier {
 	return nodeTypesDefault{}
 }
 
 type nodeTypesDefault struct{}
 
-func (r nodeTypesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (m nodeTypesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
 	useState, useNodeRoles := useStateAndNodeRolesInPlanModifiers(ctx, req, resp)
 
 	if resp.Diagnostics.HasError() {

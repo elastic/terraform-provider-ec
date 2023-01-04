@@ -59,7 +59,7 @@ func Test_UseNodeRoles(t *testing.T) {
 			name: "it should fail when state version is invalid",
 			args: args{
 				stateVersion: "invalid.state.version",
-				planVersion:  "7.0.0",
+				planVersion:  "7.10.0",
 			},
 			expected: true,
 			expectedDiags: func() diag.Diagnostics {
