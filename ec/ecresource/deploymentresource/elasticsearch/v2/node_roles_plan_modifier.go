@@ -29,7 +29,7 @@ func UseNodeRolesDefault() tfsdk.AttributePlanModifier {
 
 type nodeRolesDefault struct{}
 
-func (r nodeRolesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (m nodeRolesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
 	useState, useNodeRoles := useStateAndNodeRolesInPlanModifiers(ctx, req, resp)
 
 	if resp.Diagnostics.HasError() {
