@@ -17,20 +17,22 @@
 
 package v2
 
-/*
 import (
 	"context"
 	"testing"
 
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_UseNodeRoles(t *testing.T) {
 	type args struct {
-		stateVersion string
-		planVersion  string
+		stateVersion  string
+		planVersion   string
+		elasticsearch Elasticsearch
 	}
 	tests := []struct {
 		name          string
@@ -38,6 +40,7 @@ func Test_UseNodeRoles(t *testing.T) {
 		expected      bool
 		expectedDiags diag.Diagnostics
 	}{
+
 		{
 			name: "it should fail when plan version is invalid",
 			args: args{
@@ -119,11 +122,35 @@ func Test_UseNodeRoles(t *testing.T) {
 			},
 			expected: true,
 		},
+
+		{
+			name: "it should instruct to use node_types if both plan version and state version are after 7.10.0 and plan uses node_types",
+			args: args{
+				stateVersion: "7.11.1",
+				planVersion:  "7.12.0",
+				elasticsearch: Elasticsearch{
+					HotTier: &ElasticsearchTopology{
+						id:             "hot_content",
+						NodeTypeData:   ec.String("true"),
+						NodeTypeMaster: ec.String("true"),
+						NodeTypeIngest: ec.String("true"),
+						NodeTypeMl:     ec.String("false"),
+					},
+				},
+			},
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, diags := UseNodeRoles(context.Background(), types.String{Value: tt.args.stateVersion}, types.String{Value: tt.args.planVersion})
+			var elasticsearchObject types.Object
+
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.elasticsearch, ElasticsearchSchema().FrameworkType(), &elasticsearchObject)
+
+			assert.Nil(t, diags)
+
+			got, diags := UseNodeRoles(context.Background(), types.String{Value: tt.args.stateVersion}, types.String{Value: tt.args.planVersion}, elasticsearchObject)
 
 			if tt.expectedDiags == nil {
 				assert.Nil(t, diags)
@@ -135,4 +162,3 @@ func Test_UseNodeRoles(t *testing.T) {
 		})
 	}
 }
-*/

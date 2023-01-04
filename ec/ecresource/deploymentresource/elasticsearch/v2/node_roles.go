@@ -179,9 +179,7 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 		return false, false
 	}
 
-	useState = true
-
-	return
+	return true, useNodeRoles
 }
 
 func isAttributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
