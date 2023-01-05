@@ -23,8 +23,6 @@ import (
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +38,6 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 	tests := []struct {
 		name            string
 		args            args
-		expectedDiags   diag.Diagnostics
 		expected        []string
 		expectedUnknown bool
 	}{
@@ -167,27 +164,13 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 
 			// attributeConfig value is not used in the plan modifer
 			// it just should be known
-			var attributeConfigValue attr.Value
-			diags := tfsdk.ValueFrom(context.Background(), []string{}, types.SetType{ElemType: types.StringType}, &attributeConfigValue)
-			assert.Nil(t, diags)
+			attributeConfigValue := attrValueFromGoTypeValue(t, []string{}, types.SetType{ElemType: types.StringType})
 
-			var attributeStateValue attr.Value
-			diags = tfsdk.ValueFrom(context.Background(), tt.args.attributeState, types.SetType{ElemType: types.StringType}, &attributeStateValue)
-			assert.Nil(t, diags)
+			attributeStateValue := attrValueFromGoTypeValue(t, tt.args.attributeState, types.SetType{ElemType: types.StringType})
 
-			var deploymentStateObject types.Object
-			diags = tfsdk.ValueFrom(context.Background(), tt.args.deploymentState, deploymentv2.DeploymentSchema().Type(), &deploymentStateObject)
-			assert.Nil(t, diags)
+			deploymentStateValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
-			deploymentStateValue, err := deploymentStateObject.ToTerraformValue(context.Background())
-			assert.Nil(t, err)
-
-			var deploymentPlanObject types.Object
-			diags = tfsdk.ValueFrom(context.Background(), tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type(), &deploymentPlanObject)
-			assert.Nil(t, diags)
-
-			deploymentPlanValue, err := deploymentPlanObject.ToTerraformValue(context.Background())
-			assert.Nil(t, err)
+			deploymentPlanValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
 			req := tfsdk.ModifyAttributePlanRequest{
 				AttributeConfig: attributeConfigValue,
@@ -205,22 +188,14 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 			// the default plan value is `Unknown` ("known after apply")
 			// the plan modifier either keeps this value or uses the current state
 			// if test doesn't specify plan value, let's use the default (`Unknown`) value that is used by TF during plan modifier execution
-			var attributePlanValue attr.Value
-			if tt.args.attributePlan == nil {
-				diags = tfsdk.ValueFrom(context.Background(), types.Set{Unknown: true, ElemType: types.StringType}, types.SetType{ElemType: types.StringType}, &attributePlanValue)
-			} else {
-				diags = tfsdk.ValueFrom(context.Background(), tt.args.attributePlan, types.SetType{ElemType: types.StringType}, &attributePlanValue)
+			attributePlanValue := unknownValueFromAttrType(t, types.SetType{ElemType: types.StringType})
+			if tt.args.attributePlan != nil {
+				attributePlanValue = attrValueFromGoTypeValue(t, tt.args.attributePlan, types.SetType{ElemType: types.StringType})
 			}
-			assert.Nil(t, diags)
 
 			resp := tfsdk.ModifyAttributePlanResponse{AttributePlan: attributePlanValue}
 
 			modifier.Modify(context.Background(), req, &resp)
-
-			if tt.expectedDiags != nil {
-				assert.Equal(t, tt.expectedDiags, resp.Diagnostics)
-				return
-			}
 
 			assert.Nil(t, resp.Diagnostics)
 
@@ -231,7 +206,7 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 
 			var attributePlan []string
 
-			diags = tfsdk.ValueAs(context.Background(), resp.AttributePlan, &attributePlan)
+			diags := tfsdk.ValueAs(context.Background(), resp.AttributePlan, &attributePlan)
 
 			assert.Nil(t, diags)
 
