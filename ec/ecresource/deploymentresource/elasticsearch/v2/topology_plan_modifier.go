@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
 func UseTopologyStateForUnknown(topologyAttributeName string) tfsdk.AttributePlanModifier {
 	return useTopologyState{topologyAttributeName: topologyAttributeName}
 }
@@ -48,9 +49,9 @@ func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 		return
 	}
 
-	// we check tier's state instead of tier attribute's state because nil can be a valid state
-	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size` state is nil
-	tierStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), req)
+	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
+	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
+	topologyStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), req)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -58,7 +59,7 @@ func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 		return
 	}
 
-	if !tierStateDefined {
+	if !topologyStateDefined {
 		return
 	}
 
