@@ -96,13 +96,13 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Computed:    true,
 			},
 
-			"hot":          ElasticsearchTierSchema("'hot' optional topology element", true, "hot"),
-			"coordinating": ElasticsearchTierSchema("'coordinating' optional topology element", false, "coordinating"),
-			"master":       ElasticsearchTierSchema("'master' optional topology element", false, "master"),
-			"warm":         ElasticsearchTierSchema("'warm' optional topology element", false, "warm"),
-			"cold":         ElasticsearchTierSchema("'cold' optional topology element", false, "cold"),
-			"frozen":       ElasticsearchTierSchema("'frozen' optional topology element", false, "frozen"),
-			"ml":           ElasticsearchTierSchema("'ml' optional topology element", false, "ml"),
+			"hot":          ElasticsearchTopologySchema("'hot' topology element", true, "hot"),
+			"coordinating": ElasticsearchTopologySchema("'coordinating' topology element", false, "coordinating"),
+			"master":       ElasticsearchTopologySchema("'master' topology element", false, "master"),
+			"warm":         ElasticsearchTopologySchema("'warm' topology element", false, "warm"),
+			"cold":         ElasticsearchTopologySchema("'cold' topology element", false, "cold"),
+			"frozen":       ElasticsearchTopologySchema("'frozen' topology element", false, "frozen"),
+			"ml":           ElasticsearchTopologySchema("'ml' topology element", false, "ml"),
 
 			"trust_account": ElasticsearchTrustAccountSchema(),
 
@@ -168,7 +168,7 @@ func ElasticsearchConfigSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
+func ElasticsearchTopologyAutoscalingSchema(topologyAttributeName string) tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
 		Required:    true,
@@ -179,7 +179,7 @@ func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"max_size": {
@@ -188,7 +188,7 @@ func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"min_size_resource": {
@@ -197,7 +197,7 @@ func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"min_size": {
@@ -206,7 +206,7 @@ func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"policy_override_json": {
@@ -214,7 +214,7 @@ func ElasticsearchTopologyAutoscalingSchema(tierName string) tfsdk.Attribute {
 				Description: "Computed policy overrides set directly via the API or other clients.",
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 		}),
@@ -375,7 +375,7 @@ func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTierSchema(description string, required bool, tierName string) tfsdk.Attribute {
+func ElasticsearchTopologySchema(description string, required bool, topologyAttributeName string) tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Optional: !required,
 		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
@@ -388,7 +388,7 @@ func ElasticsearchTierSchema(description string, required bool, tierName string)
 				Description: `Computed Instance Configuration ID of the topology element`,
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"size": {
@@ -397,7 +397,7 @@ func ElasticsearchTierSchema(description string, required bool, tierName string)
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"size_resource": {
@@ -416,7 +416,7 @@ func ElasticsearchTierSchema(description string, required bool, tierName string)
 				Optional:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
-					UseTierStateForUnknown(tierName),
+					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
 			"node_type_data": {
@@ -465,7 +465,7 @@ func ElasticsearchTierSchema(description string, required bool, tierName string)
 					UseNodeRolesDefault(),
 				},
 			},
-			"autoscaling": ElasticsearchTopologyAutoscalingSchema(tierName),
+			"autoscaling": ElasticsearchTopologyAutoscalingSchema(topologyAttributeName),
 		}),
 	}
 }

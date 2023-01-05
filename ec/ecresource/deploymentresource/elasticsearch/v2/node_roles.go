@@ -148,7 +148,7 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 	}
 
 	// if template changed return
-	templateChanged, diags := isAttributeChanged(ctx, path.Root("deployment_template_id"), req)
+	templateChanged, diags := attributeChanged(ctx, path.Root("deployment_template_id"), req)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -186,7 +186,7 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 	return true, useNodeRoles
 }
 
-func isAttributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
+func attributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
 	var planValue attr.Value
 
 	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {

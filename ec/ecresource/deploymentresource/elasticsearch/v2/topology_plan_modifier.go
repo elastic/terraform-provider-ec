@@ -26,15 +26,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-func UseTierStateForUnknown(tier string) tfsdk.AttributePlanModifier {
-	return useTierState{tier: tier}
+func UseTopologyStateForUnknown(topologyAttributeName string) tfsdk.AttributePlanModifier {
+	return useTopologyState{topologyAttributeName: topologyAttributeName}
 }
 
-type useTierState struct {
-	tier string
+type useTopologyState struct {
+	topologyAttributeName string
 }
 
-func (m useTierState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
 	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
 		return
 	}
@@ -50,7 +50,7 @@ func (m useTierState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanR
 
 	// we check tier's state instead of tier attribute's state because nil can be a valid state
 	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size` state is nil
-	tierStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.tier), req)
+	tierStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), req)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -77,28 +77,12 @@ func (m useTierState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanR
 	resp.AttributePlan = req.AttributeState
 }
 
-func (r useTierState) Description(ctx context.Context) string {
+func (r useTopologyState) Description(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
 }
 
-func (r useTierState) MarkdownDescription(ctx context.Context) string {
+func (r useTopologyState) MarkdownDescription(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
-}
-
-func attributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
-	var planValue attr.Value
-
-	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
-		return false, diags
-	}
-
-	var stateValue attr.Value
-
-	if diags := req.State.GetAttribute(ctx, p, &stateValue); diags.HasError() {
-		return false, diags
-	}
-
-	return !planValue.Equal(stateValue), nil
 }
 
 func attributeStateDefined(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
