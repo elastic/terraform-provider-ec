@@ -141,17 +141,17 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 		}
 
 		var autoscaling elasticsearchAutoscalingModel
-		var empty = true
+		var hasAutoscalingModel = false
 		if limit := topology.AutoscalingMax; limit != nil {
 			autoscaling.MaxSizeResource = types.String{Value: *limit.Resource}
 			autoscaling.MaxSize = types.String{Value: util.MemoryToState(*limit.Value)}
-			empty = false
+			hasAutoscalingModel = true
 		}
 
 		if limit := topology.AutoscalingMin; limit != nil {
 			autoscaling.MinSizeResource = types.String{Value: *limit.Resource}
 			autoscaling.MinSize = types.String{Value: util.MemoryToState(*limit.Value)}
-			empty = false
+			hasAutoscalingModel = true
 		}
 
 		if topology.AutoscalingPolicyOverrideJSON != nil {
@@ -163,11 +163,11 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 				)
 			} else {
 				autoscaling.PolicyOverrideJson = types.String{Value: string(b)}
-				empty = false
+				hasAutoscalingModel = true
 			}
 		}
 
-		if !empty {
+		if hasAutoscalingModel {
 			diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchAutoscalingModel{autoscaling}, elasticsearchAutoscalingListType(), &model.Autoscaling)...)
 		}
 
