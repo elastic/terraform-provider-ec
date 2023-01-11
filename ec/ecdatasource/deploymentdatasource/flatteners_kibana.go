@@ -32,8 +32,8 @@ import (
 
 // flattenKibanaResources takes in Kibana resource models and returns its
 // flattened form.
-func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo) (types.List, diag.Diagnostics) {
+	var diagsnostics diag.Diagnostics
 	var result = make([]kibanaResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
@@ -69,7 +69,9 @@ func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo
 					model.Version = types.String{Value: plan.Kibana.Version}
 				}
 
-				diags.Append(flattenKibanaTopology(ctx, plan, &model.Topology)...)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenKibanaTopology(ctx, plan)
+				diagsnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
@@ -80,17 +82,18 @@ func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+
+	diagsnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: kibanaResourceInfoAttrTypes(),
 		},
-	}, target)...)
+	}, &target)...)
 
-	return diags
+	return target, diagsnostics
 }
 
-func flattenKibanaTopology(ctx context.Context, plan *models.KibanaClusterPlan, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenKibanaTopology(ctx context.Context, plan *models.KibanaClusterPlan) (types.List, diag.Diagnostics) {
 	var result = make([]kibanaTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var model kibanaTopologyModelV0
@@ -111,13 +114,15 @@ func flattenKibanaTopology(ctx context.Context, plan *models.KibanaClusterPlan, 
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: kibanaTopologyAttrTypes(),
 		},
-	}, target)...)
+	}, &target)
 
-	return diags
+	return target, diags
 }
 
 func isKibanaSizePopulated(topology *models.KibanaClusterTopologyElement) bool {

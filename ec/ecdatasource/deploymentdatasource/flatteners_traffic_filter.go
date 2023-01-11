@@ -28,12 +28,14 @@ import (
 )
 
 // flattenTrafficFiltering parses a deployment's traffic filtering settings.
-func flattenTrafficFiltering(ctx context.Context, settings *models.DeploymentSettings, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenTrafficFiltering(ctx context.Context, settings *models.DeploymentSettings) (types.List, diag.Diagnostics) {
+	var target types.List
+
 	if settings == nil || settings.TrafficFilterSettings == nil {
-		return diags
+		return target, nil
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, settings.TrafficFilterSettings.Rulesets, types.ListType{ElemType: types.StringType}, target)...)
-	return diags
+	diags := tfsdk.ValueFrom(ctx, settings.TrafficFilterSettings.Rulesets, types.ListType{ElemType: types.StringType}, &target)
+
+	return target, diags
 }

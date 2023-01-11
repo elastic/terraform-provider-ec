@@ -32,8 +32,8 @@ import (
 
 // flattenApmResources takes in Apm resource models and returns its
 // flattened form.
-func flattenApmResources(ctx context.Context, in []*models.ApmResourceInfo, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenApmResources(ctx context.Context, in []*models.ApmResourceInfo) (types.List, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
 	var result = make([]apmResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
@@ -69,7 +69,9 @@ func flattenApmResources(ctx context.Context, in []*models.ApmResourceInfo, targ
 					model.Version = types.String{Value: plan.Apm.Version}
 				}
 
-				diags.Append(flattenApmTopology(ctx, plan, &model.Topology)...)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenApmTopology(ctx, plan)
+				diagnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
@@ -80,17 +82,17 @@ func flattenApmResources(ctx context.Context, in []*models.ApmResourceInfo, targ
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: apmResourceInfoAttrTypes(),
 		},
-	}, target)...)
+	}, &target)...)
 
-	return diags
+	return target, diagnostics
 }
 
-func flattenApmTopology(ctx context.Context, plan *models.ApmPlan, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenApmTopology(ctx context.Context, plan *models.ApmPlan) (types.List, diag.Diagnostics) {
 	var result = make([]apmTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var model apmTopologyModelV0
@@ -111,13 +113,15 @@ func flattenApmTopology(ctx context.Context, plan *models.ApmPlan, target interf
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: apmTopologyAttrTypes(),
 		},
-	}, target)...)
+	}, &target)
 
-	return diags
+	return target, diags
 }
 
 func isApmSizePopulated(topology *models.ApmTopologyElement) bool {

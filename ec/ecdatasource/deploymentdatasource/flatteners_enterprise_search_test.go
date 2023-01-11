@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -130,7 +131,8 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var model modelV0
-			diags := flattenEnterpriseSearchResources(context.Background(), tt.args.in, &model.EnterpriseSearch)
+			var diags diag.Diagnostics
+			model.EnterpriseSearch, diags = flattenEnterpriseSearchResources(context.Background(), tt.args.in)
 			assert.Empty(t, diags)
 
 			var got []enterpriseSearchResourceInfoModelV0

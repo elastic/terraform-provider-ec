@@ -32,8 +32,8 @@ import (
 
 // flattenIntegrationsServerResources takes in IntegrationsServer resource models and returns its
 // flattened form.
-func flattenIntegrationsServerResources(ctx context.Context, in []*models.IntegrationsServerResourceInfo, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenIntegrationsServerResources(ctx context.Context, in []*models.IntegrationsServerResourceInfo) (types.List, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
 	var result = make([]integrationsServerResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
@@ -69,7 +69,9 @@ func flattenIntegrationsServerResources(ctx context.Context, in []*models.Integr
 					model.Version = types.String{Value: plan.IntegrationsServer.Version}
 				}
 
-				diags.Append(flattenIntegrationsServerTopology(ctx, plan, &model.Topology)...)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenIntegrationsServerTopology(ctx, plan)
+				diagnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
@@ -80,17 +82,17 @@ func flattenIntegrationsServerResources(ctx context.Context, in []*models.Integr
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: integrationsServerResourceInfoAttrTypes(),
 		},
-	}, target)...)
+	}, &target)...)
 
-	return diags
+	return target, diagnostics
 }
 
-func flattenIntegrationsServerTopology(ctx context.Context, plan *models.IntegrationsServerPlan, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenIntegrationsServerTopology(ctx context.Context, plan *models.IntegrationsServerPlan) (types.List, diag.Diagnostics) {
 	var result = make([]integrationsServerTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var model integrationsServerTopologyModelV0
@@ -111,13 +113,14 @@ func flattenIntegrationsServerTopology(ctx context.Context, plan *models.Integra
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: apmTopologyAttrTypes(),
 		},
-	}, target)...)
+	}, &target)
 
-	return diags
+	return target, diags
 }
 
 func isIntegrationsServerSizePopulated(topology *models.IntegrationsServerTopologyElement) bool {
