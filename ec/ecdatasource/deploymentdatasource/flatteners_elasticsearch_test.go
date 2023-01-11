@@ -86,6 +86,9 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 												Master: ec.Bool(true),
 												Ml:     ec.Bool(false),
 											},
+											// NodeRoles cannot be used simultaneously with NodeType
+											// but let's have it here for testing purposes
+											NodeRoles: []string{"data_content", "data_hot"},
 											AutoscalingMax: &models.TopologySize{
 												Resource: ec.String("memory"),
 												Value:    ec.Int32(15360),
@@ -143,8 +146,14 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 							"node_type_ingest":          types.Bool{Value: true},
 							"node_type_master":          types.Bool{Value: true},
 							"node_type_ml":              types.Bool{Value: false},
-							"node_roles":                types.Set{ElemType: types.StringType, Elems: []attr.Value{}},
-							"zone_count":                types.Int64{Value: 1},
+							"node_roles": types.Set{ElemType: types.StringType, Elems: func() []attr.Value {
+								result := make([]attr.Value, 0, 2)
+								for _, role := range []string{"data_content", "data_hot"} {
+									result = append(result, types.String{Value: role})
+								}
+								return result
+							}()},
+							"zone_count": types.Int64{Value: 1},
 							"autoscaling": types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchAutoscalingAttrTypes()},
 								Elems: []attr.Value{types.Object{
 									AttrTypes: elasticsearchAutoscalingAttrTypes(),
