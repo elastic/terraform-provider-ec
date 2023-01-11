@@ -137,7 +137,7 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 		}
 
 		if len(topology.NodeRoles) > 0 {
-			diags.Append(tfsdk.ValueFrom(ctx, util.StringToItems(topology.NodeRoles...), types.SetType{ElemType: types.StringType}, &model.NodeRoles)...)
+			diags.Append(tfsdk.ValueFrom(ctx, topology.NodeRoles, types.SetType{ElemType: types.StringType}, &model.NodeRoles)...)
 		}
 
 		var autoscaling elasticsearchAutoscalingModel
