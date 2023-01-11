@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -77,7 +78,8 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var newState modelV0
-			diags := flattenTrafficFiltering(context.Background(), tt.args.settings, &newState.TrafficFilter)
+			var diags diag.Diagnostics
+			newState.TrafficFilter, diags = flattenTrafficFiltering(context.Background(), tt.args.settings)
 			assert.Empty(t, diags)
 			var got []string
 			newState.TrafficFilter.ElementsAs(context.Background(), &got, false)

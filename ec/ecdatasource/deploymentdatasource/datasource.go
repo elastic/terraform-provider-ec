@@ -97,7 +97,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 }
 
 func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state *modelV0) diag.Diagnostics {
-	var diags diag.Diagnostics
+	var diagsnostics diag.Diagnostics
 
 	state.Name = types.String{Value: *res.Name}
 	state.Healthy = types.Bool{Value: *res.Healthy}
@@ -112,17 +112,32 @@ func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state 
 		state.DeploymentTemplateID = types.String{Value: *es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID}
 	}
 
-	diags.Append(flattenTrafficFiltering(ctx, res.Settings, &state.TrafficFilter)...)
-	diags.Append(flattenObservability(ctx, res.Settings, &state.Observability)...)
-	diags.Append(flattenElasticsearchResources(ctx, res.Resources.Elasticsearch, &state.Elasticsearch)...)
-	diags.Append(flattenKibanaResources(ctx, res.Resources.Kibana, &state.Kibana)...)
-	diags.Append(flattenApmResources(ctx, res.Resources.Apm, &state.Apm)...)
-	diags.Append(flattenIntegrationsServerResources(ctx, res.Resources.IntegrationsServer, &state.IntegrationsServer)...)
-	diags.Append(flattenEnterpriseSearchResources(ctx, res.Resources.EnterpriseSearch, &state.EnterpriseSearch)...)
+	var diags diag.Diagnostics
+
+	state.TrafficFilter, diags = flattenTrafficFiltering(ctx, res.Settings)
+	diagsnostics.Append(diags...)
+
+	state.Observability, diags = flattenObservability(ctx, res.Settings)
+	diagsnostics.Append(diags...)
+
+	state.Elasticsearch, diags = flattenElasticsearchResources(ctx, res.Resources.Elasticsearch)
+	diagsnostics.Append(diags...)
+
+	state.Kibana, diags = flattenKibanaResources(ctx, res.Resources.Kibana)
+	diagsnostics.Append(diags...)
+
+	state.Apm, diags = flattenApmResources(ctx, res.Resources.Apm)
+	diagsnostics.Append(diags...)
+
+	state.IntegrationsServer, diags = flattenIntegrationsServerResources(ctx, res.Resources.IntegrationsServer)
+	diagsnostics.Append(diags...)
+
+	state.EnterpriseSearch, diags = flattenEnterpriseSearchResources(ctx, res.Resources.EnterpriseSearch)
+	diagsnostics.Append(diags...)
 
 	if res.Metadata != nil {
 		state.Tags = converters.ModelsTagsToTypesMap(res.Metadata.Tags)
 	}
 
-	return diags
+	return diagsnostics
 }

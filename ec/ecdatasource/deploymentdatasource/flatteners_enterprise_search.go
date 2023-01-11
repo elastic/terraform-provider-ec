@@ -32,8 +32,8 @@ import (
 
 // flattenEnterpriseSearchResources takes in EnterpriseSearch resource models and returns its
 // flattened form.
-func flattenEnterpriseSearchResources(ctx context.Context, in []*models.EnterpriseSearchResourceInfo, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenEnterpriseSearchResources(ctx context.Context, in []*models.EnterpriseSearchResourceInfo) (types.List, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
 	var result = make([]enterpriseSearchResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
@@ -69,7 +69,9 @@ func flattenEnterpriseSearchResources(ctx context.Context, in []*models.Enterpri
 					model.Version = types.String{Value: plan.EnterpriseSearch.Version}
 				}
 
-				diags.Append(flattenEnterpriseSearchTopology(ctx, plan, &model.Topology)...)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenEnterpriseSearchTopology(ctx, plan)
+				diagnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
@@ -80,17 +82,17 @@ func flattenEnterpriseSearchResources(ctx context.Context, in []*models.Enterpri
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: enterpriseSearchResourceInfoAttrTypes(),
 		},
-	}, target)...)
+	}, &target)...)
 
-	return diags
+	return target, diagnostics
 }
 
-func flattenEnterpriseSearchTopology(ctx context.Context, plan *models.EnterpriseSearchPlan, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenEnterpriseSearchTopology(ctx context.Context, plan *models.EnterpriseSearchPlan) (types.List, diag.Diagnostics) {
 	var result = make([]enterpriseSearchTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		var model enterpriseSearchTopologyModelV0
@@ -125,13 +127,14 @@ func flattenEnterpriseSearchTopology(ctx context.Context, plan *models.Enterpris
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: enterpriseSearchTopologyAttrTypes(),
 		},
-	}, target)...)
+	}, &target)
 
-	return diags
+	return target, diags
 }
 
 func isEsSizePopulated(topology *models.EnterpriseSearchTopologyElement) bool {

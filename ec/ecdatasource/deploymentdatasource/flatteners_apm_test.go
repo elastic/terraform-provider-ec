@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -115,7 +116,8 @@ func Test_flattenApmResource(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var newState modelV0
-			diags := flattenApmResources(context.Background(), tt.args.in, &newState.Apm)
+			var diags diag.Diagnostics
+			newState.Apm, diags = flattenApmResources(context.Background(), tt.args.in)
 			assert.Empty(t, diags)
 
 			var got []apmResourceInfoModelV0

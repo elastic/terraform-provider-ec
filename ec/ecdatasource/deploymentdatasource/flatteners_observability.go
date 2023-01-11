@@ -28,8 +28,7 @@ import (
 )
 
 // flattenObservability parses a deployment's observability settings.
-func flattenObservability(ctx context.Context, settings *models.DeploymentSettings, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenObservability(ctx context.Context, settings *models.DeploymentSettings) (types.List, diag.Diagnostics) {
 	model := observabilitySettingsModel{
 		Metrics: types.Bool{Value: false},
 		Logs:    types.Bool{Value: false},
@@ -37,7 +36,7 @@ func flattenObservability(ctx context.Context, settings *models.DeploymentSettin
 	empty := true
 
 	if settings == nil || settings.Observability == nil {
-		return diags
+		return types.List{}, nil
 	}
 
 	// We are only accepting a single deployment ID and refID for both logs and metrics.
@@ -57,14 +56,16 @@ func flattenObservability(ctx context.Context, settings *models.DeploymentSettin
 	}
 
 	if empty {
-		return diags
+		return types.List{}, nil
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []observabilitySettingsModel{model}, types.ListType{
+	var target types.List
+
+	diags := tfsdk.ValueFrom(ctx, []observabilitySettingsModel{model}, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: observabilitySettingsAttrTypes(),
 		},
-	}, target)...)
+	}, &target)
 
-	return diags
+	return target, diags
 }

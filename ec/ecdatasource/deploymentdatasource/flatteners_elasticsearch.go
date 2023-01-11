@@ -35,8 +35,8 @@ import (
 
 // flattenElasticsearchResources takes in Elasticsearch resource models and returns its
 // flattened form.
-func flattenElasticsearchResources(ctx context.Context, in []*models.ElasticsearchResourceInfo, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenElasticsearchResources(ctx context.Context, in []*models.ElasticsearchResourceInfo) (types.List, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
 	var result = make([]elasticsearchResourceInfoModelV0, 0, len(in))
 
 	for _, res := range in {
@@ -72,7 +72,9 @@ func flattenElasticsearchResources(ctx context.Context, in []*models.Elasticsear
 					model.Autoscale = types.String{Value: strconv.FormatBool(*plan.AutoscalingEnabled)}
 				}
 
-				diags.Append(flattenElasticsearchTopology(ctx, plan, &model.Topology)...)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenElasticsearchTopology(ctx, plan)
+				diagnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
@@ -84,16 +86,18 @@ func flattenElasticsearchResources(ctx context.Context, in []*models.Elasticsear
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+	var target types.List
+
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: elasticsearchResourceInfoAttrTypes(),
 		},
-	}, target)...)
+	}, &target)...)
 
-	return diags
+	return target, diagnostics
 }
 
-func flattenElasticsearchTopology(ctx context.Context, plan *models.ElasticsearchClusterPlan, target interface{}) diag.Diagnostics {
+func flattenElasticsearchTopology(ctx context.Context, plan *models.ElasticsearchClusterPlan) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var result = make([]elasticsearchTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
@@ -170,13 +174,15 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 		result = append(result, model)
 	}
 
+	var target types.List
+
 	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
 			AttrTypes: elasticsearchTopologyAttrTypes(),
 		},
-	}, target)...)
+	}, &target)...)
 
-	return diags
+	return target, diags
 }
 
 func isElasticsearchSizePopulated(topology *models.ElasticsearchClusterTopologyElement) bool {
