@@ -21,7 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -115,14 +114,13 @@ func TestFlattenObservability(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		var newState modelV0
 		t.Run(tt.name, func(t *testing.T) {
-			var diags diag.Diagnostics
-			newState.Observability, diags = flattenObservability(context.Background(), tt.args.settings)
+			observability, diags := flattenObservability(context.Background(), tt.args.settings)
 			assert.Empty(t, diags)
 			var got []observabilitySettingsModel
-			newState.Observability.ElementsAs(context.Background(), &got, false)
+			observability.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			checkConverionToAttrValue(t, "observability", observability)
 		})
 	}
 }

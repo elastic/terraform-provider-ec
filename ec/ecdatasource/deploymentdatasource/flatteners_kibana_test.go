@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -117,13 +116,12 @@ func Test_flattenKibanaResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var model modelV0
-			var diags diag.Diagnostics
-			model.Kibana, diags = flattenKibanaResources(context.Background(), tt.args.in)
+			kibana, diags := flattenKibanaResources(context.Background(), tt.args.in)
 			assert.Empty(t, diags)
 			var got []kibanaResourceInfoModelV0
-			model.Kibana.ElementsAs(context.Background(), &got, false)
+			kibana.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			checkConverionToAttrValue(t, "kibana", kibana)
 		})
 	}
 }

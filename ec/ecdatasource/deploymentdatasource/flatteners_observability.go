@@ -35,8 +35,15 @@ func flattenObservability(ctx context.Context, settings *models.DeploymentSettin
 	}
 	empty := true
 
+	target := types.List{
+		ElemType: types.ObjectType{
+			AttrTypes: observabilitySettingsAttrTypes(),
+		},
+	}
+
 	if settings == nil || settings.Observability == nil {
-		return types.List{}, nil
+		target.Null = true
+		return target, nil
 	}
 
 	// We are only accepting a single deployment ID and refID for both logs and metrics.
@@ -56,16 +63,11 @@ func flattenObservability(ctx context.Context, settings *models.DeploymentSettin
 	}
 
 	if empty {
-		return types.List{}, nil
+		target.Null = true
+		return target, nil
 	}
 
-	var target types.List
-
-	diags := tfsdk.ValueFrom(ctx, []observabilitySettingsModel{model}, types.ListType{
-		ElemType: types.ObjectType{
-			AttrTypes: observabilitySettingsAttrTypes(),
-		},
-	}, &target)
+	diags := tfsdk.ValueFrom(ctx, []observabilitySettingsModel{model}, target.Type(ctx), &target)
 
 	return target, diags
 }

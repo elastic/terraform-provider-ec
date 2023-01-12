@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -117,14 +116,12 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var newState modelV0
-			var diags diag.Diagnostics
-			newState.IntegrationsServer, diags = flattenIntegrationsServerResources(context.Background(), tt.args.in)
+			integrationsServer, diags := flattenIntegrationsServerResources(context.Background(), tt.args.in)
 			assert.Empty(t, diags)
-
 			var got []integrationsServerResourceInfoModelV0
-			newState.IntegrationsServer.ElementsAs(context.Background(), &got, false)
+			integrationsServer.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			checkConverionToAttrValue(t, "integrations_server", integrationsServer)
 		})
 	}
 }

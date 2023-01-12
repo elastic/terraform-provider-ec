@@ -29,13 +29,14 @@ import (
 
 // flattenTrafficFiltering parses a deployment's traffic filtering settings.
 func flattenTrafficFiltering(ctx context.Context, settings *models.DeploymentSettings) (types.List, diag.Diagnostics) {
-	var target types.List
+	target := types.List{ElemType: types.StringType}
 
 	if settings == nil || settings.TrafficFilterSettings == nil {
+		target.Null = true
 		return target, nil
 	}
 
-	diags := tfsdk.ValueFrom(ctx, settings.TrafficFilterSettings.Rulesets, types.ListType{ElemType: types.StringType}, &target)
+	diags := tfsdk.ValueFrom(ctx, settings.TrafficFilterSettings.Rulesets, target.Type(ctx), &target)
 
 	return target, diags
 }
