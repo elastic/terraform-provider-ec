@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -174,15 +173,12 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var model modelV0
-			var diags diag.Diagnostics
-
-			model.Elasticsearch, diags = flattenElasticsearchResources(context.Background(), tt.args.in)
+			elasticsearch, diags := flattenElasticsearchResources(context.Background(), tt.args.in)
 			assert.Empty(t, diags)
-
 			var got []elasticsearchResourceInfoModelV0
-			model.Elasticsearch.ElementsAs(context.Background(), &got, false)
+			elasticsearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			checkConverionToAttrValue(t, "elasticsearch", elasticsearch)
 		})
 	}
 }
