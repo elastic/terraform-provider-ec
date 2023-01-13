@@ -28,14 +28,13 @@ import (
 )
 
 func modelToState(ctx context.Context, res *models.TrafficFilterRulesetInfo, state *modelV0) diag.Diagnostics {
-	var diags diag.Diagnostics
-
 	state.Name = types.String{Value: *res.Name}
 	state.Region = types.String{Value: *res.Region}
 	state.Type = types.String{Value: *res.Type}
 	state.IncludeByDefault = types.Bool{Value: *res.IncludeByDefault}
 
-	diags.Append(flattenRules(ctx, res.Rules, &state.Rule)...)
+	var diags diag.Diagnostics
+	state.Rule, diags = flattenRules(ctx, res.Rules)
 
 	if res.Description == "" {
 		state.Description = types.String{Null: true}
@@ -46,8 +45,7 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesetInfo, sta
 	return diags
 }
 
-func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule, target interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule) (types.Set, diag.Diagnostics) {
 	var result = make([]trafficFilterRuleModelV0, 0, len(rules))
 	for _, rule := range rules {
 		model := trafficFilterRuleModelV0{
@@ -77,7 +75,9 @@ func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule, target
 		result = append(result, model)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, trafficFilterRuleSetType(), target)...)
+	target := types.Set{ElemType: trafficFilterRuleSetType().(types.SetType).ElementType()}
 
-	return diags
+	diags := tfsdk.ValueFrom(ctx, result, trafficFilterRuleSetType(), &target)
+
+	return target, diags
 }
