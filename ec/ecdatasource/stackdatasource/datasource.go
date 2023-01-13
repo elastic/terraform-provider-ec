@@ -96,7 +96,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 }
 
 func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *modelV0) diag.Diagnostics {
-	var diags diag.Diagnostics
+	var diagnostics diag.Diagnostics
 
 	state.ID = types.String{Value: stack.Version}
 	state.Version = types.String{Value: stack.Version}
@@ -107,19 +107,27 @@ func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *
 	state.MinUpgradableFrom = types.String{Value: stack.MinUpgradableFrom}
 
 	if len(stack.UpgradableTo) > 0 {
-		diags.Append(tfsdk.ValueFrom(ctx, stack.UpgradableTo, types.ListType{ElemType: types.StringType}, &state.UpgradableTo)...)
+		diagnostics.Append(tfsdk.ValueFrom(ctx, stack.UpgradableTo, types.ListType{ElemType: types.StringType}, &state.UpgradableTo)...)
 	}
 
 	if stack.Whitelisted != nil {
 		state.AllowListed = types.Bool{Value: *stack.Whitelisted}
 	}
 
-	diags.Append(flattenStackVersionApmConfig(ctx, stack.Apm, &state.Apm)...)
-	diags.Append(flattenStackVersionElasticsearchConfig(ctx, stack.Elasticsearch, &state.Elasticsearch)...)
-	diags.Append(flattenStackVersionEnterpriseSearchConfig(ctx, stack.EnterpriseSearch, &state.EnterpriseSearch)...)
-	diags.Append(flattenStackVersionKibanaConfig(ctx, stack.Kibana, &state.Kibana)...)
+	var diags diag.Diagnostics
+	state.Apm, diags = flattenStackVersionApmConfig(ctx, stack.Apm)
+	diagnostics.Append(diags...)
 
-	return diags
+	state.Elasticsearch, diags = flattenStackVersionElasticsearchConfig(ctx, stack.Elasticsearch)
+	diagnostics.Append(diags...)
+
+	state.EnterpriseSearch, diags = flattenStackVersionEnterpriseSearchConfig(ctx, stack.EnterpriseSearch)
+	diagnostics.Append(diags...)
+
+	state.Kibana, diags = flattenStackVersionKibanaConfig(ctx, stack.Kibana)
+	diagnostics.Append(diags...)
+
+	return diagnostics
 }
 
 func stackFromFilters(expr, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {

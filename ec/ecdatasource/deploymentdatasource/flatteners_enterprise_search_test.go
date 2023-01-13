@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenEnterpriseSearchResource(t *testing.T) {
@@ -134,7 +135,7 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 			var got []enterpriseSearchResourceInfoModelV0
 			enterpriseSearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
-			checkConverionToAttrValue(t, "enterprise_search", enterpriseSearch)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "enterprise_search", enterpriseSearch)
 		})
 	}
 }

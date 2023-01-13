@@ -28,45 +28,43 @@ import (
 )
 
 // flattenStackVersionEnterpriseSearchConfig takes a StackVersionEnterpriseSearchConfig and flattens it.
-func flattenStackVersionEnterpriseSearchConfig(ctx context.Context, res *models.StackVersionEnterpriseSearchConfig, target interface{}) diag.Diagnostics {
+func flattenStackVersionEnterpriseSearchConfig(ctx context.Context, res *models.StackVersionEnterpriseSearchConfig) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
-	empty := true
+
+	target := types.List{ElemType: resourceKindConfigSchema(EnterpriseSearch).FrameworkType().(types.ListType).ElemType}
+	target.Null = true
 
 	if res == nil {
-		return diags
+		return target, diags
 	}
 
 	if len(res.Blacklist) > 0 {
 		diags.Append(tfsdk.ValueFrom(ctx, res.Blacklist, types.ListType{ElemType: types.StringType}, &model.DenyList)...)
-		empty = false
+		target.Null = false
 	}
 
 	if res.CapacityConstraints != nil {
 		model.CapacityConstraintsMax = types.Int64{Value: int64(*res.CapacityConstraints.Max)}
 		model.CapacityConstraintsMin = types.Int64{Value: int64(*res.CapacityConstraints.Min)}
-		empty = false
+		target.Null = false
 	}
 
 	if len(res.CompatibleNodeTypes) > 0 {
 		diags.Append(tfsdk.ValueFrom(ctx, res.CompatibleNodeTypes, types.ListType{ElemType: types.StringType}, &model.CompatibleNodeTypes)...)
-		empty = false
+		target.Null = false
 	}
 
 	if res.DockerImage != nil && *res.DockerImage != "" {
 		model.DockerImage = types.String{Value: *res.DockerImage}
-		empty = false
+		target.Null = false
 	}
 
-	if empty {
-		return diags
+	if target.Null {
+		return target, diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, types.ListType{
-		ElemType: types.ObjectType{
-			AttrTypes: resourceKindConfigAttrTypes(EnterpriseSearch),
-		},
-	}, target)...)
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(EnterpriseSearch).FrameworkType(), &target)...)
 
-	return diags
+	return target, diags
 }
