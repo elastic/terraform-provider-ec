@@ -55,7 +55,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 		return
 	}
 
-	var newState *deploymentv2.DeploymentTF
+	var newState *deploymentv2.Deployment
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
 	newState, diags = r.read(ctx, curState.Id.Value, &curState, curState, nil)
@@ -73,7 +73,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	response.Diagnostics.Append(diags...)
 }
 
-func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource) (*deploymentv2.DeploymentTF, diag.Diagnostics) {
+func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource) (*deploymentv2.Deployment, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	response, err := deploymentapi.Get(deploymentapi.GetParams{
@@ -159,19 +159,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.Elasticsearch.Config = nil
 	}
 
-	var deploymentTF deploymentv2.DeploymentTF
-
-	schema, diags := r.GetSchema(ctx)
-
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	if diags := tfsdk.ValueFrom(ctx, deployment, schema.Type(), &deploymentTF); diags.HasError() {
-		return nil, diags
-	}
-
-	return &deploymentTF, diags
+	return deployment, diags
 }
 
 func deploymentNotFound(err error) bool {
