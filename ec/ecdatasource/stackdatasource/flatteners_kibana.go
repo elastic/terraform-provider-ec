@@ -27,8 +27,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// flattenStackVersionKibanaConfig takes a StackVersionKibanaConfig and flattens it.
-func flattenStackVersionKibanaConfig(ctx context.Context, res *models.StackVersionKibanaConfig) (types.List, diag.Diagnostics) {
+// flattenKibanaConfig takes a StackVersionKibanaConfig and flattens it.
+func flattenKibanaConfig(ctx context.Context, res *models.StackVersionKibanaConfig) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
 

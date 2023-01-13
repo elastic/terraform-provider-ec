@@ -115,16 +115,16 @@ func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *
 	}
 
 	var diags diag.Diagnostics
-	state.Apm, diags = flattenStackVersionApmConfig(ctx, stack.Apm)
+	state.Apm, diags = flattenApmConfig(ctx, stack.Apm)
 	diagnostics.Append(diags...)
 
-	state.Elasticsearch, diags = flattenStackVersionElasticsearchConfig(ctx, stack.Elasticsearch)
+	state.Elasticsearch, diags = flattenElasticsearchConfig(ctx, stack.Elasticsearch)
 	diagnostics.Append(diags...)
 
-	state.EnterpriseSearch, diags = flattenStackVersionEnterpriseSearchConfig(ctx, stack.EnterpriseSearch)
+	state.EnterpriseSearch, diags = flattenEnterpriseSearchConfig(ctx, stack.EnterpriseSearch)
 	diagnostics.Append(diags...)
 
-	state.Kibana, diags = flattenStackVersionKibanaConfig(ctx, stack.Kibana)
+	state.Kibana, diags = flattenKibanaConfig(ctx, stack.Kibana)
 	diagnostics.Append(diags...)
 
 	return diagnostics

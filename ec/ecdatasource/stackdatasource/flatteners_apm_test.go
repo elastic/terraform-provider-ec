@@ -70,7 +70,7 @@ func Test_flattenApmResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			apm, diags := flattenStackVersionApmConfig(context.Background(), tt.args.res)
+			apm, diags := flattenApmConfig(context.Background(), tt.args.res)
 			assert.Empty(t, diags)
 
 			var got []resourceKindConfigModelV0

@@ -27,8 +27,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// flattenStackVersionEnterpriseSearchConfig takes a StackVersionEnterpriseSearchConfig and flattens it.
-func flattenStackVersionEnterpriseSearchConfig(ctx context.Context, res *models.StackVersionEnterpriseSearchConfig) (types.List, diag.Diagnostics) {
+// flattenEnterpriseSearchConfig takes a StackVersionEnterpriseSearchConfig and flattens it.
+func flattenEnterpriseSearchConfig(ctx context.Context, res *models.StackVersionEnterpriseSearchConfig) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
 

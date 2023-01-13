@@ -27,8 +27,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// flattenStackVersionElasticsearchConfig takes a StackVersionElasticsearchConfig and flattens it.
-func flattenStackVersionElasticsearchConfig(ctx context.Context, res *models.StackVersionElasticsearchConfig) (types.List, diag.Diagnostics) {
+// flattenElasticsearchConfig takes a StackVersionElasticsearchConfig and flattens it.
+func flattenElasticsearchConfig(ctx context.Context, res *models.StackVersionElasticsearchConfig) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := newElasticsearchConfigModelV0()
 
