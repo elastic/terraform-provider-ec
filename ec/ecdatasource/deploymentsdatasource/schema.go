@@ -27,16 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-)
-
-type ResourceKind int
-
-const (
-	Apm ResourceKind = iota
-	Elasticsearch
-	EnterpriseSearch
-	IntegrationsServer
-	Kibana
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -87,11 +78,11 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 		},
 		Blocks: map[string]tfsdk.Block{
 			// Deployment resources
-			"elasticsearch":       resourceFiltersSchema(Elasticsearch),
-			"kibana":              resourceFiltersSchema(Kibana),
-			"apm":                 resourceFiltersSchema(Apm),
-			"integrations_server": resourceFiltersSchema(IntegrationsServer),
-			"enterprise_search":   resourceFiltersSchema(EnterpriseSearch),
+			"elasticsearch":       resourceFiltersSchema(util.ElasticsearchResourceKind),
+			"kibana":              resourceFiltersSchema(util.KibanaResourceKind),
+			"apm":                 resourceFiltersSchema(util.ApmResourceKind),
+			"integrations_server": resourceFiltersSchema(util.IntegrationsServerResourceKind),
+			"enterprise_search":   resourceFiltersSchema(util.EnterpriseSearchResourceKind),
 		},
 	}, nil
 }
@@ -175,24 +166,7 @@ func deploymentAttrTypes() map[string]attr.Type {
 
 }
 
-func (rk ResourceKind) Name() string {
-	switch rk {
-	case Apm:
-		return "APM"
-	case Elasticsearch:
-		return "Elasticsearch"
-	case EnterpriseSearch:
-		return "Enterprise Search"
-	case IntegrationsServer:
-		return "Integrations Server"
-	case Kibana:
-		return "Kibana"
-	default:
-		return "unknown"
-	}
-}
-
-func resourceFiltersSchema(resourceKind ResourceKind) tfsdk.Block {
+func resourceFiltersSchema(resourceKind util.ResourceKind) tfsdk.Block {
 	return tfsdk.Block{
 		Description: fmt.Sprintf("Filter by %s resource kind status or configuration.", resourceKind.Name()),
 		NestingMode: tfsdk.BlockNestingModeList,
@@ -213,7 +187,7 @@ func resourceFiltersSchema(resourceKind ResourceKind) tfsdk.Block {
 	}
 }
 
-func resourceFiltersAttrTypes(resourceKind ResourceKind) map[string]attr.Type {
+func resourceFiltersAttrTypes(resourceKind util.ResourceKind) map[string]attr.Type {
 	return resourceFiltersSchema(resourceKind).Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 
 }

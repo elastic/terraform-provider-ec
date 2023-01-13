@@ -166,10 +166,10 @@ func newSampleStack() modelV0 {
 		},
 		Kibana: types.List{
 			ElemType: types.ObjectType{
-				AttrTypes: resourceKindConfigAttrTypes(Kibana),
+				AttrTypes: resourceKindConfigAttrTypes(util.KibanaResourceKind),
 			},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceKindConfigAttrTypes(Kibana),
+				AttrTypes: resourceKindConfigAttrTypes(util.KibanaResourceKind),
 				Attrs: map[string]attr.Value{
 					"denylist":                 util.StringListAsType([]string{"some"}),
 					"capacity_constraints_max": types.Int64{Value: 8192},
@@ -181,10 +181,10 @@ func newSampleStack() modelV0 {
 		},
 		EnterpriseSearch: types.List{
 			ElemType: types.ObjectType{
-				AttrTypes: resourceKindConfigAttrTypes(EnterpriseSearch),
+				AttrTypes: resourceKindConfigAttrTypes(util.EnterpriseSearchResourceKind),
 			},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceKindConfigAttrTypes(EnterpriseSearch),
+				AttrTypes: resourceKindConfigAttrTypes(util.EnterpriseSearchResourceKind),
 				Attrs: map[string]attr.Value{
 					"denylist":                 util.StringListAsType([]string{"some"}),
 					"capacity_constraints_max": types.Int64{Value: 8192},
@@ -196,10 +196,10 @@ func newSampleStack() modelV0 {
 		},
 		Apm: types.List{
 			ElemType: types.ObjectType{
-				AttrTypes: resourceKindConfigAttrTypes(Apm),
+				AttrTypes: resourceKindConfigAttrTypes(util.ApmResourceKind),
 			},
 			Elems: []attr.Value{types.Object{
-				AttrTypes: resourceKindConfigAttrTypes(Apm),
+				AttrTypes: resourceKindConfigAttrTypes(util.ApmResourceKind),
 				Attrs: map[string]attr.Value{
 					"denylist":                 util.StringListAsType([]string{"some"}),
 					"capacity_constraints_max": types.Int64{Value: 8192},

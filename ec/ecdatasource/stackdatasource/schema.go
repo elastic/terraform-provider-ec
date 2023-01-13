@@ -21,19 +21,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-)
-
-type ResourceKind int
-
-const (
-	Apm ResourceKind = iota
-	EnterpriseSearch
-	Kibana
 )
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -78,10 +71,10 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 				Type:     types.BoolType,
 				Computed: true,
 			},
-			"apm":               resourceKindConfigSchema(Apm),
-			"enterprise_search": resourceKindConfigSchema(EnterpriseSearch),
+			"apm":               resourceKindConfigSchema(util.ApmResourceKind),
+			"enterprise_search": resourceKindConfigSchema(util.EnterpriseSearchResourceKind),
 			"elasticsearch":     elasticsearchConfigSchema(),
-			"kibana":            resourceKindConfigSchema(Kibana),
+			"kibana":            resourceKindConfigSchema(util.KibanaResourceKind),
 		},
 	}, nil
 }
@@ -138,14 +131,9 @@ func elasticsearchConfigAttrTypes() map[string]attr.Type {
 	return elasticsearchConfigSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
-func resourceKindConfigSchema(resourceKind ResourceKind) tfsdk.Attribute {
-	var names = map[ResourceKind]string{
-		Apm:              "APM",
-		EnterpriseSearch: "Enterprise Search",
-		Kibana:           "Kibana",
-	}
+func resourceKindConfigSchema(resourceKind util.ResourceKind) tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: fmt.Sprintf("Information for %s workloads on this stack version.", names[resourceKind]),
+		Description: fmt.Sprintf("Information for %s workloads on this stack version.", resourceKind.Name()),
 		Computed:    true,
 		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
@@ -171,7 +159,7 @@ func resourceKindConfigSchema(resourceKind ResourceKind) tfsdk.Attribute {
 			},
 			"docker_image": {
 				Type:        types.StringType,
-				Description: fmt.Sprintf("Docker image to use for the %s instance.", names[resourceKind]),
+				Description: fmt.Sprintf("Docker image to use for the %s instance.", resourceKind.Name()),
 				Computed:    true,
 			},
 			// node_types not added. It is highly unlikely they will be used
@@ -181,7 +169,7 @@ func resourceKindConfigSchema(resourceKind ResourceKind) tfsdk.Attribute {
 	}
 }
 
-func resourceKindConfigAttrTypes(resourceKind ResourceKind) map[string]attr.Type {
+func resourceKindConfigAttrTypes(resourceKind util.ResourceKind) map[string]attr.Type {
 	return resourceKindConfigSchema(resourceKind).Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
