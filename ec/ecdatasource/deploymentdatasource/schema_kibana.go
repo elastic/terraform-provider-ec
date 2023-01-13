@@ -37,17 +37,17 @@ func kibanaResourceInfoSchema() tfsdk.Attribute {
 			},
 			"healthy": {
 				Type:        types.BoolType,
-				Description: "Resource kind health status.",
+				Description: "Kibana resource health status.",
 				Computed:    true,
 			},
 			"http_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTP endpoint for the resource kind.",
+				Description: "HTTP endpoint for the Kibana resource.",
 				Computed:    true,
 			},
 			"https_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTPS endpoint for the resource kind.",
+				Description: "HTTPS endpoint for the Kibana resource.",
 				Computed:    true,
 			},
 			"ref_id": {
@@ -62,7 +62,7 @@ func kibanaResourceInfoSchema() tfsdk.Attribute {
 			},
 			"status": {
 				Type:        types.StringType,
-				Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
+				Description: "Kibana resource status (for example, \"started\", \"stopped\", etc).",
 				Computed:    true,
 			},
 			"version": {
@@ -92,7 +92,7 @@ func kibanaTopologySchema() tfsdk.Attribute {
 			},
 			"size": {
 				Type:        types.StringType,
-				Description: "Amount of resource per topology element in the \"g\" notation.",
+				Description: "Amount of size_resource in Gigabytes. For example \"4g\".",
 				Computed:    true,
 			},
 			"size_resource": {

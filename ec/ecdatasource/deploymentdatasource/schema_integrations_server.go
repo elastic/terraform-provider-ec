@@ -92,7 +92,7 @@ func integrationsServerTopologySchema() tfsdk.Attribute {
 			},
 			"size": {
 				Type:        types.StringType,
-				Description: "Amount of resource per topology element in the \"g\" notation.",
+				Description: `Amount of "size_resource" in Gigabytes. For example "4g".`,
 				Computed:    true,
 			},
 			"size_resource": {

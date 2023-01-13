@@ -26,7 +26,7 @@ import (
 
 func elasticsearchResourceInfoSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Instance configuration of the Elasticsearch resource kind.",
+		Description: "Instance configuration of the Elasticsearch Elasticsearch resource.",
 		Computed:    true,
 		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
@@ -37,7 +37,7 @@ func elasticsearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"healthy": {
 				Type:        types.BoolType,
-				Description: "Resource kind health status.",
+				Description: "Elasticsearch resource health status.",
 				Computed:    true,
 			},
 			"cloud_id": {
@@ -48,12 +48,12 @@ func elasticsearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"http_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTP endpoint for the resource kind.",
+				Description: "HTTP endpoint for the Elasticsearch resource.",
 				Computed:    true,
 			},
 			"https_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTPS endpoint for the resource kind.",
+				Description: "HTTPS endpoint for the Elasticsearch resource.",
 				Computed:    true,
 			},
 			"ref_id": {
@@ -68,7 +68,7 @@ func elasticsearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"status": {
 				Type:        types.StringType,
-				Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
+				Description: "Elasticsearch resource status (for example, \"started\", \"stopped\", etc).",
 				Computed:    true,
 			},
 			"version": {
@@ -98,7 +98,7 @@ func elasticsearchTopologySchema() tfsdk.Attribute {
 			},
 			"size": {
 				Type:        types.StringType,
-				Description: "Amount of resource per topology element in the \"g\" notation.",
+				Description: `Amount of "size_resource" per topology element in Gigabytes. For example "4g".`,
 				Computed:    true,
 			},
 			"size_resource": {
@@ -118,17 +118,17 @@ func elasticsearchTopologySchema() tfsdk.Attribute {
 			},
 			"node_type_master": {
 				Type:        types.BoolType,
-				Description: " Defines whether this node can be elected master (<7.10.0).",
+				Description: " Defines whether this node can be elected master (<8.0).",
 				Computed:    true,
 			},
 			"node_type_ingest": {
 				Type:        types.BoolType,
-				Description: "Defines whether this node can run an ingest pipeline (<7.10.0).",
+				Description: "Defines whether this node can run an ingest pipeline (<8.0).",
 				Computed:    true,
 			},
 			"node_type_ml": {
 				Type:        types.BoolType,
-				Description: "Defines whether this node can run ML jobs (<7.10.0).",
+				Description: "Defines whether this node can run ML jobs (<8.0).",
 				Computed:    true,
 			},
 			"node_roles": {
