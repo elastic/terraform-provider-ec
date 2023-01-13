@@ -167,8 +167,8 @@ func Test_ReadKibana(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, tt.want, kibana)
 
-			var kibanaTF types.Object
-			diags := tfsdk.ValueFrom(context.Background(), kibana, KibanaSchema().FrameworkType(), &kibanaTF)
+			var obj types.Object
+			diags := tfsdk.ValueFrom(context.Background(), kibana, KibanaSchema().FrameworkType(), &obj)
 			assert.Nil(t, diags)
 		})
 	}
