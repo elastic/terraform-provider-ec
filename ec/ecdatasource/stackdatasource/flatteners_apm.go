@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // flattenApmConfig takes a StackVersionApmConfigs and flattens it.
@@ -32,7 +33,7 @@ func flattenApmConfig(ctx context.Context, res *models.StackVersionApmConfig) (t
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
 
-	target := types.List{ElemType: resourceKindConfigSchema(Apm).FrameworkType().(types.ListType).ElemType}
+	target := types.List{ElemType: resourceKindConfigSchema(util.ApmResourceKind).FrameworkType().(types.ListType).ElemType}
 	target.Null = true
 
 	if res == nil {
@@ -64,7 +65,7 @@ func flattenApmConfig(ctx context.Context, res *models.StackVersionApmConfig) (t
 		return target, diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(Apm).FrameworkType(), &target)...)
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(util.ApmResourceKind).FrameworkType(), &target)...)
 
 	return target, diags
 }

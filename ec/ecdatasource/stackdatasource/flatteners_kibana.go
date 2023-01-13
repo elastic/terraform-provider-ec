@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // flattenKibanaConfig takes a StackVersionKibanaConfig and flattens it.
@@ -32,7 +33,7 @@ func flattenKibanaConfig(ctx context.Context, res *models.StackVersionKibanaConf
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
 
-	target := types.List{ElemType: resourceKindConfigSchema(Kibana).FrameworkType().(types.ListType).ElemType}
+	target := types.List{ElemType: resourceKindConfigSchema(util.KibanaResourceKind).FrameworkType().(types.ListType).ElemType}
 	target.Null = true
 
 	if res == nil {
@@ -64,7 +65,7 @@ func flattenKibanaConfig(ctx context.Context, res *models.StackVersionKibanaConf
 		return target, diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(Kibana).FrameworkType(), &target)...)
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(util.KibanaResourceKind).FrameworkType(), &target)...)
 
 	return target, diags
 }

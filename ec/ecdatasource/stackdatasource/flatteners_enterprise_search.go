@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // flattenEnterpriseSearchConfig takes a StackVersionEnterpriseSearchConfig and flattens it.
@@ -32,7 +33,7 @@ func flattenEnterpriseSearchConfig(ctx context.Context, res *models.StackVersion
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
 
-	target := types.List{ElemType: resourceKindConfigSchema(EnterpriseSearch).FrameworkType().(types.ListType).ElemType}
+	target := types.List{ElemType: resourceKindConfigSchema(util.EnterpriseSearchResourceKind).FrameworkType().(types.ListType).ElemType}
 	target.Null = true
 
 	if res == nil {
@@ -64,7 +65,7 @@ func flattenEnterpriseSearchConfig(ctx context.Context, res *models.StackVersion
 		return target, diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(EnterpriseSearch).FrameworkType(), &target)...)
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(util.EnterpriseSearchResourceKind).FrameworkType(), &target)...)
 
 	return target, diags
 }
