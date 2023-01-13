@@ -393,7 +393,7 @@ func ElasticsearchTopologySchema(description string, required bool, topologyAttr
 			},
 			"size": {
 				Type:        types.StringType,
-				Description: `Optional amount of memory per node in the "<size in GB>g" notation`,
+				Description: `Amount of "size_resource" per node in the "<size in GB>g" notation`,
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
@@ -402,7 +402,7 @@ func ElasticsearchTopologySchema(description string, required bool, topologyAttr
 			},
 			"size_resource": {
 				Type:        types.StringType,
-				Description: `Optional size type, defaults to "memory".`,
+				Description: `Size type, defaults to "memory".`,
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -411,7 +411,7 @@ func ElasticsearchTopologySchema(description string, required bool, topologyAttr
 			},
 			"zone_count": {
 				Type:        types.Int64Type,
-				Description: `Optional number of zones that the Elasticsearch cluster will span. This is used to set HA`,
+				Description: `Number of zones that the Elasticsearch cluster will span. This is used to set HA`,
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{

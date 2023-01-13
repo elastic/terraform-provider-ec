@@ -165,7 +165,7 @@ func expandResourceFilters(ctx context.Context, resources *types.List, resourceK
 			healthyTermPath := resourceKindPath + ".info.healthy"
 
 			if filter.Healthy.Value != "true" && filter.Healthy.Value != "false" {
-				diags.AddError("invalid value for healthy", fmt.Sprintf("invalid value for healthy (true|false): '%s'", filter.Healthy.Value))
+				diags.AddError("invalid value for healthy", fmt.Sprintf("expected either [true] or [false] but got [%s]", filter.Healthy.Value))
 				return nil, diags
 			}
 

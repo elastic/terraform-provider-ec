@@ -32,22 +32,22 @@ func apmResourceInfoSchema() tfsdk.Attribute {
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {
 				Type:        types.StringType,
-				Description: "The locally-unique user-specified id of an Elasticsearch Resource.",
+				Description: "The locally-unique user-specified id of an APM Resource.",
 				Computed:    true,
 			},
 			"healthy": {
 				Type:        types.BoolType,
-				Description: "Resource kind health status.",
+				Description: "APM resource health status.",
 				Computed:    true,
 			},
 			"http_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTP endpoint for the resource kind.",
+				Description: "HTTP endpoint for the APM resource.",
 				Computed:    true,
 			},
 			"https_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTPS endpoint for the resource kind.",
+				Description: "HTTPS endpoint for the APM resource.",
 				Computed:    true,
 			},
 			"ref_id": {
@@ -62,7 +62,7 @@ func apmResourceInfoSchema() tfsdk.Attribute {
 			},
 			"status": {
 				Type:        types.StringType,
-				Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
+				Description: "APM resource status (for example, \"started\", \"stopped\", etc).",
 				Computed:    true,
 			},
 			"version": {
@@ -92,7 +92,7 @@ func apmTopologySchema() tfsdk.Attribute {
 			},
 			"size": {
 				Type:        types.StringType,
-				Description: "Amount of size_resource in Gigabytes. For example \"4g\".",
+				Description: `Amount of "size_resource" in Gigabytes. For example "4g".`,
 				Computed:    true,
 			},
 			"size_resource": {
