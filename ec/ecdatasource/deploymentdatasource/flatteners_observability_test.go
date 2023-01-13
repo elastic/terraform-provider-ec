@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func TestFlattenObservability(t *testing.T) {
@@ -38,15 +39,15 @@ func TestFlattenObservability(t *testing.T) {
 		want []observabilitySettingsModel
 	}{
 		{
-			name: "flattens no observability settings when empty",
+			name: "flattens no observability settings when empty #1",
 			args: args{},
 		},
 		{
-			name: "flattens no observability settings when empty",
+			name: "flattens no observability settings when empty #2",
 			args: args{settings: &models.DeploymentSettings{}},
 		},
 		{
-			name: "flattens no observability settings when empty",
+			name: "flattens no observability settings when empty #3",
 			args: args{settings: &models.DeploymentSettings{Observability: &models.DeploymentObservabilitySettings{}}},
 		},
 		{
@@ -120,7 +121,7 @@ func TestFlattenObservability(t *testing.T) {
 			var got []observabilitySettingsModel
 			observability.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
-			checkConverionToAttrValue(t, "observability", observability)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "observability", observability)
 		})
 	}
 }

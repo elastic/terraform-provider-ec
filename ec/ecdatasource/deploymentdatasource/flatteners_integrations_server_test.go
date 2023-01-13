@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenIntegrationsServerResource(t *testing.T) {
@@ -121,7 +122,7 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 			var got []integrationsServerResourceInfoModelV0
 			integrationsServer.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
-			checkConverionToAttrValue(t, "integrations_server", integrationsServer)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "integrations_server", integrationsServer)
 		})
 	}
 }

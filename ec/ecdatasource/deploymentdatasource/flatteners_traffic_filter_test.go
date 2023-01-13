@@ -21,12 +21,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenTrafficFiltering(t *testing.T) {
@@ -39,21 +37,21 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 		want []string
 	}{
 		{
-			name: "parses no rules when they're empty 1",
+			name: "parses no rules when they're empty #1",
 			args: args{},
 		},
 		{
-			name: "parses no rules when they're empty 2",
+			name: "parses no rules when they're empty #2",
 			args: args{settings: &models.DeploymentSettings{}},
 		},
 		{
-			name: "parses no rules when they're empty 3",
+			name: "parses no rules when they're empty #3",
 			args: args{settings: &models.DeploymentSettings{
 				TrafficFilterSettings: &models.TrafficFilterSettings{},
 			}},
 		},
 		{
-			name: "parses no rules when they're empty 4",
+			name: "parses no rules when they're empty #4",
 			args: args{settings: &models.DeploymentSettings{
 				TrafficFilterSettings: &models.TrafficFilterSettings{
 					Rulesets: []string{},
@@ -84,23 +82,7 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 			var got []string
 			trafficFilter.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
-
-			checkConverionToAttrValue(t, "traffic_filter", trafficFilter)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "traffic_filter", trafficFilter)
 		})
 	}
-}
-
-// checking conversion to attr.Value
-// it should catch cases when e.g. the func under test returns types.List{}
-func checkConverionToAttrValue(t *testing.T, attributeName string, attributeValue types.List) {
-	var target types.List
-	diags := tfsdk.ValueFrom(context.Background(), attributeValue, attributeType(t, attributeName), &target)
-	assert.Nil(t, diags)
-}
-
-func attributeType(t *testing.T, attributeName string) attr.Type {
-	var d DataSource
-	schema, diags := d.GetSchema(context.Background())
-	assert.Nil(t, diags)
-	return schema.Attributes[attributeName].FrameworkType()
 }

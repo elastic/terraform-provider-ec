@@ -40,12 +40,12 @@ func Test_flattenKibanaResources(t *testing.T) {
 		want []resourceKindConfigModelV0
 	}{
 		{
-			name: "empty resource list returns empty list",
+			name: "empty resource list returns empty list #1",
 			args: args{},
 			want: nil,
 		},
 		{
-			name: "empty resource list returns empty list",
+			name: "empty resource list returns empty list #2",
 			args: args{res: &models.StackVersionKibanaConfig{}},
 			want: nil,
 		},
@@ -70,13 +70,14 @@ func Test_flattenKibanaResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var newState modelV0
-			diags := flattenStackVersionKibanaConfig(context.Background(), tt.args.res, &newState.Kibana)
+			kibana, diags := flattenStackVersionKibanaConfig(context.Background(), tt.args.res)
 			assert.Empty(t, diags)
 
 			var got []resourceKindConfigModelV0
-			newState.Kibana.ElementsAs(context.Background(), &got, false)
+			kibana.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+
+			util.CheckConverionToAttrValue(t, &DataSource{}, "kibana", kibana)
 		})
 	}
 }

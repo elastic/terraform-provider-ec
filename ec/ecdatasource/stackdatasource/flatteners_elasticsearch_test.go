@@ -40,12 +40,12 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 		want []elasticsearchConfigModelV0
 	}{
 		{
-			name: "empty resource list returns empty list",
+			name: "empty resource list returns empty list #1",
 			args: args{},
 			want: nil,
 		},
 		{
-			name: "empty resource list returns empty list",
+			name: "empty resource list returns empty list #2",
 			args: args{res: &models.StackVersionElasticsearchConfig{}},
 			want: nil,
 		},
@@ -102,13 +102,14 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var newState modelV0
-			diags := flattenStackVersionElasticsearchConfig(context.Background(), tt.args.res, &newState.Elasticsearch)
+			elasticsearch, diags := flattenStackVersionElasticsearchConfig(context.Background(), tt.args.res)
 			assert.Empty(t, diags)
 
 			var got []elasticsearchConfigModelV0
-			newState.Elasticsearch.ElementsAs(context.Background(), &got, false)
+			elasticsearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+
+			util.CheckConverionToAttrValue(t, &DataSource{}, "elasticsearch", elasticsearch)
 		})
 	}
 }

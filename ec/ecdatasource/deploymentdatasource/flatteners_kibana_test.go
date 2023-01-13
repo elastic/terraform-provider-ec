@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenKibanaResources(t *testing.T) {
@@ -121,7 +122,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 			var got []kibanaResourceInfoModelV0
 			kibana.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
-			checkConverionToAttrValue(t, "kibana", kibana)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "kibana", kibana)
 		})
 	}
 }
