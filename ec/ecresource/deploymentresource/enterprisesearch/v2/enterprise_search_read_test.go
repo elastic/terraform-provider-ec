@@ -18,8 +18,11 @@
 package v2
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
@@ -181,6 +184,10 @@ func Test_readEnterpriseSearch(t *testing.T) {
 			got, err := ReadEnterpriseSearches(tt.args.in)
 			assert.Nil(t, err)
 			assert.Equal(t, tt.want, got)
+
+			var obj types.Object
+			diags := tfsdk.ValueFrom(context.Background(), got, EnterpriseSearchSchema().FrameworkType(), &obj)
+			assert.Nil(t, diags)
 		})
 	}
 }

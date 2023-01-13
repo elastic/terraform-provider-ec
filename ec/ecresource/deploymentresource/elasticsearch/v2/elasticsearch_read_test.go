@@ -23,7 +23,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -38,10 +37,9 @@ func Test_readElasticsearch(t *testing.T) {
 		remotes models.RemoteResources
 	}
 	tests := []struct {
-		name  string
-		args  args
-		want  *Elasticsearch
-		diags diag.Diagnostics
+		name string
+		args args
+		want *Elasticsearch
 	}{
 		{
 			name: "empty resource list returns empty list",
@@ -261,9 +259,7 @@ func Test_readElasticsearch(t *testing.T) {
 
 			var esObj types.Object
 			diags := tfsdk.ValueFrom(context.Background(), got, ElasticsearchSchema().FrameworkType(), &esObj)
-			if tt.diags.HasError() {
-				assert.Equal(t, tt.diags, diags)
-			}
+			assert.Nil(t, diags)
 		})
 	}
 }

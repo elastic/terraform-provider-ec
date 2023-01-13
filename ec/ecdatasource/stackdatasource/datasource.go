@@ -122,12 +122,6 @@ func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *
 	return diags
 }
 
-/* TODO - see https://github.com/multani/terraform-provider-camunda/pull/16/files
-Timeouts: &schema.ResourceTimeout{
-	Default: schema.DefaultTimeout(5 * time.Minute),
-},
-*/
-
 func stackFromFilters(expr, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
 	if expr == "latest" && locked && version != "" {
 		expr = version
