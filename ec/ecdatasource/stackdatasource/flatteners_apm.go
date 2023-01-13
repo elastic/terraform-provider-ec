@@ -27,8 +27,8 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// flattenStackVersionApmConfig takes a StackVersionApmConfigs and flattens it.
-func flattenStackVersionApmConfig(ctx context.Context, res *models.StackVersionApmConfig) (types.List, diag.Diagnostics) {
+// flattenApmConfig takes a StackVersionApmConfigs and flattens it.
+func flattenApmConfig(ctx context.Context, res *models.StackVersionApmConfig) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := newResourceKindConfigModelV0()
 
