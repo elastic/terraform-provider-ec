@@ -37,17 +37,17 @@ func enterpriseSearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"healthy": {
 				Type:        types.BoolType,
-				Description: "Resource kind health status.",
+				Description: "Enterprise Search resource health status.",
 				Computed:    true,
 			},
 			"http_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTP endpoint for the resource kind.",
+				Description: "HTTP endpoint for the Enterprise Search resource.",
 				Computed:    true,
 			},
 			"https_endpoint": {
 				Type:        types.StringType,
-				Description: "HTTPS endpoint for the resource kind.",
+				Description: "HTTPS endpoint for the Enterprise Search resource.",
 				Computed:    true,
 			},
 			"ref_id": {
@@ -62,7 +62,7 @@ func enterpriseSearchResourceInfoSchema() tfsdk.Attribute {
 			},
 			"status": {
 				Type:        types.StringType,
-				Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
+				Description: "Enterprise Search resource status (for example, \"started\", \"stopped\", etc).",
 				Computed:    true,
 			},
 			"version": {
