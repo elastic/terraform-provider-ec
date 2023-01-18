@@ -264,20 +264,6 @@ func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
 	return false
 }
 
-func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopologyTF, diag.Diagnostics) {
-	if obj.IsNull() || obj.IsUnknown() {
-		return nil, nil
-	}
-
-	var topology *ElasticsearchTopologyTF
-
-	if diags := tfsdk.ValueAs(ctx, obj, &topology); diags.HasError() {
-		return nil, diags
-	}
-
-	return topology, nil
-}
-
 type ElasticsearchTopologies []ElasticsearchTopology
 
 func matchEsTopologyID(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {

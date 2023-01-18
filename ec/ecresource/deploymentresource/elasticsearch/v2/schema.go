@@ -358,7 +358,7 @@ func ElasticsearchTopologySchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Optional:    true,
 		Computed:    true,
-		Description: `Optional topology element which must be set once but can be set multiple times to compose complex topologies`,
+		Description: `Elasticsearch topology`,
 		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
 			"id": {
 				Type:        types.StringType,
