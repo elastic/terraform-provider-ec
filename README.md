@@ -238,3 +238,5 @@ This happens because TF Framework treats all `computed` attributes as `unknown` 
 However, it doesn't mean that all attributes that marked as `unknown` in the plan will get new values after apply.
 To mitigitate the problem, the provider uses plan modifiers that is a recommended way to reduce plan output. 
 However, currently plan modifiers don't cover all the `computed` attributes.
+
+Please make sure to update to the latest TF client version.
