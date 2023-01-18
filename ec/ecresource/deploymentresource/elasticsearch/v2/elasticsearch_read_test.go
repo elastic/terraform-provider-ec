@@ -307,6 +307,14 @@ func Test_readElasticsearchTopology(t *testing.T) {
 			}},
 			want: ElasticsearchTopologies{
 				{
+					Id:                      "coordinating",
+					InstanceConfigurationId: ec.String("aws.coordinating.m5"),
+					Size:                    ec.String("0g"),
+					SizeResource:            ec.String("memory"),
+					ZoneCount:               2,
+					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
+				},
+				{
 					Id:                      "hot_content",
 					InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 					Size:                    ec.String("4g"),
@@ -315,14 +323,6 @@ func Test_readElasticsearchTopology(t *testing.T) {
 					NodeTypeData:            ec.String("true"),
 					NodeTypeIngest:          ec.String("true"),
 					NodeTypeMaster:          ec.String("true"),
-					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
-				},
-				{
-					Id:                      "coordinating",
-					InstanceConfigurationId: ec.String("aws.coordinating.m5"),
-					Size:                    ec.String("0g"),
-					SizeResource:            ec.String("memory"),
-					ZoneCount:               2,
 					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
 				},
 			},

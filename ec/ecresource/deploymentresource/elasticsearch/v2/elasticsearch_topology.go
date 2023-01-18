@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -126,17 +127,23 @@ func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 		return nil, nil
 	}
 
-	tops := make([]ElasticsearchTopology, 0, len(in.ClusterTopology))
+	topology := make([]ElasticsearchTopology, 0, len(in.ClusterTopology))
 
 	for _, model := range in.ClusterTopology {
-		topology, err := readElasticsearchTopology(model)
+		tier, err := readElasticsearchTopology(model)
 		if err != nil {
 			return nil, err
 		}
-		tops = append(tops, *topology)
+		if tier.Id != "" {
+			topology = append(topology, *tier)
+		}
 	}
 
-	return tops, nil
+	sort.Slice(topology, func(i, j int) bool {
+		return topology[i].Id < topology[j].Id
+	})
+
+	return topology, nil
 }
 
 func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopology, error) {
