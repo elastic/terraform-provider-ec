@@ -30,27 +30,21 @@ import (
 )
 
 type ElasticsearchTF struct {
-	Autoscale        types.Bool   `tfsdk:"autoscale"`
-	RefId            types.String `tfsdk:"ref_id"`
-	ResourceId       types.String `tfsdk:"resource_id"`
-	Region           types.String `tfsdk:"region"`
-	CloudID          types.String `tfsdk:"cloud_id"`
-	HttpEndpoint     types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint    types.String `tfsdk:"https_endpoint"`
-	HotContentTier   types.Object `tfsdk:"hot"`
-	CoordinatingTier types.Object `tfsdk:"coordinating"`
-	MasterTier       types.Object `tfsdk:"master"`
-	WarmTier         types.Object `tfsdk:"warm"`
-	ColdTier         types.Object `tfsdk:"cold"`
-	FrozenTier       types.Object `tfsdk:"frozen"`
-	MlTier           types.Object `tfsdk:"ml"`
-	Config           types.Object `tfsdk:"config"`
-	RemoteCluster    types.Set    `tfsdk:"remote_cluster"`
-	SnapshotSource   types.Object `tfsdk:"snapshot_source"`
-	Extension        types.Set    `tfsdk:"extension"`
-	TrustAccount     types.Set    `tfsdk:"trust_account"`
-	TrustExternal    types.Set    `tfsdk:"trust_external"`
-	Strategy         types.String `tfsdk:"strategy"`
+	Autoscale      types.Bool   `tfsdk:"autoscale"`
+	RefId          types.String `tfsdk:"ref_id"`
+	ResourceId     types.String `tfsdk:"resource_id"`
+	Region         types.String `tfsdk:"region"`
+	CloudID        types.String `tfsdk:"cloud_id"`
+	HttpEndpoint   types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint  types.String `tfsdk:"https_endpoint"`
+	Topology       types.Set    `tfsdk:"topology"`
+	Config         types.Object `tfsdk:"config"`
+	RemoteCluster  types.Set    `tfsdk:"remote_cluster"`
+	SnapshotSource types.Object `tfsdk:"snapshot_source"`
+	Extension      types.Set    `tfsdk:"extension"`
+	TrustAccount   types.Set    `tfsdk:"trust_account"`
+	TrustExternal  types.Set    `tfsdk:"trust_external"`
+	Strategy       types.String `tfsdk:"strategy"`
 }
 
 func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *models.DeploymentTemplateInfoV2, dtID, version string, useNodeRoles bool, skipTopologies bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
@@ -125,31 +119,13 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	return res, diags
 }
 
-func (es *ElasticsearchTF) topologyObjects() map[string]types.Object {
-	return map[string]types.Object{
-		"hot_content":  es.HotContentTier,
-		"warm":         es.WarmTier,
-		"cold":         es.ColdTier,
-		"frozen":       es.FrozenTier,
-		"ml":           es.MlTier,
-		"master":       es.MasterTier,
-		"coordinating": es.CoordinatingTier,
-	}
-}
-
-func (es *ElasticsearchTF) topologies(ctx context.Context) (map[string]*ElasticsearchTopologyTF, diag.Diagnostics) {
-	var diagnostics diag.Diagnostics
-
-	tierObjects := es.topologyObjects()
-	res := make(map[string]*ElasticsearchTopologyTF, len(tierObjects))
-
-	for topologyId, topologyObject := range tierObjects {
-		tier, diags := objectToTopology(ctx, topologyObject)
-		diagnostics.Append(diags...)
-		res[topologyId] = tier
+func (es *ElasticsearchTF) topologies(ctx context.Context) ([]*ElasticsearchTopologyTF, diag.Diagnostics) {
+	var topologies []*ElasticsearchTopologyTF
+	if diags := es.Topology.ElementsAs(ctx, &topologies, true); diags.HasError() {
+		return nil, diags
 	}
 
-	return res, diagnostics
+	return topologies, nil
 }
 
 func (es *ElasticsearchTF) topologiesPayload(ctx context.Context, topologyModels []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
@@ -159,9 +135,9 @@ func (es *ElasticsearchTF) topologiesPayload(ctx context.Context, topologyModels
 		return diags
 	}
 
-	for tierId, tier := range tiers {
+	for _, tier := range tiers {
 		if tier != nil {
-			diags.Append(tier.payload(ctx, tierId, topologyModels)...)
+			diags.Append(tier.payload(ctx, tier.Id.Value, topologyModels)...)
 		}
 	}
 

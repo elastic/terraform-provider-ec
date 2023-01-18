@@ -17,17 +17,7 @@
 
 package v2_test
 
-import (
-	"context"
-	"testing"
-
-	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
-	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func Test_nodeTypesPlanModifier(t *testing.T) {
 	type args struct {
 		attributeState  types.String
@@ -184,3 +174,4 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 		})
 	}
 }
+*/

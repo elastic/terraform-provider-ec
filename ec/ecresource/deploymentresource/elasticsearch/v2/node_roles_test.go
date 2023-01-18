@@ -129,12 +129,14 @@ func Test_UseNodeRoles(t *testing.T) {
 				stateVersion: "7.11.1",
 				planVersion:  "7.12.0",
 				elasticsearch: Elasticsearch{
-					HotTier: &ElasticsearchTopology{
-						id:             "hot_content",
-						NodeTypeData:   ec.String("true"),
-						NodeTypeMaster: ec.String("true"),
-						NodeTypeIngest: ec.String("true"),
-						NodeTypeMl:     ec.String("false"),
+					Topology: ElasticsearchTopologies{
+						{
+							Id:             "hot_content",
+							NodeTypeData:   ec.String("true"),
+							NodeTypeMaster: ec.String("true"),
+							NodeTypeIngest: ec.String("true"),
+							NodeTypeMl:     ec.String("false"),
+						},
 					},
 				},
 			},

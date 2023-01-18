@@ -35,7 +35,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 type Deployment struct {
@@ -60,43 +60,50 @@ type Deployment struct {
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan
-func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *elasticsearchv2.ElasticsearchTF) {
+func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *elasticsearchv2.ElasticsearchTF) diag.Diagnostics {
 	if dep.Elasticsearch == nil {
-		return
+		return nil
 	}
 
 	if esPlan == nil {
-		return
+		return nil
 	}
 
-	dep.Elasticsearch.HotTier = nullifyUnspecifiedZeroSizedTier(esPlan.HotContentTier, dep.Elasticsearch.HotTier)
+	var planTopology elasticsearchv2.ElasticsearchTopologiesTF
+	if diags := esPlan.Topology.ElementsAs(ctx, planTopology, true); diags.HasError() {
+		return diags
+	}
 
-	dep.Elasticsearch.WarmTier = nullifyUnspecifiedZeroSizedTier(esPlan.WarmTier, dep.Elasticsearch.WarmTier)
+	planTopologiesSet := planTopology.AsSet()
 
-	dep.Elasticsearch.ColdTier = nullifyUnspecifiedZeroSizedTier(esPlan.ColdTier, dep.Elasticsearch.ColdTier)
+	filteredTopologies := make(elasticsearchv2.ElasticsearchTopologies, len(dep.Elasticsearch.Topology))
 
-	dep.Elasticsearch.FrozenTier = nullifyUnspecifiedZeroSizedTier(esPlan.FrozenTier, dep.Elasticsearch.FrozenTier)
-
-	dep.Elasticsearch.MlTier = nullifyUnspecifiedZeroSizedTier(esPlan.MlTier, dep.Elasticsearch.MlTier)
-
-	dep.Elasticsearch.MasterTier = nullifyUnspecifiedZeroSizedTier(esPlan.MasterTier, dep.Elasticsearch.MasterTier)
-
-	dep.Elasticsearch.CoordinatingTier = nullifyUnspecifiedZeroSizedTier(esPlan.CoordinatingTier, dep.Elasticsearch.CoordinatingTier)
-}
-
-func nullifyUnspecifiedZeroSizedTier(tierPlan types.Object, tier *elasticsearchv2.ElasticsearchTopology) *elasticsearchv2.ElasticsearchTopology {
-
-	if tierPlan.IsNull() && tier != nil {
-
+	for _, tier := range dep.Elasticsearch.Topology {
+		planTier := planTopologiesSet[tier.Id]
 		size, err := converters.ParseTopologySize(tier.Size, tier.SizeResource)
 
-		// we can ignore returning an error here - it's handled in readers
-		if err == nil && size != nil && size.Value != nil && *size.Value == 0 {
-			tier = nil
+		if err != nil {
+			var diags diag.Diagnostics
+			diags.AddError("Cannot remove unused Elasticsearch topologies from backend response", err.Error())
+			return diags
 		}
+
+		if size == nil || size.Value == nil {
+			var diags diag.Diagnostics
+			diags.AddError("Cannot remove unused Elasticsearch topologies from backend response", fmt.Sprintf("the topology [%s] size is nil", tier.Id))
+			return diags
+		}
+
+		if planTier == nil && *size.Value == 0 {
+			continue
+		}
+
+		filteredTopologies = append(filteredTopologies, tier)
 	}
 
-	return tier
+	dep.Elasticsearch.Topology = filteredTopologies
+
+	return nil
 }
 
 func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteResources, deploymentResources []*models.DeploymentResource) (*Deployment, error) {

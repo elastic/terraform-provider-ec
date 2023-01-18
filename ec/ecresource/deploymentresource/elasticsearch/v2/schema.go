@@ -96,13 +96,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Computed:    true,
 			},
 
-			"hot":          ElasticsearchTopologySchema("'hot' topology element", true, "hot"),
-			"coordinating": ElasticsearchTopologySchema("'coordinating' topology element", false, "coordinating"),
-			"master":       ElasticsearchTopologySchema("'master' topology element", false, "master"),
-			"warm":         ElasticsearchTopologySchema("'warm' topology element", false, "warm"),
-			"cold":         ElasticsearchTopologySchema("'cold' topology element", false, "cold"),
-			"frozen":       ElasticsearchTopologySchema("'frozen' topology element", false, "frozen"),
-			"ml":           ElasticsearchTopologySchema("'ml' topology element", false, "ml"),
+			"topology": ElasticsearchTopologySchema(),
 
 			"trust_account": ElasticsearchTrustAccountSchema(),
 
@@ -168,7 +162,7 @@ func ElasticsearchConfigSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologyAutoscalingSchema(topologyAttributeName string) tfsdk.Attribute {
+func ElasticsearchTopologyAutoscalingSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
 		Required:    true,
@@ -178,44 +172,29 @@ func ElasticsearchTopologyAutoscalingSchema(topologyAttributeName string) tfsdk.
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"max_size": {
 				Description: "Maximum size value for the maximum autoscaling setting.",
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"min_size_resource": {
 				Description: "Minimum resource type for the minimum autoscaling setting.",
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"min_size": {
 				Description: "Minimum size value for the minimum autoscaling setting.",
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"policy_override_json": {
 				Type:        types.StringType,
 				Description: "Computed policy overrides set directly via the API or other clients.",
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 		}),
 	}
@@ -375,85 +354,63 @@ func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologySchema(description string, required bool, topologyAttributeName string) tfsdk.Attribute {
+func ElasticsearchTopologySchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Optional: !required,
-		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
-		// Computed:    true,
-		Required:    required,
-		Description: description,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+		Optional:    true,
+		Computed:    true,
+		Description: `Optional topology element which must be set once but can be set multiple times to compose complex topologies`,
+		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+			"id": {
+				Type:        types.StringType,
+				Description: `Required topology ID from the deployment template`,
+				Required:    true,
+			},
 			"instance_configuration_id": {
 				Type:        types.StringType,
 				Description: `Computed Instance Configuration ID of the topology element`,
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"size": {
 				Type:        types.StringType,
 				Description: `Amount of "size_resource" per node in the "<size in GB>g" notation`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"size_resource": {
 				Type:        types.StringType,
 				Description: `Size type, defaults to "memory".`,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "memory"}),
-				},
 			},
 			"zone_count": {
 				Type:        types.Int64Type,
 				Description: `Number of zones that the Elasticsearch cluster will span. This is used to set HA`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
-					UseTopologyStateForUnknown(topologyAttributeName),
-				},
 			},
 			"node_type_data": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (data node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseNodeTypesDefault(),
-				},
 			},
 			"node_type_master": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (master node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseNodeTypesDefault(),
-				},
 			},
 			"node_type_ingest": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (ingest node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseNodeTypesDefault(),
-				},
 			},
 			"node_type_ml": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (machine learning node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseNodeTypesDefault(),
-				},
 			},
 			"node_roles": {
 				Type: types.SetType{
@@ -461,11 +418,8 @@ func ElasticsearchTopologySchema(description string, required bool, topologyAttr
 				},
 				Description: `The computed list of node roles for the current topology element`,
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					UseNodeRolesDefault(),
-				},
 			},
-			"autoscaling": ElasticsearchTopologyAutoscalingSchema(topologyAttributeName),
+			"autoscaling": ElasticsearchTopologyAutoscalingSchema(),
 		}),
 	}
 }

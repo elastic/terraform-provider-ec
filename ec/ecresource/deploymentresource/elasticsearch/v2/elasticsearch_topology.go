@@ -38,6 +38,7 @@ import (
 )
 
 type ElasticsearchTopologyTF struct {
+	Id                      types.String `tfsdk:"id"`
 	InstanceConfigurationId types.String `tfsdk:"instance_configuration_id"`
 	Size                    types.String `tfsdk:"size"`
 	SizeResource            types.String `tfsdk:"size_resource"`
@@ -51,7 +52,7 @@ type ElasticsearchTopologyTF struct {
 }
 
 type ElasticsearchTopology struct {
-	id                      string
+	Id                      string                            `tfsdk:"id"`
 	InstanceConfigurationId *string                           `tfsdk:"instance_configuration_id"`
 	Size                    *string                           `tfsdk:"size"`
 	SizeResource            *string                           `tfsdk:"size_resource"`
@@ -65,6 +66,18 @@ type ElasticsearchTopology struct {
 }
 
 type ElasticsearchTopologyAutoscaling v1.ElasticsearchTopologyAutoscaling
+
+type ElasticsearchTopologiesTF []*ElasticsearchTopologyTF
+
+func (tops ElasticsearchTopologiesTF) AsSet() map[string]*ElasticsearchTopologyTF {
+	set := make(map[string]*ElasticsearchTopologyTF, len(tops))
+
+	for _, top := range tops {
+		set[top.Id.Value] = top
+	}
+
+	return set
+}
 
 func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID string, planTopologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -129,7 +142,7 @@ func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopology, error) {
 	var topology ElasticsearchTopology
 
-	topology.id = model.ID
+	topology.Id = model.ID
 
 	if model.InstanceConfigurationID != "" {
 		topology.InstanceConfigurationId = &model.InstanceConfigurationID
@@ -259,16 +272,6 @@ func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopo
 }
 
 type ElasticsearchTopologies []ElasticsearchTopology
-
-func (tops ElasticsearchTopologies) AsSet() map[string]ElasticsearchTopology {
-	set := make(map[string]ElasticsearchTopology, len(tops))
-
-	for _, top := range tops {
-		set[top.id] = top
-	}
-
-	return set
-}
 
 func matchEsTopologyID(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {
 	for _, t := range topologies {

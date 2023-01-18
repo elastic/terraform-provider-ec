@@ -25,27 +25,21 @@ import (
 )
 
 type Elasticsearch struct {
-	Autoscale        *bool                        `tfsdk:"autoscale"`
-	RefId            *string                      `tfsdk:"ref_id"`
-	ResourceId       *string                      `tfsdk:"resource_id"`
-	Region           *string                      `tfsdk:"region"`
-	CloudID          *string                      `tfsdk:"cloud_id"`
-	HttpEndpoint     *string                      `tfsdk:"http_endpoint"`
-	HttpsEndpoint    *string                      `tfsdk:"https_endpoint"`
-	HotTier          *ElasticsearchTopology       `tfsdk:"hot"`
-	CoordinatingTier *ElasticsearchTopology       `tfsdk:"coordinating"`
-	MasterTier       *ElasticsearchTopology       `tfsdk:"master"`
-	WarmTier         *ElasticsearchTopology       `tfsdk:"warm"`
-	ColdTier         *ElasticsearchTopology       `tfsdk:"cold"`
-	FrozenTier       *ElasticsearchTopology       `tfsdk:"frozen"`
-	MlTier           *ElasticsearchTopology       `tfsdk:"ml"`
-	Config           *ElasticsearchConfig         `tfsdk:"config"`
-	RemoteCluster    ElasticsearchRemoteClusters  `tfsdk:"remote_cluster"`
-	SnapshotSource   *ElasticsearchSnapshotSource `tfsdk:"snapshot_source"`
-	Extension        ElasticsearchExtensions      `tfsdk:"extension"`
-	TrustAccount     ElasticsearchTrustAccounts   `tfsdk:"trust_account"`
-	TrustExternal    ElasticsearchTrustExternals  `tfsdk:"trust_external"`
-	Strategy         *string                      `tfsdk:"strategy"`
+	Autoscale      *bool                        `tfsdk:"autoscale"`
+	RefId          *string                      `tfsdk:"ref_id"`
+	ResourceId     *string                      `tfsdk:"resource_id"`
+	Region         *string                      `tfsdk:"region"`
+	CloudID        *string                      `tfsdk:"cloud_id"`
+	HttpEndpoint   *string                      `tfsdk:"http_endpoint"`
+	HttpsEndpoint  *string                      `tfsdk:"https_endpoint"`
+	Topology       ElasticsearchTopologies      `tfsdk:"topology"`
+	Config         *ElasticsearchConfig         `tfsdk:"config"`
+	RemoteCluster  ElasticsearchRemoteClusters  `tfsdk:"remote_cluster"`
+	SnapshotSource *ElasticsearchSnapshotSource `tfsdk:"snapshot_source"`
+	Extension      ElasticsearchExtensions      `tfsdk:"extension"`
+	TrustAccount   ElasticsearchTrustAccounts   `tfsdk:"trust_account"`
+	TrustExternal  ElasticsearchTrustExternals  `tfsdk:"trust_external"`
+	Strategy       *string                      `tfsdk:"strategy"`
 }
 
 func ReadElasticsearches(in []*models.ElasticsearchResourceInfo, remotes *models.RemoteResources) (*Elasticsearch, error) {
@@ -89,7 +83,7 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	if err != nil {
 		return nil, err
 	}
-	es.setTopology(topologies)
+	es.Topology = topologies
 
 	if plan.AutoscalingEnabled != nil {
 		es.Autoscale = plan.AutoscalingEnabled
@@ -131,30 +125,6 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	es.TrustExternal = externals
 
 	return &es, nil
-}
-
-func (es *Elasticsearch) setTopology(topologies ElasticsearchTopologies) {
-	set := topologies.AsSet()
-
-	for id, topology := range set {
-		topology := topology
-		switch id {
-		case "hot_content":
-			es.HotTier = &topology
-		case "coordinating":
-			es.CoordinatingTier = &topology
-		case "master":
-			es.MasterTier = &topology
-		case "warm":
-			es.WarmTier = &topology
-		case "cold":
-			es.ColdTier = &topology
-		case "frozen":
-			es.FrozenTier = &topology
-		case "ml":
-			es.MlTier = &topology
-		}
-	}
 }
 
 // IsElasticsearchStopped returns true if the resource is stopped.

@@ -64,7 +64,9 @@ func Test_createRequest(t *testing.T) {
 	)
 
 	defaultElasticsearch := &elasticsearchv2.Elasticsearch{
-		HotTier: defaultHotTier,
+		Topology: elasticsearchv2.ElasticsearchTopologies{
+			*defaultHotTier,
+		},
 	}
 
 	sampleKibana := &kibanav2.Kibana{
@@ -126,9 +128,9 @@ func Test_createRequest(t *testing.T) {
 				UserSettingsJson:         ec.String("{\"some.setting\":\"value\"}"),
 				UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 			},
-			HotTier: elasticsearchv2.CreateTierForTest(
-				"hot_content",
-				elasticsearchv2.ElasticsearchTopology{
+			Topology: elasticsearchv2.ElasticsearchTopologies{
+				{
+					Id:   "hot_content",
 					Size: ec.String("2g"),
 					NodeRoles: []string{
 						"master",
@@ -141,10 +143,8 @@ func Test_createRequest(t *testing.T) {
 					ZoneCount:   1,
 					Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 				},
-			),
-			WarmTier: elasticsearchv2.CreateTierForTest(
-				"warm",
-				elasticsearchv2.ElasticsearchTopology{
+				{
+					Id:   "warm",
 					Size: ec.String("2g"),
 					NodeRoles: []string{
 						"data_warm",
@@ -153,7 +153,7 @@ func Test_createRequest(t *testing.T) {
 					ZoneCount:   1,
 					Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 				},
-			),
+			},
 		},
 		Kibana:           sampleKibana,
 		Apm:              sampleApm,
@@ -172,9 +172,9 @@ func Test_createRequest(t *testing.T) {
 			UserSettingsJson:         ec.String("{\"some.setting\":\"value\"}"),
 			UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 		},
-		HotTier: elasticsearchv2.CreateTierForTest(
-			"hot_content",
-			elasticsearchv2.ElasticsearchTopology{
+		Topology: elasticsearchv2.ElasticsearchTopologies{
+			{
+				Id:                      "hot_content",
 				InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 				Size:                    ec.String("2g"),
 				NodeTypeData:            ec.String("true"),
@@ -184,7 +184,7 @@ func Test_createRequest(t *testing.T) {
 				ZoneCount:               1,
 				Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 			},
-		),
+		},
 	}
 
 	sampleLegacyDeployment := Deployment{
@@ -889,13 +889,13 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.7.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 					Kibana: &kibanav2.Kibana{
 						RefId:                     ec.String("main-kibana"),
@@ -1050,8 +1050,10 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.7.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:   ec.String("main-elasticsearch"),
-						HotTier: defaultHotTier,
+						RefId: ec.String("main-elasticsearch"),
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							*defaultHotTier,
+						},
 					},
 					Kibana: &kibanav2.Kibana{
 						RefId:                     ec.String("main-kibana"),
@@ -1448,8 +1450,10 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:   ec.String("main-elasticsearch"),
-						HotTier: defaultHotTier,
+						RefId: ec.String("main-elasticsearch"),
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							*defaultHotTier,
+						},
 						Extension: elasticsearchv2.ElasticsearchExtensions{
 							{
 								Name:    "my-plugin",
@@ -1603,27 +1607,23 @@ func Test_createRequest(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
 						Autoscale: ec.Bool(true),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						ColdTier: elasticsearchv2.CreateTierForTest(
-							"cold",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "cold",
 								Size:        ec.String("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						WarmTier: elasticsearchv2.CreateTierForTest(
-							"warm",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "warm",
 								Size:        ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -1755,31 +1755,27 @@ func Test_createRequest(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId:     ec.String("main-elasticsearch"),
 						Autoscale: ec.Bool(true),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:   "hot_content",
 								Size: ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
 									MaxSize: ec.String("232g"),
 								},
 							},
-						),
-						ColdTier: elasticsearchv2.CreateTierForTest(
-							"cold",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "cold",
 								Size:        ec.String("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						WarmTier: elasticsearchv2.CreateTierForTest(
-							"warm",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:   "warm",
 								Size: ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
 									MaxSize: ec.String("116g"),
 								},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -1910,35 +1906,29 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						ColdTier: elasticsearchv2.CreateTierForTest(
-							"cold",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "cold",
 								Size:        ec.String("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						WarmTier: elasticsearchv2.CreateTierForTest(
-							"warm",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "warm",
 								Size:        ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						MasterTier: elasticsearchv2.CreateTierForTest(
-							"master",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "master",
 								Size:        ec.String("1g"),
 								ZoneCount:   3,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -2088,35 +2078,29 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						ColdTier: elasticsearchv2.CreateTierForTest(
-							"cold",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "cold",
 								Size:        ec.String("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						WarmTier: elasticsearchv2.CreateTierForTest(
-							"warm",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "warm",
 								Size:        ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						CoordinatingTier: elasticsearchv2.CreateTierForTest(
-							"coordinating",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "coordinating",
 								Size:        ec.String("2g"),
 								ZoneCount:   2,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -2266,43 +2250,35 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						ColdTier: elasticsearchv2.CreateTierForTest(
-							"cold",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "cold",
 								Size:        ec.String("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						WarmTier: elasticsearchv2.CreateTierForTest(
-							"warm",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "warm",
 								Size:        ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						CoordinatingTier: elasticsearchv2.CreateTierForTest(
-							"coordinating",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "coordinating",
 								Size:        ec.String("2g"),
 								ZoneCount:   2,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						MasterTier: elasticsearchv2.CreateTierForTest(
-							"master",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "master",
 								Size:        ec.String("1g"),
 								ZoneCount:   3,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -2481,13 +2457,13 @@ func Test_createRequest(t *testing.T) {
 								TrustAll:  ec.Bool(true),
 							},
 						},
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 					Kibana: &kibanav2.Kibana{
 						RefId:                     ec.String("main-kibana"),
@@ -2677,31 +2653,27 @@ func Test_createRequest(t *testing.T) {
 								TrustAllowlist: []string{"abc", "dfg"},
 							},
 						},
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:   "hot_content",
 								Size: ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
 									MaxSize: ec.String("232g"),
 								},
 							},
-						),
-						ColdTier: elasticsearchv2.CreateTierForTest(
-							"cold",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:          "cold",
 								Size:        ec.String("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
-						WarmTier: elasticsearchv2.CreateTierForTest(
-							"warm",
-							elasticsearchv2.ElasticsearchTopology{
+							{
+								Id:   "warm",
 								Size: ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
 									MaxSize: ec.String("116g"),
 								},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
@@ -2859,8 +2831,10 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.9.2",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:   ec.String("main-elasticsearch"),
-						HotTier: defaultHotTier,
+						RefId: ec.String("main-elasticsearch"),
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							*defaultHotTier,
+						},
 					},
 					Kibana: &kibanav2.Kibana{
 						RefId:                     ec.String("main-kibana"),
@@ -2946,13 +2920,13 @@ func Test_createRequest(t *testing.T) {
 					Version:              "7.10.1",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 					Tags: map[string]string{
 						"aaa":         "bbb",
@@ -3035,13 +3009,13 @@ func Test_createRequest(t *testing.T) {
 						SnapshotSource: &elasticsearchv2.ElasticsearchSnapshotSource{
 							SourceElasticsearchClusterId: "8c63b87af9e24ea49b8a4bfe550e5fe9",
 						},
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							{
+								Id:          "hot_content",
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
-						),
+						},
 					},
 				},
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
