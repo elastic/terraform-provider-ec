@@ -70,13 +70,13 @@ func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *el
 	}
 
 	var planTopology elasticsearchv2.ElasticsearchTopologiesTF
-	if diags := esPlan.Topology.ElementsAs(ctx, planTopology, true); diags.HasError() {
+	if diags := esPlan.Topology.ElementsAs(ctx, &planTopology, true); diags.HasError() {
 		return diags
 	}
 
 	planTopologiesSet := planTopology.AsSet()
 
-	filteredTopologies := make(elasticsearchv2.ElasticsearchTopologies, len(dep.Elasticsearch.Topology))
+	filteredTopologies := make(elasticsearchv2.ElasticsearchTopologies, 0, len(dep.Elasticsearch.Topology))
 
 	for _, tier := range dep.Elasticsearch.Topology {
 		planTier := planTopologiesSet[tier.Id]

@@ -146,7 +146,9 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	deployment.ProcessSelfInObservability()
 
-	deployment.NullifyUnusedEsTopologies(ctx, elasticsearchPlan)
+	if diags := deployment.NullifyUnusedEsTopologies(ctx, elasticsearchPlan); diags.HasError() {
+		return nil, diags
+	}
 
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it
 	// we use state for plan in Read and there is no state during import so we need to check elasticsearchPlan against nil
