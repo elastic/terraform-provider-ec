@@ -356,8 +356,9 @@ func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
 
 func ElasticsearchTopologySchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Optional:    true,
-		Computed:    true,
+		Required: true,
+		// Optional: true,
+		// Computed:    true,
 		Description: `Elasticsearch topology`,
 		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
 			"id": {
