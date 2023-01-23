@@ -107,17 +107,17 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 				},
 			},
 			"config": {
-				Description: `Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server`,
+				Description: `Optionally define the Integrations Server configuration options for the IntegrationsServer Server`,
 				Optional:    true,
 				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 					"docker_image": {
 						Type:        types.StringType,
-						Description: "Optionally override the docker image the IntegrationsServer nodes will use. Note that this field will only work for internal users only.",
+						Description: "Optionally override the docker image the Integrations Server nodes will use. Note that this field will only work for internal users only.",
 						Optional:    true,
 					},
 					"debug_enabled": {
 						Type:        types.BoolType,
-						Description: `Optionally enable debug mode for IntegrationsServer servers - defaults to false`,
+						Description: `Optionally enable debug mode for Integrations Server instances - defaults to false`,
 						Optional:    true,
 						Computed:    true,
 						PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -136,12 +136,12 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 					},
 					"user_settings_yaml": {
 						Type:        types.StringType,
-						Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+						Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
 						Optional:    true,
 					},
 					"user_settings_override_yaml": {
 						Type:        types.StringType,
-						Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+						Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
 						Optional:    true,
 					},
 				}),
