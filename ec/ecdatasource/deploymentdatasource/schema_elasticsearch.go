@@ -118,7 +118,7 @@ func elasticsearchTopologySchema() tfsdk.Attribute {
 			},
 			"node_type_master": {
 				Type:        types.BoolType,
-				Description: " Defines whether this node can be elected master (<8.0).",
+				Description: "Defines whether this node can be elected master (<8.0).",
 				Computed:    true,
 			},
 			"node_type_ingest": {
@@ -186,7 +186,6 @@ func elasticsearchAutoscalingListType() attr.Type {
 
 func elasticsearchAutoscalingAttrTypes() map[string]attr.Type {
 	return elasticsearchAutoscalingListType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
-
 }
 
 type elasticsearchResourceInfoModelV0 struct {
