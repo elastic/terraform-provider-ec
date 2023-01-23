@@ -96,25 +96,25 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Computed:    true,
 			},
 
-			"hot":          ElasticsearchTopologySchema("'hot' topology element", true, "hot"),
-			"coordinating": ElasticsearchTopologySchema("'coordinating' topology element", false, "coordinating"),
-			"master":       ElasticsearchTopologySchema("'master' topology element", false, "master"),
-			"warm":         ElasticsearchTopologySchema("'warm' topology element", false, "warm"),
-			"cold":         ElasticsearchTopologySchema("'cold' topology element", false, "cold"),
-			"frozen":       ElasticsearchTopologySchema("'frozen' topology element", false, "frozen"),
-			"ml":           ElasticsearchTopologySchema("'ml' topology element", false, "ml"),
+			"hot":          elasticsearchTopologySchema("'hot' topology element", true, "hot"),
+			"coordinating": elasticsearchTopologySchema("'coordinating' topology element", false, "coordinating"),
+			"master":       elasticsearchTopologySchema("'master' topology element", false, "master"),
+			"warm":         elasticsearchTopologySchema("'warm' topology element", false, "warm"),
+			"cold":         elasticsearchTopologySchema("'cold' topology element", false, "cold"),
+			"frozen":       elasticsearchTopologySchema("'frozen' topology element", false, "frozen"),
+			"ml":           elasticsearchTopologySchema("'ml' topology element", false, "ml"),
 
-			"trust_account": ElasticsearchTrustAccountSchema(),
+			"trust_account": elasticsearchTrustAccountSchema(),
 
-			"trust_external": ElasticsearchTrustExternalSchema(),
+			"trust_external": elasticsearchTrustExternalSchema(),
 
-			"config": ElasticsearchConfigSchema(),
+			"config": elasticsearchConfigSchema(),
 
 			"remote_cluster": ElasticsearchRemoteClusterSchema(),
 
-			"snapshot_source": ElasticsearchSnapshotSourceSchema(),
+			"snapshot_source": elasticsearchSnapshotSourceSchema(),
 
-			"extension": ElasticsearchExtensionSchema(),
+			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": {
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
@@ -126,7 +126,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchConfigSchema() tfsdk.Attribute {
+func elasticsearchConfigSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: `Optional Elasticsearch settings which will be applied to all topologies`,
 		Optional:    true,
@@ -168,7 +168,7 @@ func ElasticsearchConfigSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologyAutoscalingSchema(topologyAttributeName string) tfsdk.Attribute {
+func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
 		Required:    true,
@@ -262,7 +262,7 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchSnapshotSourceSchema() tfsdk.Attribute {
+func elasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional snapshot source settings. Restore data from a snapshot of another deployment.",
 		Optional:    true,
@@ -285,7 +285,7 @@ func ElasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchExtensionSchema() tfsdk.Attribute {
+func elasticsearchExtensionSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch extensions such as custom bundles or plugins.",
 		Optional:    true,
@@ -315,7 +315,7 @@ func ElasticsearchExtensionSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTrustAccountSchema() tfsdk.Attribute {
+func elasticsearchTrustAccountSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch account trust settings.",
 		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
@@ -345,7 +345,7 @@ func ElasticsearchTrustAccountSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
+func elasticsearchTrustExternalSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch external trust settings.",
 		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
@@ -375,7 +375,7 @@ func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologySchema(description string, required bool, topologyAttributeName string) tfsdk.Attribute {
+func elasticsearchTopologySchema(description string, required bool, topologyAttributeName string) tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Optional: !required,
 		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
@@ -465,7 +465,7 @@ func ElasticsearchTopologySchema(description string, required bool, topologyAttr
 					UseNodeRolesDefault(),
 				},
 			},
-			"autoscaling": ElasticsearchTopologyAutoscalingSchema(topologyAttributeName),
+			"autoscaling": elasticsearchTopologyAutoscalingSchema(topologyAttributeName),
 		}),
 	}
 }

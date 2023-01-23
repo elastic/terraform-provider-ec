@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// FlattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
+// ExtractEndpointsToTypes receives a ClusterMetadataInfo, parses the http and
 // https endpoints and returns a map with two keys: `http_endpoint` and
 // `https_endpoint`
 func ExtractEndpointsToTypes(metadata *models.ClusterMetadataInfo) (httpEndpoint, httpsEndpoint types.String) {
@@ -42,7 +42,7 @@ func ExtractEndpointsToTypes(metadata *models.ClusterMetadataInfo) (httpEndpoint
 	return
 }
 
-// FlattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
+// ExtractEndpoints receives a ClusterMetadataInfo, parses the http and
 // https endpoints and returns a map with two keys: `http_endpoint` and
 // `https_endpoint`
 func ExtractEndpoints(metadata *models.ClusterMetadataInfo) (httpEndpoint, httpsEndpoint *string) {
