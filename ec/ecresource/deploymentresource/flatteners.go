@@ -74,7 +74,7 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, rem
 			return err
 		}
 
-		esFlattened, err := flattenEsResources(res.Resources.Elasticsearch, *res.Name, remotes)
+		esFlattened, err := flattenEsResources(res.Resources.Elasticsearch, remotes)
 		if err != nil {
 			return err
 		}
@@ -82,28 +82,28 @@ func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse, rem
 			return err
 		}
 
-		kibanaFlattened := flattenKibanaResources(res.Resources.Kibana, *res.Name)
+		kibanaFlattened := flattenKibanaResources(res.Resources.Kibana)
 		if len(kibanaFlattened) > 0 {
 			if err := d.Set("kibana", kibanaFlattened); err != nil {
 				return err
 			}
 		}
 
-		apmFlattened := flattenApmResources(res.Resources.Apm, *res.Name)
+		apmFlattened := flattenApmResources(res.Resources.Apm)
 		if len(apmFlattened) > 0 {
 			if err := d.Set("apm", apmFlattened); err != nil {
 				return err
 			}
 		}
 
-		integrationsServerFlattened := flattenIntegrationsServerResources(res.Resources.IntegrationsServer, *res.Name)
+		integrationsServerFlattened := flattenIntegrationsServerResources(res.Resources.IntegrationsServer)
 		if len(integrationsServerFlattened) > 0 {
 			if err := d.Set("integrations_server", integrationsServerFlattened); err != nil {
 				return err
 			}
 		}
 
-		enterpriseSearchFlattened := flattenEssResources(res.Resources.EnterpriseSearch, *res.Name)
+		enterpriseSearchFlattened := flattenEssResources(res.Resources.EnterpriseSearch)
 		if len(enterpriseSearchFlattened) > 0 {
 			if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
 				return err

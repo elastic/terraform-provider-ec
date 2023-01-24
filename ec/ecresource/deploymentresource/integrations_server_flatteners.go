@@ -28,7 +28,7 @@ import (
 )
 
 // flattenIntegrationsServerResources flattens IntegrationsServer resources into its flattened structure.
-func flattenIntegrationsServerResources(in []*models.IntegrationsServerResourceInfo, name string) []interface{} {
+func flattenIntegrationsServerResources(in []*models.IntegrationsServerResourceInfo) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})

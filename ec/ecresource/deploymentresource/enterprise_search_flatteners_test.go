@@ -28,8 +28,7 @@ import (
 
 func Test_flattenEssResource(t *testing.T) {
 	type args struct {
-		in   []*models.EnterpriseSearchResourceInfo
-		name string
+		in []*models.EnterpriseSearchResourceInfo
 	}
 	tests := []struct {
 		name string
@@ -182,7 +181,7 @@ func Test_flattenEssResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenEssResources(tt.args.in, tt.args.name)
+			got := flattenEssResources(tt.args.in)
 			assert.Equal(t, tt.want, got)
 		})
 	}

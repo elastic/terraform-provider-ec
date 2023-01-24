@@ -27,7 +27,7 @@ import (
 )
 
 // flattenEssResources flattens Enterprise Search resources into its flattened structure.
-func flattenEssResources(in []*models.EnterpriseSearchResourceInfo, name string) []interface{} {
+func flattenEssResources(in []*models.EnterpriseSearchResourceInfo) []interface{} {
 	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
 		m := make(map[string]interface{})

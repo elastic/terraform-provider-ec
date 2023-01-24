@@ -27,7 +27,7 @@ import (
 )
 
 // flattenApmResources flattens apm resources into its flattened structure.
-func flattenApmResources(in []*models.ApmResourceInfo, name string) []interface{} {
+func flattenApmResources(in []*models.ApmResourceInfo) []interface{} {
 	var result = make([]interface{}, 0, len(in))
 	for _, res := range in {
 		var m = make(map[string]interface{})

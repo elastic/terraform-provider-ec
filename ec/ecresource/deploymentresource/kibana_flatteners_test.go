@@ -28,8 +28,7 @@ import (
 
 func Test_flattenKibanaResources(t *testing.T) {
 	type args struct {
-		in   []*models.KibanaResourceInfo
-		name string
+		in []*models.KibanaResourceInfo
 	}
 	tests := []struct {
 		name string
@@ -217,7 +216,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenKibanaResources(tt.args.in, tt.args.name)
+			got := flattenKibanaResources(tt.args.in)
 			assert.Equal(t, tt.want, got)
 		})
 	}

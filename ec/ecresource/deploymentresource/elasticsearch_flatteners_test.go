@@ -30,7 +30,6 @@ import (
 func Test_flattenEsResource(t *testing.T) {
 	type args struct {
 		in      []*models.ElasticsearchResourceInfo
-		name    string
 		remotes models.RemoteResources
 	}
 	tests := []struct {
@@ -255,7 +254,7 @@ func Test_flattenEsResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := flattenEsResources(tt.args.in, tt.args.name, tt.args.remotes)
+			got, err := flattenEsResources(tt.args.in, tt.args.remotes)
 			if err != nil && !assert.EqualError(t, err, tt.err) {
 				t.Error(err)
 			}

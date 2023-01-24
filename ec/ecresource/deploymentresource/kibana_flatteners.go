@@ -27,7 +27,7 @@ import (
 )
 
 // flattenKibanaResources takes the kibana resource models and returns them flattened.
-func flattenKibanaResources(in []*models.KibanaResourceInfo, name string) []interface{} {
+func flattenKibanaResources(in []*models.KibanaResourceInfo) []interface{} {
 	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
 		m := make(map[string]interface{})

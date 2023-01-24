@@ -32,7 +32,7 @@ import (
 
 // flattenEsResources takes in Elasticsearch resource models and returns its
 // flattened form.
-func flattenEsResources(in []*models.ElasticsearchResourceInfo, name string, remotes models.RemoteResources) ([]interface{}, error) {
+func flattenEsResources(in []*models.ElasticsearchResourceInfo, remotes models.RemoteResources) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(in))
 	for _, res := range in {
 		m := make(map[string]interface{})

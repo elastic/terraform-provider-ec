@@ -28,8 +28,7 @@ import (
 
 func Test_flattenIntegrationsServerResource(t *testing.T) {
 	type args struct {
-		in   []*models.IntegrationsServerResourceInfo
-		name string
+		in []*models.IntegrationsServerResourceInfo
 	}
 	tests := []struct {
 		name string
@@ -347,7 +346,7 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenIntegrationsServerResources(tt.args.in, tt.args.name)
+			got := flattenIntegrationsServerResources(tt.args.in)
 			assert.Equal(t, tt.want, got)
 		})
 	}

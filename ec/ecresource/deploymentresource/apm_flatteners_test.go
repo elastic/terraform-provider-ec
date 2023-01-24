@@ -28,8 +28,7 @@ import (
 
 func Test_flattenApmResource(t *testing.T) {
 	type args struct {
-		in   []*models.ApmResourceInfo
-		name string
+		in []*models.ApmResourceInfo
 	}
 	tests := []struct {
 		name string
@@ -301,7 +300,7 @@ func Test_flattenApmResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenApmResources(tt.args.in, tt.args.name)
+			got := flattenApmResources(tt.args.in)
 			assert.Equal(t, tt.want, got)
 		})
 	}
