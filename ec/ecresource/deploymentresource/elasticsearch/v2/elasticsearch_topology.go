@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -68,17 +67,7 @@ type ElasticsearchTopology struct {
 
 type ElasticsearchTopologyAutoscaling v1.ElasticsearchTopologyAutoscaling
 
-type ElasticsearchTopologiesTF []*ElasticsearchTopologyTF
-
-func (tops ElasticsearchTopologiesTF) AsSet() map[string]*ElasticsearchTopologyTF {
-	set := make(map[string]*ElasticsearchTopologyTF, len(tops))
-
-	for _, top := range tops {
-		set[top.Id.Value] = top
-	}
-
-	return set
-}
+type ElasticsearchTopologiesTF map[string]ElasticsearchTopologyTF
 
 func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID string, planTopologies []*models.ElasticsearchClusterTopologyElement) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -127,7 +116,7 @@ func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 		return nil, nil
 	}
 
-	topology := make([]ElasticsearchTopology, 0, len(in.ClusterTopology))
+	topology := make(map[string]ElasticsearchTopology, len(in.ClusterTopology))
 
 	for _, model := range in.ClusterTopology {
 		tier, err := readElasticsearchTopology(model)
@@ -135,13 +124,9 @@ func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 			return nil, err
 		}
 		if tier.Id != "" {
-			topology = append(topology, *tier)
+			topology[tier.Id] = *tier
 		}
 	}
-
-	sort.Slice(topology, func(i, j int) bool {
-		return topology[i].Id < topology[j].Id
-	})
 
 	return topology, nil
 }
@@ -264,7 +249,7 @@ func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
 	return false
 }
 
-type ElasticsearchTopologies []ElasticsearchTopology
+type ElasticsearchTopologies map[string]ElasticsearchTopology
 
 func matchEsTopologyID(id string, topologies []*models.ElasticsearchClusterTopologyElement) (*models.ElasticsearchClusterTopologyElement, error) {
 	for _, t := range topologies {

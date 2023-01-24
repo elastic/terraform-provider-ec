@@ -37,7 +37,7 @@ type ElasticsearchTF struct {
 	CloudID        types.String `tfsdk:"cloud_id"`
 	HttpEndpoint   types.String `tfsdk:"http_endpoint"`
 	HttpsEndpoint  types.String `tfsdk:"https_endpoint"`
-	Topology       types.Set    `tfsdk:"topology"`
+	Topology       types.Map    `tfsdk:"topology"`
 	Config         types.Object `tfsdk:"config"`
 	RemoteCluster  types.Set    `tfsdk:"remote_cluster"`
 	SnapshotSource types.Object `tfsdk:"snapshot_source"`
@@ -119,8 +119,8 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	return res, diags
 }
 
-func (es *ElasticsearchTF) topologies(ctx context.Context) ([]*ElasticsearchTopologyTF, diag.Diagnostics) {
-	var topologies []*ElasticsearchTopologyTF
+func (es *ElasticsearchTF) topologies(ctx context.Context) (map[string]ElasticsearchTopologyTF, diag.Diagnostics) {
+	var topologies map[string]ElasticsearchTopologyTF
 	if diags := es.Topology.ElementsAs(ctx, &topologies, true); diags.HasError() {
 		return nil, diags
 	}
@@ -136,9 +136,7 @@ func (es *ElasticsearchTF) topologiesPayload(ctx context.Context, topologyModels
 	}
 
 	for _, tier := range tiers {
-		if tier != nil {
-			diags.Append(tier.payload(ctx, tier.Id.Value, topologyModels)...)
-		}
+		diags.Append(tier.payload(ctx, tier.Id.Value, topologyModels)...)
 	}
 
 	return diags

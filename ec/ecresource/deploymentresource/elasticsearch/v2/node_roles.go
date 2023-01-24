@@ -112,7 +112,7 @@ func legacyToNodeRoles(ctx context.Context, stateVersion, planVersion types.Stri
 	}
 
 	for _, tier := range tiers {
-		if tier != nil && tier.HasNodeType() {
+		if tier.HasNodeType() {
 			return false, nil
 		}
 	}

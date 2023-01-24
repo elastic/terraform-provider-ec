@@ -74,12 +74,11 @@ func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *el
 		return diags
 	}
 
-	planTopologiesSet := planTopology.AsSet()
-
-	filteredTopologies := make(elasticsearchv2.ElasticsearchTopologies, 0, len(dep.Elasticsearch.Topology))
+	filteredTopologies := make(elasticsearchv2.ElasticsearchTopologies, len(dep.Elasticsearch.Topology))
 
 	for _, tier := range dep.Elasticsearch.Topology {
-		planTier := planTopologiesSet[tier.Id]
+		_, exist := planTopology[tier.Id]
+
 		size, err := converters.ParseTopologySize(tier.Size, tier.SizeResource)
 
 		if err != nil {
@@ -94,11 +93,11 @@ func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *el
 			return diags
 		}
 
-		if planTier == nil && *size.Value == 0 {
+		if !exist && *size.Value == 0 {
 			continue
 		}
 
-		filteredTopologies = append(filteredTopologies, tier)
+		filteredTopologies[tier.Id] = tier
 	}
 
 	dep.Elasticsearch.Topology = filteredTopologies
