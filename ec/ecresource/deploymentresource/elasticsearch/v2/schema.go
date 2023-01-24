@@ -415,7 +415,6 @@ func elasticsearchTopologySchema(description string, required bool, topologyAttr
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
