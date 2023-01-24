@@ -96,7 +96,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Computed:    true,
 			},
 
-			"topology": ElasticsearchTopologySchema(),
+			"topology": elasticsearchTopologySchema(),
 
 			"trust_account": ElasticsearchTrustAccountSchema(),
 
@@ -172,29 +172,44 @@ func ElasticsearchTopologyAutoscalingSchema() tfsdk.Attribute {
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(2),
+				},
 			},
 			"max_size": {
 				Description: "Maximum size value for the maximum autoscaling setting.",
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(2),
+				},
 			},
 			"min_size_resource": {
 				Description: "Minimum resource type for the minimum autoscaling setting.",
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(2),
+				},
 			},
 			"min_size": {
 				Description: "Minimum size value for the minimum autoscaling setting.",
 				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(2),
+				},
 			},
 			"policy_override_json": {
 				Type:        types.StringType,
 				Description: "Computed policy overrides set directly via the API or other clients.",
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(2),
+				},
 			},
 		}),
 	}
@@ -354,7 +369,7 @@ func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologySchema() tfsdk.Attribute {
+func elasticsearchTopologySchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Required: true,
 		// Optional:    true,
@@ -370,48 +385,72 @@ func ElasticsearchTopologySchema() tfsdk.Attribute {
 				Type:        types.StringType,
 				Description: `Computed Instance Configuration ID of the topology element`,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(1),
+				},
 			},
 			"size": {
 				Type:        types.StringType,
 				Description: `Amount of "size_resource" per node in the "<size in GB>g" notation`,
 				Computed:    true,
 				Optional:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(1),
+				},
 			},
 			"size_resource": {
 				Type:        types.StringType,
 				Description: `Size type, defaults to "memory".`,
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.String{Value: "memory"}),
+				},
 			},
 			"zone_count": {
 				Type:        types.Int64Type,
 				Description: `Number of zones that the Elasticsearch cluster will span. This is used to set HA`,
 				Computed:    true,
 				Optional:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseTopologyStateForUnknown(1),
+				},
 			},
 			"node_type_data": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (data node)`,
 				Computed:    true,
 				Optional:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseNodeTypesDefault(),
+				},
 			},
 			"node_type_master": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (master node)`,
 				Computed:    true,
 				Optional:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseNodeTypesDefault(),
+				},
 			},
 			"node_type_ingest": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (ingest node)`,
 				Computed:    true,
 				Optional:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseNodeTypesDefault(),
+				},
 			},
 			"node_type_ml": {
 				Type:        types.StringType,
 				Description: `The node type for the Elasticsearch Topology element (machine learning node)`,
 				Computed:    true,
 				Optional:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseNodeTypesDefault(),
+				},
 			},
 			"node_roles": {
 				Type: types.SetType{
@@ -419,6 +458,9 @@ func ElasticsearchTopologySchema() tfsdk.Attribute {
 				},
 				Description: `The computed list of node roles for the current topology element`,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					UseNodeRolesDefault(),
+				},
 			},
 			"autoscaling": ElasticsearchTopologyAutoscalingSchema(),
 		}),

@@ -27,12 +27,12 @@ import (
 )
 
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
-func UseTopologyStateForUnknown(topologyAttributeName string) tfsdk.AttributePlanModifier {
-	return useTopologyState{topologyAttributeName: topologyAttributeName}
+func UseTopologyStateForUnknown(topologyNestingLevel int) tfsdk.AttributePlanModifier {
+	return useTopologyState{topologyNestingLevel: topologyNestingLevel}
 }
 
 type useTopologyState struct {
-	topologyAttributeName string
+	topologyNestingLevel int
 }
 
 func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
@@ -49,9 +49,14 @@ func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 		return
 	}
 
+	tierPath := req.AttributePath.ParentPath()
+	for i := m.topologyNestingLevel - 1; i > 0; i-- {
+		tierPath = tierPath.ParentPath()
+	}
+
 	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
 	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
-	topologyStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), req)
+	topologyStateDefined, diags := attributeStateDefined(ctx, tierPath, req)
 
 	resp.Diagnostics.Append(diags...)
 
