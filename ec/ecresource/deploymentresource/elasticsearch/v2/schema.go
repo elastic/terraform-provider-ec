@@ -162,7 +162,7 @@ func elasticsearchConfigSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTopologyAutoscalingSchema() tfsdk.Attribute {
+func elasticsearchTopologyAutoscalingSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
 		Required:    true,
@@ -462,7 +462,7 @@ func elasticsearchTopologySchema() tfsdk.Attribute {
 					UseNodeRolesDefault(),
 				},
 			},
-			"autoscaling": ElasticsearchTopologyAutoscalingSchema(),
+			"autoscaling": elasticsearchTopologyAutoscalingSchema(),
 		}),
 	}
 }
