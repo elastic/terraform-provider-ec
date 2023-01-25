@@ -63,8 +63,7 @@ func Test_readDeployment(t *testing.T) {
 						UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 					},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 							Size:                    ec.String("2g"),
 							SizeResource:            ec.String("memory"),
@@ -74,7 +73,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               1,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -435,8 +434,7 @@ func Test_readDeployment(t *testing.T) {
 						UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 					},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 							Size:                    ec.String("2g"),
 							SizeResource:            ec.String("memory"),
@@ -446,7 +444,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               1,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -484,8 +482,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpEndpoint:  ec.String("http://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9200"),
 					HttpsEndpoint: ec.String("https://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9243"),
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("azure.data.highio.l32sv2"),
 							Size:                    ec.String("4g"),
 							SizeResource:            ec.String("memory"),
@@ -495,7 +492,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 					Config: &elasticsearchv2.ElasticsearchConfig{},
 				},
@@ -546,8 +543,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 							Size:                    ec.String("8g"),
 							SizeResource:            ec.String("memory"),
@@ -557,7 +553,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -609,8 +605,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 							Size:                    ec.String("8g"),
 							SizeResource:            ec.String("memory"),
@@ -620,7 +615,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 					Extension: elasticsearchv2.ElasticsearchExtensions{
 						{
@@ -755,12 +750,11 @@ func Test_readDeployment(t *testing.T) {
 					Region: ec.String("aws-eu-central-1"),
 					Config: &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:           "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							Size:         ec.String("4g"),
 							SizeResource: ec.String("memory"),
 							Autoscaling:  &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 					TrustAccount: elasticsearchv2.ElasticsearchTrustAccounts{
 						{
@@ -841,12 +835,11 @@ func Test_readDeployment(t *testing.T) {
 					Region: ec.String("aws-eu-central-1"),
 					Config: &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:           "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							Size:         ec.String("4g"),
 							SizeResource: ec.String("memory"),
 							Autoscaling:  &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 			},
@@ -989,13 +982,12 @@ func Test_readDeployment(t *testing.T) {
 						DockerImage: ec.String("docker.elastic.com/elasticsearch/cloud:7.14.1-hash"),
 					},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:           "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							Size:         ec.String("4g"),
 							SizeResource: ec.String("memory"),
 							ZoneCount:    1,
 							Autoscaling:  &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -1066,8 +1058,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 							Size:                    ec.String("8g"),
 							SizeResource:            ec.String("memory"),
@@ -1077,7 +1068,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -1127,8 +1118,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.data.highio.1"),
 							Size:                    ec.String("8g"),
 							SizeResource:            ec.String("memory"),
@@ -1138,7 +1128,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -1188,8 +1178,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "coordinating",
+						"coordinating": *elasticsearchv2.CreateTierForTest("coordinating", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.coordinating.1"),
 							Size:                    ec.String("0g"),
 							SizeResource:            ec.String("memory"),
@@ -1199,9 +1188,8 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "hot_content",
+						}),
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.data.highio.1"),
 							Size:                    ec.String("8g"),
 							SizeResource:            ec.String("memory"),
@@ -1215,9 +1203,8 @@ func Test_readDeployment(t *testing.T) {
 								MaxSizeResource:    ec.String("memory"),
 								PolicyOverrideJson: ec.String(`{"proactive_storage":{"forecast_window":"3 h"}}`),
 							},
-						},
-						{
-							Id:                      "master",
+						}),
+						"master": *elasticsearchv2.CreateTierForTest("master", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.master.1"),
 							Size:                    ec.String("0g"),
 							SizeResource:            ec.String("memory"),
@@ -1227,9 +1214,8 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               3,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "ml",
+						}),
+						"ml": *elasticsearchv2.CreateTierForTest("ml", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.ml.1"),
 							Size:                    ec.String("1g"),
 							SizeResource:            ec.String("memory"),
@@ -1244,7 +1230,7 @@ func Test_readDeployment(t *testing.T) {
 								MinSize:         ec.String("1g"),
 								MinSizeResource: ec.String("memory"),
 							},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -1293,8 +1279,7 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "coordinating",
+						"coordinating": *elasticsearchv2.CreateTierForTest("coordinating", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.coordinating.1"),
 							Size:                    ec.String("0g"),
 							SizeResource:            ec.String("memory"),
@@ -1304,9 +1289,8 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "hot_content",
+						}),
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.data.highio.1"),
 							Size:                    ec.String("4g"),
 							SizeResource:            ec.String("memory"),
@@ -1316,10 +1300,8 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-
-							Id:                      "warm",
+						}),
+						"warm": *elasticsearchv2.CreateTierForTest("warm", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.data.highstorage.1"),
 							Size:                    ec.String("4g"),
 							SizeResource:            ec.String("memory"),
@@ -1329,7 +1311,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMl:              ec.String("false"),
 							ZoneCount:               2,
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -1378,17 +1360,15 @@ func Test_readDeployment(t *testing.T) {
 					HttpsEndpoint: ec.String("https://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9243"),
 					Config:        &elasticsearchv2.ElasticsearchConfig{},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "coordinating",
+						"coordinating": *elasticsearchv2.CreateTierForTest("coordinating", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.coordinating.1"),
 							Size:                    ec.String("0g"),
 							SizeResource:            ec.String("memory"),
 							ZoneCount:               2,
 							NodeRoles:               []string{"ingest", "remote_cluster_client"},
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "hot_content",
+						}),
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.data.highio.1"),
 							Size:                    ec.String("4g"),
 							SizeResource:            ec.String("memory"),
@@ -1402,27 +1382,24 @@ func Test_readDeployment(t *testing.T) {
 								"data_content",
 							},
 							Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "master",
+						}),
+						"master": *elasticsearchv2.CreateTierForTest("master", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.master.1"),
 							Size:                    ec.String("0g"),
 							SizeResource:            ec.String("memory"),
 							ZoneCount:               3,
 							NodeRoles:               []string{"master"},
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "ml",
+						}),
+						"ml": *elasticsearchv2.CreateTierForTest("ml", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.ml.1"),
 							Size:                    ec.String("0g"),
 							SizeResource:            ec.String("memory"),
 							ZoneCount:               1,
 							NodeRoles:               []string{"ml", "remote_cluster_client"},
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
-						{
-							Id:                      "warm",
+						}),
+						"warm": *elasticsearchv2.CreateTierForTest("warm", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("gcp.data.highstorage.1"),
 							Size:                    ec.String("4g"),
 							SizeResource:            ec.String("memory"),
@@ -1432,7 +1409,7 @@ func Test_readDeployment(t *testing.T) {
 								"remote_cluster_client",
 							},
 							Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{
@@ -1507,8 +1484,7 @@ func Test_readDeployment(t *testing.T) {
 						},
 					},
 					Topology: elasticsearchv2.ElasticsearchTopologies{
-						{
-							Id:                      "hot_content",
+						"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 							InstanceConfigurationId: ec.String("aws.ccs.r5d"),
 							Size:                    ec.String("1g"),
 							SizeResource:            ec.String("memory"),
@@ -1518,7 +1494,7 @@ func Test_readDeployment(t *testing.T) {
 							NodeTypeMaster:          ec.String("true"),
 							NodeTypeMl:              ec.String("false"),
 							Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-						},
+						}),
 					},
 				},
 				Kibana: &kibanav2.Kibana{

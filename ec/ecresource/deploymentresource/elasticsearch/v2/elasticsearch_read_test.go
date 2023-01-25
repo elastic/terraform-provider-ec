@@ -158,8 +158,8 @@ func Test_readElasticsearch(t *testing.T) {
 				HttpsEndpoint: ec.String("https://somecluster.cloud.elastic.co:9243"),
 				Config:        &ElasticsearchConfig{},
 				Topology: ElasticsearchTopologies{
-					{
-						Id:                      "hot_content",
+					"hot_content": {
+						id:                      "hot_content",
 						InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 						Size:                    ec.String("2g"),
 						SizeResource:            ec.String("memory"),
@@ -239,8 +239,8 @@ func Test_readElasticsearch(t *testing.T) {
 					UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 				},
 				Topology: ElasticsearchTopologies{
-					{
-						Id:                      "hot_content",
+					"hot_content": {
+						id:                      "hot_content",
 						InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 						Size:                    ec.String("2g"),
 						SizeResource:            ec.String("memory"),
@@ -306,16 +306,16 @@ func Test_readElasticsearchTopology(t *testing.T) {
 				},
 			}},
 			want: ElasticsearchTopologies{
-				{
-					Id:                      "coordinating",
+				"coordinating": {
+					id:                      "coordinating",
 					InstanceConfigurationId: ec.String("aws.coordinating.m5"),
 					Size:                    ec.String("0g"),
 					SizeResource:            ec.String("memory"),
 					ZoneCount:               2,
 					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
 				},
-				{
-					Id:                      "hot_content",
+				"hot_content": {
+					id:                      "hot_content",
 					InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 					Size:                    ec.String("4g"),
 					SizeResource:            ec.String("memory"),
@@ -362,8 +362,8 @@ func Test_readElasticsearchTopology(t *testing.T) {
 				},
 			}},
 			want: ElasticsearchTopologies{
-				{
-					Id:                      "hot_content",
+				"hot_content": {
+					id:                      "hot_content",
 					InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 					Size:                    ec.String("4g"),
 					SizeResource:            ec.String("memory"),
@@ -373,8 +373,8 @@ func Test_readElasticsearchTopology(t *testing.T) {
 					NodeTypeMaster:          ec.String("true"),
 					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
 				},
-				{
-					Id:                      "ml",
+				"ml": {
+					id:                      "ml",
 					InstanceConfigurationId: ec.String("aws.ml.m5"),
 					Size:                    ec.String("0g"),
 					SizeResource:            ec.String("memory"),

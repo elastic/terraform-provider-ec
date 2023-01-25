@@ -38,7 +38,6 @@ import (
 )
 
 type ElasticsearchTopologyTF struct {
-	Id                      types.String `tfsdk:"id"`
 	InstanceConfigurationId types.String `tfsdk:"instance_configuration_id"`
 	Size                    types.String `tfsdk:"size"`
 	SizeResource            types.String `tfsdk:"size_resource"`
@@ -52,7 +51,7 @@ type ElasticsearchTopologyTF struct {
 }
 
 type ElasticsearchTopology struct {
-	Id                      string                            `tfsdk:"id"`
+	id                      string
 	InstanceConfigurationId *string                           `tfsdk:"instance_configuration_id"`
 	Size                    *string                           `tfsdk:"size"`
 	SizeResource            *string                           `tfsdk:"size_resource"`
@@ -123,8 +122,8 @@ func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 		if err != nil {
 			return nil, err
 		}
-		if tier.Id != "" {
-			topology[tier.Id] = *tier
+		if tier.id != "" {
+			topology[tier.id] = *tier
 		}
 	}
 
@@ -134,7 +133,7 @@ func readElasticsearchTopologies(in *models.ElasticsearchClusterPlan) (Elasticse
 func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement) (*ElasticsearchTopology, error) {
 	var topology ElasticsearchTopology
 
-	topology.Id = model.ID
+	topology.id = model.ID
 
 	if model.InstanceConfigurationID != "" {
 		topology.InstanceConfigurationId = &model.InstanceConfigurationID

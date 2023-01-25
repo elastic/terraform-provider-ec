@@ -76,8 +76,8 @@ func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *el
 
 	filteredTopologies := make(elasticsearchv2.ElasticsearchTopologies, len(dep.Elasticsearch.Topology))
 
-	for _, tier := range dep.Elasticsearch.Topology {
-		_, exist := planTopology[tier.Id]
+	for id, tier := range dep.Elasticsearch.Topology {
+		_, exist := planTopology[id]
 
 		size, err := converters.ParseTopologySize(tier.Size, tier.SizeResource)
 
@@ -89,7 +89,7 @@ func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *el
 
 		if size == nil || size.Value == nil {
 			var diags diag.Diagnostics
-			diags.AddError("Cannot remove unused Elasticsearch topologies from backend response", fmt.Sprintf("the topology [%s] size is nil", tier.Id))
+			diags.AddError("Cannot remove unused Elasticsearch topologies from backend response", fmt.Sprintf("the topology [%s] size is nil", id))
 			return diags
 		}
 
@@ -97,7 +97,7 @@ func (dep *Deployment) NullifyUnusedEsTopologies(ctx context.Context, esPlan *el
 			continue
 		}
 
-		filteredTopologies[tier.Id] = tier
+		filteredTopologies[id] = tier
 	}
 
 	dep.Elasticsearch.Topology = filteredTopologies

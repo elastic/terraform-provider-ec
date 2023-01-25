@@ -130,8 +130,7 @@ func Test_UseNodeRoles(t *testing.T) {
 				planVersion:  "7.12.0",
 				elasticsearch: Elasticsearch{
 					Topology: ElasticsearchTopologies{
-						{
-							Id:             "hot_content",
+						"hot_content": {
 							NodeTypeData:   ec.String("true"),
 							NodeTypeMaster: ec.String("true"),
 							NodeTypeIngest: ec.String("true"),

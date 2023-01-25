@@ -112,8 +112,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -180,8 +179,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -251,8 +249,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 							NodeRoles: []string{"a", "b", "c"},
@@ -379,13 +376,11 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
-						{
-							Id:        "warm",
+						"warm": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -486,13 +481,11 @@ func Test_writeElasticsearch(t *testing.T) {
 						UserSettingsYaml: ec.String("somesetting: true"),
 					},
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
-						{
-							Id:        "warm",
+						"warm": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -683,15 +676,13 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:             "hot_content",
+						"hot_content": {
 							NodeTypeData:   ec.String("false"),
 							NodeTypeMaster: ec.String("false"),
 							NodeTypeIngest: ec.String("false"),
 							NodeTypeMl:     ec.String("true"),
 						},
-						{
-							Id:             "warm",
+						"warm": {
 							NodeTypeMaster: ec.String("true"),
 						},
 					},
@@ -789,19 +780,16 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:             "hot_content",
+						"hot_content": {
 							NodeTypeData:   ec.String("false"),
 							NodeTypeMaster: ec.String("false"),
 							NodeTypeIngest: ec.String("false"),
 							NodeTypeMl:     ec.String("true"),
 						},
-						{
-							Id:             "warm",
+						"warm": {
 							NodeTypeMaster: ec.String("true"),
 						},
-						{
-							Id:   "cold",
+						"cold": {
 							Size: ec.String("2g"),
 						},
 					},
@@ -929,16 +917,9 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id: "hot_content",
-						},
-						{
-							Id: "warm",
-						},
-						{
-							Id:   "cold",
-							Size: ec.String("2g"),
-						},
+						"hot_content": {},
+						"warm":        {},
+						"cold":        {Size: ec.String("2g")},
 					},
 				},
 				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
@@ -1064,27 +1045,23 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id: "hot_content",
+						"hot_content": {
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("58g"),
 							},
 						},
-						{
-							Id: "warm",
+						"warm": {
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("29g"),
 							},
 						},
-						{
-							Id:   "cold",
+						"cold": {
 							Size: ec.String("2g"),
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("29g"),
 							},
 						},
-						{
-							Id:   "ml",
+						"ml": {
 							Size: ec.String("1g"),
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("29g"),
@@ -1243,15 +1220,13 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id: "hot_content",
+						"hot_content": {
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("450g"),
 								MinSize: ec.String("2g"),
 							},
 						},
-						{
-							Id: "master",
+						"master": {
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("250g"),
 								MinSize: ec.String("1g"),
@@ -1357,22 +1332,19 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id: "hot_content",
+						"hot_content": {
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize:         ec.String("450g"),
 								MaxSizeResource: ec.String("storage"),
 							},
 						},
-						{
-							Id: "warm",
+						"warm": {
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize:         ec.String("870g"),
 								MaxSizeResource: ec.String("storage"),
 							},
 						},
-						{
-							Id:   "cold",
+						"cold": {
 							Size: ec.String("4g"),
 							Autoscaling: &ElasticsearchTopologyAutoscaling{
 								MaxSize:         ec.String("1740g"),
@@ -1516,8 +1488,7 @@ func Test_writeElasticsearch(t *testing.T) {
 						Plugins:                  []string{"plugin"},
 					},
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -1595,8 +1566,7 @@ func Test_writeElasticsearch(t *testing.T) {
 						SourceElasticsearchClusterId: mock.ValidClusterID,
 					},
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -1667,8 +1637,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -1741,8 +1710,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -1815,8 +1783,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},
@@ -1889,8 +1856,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 					Topology: ElasticsearchTopologies{
-						{
-							Id:        "hot_content",
+						"hot_content": {
 							Size:      ec.String("2g"),
 							ZoneCount: 1,
 						},

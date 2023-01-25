@@ -21,7 +21,7 @@ import "github.com/elastic/cloud-sdk-go/pkg/models"
 
 func CreateTierForTest(tierId string, tier ElasticsearchTopology) *ElasticsearchTopology {
 	res := tier
-	res.Id = tierId
+	res.id = tierId
 	return &res
 }
 

@@ -47,7 +47,7 @@ func Test_updateResourceToModel(t *testing.T) {
 
 	defaultElasticsearch := &elasticsearchv2.Elasticsearch{
 		Topology: elasticsearchv2.ElasticsearchTopologies{
-			*defaultHotTier,
+			"hot_content": *defaultHotTier,
 		},
 	}
 
@@ -99,8 +99,7 @@ func Test_updateResourceToModel(t *testing.T) {
 							UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 						},
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:                      "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 								Size:                    ec.String("2g"),
 								NodeTypeData:            ec.String("true"),
@@ -109,7 +108,7 @@ func Test_updateResourceToModel(t *testing.T) {
 								NodeTypeMl:              ec.String("false"),
 								ZoneCount:               1,
 								Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Kibana: &kibanav2.Kibana{
@@ -466,11 +465,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Kibana: &kibanav2.Kibana{
@@ -744,7 +742,7 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							*defaultHotTier,
+							"hot_content": *defaultHotTier,
 						},
 					},
 					Kibana: &kibanav2.Kibana{
@@ -770,8 +768,7 @@ func Test_updateResourceToModel(t *testing.T) {
 							UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
 						},
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:                      "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								InstanceConfigurationId: ec.String("aws.data.highio.i3"),
 								Size:                    ec.String("2g"),
 								NodeTypeData:            ec.String("true"),
@@ -780,7 +777,7 @@ func Test_updateResourceToModel(t *testing.T) {
 								NodeTypeMl:              ec.String("false"),
 								ZoneCount:               1,
 								Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Kibana: &kibanav2.Kibana{
@@ -906,8 +903,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.9.2",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:    ec.String("main-elasticsearch"),
-						Topology: elasticsearchv2.ElasticsearchTopologies{*defaultHotTier},
+						RefId: ec.String("main-elasticsearch"),
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							"hot_content": *defaultHotTier,
+						},
 					},
 					Kibana: &kibanav2.Kibana{
 						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
@@ -923,16 +922,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-							{
-								Id:          "coordinating",
+							}),
+							"coordinating": *elasticsearchv2.CreateTierForTest("coordinating", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Kibana: &kibanav2.Kibana{
@@ -1029,8 +1026,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.9.2",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:    ec.String("main-elasticsearch"),
-						Topology: elasticsearchv2.ElasticsearchTopologies{*defaultHotTier},
+						RefId: ec.String("main-elasticsearch"),
+						Topology: elasticsearchv2.ElasticsearchTopologies{
+							"hot_content": *defaultHotTier,
+						},
 					},
 					Kibana: &kibanav2.Kibana{
 						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
@@ -1054,16 +1053,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-							{
-								Id:          "coordinating",
+							}),
+							"coordinating": *elasticsearchv2.CreateTierForTest("coordinating", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Kibana: &kibanav2.Kibana{
@@ -1209,15 +1206,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
 								Autoscaling:    &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1230,15 +1226,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
 								Autoscaling:    &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1312,14 +1307,13 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
-							},
+							}),
 						},
 					},
 				},
@@ -1332,14 +1326,13 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
-							},
+							}),
 						},
 					},
 				},
@@ -1415,15 +1408,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("32g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
 								Autoscaling:    &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1436,15 +1428,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
 								Autoscaling:    &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1520,20 +1511,19 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
 								Autoscaling:    &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-							{
-								Id:          "warm",
+							}),
+							"warm": *elasticsearchv2.CreateTierForTest("warm", elasticsearchv2.ElasticsearchTopology{
+
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1546,15 +1536,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:             "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:           ec.String("16g"),
 								NodeTypeData:   ec.String("true"),
 								NodeTypeIngest: ec.String("true"),
 								NodeTypeMaster: ec.String("true"),
 								NodeTypeMl:     ec.String("false"),
 								Autoscaling:    &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1659,16 +1648,14 @@ func Test_updateResourceToModel(t *testing.T) {
 						RefId:     ec.String("main-elasticsearch"),
 						Autoscale: ec.Bool(true),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-							{
-								Id:          "warm",
+							}),
+							"warm": *elasticsearchv2.CreateTierForTest("warm", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1682,11 +1669,10 @@ func Test_updateResourceToModel(t *testing.T) {
 						RefId:     ec.String("main-elasticsearch"),
 						Autoscale: ec.Bool(true),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1790,11 +1776,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Tags: map[string]string{
@@ -1812,11 +1797,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -1894,11 +1878,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 						SnapshotSource: &elasticsearchv2.ElasticsearchSnapshotSource{
 							SourceElasticsearchClusterId: "8c63b87af9e24ea49b8a4bfe550e5fe9",
@@ -1914,11 +1897,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -2001,11 +1983,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 				},
@@ -2092,16 +2073,14 @@ func Test_updateResourceToModel(t *testing.T) {
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
 						RefId: ec.String("main-elasticsearch"),
 						Topology: elasticsearchv2.ElasticsearchTopologies{
-							{
-								Id:          "hot_content",
+							"hot_content": *elasticsearchv2.CreateTierForTest("hot_content", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-							{
-								Id:          "coordinating",
+							}),
+							"coordinating": *elasticsearchv2.CreateTierForTest("coordinating", elasticsearchv2.ElasticsearchTopology{
 								Size:        ec.String("16g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
+							}),
 						},
 					},
 					Kibana: &kibanav2.Kibana{

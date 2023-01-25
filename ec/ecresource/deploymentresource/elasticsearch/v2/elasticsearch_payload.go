@@ -135,8 +135,8 @@ func (es *ElasticsearchTF) topologiesPayload(ctx context.Context, topologyModels
 		return diags
 	}
 
-	for _, tier := range tiers {
-		diags.Append(tier.payload(ctx, tier.Id.Value, topologyModels)...)
+	for id, tier := range tiers {
+		diags.Append(tier.payload(ctx, id, topologyModels)...)
 	}
 
 	return diags
