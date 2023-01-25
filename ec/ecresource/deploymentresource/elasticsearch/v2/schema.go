@@ -98,17 +98,17 @@ func ElasticsearchSchema() tfsdk.Attribute {
 
 			"topology": elasticsearchTopologySchema(),
 
-			"trust_account": ElasticsearchTrustAccountSchema(),
+			"trust_account": elasticsearchTrustAccountSchema(),
 
-			"trust_external": ElasticsearchTrustExternalSchema(),
+			"trust_external": elasticsearchTrustExternalSchema(),
 
-			"config": ElasticsearchConfigSchema(),
+			"config": elasticsearchConfigSchema(),
 
 			"remote_cluster": ElasticsearchRemoteClusterSchema(),
 
-			"snapshot_source": ElasticsearchSnapshotSourceSchema(),
+			"snapshot_source": elasticsearchSnapshotSourceSchema(),
 
-			"extension": ElasticsearchExtensionSchema(),
+			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": {
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
@@ -120,7 +120,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchConfigSchema() tfsdk.Attribute {
+func elasticsearchConfigSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: `Optional Elasticsearch settings which will be applied to all topologies`,
 		Optional:    true,
@@ -256,7 +256,7 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchSnapshotSourceSchema() tfsdk.Attribute {
+func elasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional snapshot source settings. Restore data from a snapshot of another deployment.",
 		Optional:    true,
@@ -279,7 +279,7 @@ func ElasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchExtensionSchema() tfsdk.Attribute {
+func elasticsearchExtensionSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch extensions such as custom bundles or plugins.",
 		Optional:    true,
@@ -309,7 +309,7 @@ func ElasticsearchExtensionSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTrustAccountSchema() tfsdk.Attribute {
+func elasticsearchTrustAccountSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch account trust settings.",
 		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
@@ -339,7 +339,7 @@ func ElasticsearchTrustAccountSchema() tfsdk.Attribute {
 	}
 }
 
-func ElasticsearchTrustExternalSchema() tfsdk.Attribute {
+func elasticsearchTrustExternalSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Description: "Optional Elasticsearch external trust settings.",
 		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{

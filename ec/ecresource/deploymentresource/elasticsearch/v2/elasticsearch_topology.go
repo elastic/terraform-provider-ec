@@ -342,10 +342,6 @@ func elasticsearchTopologyAutoscalingPayload(ctx context.Context, autoObj attr.V
 }
 
 // expandAutoscalingDimension centralises processing of %_size and %_size_resource attributes
-// Due to limitations in the Terraform SDK, it's not possible to specify a Default on a Computed schema member
-// to work around this limitation, this function will default the %_size_resource attribute to `memory`.
-// Without this default, setting autoscaling limits on tiers which do not have those limits in the deployment
-// template leads to an API error due to the empty resource field on the TopologySize model.
 func expandAutoscalingDimension(autoscale v1.ElasticsearchTopologyAutoscalingTF, model *models.TopologySize, size, sizeResource types.String) error {
 	if size.Value != "" {
 		val, err := deploymentsize.ParseGb(size.Value)
