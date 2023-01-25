@@ -12,40 +12,42 @@ resource "ec_deployment" "autoscaling" {
   elasticsearch = {
     autoscale = "true"
 
-    cold = {
-      size        = "0g"
-      zone_count  = 1
-      autoscaling = {}
-    }
-
-    frozen = {
-      size        = "0g"
-      zone_count  = 1
-      autoscaling = {}
-    }
-
-    hot = {
-      size       = "1g"
-      zone_count = 1
-      autoscaling = {
-        max_size = "8g"
+    topology = {
+      "cold" = {
+        size        = "0g"
+        zone_count  = 1
+        autoscaling = {}
       }
-    }
 
-    ml = {
-      size       = "1g"
-      zone_count = 1
-      autoscaling = {
-        min_size = "1g"
-        max_size = "4g"
+      "frozen" = {
+        size        = "0g"
+        zone_count  = 1
+        autoscaling = {}
       }
-    }
 
-    warm = {
-      size       = "2g"
-      zone_count = 1
-      autoscaling = {
-        max_size = "15g"
+      "hot_content" = {
+        size       = "1g"
+        zone_count = 1
+        autoscaling = {
+          max_size = "8g"
+        }
+      }
+
+      "ml" = {
+        size       = "1g"
+        zone_count = 1
+        autoscaling = {
+          min_size = "1g"
+          max_size = "4g"
+        }
+      }
+
+      "warm" = {
+        size       = "2g"
+        zone_count = 1
+        autoscaling = {
+          max_size = "15g"
+        }
       }
     }
   }

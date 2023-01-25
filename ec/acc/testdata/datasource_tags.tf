@@ -15,10 +15,12 @@ resource "ec_deployment" "tags" {
   }
 
   elasticsearch = {
-    hot = {
-      size        = "1g"
-      zone_count  = 1
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 }

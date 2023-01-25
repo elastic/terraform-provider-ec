@@ -10,17 +10,18 @@ resource "ec_deployment" "pre_nr" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      size        = "1g"
-      zone_count  = 1
-      autoscaling = {}
-    }
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
 
-    warm = {
-      size        = "2g"
-      zone_count  = 1
-      autoscaling = {}
+      "warm" = {
+        size        = "2g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
-
   }
 }

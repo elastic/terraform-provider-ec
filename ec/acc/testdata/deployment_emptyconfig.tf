@@ -13,10 +13,12 @@ resource "ec_deployment" "emptyconfig" {
     config = {
       user_settings_yaml = null
     }
-    hot = {
-      size        = "1g"
-      zone_count  = 1
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 }

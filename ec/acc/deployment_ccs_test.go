@@ -53,10 +53,10 @@ func TestAccDeployment_ccs(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// CCS Checks
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.instance_configuration_id"),
+					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.topology.hot_content.instance_configuration_id"),
 					// CCS defaults to 1g.
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size", "1g"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.topology.hot_content.size", "1g"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.topology.hot_content.size_resource", "memory"),
 
 					// Remote cluster settings
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.#", "3"),
@@ -67,26 +67,26 @@ func TestAccDeployment_ccs(t *testing.T) {
 					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.remote_cluster.2.deployment_id"),
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.2.alias", fmt.Sprint(sourceRandomName, "-2")),
 
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ml"),
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.node_roles.#"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.zone_count", "1"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_data"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_master"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_ml"),
+					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.topology.hot_content.node_roles.#"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.topology.hot_content.zone_count", "1"),
 					resource.TestCheckNoResourceAttr(sourceResName, "kibana"),
 					resource.TestCheckNoResourceAttr(sourceResName, "apm"),
 					resource.TestCheckNoResourceAttr(sourceResName, "enterprise_search"),
 					// Source Checks
 
-					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.size", "1g"),
-					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.size_resource", "memory"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ml"),
-					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.node_roles.#"),
-					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.zone_count", "1"),
+					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.topology.hot_content.instance_configuration_id"),
+					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.topology.hot_content.size", "1g"),
+					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.topology.hot_content.size_resource", "memory"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_data"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_master"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_ml"),
+					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.topology.hot_content.node_roles.#"),
+					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.topology.hot_content.zone_count", "1"),
 					resource.TestCheckNoResourceAttr(sourceResName, "kibana"),
 					resource.TestCheckNoResourceAttr(sourceResName, "apm"),
 					resource.TestCheckNoResourceAttr(sourceResName, "enterprise_search"),
@@ -97,19 +97,19 @@ func TestAccDeployment_ccs(t *testing.T) {
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size", "2g"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.topology.hot_content.instance_configuration_id"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.topology.hot_content.size", "2g"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.topology.hot_content.size_resource", "memory"),
 
 					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.#", "0"),
 
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ml"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_data"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_master"),
+					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.topology.hot_content.node_type_ml"),
 
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.node_roles.#"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.zone_count", "1"),
+					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.topology.hot_content.node_roles.#"),
+					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.topology.hot_content.zone_count", "1"),
 					resource.TestCheckResourceAttr(ccsResName, "kibana.zone_count", "1"),
 					resource.TestCheckResourceAttrSet(ccsResName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(ccsResName, "kibana.size", "1g"),

@@ -57,11 +57,11 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.resource_id", resourceName, "elasticsearch.resource_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.http_endpoint_id", resourceName, "elasticsearch.http_endpoint_id"),
 					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.https_endpoint_id", resourceName, "elasticsearch.https_endpoint_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.instance_configuration_id", resourceName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size", resourceName, "elasticsearch.hot.size"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size_resource", resourceName, "elasticsearch.hot.size_resource"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.zone_count", resourceName, "elasticsearch.hot.zone_count"),
-					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_roles.*", resourceName, "elasticsearch.hot.node_roles.*"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.instance_configuration_id", resourceName, "elasticsearch.topology.hot_content.instance_configuration_id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size", resourceName, "elasticsearch.topology.hot_content.size"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.size_resource", resourceName, "elasticsearch.topology.hot_content.size_resource"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.zone_count", resourceName, "elasticsearch.topology.hot_content.zone_count"),
+					resource.TestCheckResourceAttrPair(datasourceName, "elasticsearch.0.topology.0.node_roles.*", resourceName, "elasticsearch.topology.hot_content.node_roles.*"),
 
 					// Kibana
 					resource.TestCheckResourceAttrPair(datasourceName, "kibana.0.elasticsearch_cluster_ref_id", resourceName, "kibana.elasticsearch_cluster_ref_id"),

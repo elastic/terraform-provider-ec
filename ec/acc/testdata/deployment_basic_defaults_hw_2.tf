@@ -10,11 +10,13 @@ resource "ec_deployment" "defaults" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      autoscaling = {}
-    }
-    warm = {
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
+      "warm" = {
+        autoscaling = {}
+      }
     }
   }
 

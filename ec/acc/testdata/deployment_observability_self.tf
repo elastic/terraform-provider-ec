@@ -16,10 +16,12 @@ resource "ec_deployment" "observability" {
   elasticsearch = {
     autoscale = "false"
 
-    hot = {
-      size        = "1g"
-      zone_count  = 1
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 

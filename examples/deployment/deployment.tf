@@ -30,8 +30,10 @@ resource "ec_deployment" "example_minimal" {
 
   elasticsearch = {
 
-    hot = {
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
     }
     config = {
       user_settings_yaml = file("./es_settings.yaml")

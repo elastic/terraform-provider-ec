@@ -10,8 +10,10 @@ resource "ec_deployment" "observability_tpl" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
     }
   }
 

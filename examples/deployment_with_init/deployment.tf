@@ -15,10 +15,11 @@ resource "ec_deployment" "example_minimal" {
   deployment_template_id = "aws-io-optimized-v2"
   traffic_filter         = [ec_deployment_traffic_filter.allow_all.id]
   elasticsearch = {
-    config = {}
-    hot = {
-      size        = "8g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "8g"
+        autoscaling = {}
+      }
     }
   }
 

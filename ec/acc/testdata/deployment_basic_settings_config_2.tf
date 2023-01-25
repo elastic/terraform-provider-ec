@@ -13,9 +13,11 @@ resource "ec_deployment" "basic" {
     config = {
       user_settings_yaml = "action.auto_create_index: true"
     }
-    hot = {
-      size        = "1g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        autoscaling = {}
+      }
     }
   }
 

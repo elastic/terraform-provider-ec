@@ -10,10 +10,12 @@ resource "ec_deployment" "keystore" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      size        = "1g"
-      zone_count  = 1
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 }

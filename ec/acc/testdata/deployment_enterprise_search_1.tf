@@ -10,8 +10,10 @@ resource "ec_deployment" "enterprise_search" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
     }
   }
 

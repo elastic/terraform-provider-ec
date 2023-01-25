@@ -20,10 +20,12 @@ resource "ec_deployment" "docker_image" {
       docker_image = "docker.elastic.co/cloud-ci/elasticsearch:7.15.0-SNAPSHOT"
     }
 
-    hot = {
-      size        = "1g"
-      zone_count  = 1
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 

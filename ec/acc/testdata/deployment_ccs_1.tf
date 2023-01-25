@@ -10,8 +10,10 @@ resource "ec_deployment" "ccs" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
     }
 
     "remote_cluster" = [for source_css in ec_deployment.source_ccs :
@@ -31,10 +33,12 @@ resource "ec_deployment" "source_ccs" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      zone_count  = 1
-      size        = "1g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        zone_count  = 1
+        size        = "1g"
+        autoscaling = {}
+      }
     }
   }
 }

@@ -10,9 +10,11 @@ resource "ec_deployment" "tags" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      size        = "2g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "2g"
+        autoscaling = {}
+      }
     }
   }
 

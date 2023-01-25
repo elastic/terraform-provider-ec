@@ -10,36 +10,36 @@ resource "ec_deployment" "basic" {
   deployment_template_id = "%s"
 
   elasticsearch = {
-    hot = {
-      size        = "1g"
-      autoscaling = {}
-    }
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        autoscaling = {}
+      }
 
-    warm = {
-      autoscaling = {}
-    }
+      "warm" = {
+        autoscaling = {}
+      }
 
-    cold = {
-      autoscaling = {}
-    }
+      "cold" = {
+        autoscaling = {}
+      }
 
-    frozen = {
-      autoscaling = {}
-    }
+      "frozen" = {
+        autoscaling = {}
+      }
 
-    ml = {
-      autoscaling = {}
-    }
+      "ml" = {
+        autoscaling = {}
+      }
 
-    master = {
-      autoscaling = {}
-    }
+      "master" = {
+        autoscaling = {}
+      }
 
-    coordinating = {
-      autoscaling = {}
+      "coordinating" = {
+        autoscaling = {}
+      }
     }
-
-    config = {}
   }
 
   kibana = {

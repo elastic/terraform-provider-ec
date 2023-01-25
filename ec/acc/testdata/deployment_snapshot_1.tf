@@ -15,9 +15,11 @@ resource "ec_deployment" "snapshot_source" {
   deployment_template_id = local.deployment_template
 
   elasticsearch = {
-    hot = {
-      size        = "1g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        autoscaling = {}
+      }
     }
   }
 }

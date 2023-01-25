@@ -25,11 +25,12 @@ resource "ec_deployment" "source_deployment" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch = {
-    config = {}
-    hot = {
-      zone_count  = 1
-      size        = "2g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        zone_count  = 1
+        size        = "2g"
+        autoscaling = {}
+      }
     }
   }
 }
@@ -42,11 +43,12 @@ resource "ec_deployment" "second_source" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch = {
-    config = {}
-    hot = {
-      zone_count  = 1
-      size        = "2g"
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        zone_count  = 1
+        size        = "2g"
+        autoscaling = {}
+      }
     }
   }
 }
@@ -59,9 +61,10 @@ resource "ec_deployment" "ccs" {
   deployment_template_id = "aws-cross-cluster-search-v2"
 
   elasticsearch = {
-    config = {}
-    hot = {
-      autoscaling = {}
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
     }
 
     remote_cluster = [
