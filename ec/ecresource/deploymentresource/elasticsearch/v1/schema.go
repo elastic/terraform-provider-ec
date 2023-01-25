@@ -281,16 +281,12 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 			"deployment_id": {
 				Description: "Remote deployment ID",
 				Type:        types.StringType,
-				// TODO fix examples/deployment_css/deployment.tf#61
-				// Validators:  []tfsdk.AttributeValidator{validators.Length(32, 32)},
-				Required: true,
+				Required:    true,
 			},
 			"alias": {
 				Description: "Alias for this Cross Cluster Search binding",
 				Type:        types.StringType,
-				// TODO fix examples/deployment_css/deployment.tf#62
-				// Validators:  []tfsdk.AttributeValidator{validators.NotEmpty()},
-				Required: true,
+				Required:    true,
 			},
 			"ref_id": {
 				Description: `Remote elasticsearch "ref_id", it is best left to the default value`,
