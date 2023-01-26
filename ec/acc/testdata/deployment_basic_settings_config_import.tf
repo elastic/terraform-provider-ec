@@ -40,6 +40,8 @@ resource "ec_deployment" "basic" {
         autoscaling = {}
       }
     }
+
+    config = {}
   }
 
   kibana = {
