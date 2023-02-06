@@ -1,5 +1,5 @@
 data "ec_stack" "pre_node_roles" {
-  version_regex = "7.9.?"
+  version_regex = "^7\\.9\\.\\d{1,2}$"
   region        = "%s"
 }
 
