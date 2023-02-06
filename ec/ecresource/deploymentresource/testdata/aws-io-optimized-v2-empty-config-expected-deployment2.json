@@ -1,0 +1,1313 @@
+{
+    "name": "my_deployment_name", 
+    "settings": {
+        "autoscaling_enabled": false
+    }, 
+    "healthy": true, 
+    "alias": "my-deployment-name", 
+    "id": "accd2e61fa835a5a32bb6b2938ce91f3", 
+    "resources": {
+        "enterprise_search": [], 
+        "kibana": [], 
+        "elasticsearch": [
+            {
+                "info": {
+                    "status": "started", 
+                    "associated_apm_clusters": [], 
+                    "associated_kibana_clusters": [], 
+                    "locked": false, 
+                    "links": {}, 
+                    "associated_enterprise_search_clusters": [], 
+                    "healthy": true, 
+                    "associated_appsearch_clusters": [], 
+                    "region": "us-east-1", 
+                    "snapshots": {
+                        "healthy": true, 
+                        "count": 0, 
+                        "recent_success": false
+                    }, 
+                    "cluster_name": "my_deployment_name", 
+                    "plan_info": {
+                        "healthy": true, 
+                        "current": {
+                            "attempt_end_time": "2022-10-06T09:47:29.673Z", 
+                            "warnings": [], 
+                            "healthy": true, 
+                            "source": {
+                                "action": "deployments.create-deployment", 
+                                "date": "2022-10-06T09:45:59.875Z", 
+                                "user_id": "111111", 
+                                "facilitator": "adminconsole", 
+                                "remote_addresses": [
+                                    "18.192.28.203", 
+                                    "3.88.142.49"
+                                ]
+                            }, 
+                            "plan_attempt_log": [
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.619Z", 
+                                    "duration_in_millis": 17, 
+                                    "completed": "2022-10-06T09:46:00.636Z", 
+                                    "step_id": "plan-validator", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.640Z", 
+                                    "duration_in_millis": 2, 
+                                    "completed": "2022-10-06T09:46:00.642Z", 
+                                    "step_id": "log-initial-plan-data", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.647Z", 
+                                    "duration_in_millis": 3, 
+                                    "completed": "2022-10-06T09:46:00.650Z", 
+                                    "step_id": "detect-plan-strategy", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.654Z", 
+                                    "duration_in_millis": 7, 
+                                    "completed": "2022-10-06T09:46:00.661Z", 
+                                    "step_id": "calculate-incremental-elasticsearch-change", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.666Z", 
+                                    "duration_in_millis": 4, 
+                                    "completed": "2022-10-06T09:46:00.670Z", 
+                                    "step_id": "resolve-instances-acls", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.673Z", 
+                                    "duration_in_millis": 4, 
+                                    "completed": "2022-10-06T09:46:00.677Z", 
+                                    "step_id": "validate-plan-safety", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.680Z", 
+                                    "duration_in_millis": 3, 
+                                    "completed": "2022-10-06T09:46:00.683Z", 
+                                    "step_id": "validate-elasticsearch-plugin-versions", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.687Z", 
+                                    "duration_in_millis": 11, 
+                                    "completed": "2022-10-06T09:46:00.698Z", 
+                                    "step_id": "ensure-shield-system-key", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.702Z", 
+                                    "duration_in_millis": 76, 
+                                    "completed": "2022-10-06T09:46:00.778Z", 
+                                    "step_id": "ensure-app-auth-tokens", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:00.783Z", 
+                                    "duration_in_millis": 1008, 
+                                    "completed": "2022-10-06T09:46:01.791Z", 
+                                    "step_id": "add-shield-user", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:01.806Z", 
+                                    "duration_in_millis": 176, 
+                                    "completed": "2022-10-06T09:46:01.982Z", 
+                                    "step_id": "validate-plan-prerequisites", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:01.994Z", 
+                                    "duration_in_millis": 42, 
+                                    "completed": "2022-10-06T09:46:02.036Z", 
+                                    "step_id": "suspend-snapshotting", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.086Z", 
+                                    "duration_in_millis": 33, 
+                                    "completed": "2022-10-06T09:46:02.119Z", 
+                                    "step_id": "ensure-s3-resources", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.132Z", 
+                                    "duration_in_millis": 18, 
+                                    "completed": "2022-10-06T09:46:02.150Z", 
+                                    "step_id": "get-snapshot-settings", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.163Z", 
+                                    "duration_in_millis": 17, 
+                                    "completed": "2022-10-06T09:46:02.180Z", 
+                                    "step_id": "check-enterprise-license", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.209Z", 
+                                    "duration_in_millis": 36, 
+                                    "completed": "2022-10-06T09:46:02.245Z", 
+                                    "step_id": "create-elasticsearch-instances", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.309Z", 
+                                    "duration_in_millis": 239, 
+                                    "completed": "2022-10-06T09:46:02.548Z", 
+                                    "step_id": "generate-node-certificates", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.552Z", 
+                                    "duration_in_millis": 174, 
+                                    "completed": "2022-10-06T09:46:02.726Z", 
+                                    "step_id": "allocate-instances", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.731Z", 
+                                    "duration_in_millis": 4, 
+                                    "completed": "2022-10-06T09:46:02.735Z", 
+                                    "step_id": "override-instance-data", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.742Z", 
+                                    "duration_in_millis": 7, 
+                                    "completed": "2022-10-06T09:46:02.749Z", 
+                                    "step_id": "update-initial-master-nodes", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.753Z", 
+                                    "duration_in_millis": 8, 
+                                    "completed": "2022-10-06T09:46:02.761Z", 
+                                    "step_id": "seed-instances", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.764Z", 
+                                    "duration_in_millis": 13, 
+                                    "completed": "2022-10-06T09:46:02.777Z", 
+                                    "step_id": "start-instances", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:46:02.780Z", 
+                                    "duration_in_millis": 72645, 
+                                    "completed": "2022-10-06T09:47:15.425Z", 
+                                    "step_id": "wait-until-running", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:15.436Z", 
+                                    "duration_in_millis": 30, 
+                                    "completed": "2022-10-06T09:47:15.466Z", 
+                                    "step_id": "wait-until-masters-elected", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:15.476Z", 
+                                    "duration_in_millis": 25, 
+                                    "completed": "2022-10-06T09:47:15.501Z", 
+                                    "step_id": "verify-non-split", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:20.585Z", 
+                                    "duration_in_millis": 8, 
+                                    "completed": "2022-10-06T09:47:20.593Z", 
+                                    "step_id": "set-maintenance", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:27.002Z", 
+                                    "duration_in_millis": 119, 
+                                    "completed": "2022-10-06T09:47:27.121Z", 
+                                    "step_id": "apply-cluster-license", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:27.139Z", 
+                                    "duration_in_millis": 1438, 
+                                    "completed": "2022-10-06T09:47:28.577Z", 
+                                    "step_id": "ensure-repository", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:28.588Z", 
+                                    "duration_in_millis": 256, 
+                                    "completed": "2022-10-06T09:47:28.844Z", 
+                                    "step_id": "ensure-slm-policy", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:28.849Z", 
+                                    "duration_in_millis": 41, 
+                                    "completed": "2022-10-06T09:47:28.890Z", 
+                                    "step_id": "apply-cluster-license", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:28.893Z", 
+                                    "duration_in_millis": 5, 
+                                    "completed": "2022-10-06T09:47:28.898Z", 
+                                    "step_id": "apply-monitoring-config", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:28.902Z", 
+                                    "duration_in_millis": 8, 
+                                    "completed": "2022-10-06T09:47:28.910Z", 
+                                    "step_id": "set-maintenance", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:28.915Z", 
+                                    "duration_in_millis": 7, 
+                                    "completed": "2022-10-06T09:47:28.922Z", 
+                                    "step_id": "apply-curation-settings", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:28.927Z", 
+                                    "duration_in_millis": 252, 
+                                    "completed": "2022-10-06T09:47:29.179Z", 
+                                    "step_id": "apply-plan-settings", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:29.379Z", 
+                                    "duration_in_millis": 46, 
+                                    "completed": "2022-10-06T09:47:29.425Z", 
+                                    "step_id": "post-plan-cleanup", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:29.430Z", 
+                                    "duration_in_millis": 19, 
+                                    "completed": "2022-10-06T09:47:29.449Z", 
+                                    "step_id": "clean-up", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }, 
+                                {
+                                    "status": "success", 
+                                    "started": "2022-10-06T09:47:29.673Z", 
+                                    "duration_in_millis": 0, 
+                                    "completed": "2022-10-06T09:47:29.673Z", 
+                                    "step_id": "plan-completed", 
+                                    "info_log": [], 
+                                    "stage": "completed"
+                                }
+                            ], 
+                            "plan": {
+                                "autoscaling_enabled": false, 
+                                "cluster_topology": [
+                                    {
+                                        "zone_count": 2, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "instance_configuration_id": "aws.coordinating.m5d", 
+                                        "node_roles": [
+                                            "ingest", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "coordinating", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 2, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 1024
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "hot"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 118784
+                                        }, 
+                                        "instance_configuration_id": "aws.data.highio.i3", 
+                                        "node_roles": [
+                                            "master", 
+                                            "ingest", 
+                                            "transform", 
+                                            "data_hot", 
+                                            "remote_cluster_client", 
+                                            "data_content"
+                                        ], 
+                                        "id": "hot_content", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 8192
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 2, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "warm"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 118784
+                                        }, 
+                                        "instance_configuration_id": "aws.data.highstorage.d3", 
+                                        "node_roles": [
+                                            "data_warm", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "warm", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 1, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "cold"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 59392
+                                        }, 
+                                        "instance_configuration_id": "aws.data.highstorage.d3", 
+                                        "node_roles": [
+                                            "data_cold", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "cold", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 1, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "elasticsearch": {
+                                            "node_attributes": {
+                                                "data": "frozen"
+                                            }
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 122880
+                                        }, 
+                                        "instance_configuration_id": "aws.es.datafrozen.i3en", 
+                                        "node_roles": [
+                                            "data_frozen"
+                                        ], 
+                                        "id": "frozen", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 3, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "instance_configuration_id": "aws.master.r5d", 
+                                        "node_roles": [
+                                            "master", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "master", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }, 
+                                    {
+                                        "zone_count": 1, 
+                                        "topology_element_control": {
+                                            "min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        "autoscaling_min": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }, 
+                                        "autoscaling_max": {
+                                            "resource": "memory", 
+                                            "value": 61440
+                                        }, 
+                                        "instance_configuration_id": "aws.ml.m5d", 
+                                        "node_roles": [
+                                            "ml", 
+                                            "remote_cluster_client"
+                                        ], 
+                                        "id": "ml", 
+                                        "size": {
+                                            "resource": "memory", 
+                                            "value": 0
+                                        }
+                                    }
+                                ], 
+                                "elasticsearch": {
+                                    "version": "8.4.3"
+                                }, 
+                                "deployment_template": {
+                                    "id": "aws-io-optimized-v2"
+                                }
+                            }, 
+                            "plan_attempt_id": "c656a76c-0567-4efc-84e0-ee317912a41e", 
+                            "attempt_start_time": "2022-10-06T09:46:00.619Z"
+                        }, 
+                        "history": [
+                            {
+                                "attempt_end_time": "2022-10-06T09:47:29.673Z", 
+                                "plan_attempt_id": "c656a76c-0567-4efc-84e0-ee317912a41e", 
+                                "warnings": [], 
+                                "healthy": true, 
+                                "source": {
+                                    "action": "deployments.create-deployment", 
+                                    "date": "2022-10-06T09:45:59.875Z", 
+                                    "user_id": "111111", 
+                                    "facilitator": "adminconsole", 
+                                    "remote_addresses": [
+                                        "18.192.28.203", 
+                                        "3.88.142.49"
+                                    ]
+                                }, 
+                                "plan_attempt_log": [
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.619Z", 
+                                        "duration_in_millis": 17, 
+                                        "completed": "2022-10-06T09:46:00.636Z", 
+                                        "step_id": "plan-validator", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.640Z", 
+                                        "duration_in_millis": 2, 
+                                        "completed": "2022-10-06T09:46:00.642Z", 
+                                        "step_id": "log-initial-plan-data", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.647Z", 
+                                        "duration_in_millis": 3, 
+                                        "completed": "2022-10-06T09:46:00.650Z", 
+                                        "step_id": "detect-plan-strategy", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.654Z", 
+                                        "duration_in_millis": 7, 
+                                        "completed": "2022-10-06T09:46:00.661Z", 
+                                        "step_id": "calculate-incremental-elasticsearch-change", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.666Z", 
+                                        "duration_in_millis": 4, 
+                                        "completed": "2022-10-06T09:46:00.670Z", 
+                                        "step_id": "resolve-instances-acls", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.673Z", 
+                                        "duration_in_millis": 4, 
+                                        "completed": "2022-10-06T09:46:00.677Z", 
+                                        "step_id": "validate-plan-safety", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.680Z", 
+                                        "duration_in_millis": 3, 
+                                        "completed": "2022-10-06T09:46:00.683Z", 
+                                        "step_id": "validate-elasticsearch-plugin-versions", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.687Z", 
+                                        "duration_in_millis": 11, 
+                                        "completed": "2022-10-06T09:46:00.698Z", 
+                                        "step_id": "ensure-shield-system-key", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.702Z", 
+                                        "duration_in_millis": 76, 
+                                        "completed": "2022-10-06T09:46:00.778Z", 
+                                        "step_id": "ensure-app-auth-tokens", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:00.783Z", 
+                                        "duration_in_millis": 1008, 
+                                        "completed": "2022-10-06T09:46:01.791Z", 
+                                        "step_id": "add-shield-user", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:01.806Z", 
+                                        "duration_in_millis": 176, 
+                                        "completed": "2022-10-06T09:46:01.982Z", 
+                                        "step_id": "validate-plan-prerequisites", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:01.994Z", 
+                                        "duration_in_millis": 42, 
+                                        "completed": "2022-10-06T09:46:02.036Z", 
+                                        "step_id": "suspend-snapshotting", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.086Z", 
+                                        "duration_in_millis": 33, 
+                                        "completed": "2022-10-06T09:46:02.119Z", 
+                                        "step_id": "ensure-s3-resources", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.132Z", 
+                                        "duration_in_millis": 18, 
+                                        "completed": "2022-10-06T09:46:02.150Z", 
+                                        "step_id": "get-snapshot-settings", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.163Z", 
+                                        "duration_in_millis": 17, 
+                                        "completed": "2022-10-06T09:46:02.180Z", 
+                                        "step_id": "check-enterprise-license", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.209Z", 
+                                        "duration_in_millis": 36, 
+                                        "completed": "2022-10-06T09:46:02.245Z", 
+                                        "step_id": "create-elasticsearch-instances", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.309Z", 
+                                        "duration_in_millis": 239, 
+                                        "completed": "2022-10-06T09:46:02.548Z", 
+                                        "step_id": "generate-node-certificates", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.552Z", 
+                                        "duration_in_millis": 174, 
+                                        "completed": "2022-10-06T09:46:02.726Z", 
+                                        "step_id": "allocate-instances", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.731Z", 
+                                        "duration_in_millis": 4, 
+                                        "completed": "2022-10-06T09:46:02.735Z", 
+                                        "step_id": "override-instance-data", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.742Z", 
+                                        "duration_in_millis": 7, 
+                                        "completed": "2022-10-06T09:46:02.749Z", 
+                                        "step_id": "update-initial-master-nodes", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.753Z", 
+                                        "duration_in_millis": 8, 
+                                        "completed": "2022-10-06T09:46:02.761Z", 
+                                        "step_id": "seed-instances", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.764Z", 
+                                        "duration_in_millis": 13, 
+                                        "completed": "2022-10-06T09:46:02.777Z", 
+                                        "step_id": "start-instances", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:46:02.780Z", 
+                                        "duration_in_millis": 72645, 
+                                        "completed": "2022-10-06T09:47:15.425Z", 
+                                        "step_id": "wait-until-running", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:15.436Z", 
+                                        "duration_in_millis": 30, 
+                                        "completed": "2022-10-06T09:47:15.466Z", 
+                                        "step_id": "wait-until-masters-elected", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:15.476Z", 
+                                        "duration_in_millis": 25, 
+                                        "completed": "2022-10-06T09:47:15.501Z", 
+                                        "step_id": "verify-non-split", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:20.585Z", 
+                                        "duration_in_millis": 8, 
+                                        "completed": "2022-10-06T09:47:20.593Z", 
+                                        "step_id": "set-maintenance", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:27.002Z", 
+                                        "duration_in_millis": 119, 
+                                        "completed": "2022-10-06T09:47:27.121Z", 
+                                        "step_id": "apply-cluster-license", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:27.139Z", 
+                                        "duration_in_millis": 1438, 
+                                        "completed": "2022-10-06T09:47:28.577Z", 
+                                        "step_id": "ensure-repository", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:28.588Z", 
+                                        "duration_in_millis": 256, 
+                                        "completed": "2022-10-06T09:47:28.844Z", 
+                                        "step_id": "ensure-slm-policy", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:28.849Z", 
+                                        "duration_in_millis": 41, 
+                                        "completed": "2022-10-06T09:47:28.890Z", 
+                                        "step_id": "apply-cluster-license", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:28.893Z", 
+                                        "duration_in_millis": 5, 
+                                        "completed": "2022-10-06T09:47:28.898Z", 
+                                        "step_id": "apply-monitoring-config", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:28.902Z", 
+                                        "duration_in_millis": 8, 
+                                        "completed": "2022-10-06T09:47:28.910Z", 
+                                        "step_id": "set-maintenance", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:28.915Z", 
+                                        "duration_in_millis": 7, 
+                                        "completed": "2022-10-06T09:47:28.922Z", 
+                                        "step_id": "apply-curation-settings", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:28.927Z", 
+                                        "duration_in_millis": 252, 
+                                        "completed": "2022-10-06T09:47:29.179Z", 
+                                        "step_id": "apply-plan-settings", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:29.379Z", 
+                                        "duration_in_millis": 46, 
+                                        "completed": "2022-10-06T09:47:29.425Z", 
+                                        "step_id": "post-plan-cleanup", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:29.430Z", 
+                                        "duration_in_millis": 19, 
+                                        "completed": "2022-10-06T09:47:29.449Z", 
+                                        "step_id": "clean-up", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }, 
+                                    {
+                                        "status": "success", 
+                                        "started": "2022-10-06T09:47:29.673Z", 
+                                        "duration_in_millis": 0, 
+                                        "completed": "2022-10-06T09:47:29.673Z", 
+                                        "step_id": "plan-completed", 
+                                        "info_log": [], 
+                                        "stage": "completed"
+                                    }
+                                ], 
+                                "plan": {
+                                    "autoscaling_enabled": false, 
+                                    "cluster_topology": [
+                                        {
+                                            "zone_count": 2, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 0
+                                                }
+                                            }, 
+                                            "instance_configuration_id": "aws.coordinating.m5d", 
+                                            "node_roles": [
+                                                "ingest", 
+                                                "remote_cluster_client"
+                                            ], 
+                                            "id": "coordinating", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        {
+                                            "zone_count": 2, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 1024
+                                                }
+                                            }, 
+                                            "elasticsearch": {
+                                                "node_attributes": {
+                                                    "data": "hot"
+                                                }
+                                            }, 
+                                            "autoscaling_max": {
+                                                "resource": "memory", 
+                                                "value": 118784
+                                            }, 
+                                            "instance_configuration_id": "aws.data.highio.i3", 
+                                            "node_roles": [
+                                                "master", 
+                                                "ingest", 
+                                                "transform", 
+                                                "data_hot", 
+                                                "remote_cluster_client", 
+                                                "data_content"
+                                            ], 
+                                            "id": "hot_content", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 8192
+                                            }
+                                        }, 
+                                        {
+                                            "zone_count": 2, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 0
+                                                }
+                                            }, 
+                                            "elasticsearch": {
+                                                "node_attributes": {
+                                                    "data": "warm"
+                                                }
+                                            }, 
+                                            "autoscaling_max": {
+                                                "resource": "memory", 
+                                                "value": 118784
+                                            }, 
+                                            "instance_configuration_id": "aws.data.highstorage.d3", 
+                                            "node_roles": [
+                                                "data_warm", 
+                                                "remote_cluster_client"
+                                            ], 
+                                            "id": "warm", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        {
+                                            "zone_count": 1, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 0
+                                                }
+                                            }, 
+                                            "elasticsearch": {
+                                                "node_attributes": {
+                                                    "data": "cold"
+                                                }
+                                            }, 
+                                            "autoscaling_max": {
+                                                "resource": "memory", 
+                                                "value": 59392
+                                            }, 
+                                            "instance_configuration_id": "aws.data.highstorage.d3", 
+                                            "node_roles": [
+                                                "data_cold", 
+                                                "remote_cluster_client"
+                                            ], 
+                                            "id": "cold", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        {
+                                            "zone_count": 1, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 0
+                                                }
+                                            }, 
+                                            "elasticsearch": {
+                                                "node_attributes": {
+                                                    "data": "frozen"
+                                                }
+                                            }, 
+                                            "autoscaling_max": {
+                                                "resource": "memory", 
+                                                "value": 122880
+                                            }, 
+                                            "instance_configuration_id": "aws.es.datafrozen.i3en", 
+                                            "node_roles": [
+                                                "data_frozen"
+                                            ], 
+                                            "id": "frozen", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        {
+                                            "zone_count": 3, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 0
+                                                }
+                                            }, 
+                                            "instance_configuration_id": "aws.master.r5d", 
+                                            "node_roles": [
+                                                "master", 
+                                                "remote_cluster_client"
+                                            ], 
+                                            "id": "master", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }, 
+                                        {
+                                            "zone_count": 1, 
+                                            "topology_element_control": {
+                                                "min": {
+                                                    "resource": "memory", 
+                                                    "value": 0
+                                                }
+                                            }, 
+                                            "autoscaling_min": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }, 
+                                            "autoscaling_max": {
+                                                "resource": "memory", 
+                                                "value": 61440
+                                            }, 
+                                            "instance_configuration_id": "aws.ml.m5d", 
+                                            "node_roles": [
+                                                "ml", 
+                                                "remote_cluster_client"
+                                            ], 
+                                            "id": "ml", 
+                                            "size": {
+                                                "resource": "memory", 
+                                                "value": 0
+                                            }
+                                        }
+                                    ], 
+                                    "elasticsearch": {
+                                        "version": "8.4.3"
+                                    }, 
+                                    "deployment_template": {
+                                        "id": "aws-io-optimized-v2"
+                                    }
+                                }, 
+                                "plan_attempt_name": "attempt-0000000000", 
+                                "attempt_start_time": "2022-10-06T09:46:00.636Z"
+                            }
+                        ]
+                    }, 
+                    "cluster_id": "0589ddb3acee4641b95833022bf04d2b", 
+                    "external_links": [], 
+                    "elasticsearch": {
+                        "healthy": true, 
+                        "cluster_blocking_issues": {
+                            "healthy": true, 
+                            "blocks": []
+                        }, 
+                        "master_info": {
+                            "healthy": true, 
+                            "instances_with_no_master": [], 
+                            "masters": [
+                                {
+                                    "instances": [
+                                        "tiebreaker-0000000002", 
+                                        "instance-0000000001", 
+                                        "instance-0000000000"
+                                    ], 
+                                    "master_node_id": "U3kdKRNCQ3ym06KKyojljQ", 
+                                    "master_instance_name": "instance-0000000001"
+                                }
+                            ]
+                        }, 
+                        "shards_status": {
+                            "status": "green"
+                        }, 
+                        "blocking_issues": {
+                            "healthy": true, 
+                            "cluster_level": [], 
+                            "index_level": []
+                        }, 
+                        "shard_info": {
+                            "healthy": true, 
+                            "unavailable_shards": [], 
+                            "unavailable_replicas": [], 
+                            "available_shards": []
+                        }
+                    }, 
+                    "deployment_id": "accd2e61fa835a5a32bb6b2938ce91f3", 
+                    "topology": {
+                        "healthy": true, 
+                        "instances": [
+                            {
+                                "service_roles": [
+                                    "ingest", 
+                                    "master", 
+                                    "data"
+                                ], 
+                                "instance_set_id": "hot_content", 
+                                "zone": "us-east-1b", 
+                                "container_started": true, 
+                                "service_version": "8.4.3", 
+                                "healthy": true, 
+                                "maintenance_mode": false, 
+                                "instance_name": "instance-0000000000", 
+                                "logical_zone": "zone-0", 
+                                "instance_configuration": {
+                                    "resource": "memory", 
+                                    "id": "aws.data.highio.i3", 
+                                    "name": "aws.data.highio.i3"
+                                }, 
+                                "memory": {
+                                    "instance_capacity": 8192, 
+                                    "memory_pressure": 1
+                                }, 
+                                "disk": {
+                                    "disk_space_available": 245760, 
+                                    "storage_multiplier": 30.0, 
+                                    "disk_space_used": 117
+                                }, 
+                                "node_roles": [
+                                    "master", 
+                                    "ingest", 
+                                    "transform", 
+                                    "data_hot", 
+                                    "remote_cluster_client", 
+                                    "data_content"
+                                ], 
+                                "allocator_id": "i-03b043eb9cee5566b", 
+                                "service_running": true
+                            }, 
+                            {
+                                "service_roles": [
+                                    "ingest", 
+                                    "master", 
+                                    "data"
+                                ], 
+                                "instance_set_id": "hot_content", 
+                                "zone": "us-east-1e", 
+                                "container_started": true, 
+                                "service_version": "8.4.3", 
+                                "healthy": true, 
+                                "maintenance_mode": false, 
+                                "instance_name": "instance-0000000001", 
+                                "logical_zone": "zone-1", 
+                                "instance_configuration": {
+                                    "resource": "memory", 
+                                    "id": "aws.data.highio.i3", 
+                                    "name": "aws.data.highio.i3"
+                                }, 
+                                "memory": {
+                                    "instance_capacity": 8192, 
+                                    "native_memory_pressure": 55
+                                }, 
+                                "disk": {
+                                    "disk_space_available": 245760, 
+                                    "storage_multiplier": 30.0, 
+                                    "disk_space_used": 0
+                                }, 
+                                "node_roles": [
+                                    "master", 
+                                    "ingest", 
+                                    "transform", 
+                                    "data_hot", 
+                                    "remote_cluster_client", 
+                                    "data_content"
+                                ], 
+                                "allocator_id": "i-0af729d3a795a93a3", 
+                                "service_running": true
+                            }, 
+                            {
+                                "service_roles": [
+                                    "master"
+                                ], 
+                                "instance_set_id": "hot_content", 
+                                "zone": "us-east-1a", 
+                                "container_started": true, 
+                                "service_version": "8.4.3", 
+                                "healthy": true, 
+                                "maintenance_mode": false, 
+                                "instance_name": "tiebreaker-0000000002", 
+                                "logical_zone": "tiebreaker", 
+                                "instance_configuration": {
+                                    "resource": "memory", 
+                                    "id": "aws.master.r5d", 
+                                    "name": "aws.master.r5d"
+                                }, 
+                                "memory": {
+                                    "instance_capacity": 1024, 
+                                    "memory_pressure": 10, 
+                                    "native_memory_pressure": 79
+                                }, 
+                                "disk": {
+                                    "disk_space_available": 2048, 
+                                    "storage_multiplier": 2.0, 
+                                    "disk_space_used": 0
+                                }, 
+                                "node_roles": [
+                                    "master", 
+                                    "voting_only"
+                                ], 
+                                "allocator_id": "i-04712f4bbc8e7072e", 
+                                "service_running": true
+                            }
+                        ]
+                    }, 
+                    "metadata": {
+                        "endpoint": "0589ddb3acee4641b95833022bf04d2b.us-east-1.aws.found.io", 
+                        "sso_deep_linking_supported": false, 
+                        "last_modified": "2022-10-06T09:47:29.809Z", 
+                        "aliased_endpoint": "my-deployment-name.es.us-east-1.aws.found.io", 
+                        "ccr": true, 
+                        "version": 20, 
+                        "service_url": "https://0589ddb3acee4641b95833022bf04d2b.us-east-1.aws.found.io", 
+                        "aliased_url": "https://my-deployment-name.es.us-east-1.aws.found.io", 
+                        "ports": {
+                            "transport_passthrough": 9400, 
+                            "http": 9200, 
+                            "https": 443
+                        }, 
+                        "cloud_id": "my_deployment_name:someCloudID"
+                    }
+                }, 
+                "region": "us-east-1", 
+                "id": "0589ddb3acee4641b95833022bf04d2b", 
+                "ref_id": "main-elasticsearch"
+            }
+        ], 
+        "apm": [], 
+        "appsearch": [], 
+        "integrations_server": []
+    }, 
+    "metadata": {
+        "last_resource_plan_modified": "2022-10-06T09:47:29.673Z", 
+        "tags": [], 
+        "organization_id": "222222", 
+        "last_modified": "2022-10-06T09:47:29.809Z", 
+        "hidden": false, 
+        "system_owned": false, 
+        "owner_id": "1111"
+    }
+}

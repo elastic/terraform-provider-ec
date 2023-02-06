@@ -18,11 +18,15 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func TestFlattenObservability(t *testing.T) {
@@ -32,18 +36,18 @@ func TestFlattenObservability(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []observabilitySettingsModel
 	}{
 		{
-			name: "flattens no observability settings when empty",
+			name: "flattens no observability settings when empty #1",
 			args: args{},
 		},
 		{
-			name: "flattens no observability settings when empty",
+			name: "flattens no observability settings when empty #2",
 			args: args{settings: &models.DeploymentSettings{}},
 		},
 		{
-			name: "flattens no observability settings when empty",
+			name: "flattens no observability settings when empty #3",
 			args: args{settings: &models.DeploymentSettings{Observability: &models.DeploymentObservabilitySettings{}}},
 		},
 		{
@@ -58,10 +62,11 @@ func TestFlattenObservability(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        "main-elasticsearch",
-				"logs":          true,
+			want: []observabilitySettingsModel{{
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				RefID:        types.String{Value: "main-elasticsearch"},
+				Logs:         types.Bool{Value: true},
+				Metrics:      types.Bool{Value: false},
 			}},
 		},
 		{
@@ -76,10 +81,11 @@ func TestFlattenObservability(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        "main-elasticsearch",
-				"metrics":       true,
+			want: []observabilitySettingsModel{{
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				RefID:        types.String{Value: "main-elasticsearch"},
+				Logs:         types.Bool{Value: false},
+				Metrics:      types.Bool{Value: true},
 			}},
 		},
 		{
@@ -100,18 +106,22 @@ func TestFlattenObservability(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"deployment_id": &mock.ValidClusterID,
-				"ref_id":        "main-elasticsearch",
-				"logs":          true,
-				"metrics":       true,
+			want: []observabilitySettingsModel{{
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				RefID:        types.String{Value: "main-elasticsearch"},
+				Logs:         types.Bool{Value: true},
+				Metrics:      types.Bool{Value: true},
 			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenObservability(tt.args.settings)
+			observability, diags := flattenObservability(context.Background(), tt.args.settings)
+			assert.Empty(t, diags)
+			var got []observabilitySettingsModel
+			observability.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "observability", observability)
 		})
 	}
 }

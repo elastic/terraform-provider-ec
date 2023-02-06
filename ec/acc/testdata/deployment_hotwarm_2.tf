@@ -9,16 +9,19 @@ resource "ec_deployment" "hotwarm" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id         = "hot_content"
-      zone_count = 1
-      size       = "1g"
-    }
-    topology {
-      id         = "warm"
-      zone_count = 1
-      size       = "2g"
+  elasticsearch = {
+    topology = {
+      "hot_content" = {
+        zone_count  = 1
+        size        = "1g"
+        autoscaling = {}
+      }
+
+      "warm" = {
+        zone_count  = 1
+        size        = "2g"
+        autoscaling = {}
+      }
     }
   }
 }

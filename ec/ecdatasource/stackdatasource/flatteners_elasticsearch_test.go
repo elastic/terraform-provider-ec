@@ -18,29 +18,34 @@
 package stackdatasource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-func Test_flattenElasticsearchResources(t *testing.T) {
+func Test_flattenElasticsearchResource(t *testing.T) {
 	type args struct {
 		res *models.StackVersionElasticsearchConfig
 	}
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []elasticsearchConfigModelV0
 	}{
 		{
-			name: "empty resource list returns empty list",
+			name: "empty resource list returns empty list #1",
 			args: args{},
 			want: nil,
 		},
 		{
-			name: "empty resource list returns empty list",
+			name: "empty resource list returns empty list #2",
 			args: args{res: &models.StackVersionElasticsearchConfig{}},
 			want: nil,
 		},
@@ -70,13 +75,13 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 					"repository-gcs",
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"denylist":                 []interface{}{"some"},
-				"capacity_constraints_max": 8192,
-				"capacity_constraints_min": 512,
-				"default_plugins":          []interface{}{"repository-s3"},
-				"docker_image":             "docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0",
-				"plugins": []interface{}{
+			want: []elasticsearchConfigModelV0{{
+				DenyList:               util.StringListAsType([]string{"some"}),
+				CapacityConstraintsMax: types.Int64{Value: 8192},
+				CapacityConstraintsMin: types.Int64{Value: 512},
+				CompatibleNodeTypes:    util.StringListAsType(nil),
+				DockerImage:            types.String{Value: "docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0"},
+				Plugins: util.StringListAsType([]string{
 					"analysis-icu",
 					"analysis-kuromoji",
 					"analysis-nori",
@@ -90,14 +95,21 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 					"mapper-size",
 					"repository-azure",
 					"repository-gcs",
-				},
+				}),
+				DefaultPlugins: util.StringListAsType([]string{"repository-s3"}),
 			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenElasticsearchResources(tt.args.res)
+			elasticsearch, diags := flattenElasticsearchConfig(context.Background(), tt.args.res)
+			assert.Empty(t, diags)
+
+			var got []elasticsearchConfigModelV0
+			elasticsearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+
+			util.CheckConverionToAttrValue(t, &DataSource{}, "elasticsearch", elasticsearch)
 		})
 	}
 }

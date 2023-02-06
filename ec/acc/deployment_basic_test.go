@@ -42,27 +42,26 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "alias", randomAlias),
-					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
+					resource.TestCheckNoResourceAttr(resName, "apm.config"),
+					resource.TestCheckNoResourceAttr(resName, "enterprise_search.config"),
+					resource.TestCheckNoResourceAttr(resName, "traffic_filter"),
 					// Ensure at least 1 account is trusted (self).
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.trust_account.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.trust_account.#", "1"),
 				),
 			},
 			{
 				Config: cfgWithTrafficFilter,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					// Ensure at least 1 account is trusted (self). It isn't deleted.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.trust_account.#", "1"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.trust_account.#", "1"),
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
 			},
@@ -76,9 +75,7 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 			{
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
-					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "0"),
 				),
 			},
 		},
@@ -88,9 +85,9 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 func TestAccDeployment_basic_config(t *testing.T) {
 	resName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_basic_settings_config_1.tf"
+	importCfg := "testdata/deployment_basic_settings_config_import.tf"
 	settingsConfig := "testdata/deployment_basic_settings_config_2.tf"
-	cfg := fixtureAccDeploymentResourceBasicWithApps(t, startCfg, randomName, getRegion(), defaultTemplate)
+	cfg := fixtureAccDeploymentResourceBasicWithApps(t, importCfg, randomName, getRegion(), defaultTemplate)
 	settingsConfigCfg := fixtureAccDeploymentResourceBasicWithApps(t, settingsConfig, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
 	if err != nil {
@@ -98,31 +95,27 @@ func TestAccDeployment_basic_config(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: settingsConfigCfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.0.user_settings_yaml", "action.auto_create_index: true"),
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "true"),
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.user_settings_json", `{"apm-server.rum.enabled":true}`),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.0.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "1"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.user_settings_yaml", "# comment"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.config.user_settings_yaml", "action.auto_create_index: true"),
+					resource.TestCheckResourceAttr(resName, "apm.config.debug_enabled", "true"),
+					resource.TestCheckResourceAttr(resName, "apm.config.user_settings_json", `{"apm-server.rum.enabled":true}`),
+					resource.TestCheckResourceAttr(resName, "kibana.config.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.config.user_settings_yaml", "# comment"),
 				),
 			},
 			{
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
-					resource.TestCheckResourceAttr(resName, "apm.0.config.#", "1"),
-					// The config block is unset in the configuration so it disappears from the state.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.debug_enabled", "false"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.#", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.#", "0"),
+					resource.TestCheckResourceAttr(resName, "apm.config.%", "0"),
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.config.user_settings_yaml"),
+					resource.TestCheckResourceAttr(resName, "kibana.config.%", "0"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.config.%", "0"),
 				),
 			},
 			// Import resource without complex ID
@@ -194,32 +187,28 @@ func checkBasicDeploymentResource(resName, randomDeploymentName, deploymentVersi
 		testAccCheckDeploymentExists(resName),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
 		resource.TestCheckResourceAttr(resName, "region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "apm.#", "1"),
-		resource.TestCheckResourceAttr(resName, "apm.0.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size", "1g"),
-		resource.TestCheckResourceAttr(resName, "apm.0.topology.0.size_resource", "memory"),
+		resource.TestCheckResourceAttr(resName, "apm.region", getRegion()),
+		resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
+		resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
 		resource.TestCheckResourceAttrSet(resName, "apm_secret_token"),
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch_username"),
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch_password"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.http_endpoint"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.https_endpoint"),
-		resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-		resource.TestCheckResourceAttr(resName, "elasticsearch.0.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size", "1g"),
-		resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.0.size_resource", "memory"),
-		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.http_endpoint"),
-		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.https_endpoint"),
-		resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
-		resource.TestCheckResourceAttr(resName, "kibana.0.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size", "1g"),
-		resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.size_resource", "memory"),
-		resource.TestCheckResourceAttrSet(resName, "kibana.0.http_endpoint"),
-		resource.TestCheckResourceAttrSet(resName, "kibana.0.https_endpoint"),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.#", "1"),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.0.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.size", "2g"),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.0.topology.0.size_resource", "memory"),
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.http_endpoint"),
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.https_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "apm.http_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "apm.https_endpoint"),
+		resource.TestCheckResourceAttr(resName, "elasticsearch.region", getRegion()),
+		resource.TestCheckResourceAttr(resName, "elasticsearch.topology.hot_content.size", "1g"),
+		resource.TestCheckResourceAttr(resName, "elasticsearch.topology.hot_content.size_resource", "memory"),
+		resource.TestCheckResourceAttrSet(resName, "elasticsearch.http_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "elasticsearch.https_endpoint"),
+		resource.TestCheckResourceAttr(resName, "kibana.region", getRegion()),
+		resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
+		resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
+		resource.TestCheckResourceAttrSet(resName, "kibana.http_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "kibana.https_endpoint"),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.region", getRegion()),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
+		resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
+		resource.TestCheckResourceAttrSet(resName, "enterprise_search.http_endpoint"),
+		resource.TestCheckResourceAttrSet(resName, "enterprise_search.https_endpoint"),
 	}, checks...)...)
 }

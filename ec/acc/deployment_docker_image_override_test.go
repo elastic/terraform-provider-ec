@@ -44,17 +44,17 @@ func TestAccDeployment_docker_image_override(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfgF("testdata/deployment_docker_image_override.tf"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.config.0.docker_image", "docker.elastic.co/cloud-ci/elasticsearch:7.15.0-SNAPSHOT"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.config.0.docker_image", "docker.elastic.co/cloud-ci/kibana:7.15.0-SNAPSHOT"),
-					resource.TestCheckResourceAttr(resName, "apm.0.config.0.docker_image", "docker.elastic.co/cloud-ci/apm:7.15.0-SNAPSHOT"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.0.config.0.docker_image", "docker.elastic.co/cloud-ci/enterprise-search:7.15.0-SNAPSHOT"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.config.docker_image", "docker.elastic.co/cloud-ci/elasticsearch:7.15.0-SNAPSHOT"),
+					resource.TestCheckResourceAttr(resName, "kibana.config.docker_image", "docker.elastic.co/cloud-ci/kibana:7.15.0-SNAPSHOT"),
+					resource.TestCheckResourceAttr(resName, "apm.config.docker_image", "docker.elastic.co/cloud-ci/apm:7.15.0-SNAPSHOT"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.config.docker_image", "docker.elastic.co/cloud-ci/enterprise-search:7.15.0-SNAPSHOT"),
 				),
 			},
 		},

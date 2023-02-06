@@ -18,20 +18,19 @@
 package trafficfilterresource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_modelToState(t *testing.T) {
-	trafficFilterSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
-	trafficFilterSchemaArg.SetId("some-random-id")
-
 	remoteState := models.TrafficFilterRulesetInfo{
 		ID:               ec.String("some-random-id"),
 		Name:             ec.String("my traffic filter"),
@@ -43,9 +42,6 @@ func Test_modelToState(t *testing.T) {
 			{Source: "0.0.0.0/0"},
 		},
 	}
-
-	trafficFilterSchemaArgMultipleR := schema.TestResourceDataRaw(t, newSchema(), nil)
-	trafficFilterSchemaArgMultipleR.SetId("some-random-id")
 
 	remoteStateMultipleRules := models.TrafficFilterRulesetInfo{
 		ID:               ec.String("some-random-id"),
@@ -61,15 +57,13 @@ func Test_modelToState(t *testing.T) {
 		},
 	}
 
-	trafficFilterSchemaArgMultipleRWithDesc := schema.TestResourceDataRaw(t, newSchema(), nil)
-	trafficFilterSchemaArgMultipleRWithDesc.SetId("some-random-id")
-
 	remoteStateMultipleRulesWithDesc := models.TrafficFilterRulesetInfo{
 		ID:               ec.String("some-random-id"),
 		Name:             ec.String("my traffic filter"),
 		Type:             ec.String("ip"),
 		IncludeByDefault: ec.Bool(false),
 		Region:           ec.String("us-east-1"),
+		Description:      *ec.String("Allows access to some network, a specific IP and all internet traffic"),
 		Rules: []*models.TrafficFilterRule{
 			{Source: "1.1.1.0/16", Description: "some network"},
 			{Source: "1.1.1.1/24", Description: "a specific IP"},
@@ -77,64 +71,42 @@ func Test_modelToState(t *testing.T) {
 		},
 	}
 
-	wantTrafficFilter := util.NewResourceData(t, util.ResDataParams{
-		ID:     "some-random-id",
-		State:  newSampleTrafficFilter(),
-		Schema: newSchema(),
-	})
-	wantTrafficFilterMultipleR := util.NewResourceData(t, util.ResDataParams{
-		ID: "some-random-id",
-		State: map[string]interface{}{
-			"name":               "my traffic filter",
-			"type":               "ip",
-			"include_by_default": false,
-			"region":             "us-east-1",
-			"rule": []interface{}{
-				map[string]interface{}{
-					"source": "1.1.1.1/24",
-				},
-				map[string]interface{}{
-					"source": "1.1.1.0/16",
-				},
-				map[string]interface{}{
-					"source": "0.0.0.0/0",
-				},
-				map[string]interface{}{
-					"source": "1.1.1.1",
-				},
+	want := newSampleTrafficFilter("some-random-id")
+	wantMultipleRules := modelV0{
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Description:      types.String{Null: true},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.0/16", "", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1/24", "", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1", "", "", "", ""),
 			},
 		},
-		Schema: newSchema(),
-	})
-	wantTrafficFilterMultipleRWithDesc := util.NewResourceData(t, util.ResDataParams{
-		ID: "some-random-id",
-		State: map[string]interface{}{
-			"name":               "my traffic filter",
-			"type":               "ip",
-			"include_by_default": false,
-			"region":             "us-east-1",
-			"rule": []interface{}{
-				map[string]interface{}{
-					"source":      "1.1.1.1/24",
-					"description": "a specific IP",
-				},
-				map[string]interface{}{
-					"source":      "1.1.1.0/16",
-					"description": "some network",
-				},
-				map[string]interface{}{
-					"source":      "0.0.0.0/0",
-					"description": "all internet traffic",
-				},
+	}
+	wantMultipleRulesWithDesc := modelV0{
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Description:      types.String{Value: "Allows access to some network, a specific IP and all internet traffic"},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.0/16", "some network", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1/24", "a specific IP", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "all internet traffic", "", "", ""),
 			},
 		},
-		Schema: newSchema(),
-	})
+	}
 
-	azurePLSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
-	azurePLSchemaArg.SetId("some-random-id")
-
-	azurePLRemoteState := models.TrafficFilterRulesetInfo{
+	remoteStateAzurePL := models.TrafficFilterRulesetInfo{
 		ID:               ec.String("some-random-id"),
 		Name:             ec.String("my traffic filter"),
 		Type:             ec.String("azure_private_endpoint"),
@@ -148,60 +120,66 @@ func Test_modelToState(t *testing.T) {
 		},
 	}
 
-	type args struct {
-		d   *schema.ResourceData
-		res *models.TrafficFilterRulesetInfo
+	wantAzurePL := modelV0{
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "azure_private_endpoint"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "azure-australiaeast"},
+		Description:      types.String{Null: true},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("", "", "my-azure-pl", "1231312-1231-1231-1231-1231312", ""),
+			},
+		},
 	}
+
+	type args struct {
+		in *models.TrafficFilterRulesetInfo
+	}
+
 	tests := []struct {
 		name string
 		args args
 		err  error
-		want *schema.ResourceData
+		want modelV0
 	}{
 		{
 			name: "flattens the resource",
-			args: args{d: trafficFilterSchemaArg, res: &remoteState},
-			want: wantTrafficFilter,
+			args: args{in: &remoteState},
+			want: want,
 		},
 		{
 			name: "flattens the resource with multiple rules",
-			args: args{d: trafficFilterSchemaArgMultipleR, res: &remoteStateMultipleRules},
-			want: wantTrafficFilterMultipleR,
+			args: args{in: &remoteStateMultipleRules},
+			want: wantMultipleRules,
 		},
 		{
 			name: "flattens the resource with multiple rules with descriptions",
-			args: args{d: trafficFilterSchemaArgMultipleRWithDesc, res: &remoteStateMultipleRulesWithDesc},
-			want: wantTrafficFilterMultipleRWithDesc,
+			args: args{in: &remoteStateMultipleRulesWithDesc},
+			want: wantMultipleRulesWithDesc,
 		},
 		{
 			name: "flattens the resource with multiple rules with descriptions",
-			args: args{d: azurePLSchemaArg, res: &azurePLRemoteState},
-			want: util.NewResourceData(t, util.ResDataParams{
-				ID: "some-random-id",
-				State: map[string]interface{}{
-					"name":               "my traffic filter",
-					"type":               "azure_private_endpoint",
-					"include_by_default": false,
-					"region":             "azure-australiaeast",
-					"rule": []interface{}{map[string]interface{}{
-						"azure_endpoint_guid": "1231312-1231-1231-1231-1231312",
-						"azure_endpoint_name": "my-azure-pl",
-					}},
-				},
-				Schema: newSchema(),
-			}),
+			args: args{in: &remoteStateAzurePL},
+			want: wantAzurePL,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := modelToState(tt.args.d, tt.args.res)
+			state := modelV0{
+				ID: types.String{Value: "some-random-id"},
+			}
+			diags := modelToState(context.Background(), tt.args.in, &state)
+
 			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
+				assert.Equal(t, diags, tt.err)
 			} else {
-				assert.NoError(t, err)
+				assert.Empty(t, diags)
 			}
 
-			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
+			assert.Equal(t, tt.want, state)
 		})
 	}
 }

@@ -18,30 +18,17 @@
 package util
 
 import (
-	"fmt"
+	"os"
+	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// FlattenClusterEndpoint receives a ClusterMetadataInfo, parses the http and
-// https endpoints and returns a map with two keys: `http_endpoint` and
-// `https_endpoint`
-func FlattenClusterEndpoint(metadata *models.ClusterMetadataInfo) map[string]interface{} {
-	if metadata == nil || metadata.Endpoint == "" || metadata.Ports == nil {
-		return nil
-	}
-
-	var m = make(map[string]interface{})
-	if metadata.Ports.HTTP != nil {
-		m["http_endpoint"] = fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP)
-	}
-
-	if metadata.Ports.HTTPS != nil {
-		m["https_endpoint"] = fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS)
-	}
-
-	return m
-}
+// used in tests
+var GetEnv = os.Getenv
 
 // IsCurrentEsPlanEmpty checks that the elasticsearch resource current plan is empty.
 func IsCurrentEsPlanEmpty(res *models.ElasticsearchResourceInfo) bool {
@@ -72,4 +59,47 @@ func IsCurrentIntegrationsServerPlanEmpty(res *models.IntegrationsServerResource
 func IsCurrentEssPlanEmpty(res *models.EnterpriseSearchResourceInfo) bool {
 	var emptyPlanInfo = res.Info == nil || res.Info.PlanInfo == nil || res.Info.PlanInfo.Current == nil
 	return emptyPlanInfo || res.Info.PlanInfo.Current.Plan == nil
+}
+
+// MultiGetenvOrDefault returns the value of the first environment variable in the
+// given list that has a non-empty value. If none of the environment
+// variables have a value, the default value is returned.
+func MultiGetenvOrDefault(keys []string, defaultValue string) string {
+	for _, key := range keys {
+		if value := GetEnv(key); value != "" {
+			return value
+		}
+	}
+	return defaultValue
+}
+
+func StringToBool(str string) (bool, error) {
+	if str == "" {
+		return false, nil
+	}
+
+	v, err := strconv.ParseBool(str)
+	if err != nil {
+		return false, err
+	}
+
+	return v, nil
+}
+
+func StringListAsType(in []string) types.List {
+	//goland:noinspection GoPreferNilSlice
+	out := []attr.Value{}
+	for _, value := range in {
+		out = append(out, types.String{Value: value})
+	}
+	return types.List{ElemType: types.StringType, Elems: out}
+}
+
+func StringMapAsType(in map[string]string) types.Map {
+	//goland:noinspection GoPreferNilSlice
+	out := make(map[string]attr.Value, len(in))
+	for key, value := range in {
+		out[key] = types.String{Value: value}
+	}
+	return types.Map{ElemType: types.StringType, Elems: out}
 }

@@ -21,53 +21,60 @@ import (
 	"context"
 	"errors"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // Delete will delete an existing deployment traffic filter ruleset
-func delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
+	}
+
+	var state modelV0
+
+	diags := request.State.Get(ctx, &state)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
-		API: client, ID: d.Id(), IncludeAssociations: true,
+		API: r.client, ID: state.ID.Value, IncludeAssociations: true,
 	})
 	if err != nil {
-		if util.TrafficFilterNotFound(err) {
-			d.SetId("")
-			return nil
+		if !util.TrafficFilterNotFound(err) {
+			response.Diagnostics.AddError(err.Error(), err.Error())
 		}
-		return diag.FromErr(err)
+		return
 	}
 
 	for _, assoc := range res.Associations {
 		if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
-			API:        client,
-			ID:         d.Id(),
+			API:        r.client,
+			ID:         state.ID.Value,
 			EntityID:   *assoc.ID,
 			EntityType: *assoc.EntityType,
 		}); err != nil {
 			if !associationDeleted(err) {
-				return diag.FromErr(err)
+				response.Diagnostics.AddError(err.Error(), err.Error())
+				return
 			}
 		}
 	}
 
 	if err := trafficfilterapi.Delete(trafficfilterapi.DeleteParams{
-		API: client, ID: d.Id(),
+		API: r.client, ID: state.ID.Value,
 	}); err != nil {
 		if !ruleDeleted(err) {
-			return diag.FromErr(err)
+			response.Diagnostics.AddError(err.Error(), err.Error())
+			return
 		}
 	}
-
-	d.SetId("")
-	return nil
 }
 
 func associationDeleted(err error) bool {

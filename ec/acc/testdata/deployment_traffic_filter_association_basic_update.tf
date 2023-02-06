@@ -9,14 +9,16 @@ resource "ec_deployment" "tf_assoc" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id   = "hot_content"
-      size = "1g"
+  elasticsearch = {
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        autoscaling = {}
+      }
     }
   }
 
-  kibana {}
+  kibana = {}
 }
 
 resource "ec_deployment_traffic_filter" "tf_assoc_second" {

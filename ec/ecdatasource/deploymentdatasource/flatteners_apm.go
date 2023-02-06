@@ -18,84 +18,110 @@
 package deploymentdatasource
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // flattenApmResources takes in Apm resource models and returns its
 // flattened form.
-func flattenApmResources(in []*models.ApmResourceInfo) []interface{} {
-	var result = make([]interface{}, 0, len(in))
+func flattenApmResources(ctx context.Context, in []*models.ApmResourceInfo) (types.List, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
+	var result = make([]apmResourceInfoModelV0, 0, len(in))
+
 	for _, res := range in {
-		var m = make(map[string]interface{})
+		model := apmResourceInfoModelV0{
+			Topology: types.List{ElemType: types.ObjectType{AttrTypes: apmTopologyAttrTypes()}},
+		}
 
 		if res.ElasticsearchClusterRefID != nil {
-			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
+			model.ElasticsearchClusterRefID = types.String{Value: *res.ElasticsearchClusterRefID}
 		}
 
 		if res.RefID != nil {
-			m["ref_id"] = *res.RefID
+			model.RefID = types.String{Value: *res.RefID}
 		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
-				m["healthy"] = *res.Info.Healthy
+				model.Healthy = types.Bool{Value: *res.Info.Healthy}
 			}
 
 			if res.Info.ID != nil {
-				m["resource_id"] = *res.Info.ID
+				model.ResourceID = types.String{Value: *res.Info.ID}
 			}
 
 			if res.Info.Status != nil {
-				m["status"] = *res.Info.Status
+				model.Status = types.String{Value: *res.Info.Status}
 			}
 
 			if !util.IsCurrentApmPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.Apm != nil {
-					m["version"] = plan.Apm.Version
+					model.Version = types.String{Value: plan.Apm.Version}
 				}
 
-				m["topology"] = flattenApmTopology(plan)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenApmTopology(ctx, plan)
+				diagnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
-				for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
-					m[k] = v
-				}
+				model.HttpEndpoint, model.HttpsEndpoint = converters.ExtractEndpointsToTypes(res.Info.Metadata)
 			}
 		}
 
-		result = append(result, m)
+		result = append(result, model)
 	}
 
-	return result
+	var target types.List
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: apmResourceInfoAttrTypes(),
+		},
+	}, &target)...)
+
+	return target, diagnostics
 }
 
-func flattenApmTopology(plan *models.ApmPlan) []interface{} {
-	var result = make([]interface{}, 0, len(plan.ClusterTopology))
+func flattenApmTopology(ctx context.Context, plan *models.ApmPlan) (types.List, diag.Diagnostics) {
+	var result = make([]apmTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
-		var m = make(map[string]interface{})
+		var model apmTopologyModelV0
 
 		if isApmSizePopulated(topology) && *topology.Size.Value == 0 {
 			continue
 		}
 
-		m["instance_configuration_id"] = topology.InstanceConfigurationID
+		model.InstanceConfigurationID = types.String{Value: topology.InstanceConfigurationID}
 
 		if isApmSizePopulated(topology) {
-			m["size"] = util.MemoryToState(*topology.Size.Value)
-			m["size_resource"] = *topology.Size.Resource
+			model.Size = types.String{Value: util.MemoryToState(*topology.Size.Value)}
+			model.SizeResource = types.String{Value: *topology.Size.Resource}
 		}
 
-		m["zone_count"] = topology.ZoneCount
+		model.ZoneCount = types.Int64{Value: int64(topology.ZoneCount)}
 
-		result = append(result, m)
+		result = append(result, model)
 	}
 
-	return result
+	var target types.List
+
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: apmTopologyAttrTypes(),
+		},
+	}, &target)
+
+	return target, diags
 }
 
 func isApmSizePopulated(topology *models.ApmTopologyElement) bool {

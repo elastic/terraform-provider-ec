@@ -20,33 +20,55 @@ package trafficfilterresource
 import (
 	"context"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-// Read queries the remote deployment traffic filter ruleset state and update
+// Read queries the remote deployment traffic filter ruleset state and updates
 // the local state.
-func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
+func (r Resource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
+	}
 
+	var newState modelV0
+
+	diags := request.State.Get(ctx, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	found, diags := r.read(ctx, newState.ID.Value, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		response.State.RemoveResource(ctx)
+		return
+	}
+
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
+}
+
+func (r Resource) read(ctx context.Context, id string, state *modelV0) (found bool, diags diag.Diagnostics) {
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
-		API: client, ID: d.Id(),
+		API: r.client, ID: id, IncludeAssociations: false,
 	})
 	if err != nil {
 		if util.TrafficFilterNotFound(err) {
-			d.SetId("")
-			return nil
+			return false, diags
 		}
-		return diag.FromErr(err)
+		diags.AddError(err.Error(), err.Error())
+		return true, diags
 	}
 
-	if err := modelToState(d, res); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	diags.Append(modelToState(ctx, res, state)...)
+	return true, diags
 }

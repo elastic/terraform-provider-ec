@@ -20,25 +20,64 @@ package deploymentresource
 import (
 	"context"
 	"errors"
+	"fmt"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
+	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
+	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
+	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
+	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// Read queries the remote deployment state and updates the local state.
-func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
+func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
+	if !r.ready(&response.Diagnostics) {
+		return
+	}
 
-	res, err := deploymentapi.Get(deploymentapi.GetParams{
-		API: client, DeploymentID: d.Id(),
+	var curState deploymentv2.DeploymentTF
+
+	diags := request.State.Get(ctx, &curState)
+
+	response.Diagnostics.Append(diags...)
+
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	var newState *deploymentv2.Deployment
+
+	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
+	newState, diags = r.read(ctx, curState.Id.Value, &curState, curState, nil)
+
+	response.Diagnostics.Append(diags...)
+
+	if newState == nil {
+		response.State.RemoveResource(ctx)
+	}
+
+	if newState != nil {
+		diags = response.State.Set(ctx, newState)
+	}
+
+	response.Diagnostics.Append(diags...)
+}
+
+func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource) (*deploymentv2.Deployment, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	response, err := deploymentapi.Get(deploymentapi.GetParams{
+		API: r.client, DeploymentID: id,
 		QueryParams: deputil.QueryParams{
 			ShowSettings:     true,
 			ShowPlans:        true,
@@ -48,37 +87,81 @@ func readResource(_ context.Context, d *schema.ResourceData, meta interface{}) d
 	})
 	if err != nil {
 		if deploymentNotFound(err) {
-			d.SetId("")
-			return nil
+			diags.AddError("Deployment not found", err.Error())
+			return nil, diags
 		}
-		return diag.FromErr(multierror.NewPrefixed("failed reading deployment", err))
+		diags.AddError("Deloyment get error", err.Error())
+		return nil, diags
 	}
 
-	if !hasRunningResources(res) {
-		d.SetId("")
-		return nil
+	if !HasRunningResources(response) {
+		return nil, nil
 	}
 
-	var diags diag.Diagnostics
+	if response.Resources == nil || len(response.Resources.Elasticsearch) == 0 {
+		diags.AddError("Get resource error", "cannot find Elasticsearch in response resources")
+		return nil, diags
+	}
+
+	if response.Resources.Elasticsearch[0].Info.PlanInfo.Current != nil && response.Resources.Elasticsearch[0].Info.PlanInfo.Current.Plan != nil {
+		if err := checkVersion(response.Resources.Elasticsearch[0].Info.PlanInfo.Current.Plan.Elasticsearch.Version); err != nil {
+			diags.AddError("Get resource error", err.Error())
+			return nil, diags
+		}
+	}
+
+	refId := ""
+
+	var elasticsearchPlan *elasticsearchv2.ElasticsearchTF
+
+	if diags = tfsdk.ValueAs(ctx, plan.Elasticsearch, &elasticsearchPlan); diags.HasError() {
+		return nil, diags
+	}
+
+	if elasticsearchPlan != nil {
+		refId = elasticsearchPlan.RefId.Value
+	}
+
 	remotes, err := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
-		API: client, DeploymentID: d.Id(),
-		RefID: d.Get("elasticsearch.0.ref_id").(string),
+		API: r.client, DeploymentID: id,
+		RefID: refId,
 	})
 	if err != nil {
-		diags = append(diags, diag.FromErr(
-			multierror.NewPrefixed("failed reading remote clusters", err),
-		)...)
+		diags.AddError("Remote clusters read error", err.Error())
+		return nil, diags
 	}
-
 	if remotes == nil {
 		remotes = &models.RemoteResources{}
 	}
 
-	if err := modelToState(d, res, *remotes); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	deployment, err := deploymentv2.ReadDeployment(response, remotes, deploymentResources)
+	if err != nil {
+		diags.AddError("Deployment read error", err.Error())
+		return nil, diags
 	}
 
-	return diags
+	deployment.RequestId = plan.RequestId.Value
+
+	deployment.SetCredentialsIfEmpty(state)
+
+	deployment.ProcessSelfInObservability()
+
+	if diags := deployment.NullifyUnusedEsTopologies(ctx, elasticsearchPlan); diags.HasError() {
+		return nil, diags
+	}
+
+	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it
+	// we use state for plan in Read and there is no state during import so we need to check elasticsearchPlan against nil
+	if elasticsearchPlan != nil &&
+		elasticsearchPlan.Config.IsNull() &&
+		deployment.Elasticsearch != nil &&
+		deployment.Elasticsearch.Config != nil &&
+		deployment.Elasticsearch.Config.IsEmpty() {
+
+		deployment.Elasticsearch.Config = nil
+	}
+
+	return deployment, diags
 }
 
 func deploymentNotFound(err error) bool {
@@ -91,4 +174,54 @@ func deploymentNotFound(err error) bool {
 
 	// We also check for the case where a 403 is thrown for ESS.
 	return apierror.IsRuntimeStatusCode(err, 403)
+}
+
+var minimumSupportedVersion = semver.MustParse("6.6.0")
+
+func checkVersion(version string) error {
+	v, err := semver.New(version)
+
+	if err != nil {
+		return fmt.Errorf("unable to parse deployment version: %w", err)
+	}
+
+	if v.LT(minimumSupportedVersion) {
+		return fmt.Errorf(
+			`invalid deployment version "%s": minimum supported version is "%s"`,
+			v.String(), minimumSupportedVersion.String(),
+		)
+	}
+
+	return nil
+}
+
+func HasRunningResources(res *models.DeploymentGetResponse) bool {
+	if res.Resources != nil {
+		for _, r := range res.Resources.Elasticsearch {
+			if !elasticsearchv2.IsElasticsearchStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.Kibana {
+			if !kibanav2.IsKibanaStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.Apm {
+			if !apmv2.IsApmStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.EnterpriseSearch {
+			if !enterprisesearchv2.IsEnterpriseSearchStopped(r) {
+				return true
+			}
+		}
+		for _, r := range res.Resources.IntegrationsServer {
+			if !integrationsserverv2.IsIntegrationsServerStopped(r) {
+				return true
+			}
+		}
+	}
+	return false
 }

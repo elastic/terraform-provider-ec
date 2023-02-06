@@ -33,44 +33,30 @@ func TestAccDeployment_integrationsServer(t *testing.T) {
 	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Create an Integrations Server deployment with the default settings.
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.#", "1"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.#", "1"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.size", "1g"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.size_resource", "memory"),
-					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.apm_https_endpoint"),
-					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.fleet_https_endpoint"),
+					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.zone_count", "1"),
+					resource.TestCheckResourceAttrSet(resName, "integrations_server.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size_resource", "memory"),
 				),
 			},
 			{
 				// Change the Integrations Server topology (increase zone count to 2).
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "elasticsearch.#", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.0.topology.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.#", "1"),
-					resource.TestCheckResourceAttr(resName, "kibana.0.topology.0.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.#", "1"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.#", "1"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.zone_count", "2"),
-					resource.TestCheckResourceAttrSet(resName, "integrations_server.0.topology.0.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.size", "1g"),
-					resource.TestCheckResourceAttr(resName, "integrations_server.0.topology.0.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.zone_count", "2"),
+					resource.TestCheckResourceAttrSet(resName, "integrations_server.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size_resource", "memory"),
 				),
 			},
 		},

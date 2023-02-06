@@ -18,12 +18,17 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenIntegrationsServerResource(t *testing.T) {
@@ -33,12 +38,12 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []integrationsServerResourceInfoModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.IntegrationsServerResourceInfo{}},
-			want: []interface{}{},
+			want: []integrationsServerResourceInfoModelV0{},
 		},
 		{
 			name: "parses the integrations_server resource",
@@ -57,60 +62,67 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 								HTTPS: ec.Int32(9243),
 							},
 						},
-						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
-							Plan: &models.IntegrationsServerPlan{
-								IntegrationsServer: &models.IntegrationsServerConfiguration{
-									Version: "8.0.0",
-								},
-								ClusterTopology: []*models.IntegrationsServerTopologyElement{
-									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.integrations_server.r4",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(1024),
-										},
+						PlanInfo: &models.IntegrationsServerPlansInfo{
+							Current: &models.IntegrationsServerPlanInfo{
+								Plan: &models.IntegrationsServerPlan{
+									IntegrationsServer: &models.IntegrationsServerConfiguration{
+										Version: "8.0.0",
 									},
-									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.integrations_server.m5d",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(0),
+									ClusterTopology: []*models.IntegrationsServerTopologyElement{
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.integrations_server.r4",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
+										},
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.integrations_server.m5d",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(0),
+											},
 										},
 									},
 								},
 							},
-						}},
-					},
-				},
-			}},
-			want: []interface{}{
-				map[string]interface{}{
-					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"ref_id":                       "main-integrations_server",
-					"resource_id":                  mock.ValidClusterID,
-					"version":                      "8.0.0",
-					"http_endpoint":                "http://integrations_serverresource.cloud.elastic.co:9200",
-					"https_endpoint":               "https://integrations_serverresource.cloud.elastic.co:9243",
-					"healthy":                      true,
-					"status":                       "started",
-					"topology": []interface{}{
-						map[string]interface{}{
-							"instance_configuration_id": "aws.integrations_server.r4",
-							"size":                      "1g",
-							"size_resource":             "memory",
-							"zone_count":                int32(1),
 						},
 					},
 				},
-			},
+			}},
+			want: []integrationsServerResourceInfoModelV0{{
+				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
+				RefID:                     types.String{Value: "main-integrations_server"},
+				ResourceID:                types.String{Value: mock.ValidClusterID},
+				Version:                   types.String{Value: "8.0.0"},
+				HttpEndpoint:              types.String{Value: "http://integrations_serverresource.cloud.elastic.co:9200"},
+				HttpsEndpoint:             types.String{Value: "https://integrations_serverresource.cloud.elastic.co:9243"},
+				Healthy:                   types.Bool{Value: true},
+				Status:                    types.String{Value: "started"},
+				Topology: types.List{ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()},
+					Elems: []attr.Value{types.Object{
+						AttrTypes: integrationsServerTopologyAttrTypes(),
+						Attrs: map[string]attr.Value{
+							"instance_configuration_id": types.String{Value: "aws.integrations_server.r4"},
+							"size":                      types.String{Value: "1g"},
+							"size_resource":             types.String{Value: "memory"},
+							"zone_count":                types.Int64{Value: 1},
+						},
+					}},
+				},
+			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenIntegrationsServerResources(tt.args.in)
+			integrationsServer, diags := flattenIntegrationsServerResources(context.Background(), tt.args.in)
+			assert.Empty(t, diags)
+			var got []integrationsServerResourceInfoModelV0
+			integrationsServer.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "integrations_server", integrationsServer)
 		})
 	}
 }

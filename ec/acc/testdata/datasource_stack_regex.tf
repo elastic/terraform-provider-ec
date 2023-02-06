@@ -1,4 +1,4 @@
 data "ec_stack" "regex" {
-  version_regex = "7.0.?"
+  version_regex = "8.4.?"
   region        = "%s"
 }

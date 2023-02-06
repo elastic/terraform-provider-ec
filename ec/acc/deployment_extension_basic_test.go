@@ -34,9 +34,9 @@ func TestAccDeploymentExtension_basic(t *testing.T) {
 	cfg2 := fixtureAccExtensionBasicWithTF(t, "testdata/extension_basic.tf", randomName, "updated desc")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccExtensionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -60,6 +60,48 @@ func TestAccDeploymentExtension_basic(t *testing.T) {
 				ResourceName:      resName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccDeploymentExtension_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
+	resName := "ec_deployment_extension.my_extension"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	cfg := fixtureAccExtensionBasicWithTF(t, "testdata/extension_basic.tf", randomName, "desc")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccDeploymentTrafficFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"ec": {
+						VersionConstraint: "0.4.1",
+						Source:            "elastic/ec",
+					},
+				},
+				Config: cfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "name", randomName),
+					resource.TestCheckResourceAttr(resName, "version", "*"),
+					resource.TestCheckResourceAttr(resName, "description", "desc"),
+					resource.TestCheckResourceAttr(resName, "extension_type", "bundle"),
+				),
+			},
+			{
+				PlanOnly:                 true,
+				ProtoV6ProviderFactories: testAccProviderFactory,
+				Config:                   cfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "name", randomName),
+					resource.TestCheckResourceAttr(resName, "version", "*"),
+					resource.TestCheckResourceAttr(resName, "description", "desc"),
+					resource.TestCheckResourceAttr(resName, "extension_type", "bundle"),
+				),
 			},
 		},
 	})

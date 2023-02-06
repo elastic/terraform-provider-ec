@@ -20,22 +20,56 @@ package trafficfilterresource
 import (
 	"context"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Create will create a new deployment traffic filter ruleset
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var client = meta.(*api.API)
-	res, err := trafficfilterapi.Create(trafficfilterapi.CreateParams{
-		API: client, Req: expandModel(d),
-	})
-	if err != nil {
-		return diag.FromErr(err)
+func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
 	}
 
-	d.SetId(*res.ID)
-	return read(ctx, d, meta)
+	var newState modelV0
+
+	diags := request.Plan.Get(ctx, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	trafficFilterRulesetRequest, diags := expandModel(ctx, newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	res, err := trafficfilterapi.Create(trafficfilterapi.CreateParams{
+		API: r.client, Req: trafficFilterRulesetRequest,
+	})
+	if err != nil {
+		response.Diagnostics.AddError(err.Error(), err.Error())
+		return
+	}
+
+	newState.ID = types.String{Value: *res.ID}
+
+	found, diags := r.read(ctx, newState.ID.Value, &newState)
+	response.Diagnostics.Append(diags...)
+	if !found {
+		response.Diagnostics.AddError(
+			"Failed to read deployment traffic filter ruleset after create.",
+			"Failed to read deployment traffic filter ruleset after create.",
+		)
+		response.State.RemoveResource(ctx)
+		return
+	}
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }

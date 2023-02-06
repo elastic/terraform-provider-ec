@@ -20,11 +20,17 @@ package util
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 )
 
 // ResDataParams holds the raw configuration for NewResourceData to consume
@@ -105,4 +111,16 @@ func generateRD(t *testing.T, schemaMap map[string]*schema.Schema, rawAttr map[s
 	}
 
 	return result
+}
+
+// Check conversion to attr.Value
+// it should catch cases when e.g. the func under test returns types.List{}
+func CheckConverionToAttrValue(t *testing.T, dt datasource.DataSource, attributeName string, attributeValue types.List) {
+	schema, diags := dt.GetSchema(context.Background())
+	assert.Nil(t, diags)
+	attrType := schema.Attributes[attributeName].FrameworkType()
+	assert.NotNil(t, attrType, fmt.Sprintf("Type of attribute '%s' cannot be nil", attributeName))
+	var target types.List
+	diags = tfsdk.ValueFrom(context.Background(), attributeValue, attrType, &target)
+	assert.Nil(t, diags)
 }

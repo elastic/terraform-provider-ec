@@ -18,12 +18,17 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenElasticsearchResources(t *testing.T) {
@@ -33,13 +38,13 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []elasticsearchResourceInfoModelV0
 		err  string
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.ElasticsearchResourceInfo{}},
-			want: []interface{}{},
+			want: []elasticsearchResourceInfoModelV0{},
 		},
 		{
 			name: "parses elasticsearch resource",
@@ -81,6 +86,9 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 												Master: ec.Bool(true),
 												Ml:     ec.Bool(false),
 											},
+											// NodeRoles cannot be used simultaneously with NodeType
+											// but let's have it here for testing purposes
+											NodeRoles: []string{"data_content", "data_hot"},
 											AutoscalingMax: &models.TopologySize{
 												Resource: ec.String("memory"),
 												Value:    ec.Int32(15360),
@@ -88,6 +96,11 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 											AutoscalingMin: &models.TopologySize{
 												Resource: ec.String("memory"),
 												Value:    ec.Int32(1024),
+											},
+											AutoscalingPolicyOverrideJSON: map[string]interface{}{
+												"proactive_storage": map[string]interface{}{
+													"forecast_window": "3 h",
+												},
 											},
 										},
 										{
@@ -112,42 +125,61 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{map[string]interface{}{
-				"autoscale":      "true",
-				"ref_id":         "main-elasticsearch",
-				"resource_id":    mock.ValidClusterID,
-				"version":        "7.7.0",
-				"cloud_id":       "some CLOUD ID",
-				"http_endpoint":  "http://somecluster.cloud.elastic.co:9200",
-				"https_endpoint": "https://somecluster.cloud.elastic.co:9243",
-				"healthy":        true,
-				"status":         "started",
-				"topology": []interface{}{map[string]interface{}{
-					"instance_configuration_id": "aws.data.highio.i3",
-					"size":                      "2g",
-					"size_resource":             "memory",
-					"node_type_data":            true,
-					"node_type_ingest":          true,
-					"node_type_master":          true,
-					"node_type_ml":              false,
-					"zone_count":                int32(1),
-					"autoscaling": []interface{}{map[string]interface{}{
-						"max_size":          "15g",
-						"max_size_resource": "memory",
-						"min_size":          "1g",
-						"min_size_resource": "memory",
-					}},
-				}},
+			want: []elasticsearchResourceInfoModelV0{{
+				Autoscale:     types.String{Value: "true"},
+				RefID:         types.String{Value: "main-elasticsearch"},
+				ResourceID:    types.String{Value: mock.ValidClusterID},
+				Version:       types.String{Value: "7.7.0"},
+				CloudID:       types.String{Value: "some CLOUD ID"},
+				HttpEndpoint:  types.String{Value: "http://somecluster.cloud.elastic.co:9200"},
+				HttpsEndpoint: types.String{Value: "https://somecluster.cloud.elastic.co:9243"},
+				Healthy:       types.Bool{Value: true},
+				Status:        types.String{Value: "started"},
+				Topology: types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()},
+					Elems: []attr.Value{types.Object{
+						AttrTypes: elasticsearchTopologyAttrTypes(),
+						Attrs: map[string]attr.Value{
+							"instance_configuration_id": types.String{Value: "aws.data.highio.i3"},
+							"size":                      types.String{Value: "2g"},
+							"size_resource":             types.String{Value: "memory"},
+							"node_type_data":            types.Bool{Value: true},
+							"node_type_ingest":          types.Bool{Value: true},
+							"node_type_master":          types.Bool{Value: true},
+							"node_type_ml":              types.Bool{Value: false},
+							"node_roles": types.Set{ElemType: types.StringType, Elems: func() []attr.Value {
+								result := make([]attr.Value, 0, 2)
+								for _, role := range []string{"data_content", "data_hot"} {
+									result = append(result, types.String{Value: role})
+								}
+								return result
+							}()},
+							"zone_count": types.Int64{Value: 1},
+							"autoscaling": types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchAutoscalingAttrTypes()},
+								Elems: []attr.Value{types.Object{
+									AttrTypes: elasticsearchAutoscalingAttrTypes(),
+									Attrs: map[string]attr.Value{
+										"max_size":             types.String{Value: "15g"},
+										"max_size_resource":    types.String{Value: "memory"},
+										"min_size":             types.String{Value: "1g"},
+										"min_size_resource":    types.String{Value: "memory"},
+										"policy_override_json": types.String{Value: "{\"proactive_storage\":{\"forecast_window\":\"3 h\"}}"},
+									}},
+								},
+							},
+						}},
+					},
+				},
 			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := flattenElasticsearchResources(tt.args.in)
-			if err != nil && assert.EqualError(t, err, tt.err) {
-				t.Error(err)
-			}
+			elasticsearch, diags := flattenElasticsearchResources(context.Background(), tt.args.in)
+			assert.Empty(t, diags)
+			var got []elasticsearchResourceInfoModelV0
+			elasticsearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "elasticsearch", elasticsearch)
 		})
 	}
 }

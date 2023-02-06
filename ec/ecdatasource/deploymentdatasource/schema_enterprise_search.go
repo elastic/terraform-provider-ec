@@ -18,86 +18,134 @@
 package deploymentdatasource
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func newEnterpriseSearchResourceInfo() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func enterpriseSearchResourceInfoSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Instance configuration of the Enterprise Search type.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "A locally-unique friendly alias for an Elasticsearch resource in this deployment.",
+				Computed:    true,
 			},
 			"healthy": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Type:        types.BoolType,
+				Description: "Enterprise Search resource health status.",
+				Computed:    true,
 			},
 			"http_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "HTTP endpoint for the Enterprise Search resource.",
+				Computed:    true,
 			},
 			"https_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "HTTPS endpoint for the Enterprise Search resource.",
+				Computed:    true,
 			},
 			"ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "A locally-unique friendly alias for this Enterprise Search resource.",
+				Computed:    true,
 			},
 			"resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The resource unique identifier.",
+				Computed:    true,
 			},
 			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "Enterprise Search resource status (for example, \"started\", \"stopped\", etc).",
+				Computed:    true,
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "Elastic stack version.",
+				Computed:    true,
 			},
 			"topology": enterpriseSearchTopologySchema(),
-		},
+		}),
 	}
 }
 
-func enterpriseSearchTopologySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"instance_configuration_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"size": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"size_resource": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"zone_count": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"node_type_appserver": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
+func enterpriseSearchResourceInfoAttrTypes() map[string]attr.Type {
+	return enterpriseSearchResourceInfoSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
 
-				"node_type_connector": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
-
-				"node_type_worker": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
+func enterpriseSearchTopologySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Node topology element definition.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"instance_configuration_id": {
+				Type:        types.StringType,
+				Description: "Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.",
+				Computed:    true,
 			},
-		},
+			"size": {
+				Type:        types.StringType,
+				Description: `Amount of "size_resource" in Gigabytes. For example "4g".`,
+				Computed:    true,
+			},
+			"size_resource": {
+				Type:        types.StringType,
+				Description: "Type of resource (\"memory\" or \"storage\")",
+				Computed:    true,
+			},
+			"zone_count": {
+				Type:        types.Int64Type,
+				Description: "Number of zones in which nodes will be placed.",
+				Computed:    true,
+			},
+			"node_type_appserver": {
+				Type:        types.BoolType,
+				Description: "Defines whether this instance should run as application/API server.",
+				Computed:    true,
+			},
+			"node_type_connector": {
+				Type:        types.BoolType,
+				Description: "Defines whether this instance should run as connector.",
+				Computed:    true,
+			},
+			"node_type_worker": {
+				Type:        types.BoolType,
+				Description: "Defines whether this instance should run as background worker.",
+				Computed:    true,
+			},
+		}),
 	}
+}
+
+func enterpriseSearchTopologyAttrTypes() map[string]attr.Type {
+	return enterpriseSearchTopologySchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
+
+type enterpriseSearchResourceInfoModelV0 struct {
+	ElasticsearchClusterRefID types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	Healthy                   types.Bool   `tfsdk:"healthy"`
+	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
+	RefID                     types.String `tfsdk:"ref_id"`
+	ResourceID                types.String `tfsdk:"resource_id"`
+	Status                    types.String `tfsdk:"status"`
+	Version                   types.String `tfsdk:"version"`
+	Topology                  types.List   `tfsdk:"topology"` //< enterpriseSearchTopologyModelV0
+}
+
+type enterpriseSearchTopologyModelV0 struct {
+	InstanceConfigurationID types.String `tfsdk:"instance_configuration_id"`
+	Size                    types.String `tfsdk:"size"`
+	SizeResource            types.String `tfsdk:"size_resource"`
+	ZoneCount               types.Int64  `tfsdk:"zone_count"`
+	NodeTypeAppserver       types.Bool   `tfsdk:"node_type_appserver"`
+	NodeTypeConnector       types.Bool   `tfsdk:"node_type_connector"`
+	NodeTypeWorker          types.Bool   `tfsdk:"node_type_worker"`
 }

@@ -1,7 +1,7 @@
 terraform {
   # The Elastic Cloud provider is supported from ">=0.12"
   # Version later than 0.12.29 is required for this terraform block to work.
-  required_version = ">= 0.12.29"
+  required_version = ">= 1.0"
 
   required_providers {
     ec = {
@@ -28,23 +28,25 @@ resource "ec_deployment" "example_minimal" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "aws-io-optimized-v2"
 
-  elasticsearch {
-    config {
+  elasticsearch = {
+
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
+    }
+    config = {
       user_settings_yaml = file("./es_settings.yaml")
     }
   }
 
-  kibana {}
+  kibana = {}
 
-  enterprise_search {
-    topology {
-      zone_count = 1
-    }
+  enterprise_search = {
+    zone_count = 1
   }
 
-  apm {
-    topology {
-      size = "0.5g"
-    }
+  apm = {
+    size = "0.5g"
   }
 }

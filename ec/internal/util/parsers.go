@@ -19,13 +19,7 @@ package util
 
 import (
 	"fmt"
-
-	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deploymentsize"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
-
-const defaultSizeResource = "memory"
 
 // MemoryToState parses a megabyte int notation to a gigabyte notation.
 func MemoryToState(mem int32) string {
@@ -33,26 +27,4 @@ func MemoryToState(mem int32) string {
 		return fmt.Sprintf("%0.1fg", float32(mem)/1024)
 	}
 	return fmt.Sprintf("%dg", mem/1024)
-}
-
-// ParseTopologySize parses a flattened topology into its model.
-func ParseTopologySize(topology map[string]interface{}) (*models.TopologySize, error) {
-	if mem, ok := topology["size"].(string); ok && mem != "" {
-		val, err := deploymentsize.ParseGb(mem)
-		if err != nil {
-			return nil, err
-		}
-
-		var sizeResource = defaultSizeResource
-		if sr, ok := topology["size_resource"].(string); ok {
-			sizeResource = sr
-		}
-
-		return &models.TopologySize{
-			Value:    ec.Int32(val),
-			Resource: ec.String(sizeResource),
-		}, nil
-	}
-
-	return nil, nil
 }

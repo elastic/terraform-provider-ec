@@ -9,41 +9,40 @@ resource "ec_deployment" "basic" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    config {
+  elasticsearch = {
+    config = {
       user_settings_yaml = "action.auto_create_index: true"
     }
-    topology {
-      id   = "hot_content"
-      size = "1g"
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        autoscaling = {}
+      }
     }
   }
 
-  kibana {
-    config {
+  kibana = {
+    config = {
       user_settings_yaml = "csp.warnLegacyBrowsers: true"
     }
-    topology {
-      instance_configuration_id = "%s"
-    }
+
+    instance_configuration_id = "%s"
   }
 
-  apm {
-    config {
+  apm = {
+    config = {
       debug_enabled      = true
       user_settings_json = jsonencode({ "apm-server.rum.enabled" = true })
     }
-    topology {
-      instance_configuration_id = "%s"
-    }
+
+    instance_configuration_id = "%s"
   }
 
-  enterprise_search {
-    config {
+  enterprise_search = {
+    config = {
       user_settings_yaml = "# comment"
     }
-    topology {
-      instance_configuration_id = "%s"
-    }
+
+    instance_configuration_id = "%s"
   }
 }

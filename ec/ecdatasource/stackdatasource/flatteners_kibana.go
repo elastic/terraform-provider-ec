@@ -18,40 +18,54 @@
 package stackdatasource
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-// flattenKibanaResources takes in Kibana resource models and returns its
-// flattened form.
-func flattenKibanaResources(res *models.StackVersionKibanaConfig) []interface{} {
-	var m = make(map[string]interface{})
+// flattenKibanaConfig takes a StackVersionKibanaConfig and flattens it.
+func flattenKibanaConfig(ctx context.Context, res *models.StackVersionKibanaConfig) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	model := newResourceKindConfigModelV0()
+
+	target := types.List{ElemType: resourceKindConfigSchema(util.KibanaResourceKind).FrameworkType().(types.ListType).ElemType}
+	target.Null = true
 
 	if res == nil {
-		return nil
+		return target, diags
 	}
 
 	if len(res.Blacklist) > 0 {
-		m["denylist"] = util.StringToItems(res.Blacklist...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.Blacklist, types.ListType{ElemType: types.StringType}, &model.DenyList)...)
+		target.Null = false
 	}
 
 	if res.CapacityConstraints != nil {
-		m["capacity_constraints_max"] = int(*res.CapacityConstraints.Max)
-		m["capacity_constraints_min"] = int(*res.CapacityConstraints.Min)
+		model.CapacityConstraintsMax = types.Int64{Value: int64(*res.CapacityConstraints.Max)}
+		model.CapacityConstraintsMin = types.Int64{Value: int64(*res.CapacityConstraints.Min)}
+		target.Null = false
 	}
 
 	if len(res.CompatibleNodeTypes) > 0 {
-		m["compatible_node_types"] = util.StringToItems(res.CompatibleNodeTypes...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.CompatibleNodeTypes, types.ListType{ElemType: types.StringType}, &model.CompatibleNodeTypes)...)
+		target.Null = false
 	}
 
 	if res.DockerImage != nil && *res.DockerImage != "" {
-		m["docker_image"] = *res.DockerImage
+		model.DockerImage = types.String{Value: *res.DockerImage}
+		target.Null = false
 	}
 
-	if len(m) == 0 {
-		return nil
+	if target.Null {
+		return target, diags
 	}
 
-	return []interface{}{m}
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(util.KibanaResourceKind).FrameworkType(), &target)...)
+
+	return target, diags
 }

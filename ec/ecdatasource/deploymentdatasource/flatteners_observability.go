@@ -17,33 +17,57 @@
 
 package deploymentdatasource
 
-import "github.com/elastic/cloud-sdk-go/pkg/models"
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+)
 
 // flattenObservability parses a deployment's observability settings.
-func flattenObservability(settings *models.DeploymentSettings) []interface{} {
-	if settings == nil || settings.Observability == nil {
-		return nil
+func flattenObservability(ctx context.Context, settings *models.DeploymentSettings) (types.List, diag.Diagnostics) {
+	model := observabilitySettingsModel{
+		Metrics: types.Bool{Value: false},
+		Logs:    types.Bool{Value: false},
+	}
+	empty := true
+
+	target := types.List{
+		ElemType: types.ObjectType{
+			AttrTypes: observabilitySettingsAttrTypes(),
+		},
 	}
 
-	var m = make(map[string]interface{})
+	if settings == nil || settings.Observability == nil {
+		target.Null = true
+		return target, nil
+	}
 
 	// We are only accepting a single deployment ID and refID for both logs and metrics.
 	// If either of them is not nil the deployment ID and refID will be filled.
 	if settings.Observability.Metrics != nil {
-		m["deployment_id"] = settings.Observability.Metrics.Destination.DeploymentID
-		m["ref_id"] = settings.Observability.Metrics.Destination.RefID
-		m["metrics"] = true
+		model.DeploymentID = types.String{Value: *settings.Observability.Metrics.Destination.DeploymentID}
+		model.RefID = types.String{Value: settings.Observability.Metrics.Destination.RefID}
+		model.Metrics = types.Bool{Value: true}
+		empty = false
 	}
 
 	if settings.Observability.Logging != nil {
-		m["deployment_id"] = settings.Observability.Logging.Destination.DeploymentID
-		m["ref_id"] = settings.Observability.Logging.Destination.RefID
-		m["logs"] = true
+		model.DeploymentID = types.String{Value: *settings.Observability.Logging.Destination.DeploymentID}
+		model.RefID = types.String{Value: settings.Observability.Logging.Destination.RefID}
+		model.Logs = types.Bool{Value: true}
+		empty = false
 	}
 
-	if len(m) == 0 {
-		return nil
+	if empty {
+		target.Null = true
+		return target, nil
 	}
 
-	return []interface{}{m}
+	diags := tfsdk.ValueFrom(ctx, []observabilitySettingsModel{model}, target.Type(ctx), &target)
+
+	return target, diags
 }

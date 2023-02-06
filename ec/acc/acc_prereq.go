@@ -22,22 +22,25 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
+
 	"github.com/elastic/terraform-provider-ec/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
 	prefix = "terraform_acc_"
 )
 
-var testAccProviderFactory = map[string]func() (*schema.Provider, error){
-	"ec": providerFactory,
-}
+var testAccProviderFactory = protoV6ProviderFactories()
 
-func providerFactory() (*schema.Provider, error) {
-	return ec.Provider(), nil
+func protoV6ProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		"ec": providerserver.NewProtocol6WithError(ec.New("acc-tests")),
+	}
 }
 
 func testAccPreCheck(t *testing.T) {

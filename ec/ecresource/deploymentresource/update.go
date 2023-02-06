@@ -19,73 +19,185 @@ package deploymentresource
 
 import (
 	"context"
-	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
+	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// Update syncs the remote state with the local.
-func updateResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan v2.DeploymentTF
 
-	if hasDeploymentChange(d) {
-		if err := updateDeployment(ctx, d, client); err != nil {
-			return diag.FromErr(err)
-		}
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if err := handleTrafficFilterChange(d, client); err != nil {
-		return diag.FromErr(err)
+	var state v2.DeploymentTF
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if err := handleRemoteClusters(d, client); err != nil {
-		return diag.FromErr(err)
-	}
+	updateReq, diags := plan.UpdateRequest(ctx, r.client, state)
 
-	return readResource(ctx, d, meta)
-}
-
-func updateDeployment(_ context.Context, d *schema.ResourceData, client *api.API) error {
-	req, err := updateResourceToModel(d, client)
-	if err != nil {
-		return err
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
 	}
 
 	res, err := deploymentapi.Update(deploymentapi.UpdateParams{
-		API:          client,
-		DeploymentID: d.Id(),
-		Request:      req,
+		API:          r.client,
+		DeploymentID: plan.Id.Value,
+		Request:      updateReq,
 		Overrides: deploymentapi.PayloadOverrides{
-			Version: d.Get("version").(string),
-			Region:  d.Get("region").(string),
+			Version: plan.Version.Value,
+			Region:  plan.Region.Value,
 		},
 	})
 	if err != nil {
-		return multierror.NewPrefixed("failed updating deployment", err)
+		resp.Diagnostics.AddError("failed updating deployment", err.Error())
+		return
 	}
 
-	if err := WaitForPlanCompletion(client, d.Id()); err != nil {
-		return multierror.NewPrefixed("failed tracking update progress", err)
+	if err := WaitForPlanCompletion(r.client, plan.Id.Value); err != nil {
+		resp.Diagnostics.AddError("failed tracking update progress", err.Error())
+		return
 	}
 
-	return parseCredentials(d, res.Resources)
+	resp.Diagnostics.Append(HandleTrafficFilterChange(ctx, r.client, plan, state)...)
+
+	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.Value, plan.Elasticsearch)...)
+
+	deployment, diags := r.read(ctx, plan.Id.Value, &state, plan, res.Resources)
+
+	resp.Diagnostics.Append(diags...)
+
+	if deployment == nil {
+		resp.Diagnostics.AddError("cannot read just updated resource", "")
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, deployment)...)
 }
 
-// hasDeploymentChange checks if there's any change in the resource attributes
-// except in the "traffic_filter" prefixed keys. If so, it returns true.
-func hasDeploymentChange(d *schema.ResourceData) bool {
-	for attr := range d.State().Attributes {
-		if strings.HasPrefix(attr, "traffic_filter") {
-			continue
+func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan, state v2.DeploymentTF) diag.Diagnostics {
+	if plan.TrafficFilter.IsNull() || plan.TrafficFilter.Equal(state.TrafficFilter) {
+		return nil
+	}
+
+	var planRules, stateRules ruleSet
+	if diags := plan.TrafficFilter.ElementsAs(ctx, &planRules, true); diags.HasError() {
+		return diags
+	}
+
+	if diags := state.TrafficFilter.ElementsAs(ctx, &stateRules, true); diags.HasError() {
+		return diags
+	}
+
+	var rulesToAdd, rulesToDelete []string
+
+	for _, rule := range planRules {
+		if !stateRules.exist(rule) {
+			rulesToAdd = append(rulesToAdd, rule)
 		}
-		// Check if any of the resource attributes has a change.
-		if d.HasChange(attr) {
+	}
+
+	for _, rule := range stateRules {
+		if !planRules.exist(rule) {
+			rulesToDelete = append(rulesToDelete, rule)
+		}
+	}
+
+	var diags diag.Diagnostics
+	for _, rule := range rulesToAdd {
+		if err := associateRule(rule, plan.Id.Value, client); err != nil {
+			diags.AddError("cannot associate traffic filter rule", err.Error())
+		}
+	}
+
+	for _, rule := range rulesToDelete {
+		if err := removeRule(rule, plan.Id.Value, client); err != nil {
+			diags.AddError("cannot remove traffic filter rule", err.Error())
+		}
+	}
+
+	return diags
+}
+
+type ruleSet []string
+
+func (rs ruleSet) exist(rule string) bool {
+	for _, r := range rs {
+		if r == rule {
 			return true
 		}
 	}
 	return false
+}
+
+var (
+	GetAssociation    = trafficfilterapi.Get
+	CreateAssociation = trafficfilterapi.CreateAssociation
+	DeleteAssociation = trafficfilterapi.DeleteAssociation
+)
+
+func associateRule(ruleID, deploymentID string, client *api.API) error {
+	res, err := GetAssociation(trafficfilterapi.GetParams{
+		API: client, ID: ruleID, IncludeAssociations: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	// When the rule has already been associated, return.
+	for _, assoc := range res.Associations {
+		if deploymentID == *assoc.ID {
+			return nil
+		}
+	}
+
+	// Create assignment.
+	if err := CreateAssociation(trafficfilterapi.CreateAssociationParams{
+		API: client, ID: ruleID, EntityType: "deployment", EntityID: deploymentID,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func removeRule(ruleID, deploymentID string, client *api.API) error {
+	res, err := GetAssociation(trafficfilterapi.GetParams{
+		API: client, ID: ruleID, IncludeAssociations: true,
+	})
+
+	// If the rule is gone (403 or 404), return nil.
+	if err != nil {
+		if util.TrafficFilterNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	// If the rule is found, then delete the association.
+	for _, assoc := range res.Associations {
+		if deploymentID == *assoc.ID {
+			return DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
+				API:        client,
+				ID:         ruleID,
+				EntityID:   *assoc.ID,
+				EntityType: *assoc.EntityType,
+			})
+		}
+	}
+
+	return nil
 }

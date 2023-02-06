@@ -9,24 +9,24 @@ resource "ec_deployment" "observability" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  observability {
+  observability = {
     deployment_id = "self"
   }
 
-  elasticsearch {
+  elasticsearch = {
     autoscale = "false"
 
-    topology {
-      id         = "hot_content"
-      size       = "1g"
-      zone_count = 1
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 
-  kibana {
-    topology {
-      size       = "1g"
-      zone_count = 1
-    }
+  kibana = {
+    size       = "1g"
+    zone_count = 1
   }
 }

@@ -20,9 +20,10 @@ package util
 import (
 	"testing"
 
+	"github.com/go-openapi/runtime"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
-	"github.com/go-openapi/runtime"
 )
 
 func TestTrafficFilterNotFound(t *testing.T) {

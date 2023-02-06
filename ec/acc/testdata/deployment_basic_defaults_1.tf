@@ -9,13 +9,18 @@ resource "ec_deployment" "defaults" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {}
+  elasticsearch = {
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
 
-  kibana {}
-
-  enterprise_search {
-    topology {
-      zone_count = 1
     }
+  }
+
+  kibana = {}
+
+  enterprise_search = {
+    zone_count = 1
   }
 }

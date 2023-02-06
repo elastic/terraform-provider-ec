@@ -9,7 +9,13 @@ resource "ec_deployment" "security" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {}
+  elasticsearch = {
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
+    }
+  }
 
-  kibana {}
+  kibana = {}
 }

@@ -9,11 +9,13 @@ resource "ec_deployment" "keystore" {
   version                = data.ec_stack.keystore.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id         = "hot_content"
-      size       = "1g"
-      zone_count = 1
+  elasticsearch = {
+    topology = {
+      "hot_content" = {
+        size        = "1g"
+        zone_count  = 1
+        autoscaling = {}
+      }
     }
   }
 }

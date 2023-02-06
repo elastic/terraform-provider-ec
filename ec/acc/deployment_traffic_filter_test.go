@@ -38,9 +38,9 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	updateLargeConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateLargeCfg, randomName, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -96,9 +96,9 @@ func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, "azure-australiaeast")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
@@ -108,6 +108,48 @@ func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
 				),
 				ExpectError: regexp.MustCompile(`.*traffic_filter.azure_private_link_connection_not_found.*`),
+			},
+		},
+	})
+}
+
+func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
+	resName := "ec_deployment_traffic_filter.basic"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	startCfg := "testdata/deployment_traffic_filter_basic.tf"
+	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccDeploymentTrafficFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"ec": {
+						VersionConstraint: "0.4.1",
+						Source:            "elastic/ec",
+					},
+				},
+				Config: cfg,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "ip"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
+				),
+			},
+			{
+				PlanOnly:                 true,
+				ProtoV6ProviderFactories: testAccProviderFactory,
+				Config:                   cfg,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "ip"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
+				),
 			},
 		},
 	})

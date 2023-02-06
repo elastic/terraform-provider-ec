@@ -17,6 +17,7 @@
 
 // This program generates ec/version.go. It can be invoked by running
 // make generate
+//go:build ignore
 // +build ignore
 
 package main

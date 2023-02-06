@@ -6,7 +6,6 @@ locals {
   file_path           = "%s"
 }
 
-
 data "ec_stack" "latest" {
   version_regex = "latest"
   region        = local.region
@@ -18,13 +17,18 @@ resource "ec_deployment" "with_extension" {
   version                = data.ec_stack.latest.version
   deployment_template_id = local.deployment_template
 
-  elasticsearch {
-    extension {
+  elasticsearch = {
+    topology = {
+      "hot_content" = {
+        autoscaling = {}
+      }
+    }
+    extension = [{
       type    = "bundle"
       name    = local.name
       version = data.ec_stack.latest.version
       url     = ec_deployment_extension.my_extension.url
-    }
+    }]
   }
 }
 

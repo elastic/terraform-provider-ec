@@ -18,12 +18,17 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenEnterpriseSearchResource(t *testing.T) {
@@ -33,12 +38,12 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []enterpriseSearchResourceInfoModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.EnterpriseSearchResourceInfo{}},
-			want: []interface{}{},
+			want: []enterpriseSearchResourceInfoModelV0{},
 		},
 		{
 			name: "parses the enterprisesearch resource",
@@ -96,32 +101,41 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{
-				map[string]interface{}{
-					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"ref_id":                       "main-enterprise_search",
-					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.7.0",
-					"http_endpoint":                "http://enterprisesearchresource.cloud.elastic.co:9200",
-					"https_endpoint":               "https://enterprisesearchresource.cloud.elastic.co:9243",
-					"healthy":                      true,
-					"status":                       "started",
-					"topology": []interface{}{map[string]interface{}{
-						"instance_configuration_id": "aws.enterprisesearch.r4",
-						"size":                      "1g",
-						"size_resource":             "memory",
-						"zone_count":                int32(1),
-						"node_type_appserver":       true,
-						"node_type_worker":          false,
-					}},
-				},
+			want: []enterpriseSearchResourceInfoModelV0{{
+				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
+				RefID:                     types.String{Value: "main-enterprise_search"},
+				ResourceID:                types.String{Value: mock.ValidClusterID},
+				Version:                   types.String{Value: "7.7.0"},
+				HttpEndpoint:              types.String{Value: "http://enterprisesearchresource.cloud.elastic.co:9200"},
+				HttpsEndpoint:             types.String{Value: "https://enterprisesearchresource.cloud.elastic.co:9243"},
+				Healthy:                   types.Bool{Value: true},
+				Status:                    types.String{Value: "started"},
+				Topology: types.List{ElemType: types.ObjectType{AttrTypes: enterpriseSearchTopologyAttrTypes()},
+					Elems: []attr.Value{types.Object{
+						AttrTypes: enterpriseSearchTopologyAttrTypes(),
+						Attrs: map[string]attr.Value{
+							"instance_configuration_id": types.String{Value: "aws.enterprisesearch.r4"},
+							"size":                      types.String{Value: "1g"},
+							"size_resource":             types.String{Value: "memory"},
+							"zone_count":                types.Int64{Value: 1},
+							"node_type_appserver":       types.Bool{Value: true},
+							"node_type_connector":       types.Bool{Value: false},
+							"node_type_worker":          types.Bool{Value: false},
+						},
+					},
+					},
+				}},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenEnterpriseSearchResources(tt.args.in)
+			enterpriseSearch, diags := flattenEnterpriseSearchResources(context.Background(), tt.args.in)
+			assert.Empty(t, diags)
+			var got []enterpriseSearchResourceInfoModelV0
+			enterpriseSearch.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "enterprise_search", enterpriseSearch)
 		})
 	}
 }

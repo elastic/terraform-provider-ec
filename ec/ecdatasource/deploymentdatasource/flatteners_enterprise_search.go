@@ -18,97 +18,123 @@
 package deploymentdatasource
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // flattenEnterpriseSearchResources takes in EnterpriseSearch resource models and returns its
 // flattened form.
-func flattenEnterpriseSearchResources(in []*models.EnterpriseSearchResourceInfo) []interface{} {
-	var result = make([]interface{}, 0, len(in))
-	for _, res := range in {
-		var m = make(map[string]interface{})
+func flattenEnterpriseSearchResources(ctx context.Context, in []*models.EnterpriseSearchResourceInfo) (types.List, diag.Diagnostics) {
+	var diagnostics diag.Diagnostics
+	var result = make([]enterpriseSearchResourceInfoModelV0, 0, len(in))
 
-		if res.RefID != nil {
-			m["ref_id"] = *res.RefID
+	for _, res := range in {
+		model := enterpriseSearchResourceInfoModelV0{
+			Topology: types.List{ElemType: types.ObjectType{AttrTypes: enterpriseSearchTopologyAttrTypes()}},
 		}
 
 		if res.ElasticsearchClusterRefID != nil {
-			m["elasticsearch_cluster_ref_id"] = *res.ElasticsearchClusterRefID
+			model.ElasticsearchClusterRefID = types.String{Value: *res.ElasticsearchClusterRefID}
+		}
+
+		if res.RefID != nil {
+			model.RefID = types.String{Value: *res.RefID}
 		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
-				m["healthy"] = *res.Info.Healthy
+				model.Healthy = types.Bool{Value: *res.Info.Healthy}
 			}
 
 			if res.Info.ID != nil {
-				m["resource_id"] = *res.Info.ID
+				model.ResourceID = types.String{Value: *res.Info.ID}
 			}
 
 			if res.Info.Status != nil {
-				m["status"] = *res.Info.Status
+				model.Status = types.String{Value: *res.Info.Status}
 			}
 
 			if !util.IsCurrentEssPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.EnterpriseSearch != nil {
-					m["version"] = plan.EnterpriseSearch.Version
+					model.Version = types.String{Value: plan.EnterpriseSearch.Version}
 				}
 
-				m["topology"] = flattenEnterpriseSearchTopology(plan)
+				var diags diag.Diagnostics
+				model.Topology, diags = flattenEnterpriseSearchTopology(ctx, plan)
+				diagnostics.Append(diags...)
 			}
 
 			if res.Info.Metadata != nil {
-				for k, v := range util.FlattenClusterEndpoint(res.Info.Metadata) {
-					m[k] = v
-				}
+				model.HttpEndpoint, model.HttpsEndpoint = converters.ExtractEndpointsToTypes(res.Info.Metadata)
 			}
 		}
-		result = append(result, m)
+
+		result = append(result, model)
 	}
 
-	return result
+	var target types.List
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: enterpriseSearchResourceInfoAttrTypes(),
+		},
+	}, &target)...)
+
+	return target, diagnostics
 }
 
-func flattenEnterpriseSearchTopology(plan *models.EnterpriseSearchPlan) []interface{} {
-	var result = make([]interface{}, 0, len(plan.ClusterTopology))
+func flattenEnterpriseSearchTopology(ctx context.Context, plan *models.EnterpriseSearchPlan) (types.List, diag.Diagnostics) {
+	var result = make([]enterpriseSearchTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
-		var m = make(map[string]interface{})
+		var model enterpriseSearchTopologyModelV0
 
 		if isEsSizePopulated(topology) && *topology.Size.Value == 0 {
 			continue
 		}
 
-		m["instance_configuration_id"] = topology.InstanceConfigurationID
-
-		m["zone_count"] = topology.ZoneCount
+		model.InstanceConfigurationID = types.String{Value: topology.InstanceConfigurationID}
 
 		if isEsSizePopulated(topology) {
-			m["size"] = util.MemoryToState(*topology.Size.Value)
-			m["size_resource"] = *topology.Size.Resource
+			model.Size = types.String{Value: util.MemoryToState(*topology.Size.Value)}
+			model.SizeResource = types.String{Value: *topology.Size.Resource}
 		}
+
+		model.ZoneCount = types.Int64{Value: int64(topology.ZoneCount)}
 
 		if topology.NodeType != nil {
 			if topology.NodeType.Appserver != nil {
-				m["node_type_appserver"] = *topology.NodeType.Appserver
+				model.NodeTypeAppserver = types.Bool{Value: *topology.NodeType.Appserver}
 			}
 
 			if topology.NodeType.Connector != nil {
-				m["node_type_connector"] = *topology.NodeType.Connector
+				model.NodeTypeConnector = types.Bool{Value: *topology.NodeType.Connector}
 			}
 
 			if topology.NodeType.Worker != nil {
-				m["node_type_worker"] = *topology.NodeType.Worker
+				model.NodeTypeWorker = types.Bool{Value: *topology.NodeType.Worker}
 			}
 		}
 
-		result = append(result, m)
+		result = append(result, model)
 	}
 
-	return result
+	var target types.List
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: enterpriseSearchTopologyAttrTypes(),
+		},
+	}, &target)
+
+	return target, diags
 }
 
 func isEsSizePopulated(topology *models.EnterpriseSearchTopologyElement) bool {

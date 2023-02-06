@@ -17,154 +17,215 @@
 
 package deploymentsdatasource
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"context"
+	"fmt"
 
-func newSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"name_prefix": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"healthy": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"deployment_template_id": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"tags": {
-			Type:     schema.TypeMap,
-			Optional: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+)
+
+func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"name_prefix": {
+				Type:        types.StringType,
+				Description: "Prefix to filter the returned deployment list by.",
+				Optional:    true,
 			},
-		},
-		"size": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			Default:  100,
-		},
+			"healthy": {
+				Type:        types.StringType,
+				Description: "Filter the result set by their health status.",
+				Optional:    true,
+			},
+			"deployment_template_id": {
+				Type:        types.StringType,
+				Description: "Filter the result set by the ID of the deployment template the deployment is based off.",
+				Optional:    true,
+			},
+			"tags": {
+				Type:        types.MapType{ElemType: types.StringType},
+				Description: "Filter the result set by their assigned tags.",
+				Optional:    true,
+			},
+			"size": {
+				Type:                types.Int64Type,
+				Description:         "The maximum number of deployments to return. Defaults to 100.",
+				MarkdownDescription: "The maximum number of deployments to return. Defaults to `100`.",
+				Optional:            true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Int64{Value: 100}),
+				},
+			},
 
-		// Computed
-		"return_count": {
-			Type:     schema.TypeInt,
-			Computed: true,
+			// Computed
+			"id": {
+				Type:                types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Unique identifier of this data source.",
+			},
+			"return_count": {
+				Type:        types.Int64Type,
+				Description: "The number of deployments actually returned.",
+				Computed:    true,
+			},
+			"deployments": deploymentsListSchema(),
 		},
-		"deployments": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     newDeploymentList(),
+		Blocks: map[string]tfsdk.Block{
+			// Deployment resources
+			"elasticsearch":       resourceFiltersSchema(util.ElasticsearchResourceKind),
+			"kibana":              resourceFiltersSchema(util.KibanaResourceKind),
+			"apm":                 resourceFiltersSchema(util.ApmResourceKind),
+			"integrations_server": resourceFiltersSchema(util.IntegrationsServerResourceKind),
+			"enterprise_search":   resourceFiltersSchema(util.EnterpriseSearchResourceKind),
 		},
-
-		// Deployment resources
-		"elasticsearch": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"kibana": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"apm": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"integrations_server": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-		"enterprise_search": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem:     newResourceFilters(),
-		},
-	}
+	}, nil
 }
 
-func newDeploymentList() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func deploymentsListSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "List of deployments which match the specified query.",
+		Computed:    true,
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"deployment_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The deployment unique ID.",
+				Computed:    true,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The name of the deployment.",
+				Computed:    true,
 			},
 			"alias": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "Deployment alias.",
+				Computed:    true,
 			},
 			"elasticsearch_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Elasticsearch resource unique ID.",
+				Computed:    true,
 			},
 			"elasticsearch_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Elasticsearch resource reference.",
+				Computed:    true,
 			},
 			"kibana_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Kibana resource unique ID.",
+				Computed:    true,
 			},
 			"kibana_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Kibana resource reference.",
+				Computed:    true,
 			},
 			"apm_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The APM resource unique ID.",
+				Computed:    true,
 			},
 			"apm_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The APM resource reference.",
+				Computed:    true,
 			},
 			"integrations_server_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Integrations Server resource unique ID.",
+				Computed:    true,
 			},
 			"integrations_server_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Integrations Server resource reference.",
+				Computed:    true,
 			},
 			"enterprise_search_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Enterprise Search resource unique ID.",
+				Computed:    true,
 			},
 			"enterprise_search_ref_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "The Enterprise Search resource reference.",
+				Computed:    true,
 			},
-		},
+		}),
 	}
 }
 
-func newResourceFilters() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+func deploymentAttrTypes() map[string]attr.Type {
+	return deploymentsListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+
+}
+
+func resourceFiltersSchema(resourceKind util.ResourceKind) tfsdk.Block {
+	return tfsdk.Block{
+		Description: fmt.Sprintf("Filter by %s resource kind status or configuration.", resourceKind.Name()),
+		NestingMode: tfsdk.BlockNestingModeList,
+		Attributes: map[string]tfsdk.Attribute{
 			"healthy": {
-				Type:     schema.TypeString,
+				Type:     types.StringType,
 				Optional: true,
 			},
 			"status": {
-				Type:     schema.TypeString,
+				Type:     types.StringType,
 				Optional: true,
 			},
 			"version": {
-				Type:     schema.TypeString,
+				Type:     types.StringType,
 				Optional: true,
 			},
 		},
 	}
+}
+
+func resourceFiltersAttrTypes(resourceKind util.ResourceKind) map[string]attr.Type {
+	return resourceFiltersSchema(resourceKind).Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+
+}
+
+type modelV0 struct {
+	ID                   types.String `tfsdk:"id"`
+	NamePrefix           types.String `tfsdk:"name_prefix"`
+	Healthy              types.String `tfsdk:"healthy"`
+	DeploymentTemplateID types.String `tfsdk:"deployment_template_id"`
+	Tags                 types.Map    `tfsdk:"tags"`
+	Size                 types.Int64  `tfsdk:"size"`
+	ReturnCount          types.Int64  `tfsdk:"return_count"`
+	Deployments          types.List   `tfsdk:"deployments"`         //< deploymentModelV0
+	Elasticsearch        types.List   `tfsdk:"elasticsearch"`       //< resourceFiltersModelV0
+	Kibana               types.List   `tfsdk:"kibana"`              //< resourceFiltersModelV0
+	Apm                  types.List   `tfsdk:"apm"`                 //< resourceFiltersModelV0
+	IntegrationsServer   types.List   `tfsdk:"integrations_server"` //< resourceFiltersModelV0
+	EnterpriseSearch     types.List   `tfsdk:"enterprise_search"`   //< resourceFiltersModelV0
+}
+
+type deploymentModelV0 struct {
+	DeploymentID                 types.String `tfsdk:"deployment_id"`
+	Name                         types.String `tfsdk:"name"`
+	Alias                        types.String `tfsdk:"alias"`
+	ElasticsearchResourceID      types.String `tfsdk:"elasticsearch_resource_id"`
+	ElasticsearchRefID           types.String `tfsdk:"elasticsearch_ref_id"`
+	KibanaResourceID             types.String `tfsdk:"kibana_resource_id"`
+	KibanaRefID                  types.String `tfsdk:"kibana_ref_id"`
+	ApmResourceID                types.String `tfsdk:"apm_resource_id"`
+	ApmRefID                     types.String `tfsdk:"apm_ref_id"`
+	IntegrationsServerResourceID types.String `tfsdk:"integrations_server_resource_id"`
+	IntegrationsServerRefID      types.String `tfsdk:"integrations_server_ref_id"`
+	EnterpriseSearchResourceID   types.String `tfsdk:"enterprise_search_resource_id"`
+	EnterpriseSearchRefID        types.String `tfsdk:"enterprise_search_ref_id"`
+}
+
+type resourceFiltersModelV0 struct {
+	Healthy types.String `tfsdk:"healthy"`
+	Status  types.String `tfsdk:"status"`
+	Version types.String `tfsdk:"version"`
 }
