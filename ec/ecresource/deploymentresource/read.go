@@ -58,7 +58,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	var newState *deploymentv2.Deployment
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	newState, diags = r.read(ctx, curState.Id.Value, &curState, curState, nil)
+	newState, diags = r.read(ctx, curState.Id.Value, &curState, nil, nil)
 
 	response.Diagnostics.Append(diags...)
 
@@ -73,8 +73,21 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	response.Diagnostics.Append(diags...)
 }
 
-func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource) (*deploymentv2.Deployment, diag.Diagnostics) {
+// at least one of state and plan should not be nil
+func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource) (*deploymentv2.Deployment, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	var base deploymentv2.DeploymentTF
+
+	switch {
+	case plan != nil:
+		base = *plan
+	case state != nil:
+		base = *state
+	default:
+		diags.AddError("both state and plan are empty", "please specify at least one of them")
+		return nil, diags
+	}
 
 	response, err := deploymentapi.Get(deploymentapi.GetParams{
 		API: r.client, DeploymentID: id,
@@ -114,7 +127,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	var elasticsearchPlan *elasticsearchv2.ElasticsearchTF
 
-	if diags = tfsdk.ValueAs(ctx, plan.Elasticsearch, &elasticsearchPlan); diags.HasError() {
+	if diags = tfsdk.ValueAs(ctx, base.Elasticsearch, &elasticsearchPlan); diags.HasError() {
 		return nil, diags
 	}
 
@@ -140,7 +153,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		return nil, diags
 	}
 
-	deployment.RequestId = plan.RequestId.Value
+	deployment.RequestId = base.RequestId.Value
 
 	deployment.SetCredentialsIfEmpty(state)
 

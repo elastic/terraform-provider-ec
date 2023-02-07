@@ -80,7 +80,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
 
-	deployment, diags := r.read(ctx, *res.ID, nil, plan, res.Resources)
+	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources)
 
 	resp.Diagnostics.Append(diags...)
 

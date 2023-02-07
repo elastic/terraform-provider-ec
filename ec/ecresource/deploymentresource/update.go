@@ -76,7 +76,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.Value, plan.Elasticsearch)...)
 
-	deployment, diags := r.read(ctx, plan.Id.Value, &state, plan, res.Resources)
+	deployment, diags := r.read(ctx, plan.Id.Value, &state, &plan, res.Resources)
 
 	resp.Diagnostics.Append(diags...)
 

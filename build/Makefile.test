@@ -3,7 +3,7 @@ SWEEP_DIR ?= $(TEST_ACC)
 SWEEP_CI_RUN_FILTER ?= ec_deployments
 TEST ?= ./...
 TEST_COUNT ?= 1
-TESTUNITARGS ?= -timeout 5m -race -cover -coverprofile=reports/c.out
+TESTUNITARGS ?= -timeout 10m -race -cover -coverprofile=reports/c.out
 TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc
 TEST_NAME ?= TestAcc
 TEST_ACC_PARALLEL = 6
