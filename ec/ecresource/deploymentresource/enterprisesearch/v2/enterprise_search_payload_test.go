@@ -324,7 +324,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var ess types.Object
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, EnterpriseSearchSchema().FrameworkType(), &ess)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, EnterpriseSearchSchema().GetType(), &ess)
 			assert.Nil(t, diags)
 
 			got, diags := EnterpriseSearchesPayload(context.Background(), ess, tt.args.updateResources)

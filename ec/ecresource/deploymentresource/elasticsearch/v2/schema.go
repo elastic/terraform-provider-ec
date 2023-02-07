@@ -20,10 +20,14 @@ package v2
 import (
 	"strings"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -44,54 +48,47 @@ var strategiesList = []string{
 	strategyAutodetect, strategyGrowAndShrink, strategyRollingGrowAndShrink, strategyRollingAll,
 }
 
-func ElasticsearchSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func ElasticsearchSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "Elasticsearch cluster definition",
 		Required:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"autoscale": {
-				Type:        types.BoolType,
+		Attributes: map[string]schema.Attribute{
+			"autoscale": schema.BoolAttribute{
 				Description: `Enable or disable autoscaling. Defaults to the setting coming from the deployment template.`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"ref_id": {
-				Type:        types.StringType,
+			"ref_id": schema.StringAttribute{
 				Description: "A human readable reference for the Elasticsearch resource. The default value `main-elasticsearch` is recommended.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue("main-elasticsearch"),
 				},
 			},
-			"resource_id": {
-				Type:        types.StringType,
+			"resource_id": schema.StringAttribute{
 				Description: "The Elasticsearch resource unique identifier",
 				Computed:    true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: "The Elasticsearch resource region",
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"cloud_id": {
-				Type:        types.StringType,
+			"cloud_id": schema.StringAttribute{
 				Description: "The encoded Elasticsearch credentials to use in Beats or Logstash",
 				Computed:    true,
 			},
-			"http_endpoint": {
-				Type:        types.StringType,
+			"http_endpoint": schema.StringAttribute{
 				Description: "The Elasticsearch resource HTTP endpoint",
 				Computed:    true,
 			},
-			"https_endpoint": {
-				Type:        types.StringType,
+			"https_endpoint": schema.StringAttribute{
 				Description: "The Elasticsearch resource HTTPs endpoint",
 				Computed:    true,
 			},
@@ -118,147 +115,132 @@ func ElasticsearchSchema() tfsdk.Attribute {
 
 			"extension": elasticsearchExtensionSchema(),
 
-			"strategy": {
+			"strategy": schema.StringAttribute{
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
-				Type:        types.StringType,
 				Optional:    true,
-				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf(strategiesList...)},
+				Validators:  []validator.String{stringvalidator.OneOf(strategiesList...)},
 			},
-		}),
+		},
 	}
 }
 
-func elasticsearchConfigSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchConfigSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: `Elasticsearch settings which will be applied to all topologies`,
 		Optional:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"docker_image": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"docker_image": schema.StringAttribute{
 				Description: "Overrides the docker image the Elasticsearch nodes will use. Note that this field will only work for internal users only.",
 				Optional:    true,
 			},
-			"plugins": {
-				Type: types.SetType{
-					ElemType: types.StringType,
-				},
+			"plugins": schema.SetAttribute{
+				ElementType: types.StringType,
 				Description: "List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)",
 				Optional:    true,
 				Computed:    true,
 			},
-			"user_settings_json": {
-				Type:        types.StringType,
+			"user_settings_json": schema.StringAttribute{
 				Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
 			},
-			"user_settings_override_json": {
-				Type:        types.StringType,
+			"user_settings_override_json": schema.StringAttribute{
 				Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
 			},
-			"user_settings_yaml": {
-				Type:        types.StringType,
+			"user_settings_yaml": schema.StringAttribute{
 				Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
 			},
-			"user_settings_override_yaml": {
-				Type:        types.StringType,
+			"user_settings_override_yaml": schema.StringAttribute{
 				Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
 			},
-		}),
+		},
 	}
 }
 
-func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "Optional Elasticsearch autoscaling settings, such a maximum and minimum size and resources.",
 		Required:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"max_size_resource": {
+		Attributes: map[string]schema.Attribute{
+			"max_size_resource": schema.StringAttribute{
 				Description: "Maximum resource type for the maximum autoscaling setting.",
-				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"max_size": {
+			"max_size": schema.StringAttribute{
 				Description: "Maximum size value for the maximum autoscaling setting.",
-				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"min_size_resource": {
+			"min_size_resource": schema.StringAttribute{
 				Description: "Minimum resource type for the minimum autoscaling setting.",
-				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"min_size": {
+			"min_size": schema.StringAttribute{
 				Description: "Minimum size value for the minimum autoscaling setting.",
-				Type:        types.StringType,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"policy_override_json": {
-				Type:        types.StringType,
+			"policy_override_json": schema.StringAttribute{
 				Description: "Computed policy overrides set directly via the API or other clients.",
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-		}),
+		},
 	}
 }
 
-func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func ElasticsearchRemoteClusterSchema() schema.Attribute {
+	return schema.SetNestedAttribute{
 		Description: "Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times",
 		Optional:    true,
-		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-			"deployment_id": {
-				Description: "Remote deployment ID",
-				Type:        types.StringType,
-				Validators:  []tfsdk.AttributeValidator{stringvalidator.LengthBetween(32, 32)},
-				Required:    true,
-			},
-			"alias": {
-				Description: "Alias for this Cross Cluster Search binding",
-				Type:        types.StringType,
-				Validators:  []tfsdk.AttributeValidator{stringvalidator.NoneOf("")},
-				Required:    true,
-			},
-			"ref_id": {
-				Description: `Remote elasticsearch "ref_id", it is best left to the default value`,
-				Type:        types.StringType,
-				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"deployment_id": schema.StringAttribute{
+					Description: "Remote deployment ID",
+					Validators:  []validator.String{stringvalidator.LengthBetween(32, 32)},
+					Required:    true,
 				},
-				Optional: true,
-			},
-			"skip_unavailable": {
-				Description: "If true, skip the cluster during search when disconnected",
-				Type:        types.BoolType,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: false}),
+				"alias": schema.StringAttribute{
+					Description: "Alias for this Cross Cluster Search binding",
+					Validators:  []validator.String{stringvalidator.NoneOf("")},
+					Required:    true,
 				},
-				Computed: true,
-				Optional: true,
+				"ref_id": schema.StringAttribute{
+					Description: `Remote elasticsearch "ref_id", it is best left to the default value`,
+					Computed:    true,
+					PlanModifiers: []planmodifier.String{
+						planmodifiers.StringDefaultValue("main-elasticsearch"),
+					},
+					Optional: true,
+				},
+				"skip_unavailable": schema.BoolAttribute{
+					Description: "If true, skip the cluster during search when disconnected",
+					PlanModifiers: []planmodifier.Bool{
+						planmodifiers.BoolDefaultValue(false),
+					},
+					Computed: true,
+					Optional: true,
+				},
 			},
-		}),
+		},
 	}
 }
 
@@ -314,211 +296,193 @@ func elasticsearchSnapshotRepositoryReferenceSchema() tfsdk.Attribute {
 	}
 }
 
-func elasticsearchSnapshotSourceSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchSnapshotSourceSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: `Restores data from a snapshot of another deployment.
 
 ~> **Note on behavior** The <code>snapshot_source</code> block will not be saved in the Terraform state due to its transient nature. This means that whenever the <code>snapshot_source</code> block is set, a snapshot will **always be restored**, unless removed before running <code>terraform apply</code>.`,
 		Optional: true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"source_elasticsearch_cluster_id": {
+		Attributes: map[string]schema.Attribute{
+			"source_elasticsearch_cluster_id": schema.StringAttribute{
 				Description: "ID of the Elasticsearch cluster that will be used as the source of the snapshot",
-				Type:        types.StringType,
 				Required:    true,
 			},
-			"snapshot_name": {
+			"snapshot_name": schema.StringAttribute{
 				Description: "Name of the snapshot to restore. Use '__latest_success__' to get the most recent successful snapshot.",
-				Type:        types.StringType,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "__latest_success__"}),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue("__latest_success__"),
 				},
 				Optional: true,
 				Computed: true,
 			},
-		}),
+		},
 	}
 }
 
-func elasticsearchExtensionSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchExtensionSchema() schema.Attribute {
+	return schema.SetNestedAttribute{
 		Description: "Optional Elasticsearch extensions such as custom bundles or plugins.",
 		Optional:    true,
-		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-			"name": {
-				Description: "Extension name.",
-				Type:        types.StringType,
-				Required:    true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"name": schema.StringAttribute{
+					Description: "Extension name.",
+					Required:    true,
+				},
+				"type": schema.StringAttribute{
+					Description: "Extension type, only `bundle` or `plugin` are supported.",
+					Required:    true,
+					Validators:  []validator.String{stringvalidator.OneOf("bundle", "plugin")},
+				},
+				"version": schema.StringAttribute{
+					Description: "Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.",
+					Required:    true,
+				},
+				"url": schema.StringAttribute{
+					Description: "Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.",
+					Required:    true,
+				},
 			},
-			"type": {
-				Description: "Extension type, only `bundle` or `plugin` are supported.",
-				Type:        types.StringType,
-				Required:    true,
-				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
-			},
-			"version": {
-				Description: "Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.",
-				Type:        types.StringType,
-				Required:    true,
-			},
-			"url": {
-				Description: "Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.",
-				Type:        types.StringType,
-				Required:    true,
-			},
-		}),
+		},
 	}
 }
 
-func elasticsearchTrustAccountSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchTrustAccountSchema() schema.Attribute {
+	return schema.SetNestedAttribute{
 		Description: "Optional Elasticsearch account trust settings.",
-		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-			"account_id": {
-				Description: "The ID of the Account.",
-				Type:        types.StringType,
-				Required:    true,
-			},
-			"trust_all": {
-				Description: "If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.",
-				Type:        types.BoolType,
-				Required:    true,
-			},
-			"trust_allowlist": {
-				Description: "The list of clusters to trust. Only used when `trust_all` is false.",
-				Type: types.SetType{
-					ElemType: types.StringType,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"account_id": schema.StringAttribute{
+					Description: "The ID of the Account.",
+					Required:    true,
 				},
-				Optional: true,
+				"trust_all": schema.BoolAttribute{
+					Description: "If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.",
+					Required:    true,
+				},
+				"trust_allowlist": schema.SetAttribute{
+					Description: "The list of clusters to trust. Only used when `trust_all` is false.",
+					ElementType: types.StringType,
+					Optional:    true,
+				},
 			},
-		}),
+		},
 		Computed: true,
 		Optional: true,
-		PlanModifiers: tfsdk.AttributePlanModifiers{
-			resource.UseStateForUnknown(),
+		PlanModifiers: []planmodifier.Set{
+			setplanmodifier.UseStateForUnknown(),
 		},
 	}
 }
 
-func elasticsearchTrustExternalSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchTrustExternalSchema() schema.Attribute {
+	return schema.SetNestedAttribute{
 		Description: "Optional Elasticsearch external trust settings.",
-		Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-			"relationship_id": {
-				Description: "The ID of the external trust relationship.",
-				Type:        types.StringType,
-				Required:    true,
-			},
-			"trust_all": {
-				Description: "If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.",
-				Type:        types.BoolType,
-				Required:    true,
-			},
-			"trust_allowlist": {
-				Description: "The list of clusters to trust. Only used when `trust_all` is false.",
-				Type: types.SetType{
-					ElemType: types.StringType,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"relationship_id": schema.StringAttribute{
+					Description: "The ID of the external trust relationship.",
+					Required:    true,
 				},
-				Optional: true,
+				"trust_all": schema.BoolAttribute{
+					Description: "If true, all clusters in this account will by default be trusted and the `trust_allowlist` is ignored.",
+					Required:    true,
+				},
+				"trust_allowlist": schema.SetAttribute{
+					Description: "The list of clusters to trust. Only used when `trust_all` is false.",
+					ElementType: types.StringType,
+					Optional:    true,
+				},
 			},
-		}),
+		},
 		Computed: true,
 		Optional: true,
-		PlanModifiers: tfsdk.AttributePlanModifiers{
-			resource.UseStateForUnknown(),
+		PlanModifiers: []planmodifier.Set{
+			setplanmodifier.UseStateForUnknown(),
 		},
 	}
 }
 
-func elasticsearchTopologySchema(description string, required bool, topologyAttributeName string) tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchTopologySchema(description string, required bool, topologyAttributeName string) schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Optional: !required,
 		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
 		// Computed:    true,
 		Required:    required,
 		Description: description,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"instance_configuration_id": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"instance_configuration_id": schema.StringAttribute{
 				Description: `Computed Instance Configuration ID of the topology element`,
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"size": {
-				Type:        types.StringType,
+			"size": schema.StringAttribute{
 				Description: `Amount of "size_resource" per node in the "<size in GB>g" notation`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"size_resource": {
-				Type:        types.StringType,
+			"size_resource": schema.StringAttribute{
 				Description: `Size type, defaults to "memory".`,
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "memory"}),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue("memory"),
 				},
 			},
-			"zone_count": {
-				Type:        types.Int64Type,
+			"zone_count": schema.Int64Attribute{
 				Description: `Number of zones that the Elasticsearch cluster will span. This is used to set HA`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.Int64{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"node_type_data": {
-				Type:        types.StringType,
+			"node_type_data": schema.StringAttribute{
 				Description: `The node type for the Elasticsearch Topology element (data node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
 			},
-			"node_type_master": {
-				Type:        types.StringType,
+			"node_type_master": schema.StringAttribute{
 				Description: `The node type for the Elasticsearch Topology element (master node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
 			},
-			"node_type_ingest": {
-				Type:        types.StringType,
+			"node_type_ingest": schema.StringAttribute{
 				Description: `The node type for the Elasticsearch Topology element (ingest node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
 			},
-			"node_type_ml": {
-				Type:        types.StringType,
+			"node_type_ml": schema.StringAttribute{
 				Description: `The node type for the Elasticsearch Topology element (machine learning node)`,
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
 			},
-			"node_roles": {
-				Type: types.SetType{
-					ElemType: types.StringType,
-				},
+			"node_roles": schema.SetAttribute{
+				ElementType: types.StringType,
 				Description: `The computed list of node roles for the current topology element`,
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
+				PlanModifiers: []planmodifier.Set{
 					UseNodeRolesDefault(),
 				},
 			},
 			"autoscaling": elasticsearchTopologyAutoscalingSchema(topologyAttributeName),
-		}),
+		},
 	}
 }

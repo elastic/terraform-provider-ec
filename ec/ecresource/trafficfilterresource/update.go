@@ -42,7 +42,7 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 	trafficFilterRulesetRequest, diags := expandModel(ctx, newState)
 	response.Diagnostics.Append(diags...)
 	_, err := trafficfilterapi.Update(trafficfilterapi.UpdateParams{
-		API: r.client, ID: newState.ID.Value,
+		API: r.client, ID: newState.ID.ValueString(),
 		Req: trafficFilterRulesetRequest,
 	})
 	if err != nil {
@@ -50,7 +50,7 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 		return
 	}
 
-	found, diags := r.read(ctx, newState.ID.Value, &newState)
+	found, diags := r.read(ctx, newState.ID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

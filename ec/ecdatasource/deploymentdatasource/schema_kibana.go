@@ -20,97 +20,90 @@ package deploymentdatasource
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func kibanaResourceInfoSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func kibanaResourceInfoSchema() schema.Attribute {
+	return schema.ListNestedAttribute{
 		Description: "Instance configuration of the Kibana type.",
 		Computed:    true,
-		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
-		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-			"elasticsearch_cluster_ref_id": {
-				Type:        types.StringType,
-				Description: "A locally-unique friendly alias for an Elasticsearch resource in this deployment.",
-				Computed:    true,
+		Validators:  []validator.List{listvalidator.SizeAtMost(1)},
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"elasticsearch_cluster_ref_id": schema.StringAttribute{
+					Description: "A locally-unique friendly alias for an Elasticsearch resource in this deployment.",
+					Computed:    true,
+				},
+				"healthy": schema.BoolAttribute{
+					Description: "Kibana resource health status.",
+					Computed:    true,
+				},
+				"http_endpoint": schema.StringAttribute{
+					Description: "HTTP endpoint for the Kibana resource.",
+					Computed:    true,
+				},
+				"https_endpoint": schema.StringAttribute{
+					Description: "HTTPS endpoint for the Kibana resource.",
+					Computed:    true,
+				},
+				"ref_id": schema.StringAttribute{
+					Description: "A locally-unique friendly alias for this Kibana resource.",
+					Computed:    true,
+				},
+				"resource_id": schema.StringAttribute{
+					Description: "The resource unique identifier.",
+					Computed:    true,
+				},
+				"status": schema.StringAttribute{
+					Description: "Kibana resource status (for example, \"started\", \"stopped\", etc).",
+					Computed:    true,
+				},
+				"version": schema.StringAttribute{
+					Description: "Elastic stack version.",
+					Computed:    true,
+				},
+				"topology": kibanaTopologySchema(),
 			},
-			"healthy": {
-				Type:        types.BoolType,
-				Description: "Kibana resource health status.",
-				Computed:    true,
-			},
-			"http_endpoint": {
-				Type:        types.StringType,
-				Description: "HTTP endpoint for the Kibana resource.",
-				Computed:    true,
-			},
-			"https_endpoint": {
-				Type:        types.StringType,
-				Description: "HTTPS endpoint for the Kibana resource.",
-				Computed:    true,
-			},
-			"ref_id": {
-				Type:        types.StringType,
-				Description: "A locally-unique friendly alias for this Kibana resource.",
-				Computed:    true,
-			},
-			"resource_id": {
-				Type:        types.StringType,
-				Description: "The resource unique identifier.",
-				Computed:    true,
-			},
-			"status": {
-				Type:        types.StringType,
-				Description: "Kibana resource status (for example, \"started\", \"stopped\", etc).",
-				Computed:    true,
-			},
-			"version": {
-				Type:        types.StringType,
-				Description: "Elastic stack version.",
-				Computed:    true,
-			},
-			"topology": kibanaTopologySchema(),
-		}),
+		},
 	}
 }
 
 func kibanaResourceInfoAttrTypes() map[string]attr.Type {
-	return kibanaResourceInfoSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return kibanaResourceInfoSchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
-func kibanaTopologySchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func kibanaTopologySchema() schema.Attribute {
+	return schema.ListNestedAttribute{
 		Description: "Node topology element definition.",
 		Computed:    true,
-		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
-		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-			"instance_configuration_id": {
-				Type:        types.StringType,
-				Description: "Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.",
-				Computed:    true,
+		Validators:  []validator.List{listvalidator.SizeAtMost(1)},
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"instance_configuration_id": schema.StringAttribute{
+					Description: "Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.",
+					Computed:    true,
+				},
+				"size": schema.StringAttribute{
+					Description: "Amount of size_resource in Gigabytes. For example \"4g\".",
+					Computed:    true,
+				},
+				"size_resource": schema.StringAttribute{
+					Description: "Type of resource (\"memory\" or \"storage\")",
+					Computed:    true,
+				},
+				"zone_count": schema.Int64Attribute{
+					Description: "Number of zones in which nodes will be placed.",
+					Computed:    true,
+				},
 			},
-			"size": {
-				Type:        types.StringType,
-				Description: "Amount of size_resource in Gigabytes. For example \"4g\".",
-				Computed:    true,
-			},
-			"size_resource": {
-				Type:        types.StringType,
-				Description: "Type of resource (\"memory\" or \"storage\")",
-				Computed:    true,
-			},
-			"zone_count": {
-				Type:        types.Int64Type,
-				Description: "Number of zones in which nodes will be placed.",
-				Computed:    true,
-			},
-		}),
+		},
 	}
 }
 
 func kibanaTopologyAttrTypes() map[string]attr.Type {
-	return kibanaTopologySchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return kibanaTopologySchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 type kibanaResourceInfoModelV0 struct {

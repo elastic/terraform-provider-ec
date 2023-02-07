@@ -24,11 +24,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
-func UseTopologyStateForUnknown(topologyAttributeName string) tfsdk.AttributePlanModifier {
+func UseTopologyStateForUnknown(topologyAttributeName string) useTopologyState {
 	return useTopologyState{topologyAttributeName: topologyAttributeName}
 }
 
@@ -36,47 +37,64 @@ type useTopologyState struct {
 	topologyAttributeName string
 }
 
-func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
-		return
+func (m useTopologyState) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue)
+	resp.Diagnostics.Append(diags...)
+	if useState {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useTopologyState) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue)
+	resp.Diagnostics.Append(diags...)
+	if useState {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+type PlanModifierResponse interface {
+	planmodifier.StringResponse | planmodifier.Int64Response
+}
+
+func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, plan tfsdk.Plan, state tfsdk.State, planValue attr.Value) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if !planValue.IsUnknown() {
+		return false, nil
 	}
 
-	if !resp.AttributePlan.IsUnknown() {
-		return
-	}
-
-	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.AttributeConfig.IsUnknown() {
-		return
+	if configValue.IsUnknown() {
+		return false, nil
 	}
 
 	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
 	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
-	topologyStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), req)
+	topologyStateDefined, d := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), state)
 
-	resp.Diagnostics.Append(diags...)
+	diags.Append(d...)
 
 	if diags.HasError() {
-		return
+		return false, diags
 	}
 
 	if !topologyStateDefined {
-		return
+		return false, diags
 	}
 
-	templateChanged, diags := planmodifier.AttributeChanged(ctx, path.Root("deployment_template_id"), req)
+	templateChanged, d := planmodifier.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
 
-	resp.Diagnostics.Append(diags...)
+	diags.Append(d...)
 
 	if diags.HasError() {
-		return
+		return false, diags
 	}
 
 	if templateChanged {
-		return
+		return false, diags
 	}
 
-	resp.AttributePlan = req.AttributeState
+	return true, diags
 }
 
 func (r useTopologyState) Description(ctx context.Context) string {
@@ -87,10 +105,10 @@ func (r useTopologyState) MarkdownDescription(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
 }
 
-func attributeStateDefined(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
+func attributeStateDefined(ctx context.Context, p path.Path, state tfsdk.State) (bool, diag.Diagnostics) {
 	var val attr.Value
 
-	if diags := req.State.GetAttribute(ctx, p, &val); diags.HasError() {
+	if diags := state.GetAttribute(ctx, p, &val); diags.HasError() {
 		return false, diags
 	}
 

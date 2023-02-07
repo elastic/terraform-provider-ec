@@ -34,7 +34,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 	var diags diag.Diagnostics
 	var queries []*models.QueryContainer
 
-	namePrefix := state.NamePrefix.Value
+	namePrefix := state.NamePrefix.ValueString()
 	if namePrefix != "" {
 		queries = append(queries, &models.QueryContainer{
 			Prefix: map[string]models.PrefixQuery{
@@ -45,7 +45,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 		})
 	}
 
-	depTemplateID := state.DeploymentTemplateID.Value
+	depTemplateID := state.DeploymentTemplateID.ValueString()
 	if depTemplateID != "" {
 		esPath := "resources.elasticsearch"
 		tplTermPath := esPath + ".info.plan_info.current.plan.deployment_template.id"
@@ -53,7 +53,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 		queries = append(queries, newNestedTermQuery(esPath, tplTermPath, depTemplateID))
 	}
 
-	healthy := state.Healthy.Value
+	healthy := state.Healthy.ValueString()
 	if healthy != "" {
 		if healthy != "true" && healthy != "false" {
 			diags.AddError("invalid value for healthy",
@@ -110,7 +110,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 	}
 
 	searchReq := models.SearchRequest{
-		Size: int32(state.Size.Value),
+		Size: int32(state.Size.ValueInt64()),
 		Sort: []interface{}{"id"},
 	}
 
@@ -134,7 +134,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 // expandResourceFilters expands filters from a specific resource kind into query models
 func expandResourceFilters(ctx context.Context, resources *types.List, resourceKind string) ([]*models.QueryContainer, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	if len(resources.Elems) == 0 {
+	if len(resources.Elements()) == 0 {
 		return nil, nil
 	}
 	var filters []resourceFiltersModelV0
@@ -146,31 +146,31 @@ func expandResourceFilters(ctx context.Context, resources *types.List, resourceK
 	for _, filter := range filters {
 		resourceKindPath := "resources." + resourceKind
 
-		if filter.Status.Value != "" {
+		if filter.Status.ValueString() != "" {
 			statusTermPath := resourceKindPath + ".info.status"
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, statusTermPath, filter.Status.Value))
+				newNestedTermQuery(resourceKindPath, statusTermPath, filter.Status.ValueString()))
 		}
 
-		if filter.Version.Value != "" {
+		if filter.Version.ValueString() != "" {
 			versionTermPath := resourceKindPath + ".info.plan_info.current.plan." +
 				resourceKind + ".version"
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, versionTermPath, filter.Version.Value))
+				newNestedTermQuery(resourceKindPath, versionTermPath, filter.Version.ValueString()))
 		}
 
-		if filter.Healthy.Value != "" {
+		if filter.Healthy.ValueString() != "" {
 			healthyTermPath := resourceKindPath + ".info.healthy"
 
-			if filter.Healthy.Value != "true" && filter.Healthy.Value != "false" {
-				diags.AddError("invalid value for healthy", fmt.Sprintf("expected either [true] or [false] but got [%s]", filter.Healthy.Value))
+			if filter.Healthy.ValueString() != "true" && filter.Healthy.ValueString() != "false" {
+				diags.AddError("invalid value for healthy", fmt.Sprintf("expected either [true] or [false] but got [%s]", filter.Healthy.ValueString()))
 				return nil, diags
 			}
 
 			queries = append(queries,
-				newNestedTermQuery(resourceKindPath, healthyTermPath, filter.Healthy.Value))
+				newNestedTermQuery(resourceKindPath, healthyTermPath, filter.Healthy.ValueString()))
 		}
 	}
 

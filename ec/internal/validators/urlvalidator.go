@@ -23,8 +23,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"golang.org/x/exp/slices"
 )
 
@@ -32,70 +31,57 @@ type isURLWithSchemeValidator struct {
 	ValidSchemes []string
 }
 
-// Description returns a plain text description of the validator's behavior, suitable for a practitioner to understand its impact.
 func (v isURLWithSchemeValidator) Description(ctx context.Context) string {
 	return fmt.Sprintf("Value must be a valid URL with scheme (%s)", strings.Join(v.ValidSchemes, ", "))
 }
 
-// MarkdownDescription returns a markdown formatted description of the validator's behavior, suitable for a practitioner to understand its impact.
 func (v isURLWithSchemeValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// Validate runs the main validation logic of the validator, reading configuration data out of `req` and updating `resp` with diagnostics.
-func (v isURLWithSchemeValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
-	// types.String must be the attr.Value produced by the attr.Type in the schema for this attribute
-	// for generic validators, use
-	// https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/tfsdk#ConvertValue
-	// to convert into a known type.
-	var str types.String
-	diags := tfsdk.ValueAs(ctx, req.AttributeConfig, &str)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
+func (v isURLWithSchemeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
 
-	if str.Unknown || str.Null {
-		return
-	}
-
-	if str.Value == "" {
+	if req.ConfigValue.ValueString() == "" {
 		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
+			req.Path,
 			v.Description(ctx),
-			fmt.Sprintf("URL must not be empty, got %v.", str),
+			fmt.Sprintf("URL must not be empty, got %v.", req.ConfigValue.ValueString()),
 		)
 		return
 	}
 
-	u, err := url.Parse(str.Value)
+	u, err := url.Parse(req.ConfigValue.ValueString())
+
 	if err != nil {
 		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
+			req.Path,
 			v.Description(ctx),
-			fmt.Sprintf("URL is invalid, got %v: %+v", str.Value, err),
+			fmt.Sprintf("URL is invalid, got %v: %+v", req.ConfigValue.ValueString(), err),
 		)
 		return
 	}
 
 	if u.Host == "" {
 		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
+			req.Path,
 			v.Description(ctx),
-			fmt.Sprintf("URL is missing host, got %v", str.Value),
+			fmt.Sprintf("URL is missing host, got %v", req.ConfigValue.ValueString()),
 		)
 		return
 	}
 
 	if !slices.Contains(v.ValidSchemes, u.Scheme) {
 		resp.Diagnostics.AddAttributeError(
-			req.AttributePath,
+			req.Path,
 			v.Description(ctx),
-			fmt.Sprintf("URL is expected to have a valid scheme (one of '%v'), got %v (%v)", v.ValidSchemes, u.Scheme, str.Value),
+			fmt.Sprintf("URL is expected to have a valid scheme (one of '%v'), got %v (%v)", v.ValidSchemes, u.Scheme, req.ConfigValue.ValueString()),
 		)
 	}
 }
 
-func IsURLWithSchemeValidator(validSchemes []string) tfsdk.AttributeValidator {
+func IsURLWithSchemeValidator(validSchemes []string) validator.String {
 	return isURLWithSchemeValidator{ValidSchemes: validSchemes}
 }

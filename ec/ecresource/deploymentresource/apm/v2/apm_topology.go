@@ -88,7 +88,7 @@ func defaultApmTopology(topology []*models.ApmTopologyElement) []*models.ApmTopo
 
 func apmTopologyPayload(ctx context.Context, topology v1.TopologyTF, planModels []*models.ApmTopologyElement, index int) (*models.ApmTopologyElement, diag.Diagnostics) {
 
-	icID := topology.InstanceConfigurationId.Value
+	icID := topology.InstanceConfigurationId.ValueString()
 
 	// When a topology element is set but no instance_configuration_id
 	// is set, then obtain the instance_configuration_id from the topology
@@ -115,8 +115,8 @@ func apmTopologyPayload(ctx context.Context, topology v1.TopologyTF, planModels 
 		topologyElem.Size = size
 	}
 
-	if topology.ZoneCount.Value > 0 {
-		topologyElem.ZoneCount = int32(topology.ZoneCount.Value)
+	if topology.ZoneCount.ValueInt64() > 0 {
+		topologyElem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
 	return topologyElem, nil

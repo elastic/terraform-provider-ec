@@ -42,7 +42,7 @@ func (r *Resource) Delete(ctx context.Context, request resource.DeleteRequest, r
 
 	if err := extensionapi.Delete(extensionapi.DeleteParams{
 		API:         r.client,
-		ExtensionID: state.ID.Value,
+		ExtensionID: state.ID.ValueString(),
 	}); err != nil {
 		if !alreadyDestroyed(err) {
 			response.Diagnostics.AddError(err.Error(), err.Error())

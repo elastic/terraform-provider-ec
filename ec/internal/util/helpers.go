@@ -21,9 +21,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
@@ -84,22 +81,4 @@ func StringToBool(str string) (bool, error) {
 	}
 
 	return v, nil
-}
-
-func StringListAsType(in []string) types.List {
-	//goland:noinspection GoPreferNilSlice
-	out := []attr.Value{}
-	for _, value := range in {
-		out = append(out, types.String{Value: value})
-	}
-	return types.List{ElemType: types.StringType, Elems: out}
-}
-
-func StringMapAsType(in map[string]string) types.Map {
-	//goland:noinspection GoPreferNilSlice
-	out := make(map[string]attr.Value, len(in))
-	for key, value := range in {
-		out[key] = types.String{Value: value}
-	}
-	return types.Map{ElemType: types.StringType, Elems: out}
 }

@@ -120,7 +120,7 @@ func Test_readObservability(t *testing.T) {
 			assert.Equal(t, tt.want, observability)
 
 			var obj types.Object
-			diags := tfsdk.ValueFrom(context.Background(), observability, ObservabilitySchema().FrameworkType(), &obj)
+			diags := tfsdk.ValueFrom(context.Background(), observability, ObservabilitySchema().GetType(), &obj)
 			assert.Nil(t, diags)
 		})
 	}
