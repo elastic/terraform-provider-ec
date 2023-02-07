@@ -29,11 +29,11 @@ func ExtractEndpointsToTypes(metadata *models.ClusterMetadataInfo) (httpEndpoint
 	httpEndpointStr, httpsEndpointStr := ExtractEndpoints(metadata)
 
 	if httpEndpointStr != nil {
-		httpEndpoint = types.String{Value: *httpEndpointStr}
+		httpEndpoint = types.StringValue(*httpEndpointStr)
 	}
 
 	if httpsEndpointStr != nil {
-		httpsEndpoint = types.String{Value: *httpsEndpointStr}
+		httpsEndpoint = types.StringValue(*httpsEndpointStr)
 	}
 
 	return

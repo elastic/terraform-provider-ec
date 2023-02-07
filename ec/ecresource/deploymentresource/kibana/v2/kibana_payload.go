@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v1"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -46,15 +47,15 @@ func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload
 	var diags diag.Diagnostics
 
 	if !kibana.ElasticsearchClusterRefId.IsNull() {
-		payload.ElasticsearchClusterRefID = &kibana.ElasticsearchClusterRefId.Value
+		payload.ElasticsearchClusterRefID = ec.String(kibana.ElasticsearchClusterRefId.ValueString())
 	}
 
 	if !kibana.RefId.IsNull() {
-		payload.RefID = &kibana.RefId.Value
+		payload.RefID = ec.String(kibana.RefId.ValueString())
 	}
 
-	if kibana.Region.Value != "" {
-		payload.Region = &kibana.Region.Value
+	if kibana.Region.ValueString() != "" {
+		payload.Region = ec.String(kibana.Region.ValueString())
 	}
 
 	if !kibana.Config.IsNull() && !kibana.Config.IsUnknown() {

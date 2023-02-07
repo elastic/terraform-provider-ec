@@ -20,17 +20,21 @@ package trafficfilterresource
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -38,84 +42,74 @@ var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 
-func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:                types.StringType,
+func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier of this resource.",
 				Computed:            true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name": {
-				Type:        types.StringType,
+			"name": schema.StringAttribute{
 				Description: "Required name of the ruleset",
 				Required:    true,
 			},
-			"type": {
-				Type:        types.StringType,
+			"type": schema.StringAttribute{
 				Description: `Required type of the ruleset ("ip", "vpce" or "azure_private_endpoint")`,
 				Required:    true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: "Required filter region, the ruleset can only be attached to deployments in the specific region",
 				Required:    true,
 			},
-			"include_by_default": {
-				Type:        types.BoolType,
+			"include_by_default": schema.BoolAttribute{
 				Description: "Should the ruleset be automatically included in the new deployments (Defaults to false)",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: false}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
 				},
 			},
-			"description": {
-				Type:        types.StringType,
+			"description": schema.StringAttribute{
 				Description: "Optional ruleset description",
 				Optional:    true,
 			},
 		},
-		Blocks: map[string]tfsdk.Block{
+		Blocks: map[string]schema.Block{
 			"rule": trafficFilterRuleSchema(),
 		},
-	}, nil
+	}
 }
 
-func trafficFilterRuleSchema() tfsdk.Block {
-	return tfsdk.Block{
+func trafficFilterRuleSchema() schema.Block {
+	return schema.SetNestedBlock{
 		Description: "Required set of rules, which the ruleset is made of.",
-		NestingMode: tfsdk.BlockNestingModeSet,
-		MinItems:    1,
-		Attributes: map[string]tfsdk.Attribute{
-			"source": {
-				Type:        types.StringType,
-				Description: "Optional traffic filter source: IP address, CIDR mask, or VPC endpoint ID, not required when the type is azure_private_endpoint",
-				Optional:    true,
-			},
-			"description": {
-				Type:        types.StringType,
-				Description: "Optional rule description",
-				Optional:    true,
-			},
-			"azure_endpoint_name": {
-				Type:        types.StringType,
-				Description: "Optional Azure endpoint name",
-				Optional:    true,
-			},
-			"azure_endpoint_guid": {
-				Type:        types.StringType,
-				Description: "Optional Azure endpoint GUID",
-				Optional:    true,
-			},
-			"id": {
-				Type:        types.StringType,
-				Description: "Computed rule ID",
-				Computed:    true,
-				// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
+		Validators:  []validator.Set{setvalidator.SizeAtLeast(1)},
+		NestedObject: schema.NestedBlockObject{
+			Attributes: map[string]schema.Attribute{
+				"source": schema.StringAttribute{
+					Description: "Optional traffic filter source: IP address, CIDR mask, or VPC endpoint ID, not required when the type is azure_private_endpoint",
+					Optional:    true,
+				},
+				"description": schema.StringAttribute{
+					Description: "Optional rule description",
+					Optional:    true,
+				},
+				"azure_endpoint_name": schema.StringAttribute{
+					Description: "Optional Azure endpoint name",
+					Optional:    true,
+				},
+				"azure_endpoint_guid": schema.StringAttribute{
+					Description: "Optional Azure endpoint GUID",
+					Optional:    true,
+				},
+				"id": schema.StringAttribute{
+					Description: "Computed rule ID",
+					Computed:    true,
+					// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
+				},
 			},
 		},
 	}

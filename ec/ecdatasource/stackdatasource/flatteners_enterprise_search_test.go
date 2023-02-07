@@ -60,11 +60,11 @@ func Test_flattenEnterpriseSearchResources(t *testing.T) {
 				DockerImage: ec.String("docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0"),
 			}},
 			want: []resourceKindConfigModelV0{{
-				DenyList:               util.StringListAsType([]string{"some"}),
-				CapacityConstraintsMax: types.Int64{Value: 8192},
-				CapacityConstraintsMin: types.Int64{Value: 512},
-				CompatibleNodeTypes:    util.StringListAsType(nil),
-				DockerImage:            types.String{Value: "docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0"},
+				DenyList:               util.StringListAsType(t, []string{"some"}),
+				CapacityConstraintsMax: types.Int64Value(8192),
+				CapacityConstraintsMin: types.Int64Value(512),
+				CompatibleNodeTypes:    util.StringListAsType(t, nil),
+				DockerImage:            types.StringValue("docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0"),
 			}},
 		},
 	}

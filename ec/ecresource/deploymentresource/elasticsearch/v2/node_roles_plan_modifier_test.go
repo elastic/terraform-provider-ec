@@ -23,6 +23,8 @@ import (
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -162,19 +164,23 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			modifier := v2.UseNodeRolesDefault()
 
-			// attributeConfig value is not used in the plan modifer
-			// it just should be known
-			attributeConfigValue := attrValueFromGoTypeValue(t, []string{}, types.SetType{ElemType: types.StringType})
+			// attributeConfigValue := attrValueFromGoTypeValue(t, []string{}, types.SetType{ElemType: types.StringType})
 
-			attributeStateValue := attrValueFromGoTypeValue(t, tt.args.attributeState, types.SetType{ElemType: types.StringType})
+			// attributeStateValue := attrValueFromGoTypeValue(t, tt.args.attributeState, types.SetType{ElemType: types.StringType})
+
+			stateValue, diags := types.SetValueFrom(context.Background(), types.StringType, tt.args.attributeState)
+			assert.Nil(t, diags)
 
 			deploymentStateValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
 			deploymentPlanValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
-			req := tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: attributeConfigValue,
-				AttributeState:  attributeStateValue,
+			req := planmodifier.SetRequest{
+				// AttributeState:  attributeStateValue,
+				// ConfigValue value is not used in the plan modifer,
+				// it just should be known
+				ConfigValue: types.SetValueMust(types.StringType, []attr.Value{}),
+				StateValue:  stateValue,
 				State: tfsdk.State{
 					Raw:    deploymentStateValue,
 					Schema: deploymentv2.DeploymentSchema(),
@@ -188,25 +194,26 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 			// the default plan value is `Unknown` ("known after apply")
 			// the plan modifier either keeps this value or uses the current state
 			// if test doesn't specify plan value, let's use the default (`Unknown`) value that is used by TF during plan modifier execution
-			attributePlanValue := unknownValueFromAttrType(t, types.SetType{ElemType: types.StringType})
+			planValue := types.SetUnknown(types.StringType)
 			if tt.args.attributePlan != nil {
-				attributePlanValue = attrValueFromGoTypeValue(t, tt.args.attributePlan, types.SetType{ElemType: types.StringType})
+				planValue, diags = types.SetValueFrom(context.Background(), types.StringType, tt.args.attributePlan)
+				assert.Nil(t, diags)
 			}
 
-			resp := tfsdk.ModifyAttributePlanResponse{AttributePlan: attributePlanValue}
+			resp := planmodifier.SetResponse{PlanValue: planValue}
 
-			modifier.Modify(context.Background(), req, &resp)
+			modifier.PlanModifySet(context.Background(), req, &resp)
 
 			assert.Nil(t, resp.Diagnostics)
 
 			if tt.expectedUnknown {
-				assert.True(t, resp.AttributePlan.IsUnknown(), "attributePlan should be unknown")
+				assert.True(t, resp.PlanValue.IsUnknown(), "attributePlan should be unknown")
 				return
 			}
 
 			var attributePlan []string
 
-			diags := tfsdk.ValueAs(context.Background(), resp.AttributePlan, &attributePlan)
+			diags = resp.PlanValue.ElementsAs(context.Background(), &attributePlan, true)
 
 			assert.Nil(t, diags)
 

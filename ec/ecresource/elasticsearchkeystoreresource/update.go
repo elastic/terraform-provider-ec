@@ -41,14 +41,14 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 
 	_, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          r.client,
-		DeploymentID: newState.DeploymentID.Value,
+		DeploymentID: newState.DeploymentID.ValueString(),
 		Contents:     expandModel(ctx, newState),
 	})
 	if err != nil {
 		response.Diagnostics.AddError(err.Error(), err.Error())
 	}
 
-	found, diags := r.read(ctx, newState.DeploymentID.Value, &newState)
+	found, diags := r.read(ctx, newState.DeploymentID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

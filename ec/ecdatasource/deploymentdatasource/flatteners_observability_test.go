@@ -63,10 +63,10 @@ func TestFlattenObservability(t *testing.T) {
 				},
 			}},
 			want: []observabilitySettingsModel{{
-				DeploymentID: types.String{Value: mock.ValidClusterID},
-				RefID:        types.String{Value: "main-elasticsearch"},
-				Logs:         types.Bool{Value: true},
-				Metrics:      types.Bool{Value: false},
+				DeploymentID: types.StringValue(mock.ValidClusterID),
+				RefID:        types.StringValue("main-elasticsearch"),
+				Logs:         types.BoolValue(true),
+				Metrics:      types.BoolValue(false),
 			}},
 		},
 		{
@@ -82,10 +82,10 @@ func TestFlattenObservability(t *testing.T) {
 				},
 			}},
 			want: []observabilitySettingsModel{{
-				DeploymentID: types.String{Value: mock.ValidClusterID},
-				RefID:        types.String{Value: "main-elasticsearch"},
-				Logs:         types.Bool{Value: false},
-				Metrics:      types.Bool{Value: true},
+				DeploymentID: types.StringValue(mock.ValidClusterID),
+				RefID:        types.StringValue("main-elasticsearch"),
+				Logs:         types.BoolValue(false),
+				Metrics:      types.BoolValue(true),
 			}},
 		},
 		{
@@ -107,10 +107,10 @@ func TestFlattenObservability(t *testing.T) {
 				},
 			}},
 			want: []observabilitySettingsModel{{
-				DeploymentID: types.String{Value: mock.ValidClusterID},
-				RefID:        types.String{Value: "main-elasticsearch"},
-				Logs:         types.Bool{Value: true},
-				Metrics:      types.Bool{Value: true},
+				DeploymentID: types.StringValue(mock.ValidClusterID),
+				RefID:        types.StringValue("main-elasticsearch"),
+				Logs:         types.BoolValue(true),
+				Metrics:      types.BoolValue(true),
 			}},
 		},
 	}

@@ -236,7 +236,7 @@ func Test_KibanaPayload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var kibana types.Object
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.kibana, KibanaSchema().FrameworkType(), &kibana)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.kibana, KibanaSchema().GetType(), &kibana)
 			assert.Nil(t, diags)
 
 			if got, diags := KibanaPayload(context.Background(), kibana, tt.args.tpl); tt.diags != nil {

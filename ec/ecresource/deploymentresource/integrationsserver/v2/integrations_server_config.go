@@ -93,31 +93,31 @@ func integrationsServerConfigPayload(ctx context.Context, cfgObj attr.Value, res
 		if res.SystemSettings == nil {
 			res.SystemSettings = &models.IntegrationsServerSystemSettings{}
 		}
-		res.SystemSettings.DebugEnabled = &cfg.DebugEnabled.Value
+		res.SystemSettings.DebugEnabled = ec.Bool(cfg.DebugEnabled.ValueBool())
 	}
 
-	if cfg.UserSettingsJson.Value != "" {
-		if err := json.Unmarshal([]byte(cfg.UserSettingsJson.Value), &res.UserSettingsJSON); err != nil {
+	if cfg.UserSettingsJson.ValueString() != "" {
+		if err := json.Unmarshal([]byte(cfg.UserSettingsJson.ValueString()), &res.UserSettingsJSON); err != nil {
 			diags.AddError("failed expanding IntegrationsServer user_settings_json", err.Error())
 		}
 	}
 
-	if cfg.UserSettingsOverrideJson.Value != "" {
-		if err := json.Unmarshal([]byte(cfg.UserSettingsOverrideJson.Value), &res.UserSettingsOverrideJSON); err != nil {
+	if cfg.UserSettingsOverrideJson.ValueString() != "" {
+		if err := json.Unmarshal([]byte(cfg.UserSettingsOverrideJson.ValueString()), &res.UserSettingsOverrideJSON); err != nil {
 			diags.AddError("failed expanding IntegrationsServer user_settings_override_json", err.Error())
 		}
 	}
 
 	if !cfg.UserSettingsYaml.IsNull() {
-		res.UserSettingsYaml = cfg.UserSettingsYaml.Value
+		res.UserSettingsYaml = cfg.UserSettingsYaml.ValueString()
 	}
 
 	if !cfg.UserSettingsOverrideYaml.IsNull() {
-		res.UserSettingsOverrideYaml = cfg.UserSettingsOverrideYaml.Value
+		res.UserSettingsOverrideYaml = cfg.UserSettingsOverrideYaml.ValueString()
 	}
 
 	if !cfg.DockerImage.IsNull() {
-		res.DockerImage = cfg.DockerImage.Value
+		res.DockerImage = cfg.DockerImage.ValueString()
 	}
 
 	return diags

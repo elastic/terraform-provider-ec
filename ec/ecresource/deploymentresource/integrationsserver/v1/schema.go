@@ -18,148 +18,95 @@
 package v1
 
 import (
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func IntegrationsServerSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func IntegrationsServerSchema() schema.Attribute {
+	return schema.ListNestedAttribute{
 		Description: "Optional Integrations Server resource definition",
 		Optional:    true,
-		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
-		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-			"elasticsearch_cluster_ref_id": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"elasticsearch_cluster_ref_id": schema.StringAttribute{
+					Optional: true,
+					Computed: true,
 				},
-			},
-			"ref_id": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "main-integrations_server"}),
+				"ref_id": schema.StringAttribute{
+					Optional: true,
+					Computed: true,
 				},
-			},
-			"resource_id": {
-				Type:     types.StringType,
-				Computed: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				"resource_id": schema.StringAttribute{
+					Computed: true,
 				},
-			},
-			"region": {
-				Type:     types.StringType,
-				Computed: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				"region": schema.StringAttribute{
+					Computed: true,
 				},
-			},
-			"http_endpoint": {
-				Type:     types.StringType,
-				Computed: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				"http_endpoint": schema.StringAttribute{
+					Computed: true,
 				},
-			},
-			"https_endpoint": {
-				Type:     types.StringType,
-				Computed: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				"https_endpoint": schema.StringAttribute{
+					Computed: true,
 				},
-			},
-			"topology": {
-				Description: "Optional topology attribute",
-				Optional:    true,
-				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
-				},
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"instance_configuration_id": {
-						Type:     types.StringType,
-						Optional: true,
-						Computed: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							resource.UseStateForUnknown(),
+				"topology": schema.ListNestedAttribute{
+					Description: "Optional topology attribute",
+					Optional:    true,
+					Computed:    true,
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"instance_configuration_id": schema.StringAttribute{
+								Optional: true,
+								Computed: true,
+							},
+							"size": schema.StringAttribute{
+								Computed: true,
+								Optional: true,
+							},
+							"size_resource": schema.StringAttribute{
+								Description: `Optional size type, defaults to "memory".`,
+								Optional:    true,
+								Computed:    true,
+							},
+							"zone_count": schema.Int64Attribute{
+								Computed: true,
+								Optional: true,
+							},
 						},
 					},
-					"size": {
-						Type:     types.StringType,
-						Computed: true,
-						Optional: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							resource.UseStateForUnknown(),
+				},
+				"config": schema.ListNestedAttribute{
+					Description: `Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server`,
+					Optional:    true,
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"docker_image": schema.StringAttribute{
+								Description: "Optionally override the docker image the IntegrationsServer nodes will use. Note that this field will only work for internal users only.",
+								Optional:    true,
+							},
+							"debug_enabled": schema.BoolAttribute{
+								Description: `Optionally enable debug mode for IntegrationsServer servers - defaults to false`,
+								Optional:    true,
+								Computed:    true,
+							},
+							"user_settings_json": schema.StringAttribute{
+								Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+								Optional:    true,
+							},
+							"user_settings_override_json": schema.StringAttribute{
+								Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+								Optional:    true,
+							},
+							"user_settings_yaml": schema.StringAttribute{
+								Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+								Optional:    true,
+							},
+							"user_settings_override_yaml": schema.StringAttribute{
+								Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+								Optional:    true,
+							},
 						},
 					},
-					"size_resource": {
-						Type:        types.StringType,
-						Description: `Optional size type, defaults to "memory".`,
-						Optional:    true,
-						Computed:    true,
-						PlanModifiers: []tfsdk.AttributePlanModifier{
-							planmodifier.DefaultValue(types.String{Value: "memory"}),
-						},
-					},
-					"zone_count": {
-						Type:     types.Int64Type,
-						Computed: true,
-						Optional: true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							resource.UseStateForUnknown(),
-						},
-					},
-				}),
+				},
 			},
-			"config": {
-				Description: `Optionally define the IntegrationsServer configuration options for the IntegrationsServer Server`,
-				Optional:    true,
-				Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"docker_image": {
-						Type:        types.StringType,
-						Description: "Optionally override the docker image the IntegrationsServer nodes will use. Note that this field will only work for internal users only.",
-						Optional:    true,
-					},
-					// IntegrationsServer System Settings
-					"debug_enabled": {
-						Type:        types.BoolType,
-						Description: `Optionally enable debug mode for IntegrationsServer servers - defaults to false`,
-						Optional:    true,
-						Computed:    true,
-						PlanModifiers: []tfsdk.AttributePlanModifier{
-							planmodifier.DefaultValue(types.Bool{Value: false}),
-						},
-					},
-					"user_settings_json": {
-						Type:        types.StringType,
-						Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
-						Optional:    true,
-					},
-					"user_settings_override_json": {
-						Type:        types.StringType,
-						Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
-						Optional:    true,
-					},
-					"user_settings_yaml": {
-						Type:        types.StringType,
-						Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
-						Optional:    true,
-					},
-					"user_settings_override_yaml": {
-						Type:        types.StringType,
-						Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
-						Optional:    true,
-					},
-				}),
-			},
-		}),
+		},
 	}
 }

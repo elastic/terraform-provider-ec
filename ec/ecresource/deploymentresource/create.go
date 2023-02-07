@@ -52,16 +52,16 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	requestId := deploymentapi.RequestID(plan.RequestId.Value)
+	requestId := deploymentapi.RequestID(plan.RequestId.ValueString())
 
 	res, err := deploymentapi.Create(deploymentapi.CreateParams{
 		API:       r.client,
 		RequestID: requestId,
 		Request:   request,
 		Overrides: &deploymentapi.PayloadOverrides{
-			Name:    plan.Name.Value,
-			Version: plan.Version.Value,
-			Region:  plan.Region.Value,
+			Name:    plan.Name.ValueString(),
+			Version: plan.Version.ValueString(),
+			Region:  plan.Region.ValueString(),
 		},
 	})
 

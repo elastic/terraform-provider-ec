@@ -60,22 +60,22 @@ type DeploymentTF struct {
 
 func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*models.DeploymentCreateRequest, diag.Diagnostics) {
 	var result = models.DeploymentCreateRequest{
-		Name:      dep.Name.Value,
-		Alias:     dep.Alias.Value,
+		Name:      dep.Name.ValueString(),
+		Alias:     dep.Alias.ValueString(),
 		Resources: &models.DeploymentCreateResources{},
 		Settings:  &models.DeploymentCreateSettings{},
 		Metadata:  &models.DeploymentCreateMetadata{},
 	}
 
-	dtID := dep.DeploymentTemplateId.Value
-	version := dep.Version.Value
+	dtID := dep.DeploymentTemplateId.ValueString()
+	version := dep.Version.ValueString()
 
 	var diagsnostics diag.Diagnostics
 
 	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 dtID,
-		Region:                     dep.Region.Value,
+		Region:                     dep.Region.ValueString(),
 		HideInstanceConfigurations: true,
 	})
 	if err != nil {
@@ -162,7 +162,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 
 // trafficFilterToModel expands the flattened "traffic_filter" settings to a DeploymentCreateRequest.
 func trafficFilterToModel(ctx context.Context, set types.Set, req *models.DeploymentCreateRequest) diag.Diagnostics {
-	if len(set.Elems) == 0 || req == nil {
+	if len(set.Elements()) == 0 || req == nil {
 		return nil
 	}
 
@@ -227,5 +227,5 @@ func elasticsearchRemoteClustersPayload(ctx context.Context, client *api.API, de
 		return nil, "", diags
 	}
 
-	return remoteRes, es.RefId.Value, nil
+	return remoteRes, es.RefId.ValueString(), nil
 }

@@ -55,11 +55,11 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 	res, err := deploymentapi.Update(deploymentapi.UpdateParams{
 		API:          r.client,
-		DeploymentID: plan.Id.Value,
+		DeploymentID: plan.Id.ValueString(),
 		Request:      updateReq,
 		Overrides: deploymentapi.PayloadOverrides{
-			Version: plan.Version.Value,
-			Region:  plan.Region.Value,
+			Version: plan.Version.ValueString(),
+			Region:  plan.Region.ValueString(),
 		},
 	})
 	if err != nil {
@@ -67,16 +67,16 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	if err := WaitForPlanCompletion(r.client, plan.Id.Value); err != nil {
+	if err := WaitForPlanCompletion(r.client, plan.Id.ValueString()); err != nil {
 		resp.Diagnostics.AddError("failed tracking update progress", err.Error())
 		return
 	}
 
 	resp.Diagnostics.Append(HandleTrafficFilterChange(ctx, r.client, plan, state)...)
 
-	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.Value, plan.Elasticsearch)...)
+	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.ValueString(), plan.Elasticsearch)...)
 
-	deployment, diags := r.read(ctx, plan.Id.Value, &state, &plan, res.Resources)
+	deployment, diags := r.read(ctx, plan.Id.ValueString(), &state, &plan, res.Resources)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -119,13 +119,13 @@ func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan, state
 
 	var diags diag.Diagnostics
 	for _, rule := range rulesToAdd {
-		if err := associateRule(rule, plan.Id.Value, client); err != nil {
+		if err := associateRule(rule, plan.Id.ValueString(), client); err != nil {
 			diags.AddError("cannot associate traffic filter rule", err.Error())
 		}
 	}
 
 	for _, rule := range rulesToDelete {
-		if err := removeRule(rule, plan.Id.Value, client); err != nil {
+		if err := removeRule(rule, plan.Id.ValueString(), client); err != nil {
 			diags.AddError("cannot remove traffic filter rule", err.Error())
 		}
 	}

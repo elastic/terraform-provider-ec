@@ -1928,7 +1928,7 @@ func Test_writeElasticsearch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var elasticsearch types.Object
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, ElasticsearchSchema().FrameworkType(), &elasticsearch)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, ElasticsearchSchema().GetType(), &elasticsearch)
 			assert.Nil(t, diags)
 
 			got, diags := ElasticsearchPayload(context.Background(), elasticsearch, tt.args.template, tt.args.templateID, tt.args.version, tt.args.useNodeRoles, false)

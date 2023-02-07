@@ -18,9 +18,11 @@
 package v2
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -30,93 +32,78 @@ import (
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 )
 
-func DeploymentSchema() tfsdk.Schema {
-	return tfsdk.Schema{
-		Version: 2,
-		// This description is used by the documentation generator and the language server.
+func DeploymentSchema() schema.Schema {
+	return schema.Schema{
+		Version:             2,
 		MarkdownDescription: "Elastic Cloud Deployment resource",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:                types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier of this deployment.",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"alias": {
-				Type:     types.StringType,
+			"alias": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"version": {
-				Type:        types.StringType,
+			"version": schema.StringAttribute{
 				Description: "Elastic Stack version to use for all of the deployment resources.",
 				Required:    true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: `Region when the deployment should be hosted. For ECE environments this should be set to "ece-region".`,
 				Required:    true,
 			},
-			"deployment_template_id": {
-				Type:        types.StringType,
+			"deployment_template_id": schema.StringAttribute{
 				Description: "Deployment Template identifier to base the deployment from.",
 				Required:    true,
 			},
-			"name": {
-				Type:        types.StringType,
+			"name": schema.StringAttribute{
 				Description: "Name for the deployment",
 				Optional:    true,
 			},
-			"request_id": {
-				Type:        types.StringType,
+			"request_id": schema.StringAttribute{
 				Description: "request_id to set on the create operation, only used when a previous create attempt returns an error including a request_id.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"elasticsearch_username": {
-				Type:        types.StringType,
+			"elasticsearch_username": schema.StringAttribute{
 				Description: "Username for authenticating to the Elasticsearch resource.",
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"elasticsearch_password": {
-				Type:        types.StringType,
+			"elasticsearch_password": schema.StringAttribute{
 				Description: "Password for authenticating to the Elasticsearch resource.",
 				Computed:    true,
 				Sensitive:   true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"apm_secret_token": {
-				Type:      types.StringType,
+			"apm_secret_token": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
 			},
-			"traffic_filter": {
-				Type: types.SetType{
-					ElemType: types.StringType,
-				},
+			"traffic_filter": schema.SetAttribute{
+				ElementType: types.StringType,
 				Optional:    true,
 				Description: "Optional list of traffic filters to apply to this deployment.",
 			},
-			"tags": {
+			"tags": schema.MapAttribute{
 				Description: "Optional map of deployment tags",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
+				ElementType: types.StringType,
+				Optional:    true,
 			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
 			"kibana":              kibanav2.KibanaSchema(),

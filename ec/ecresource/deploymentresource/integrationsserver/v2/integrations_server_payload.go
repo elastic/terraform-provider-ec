@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -45,15 +46,15 @@ func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.Inte
 	var diags diag.Diagnostics
 
 	if !srv.ElasticsearchClusterRefId.IsNull() {
-		payload.ElasticsearchClusterRefID = &srv.ElasticsearchClusterRefId.Value
+		payload.ElasticsearchClusterRefID = ec.String(srv.ElasticsearchClusterRefId.ValueString())
 	}
 
 	if !srv.RefId.IsNull() {
-		payload.RefID = &srv.RefId.Value
+		payload.RefID = ec.String(srv.RefId.ValueString())
 	}
 
-	if srv.Region.Value != "" {
-		payload.Region = &srv.Region.Value
+	if srv.Region.ValueString() != "" {
+		payload.Region = ec.String(srv.Region.ValueString())
 	}
 
 	ds := integrationsServerConfigPayload(ctx, srv.Config, payload.Plan.IntegrationsServer)
