@@ -30,7 +30,6 @@ BUG FIXES:
 
 * Allow zero sized topology elements when autoscaling is enabled. Previously, including an ML topology block would result in a persistent diff loop when the underlying ML tier remained disabled by autoscaling (i.e no ML jobs were enabled). ([#472](https://github.com/elastic/terraform-provider-ec/issues/472))
 * main: Adds debug mode. Instructions for debugging the provider can be found in the [CONTRIBUTING](https://github.com/elastic/terraform-provider-ec/blob/master/CONTRIBUTING.md#debugging) docs. ([#430](https://github.com/elastic/terraform-provider-ec/issues/430))
-* Fix incorrect private link data for Azure eastus. ([#582](https://github.com/elastic/terraform-provider-ec/issues/582))
 
 # 0.4.0 (Feb 24, 2022)
 
