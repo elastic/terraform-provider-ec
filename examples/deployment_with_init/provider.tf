@@ -12,4 +12,3 @@ terraform {
 provider "ec" {
   apikey = "<api key>"
 }
-

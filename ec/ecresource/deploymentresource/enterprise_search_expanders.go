@@ -208,3 +208,12 @@ func essResource(res *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchP
 	}
 	return res.DeploymentTemplate.Resources.EnterpriseSearch[0]
 }
+
+// essResourceFromUpdate returns the EnterpriseSearchPayload from a deployment
+// update request or an empty version of the payload.
+func essResourceFromUpdate(res *models.DeploymentUpdateResources) *models.EnterpriseSearchPayload {
+	if len(res.EnterpriseSearch) == 0 {
+		return nil
+	}
+	return res.EnterpriseSearch[0]
+}

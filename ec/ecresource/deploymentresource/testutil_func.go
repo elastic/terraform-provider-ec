@@ -87,6 +87,22 @@ func enrichWithEmptyTopologies(tpl, want *models.ElasticsearchPayload) []*models
 	return []*models.ElasticsearchPayload{tpl}
 }
 
+func readerDeploymentUpdateToESPayload(t *testing.T, rc io.Reader, nr bool, tplID string) *models.ElasticsearchPayload {
+	t.Helper()
+
+	var tpl models.DeploymentUpdateRequest
+	if err := json.NewDecoder(rc).Decode(&tpl); err != nil {
+		t.Fatal(err)
+	}
+
+	return enrichElasticsearchTemplate(
+		tpl.Resources.Elasticsearch[0],
+		tplID,
+		"",
+		nr,
+	)
+}
+
 func readerToESPayload(t *testing.T, rc io.Reader, nr bool) *models.ElasticsearchPayload {
 	t.Helper()
 
