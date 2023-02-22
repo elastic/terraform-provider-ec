@@ -1,3 +1,0 @@
-```release-note:feature
-resource/deployment: Utilise the template migration API to build the base update request when changing `deployment_template_id`. This results in more reliable changes between deployment templates.
-```

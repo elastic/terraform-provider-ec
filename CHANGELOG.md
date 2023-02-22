@@ -1,5 +1,7 @@
 # 0.7.0 (Unreleased)
 
+# 0.5.1 (Feb 15, 2023)
+
 FEATURES:
 
 * resource/deployment: Utilise the template migration API to build the base update request when changing `deployment_template_id`. This results in more reliable changes between deployment templates. ([#547](https://github.com/elastic/terraform-provider-ec/issues/547))

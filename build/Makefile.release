@@ -22,17 +22,17 @@ endif
 
 ## Creates a snapshot build of the terraform provider.
 snapshot: $(GOBIN)/goreleaser
-	@ $(GOBIN)/goreleaser --rm-dist --snapshot --skip-validate
+	@ $(GOBIN)/goreleaser --clean --snapshot --skip-validate
 
 ## Releases a new version of the terraform provider with a matching tag.
 release: $(GOBIN)/goreleaser
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ $(GOBIN)/goreleaser --rm-dist --skip-validate
+	@ $(GOBIN)/goreleaser --clean --skip-validate
 
 ## Builds a new version of the terraform provider with a matching tag without publishing it.
 release-no-publish: $(GOBIN)/goreleaser
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ $(GOBIN)/goreleaser --rm-dist --skip-validate --skip-publish
+	@ $(GOBIN)/goreleaser --clean --skip-validate --skip-publish
 
 .PHONY: changelog
 changelog: $(GOBIN)/changelog-build

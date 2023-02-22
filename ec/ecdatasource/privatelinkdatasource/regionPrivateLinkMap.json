@@ -289,7 +289,7 @@
         },
         "eastus": {
             "service_alias": "eastus-prod-010-privatelink-service.b5765cd8-1fc8-45e9-91fc-a9b208369f9a.eastus.azure.privatelinkservice",
-            "domain_name": "privatelink.eastus2.azure.elastic-cloud.com"
+            "domain_name": "privatelink.eastus.azure.elastic-cloud.com"
         },
         "southcentralus": {
             "service_alias": "southcentralus-prod-013-privatelink-service.f8030986-5fb9-4b0e-8463-69604233b07e.southcentralus.azure.privatelinkservice",
