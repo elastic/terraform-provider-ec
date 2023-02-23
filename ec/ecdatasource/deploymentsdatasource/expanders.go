@@ -114,6 +114,10 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 		Sort: []interface{}{"id"},
 	}
 
+	if searchReq.Size == 0 {
+		searchReq.Size = 100
+	}
+
 	if len(queries) > 0 {
 		searchReq.Query = &models.QueryContainer{
 			Bool: &models.BoolQuery{

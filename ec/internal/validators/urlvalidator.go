@@ -27,6 +27,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+var _ validator.String = isURLWithSchemeValidator{}
+
 type isURLWithSchemeValidator struct {
 	ValidSchemes []string
 }
@@ -82,6 +84,6 @@ func (v isURLWithSchemeValidator) ValidateString(ctx context.Context, req valida
 	}
 }
 
-func IsURLWithSchemeValidator(validSchemes []string) validator.String {
+func IsURLWithSchemeValidator(validSchemes []string) isURLWithSchemeValidator {
 	return isURLWithSchemeValidator{ValidSchemes: validSchemes}
 }

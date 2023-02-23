@@ -26,25 +26,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var _ planmodifier.String = stringDefaultValue{}
+
 type stringDefaultValue struct {
 	value string
 }
 
-func StringDefaultValue(v string) planmodifier.String {
-	return &stringDefaultValue{v}
+func StringDefaultValue(v string) stringDefaultValue {
+	return stringDefaultValue{v}
 }
 
-var _ planmodifier.Bool = (*boolDefaultValue)(nil)
-
-func (m *stringDefaultValue) Description(ctx context.Context) string {
+func (m stringDefaultValue) Description(ctx context.Context) string {
 	return m.MarkdownDescription(ctx)
 }
 
-func (m *stringDefaultValue) MarkdownDescription(ctx context.Context) string {
+func (m stringDefaultValue) MarkdownDescription(ctx context.Context) string {
 	return fmt.Sprintf("Sets the default value %v if the attribute is not set", m.value)
 }
 
-func (m *stringDefaultValue) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (m stringDefaultValue) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.ConfigValue.IsNull() {
 		return
 	}

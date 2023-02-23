@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
+var _ validator.String = knownValidator{}
+
 type knownValidator struct{}
 
 func (v knownValidator) Description(ctx context.Context) string {
@@ -50,6 +52,6 @@ func (v knownValidator) ValidateString(ctx context.Context, req validator.String
 //   - Is known.
 //
 // Null (unconfigured) values are skipped.
-func Known() validator.String {
+func Known() knownValidator {
 	return knownValidator{}
 }

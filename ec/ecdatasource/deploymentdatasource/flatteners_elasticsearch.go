@@ -172,7 +172,6 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 		result = append(result, model)
 	}
 
-	var d diag.Diagnostics
 	target, d := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()}, result)
 	diags.Append(d...)
 

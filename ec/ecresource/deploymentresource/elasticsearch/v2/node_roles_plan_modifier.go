@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
+var _ planmodifier.Set = nodeRolesDefault{}
+
 func UseNodeRolesDefault() nodeRolesDefault {
 	return nodeRolesDefault{}
 }

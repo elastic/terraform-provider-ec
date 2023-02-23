@@ -53,9 +53,6 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 				Description:         "The maximum number of deployments to return. Defaults to 100.",
 				MarkdownDescription: "The maximum number of deployments to return. Defaults to `100`.",
 				Optional:            true,
-				// PlanModifiers: []tfsdk.AttributePlanModifier{
-				// 	planmodifier.DefaultValue(types.Int64Value(100)),
-				// },
 			},
 
 			// Computed

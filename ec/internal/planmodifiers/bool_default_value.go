@@ -26,25 +26,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var _ planmodifier.Bool = boolDefaultValue{}
+
 type boolDefaultValue struct {
 	value bool
 }
 
-func BoolDefaultValue(v bool) planmodifier.Bool {
-	return &boolDefaultValue{v}
+func BoolDefaultValue(v bool) boolDefaultValue {
+	return boolDefaultValue{v}
 }
 
-var _ planmodifier.Bool = (*boolDefaultValue)(nil)
-
-func (m *boolDefaultValue) Description(ctx context.Context) string {
+func (m boolDefaultValue) Description(ctx context.Context) string {
 	return m.MarkdownDescription(ctx)
 }
 
-func (m *boolDefaultValue) MarkdownDescription(ctx context.Context) string {
+func (m boolDefaultValue) MarkdownDescription(ctx context.Context) string {
 	return fmt.Sprintf("Sets the default value %v if the attribute is not set", m.value)
 }
 
-func (m *boolDefaultValue) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+func (m boolDefaultValue) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if !req.ConfigValue.IsNull() {
 		return
 	}

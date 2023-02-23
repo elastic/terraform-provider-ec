@@ -27,6 +27,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+var _ planmodifier.String = useTopologyState{}
+var _ planmodifier.Int64 = useTopologyState{}
+
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
 func UseTopologyStateForUnknown(topologyAttributeName string) useTopologyState {
 	return useTopologyState{topologyAttributeName: topologyAttributeName}
@@ -50,10 +53,6 @@ func (m useTopologyState) PlanModifyInt64(ctx context.Context, req planmodifier.
 	if useState {
 		resp.PlanValue = req.StateValue
 	}
-}
-
-type PlanModifierResponse interface {
-	planmodifier.StringResponse | planmodifier.Int64Response
 }
 
 func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, plan tfsdk.Plan, state tfsdk.State, planValue attr.Value) (bool, diag.Diagnostics) {
