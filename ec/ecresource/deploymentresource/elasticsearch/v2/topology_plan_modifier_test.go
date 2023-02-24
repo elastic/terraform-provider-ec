@@ -34,38 +34,42 @@ import (
 func Test_topologyPlanModifier(t *testing.T) {
 	type args struct {
 		// the actual attribute type doesn't matter
+		attributeState  types.String
 		attributePlan   types.String
 		deploymentState deploymentv2.Deployment
 		deploymentPlan  deploymentv2.Deployment
 	}
 	tests := []struct {
-		name               string
-		args               args
-		expectedToUseState bool
+		name     string
+		args     args
+		expected types.String
 	}{
 		{
 			name: "it should keep the current plan value if the plan is known",
 			args: args{
-				attributePlan: types.StringValue("plan value"),
+				attributeState: types.String{Value: "state value"},
+				attributePlan:  types.String{Value: "plan value"},
 			},
-			expectedToUseState: false,
+			expected: types.String{Value: "plan value"},
 		},
 
 		{
 			name: "it should not use state if there is no such topology in the state",
 			args: args{
-				attributePlan: types.StringUnknown(),
+				attributeState: types.String{Null: true},
+				attributePlan:  types.String{Unknown: true},
 				deploymentState: deploymentv2.Deployment{
 					Elasticsearch: &v2.Elasticsearch{},
 				},
 			},
-			expectedToUseState: false,
+			expected: types.String{Unknown: true},
 		},
 
 		{
 			name: "it should not use state if the plan changed the template attribute",
 			args: args{
-				attributePlan: types.StringUnknown(),
+				attributeState: types.String{Value: "1g"},
+				attributePlan:  types.String{Unknown: true},
 				deploymentState: deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
@@ -85,13 +89,39 @@ func Test_topologyPlanModifier(t *testing.T) {
 					},
 				},
 			},
-			expectedToUseState: false,
+			expected: types.String{Unknown: true},
+		},
+
+		{
+			name: "it should use the current state if the state is null, the topology is defined in the state and the template has not changed",
+			args: args{
+				attributeState: types.String{Null: true},
+				attributePlan:  types.String{Unknown: true},
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expected: types.String{Null: true},
 		},
 
 		{
 			name: "it should use the current state if the topology is defined in the state and the template has not changed",
 			args: args{
-				attributePlan: types.StringUnknown(),
+				attributeState: types.String{Value: "1g"},
+				attributePlan:  types.String{Unknown: true},
 				deploymentState: deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
@@ -111,7 +141,7 @@ func Test_topologyPlanModifier(t *testing.T) {
 					},
 				},
 			},
-			expectedToUseState: true,
+			expected: types.String{Value: "1g"},
 		},
 	}
 
@@ -123,26 +153,28 @@ func Test_topologyPlanModifier(t *testing.T) {
 
 			deploymentPlanValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
-			plan := tfsdk.Plan{
-				Raw:    deploymentPlanValue,
-				Schema: deploymentv2.DeploymentSchema(),
+			req := tfsdk.ModifyAttributePlanRequest{
+				// attributeConfig value is not used in the plan modifer
+				// it just should be known
+				AttributeConfig: types.String{},
+				AttributeState:  tt.args.attributeState,
+				State: tfsdk.State{
+					Raw:    deploymentStateValue,
+					Schema: deploymentv2.DeploymentSchema(),
+				},
+				Plan: tfsdk.Plan{
+					Raw:    deploymentPlanValue,
+					Schema: deploymentv2.DeploymentSchema(),
+				},
 			}
 
-			state := tfsdk.State{
-				Raw:    deploymentStateValue,
-				Schema: deploymentv2.DeploymentSchema(),
-			}
+			resp := tfsdk.ModifyAttributePlanResponse{AttributePlan: tt.args.attributePlan}
 
-			useState, diags := modifier.UseState(context.Background(), types.String{}, plan, state, tt.args.attributePlan)
+			modifier.Modify(context.Background(), req, &resp)
 
-			assert.Nil(t, diags)
+			assert.Nil(t, resp.Diagnostics)
 
-			assert.Equal(t, tt.expectedToUseState, useState, func() string {
-				if tt.expectedToUseState {
-					return "it's expected to use state but it doesn't"
-				}
-				return "it's not expected to use state but it does"
-			}())
+			assert.Equal(t, tt.expected, resp.AttributePlan)
 		})
 	}
 }
@@ -159,4 +191,11 @@ func tftypesValueFromGoTypeValue(t *testing.T, goValue any, attributeType attr.T
 	tftypesValue, err := attrValue.ToTerraformValue(context.Background())
 	assert.Nil(t, err)
 	return tftypesValue
+}
+
+func unknownValueFromAttrType(t *testing.T, attributeType attr.Type) attr.Value {
+	tfVal := tftypes.NewValue(attributeType.TerraformType(context.Background()), tftypes.UnknownValue)
+	val, err := attributeType.ValueFromTerraform(context.Background(), tfVal)
+	assert.Nil(t, err)
+	return val
 }

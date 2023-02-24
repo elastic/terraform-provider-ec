@@ -70,7 +70,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 
 	res, err := stackapi.List(stackapi.ListParams{
 		API:    d.client,
-		Region: newState.Region.ValueString(),
+		Region: newState.Region.Value,
 	})
 	if err != nil {
 		response.Diagnostics.AddError(
@@ -80,7 +80,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
-	stack, err := stackFromFilters(newState.VersionRegex.ValueString(), newState.Version.ValueString(), newState.Lock.ValueBool(), res.Stacks)
+	stack, err := stackFromFilters(newState.VersionRegex.Value, newState.Version.Value, newState.Lock.Value, res.Stacks)
 	if err != nil {
 		response.Diagnostics.AddError(err.Error(), err.Error())
 		return
@@ -98,20 +98,20 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *modelV0) diag.Diagnostics {
 	var diagnostics diag.Diagnostics
 
-	state.ID = types.StringValue(stack.Version)
-	state.Version = types.StringValue(stack.Version)
+	state.ID = types.String{Value: stack.Version}
+	state.Version = types.String{Value: stack.Version}
 	if stack.Accessible != nil {
-		state.Accessible = types.BoolValue(*stack.Accessible)
+		state.Accessible = types.Bool{Value: *stack.Accessible}
 	}
 
-	state.MinUpgradableFrom = types.StringValue(stack.MinUpgradableFrom)
+	state.MinUpgradableFrom = types.String{Value: stack.MinUpgradableFrom}
 
 	if len(stack.UpgradableTo) > 0 {
 		diagnostics.Append(tfsdk.ValueFrom(ctx, stack.UpgradableTo, types.ListType{ElemType: types.StringType}, &state.UpgradableTo)...)
 	}
 
 	if stack.Whitelisted != nil {
-		state.AllowListed = types.BoolValue(*stack.Whitelisted)
+		state.AllowListed = types.Bool{Value: *stack.Whitelisted}
 	}
 
 	var diags diag.Diagnostics
@@ -157,15 +157,15 @@ func stackFromFilters(expr, version string, locked bool, stacks []*models.StackV
 
 func newElasticsearchConfigModelV0() elasticsearchConfigModelV0 {
 	return elasticsearchConfigModelV0{
-		DenyList:            types.ListNull(types.StringType),
-		CompatibleNodeTypes: types.ListNull(types.StringType),
-		Plugins:             types.ListNull(types.StringType),
-		DefaultPlugins:      types.ListNull(types.StringType),
+		DenyList:            types.List{ElemType: types.StringType},
+		CompatibleNodeTypes: types.List{ElemType: types.StringType},
+		Plugins:             types.List{ElemType: types.StringType},
+		DefaultPlugins:      types.List{ElemType: types.StringType},
 	}
 }
 func newResourceKindConfigModelV0() resourceKindConfigModelV0 {
 	return resourceKindConfigModelV0{
-		DenyList:            types.ListNull(types.StringType),
-		CompatibleNodeTypes: types.ListNull(types.StringType),
+		DenyList:            types.List{ElemType: types.StringType},
+		CompatibleNodeTypes: types.List{ElemType: types.StringType},
 	}
 }

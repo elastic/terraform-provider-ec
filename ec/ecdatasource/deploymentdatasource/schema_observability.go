@@ -20,41 +20,42 @@ package deploymentdatasource
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func observabilitySettingsSchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func observabilitySettingsSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: "Observability settings. Information about logs and metrics shipped to a dedicated deployment.",
 		Computed:    true,
-		Validators:  []validator.List{listvalidator.SizeAtMost(1)},
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"deployment_id": schema.StringAttribute{
-					Description: "Destination deployment ID for the shipped logs and monitoring metrics.",
-					Computed:    true,
-				},
-				"ref_id": schema.StringAttribute{
-					Description: "Elasticsearch resource kind ref_id of the destination deployment.",
-					Computed:    true,
-				},
-				"logs": schema.BoolAttribute{
-					Description: "Defines whether logs are shipped to the destination deployment.",
-					Computed:    true,
-				},
-				"metrics": schema.BoolAttribute{
-					Description: "Defines whether metrics are shipped to the destination deployment.",
-					Computed:    true,
-				},
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"deployment_id": {
+				Type:        types.StringType,
+				Description: "Destination deployment ID for the shipped logs and monitoring metrics.",
+				Computed:    true,
 			},
-		},
+			"ref_id": {
+				Type:        types.StringType,
+				Description: "Elasticsearch resource kind ref_id of the destination deployment.",
+				Computed:    true,
+			},
+			"logs": {
+				Type:        types.BoolType,
+				Description: "Defines whether logs are shipped to the destination deployment.",
+				Computed:    true,
+			},
+			"metrics": {
+				Type:        types.BoolType,
+				Description: "Defines whether metrics are shipped to the destination deployment.",
+				Computed:    true,
+			},
+		}),
 	}
 }
 
 func observabilitySettingsAttrTypes() map[string]attr.Type {
-	return observabilitySettingsSchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return observabilitySettingsSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 type observabilitySettingsModel struct {

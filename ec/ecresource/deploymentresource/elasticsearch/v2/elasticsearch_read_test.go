@@ -258,7 +258,7 @@ func Test_readElasticsearch(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 
 			var esObj types.Object
-			diags := tfsdk.ValueFrom(context.Background(), got, ElasticsearchSchema().GetType(), &esObj)
+			diags := tfsdk.ValueFrom(context.Background(), got, ElasticsearchSchema().FrameworkType(), &esObj)
 			assert.Nil(t, diags)
 		})
 	}
@@ -422,7 +422,7 @@ func Test_readElasticsearchConfig(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 
 			var config types.Object
-			diags := tfsdk.ValueFrom(context.Background(), got, elasticsearchConfigSchema().GetType(), &config)
+			diags := tfsdk.ValueFrom(context.Background(), got, elasticsearchConfigSchema().FrameworkType(), &config)
 			assert.Nil(t, diags)
 		})
 	}

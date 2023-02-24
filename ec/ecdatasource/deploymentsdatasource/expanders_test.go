@@ -46,7 +46,7 @@ func Test_expandFilters(t *testing.T) {
 	}{
 		{
 			name: "parses the data source",
-			args: args{state: newSampleFilters(t)},
+			args: args{state: newSampleFilters()},
 			want: &models.SearchRequest{
 				Size: 100,
 				Sort: []interface{}{"id"},
@@ -67,74 +67,54 @@ func Test_expandFilters(t *testing.T) {
 			name: "parses the data source with a different size",
 			args: args{
 				state: modelV0{
-					NamePrefix: types.StringValue("test"),
-					Healthy:    types.StringValue("true"),
-					Size:       types.Int64Value(200),
-					Tags:       util.StringMapAsType(t, map[string]string{"foo": "bar"}),
-					Elasticsearch: func() types.List {
-						res, diags := types.ListValueFrom(
-							context.Background(),
-							types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind)},
-							[]resourceFiltersModelV0{
-								{
-									Healthy: types.StringNull(),
-									Status:  types.StringNull(),
-									Version: types.StringValue("7.9.1"),
-								},
+					NamePrefix: types.String{Value: "test"},
+					Healthy:    types.String{Value: "true"},
+					Size:       types.Int64{Value: 200},
+					Tags:       util.StringMapAsType(map[string]string{"foo": "bar"}),
+					Elasticsearch: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind),
+							Attrs: map[string]attr.Value{
+								"healthy": types.String{Null: true},
+								"status":  types.String{Null: true},
+								"version": types.String{Value: "7.9.1"},
 							},
-						)
-
-						assert.Nil(t, diags)
-						return res
-					}(),
-					Kibana: func() types.List {
-						res, diags := types.ListValueFrom(
-							context.Background(),
-							types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind)},
-							[]resourceFiltersModelV0{
-								{
-									Healthy: types.StringNull(),
-									Status:  types.StringValue("started"),
-									Version: types.StringNull(),
-								},
+						}},
+					},
+					Kibana: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind),
+							Attrs: map[string]attr.Value{
+								"healthy": types.String{Null: true},
+								"status":  types.String{Value: "started"},
+								"version": types.String{Null: true},
 							},
-						)
-						assert.Nil(t, diags)
-
-						return res
-					}(),
-					Apm: func() types.List {
-						res, diags := types.ListValueFrom(
-							context.Background(),
-							types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
-							[]resourceFiltersModelV0{
-								{
-									Healthy: types.StringValue("true"),
-									Status:  types.StringNull(),
-									Version: types.StringNull(),
-								},
+						}},
+					},
+					Apm: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind),
+							Attrs: map[string]attr.Value{
+								"healthy": types.String{Value: "true"},
+								"status":  types.String{Null: true},
+								"version": types.String{Null: true},
 							},
-						)
-						assert.Nil(t, diags)
-
-						return res
-					}(),
-					EnterpriseSearch: func() types.List {
-						res, diags := types.ListValueFrom(
-							context.Background(),
-							types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind)},
-							[]resourceFiltersModelV0{
-								{
-									Status:  types.StringNull(),
-									Healthy: types.StringValue("false"),
-									Version: types.StringNull(),
-								},
+						}},
+					},
+					EnterpriseSearch: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind),
+							Attrs: map[string]attr.Value{
+								"status":  types.String{Null: true},
+								"healthy": types.String{Value: "false"},
+								"version": types.String{Null: true},
 							},
-						)
-						assert.Nil(t, diags)
-
-						return res
-					}(),
+						}},
+					},
 				},
 			},
 			want: &models.SearchRequest{
@@ -155,7 +135,7 @@ func Test_expandFilters(t *testing.T) {
 		},
 		{
 			name:  "fails to parse the data source",
-			args:  args{state: newInvalidFilters(t)},
+			args:  args{state: newInvalidFilters()},
 			diags: diag.Diagnostics{diag.NewErrorDiagnostic("invalid value for healthy", "expected either [true] or [false] but got [invalid value]")},
 		},
 	}
@@ -183,105 +163,73 @@ func Test_expandFilters(t *testing.T) {
 	}
 }
 
-func newInvalidFilters(t *testing.T) modelV0 {
+func newInvalidFilters() modelV0 {
 	return modelV0{
-		Healthy: types.StringValue("invalid value"),
-		Apm: func() types.List {
-			res, diags := types.ListValueFrom(
-				context.Background(),
-				types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
-				[]resourceFiltersModelV0{
-					{
-						Healthy: types.StringValue("invalid healthy value"),
-						Status:  types.StringValue("invalid status value"),
-						Version: types.StringValue("invalid version value"),
-					},
+		Healthy: types.String{Value: "invalid value"},
+		Apm: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Value: "invalid value"},
 				},
-			)
-			assert.Nil(t, diags)
-
-			return res
-		}(),
+			}},
+		},
 	}
 }
 
-func newSampleFilters(t *testing.T) modelV0 {
+func newSampleFilters() modelV0 {
 	return modelV0{
-		NamePrefix: types.StringValue("test"),
-		Healthy:    types.StringValue("true"),
-		Size:       types.Int64Value(100),
-		Tags: func() types.Map {
-			res, diags := types.MapValue(
-				types.StringType,
-				map[string]attr.Value{"foo": types.StringValue("bar")},
-			)
-			assert.Nil(t, diags)
-			return res
-		}(),
-		Elasticsearch: func() types.List {
-			res, diags := types.ListValueFrom(
-				context.Background(),
-				types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind)},
-				[]resourceFiltersModelV0{
-					{
-						Healthy: types.StringNull(),
-						Status:  types.StringNull(),
-						Version: types.StringValue("7.9.1"),
-					},
+		NamePrefix: types.String{Value: "test"},
+		Healthy:    types.String{Value: "true"},
+		Size:       types.Int64{Value: 100},
+		Tags: types.Map{ElemType: types.StringType, Elems: map[string]attr.Value{
+			"foo": types.String{Value: "bar"},
+		}},
+		Elasticsearch: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Null: true},
+					"status":  types.String{Null: true},
+					"version": types.String{Value: "7.9.1"},
 				},
-			)
-			assert.Nil(t, diags)
-
-			return res
-		}(),
-		Kibana: func() types.List {
-			res, diags := types.ListValueFrom(
-				context.Background(),
-				types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind)},
-				[]resourceFiltersModelV0{
-					{
-						Healthy: types.StringNull(),
-						Status:  types.StringValue("started"),
-						Version: types.StringNull(),
-					},
+			}},
+		},
+		Kibana: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Null: true},
+					"status":  types.String{Value: "started"},
+					"version": types.String{Null: true},
 				},
-			)
-			assert.Nil(t, diags)
-
-			return res
-		}(),
-		Apm: func() types.List {
-			res, diags := types.ListValueFrom(
-				context.Background(),
-				types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
-				[]resourceFiltersModelV0{
-					{
-						Healthy: types.StringValue("true"),
-						Status:  types.StringNull(),
-						Version: types.StringNull(),
-					},
+			}},
+		},
+		Apm: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Value: "true"},
+					"status":  types.String{Null: true},
+					"version": types.String{Null: true},
 				},
-			)
-			assert.Nil(t, diags)
-
-			return res
-		}(),
-		EnterpriseSearch: func() types.List {
-			res, diags := types.ListValueFrom(
-				context.Background(),
-				types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind)},
-				[]resourceFiltersModelV0{
-					{
-						Status:  types.StringNull(),
-						Healthy: types.StringValue("false"),
-						Version: types.StringNull(),
-					},
+			}},
+		},
+		EnterpriseSearch: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind),
+				Attrs: map[string]attr.Value{
+					"status":  types.String{Null: true},
+					"healthy": types.String{Value: "false"},
+					"version": types.String{Null: true},
 				},
-			)
-			assert.Nil(t, diags)
-
-			return res
-		}(),
+			}},
+		},
 	}
 }
 

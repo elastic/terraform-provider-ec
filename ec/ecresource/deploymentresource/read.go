@@ -58,7 +58,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	var newState *deploymentv2.Deployment
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil)
+	newState, diags = r.read(ctx, curState.Id.Value, &curState, nil, nil)
 
 	response.Diagnostics.Append(diags...)
 
@@ -132,7 +132,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	}
 
 	if elasticsearchPlan != nil {
-		refId = elasticsearchPlan.RefId.ValueString()
+		refId = elasticsearchPlan.RefId.Value
 	}
 
 	remotes, err := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
@@ -153,7 +153,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		return nil, diags
 	}
 
-	deployment.RequestId = base.RequestId.ValueString()
+	deployment.RequestId = base.RequestId.Value
 
 	deployment.SetCredentialsIfEmpty(state)
 

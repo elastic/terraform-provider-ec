@@ -338,7 +338,7 @@ func Test_readIntegrationsServer(t *testing.T) {
 			assert.Equal(t, tt.want, srv)
 
 			var obj types.Object
-			diags := tfsdk.ValueFrom(context.Background(), srv, IntegrationsServerSchema().GetType(), &obj)
+			diags := tfsdk.ValueFrom(context.Background(), srv, IntegrationsServerSchema().FrameworkType(), &obj)
 			assert.Nil(t, diags)
 		})
 	}

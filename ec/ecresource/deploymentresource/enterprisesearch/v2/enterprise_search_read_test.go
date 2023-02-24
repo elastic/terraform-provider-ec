@@ -186,7 +186,7 @@ func Test_readEnterpriseSearch(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 
 			var obj types.Object
-			diags := tfsdk.ValueFrom(context.Background(), got, EnterpriseSearchSchema().GetType(), &obj)
+			diags := tfsdk.ValueFrom(context.Background(), got, EnterpriseSearchSchema().FrameworkType(), &obj)
 			assert.Nil(t, diags)
 		})
 	}

@@ -18,41 +18,45 @@
 package v2
 
 import (
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ObservabilitySchema() schema.Attribute {
-	return schema.SingleNestedAttribute{
+func ObservabilitySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: "Optional observability settings. Ship logs and metrics to a dedicated deployment.",
 		Optional:    true,
-		Attributes: map[string]schema.Attribute{
-			"deployment_id": schema.StringAttribute{
+		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+			"deployment_id": {
+				Type:     types.StringType,
 				Required: true,
 			},
-			"ref_id": schema.StringAttribute{
+			"ref_id": {
+				Type:     types.StringType,
 				Computed: true,
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
 				},
 			},
-			"logs": schema.BoolAttribute{
+			"logs": {
+				Type:     types.BoolType,
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.BoolDefaultValue(true),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Bool{Value: true}),
 				},
 			},
-			"metrics": schema.BoolAttribute{
+			"metrics": {
+				Type:     types.BoolType,
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.BoolDefaultValue(true),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Bool{Value: true}),
 				},
 			},
-		},
+		}),
 	}
 }

@@ -20,25 +20,26 @@ package validators
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
-
-var _ validator.String = knownValidator{}
 
 type knownValidator struct{}
 
+// Description returns a plain text description of the validator's behavior, suitable for a practitioner to understand its impact.
 func (v knownValidator) Description(ctx context.Context) string {
 	return "Value must be known"
 }
 
+// MarkdownDescription returns a markdown formatted description of the validator's behavior, suitable for a practitioner to understand its impact.
 func (v knownValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v knownValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsUnknown() {
+// Validate runs the main validation logic of the validator, reading configuration data out of `req` and updating `resp` with diagnostics.
+func (v knownValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	if req.AttributeConfig.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			req.Path,
+			req.AttributePath,
 			v.Description(ctx),
 			"Value must be known",
 		)
@@ -52,6 +53,6 @@ func (v knownValidator) ValidateString(ctx context.Context, req validator.String
 //   - Is known.
 //
 // Null (unconfigured) values are skipped.
-func Known() knownValidator {
+func Known() tfsdk.AttributeValidator {
 	return knownValidator{}
 }

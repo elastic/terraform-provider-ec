@@ -82,11 +82,11 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
-		res.RefID = ec.String(es.RefId.ValueString())
+		res.RefID = &es.RefId.Value
 	}
 
-	if es.Region.ValueString() != "" {
-		res.Region = ec.String(es.Region.ValueString())
+	if es.Region.Value != "" {
+		res.Region = &es.Region.Value
 	}
 
 	// Unsetting the curation properties is since they're deprecated since
@@ -111,7 +111,7 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	diags.Append(elasticsearchExtensionPayload(ctx, es.Extension, res.Plan.Elasticsearch)...)
 
 	if !es.Autoscale.IsNull() && !es.Autoscale.IsUnknown() {
-		res.Plan.AutoscalingEnabled = ec.Bool(es.Autoscale.ValueBool())
+		res.Plan.AutoscalingEnabled = &es.Autoscale.Value
 	}
 
 	res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
@@ -252,7 +252,7 @@ func elasticsearchStrategyPayload(strategy types.String, payload *models.Elastic
 		}
 	}
 
-	switch strategy.ValueString() {
+	switch strategy.Value {
 	case autodetect:
 		createModelIfNeeded()
 		payload.Transient.Strategy.Autodetect = new(models.AutodetectStrategyConfig)

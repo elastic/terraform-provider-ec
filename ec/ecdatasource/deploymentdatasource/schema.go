@@ -20,45 +20,51 @@ package deploymentdatasource
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"alias": schema.StringAttribute{
+func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"alias": {
+				Type:        types.StringType,
 				Description: "Deployment alias.",
 				Computed:    true,
 			},
-			"healthy": schema.BoolAttribute{
+			"healthy": {
+				Type:        types.BoolType,
 				Description: "Overall health status of the deployment.",
 				Computed:    true,
 			},
-			"id": schema.StringAttribute{
+			"id": {
+				Type:        types.StringType,
 				Description: "The unique ID of the deployment.",
 				Required:    true,
 			},
-			"name": schema.StringAttribute{
+			"name": {
+				Type:        types.StringType,
 				Description: "The name of the deployment.",
 				Computed:    true,
 			},
-			"region": schema.StringAttribute{
+			"region": {
+				Type:        types.StringType,
 				Description: "Region where the deployment is hosted.",
 				Computed:    true,
 			},
-			"deployment_template_id": schema.StringAttribute{
+			"deployment_template_id": {
+				Type:        types.StringType,
 				Description: "ID of the deployment template this deployment is based off.",
 				Computed:    true,
 			},
-			"traffic_filter": schema.ListAttribute{
-				ElementType: types.StringType,
+			"traffic_filter": {
+				Type:        types.ListType{ElemType: types.StringType},
 				Description: "Traffic filter block, which contains a list of traffic filter rule identifiers.",
 				Computed:    true,
 			},
-			"tags": schema.MapAttribute{
-				ElementType: types.StringType,
+			"tags": {
+				Type:        types.MapType{ElemType: types.StringType},
 				Description: "Key value map of arbitrary string tags.",
 				Computed:    true,
 			},
@@ -69,7 +75,7 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 			"integrations_server": integrationsServerResourceInfoSchema(),
 			"enterprise_search":   enterpriseSearchResourceInfoSchema(),
 		},
-	}
+	}, nil
 }
 
 type modelV0 struct {

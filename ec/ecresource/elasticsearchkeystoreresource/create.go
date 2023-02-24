@@ -45,16 +45,16 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 
 	if _, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          r.client,
-		DeploymentID: newState.DeploymentID.ValueString(),
+		DeploymentID: newState.DeploymentID.Value,
 		Contents:     expandModel(ctx, newState),
 	}); err != nil {
 		response.Diagnostics.AddError(err.Error(), err.Error())
 		return
 	}
 
-	newState.ID = types.StringValue(hashID(newState.DeploymentID.ValueString(), newState.SettingName.ValueString()))
+	newState.ID = types.String{Value: hashID(newState.DeploymentID.Value, newState.SettingName.Value)}
 
-	found, diags := r.read(ctx, newState.DeploymentID.ValueString(), &newState)
+	found, diags := r.read(ctx, newState.DeploymentID.Value, &newState)
 	response.Diagnostics.Append(diags...)
 	if !found {
 		response.Diagnostics.AddError(

@@ -73,34 +73,34 @@ func apmConfigPayload(ctx context.Context, cfg v1.ApmConfigTF, model *models.Apm
 		if model.SystemSettings == nil {
 			model.SystemSettings = &models.ApmSystemSettings{}
 		}
-		model.SystemSettings.DebugEnabled = ec.Bool(cfg.DebugEnabled.ValueBool())
+		model.SystemSettings.DebugEnabled = &cfg.DebugEnabled.Value
 	}
 
 	var diags diag.Diagnostics
-	if cfg.UserSettingsJson.ValueString() != "" {
-		if err := json.Unmarshal([]byte(cfg.UserSettingsJson.ValueString()), &model.UserSettingsJSON); err != nil {
+	if cfg.UserSettingsJson.Value != "" {
+		if err := json.Unmarshal([]byte(cfg.UserSettingsJson.Value), &model.UserSettingsJSON); err != nil {
 			diags.AddError("failed expanding apm user_settings_json", err.Error())
 			return diags
 		}
 	}
 
-	if cfg.UserSettingsOverrideJson.ValueString() != "" {
-		if err := json.Unmarshal([]byte(cfg.UserSettingsOverrideJson.ValueString()), &model.UserSettingsOverrideJSON); err != nil {
+	if cfg.UserSettingsOverrideJson.Value != "" {
+		if err := json.Unmarshal([]byte(cfg.UserSettingsOverrideJson.Value), &model.UserSettingsOverrideJSON); err != nil {
 			diags.AddError("failed expanding apm user_settings_override_json", err.Error())
 			return diags
 		}
 	}
 
 	if !cfg.UserSettingsYaml.IsNull() {
-		model.UserSettingsYaml = cfg.UserSettingsYaml.ValueString()
+		model.UserSettingsYaml = cfg.UserSettingsYaml.Value
 	}
 
 	if !cfg.UserSettingsOverrideYaml.IsNull() {
-		model.UserSettingsOverrideYaml = cfg.UserSettingsOverrideYaml.ValueString()
+		model.UserSettingsOverrideYaml = cfg.UserSettingsOverrideYaml.Value
 	}
 
 	if !cfg.DockerImage.IsNull() {
-		model.DockerImage = cfg.DockerImage.ValueString()
+		model.DockerImage = cfg.DockerImage.Value
 	}
 
 	return nil

@@ -42,11 +42,11 @@ func (r *Resource) Create(ctx context.Context, request resource.CreateRequest, r
 	model, err := extensionapi.Create(
 		extensionapi.CreateParams{
 			API:         r.client,
-			Name:        newState.Name.ValueString(),
-			Version:     newState.Version.ValueString(),
-			Type:        newState.ExtensionType.ValueString(),
-			Description: newState.Description.ValueString(),
-			DownloadURL: newState.DownloadURL.ValueString(),
+			Name:        newState.Name.Value,
+			Version:     newState.Version.Value,
+			Type:        newState.ExtensionType.Value,
+			Description: newState.Description.Value,
+			DownloadURL: newState.DownloadURL.Value,
 		},
 	)
 	if err != nil {
@@ -54,16 +54,16 @@ func (r *Resource) Create(ctx context.Context, request resource.CreateRequest, r
 		return
 	}
 
-	newState.ID = types.StringValue(*model.ID)
+	newState.ID = types.String{Value: *model.ID}
 
-	if !newState.FilePath.IsNull() && newState.FilePath.ValueString() != "" {
+	if !newState.FilePath.IsNull() && newState.FilePath.Value != "" {
 		response.Diagnostics.Append(r.uploadExtension(newState)...)
 		if response.Diagnostics.HasError() {
 			return
 		}
 	}
 
-	found, diags := r.read(newState.ID.ValueString(), &newState)
+	found, diags := r.read(newState.ID.Value, &newState)
 	response.Diagnostics.Append(diags...)
 	if !found {
 		response.Diagnostics.AddError(

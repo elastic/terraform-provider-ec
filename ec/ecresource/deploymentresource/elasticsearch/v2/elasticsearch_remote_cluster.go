@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -64,7 +63,7 @@ func readElasticsearchRemoteClusters(in []*models.RemoteResourceRef) (Elasticsea
 func ElasticsearchRemoteClustersPayload(ctx context.Context, clustersTF types.Set) (*models.RemoteResources, diag.Diagnostics) {
 	payloads := models.RemoteResources{Resources: []*models.RemoteResourceRef{}}
 
-	for _, elem := range clustersTF.Elements() {
+	for _, elem := range clustersTF.Elems {
 		var cluster ElasticsearchRemoteClusterTF
 		diags := tfsdk.ValueAs(ctx, elem, &cluster)
 
@@ -74,19 +73,19 @@ func ElasticsearchRemoteClustersPayload(ctx context.Context, clustersTF types.Se
 		var payload models.RemoteResourceRef
 
 		if !cluster.DeploymentId.IsNull() {
-			payload.DeploymentID = ec.String(cluster.DeploymentId.ValueString())
+			payload.DeploymentID = &cluster.DeploymentId.Value
 		}
 
 		if !cluster.RefId.IsNull() {
-			payload.ElasticsearchRefID = ec.String(cluster.RefId.ValueString())
+			payload.ElasticsearchRefID = &cluster.RefId.Value
 		}
 
 		if !cluster.Alias.IsNull() {
-			payload.Alias = ec.String(cluster.Alias.ValueString())
+			payload.Alias = &cluster.Alias.Value
 		}
 
 		if !cluster.SkipUnavailable.IsNull() {
-			payload.SkipUnavailable = ec.Bool(cluster.SkipUnavailable.ValueBool())
+			payload.SkipUnavailable = &cluster.SkipUnavailable.Value
 		}
 
 		payloads.Resources = append(payloads.Resources, &payload)

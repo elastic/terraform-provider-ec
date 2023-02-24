@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/stretchr/testify/assert"
@@ -31,44 +32,39 @@ import (
 
 func Test_modelToState(t *testing.T) {
 	state := modelV0{
-		ID:                   types.StringValue("test"),
-		NamePrefix:           types.StringValue("test"),
-		Healthy:              types.StringValue("true"),
-		DeploymentTemplateID: types.StringValue("azure-compute-optimized"),
+		ID:                   types.String{Value: "test"},
+		NamePrefix:           types.String{Value: "test"},
+		Healthy:              types.String{Value: "true"},
+		DeploymentTemplateID: types.String{Value: "azure-compute-optimized"},
 	}
 
 	wantDeployments := modelV0{
-		ID:                   types.StringValue("2705093922"),
-		NamePrefix:           types.StringValue("test"),
-		ReturnCount:          types.Int64Value(1),
-		DeploymentTemplateID: types.StringValue("azure-compute-optimized"),
-		Healthy:              types.StringValue("true"),
-		Deployments: func() types.List {
-			res, diags := types.ListValueFrom(
-				context.Background(),
-				types.ObjectType{AttrTypes: deploymentAttrTypes()},
-				[]deploymentModelV0{
-					{
-						Name:                         types.StringValue("test-hello"),
-						Alias:                        types.StringValue("dev"),
-						ApmResourceID:                types.StringValue("9884c76ae1cd4521a0d9918a454a700d"),
-						ApmRefID:                     types.StringValue("apm"),
-						DeploymentID:                 types.StringValue("a8f22a9b9e684a7f94a89df74aa14331"),
-						ElasticsearchResourceID:      types.StringValue("a98dd0dac15a48d5b3953384c7e571b9"),
-						ElasticsearchRefID:           types.StringValue("elasticsearch"),
-						EnterpriseSearchResourceID:   types.StringValue("f17e4d8a61b14c12b020d85b723357ba"),
-						EnterpriseSearchRefID:        types.StringValue("enterprise_search"),
-						KibanaResourceID:             types.StringValue("c75297d672b54da68faecededf372f87"),
-						KibanaRefID:                  types.StringValue("kibana"),
-						IntegrationsServerResourceID: types.StringValue("3b3025a012fd3dd5c9dcae2a1ac89c6f"),
-						IntegrationsServerRefID:      types.StringValue("integrations_server"),
-					},
+		ID:                   types.String{Value: "2705093922"},
+		NamePrefix:           types.String{Value: "test"},
+		ReturnCount:          types.Int64{Value: 1},
+		DeploymentTemplateID: types.String{Value: "azure-compute-optimized"},
+		Healthy:              types.String{Value: "true"},
+		Deployments: types.List{
+			ElemType: types.ObjectType{AttrTypes: deploymentAttrTypes()},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: deploymentAttrTypes(),
+				Attrs: map[string]attr.Value{
+					"name":                            types.String{Value: "test-hello"},
+					"alias":                           types.String{Value: "dev"},
+					"apm_resource_id":                 types.String{Value: "9884c76ae1cd4521a0d9918a454a700d"},
+					"apm_ref_id":                      types.String{Value: "apm"},
+					"deployment_id":                   types.String{Value: "a8f22a9b9e684a7f94a89df74aa14331"},
+					"elasticsearch_resource_id":       types.String{Value: "a98dd0dac15a48d5b3953384c7e571b9"},
+					"elasticsearch_ref_id":            types.String{Value: "elasticsearch"},
+					"enterprise_search_resource_id":   types.String{Value: "f17e4d8a61b14c12b020d85b723357ba"},
+					"enterprise_search_ref_id":        types.String{Value: "enterprise_search"},
+					"kibana_resource_id":              types.String{Value: "c75297d672b54da68faecededf372f87"},
+					"kibana_ref_id":                   types.String{Value: "kibana"},
+					"integrations_server_resource_id": types.String{Value: "3b3025a012fd3dd5c9dcae2a1ac89c6f"},
+					"integrations_server_ref_id":      types.String{Value: "integrations_server"},
 				},
-			)
-			assert.Nil(t, diags)
-
-			return res
-		}(),
+			}},
+		},
 	}
 
 	searchResponse := &models.DeploymentsSearchResponse{

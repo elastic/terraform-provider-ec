@@ -42,7 +42,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
 		API:                 r.client,
-		ID:                  state.TrafficFilterID.ValueString(),
+		ID:                  state.TrafficFilterID.Value,
 		IncludeAssociations: true,
 	})
 	if err != nil {
@@ -61,7 +61,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 	var found bool
 	for _, assoc := range res.Associations {
-		if *assoc.EntityType == entityTypeDeployment && *assoc.ID == state.DeploymentID.ValueString() {
+		if *assoc.EntityType == entityTypeDeployment && *assoc.ID == state.DeploymentID.Value {
 			found = true
 		}
 	}

@@ -18,31 +18,47 @@
 package v1
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ObservabilitySchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func ObservabilitySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: "Optional observability settings. Ship logs and metrics to a dedicated deployment.",
 		Optional:    true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"deployment_id": schema.StringAttribute{
-					Required: true,
-				},
-				"ref_id": schema.StringAttribute{
-					Computed: true,
-					Optional: true,
-				},
-				"logs": schema.BoolAttribute{
-					Optional: true,
-					Computed: true,
-				},
-				"metrics": schema.BoolAttribute{
-					Optional: true,
-					Computed: true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"deployment_id": {
+				Type:     types.StringType,
+				Required: true,
+			},
+			"ref_id": {
+				Type:     types.StringType,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
 				},
 			},
-		},
+			"logs": {
+				Type:     types.BoolType,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Bool{Value: true}),
+				},
+			},
+			"metrics": {
+				Type:     types.BoolType,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Bool{Value: true}),
+				},
+			},
+		}),
 	}
 }

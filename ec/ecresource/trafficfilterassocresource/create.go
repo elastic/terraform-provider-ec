@@ -42,15 +42,15 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 
 	if err := trafficfilterapi.CreateAssociation(trafficfilterapi.CreateAssociationParams{
 		API:        r.client,
-		ID:         newState.TrafficFilterID.ValueString(),
-		EntityID:   newState.DeploymentID.ValueString(),
+		ID:         newState.TrafficFilterID.Value,
+		EntityID:   newState.DeploymentID.Value,
 		EntityType: entityTypeDeployment,
 	}); err != nil {
 		response.Diagnostics.AddError(err.Error(), err.Error())
 		return
 	}
 
-	newState.ID = types.StringValue(fmt.Sprintf("%v-%v", newState.DeploymentID.ValueString(), newState.TrafficFilterID.ValueString()))
+	newState.ID = types.String{Value: fmt.Sprintf("%v-%v", newState.DeploymentID.Value, newState.TrafficFilterID.Value)}
 	diags = response.State.Set(ctx, newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {

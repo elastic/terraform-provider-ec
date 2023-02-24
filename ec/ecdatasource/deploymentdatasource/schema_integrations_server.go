@@ -20,90 +20,97 @@ package deploymentdatasource
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func integrationsServerResourceInfoSchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func integrationsServerResourceInfoSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: "Instance configuration of the Integrations Server type.",
 		Computed:    true,
-		Validators:  []validator.List{listvalidator.SizeAtMost(1)},
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"elasticsearch_cluster_ref_id": schema.StringAttribute{
-					Description: "A locally-unique friendly alias for an Elasticsearch resource in this deployment.",
-					Computed:    true,
-				},
-				"healthy": schema.BoolAttribute{
-					Description: "Resource kind health status.",
-					Computed:    true,
-				},
-				"http_endpoint": schema.StringAttribute{
-					Description: "HTTP endpoint for the resource kind.",
-					Computed:    true,
-				},
-				"https_endpoint": schema.StringAttribute{
-					Description: "HTTPS endpoint for the resource kind.",
-					Computed:    true,
-				},
-				"ref_id": schema.StringAttribute{
-					Description: "A locally-unique friendly alias for this Integrations Server resource.",
-					Computed:    true,
-				},
-				"resource_id": schema.StringAttribute{
-					Description: "The resource unique identifier.",
-					Computed:    true,
-				},
-				"status": schema.StringAttribute{
-					Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
-					Computed:    true,
-				},
-				"version": schema.StringAttribute{
-					Description: "Elastic stack version.",
-					Computed:    true,
-				},
-				"topology": integrationsServerTopologySchema(),
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"elasticsearch_cluster_ref_id": {
+				Type:        types.StringType,
+				Description: "A locally-unique friendly alias for an Elasticsearch resource in this deployment.",
+				Computed:    true,
 			},
-		},
+			"healthy": {
+				Type:        types.BoolType,
+				Description: "Resource kind health status.",
+				Computed:    true,
+			},
+			"http_endpoint": {
+				Type:        types.StringType,
+				Description: "HTTP endpoint for the resource kind.",
+				Computed:    true,
+			},
+			"https_endpoint": {
+				Type:        types.StringType,
+				Description: "HTTPS endpoint for the resource kind.",
+				Computed:    true,
+			},
+			"ref_id": {
+				Type:        types.StringType,
+				Description: "A locally-unique friendly alias for this Integrations Server resource.",
+				Computed:    true,
+			},
+			"resource_id": {
+				Type:        types.StringType,
+				Description: "The resource unique identifier.",
+				Computed:    true,
+			},
+			"status": {
+				Type:        types.StringType,
+				Description: "Resource kind status (for example, \"started\", \"stopped\", etc).",
+				Computed:    true,
+			},
+			"version": {
+				Type:        types.StringType,
+				Description: "Elastic stack version.",
+				Computed:    true,
+			},
+			"topology": integrationsServerTopologySchema(),
+		}),
 	}
 }
 
 func integrationsServerResourceInfoAttrTypes() map[string]attr.Type {
-	return integrationsServerResourceInfoSchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return integrationsServerResourceInfoSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
-func integrationsServerTopologySchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func integrationsServerTopologySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: "Node topology element definition.",
 		Computed:    true,
-		Validators:  []validator.List{listvalidator.SizeAtMost(1)},
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"instance_configuration_id": schema.StringAttribute{
-					Description: "Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.",
-					Computed:    true,
-				},
-				"size": schema.StringAttribute{
-					Description: `Amount of "size_resource" in Gigabytes. For example "4g".`,
-					Computed:    true,
-				},
-				"size_resource": schema.StringAttribute{
-					Description: "Type of resource (\"memory\" or \"storage\")",
-					Computed:    true,
-				},
-				"zone_count": schema.Int64Attribute{
-					Description: "Number of zones in which nodes will be placed.",
-					Computed:    true,
-				},
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"instance_configuration_id": {
+				Type:        types.StringType,
+				Description: "Controls the allocation of this topology element as well as allowed sizes and node_types. It needs to match the ID of an existing instance configuration.",
+				Computed:    true,
 			},
-		},
+			"size": {
+				Type:        types.StringType,
+				Description: `Amount of "size_resource" in Gigabytes. For example "4g".`,
+				Computed:    true,
+			},
+			"size_resource": {
+				Type:        types.StringType,
+				Description: "Type of resource (\"memory\" or \"storage\")",
+				Computed:    true,
+			},
+			"zone_count": {
+				Type:        types.Int64Type,
+				Description: "Number of zones in which nodes will be placed.",
+				Computed:    true,
+			},
+		}),
 	}
 }
 
 func integrationsServerTopologyAttrTypes() map[string]attr.Type {
-	return integrationsServerTopologySchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return integrationsServerTopologySchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 type integrationsServerResourceInfoModelV0 struct {

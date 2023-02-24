@@ -44,14 +44,14 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 	//TODO retries
 
 	if _, err := deploymentapi.Shutdown(deploymentapi.ShutdownParams{
-		API: r.client, DeploymentID: state.Id.ValueString(),
+		API: r.client, DeploymentID: state.Id.Value,
 	}); err != nil {
 		if alreadyDestroyed(err) {
 			return
 		}
 	}
 
-	if err := WaitForPlanCompletion(r.client, state.Id.ValueString()); err != nil {
+	if err := WaitForPlanCompletion(r.client, state.Id.Value); err != nil {
 		resp.Diagnostics.AddError("deployment deletion error", err.Error())
 		return
 	}
@@ -62,7 +62,7 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 	// being shutdown". Sumarizing, even if the call fails the deployment
 	// won't be there.
 	_, _ = deploymentapi.Delete(deploymentapi.DeleteParams{
-		API: r.client, DeploymentID: state.Id.ValueString(),
+		API: r.client, DeploymentID: state.Id.Value,
 	})
 }
 

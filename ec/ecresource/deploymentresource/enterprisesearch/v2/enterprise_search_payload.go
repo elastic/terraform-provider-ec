@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -49,15 +48,15 @@ func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.Enterp
 	var diags diag.Diagnostics
 
 	if !es.ElasticsearchClusterRefId.IsNull() {
-		payload.ElasticsearchClusterRefID = ec.String(es.ElasticsearchClusterRefId.ValueString())
+		payload.ElasticsearchClusterRefID = &es.ElasticsearchClusterRefId.Value
 	}
 
 	if !es.RefId.IsNull() {
-		payload.RefID = ec.String(es.RefId.ValueString())
+		payload.RefID = &es.RefId.Value
 	}
 
-	if es.Region.ValueString() != "" {
-		payload.Region = ec.String(es.Region.ValueString())
+	if es.Region.Value != "" {
+		payload.Region = &es.Region.Value
 	}
 
 	if !es.Config.IsNull() && !es.Config.IsUnknown() {

@@ -42,8 +42,8 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 
 	if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
 		API:        r.client,
-		ID:         state.TrafficFilterID.ValueString(),
-		EntityID:   state.DeploymentID.ValueString(),
+		ID:         state.TrafficFilterID.Value,
+		EntityID:   state.DeploymentID.Value,
 		EntityType: entityTypeDeployment,
 	}); err != nil {
 		if !associationDeleted(err) {

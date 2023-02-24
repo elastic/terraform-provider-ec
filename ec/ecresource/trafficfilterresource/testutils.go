@@ -18,66 +18,37 @@
 package trafficfilterresource
 
 import (
-	"testing"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/stretchr/testify/assert"
 )
 
-func newSampleTrafficFilter(t *testing.T, id string) modelV0 {
+func newSampleTrafficFilter(id string) modelV0 {
 	return modelV0{
-		ID:               types.StringValue(id),
-		Name:             types.StringValue("my traffic filter"),
-		Type:             types.StringValue("ip"),
-		IncludeByDefault: types.BoolValue(false),
-		Region:           types.StringValue("us-east-1"),
-		Description:      types.StringNull(),
-		Rule: func() types.Set {
-			res, diags := types.SetValue(
-				trafficFilterRuleElemType(),
-				[]attr.Value{
-					newSampleTrafficFilterRule(t, "1.1.1.1", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "0.0.0.0/0", "", "", "", ""),
-				},
-			)
-			assert.Nil(t, diags)
-			return res
-		}(),
+		ID:               types.String{Value: id},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Description:      types.String{Null: true},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.1", "", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "", "", "", ""),
+			},
+		},
 	}
 }
 
-func newSampleTrafficFilterRule(t *testing.T, source string, description string, azureEndpointName string, azureEndpointGUID string, id string) types.Object {
-	res, diags := types.ObjectValue(
-		trafficFilterRuleAttrTypes(),
-		map[string]attr.Value{
-			"source": func() attr.Value {
-				if source == "" {
-					return types.StringNull()
-				}
-				return types.StringValue(source)
-			}(),
-			"description": func() attr.Value {
-				if description == "" {
-					return types.StringNull()
-				}
-				return types.StringValue(description)
-			}(),
-			"azure_endpoint_name": func() attr.Value {
-				if azureEndpointName == "" {
-					return types.StringNull()
-				}
-				return types.StringValue(azureEndpointName)
-			}(),
-			"azure_endpoint_guid": func() attr.Value {
-				if azureEndpointGUID == "" {
-					return types.StringNull()
-				}
-				return types.StringValue(azureEndpointGUID)
-			}(),
-			"id": types.StringValue(id),
+func newSampleTrafficFilterRule(source string, description string, azureEndpointName string, azureEndpointGUID string, id string) types.Object {
+	return types.Object{
+		AttrTypes: trafficFilterRuleAttrTypes(),
+		Attrs: map[string]attr.Value{
+			"source":              types.String{Value: source, Null: source == ""},
+			"description":         types.String{Value: description, Null: description == ""},
+			"azure_endpoint_name": types.String{Value: azureEndpointName, Null: azureEndpointName == ""},
+			"azure_endpoint_guid": types.String{Value: azureEndpointGUID, Null: azureEndpointGUID == ""},
+			"id":                  types.String{Value: id},
 		},
-	)
-	assert.Nil(t, diags)
-	return res
+	}
 }

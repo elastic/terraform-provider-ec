@@ -116,25 +116,11 @@ func generateRD(t *testing.T, schemaMap map[string]*schema.Schema, rawAttr map[s
 // Check conversion to attr.Value
 // it should catch cases when e.g. the func under test returns types.List{}
 func CheckConverionToAttrValue(t *testing.T, dt datasource.DataSource, attributeName string, attributeValue types.List) {
-	resp := datasource.SchemaResponse{}
-	dt.Schema(context.Background(), datasource.SchemaRequest{}, &resp)
-	assert.Nil(t, resp.Diagnostics)
-
-	attrType := resp.Schema.Attributes[attributeName].GetType()
+	schema, diags := dt.GetSchema(context.Background())
+	assert.Nil(t, diags)
+	attrType := schema.Attributes[attributeName].FrameworkType()
 	assert.NotNil(t, attrType, fmt.Sprintf("Type of attribute '%s' cannot be nil", attributeName))
 	var target types.List
-	diags := tfsdk.ValueFrom(context.Background(), attributeValue, attrType, &target)
+	diags = tfsdk.ValueFrom(context.Background(), attributeValue, attrType, &target)
 	assert.Nil(t, diags)
-}
-
-func StringListAsType(t *testing.T, in []string) types.List {
-	res, diags := types.ListValueFrom(context.Background(), types.StringType, in)
-	assert.Nil(t, diags)
-	return res
-}
-
-func StringMapAsType(t *testing.T, in map[string]string) types.Map {
-	res, diags := types.MapValueFrom(context.Background(), types.StringType, in)
-	assert.Nil(t, diags)
-	return res
 }

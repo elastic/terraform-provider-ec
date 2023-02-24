@@ -18,102 +18,142 @@
 package v1
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ApmTopologySchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func ApmTopologySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Optional: true,
 		Computed: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"instance_configuration_id": schema.StringAttribute{
-					Optional: true,
-					Computed: true,
-				},
-				"size": schema.StringAttribute{
-					Computed: true,
-					Optional: true,
-				},
-				"size_resource": schema.StringAttribute{
-					Description: `Optional size type, defaults to "memory".`,
-					Optional:    true,
-					Computed:    true,
-				},
-				"zone_count": schema.Int64Attribute{
-					Computed: true,
-					Optional: true,
+		PlanModifiers: []tfsdk.AttributePlanModifier{
+			resource.UseStateForUnknown(),
+		},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"instance_configuration_id": {
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.UseStateForUnknown(),
 				},
 			},
-		},
+			"size": {
+				Type:     types.StringType,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.UseStateForUnknown(),
+				},
+			},
+			"size_resource": {
+				Type:        types.StringType,
+				Description: `Optional size type, defaults to "memory".`,
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.String{Value: "memory"}),
+				},
+			},
+			"zone_count": {
+				Type:     types.Int64Type,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.UseStateForUnknown(),
+				},
+			},
+		}),
 	}
 }
 
-func ApmConfigSchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func ApmConfigSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: `Optionally define the Apm configuration options for the APM Server`,
 		Optional:    true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"docker_image": schema.StringAttribute{
-					Description: "Optionally override the docker image the APM nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",
-					Optional:    true,
-				},
-				"debug_enabled": schema.BoolAttribute{
-					Description: `Optionally enable debug mode for APM servers - defaults to false`,
-					Optional:    true,
-					Computed:    true,
-				},
-				"user_settings_json": schema.StringAttribute{
-					Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
-					Optional:    true,
-				},
-				"user_settings_override_json": schema.StringAttribute{
-					Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
-					Optional:    true,
-				},
-				"user_settings_yaml": schema.StringAttribute{
-					Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
-					Optional:    true,
-				},
-				"user_settings_override_yaml": schema.StringAttribute{
-					Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
-					Optional:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"docker_image": {
+				Type:        types.StringType,
+				Description: "Optionally override the docker image the APM nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",
+				Optional:    true,
+			},
+			"debug_enabled": {
+				Type:        types.BoolType,
+				Description: `Optionally enable debug mode for APM servers - defaults to false`,
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Bool{Value: false}),
 				},
 			},
-		},
+			"user_settings_json": {
+				Type:        types.StringType,
+				Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+				Optional:    true,
+			},
+			"user_settings_override_json": {
+				Type:        types.StringType,
+				Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+				Optional:    true,
+			},
+			"user_settings_yaml": {
+				Type:        types.StringType,
+				Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
+				Optional:    true,
+			},
+			"user_settings_override_yaml": {
+				Type:        types.StringType,
+				Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
+				Optional:    true,
+			},
+		}),
 	}
 }
 
-func ApmSchema() schema.Attribute {
-	return schema.ListNestedAttribute{
+func ApmSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
 		Description: "Optional APM resource definition",
 		Optional:    true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"elasticsearch_cluster_ref_id": schema.StringAttribute{
-					Optional: true,
-					Computed: true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"elasticsearch_cluster_ref_id": {
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
 				},
-				"ref_id": schema.StringAttribute{
-					Optional: true,
-					Computed: true,
-				},
-				"resource_id": schema.StringAttribute{
-					Computed: true,
-				},
-				"region": schema.StringAttribute{
-					Computed: true,
-				},
-				"http_endpoint": schema.StringAttribute{
-					Computed: true,
-				},
-				"https_endpoint": schema.StringAttribute{
-					Computed: true,
-				},
-				"topology": ApmTopologySchema(),
-				"config":   ApmConfigSchema(),
 			},
-		},
+			"ref_id": {
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.String{Value: "main-apm"}),
+				},
+			},
+			"resource_id": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"region": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"http_endpoint": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"https_endpoint": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"topology": ApmTopologySchema(),
+			"config":   ApmConfigSchema(),
+		}),
 	}
 }

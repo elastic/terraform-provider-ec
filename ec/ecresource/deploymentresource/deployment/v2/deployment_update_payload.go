@@ -37,22 +37,22 @@ import (
 
 func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
 	var result = models.DeploymentUpdateRequest{
-		Name:         plan.Name.ValueString(),
-		Alias:        plan.Alias.ValueString(),
+		Name:         plan.Name.Value,
+		Alias:        plan.Alias.Value,
 		PruneOrphans: ec.Bool(true),
 		Resources:    &models.DeploymentUpdateResources{},
 		Settings:     &models.DeploymentUpdateSettings{},
 		Metadata:     &models.DeploymentUpdateMetadata{},
 	}
 
-	dtID := plan.DeploymentTemplateId.ValueString()
+	dtID := plan.DeploymentTemplateId.Value
 
 	var diagsnostics diag.Diagnostics
 
 	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 dtID,
-		Region:                     plan.Region.ValueString(),
+		Region:                     plan.Region.Value,
 		HideInstanceConfigurations: true,
 	})
 	if err != nil {
@@ -63,7 +63,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	// When the deployment template is changed, we need to skip the missing
 	// resource topologies to account for a new instance_configuration_id and
 	// a different default value.
-	skipEStopologies := plan.DeploymentTemplateId.ValueString() != "" && plan.DeploymentTemplateId.ValueString() != state.DeploymentTemplateId.ValueString() && state.DeploymentTemplateId.ValueString() != ""
+	skipEStopologies := plan.DeploymentTemplateId.Value != "" && plan.DeploymentTemplateId.Value != state.DeploymentTemplateId.Value && state.DeploymentTemplateId.Value != ""
 	// If the deployment_template_id is changed, then we skip updating the
 	// Elasticsearch topology to account for the case where the
 	// instance_configuration_id changes, i.e. Hot / Warm, etc.
@@ -76,7 +76,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		return nil, diags
 	}
 
-	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, template, dtID, plan.Version.ValueString(), useNodeRoles, skipEStopologies)
+	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, template, dtID, plan.Version.Value, useNodeRoles, skipEStopologies)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)

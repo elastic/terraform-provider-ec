@@ -22,59 +22,62 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
 
-func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
+func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"id": {
+				Type:                types.StringType,
 				MarkdownDescription: "Unique identifier of this resource.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
 				},
 			},
-			"deployment_id": schema.StringAttribute{
+			"deployment_id": {
+				Type:        types.StringType,
 				Description: `Required deployment ID of the Deployment that holds the Elasticsearch cluster where the keystore setting will be written to.`,
 				Required:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.RequiresReplace(),
 				},
 			},
-			"setting_name": schema.StringAttribute{
+			"setting_name": {
+				Type:        types.StringType,
 				Description: "Required name for the keystore setting, if the setting already exists in the Elasticsearch cluster, it will be overridden.",
 				Required:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.RequiresReplace(),
 				},
 			},
-			"value": schema.StringAttribute{
+			"value": {
+				Type:        types.StringType,
 				Description: "Required value of this setting. This can either be a string or a JSON object that is stored as a JSON string in the keystore.",
 				Sensitive:   true,
 				Required:    true,
 			},
-			"as_file": schema.BoolAttribute{
+			"as_file": {
+				Type:        types.BoolType,
 				Description: "Optionally stores the remote keystore setting as a file. The default is false, which stores the keystore setting as string when value is a plain string.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.BoolDefaultValue(false),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.Bool{Value: false}),
 				},
 			},
 		},
-	}
+	}, nil
 }
 
 type Resource struct {

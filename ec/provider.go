@@ -26,9 +26,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -77,6 +76,7 @@ func ProviderWithClient(client *api.API, version string) provider.Provider {
 }
 
 var _ provider.Provider = (*Provider)(nil)
+var _ provider.ProviderWithMetadata = (*Provider)(nil)
 
 type Provider struct {
 	version string
@@ -105,53 +105,61 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 	}
 }
 
-func (p *Provider) Schema(_ context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"endpoint": schema.StringAttribute{
+func (p *Provider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"endpoint": {
 				Description: fmt.Sprintf(endpointDesc, api.ESSEndpoint),
+				Type:        types.StringType,
 				Optional:    true,
-				Validators: []validator.String{
-					validators.Known(),
-					validators.IsURLWithSchemeValidator(validURLSchemes),
-				},
+				Validators:  []tfsdk.AttributeValidator{validators.Known(), validators.IsURLWithSchemeValidator(validURLSchemes)},
 			},
-			"apikey": schema.StringAttribute{
+			"apikey": {
 				Description: apikeyDesc,
+				Type:        types.StringType,
 				Optional:    true,
 				Sensitive:   true,
 			},
-			"username": schema.StringAttribute{
+			"username": {
 				Description: usernameDesc,
+				Type:        types.StringType,
 				Optional:    true,
 			},
-			"password": schema.StringAttribute{
+			"password": {
 				Description: passwordDesc,
+				Type:        types.StringType,
 				Optional:    true,
 				Sensitive:   true,
 			},
-			"insecure": schema.BoolAttribute{
+			"insecure": {
 				Description: insecureDesc,
+				Type:        types.BoolType,
 				Optional:    true,
 			},
-			"timeout": schema.StringAttribute{
+			"timeout": {
 				Description: timeoutDesc,
+				Type:        types.StringType,
 				Optional:    true,
 			},
-			"verbose": schema.BoolAttribute{
+			"verbose": {
 				Description: verboseDesc,
+				Type:        types.BoolType,
 				Optional:    true,
 			},
-			"verbose_credentials": schema.BoolAttribute{
+			"verbose_credentials": {
 				Description: verboseCredsDesc,
+				Type:        types.BoolType,
 				Optional:    true,
 			},
-			"verbose_file": schema.StringAttribute{
+			"verbose_file": {
 				Description: timeoutDesc,
+				Type:        types.StringType,
 				Optional:    true,
 			},
 		},
-	}
+	}, diags
 }
 
 // Retrieve provider data from configuration
@@ -185,9 +193,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
-	endpoint := config.Endpoint.ValueString()
+	endpoint := config.Endpoint.Value
 
-	if config.Endpoint.ValueString() == "" {
+	if config.Endpoint.Null || config.Endpoint.Value == "" {
 		endpoint = util.MultiGetenvOrDefault([]string{"EC_ENDPOINT", "EC_HOST"}, api.ESSEndpoint)
 
 		diags := validateEndpoint(ctx, endpoint)
@@ -199,27 +207,27 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		}
 	}
 
-	apiKey := config.ApiKey.ValueString()
+	apiKey := config.ApiKey.Value
 
-	if config.ApiKey.ValueString() == "" {
+	if config.ApiKey.Null || config.ApiKey.Value == "" {
 		apiKey = util.MultiGetenvOrDefault([]string{"EC_API_KEY"}, "")
 	}
 
-	username := config.Username.ValueString()
+	username := config.Username.Value
 
-	if config.Username.ValueString() == "" {
+	if config.Username.Null || config.Username.Value == "" {
 		username = util.MultiGetenvOrDefault([]string{"EC_USER", "EC_USERNAME"}, "")
 	}
 
-	password := config.Password.ValueString()
+	password := config.Password.Value
 
-	if config.Password.ValueString() == "" {
+	if config.Password.Null || config.Password.Value == "" {
 		password = util.MultiGetenvOrDefault([]string{"EC_PASS", "EC_PASSWORD"}, "")
 	}
 
-	timeoutStr := config.Timeout.ValueString()
+	timeoutStr := config.Timeout.Value
 
-	if config.Timeout.ValueString() == "" {
+	if config.Timeout.Null || config.Timeout.Value == "" {
 		timeoutStr = util.MultiGetenvOrDefault([]string{"EC_TIMEOUT"}, defaultTimeout.String())
 	}
 
@@ -230,9 +238,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		return
 	}
 
-	insecure := config.Insecure.ValueBool()
+	insecure := config.Insecure.Value
 
-	if config.Insecure.IsNull() {
+	if config.Insecure.Null {
 		insecureStr := util.MultiGetenvOrDefault([]string{"EC_INSECURE", "EC_SKIP_TLS_VALIDATION"}, "")
 
 		if insecure, err = util.StringToBool(insecureStr); err != nil {
@@ -244,9 +252,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		}
 	}
 
-	verbose := config.Verbose.ValueBool()
+	verbose := config.Verbose.Value
 
-	if config.Verbose.IsNull() {
+	if config.Verbose.Null {
 		verboseStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE"}, "")
 
 		if verbose, err = util.StringToBool(verboseStr); err != nil {
@@ -258,9 +266,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		}
 	}
 
-	verboseCredentials := config.VerboseCredentials.ValueBool()
+	verboseCredentials := config.VerboseCredentials.Value
 
-	if config.VerboseCredentials.IsNull() {
+	if config.VerboseCredentials.Null {
 		verboseCredentialsStr := util.MultiGetenvOrDefault([]string{"EC_VERBOSE_CREDENTIALS"}, "")
 
 		if verboseCredentials, err = util.StringToBool(verboseCredentialsStr); err != nil {
@@ -272,9 +280,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		}
 	}
 
-	verboseFile := config.VerboseFile.ValueString()
+	verboseFile := config.VerboseFile.Value
 
-	if config.VerboseFile.IsNull() {
+	if config.VerboseFile.Null {
 		verboseFile = util.MultiGetenvOrDefault([]string{"EC_VERBOSE_FILE"}, "request.log")
 	}
 
@@ -314,14 +322,14 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 }
 
 func validateEndpoint(ctx context.Context, endpoint string) diag.Diagnostics {
-	validateReq := validator.StringRequest{
-		Path:        path.Root("endpoint"),
-		ConfigValue: types.StringValue(endpoint),
+	validateReq := tfsdk.ValidateAttributeRequest{
+		AttributePath:   path.Root("endpoint"),
+		AttributeConfig: types.String{Value: endpoint},
 	}
 
-	validateResp := validator.StringResponse{}
+	validateResp := tfsdk.ValidateAttributeResponse{}
 
-	validators.IsURLWithSchemeValidator(validURLSchemes).ValidateString(ctx, validateReq, &validateResp)
+	validators.IsURLWithSchemeValidator(validURLSchemes).Validate(ctx, validateReq, &validateResp)
 
 	return validateResp.Diagnostics
 }

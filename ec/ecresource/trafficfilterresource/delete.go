@@ -44,7 +44,7 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 	}
 
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
-		API: r.client, ID: state.ID.ValueString(), IncludeAssociations: true,
+		API: r.client, ID: state.ID.Value, IncludeAssociations: true,
 	})
 	if err != nil {
 		if !util.TrafficFilterNotFound(err) {
@@ -56,7 +56,7 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 	for _, assoc := range res.Associations {
 		if err := trafficfilterapi.DeleteAssociation(trafficfilterapi.DeleteAssociationParams{
 			API:        r.client,
-			ID:         state.ID.ValueString(),
+			ID:         state.ID.Value,
 			EntityID:   *assoc.ID,
 			EntityType: *assoc.EntityType,
 		}); err != nil {
@@ -68,7 +68,7 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 	}
 
 	if err := trafficfilterapi.Delete(trafficfilterapi.DeleteParams{
-		API: r.client, ID: state.ID.ValueString(),
+		API: r.client, ID: state.ID.Value,
 	}); err != nil {
 		if !ruleDeleted(err) {
 			response.Diagnostics.AddError(err.Error(), err.Error())

@@ -71,47 +71,39 @@ func Test_modelToState(t *testing.T) {
 		},
 	}
 
-	want := newSampleTrafficFilter(t, "some-random-id")
+	want := newSampleTrafficFilter("some-random-id")
 	wantMultipleRules := modelV0{
-		ID:               types.StringValue("some-random-id"),
-		Name:             types.StringValue("my traffic filter"),
-		Type:             types.StringValue("ip"),
-		IncludeByDefault: types.BoolValue(false),
-		Region:           types.StringValue("us-east-1"),
-		Description:      types.StringNull(),
-		Rule: func() types.Set {
-			res, diags := types.SetValue(
-				trafficFilterRuleElemType(),
-				[]attr.Value{
-					newSampleTrafficFilterRule(t, "1.1.1.0/16", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "1.1.1.1/24", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "0.0.0.0/0", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "1.1.1.1", "", "", "", ""),
-				},
-			)
-			assert.Nil(t, diags)
-			return res
-		}(),
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Description:      types.String{Null: true},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.0/16", "", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1/24", "", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1", "", "", "", ""),
+			},
+		},
 	}
 	wantMultipleRulesWithDesc := modelV0{
-		ID:               types.StringValue("some-random-id"),
-		Name:             types.StringValue("my traffic filter"),
-		Type:             types.StringValue("ip"),
-		IncludeByDefault: types.BoolValue(false),
-		Region:           types.StringValue("us-east-1"),
-		Description:      types.StringValue("Allows access to some network, a specific IP and all internet traffic"),
-		Rule: func() types.Set {
-			res, diags := types.SetValue(
-				trafficFilterRuleElemType(),
-				[]attr.Value{
-					newSampleTrafficFilterRule(t, "1.1.1.0/16", "some network", "", "", ""),
-					newSampleTrafficFilterRule(t, "1.1.1.1/24", "a specific IP", "", "", ""),
-					newSampleTrafficFilterRule(t, "0.0.0.0/0", "all internet traffic", "", "", ""),
-				},
-			)
-			assert.Nil(t, diags)
-			return res
-		}(),
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Description:      types.String{Value: "Allows access to some network, a specific IP and all internet traffic"},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.0/16", "some network", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1/24", "a specific IP", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "all internet traffic", "", "", ""),
+			},
+		},
 	}
 
 	remoteStateAzurePL := models.TrafficFilterRulesetInfo{
@@ -129,22 +121,18 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	wantAzurePL := modelV0{
-		ID:               types.StringValue("some-random-id"),
-		Name:             types.StringValue("my traffic filter"),
-		Type:             types.StringValue("azure_private_endpoint"),
-		IncludeByDefault: types.BoolValue(false),
-		Region:           types.StringValue("azure-australiaeast"),
-		Description:      types.StringNull(),
-		Rule: func() types.Set {
-			res, diags := types.SetValue(
-				trafficFilterRuleElemType(),
-				[]attr.Value{
-					newSampleTrafficFilterRule(t, "", "", "my-azure-pl", "1231312-1231-1231-1231-1231312", ""),
-				},
-			)
-			assert.Nil(t, diags)
-			return res
-		}(),
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "azure_private_endpoint"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "azure-australiaeast"},
+		Description:      types.String{Null: true},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("", "", "my-azure-pl", "1231312-1231-1231-1231-1231312", ""),
+			},
+		},
 	}
 
 	type args struct {
@@ -181,7 +169,7 @@ func Test_modelToState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			state := modelV0{
-				ID: types.StringValue("some-random-id"),
+				ID: types.String{Value: "some-random-id"},
 			}
 			diags := modelToState(context.Background(), tt.args.in, &state)
 

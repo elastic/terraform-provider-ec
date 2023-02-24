@@ -40,7 +40,7 @@ func CompatibleWithNodeRoles(version string) (bool, error) {
 }
 
 func UseNodeRoles(ctx context.Context, stateVersion, planVersion types.String, planElasticsearch types.Object) (bool, diag.Diagnostics) {
-	compatibleWithNodeRoles, err := CompatibleWithNodeRoles(planVersion.ValueString())
+	compatibleWithNodeRoles, err := CompatibleWithNodeRoles(planVersion.Value)
 
 	if err != nil {
 		var diags diag.Diagnostics
@@ -67,17 +67,17 @@ func UseNodeRoles(ctx context.Context, stateVersion, planVersion types.String, p
 // * The version field changes but:
 //   - The Elasticsearch.0.toplogy doesn't have any node_type_* set.
 func legacyToNodeRoles(ctx context.Context, stateVersion, planVersion types.String, planElasticsearch types.Object) (bool, diag.Diagnostics) {
-	if stateVersion.ValueString() == "" || stateVersion.ValueString() == planVersion.ValueString() {
+	if stateVersion.Value == "" || stateVersion.Value == planVersion.Value {
 		return true, nil
 	}
 
 	var diags diag.Diagnostics
-	oldVersion, err := semver.Parse(stateVersion.ValueString())
+	oldVersion, err := semver.Parse(stateVersion.Value)
 	if err != nil {
 		diags.AddError("Failed to parse previous Elasticsearch version", err.Error())
 		return false, diags
 	}
-	newVersion, err := semver.Parse(planVersion.ValueString())
+	newVersion, err := semver.Parse(planVersion.Value)
 	if err != nil {
 		diags.AddError("Failed to parse new Elasticsearch version", err.Error())
 		return false, diags
@@ -120,71 +120,82 @@ func legacyToNodeRoles(ctx context.Context, stateVersion, planVersion types.Stri
 	return true, nil
 }
 
-// if useState is false, useNodeRoles is always false
-func useStateAndNodeRolesInPlanModifiers(ctx context.Context, configValue attr.Value, plan tfsdk.Plan, state tfsdk.State, planValue attr.Value) (useState bool, useNodeRoles bool, diags diag.Diagnostics) {
-	if !planValue.IsUnknown() {
-		return false, false, nil
+func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) (useState, useNodeRoles bool) {
+	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
+		return false, false
 	}
 
-	if configValue.IsUnknown() {
-		return false, false, nil
+	if !resp.AttributePlan.IsUnknown() {
+		return false, false
 	}
 
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	// it's the precaution taken from the Framework's `UseStateForUnknown` plan modifier
+	if req.AttributeConfig.IsUnknown() {
+		return false, false
+	}
+
+	// if there is no state for "version" return
 	var stateVersion types.String
 
-	if diags := state.GetAttribute(ctx, path.Root("version"), &stateVersion); diags.HasError() {
-		return false, false, diags
+	if diags := req.State.GetAttribute(ctx, path.Root("version"), &stateVersion); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
 	}
 
-	// If resource has state, then it should contain version.
-	// So if there is no version in state, plan modifier is called for Create.
-	// In that case there is no state to use.
-	// We cannot use StateValue from request parameter for this purpose,
-	// because null can be a valid state for node_roles and node_types in Update.
-	// E.g. node_roles' state can be null if node_types are used.
 	if stateVersion.IsNull() {
-		return false, false, nil
+		return false, false
 	}
 
-	templateChanged, diags := attributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
+	// if template changed return
+	templateChanged, diags := attributeChanged(ctx, path.Root("deployment_template_id"), req)
+
+	resp.Diagnostics.Append(diags...)
 
 	if diags.HasError() {
-		return false, false, diags
+		return false, false
 	}
 
 	if templateChanged {
-		return false, false, nil
+		return false, false
 	}
+
+	// get version for plan and state and calculate useNodeRoles
 
 	var planVersion types.String
 
-	if diags := plan.GetAttribute(ctx, path.Root("version"), &planVersion); diags.HasError() {
-		return false, false, diags
+	if diags := req.Plan.GetAttribute(ctx, path.Root("version"), &planVersion); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
 	}
 
 	var elasticsearch types.Object
 
-	if diags := plan.GetAttribute(ctx, path.Root("elasticsearch"), &elasticsearch); diags.HasError() {
-		return false, false, diags
+	if diags := req.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &elasticsearch); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
 	}
 
-	if useNodeRoles, diags = UseNodeRoles(ctx, stateVersion, planVersion, elasticsearch); diags.HasError() {
-		return false, false, diags
+	useNodeRoles, diags = UseNodeRoles(ctx, stateVersion, planVersion, elasticsearch)
+
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return false, false
 	}
 
-	return true, useNodeRoles, nil
+	return true, useNodeRoles
 }
 
-func attributeChanged(ctx context.Context, p path.Path, plan tfsdk.Plan, state tfsdk.State) (bool, diag.Diagnostics) {
+func attributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
 	var planValue attr.Value
 
-	if diags := plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
+	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
 		return false, diags
 	}
 
 	var stateValue attr.Value
 
-	if diags := state.GetAttribute(ctx, p, &stateValue); diags.HasError() {
+	if diags := req.State.GetAttribute(ctx, p, &stateValue); diags.HasError() {
 		return false, diags
 	}
 

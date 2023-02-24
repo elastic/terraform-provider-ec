@@ -24,15 +24,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -41,68 +39,79 @@ var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 var _ resource.ResourceWithConfigValidators = &Resource{}
 
-func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
+func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"name": {
+				Type:        types.StringType,
 				Description: "Required name of the ruleset",
 				Required:    true,
 			},
-			"description": schema.StringAttribute{
+			"description": {
+				Type:        types.StringType,
 				Description: "Description for extension",
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.StringDefaultValue(""),
-				},
-			},
-			"extension_type": schema.StringAttribute{
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.String{Value: ""}),
+				}},
+			"extension_type": {
+				Type:        types.StringType,
 				Description: "Extension type. bundle or plugin",
 				Required:    true,
 			},
-			"version": schema.StringAttribute{
+			"version": {
+				Type:        types.StringType,
 				Description: "Elasticsearch version",
 				Required:    true,
 			},
-			"download_url": schema.StringAttribute{
+			"download_url": {
+				Type:        types.StringType,
 				Description: "download url",
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.StringDefaultValue(""),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.DefaultValue(types.String{Value: ""}),
 				},
 			},
+
 			// Uploading file via API
-			"file_path": schema.StringAttribute{
+			"file_path": {
+				Type:        types.StringType,
 				Description: "file path",
 				Optional:    true,
 			},
-			"file_hash": schema.StringAttribute{
+			"file_hash": {
+				Type:        types.StringType,
 				Description: "file hash",
 				Optional:    true,
 			},
-			"url": schema.StringAttribute{
+			"url": {
+				Type:        types.StringType,
 				Description: "",
 				Computed:    true,
 			},
-			"last_modified": schema.StringAttribute{
+			"last_modified": {
+				Type:        types.StringType,
 				Description: "",
 				Computed:    true,
 			},
-			"size": schema.Int64Attribute{
+			"size": {
+				Type:        types.Int64Type,
 				Description: "",
 				Computed:    true,
 			},
 			// Computed attributes
-			"id": schema.StringAttribute{
+			"id": {
+				Type:                types.StringType,
 				Computed:            true,
 				MarkdownDescription: "Unique identifier of this resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
 				},
 			},
 		},
-	}
+	}, nil
 }
 
 func (r *Resource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {

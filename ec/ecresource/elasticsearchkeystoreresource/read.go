@@ -42,7 +42,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 		return
 	}
 
-	found, diags := r.read(ctx, newState.DeploymentID.ValueString(), &newState)
+	found, diags := r.read(ctx, newState.DeploymentID.Value, &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -74,9 +74,9 @@ func (r Resource) read(ctx context.Context, deploymentID string, state *modelV0)
 // returned by the API for obvious reasons, and thus we cannot reconcile that the
 // value of the secret is the same in the remote as it is in the configuration.
 func modelToState(ctx context.Context, res *models.KeystoreContents, state *modelV0) (found bool, diags diag.Diagnostics) {
-	if secret, ok := res.Secrets[state.SettingName.ValueString()]; ok {
+	if secret, ok := res.Secrets[state.SettingName.Value]; ok {
 		if secret.AsFile != nil {
-			state.AsFile = types.BoolValue(*secret.AsFile)
+			state.AsFile = types.Bool{Value: *secret.AsFile}
 		}
 		return true, nil
 	}

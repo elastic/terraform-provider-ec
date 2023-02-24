@@ -59,18 +59,18 @@ func readElasticsearchExtensions(in *models.ElasticsearchConfiguration) (Elastic
 }
 
 func elasticsearchExtensionPayload(ctx context.Context, extensions types.Set, es *models.ElasticsearchConfiguration) diag.Diagnostics {
-	for _, elem := range extensions.Elements() {
+	for _, elem := range extensions.Elems {
 		var extension v1.ElasticsearchExtensionTF
 
 		if diags := tfsdk.ValueAs(ctx, elem, &extension); diags.HasError() {
 			return diags
 		}
 
-		version := extension.Version.ValueString()
-		url := extension.Url.ValueString()
-		name := extension.Name.ValueString()
+		version := extension.Version.Value
+		url := extension.Url.Value
+		name := extension.Name.Value
 
-		if extension.Type.ValueString() == "bundle" {
+		if extension.Type.Value == "bundle" {
 			es.UserBundles = append(es.UserBundles, &models.ElasticsearchUserBundle{
 				Name:                 &name,
 				ElasticsearchVersion: &version,
@@ -78,7 +78,7 @@ func elasticsearchExtensionPayload(ctx context.Context, extensions types.Set, es
 			})
 		}
 
-		if extension.Type.ValueString() == "plugin" {
+		if extension.Type.Value == "plugin" {
 			es.UserPlugins = append(es.UserPlugins, &models.ElasticsearchUserPlugin{
 				Name:                 &name,
 				ElasticsearchVersion: &version,

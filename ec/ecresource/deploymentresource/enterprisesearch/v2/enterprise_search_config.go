@@ -71,25 +71,25 @@ func readEnterpriseSearchConfig(in *models.EnterpriseSearchConfiguration) (*Ente
 func enterpriseSearchConfigPayload(ctx context.Context, cfg v1.EnterpriseSearchConfigTF, res *models.EnterpriseSearchConfiguration) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if cfg.UserSettingsJson.ValueString() != "" {
-		if err := json.Unmarshal([]byte(cfg.UserSettingsJson.ValueString()), &res.UserSettingsJSON); err != nil {
+	if cfg.UserSettingsJson.Value != "" {
+		if err := json.Unmarshal([]byte(cfg.UserSettingsJson.Value), &res.UserSettingsJSON); err != nil {
 			diags.AddError("failed expanding enterprise_search user_settings_json", err.Error())
 		}
 	}
-	if cfg.UserSettingsOverrideJson.ValueString() != "" {
-		if err := json.Unmarshal([]byte(cfg.UserSettingsOverrideJson.ValueString()), &res.UserSettingsOverrideJSON); err != nil {
+	if cfg.UserSettingsOverrideJson.Value != "" {
+		if err := json.Unmarshal([]byte(cfg.UserSettingsOverrideJson.Value), &res.UserSettingsOverrideJSON); err != nil {
 			diags.AddError("failed expanding enterprise_search user_settings_override_json", err.Error())
 		}
 	}
 	if !cfg.UserSettingsYaml.IsNull() {
-		res.UserSettingsYaml = cfg.UserSettingsYaml.ValueString()
+		res.UserSettingsYaml = cfg.UserSettingsYaml.Value
 	}
 	if !cfg.UserSettingsOverrideYaml.IsNull() {
-		res.UserSettingsOverrideYaml = cfg.UserSettingsOverrideYaml.ValueString()
+		res.UserSettingsOverrideYaml = cfg.UserSettingsOverrideYaml.Value
 	}
 
 	if !cfg.DockerImage.IsNull() {
-		res.DockerImage = cfg.DockerImage.ValueString()
+		res.DockerImage = cfg.DockerImage.Value
 	}
 
 	return diags

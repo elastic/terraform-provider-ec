@@ -50,9 +50,9 @@ func readElasticsearchTrustExternals(in *models.ElasticsearchClusterSettings) (E
 func elasticsearchTrustExternalPayload(ctx context.Context, externals types.Set, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	payloads := make([]*models.ExternalTrustRelationship, 0, len(externals.Elements()))
+	payloads := make([]*models.ExternalTrustRelationship, 0, len(externals.Elems))
 
-	for _, elem := range externals.Elements() {
+	for _, elem := range externals.Elems {
 		var external v1.ElasticsearchTrustExternalTF
 
 		ds := tfsdk.ValueAs(ctx, elem, &external)
@@ -63,8 +63,8 @@ func elasticsearchTrustExternalPayload(ctx context.Context, externals types.Set,
 			continue
 		}
 
-		id := external.RelationshipId.ValueString()
-		all := external.TrustAll.ValueBool()
+		id := external.RelationshipId.Value
+		all := external.TrustAll.Value
 
 		payload := &models.ExternalTrustRelationship{
 			TrustRelationshipID: &id,
@@ -118,9 +118,9 @@ func readElasticsearchTrustExternal(in *models.ExternalTrustRelationship) (*v1.E
 func elasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	payloads := make([]*models.AccountTrustRelationship, 0, len(accounts.Elements()))
+	payloads := make([]*models.AccountTrustRelationship, 0, len(accounts.Elems))
 
-	for _, elem := range accounts.Elements() {
+	for _, elem := range accounts.Elems {
 		var account v1.ElasticsearchTrustAccountTF
 
 		ds := tfsdk.ValueAs(ctx, elem, &account)
@@ -131,8 +131,8 @@ func elasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, m
 			continue
 		}
 
-		id := account.AccountId.ValueString()
-		all := account.TrustAll.ValueBool()
+		id := account.AccountId.Value
+		all := account.TrustAll.Value
 
 		payload := &models.AccountTrustRelationship{
 			AccountID: &id,

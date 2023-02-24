@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -54,8 +55,8 @@ func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequ
 	r.client = client
 }
 
-func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = v2.DeploymentSchema()
+func (t *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return v2.DeploymentSchema(), nil
 }
 
 func (r *Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {

@@ -304,7 +304,7 @@ func Test_readApm(t *testing.T) {
 			assert.Equal(t, tt.want, apms)
 
 			var apmTF types.Object
-			diags := tfsdk.ValueFrom(context.Background(), apms, ApmSchema().GetType(), &apmTF)
+			diags := tfsdk.ValueFrom(context.Background(), apms, ApmSchema().FrameworkType(), &apmTF)
 			assert.Nil(t, diags)
 		})
 	}

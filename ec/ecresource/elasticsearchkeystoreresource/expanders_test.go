@@ -43,11 +43,11 @@ func Test_expandModel(t *testing.T) {
 			name: "parses the resource with a string value",
 			args: args{state: modelV0{
 
-				ID:           types.StringValue("some-random-id"),
-				DeploymentID: types.StringValue(mock.ValidClusterID),
-				SettingName:  types.StringValue("my_secret"),
-				Value:        types.StringValue("supersecret"),
-				AsFile:       types.BoolValue(false),
+				ID:           types.String{Value: "some-random-id"},
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				SettingName:  types.String{Value: "my_secret"},
+				Value:        types.String{Value: "supersecret"},
+				AsFile:       types.Bool{Value: false},
 			}},
 			want: &models.KeystoreContents{
 				Secrets: map[string]models.KeystoreSecret{
@@ -62,10 +62,10 @@ func Test_expandModel(t *testing.T) {
 			name: "parses the resource with a json formatted value",
 			args: args{state: modelV0{
 
-				ID:           types.StringValue("some-random-id"),
-				DeploymentID: types.StringValue(mock.ValidClusterID),
-				SettingName:  types.StringValue("my_secret"),
-				Value: types.StringValue(`{
+				ID:           types.String{Value: "some-random-id"},
+				DeploymentID: types.String{Value: mock.ValidClusterID},
+				SettingName:  types.String{Value: "my_secret"},
+				Value: types.String{Value: `{
     "type": "service_account",
     "project_id": "project-id",
     "private_key_id": "key-id",
@@ -76,8 +76,8 @@ func Test_expandModel(t *testing.T) {
     "token_uri": "https://accounts.google.com/o/oauth2/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
     "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-account-email"
-}`),
-				AsFile: types.BoolValue(true),
+}`},
+				AsFile: types.Bool{Value: true},
 			},
 			},
 			want: &models.KeystoreContents{

@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -37,35 +38,35 @@ func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo
 
 	for _, res := range in {
 		model := kibanaResourceInfoModelV0{
-			Topology: types.ListNull(types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()}),
+			Topology: types.List{ElemType: types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()}},
 		}
 
 		if res.ElasticsearchClusterRefID != nil {
-			model.ElasticsearchClusterRefID = types.StringValue(*res.ElasticsearchClusterRefID)
+			model.ElasticsearchClusterRefID = types.String{Value: *res.ElasticsearchClusterRefID}
 		}
 
 		if res.RefID != nil {
-			model.RefID = types.StringValue(*res.RefID)
+			model.RefID = types.String{Value: *res.RefID}
 		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
-				model.Healthy = types.BoolValue(*res.Info.Healthy)
+				model.Healthy = types.Bool{Value: *res.Info.Healthy}
 			}
 
 			if res.Info.ClusterID != nil {
-				model.ResourceID = types.StringValue(*res.Info.ClusterID)
+				model.ResourceID = types.String{Value: *res.Info.ClusterID}
 			}
 
 			if res.Info.Status != nil {
-				model.Status = types.StringValue(*res.Info.Status)
+				model.Status = types.String{Value: *res.Info.Status}
 			}
 
 			if !util.IsCurrentKibanaPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.Kibana != nil {
-					model.Version = types.StringValue(plan.Kibana.Version)
+					model.Version = types.String{Value: plan.Kibana.Version}
 				}
 
 				var diags diag.Diagnostics
@@ -81,8 +82,13 @@ func flattenKibanaResources(ctx context.Context, in []*models.KibanaResourceInfo
 		result = append(result, model)
 	}
 
-	target, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: kibanaResourceInfoAttrTypes()}, result)
-	diagsnostics.Append(diags...)
+	var target types.List
+
+	diagsnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: kibanaResourceInfoAttrTypes(),
+		},
+	}, &target)...)
 
 	return target, diagsnostics
 }
@@ -96,19 +102,27 @@ func flattenKibanaTopology(ctx context.Context, plan *models.KibanaClusterPlan) 
 			continue
 		}
 
-		model.InstanceConfigurationID = types.StringValue(topology.InstanceConfigurationID)
+		model.InstanceConfigurationID = types.String{Value: topology.InstanceConfigurationID}
 
 		if isKibanaSizePopulated(topology) {
-			model.Size = types.StringValue(util.MemoryToState(*topology.Size.Value))
-			model.SizeResource = types.StringValue(*topology.Size.Resource)
+			model.Size = types.String{Value: util.MemoryToState(*topology.Size.Value)}
+			model.SizeResource = types.String{Value: *topology.Size.Resource}
 		}
 
-		model.ZoneCount = types.Int64Value(int64(topology.ZoneCount))
+		model.ZoneCount = types.Int64{Value: int64(topology.ZoneCount)}
 
 		result = append(result, model)
 	}
 
-	return types.ListValueFrom(ctx, types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()}, result)
+	var target types.List
+
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: kibanaTopologyAttrTypes(),
+		},
+	}, &target)
+
+	return target, diags
 }
 
 func isKibanaSizePopulated(topology *models.KibanaClusterTopologyElement) bool {

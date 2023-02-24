@@ -43,12 +43,12 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 
 	// Since we're using the Update API (PATCH method), we need to se the Value
 	// field to nil for the keystore setting to be unset.
-	state.Value = types.StringNull()
+	state.Value = types.String{Null: true}
 	contents := expandModel(ctx, state)
 
 	if _, err := eskeystoreapi.Update(eskeystoreapi.UpdateParams{
 		API:          r.client,
-		DeploymentID: state.DeploymentID.ValueString(),
+		DeploymentID: state.DeploymentID.Value,
 		Contents:     contents,
 	}); err != nil {
 		response.Diagnostics.AddError(err.Error(), err.Error())

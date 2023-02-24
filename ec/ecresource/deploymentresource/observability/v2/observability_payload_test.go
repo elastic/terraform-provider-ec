@@ -241,7 +241,7 @@ func Test_observabilityPayload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var observability types.Object
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.observability, ObservabilitySchema().GetType(), &observability)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.observability, ObservabilitySchema().FrameworkType(), &observability)
 			assert.Nil(t, diags)
 
 			got, diags := ObservabilityPayload(context.Background(), observability, tt.args.API)

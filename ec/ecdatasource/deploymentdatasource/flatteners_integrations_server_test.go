@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -92,31 +93,25 @@ func Test_flattenIntegrationsServerResource(t *testing.T) {
 				},
 			}},
 			want: []integrationsServerResourceInfoModelV0{{
-				ElasticsearchClusterRefID: types.StringValue("main-elasticsearch"),
-				RefID:                     types.StringValue("main-integrations_server"),
-				ResourceID:                types.StringValue(mock.ValidClusterID),
-				Version:                   types.StringValue("8.0.0"),
-				HttpEndpoint:              types.StringValue("http://integrations_serverresource.cloud.elastic.co:9200"),
-				HttpsEndpoint:             types.StringValue("https://integrations_serverresource.cloud.elastic.co:9243"),
-				Healthy:                   types.BoolValue(true),
-				Status:                    types.StringValue("started"),
-				Topology: func() types.List {
-					res, diags := types.ListValueFrom(
-						context.Background(),
-						types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()},
-						[]integrationsServerTopologyModelV0{
-							{
-								InstanceConfigurationID: types.StringValue("aws.integrations_server.r4"),
-								Size:                    types.StringValue("1g"),
-								SizeResource:            types.StringValue("memory"),
-								ZoneCount:               types.Int64Value(1),
-							},
+				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
+				RefID:                     types.String{Value: "main-integrations_server"},
+				ResourceID:                types.String{Value: mock.ValidClusterID},
+				Version:                   types.String{Value: "8.0.0"},
+				HttpEndpoint:              types.String{Value: "http://integrations_serverresource.cloud.elastic.co:9200"},
+				HttpsEndpoint:             types.String{Value: "https://integrations_serverresource.cloud.elastic.co:9243"},
+				Healthy:                   types.Bool{Value: true},
+				Status:                    types.String{Value: "started"},
+				Topology: types.List{ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()},
+					Elems: []attr.Value{types.Object{
+						AttrTypes: integrationsServerTopologyAttrTypes(),
+						Attrs: map[string]attr.Value{
+							"instance_configuration_id": types.String{Value: "aws.integrations_server.r4"},
+							"size":                      types.String{Value: "1g"},
+							"size_resource":             types.String{Value: "memory"},
+							"zone_count":                types.Int64{Value: 1},
 						},
-					)
-					assert.Nil(t, diags)
-
-					return res
-				}(),
+					}},
+				},
 			}},
 		},
 	}

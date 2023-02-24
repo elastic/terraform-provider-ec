@@ -265,7 +265,6 @@ func createResponse() mock.Response {
 		mock.NewStringBody(`{}`),
 	)
 }
-
 func updateResponse() mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{

@@ -240,7 +240,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var srv types.Object
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.srv, IntegrationsServerSchema().GetType(), &srv)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.srv, IntegrationsServerSchema().FrameworkType(), &srv)
 			assert.Nil(t, diags)
 
 			if got, diags := IntegrationsServerPayload(context.Background(), srv, tt.args.tpl); tt.diags != nil {

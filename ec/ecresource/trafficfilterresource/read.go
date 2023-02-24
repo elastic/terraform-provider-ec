@@ -43,7 +43,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 		return
 	}
 
-	found, diags := r.read(ctx, newState.ID.ValueString(), &newState)
+	found, diags := r.read(ctx, newState.ID.Value, &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

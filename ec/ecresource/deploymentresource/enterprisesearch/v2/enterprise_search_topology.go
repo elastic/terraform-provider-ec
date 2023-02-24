@@ -90,7 +90,7 @@ func readEnterpriseSearchTopologies(in []*models.EnterpriseSearchTopologyElement
 func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.EnterpriseSearchTopologyTF, planModels []*models.EnterpriseSearchTopologyElement, index int) (*models.EnterpriseSearchTopologyElement, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	icID := topology.InstanceConfigurationId.ValueString()
+	icID := topology.InstanceConfigurationId.Value
 
 	// When a topology element is set but no instance_configuration_id
 	// is set, then obtain the instance_configuration_id from the topology
@@ -124,8 +124,8 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 
 	elem.Size = size
 
-	if topology.ZoneCount.ValueInt64() > 0 {
-		elem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
+	if topology.ZoneCount.Value > 0 {
+		elem.ZoneCount = int32(topology.ZoneCount.Value)
 	}
 
 	return elem, nil

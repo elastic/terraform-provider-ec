@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -37,35 +38,35 @@ func flattenIntegrationsServerResources(ctx context.Context, in []*models.Integr
 
 	for _, res := range in {
 		model := integrationsServerResourceInfoModelV0{
-			Topology: types.ListNull(types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()}),
+			Topology: types.List{ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()}},
 		}
 
 		if res.ElasticsearchClusterRefID != nil {
-			model.ElasticsearchClusterRefID = types.StringValue(*res.ElasticsearchClusterRefID)
+			model.ElasticsearchClusterRefID = types.String{Value: *res.ElasticsearchClusterRefID}
 		}
 
 		if res.RefID != nil {
-			model.RefID = types.StringValue(*res.RefID)
+			model.RefID = types.String{Value: *res.RefID}
 		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
-				model.Healthy = types.BoolValue(*res.Info.Healthy)
+				model.Healthy = types.Bool{Value: *res.Info.Healthy}
 			}
 
 			if res.Info.ID != nil {
-				model.ResourceID = types.StringValue(*res.Info.ID)
+				model.ResourceID = types.String{Value: *res.Info.ID}
 			}
 
 			if res.Info.Status != nil {
-				model.Status = types.StringValue(*res.Info.Status)
+				model.Status = types.String{Value: *res.Info.Status}
 			}
 
 			if !util.IsCurrentIntegrationsServerPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.IntegrationsServer != nil {
-					model.Version = types.StringValue(plan.IntegrationsServer.Version)
+					model.Version = types.String{Value: plan.IntegrationsServer.Version}
 				}
 
 				var diags diag.Diagnostics
@@ -81,8 +82,12 @@ func flattenIntegrationsServerResources(ctx context.Context, in []*models.Integr
 		result = append(result, model)
 	}
 
-	target, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: integrationsServerResourceInfoAttrTypes()}, result)
-	diagnostics.Append(diags...)
+	var target types.List
+	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: integrationsServerResourceInfoAttrTypes(),
+		},
+	}, &target)...)
 
 	return target, diagnostics
 }
@@ -96,19 +101,26 @@ func flattenIntegrationsServerTopology(ctx context.Context, plan *models.Integra
 			continue
 		}
 
-		model.InstanceConfigurationID = types.StringValue(topology.InstanceConfigurationID)
+		model.InstanceConfigurationID = types.String{Value: topology.InstanceConfigurationID}
 
 		if isIntegrationsServerSizePopulated(topology) {
-			model.Size = types.StringValue(util.MemoryToState(*topology.Size.Value))
-			model.SizeResource = types.StringValue(*topology.Size.Resource)
+			model.Size = types.String{Value: util.MemoryToState(*topology.Size.Value)}
+			model.SizeResource = types.String{Value: *topology.Size.Resource}
 		}
 
-		model.ZoneCount = types.Int64Value(int64(topology.ZoneCount))
+		model.ZoneCount = types.Int64{Value: int64(topology.ZoneCount)}
 
 		result = append(result, model)
 	}
 
-	return types.ListValueFrom(ctx, types.ObjectType{AttrTypes: apmTopologyAttrTypes()}, result)
+	var target types.List
+	diags := tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: apmTopologyAttrTypes(),
+		},
+	}, &target)
+
+	return target, diags
 }
 
 func isIntegrationsServerSizePopulated(topology *models.IntegrationsServerTopologyElement) bool {
