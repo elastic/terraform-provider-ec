@@ -217,26 +217,28 @@ Please note that the snippet explicitly mentions `hot` tier with `autoscaling` a
 
 - switching to TF protocol 6. From user perspective it should not require any change in their existing configurations.
 
-#### Migration guide.
+#### Moving to the provider v0.6.0.
 
 The schema modifications means that a current TF state cannot work as is with the provider version 0.6.0 and higher.
 
 There are 2 ways to tackle this
 
 - import existing resource using deployment ID, e.g `terraform import 'ec_deployment.test' <deployment_id>`
-- state upgrade that is performed by TF by calling the provider's API so no action is required from user perspective
+- state upgrade that is performed by TF by calling the provider's API so no action is required from users
 
-Currently the state upgrade functionality is still in development so importing existing resources is the recommended way to deal with existing TF states.
+Currently the state upgrade functionality is not implemented so importing existing resources is the recommended way to deal with existing TF states.
 Please mind the fact that state import doesn't import user passwords and secret tokens that can be the case if your TF modules make use of them.
 State upgrade doesn't have this limitation.
 
-#### Known issues.
+#### Known issues of moving to the provider v0.6.0
 
-For the migrated version (0.6.0 or higher), `terraform plan` output can contain more changes comparing to the older versions of the provider (that use TF SDK). 
-This happens because TF Framework treats all `computed` attributes as `unknown` (known after apply) once configuration changes.
-`ec_deployment` schema contains quite a few of such attributes, so `terraform plan`'s output can be quite big for the resource due to the mentioned reason.
-However, it doesn't mean that all attributes that marked as `unknown` in the plan will get new values after apply.
-To mitigitate the problem, the provider uses plan modifiers that is a recommended way to reduce plan output. 
-However, currently plan modifiers don't cover all the `computed` attributes.
+- Older versions of terraform CLI can report errors with the provider 0.6.0 and higher. Please make sure to update Terraform CLI to the latest version.
 
-Please make sure to update to the latest TF client version.
+- Starting from the provider v0.6.0, `terraform plan` output can contain more changes comparing to the older versions of the provider (that use TF SDK v2).
+  This happens because TF Framework treats all `computed` attributes as `unknown` (known after apply) once configuration changes.
+  However, it doesn't mean that all attributes that marked as `unknown` in the plan will get new values after apply.
+
+- After import, the next plan command can output more elements that the actual configuration defines, e.g. plan command can output `cold` Elasticsearch tier with 0 size or empty `config` block for configuration that doesn't specify `cold` tier and `config` for `elasticsearch`.
+  It should not be a problem. You can eigher execute the plan (the only result should be updated Terraform state while the deployment should stay the same) or add empty `cold` tier and `confg` to the configuration.
+
+- The migration is based on 0.4.1, so all changes from 0.5.0 are omitted.
