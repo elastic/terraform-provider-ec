@@ -18,12 +18,17 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/stretchr/testify/assert"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenApmResource(t *testing.T) {
@@ -33,12 +38,12 @@ func Test_flattenApmResource(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []apmResourceInfoModelV0
 	}{
 		{
 			name: "empty resource list returns empty list",
 			args: args{in: []*models.ApmResourceInfo{}},
-			want: []interface{}{},
+			want: []apmResourceInfoModelV0{},
 		},
 		{
 			name: "parses the apm resource",
@@ -85,32 +90,37 @@ func Test_flattenApmResource(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{
-				map[string]interface{}{
-					"elasticsearch_cluster_ref_id": "main-elasticsearch",
-					"ref_id":                       "main-apm",
-					"resource_id":                  mock.ValidClusterID,
-					"version":                      "7.7.0",
-					"http_endpoint":                "http://apmresource.cloud.elastic.co:9200",
-					"https_endpoint":               "https://apmresource.cloud.elastic.co:9243",
-					"healthy":                      true,
-					"status":                       "started",
-					"topology": []interface{}{
-						map[string]interface{}{
-							"instance_configuration_id": "aws.apm.r4",
-							"size":                      "1g",
-							"size_resource":             "memory",
-							"zone_count":                int32(1),
+			want: []apmResourceInfoModelV0{{
+				ElasticsearchClusterRefID: types.String{Value: "main-elasticsearch"},
+				RefID:                     types.String{Value: "main-apm"},
+				ResourceID:                types.String{Value: mock.ValidClusterID},
+				Version:                   types.String{Value: "7.7.0"},
+				HttpEndpoint:              types.String{Value: "http://apmresource.cloud.elastic.co:9200"},
+				HttpsEndpoint:             types.String{Value: "https://apmresource.cloud.elastic.co:9243"},
+				Healthy:                   types.Bool{Value: true},
+				Status:                    types.String{Value: "started"},
+				Topology: types.List{ElemType: types.ObjectType{AttrTypes: apmTopologyAttrTypes()},
+					Elems: []attr.Value{types.Object{
+						AttrTypes: apmTopologyAttrTypes(),
+						Attrs: map[string]attr.Value{
+							"instance_configuration_id": types.String{Value: "aws.apm.r4"},
+							"size":                      types.String{Value: "1g"},
+							"size_resource":             types.String{Value: "memory"},
+							"zone_count":                types.Int64{Value: 1},
 						},
-					},
+					}},
 				},
-			},
+			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenApmResources(tt.args.in)
+			apm, diags := flattenApmResources(context.Background(), tt.args.in)
+			assert.Empty(t, diags)
+			var got []apmResourceInfoModelV0
+			apm.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "apm", apm)
 		})
 	}
 }

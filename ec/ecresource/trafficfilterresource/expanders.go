@@ -18,50 +18,53 @@
 package trafficfilterresource
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func expandModel(d *schema.ResourceData) *models.TrafficFilterRulesetRequest {
-	var ruleSet = d.Get("rule").(*schema.Set)
-	var request = models.TrafficFilterRulesetRequest{
-		Name:             ec.String(d.Get("name").(string)),
-		Type:             ec.String(d.Get("type").(string)),
-		Region:           ec.String(d.Get("region").(string)),
-		Description:      d.Get("description").(string),
-		IncludeByDefault: ec.Bool(d.Get("include_by_default").(bool)),
-		Rules:            make([]*models.TrafficFilterRule, 0, ruleSet.Len()),
+func expandModel(ctx context.Context, state modelV0) (*models.TrafficFilterRulesetRequest, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	ruleSet := make([]trafficFilterRuleModelV0, 0, len(state.Rule.Elems))
+	diags.Append(state.Rule.ElementsAs(ctx, &ruleSet, false)...)
+	if diags.HasError() {
+		return nil, diags
 	}
 
-	for _, r := range ruleSet.List() {
-		m, ok := r.(map[string]interface{})
-		if !ok {
-			continue
+	var request = models.TrafficFilterRulesetRequest{
+		Name:             &state.Name.Value,
+		Type:             &state.Type.Value,
+		Region:           &state.Region.Value,
+		Description:      state.Description.Value,
+		IncludeByDefault: &state.IncludeByDefault.Value,
+		Rules:            make([]*models.TrafficFilterRule, 0, len(ruleSet)),
+	}
+
+	for _, r := range ruleSet {
+		var rule = models.TrafficFilterRule{
+			Source: r.Source.Value,
 		}
 
-		rule := models.TrafficFilterRule{
-			Source: m["source"].(string),
+		if !r.ID.IsNull() && !r.ID.IsUnknown() {
+			rule.ID = r.ID.Value
 		}
 
-		if val, ok := m["id"]; ok {
-			rule.ID = val.(string)
+		if !r.Description.IsNull() && !r.Description.IsUnknown() {
+			rule.Description = r.Description.Value
 		}
 
-		if val, ok := m["description"].(string); ok {
-			rule.Description = val
+		if !r.AzureEndpointName.IsNull() && !r.AzureEndpointName.IsUnknown() {
+			rule.AzureEndpointName = r.AzureEndpointName.Value
 		}
-
-		if val, ok := m["azure_endpoint_name"].(string); ok {
-			rule.AzureEndpointName = val
-		}
-
-		if val, ok := m["azure_endpoint_guid"].(string); ok {
-			rule.AzureEndpointGUID = val
+		if !r.AzureEndpointGUID.IsNull() && !r.AzureEndpointGUID.IsUnknown() {
+			rule.AzureEndpointGUID = r.AzureEndpointGUID.Value
 		}
 
 		request.Rules = append(request.Rules, &rule)
 	}
 
-	return &request
+	return &request, diags
 }

@@ -15,81 +15,200 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package deploymentresource_test
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
+	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-func Test_hasDeploymentChange(t *testing.T) {
-	unchanged := Resource().Data(util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		Schema: newSchema(),
-		State:  newSampleLegacyDeployment(),
-	}).State())
-
-	changesToTrafficFilter := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"traffic_filter": []interface{}{"1.1.1.1"},
-		},
-	})
-
-	changesToName := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		Schema: newSchema(),
-		State:  map[string]interface{}{"name": "some name"},
-	})
-
-	changesToRegion := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		Schema: newSchema(),
-		State: map[string]interface{}{
-			"name":   "some name",
-			"region": "some-region",
-		},
-	})
+func Test_handleTrafficFilterChange(t *testing.T) {
+	deploymentID := "deployment_unique_id"
 
 	type args struct {
-		d *schema.ResourceData
+		plan  []string
+		state []string
 	}
+
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name       string
+		args       args
+		getRule    func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error)
+		createRule func(params trafficfilterapi.CreateAssociationParams) error
+		deleteRule func(params trafficfilterapi.DeleteAssociationParams) error
 	}{
 		{
-			name: "when a new resource is persisted and has no changes.",
-			args: args{d: unchanged},
-			want: false,
+			name: "should not call the association API when plan and state contain same rules",
+			args: args{
+				plan:  []string{"rule1"},
+				state: []string{"rule1"},
+			},
+			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
+				err := "GetRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return nil, fmt.Errorf(err)
+			},
+			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
+				err := "CreateRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
+			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
+				err := "DeleteRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
 		},
+
 		{
-			name: "when a new resource has some changes in traffic_filter",
-			args: args{d: changesToTrafficFilter},
-			want: false,
+			name: "should add rule when plan contains it and state doesn't contain it",
+			args: args{
+				plan:  []string{"rule1", "rule2"},
+				state: []string{"rule1"},
+			},
+			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
+				return &models.TrafficFilterRulesetInfo{}, nil
+			},
+			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
+				assert.Equal(t, "rule2", params.ID)
+				return nil
+			},
+			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
+				err := "DeleteRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
 		},
+
 		{
-			name: "when a new resource is has some changes in name",
-			args: args{d: changesToName},
-			want: true,
+			name: "should not add rule when plan contains it and state doesn't contain it but the association already exists",
+			args: args{
+				plan:  []string{"rule1", "rule2"},
+				state: []string{"rule1"},
+			},
+			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
+				return &models.TrafficFilterRulesetInfo{
+					Associations: []*models.FilterAssociation{
+						{
+							ID:         &deploymentID,
+							EntityType: ec.String("deployment"),
+						},
+					},
+				}, nil
+			},
+			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
+				err := "CreateRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
+			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
+				err := "DeleteRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
 		},
+
 		{
-			name: "when a new resource is has some changes in name",
-			args: args{d: changesToRegion},
-			want: true,
+			name: "should delete rule when plan doesn't contain it and state does contain it",
+			args: args{
+				plan:  []string{"rule1"},
+				state: []string{"rule1", "rule2"},
+			},
+			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
+				return &models.TrafficFilterRulesetInfo{
+					Associations: []*models.FilterAssociation{
+						{
+							ID:         &deploymentID,
+							EntityType: ec.String("deployment"),
+						},
+					},
+				}, nil
+			},
+			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
+				err := "CreateRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
+			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
+				assert.Equal(t, "rule2", params.ID)
+				return nil
+			},
+		},
+
+		{
+			name: "should not delete rule when plan doesn't contain it and state does contain it but the association is already gone",
+			args: args{
+				plan:  []string{"rule1"},
+				state: []string{"rule1", "rule2"},
+			},
+			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
+				return &models.TrafficFilterRulesetInfo{}, nil
+			},
+			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
+				err := "CreateRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
+			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
+				err := "DeleteRule function SHOULD NOT be called"
+				t.Errorf(err)
+				return fmt.Errorf(err)
+			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := hasDeploymentChange(tt.args.d)
-			assert.Equal(t, tt.want, got)
+			getRule := deploymentresource.GetAssociation
+			createRule := deploymentresource.CreateAssociation
+			deleteRule := deploymentresource.DeleteAssociation
+
+			defer func() {
+				deploymentresource.GetAssociation = getRule
+				deploymentresource.CreateAssociation = createRule
+				deploymentresource.DeleteAssociation = deleteRule
+			}()
+
+			deploymentresource.GetAssociation = tt.getRule
+			deploymentresource.CreateAssociation = tt.createRule
+			deploymentresource.DeleteAssociation = tt.deleteRule
+
+			plan := v2.Deployment{
+				Id:            deploymentID,
+				TrafficFilter: tt.args.plan,
+			}
+
+			state := v2.Deployment{
+				Id:            deploymentID,
+				TrafficFilter: tt.args.state,
+			}
+
+			var planTF v2.DeploymentTF
+
+			diags := tfsdk.ValueFrom(context.Background(), &plan, v2.DeploymentSchema().Type(), &planTF)
+
+			assert.Nil(t, diags)
+
+			var stateTF v2.DeploymentTF
+
+			diags = tfsdk.ValueFrom(context.Background(), &state, v2.DeploymentSchema().Type(), &stateTF)
+
+			assert.Nil(t, diags)
+
+			diags = deploymentresource.HandleTrafficFilterChange(context.Background(), nil, planTF, stateTF)
+
+			assert.Nil(t, diags)
 		})
+
 	}
+
 }

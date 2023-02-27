@@ -21,30 +21,33 @@ import (
 	"context"
 	"errors"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func deleteResource(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-
-	if err := extensionapi.Delete(extensionapi.DeleteParams{
-		API:         client,
-		ExtensionID: d.Id(),
-	}); err != nil {
-		if alreadyDestroyed(err) {
-			d.SetId("")
-			return nil
-		}
-
-		return diag.FromErr(err)
+func (r *Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
 	}
 
-	d.SetId("")
-	return nil
+	var state modelV0
+
+	diags := request.State.Get(ctx, &state)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	if err := extensionapi.Delete(extensionapi.DeleteParams{
+		API:         r.client,
+		ExtensionID: state.ID.Value,
+	}); err != nil {
+		if !alreadyDestroyed(err) {
+			response.Diagnostics.AddError(err.Error(), err.Error())
+		}
+	}
 }
 
 func alreadyDestroyed(err error) bool {

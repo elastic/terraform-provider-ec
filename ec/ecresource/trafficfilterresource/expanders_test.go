@@ -18,48 +18,39 @@
 package trafficfilterresource
 
 import (
+	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_expandModel(t *testing.T) {
-	trafficFilterRD := util.NewResourceData(t, util.ResDataParams{
-		ID:     "some-random-id",
-		State:  newSampleTrafficFilter(),
-		Schema: newSchema(),
-	})
-	trafficFilterMultipleRD := util.NewResourceData(t, util.ResDataParams{
-		ID: "some-random-id",
-		State: map[string]interface{}{
-			"name":               "my traffic filter",
-			"type":               "ip",
-			"include_by_default": false,
-			"region":             "us-east-1",
-			"rule": []interface{}{
-				map[string]interface{}{
-					"source": "1.1.1.1/24",
-				},
-				map[string]interface{}{
-					"source": "1.1.1.0/16",
-				},
-				map[string]interface{}{
-					"source": "0.0.0.0/0",
-				},
-				map[string]interface{}{
-					"source": "1.1.1.1",
-				},
+	trafficFilterRD := newSampleTrafficFilter("some-random-id")
+
+	trafficFilterMultipleRD := modelV0{
+		ID:               types.String{Value: "some-random-id"},
+		Name:             types.String{Value: "my traffic filter"},
+		Type:             types.String{Value: "ip"},
+		IncludeByDefault: types.Bool{Value: false},
+		Region:           types.String{Value: "us-east-1"},
+		Rule: types.Set{
+			ElemType: trafficFilterRuleElemType(),
+			Elems: []attr.Value{
+				newSampleTrafficFilterRule("1.1.1.1/24", "", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.0/16", "", "", "", ""),
+				newSampleTrafficFilterRule("0.0.0.0/0", "", "", "", ""),
+				newSampleTrafficFilterRule("1.1.1.1", "", "", "", ""),
 			},
 		},
-		Schema: newSchema(),
-	})
+	}
 	type args struct {
-		d *schema.ResourceData
+		state modelV0
 	}
 	tests := []struct {
 		name string
@@ -68,80 +59,51 @@ func Test_expandModel(t *testing.T) {
 	}{
 		{
 			name: "parses the resource",
-			args: args{d: trafficFilterRD},
+			args: args{state: trafficFilterRD},
 			want: &models.TrafficFilterRulesetRequest{
 				Name:             ec.String("my traffic filter"),
 				Type:             ec.String("ip"),
 				IncludeByDefault: ec.Bool(false),
 				Region:           ec.String("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
-					{Source: "0.0.0.0/0"},
 					{Source: "1.1.1.1"},
+					{Source: "0.0.0.0/0"},
 				},
 			},
 		},
 		{
 			name: "parses the resource with a lot of traffic rules",
-			args: args{d: trafficFilterMultipleRD},
+			args: args{state: trafficFilterMultipleRD},
 			want: &models.TrafficFilterRulesetRequest{
 				Name:             ec.String("my traffic filter"),
 				Type:             ec.String("ip"),
 				IncludeByDefault: ec.Bool(false),
 				Region:           ec.String("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
+					{Source: "1.1.1.1/24"},
+					{Source: "1.1.1.0/16"},
 					{Source: "0.0.0.0/0"},
 					{Source: "1.1.1.1"},
-					{Source: "1.1.1.0/16"},
-					{Source: "1.1.1.1/24"},
 				},
 			},
 		},
 		{
 			name: "parses an Azure privatelink resource",
-			args: args{d: util.NewResourceData(t, util.ResDataParams{
-				ID: "some-random-id",
-				State: map[string]interface{}{
-					"name":               "my traffic filter",
-					"type":               "azure_private_endpoint",
-					"include_by_default": false,
-					"region":             "azure-australiaeast",
-					"rule": []interface{}{map[string]interface{}{
-						"azure_endpoint_guid": "1231312-1231-1231-1231-1231312",
-						"azure_endpoint_name": "my-azure-pl",
-					}},
-				},
-				Schema: newSchema(),
-			})},
-			want: &models.TrafficFilterRulesetRequest{
-				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("azure_private_endpoint"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("azure-australiaeast"),
-				Rules: []*models.TrafficFilterRule{
-					{
-						AzureEndpointGUID: "1231312-1231-1231-1231-1231312",
-						AzureEndpointName: "my-azure-pl",
+			args: args{
+				state: modelV0{
+					ID:               types.String{Value: "some-random-id"},
+					Name:             types.String{Value: "my traffic filter"},
+					Type:             types.String{Value: "azure_private_endpoint"},
+					IncludeByDefault: types.Bool{Value: false},
+					Region:           types.String{Value: "azure-australiaeast"},
+					Rule: types.Set{
+						ElemType: trafficFilterRuleElemType(),
+						Elems: []attr.Value{
+							newSampleTrafficFilterRule("", "", "my-azure-pl", "1231312-1231-1231-1231-1231312", ""),
+						},
 					},
 				},
 			},
-		},
-		{
-			name: "parses an privatelink resource with explicit nils",
-			args: args{d: util.NewResourceData(t, util.ResDataParams{
-				ID: "some-random-id",
-				State: map[string]interface{}{
-					"name":               "my traffic filter",
-					"type":               "azure_private_endpoint",
-					"include_by_default": false,
-					"region":             "azure-australiaeast",
-					"rule": []interface{}{map[string]interface{}{
-						"description":         nil,
-						"azure_endpoint_guid": "1231312-1231-1231-1231-1231312",
-						"azure_endpoint_name": "my-azure-pl",
-					}},
-				},
-				Schema: newSchema(),
-			})},
 			want: &models.TrafficFilterRulesetRequest{
 				Name:             ec.String("my traffic filter"),
 				Type:             ec.String("azure_private_endpoint"),
@@ -158,7 +120,8 @@ func Test_expandModel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := expandModel(tt.args.d)
+			got, diags := expandModel(context.Background(), tt.args.state)
+			assert.Empty(t, diags)
 			assert.Equal(t, tt.want, got)
 		})
 	}

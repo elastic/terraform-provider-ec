@@ -19,39 +19,59 @@ package deploymentdatasource
 
 import (
 	"context"
-	"time"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-// DataSource returns the ec_deployment data source schema.
-func DataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: read,
+var _ datasource.DataSource = &DataSource{}
+var _ datasource.DataSourceWithConfigure = &DataSource{}
 
-		Schema: newSchema(),
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(5 * time.Minute),
-		},
-	}
+type DataSource struct {
+	client *api.API
 }
 
-func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-	deploymentID := d.Get("id").(string)
+func (d *DataSource) Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse) {
+	client, diags := internal.ConvertProviderData(request.ProviderData)
+	response.Diagnostics.Append(diags...)
+	d.client = client
+}
+
+func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
+	response.TypeName = request.ProviderTypeName + "_deployment"
+}
+
+func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
+	// Prevent panic if the provider has not been configured.
+	if d.client == nil {
+		response.Diagnostics.AddError(
+			"Unconfigured API Client",
+			"Expected configured API client. Please report this issue to the provider developers.",
+		)
+
+		return
+	}
+
+	var newState modelV0
+	response.Diagnostics.Append(request.Config.Get(ctx, &newState)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
-		API:          client,
-		DeploymentID: deploymentID,
+		API:          d.client,
+		DeploymentID: newState.ID.Value,
 		QueryParams: deputil.QueryParams{
 			ShowPlans:        true,
 			ShowSettings:     true,
@@ -60,92 +80,64 @@ func read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diag
 		},
 	})
 	if err != nil {
-		return diag.FromErr(
-			multierror.NewPrefixed("failed retrieving deployment information", err),
+		response.Diagnostics.AddError(
+			"Failed retrieving deployment information",
+			fmt.Sprintf("Failed retrieving deployment information: %s", err),
 		)
+		return
 	}
 
-	d.SetId(deploymentID)
-
-	if err := modelToState(d, res); err != nil {
-		return diag.FromErr(err)
+	response.Diagnostics.Append(modelToState(ctx, res, &newState)...)
+	if response.Diagnostics.HasError() {
+		return
 	}
 
-	return nil
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
 
-func modelToState(d *schema.ResourceData, res *models.DeploymentGetResponse) error {
-	if err := d.Set("name", res.Name); err != nil {
-		return err
-	}
+func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state *modelV0) diag.Diagnostics {
+	var diagsnostics diag.Diagnostics
 
-	if err := d.Set("healthy", res.Healthy); err != nil {
-		return err
-	}
-
-	if err := d.Set("alias", res.Alias); err != nil {
-		return err
-	}
+	state.Name = types.String{Value: *res.Name}
+	state.Healthy = types.Bool{Value: *res.Healthy}
+	state.Alias = types.String{Value: res.Alias}
 
 	es := res.Resources.Elasticsearch[0]
 	if es.Region != nil {
-		if err := d.Set("region", *es.Region); err != nil {
-			return err
-		}
+		state.Region = types.String{Value: *es.Region}
 	}
 
 	if !util.IsCurrentEsPlanEmpty(es) {
-		if err := d.Set("deployment_template_id",
-			*es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID); err != nil {
-			return err
-		}
+		state.DeploymentTemplateID = types.String{Value: *es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID}
 	}
 
-	if settings := flattenTrafficFiltering(res.Settings); settings != nil {
-		if err := d.Set("traffic_filter", settings); err != nil {
-			return err
-		}
+	var diags diag.Diagnostics
+
+	state.TrafficFilter, diags = flattenTrafficFiltering(ctx, res.Settings)
+	diagsnostics.Append(diags...)
+
+	state.Observability, diags = flattenObservability(ctx, res.Settings)
+	diagsnostics.Append(diags...)
+
+	state.Elasticsearch, diags = flattenElasticsearchResources(ctx, res.Resources.Elasticsearch)
+	diagsnostics.Append(diags...)
+
+	state.Kibana, diags = flattenKibanaResources(ctx, res.Resources.Kibana)
+	diagsnostics.Append(diags...)
+
+	state.Apm, diags = flattenApmResources(ctx, res.Resources.Apm)
+	diagsnostics.Append(diags...)
+
+	state.IntegrationsServer, diags = flattenIntegrationsServerResources(ctx, res.Resources.IntegrationsServer)
+	diagsnostics.Append(diags...)
+
+	state.EnterpriseSearch, diags = flattenEnterpriseSearchResources(ctx, res.Resources.EnterpriseSearch)
+	diagsnostics.Append(diags...)
+
+	if res.Metadata != nil {
+		state.Tags = converters.ModelsTagsToTypesMap(res.Metadata.Tags)
 	}
 
-	if observability := flattenObservability(res.Settings); len(observability) > 0 {
-		if err := d.Set("observability", observability); err != nil {
-			return err
-		}
-	}
-
-	elasticsearchFlattened, err := flattenElasticsearchResources(res.Resources.Elasticsearch)
-	if err != nil {
-		return err
-	}
-	if err := d.Set("elasticsearch", elasticsearchFlattened); err != nil {
-		return err
-	}
-
-	kibanaFlattened := flattenKibanaResources(res.Resources.Kibana)
-	if err := d.Set("kibana", kibanaFlattened); err != nil {
-		return err
-	}
-
-	apmFlattened := flattenApmResources(res.Resources.Apm)
-	if err := d.Set("apm", apmFlattened); err != nil {
-		return err
-	}
-
-	integrationsServerFlattened := flattenIntegrationsServerResources(res.Resources.IntegrationsServer)
-	if err := d.Set("integrations_server", integrationsServerFlattened); err != nil {
-		return err
-	}
-
-	enterpriseSearchFlattened := flattenEnterpriseSearchResources(res.Resources.EnterpriseSearch)
-	if err := d.Set("enterprise_search", enterpriseSearchFlattened); err != nil {
-		return err
-	}
-
-	if tagsFlattened := flattenTags(res.Metadata); tagsFlattened != nil {
-		if err := d.Set("tags", tagsFlattened); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return diagsnostics
 }

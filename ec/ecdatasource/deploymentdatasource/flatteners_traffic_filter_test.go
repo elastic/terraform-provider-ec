@@ -18,10 +18,13 @@
 package deploymentdatasource
 
 import (
+	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_flattenTrafficFiltering(t *testing.T) {
@@ -31,32 +34,33 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []interface{}
+		want []string
 	}{
 		{
-			name: "parses no rules when they're empty",
+			name: "parses no rules when they're empty #1",
 			args: args{},
 		},
 		{
-			name: "parses no rules when they're empty",
+			name: "parses no rules when they're empty #2",
 			args: args{settings: &models.DeploymentSettings{}},
 		},
 		{
-			name: "parses no rules when they're empty",
+			name: "parses no rules when they're empty #3",
 			args: args{settings: &models.DeploymentSettings{
 				TrafficFilterSettings: &models.TrafficFilterSettings{},
 			}},
 		},
 		{
-			name: "parses no rules when they're empty",
+			name: "parses no rules when they're empty #4",
 			args: args{settings: &models.DeploymentSettings{
 				TrafficFilterSettings: &models.TrafficFilterSettings{
 					Rulesets: []string{},
 				},
 			}},
+			want: []string{},
 		},
 		{
-			name: "parses no rules when they're empty",
+			name: "parses rules",
 			args: args{settings: &models.DeploymentSettings{
 				TrafficFilterSettings: &models.TrafficFilterSettings{
 					Rulesets: []string{
@@ -65,7 +69,7 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 					},
 				},
 			}},
-			want: []interface{}{
+			want: []string{
 				"one-id-of-a-rule",
 				"another-id-of-another-rule",
 			},
@@ -73,8 +77,12 @@ func Test_flattenTrafficFiltering(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := flattenTrafficFiltering(tt.args.settings)
+			trafficFilter, diags := flattenTrafficFiltering(context.Background(), tt.args.settings)
+			assert.Empty(t, diags)
+			var got []string
+			trafficFilter.ElementsAs(context.Background(), &got, false)
 			assert.Equal(t, tt.want, got)
+			util.CheckConverionToAttrValue(t, &DataSource{}, "traffic_filter", trafficFilter)
 		})
 	}
 }

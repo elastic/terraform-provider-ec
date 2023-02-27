@@ -18,40 +18,54 @@
 package stackdatasource
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
-// flattenApmResources takes in Apm resource models and returns its
-// flattened form.
-func flattenApmResources(res *models.StackVersionApmConfig) []interface{} {
-	var m = make(map[string]interface{})
+// flattenApmConfig takes a StackVersionApmConfigs and flattens it.
+func flattenApmConfig(ctx context.Context, res *models.StackVersionApmConfig) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	model := newResourceKindConfigModelV0()
+
+	target := types.List{ElemType: resourceKindConfigSchema(util.ApmResourceKind).FrameworkType().(types.ListType).ElemType}
+	target.Null = true
 
 	if res == nil {
-		return nil
+		return target, nil
 	}
 
 	if len(res.Blacklist) > 0 {
-		m["denylist"] = util.StringToItems(res.Blacklist...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.Blacklist, types.ListType{ElemType: types.StringType}, &model.DenyList)...)
+		target.Null = false
 	}
 
 	if res.CapacityConstraints != nil {
-		m["capacity_constraints_max"] = int(*res.CapacityConstraints.Max)
-		m["capacity_constraints_min"] = int(*res.CapacityConstraints.Min)
+		model.CapacityConstraintsMax = types.Int64{Value: int64(*res.CapacityConstraints.Max)}
+		model.CapacityConstraintsMin = types.Int64{Value: int64(*res.CapacityConstraints.Min)}
+		target.Null = false
 	}
 
 	if len(res.CompatibleNodeTypes) > 0 {
-		m["compatible_node_types"] = res.CompatibleNodeTypes
+		diags.Append(tfsdk.ValueFrom(ctx, res.CompatibleNodeTypes, types.ListType{ElemType: types.StringType}, &model.CompatibleNodeTypes)...)
+		target.Null = false
 	}
 
 	if res.DockerImage != nil && *res.DockerImage != "" {
-		m["docker_image"] = *res.DockerImage
+		model.DockerImage = types.String{Value: *res.DockerImage}
+		target.Null = false
 	}
 
-	if len(m) == 0 {
-		return nil
+	if target.Null {
+		return target, diags
 	}
 
-	return []interface{}{m}
+	diags.Append(tfsdk.ValueFrom(ctx, []resourceKindConfigModelV0{model}, resourceKindConfigSchema(util.ApmResourceKind).FrameworkType(), &target)...)
+
+	return target, diags
 }

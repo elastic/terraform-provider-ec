@@ -18,10 +18,14 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"log"
 
 	"github.com/elastic/terraform-provider-ec/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
 //go:generate go run ./gen/gen.go
@@ -30,13 +34,19 @@ import (
 const ProviderAddr = "registry.terraform.io/elastic/ec"
 
 func main() {
-	var debugMode bool
-	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	var debug bool
+
+	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: ec.Provider,
-		Debug:        debugMode,
-		ProviderAddr: ProviderAddr,
-	})
+	opts := providerserver.ServeOpts{
+		Address: ProviderAddr,
+		Debug:   debug,
+	}
+
+	err := providerserver.Serve(context.Background(), func() provider.Provider { return ec.New(ec.Version) }, opts)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }

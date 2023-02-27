@@ -18,41 +18,35 @@
 package deploymentsdatasource
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_expandFilters(t *testing.T) {
-	deploymentsDS := util.NewResourceData(t, util.ResDataParams{
-		ID:     "myID",
-		State:  newSampleFilters(),
-		Schema: newSchema(),
-	})
-	invalidDS := util.NewResourceData(t, util.ResDataParams{
-		ID:     "myID",
-		State:  newInvalidFilters(),
-		Schema: newSchema(),
-	})
 	type args struct {
-		d *schema.ResourceData
+		state modelV0
 	}
 	tests := []struct {
-		name string
-		args args
-		want *models.SearchRequest
-		err  error
+		name  string
+		args  args
+		want  *models.SearchRequest
+		diags diag.Diagnostics
 	}{
 		{
 			name: "parses the data source",
-			args: args{d: deploymentsDS},
+			args: args{state: newSampleFilters()},
 			want: &models.SearchRequest{
 				Size: 100,
 				Sort: []interface{}{"id"},
@@ -71,38 +65,58 @@ func Test_expandFilters(t *testing.T) {
 		},
 		{
 			name: "parses the data source with a different size",
-			args: args{d: util.NewResourceData(t, util.ResDataParams{
-				ID:     "myID",
-				Schema: newSchema(),
-				State: map[string]interface{}{
-					"name_prefix": "test",
-					"healthy":     "true",
-					"size":        200,
-					"tags": map[string]interface{}{
-						"foo": "bar",
+			args: args{
+				state: modelV0{
+					NamePrefix: types.String{Value: "test"},
+					Healthy:    types.String{Value: "true"},
+					Size:       types.Int64{Value: 200},
+					Tags:       util.StringMapAsType(map[string]string{"foo": "bar"}),
+					Elasticsearch: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind),
+							Attrs: map[string]attr.Value{
+								"healthy": types.String{Null: true},
+								"status":  types.String{Null: true},
+								"version": types.String{Value: "7.9.1"},
+							},
+						}},
 					},
-					"elasticsearch": []interface{}{
-						map[string]interface{}{
-							"version": "7.9.1",
-						},
+					Kibana: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind),
+							Attrs: map[string]attr.Value{
+								"healthy": types.String{Null: true},
+								"status":  types.String{Value: "started"},
+								"version": types.String{Null: true},
+							},
+						}},
 					},
-					"kibana": []interface{}{
-						map[string]interface{}{
-							"status": "started",
-						},
+					Apm: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind),
+							Attrs: map[string]attr.Value{
+								"healthy": types.String{Value: "true"},
+								"status":  types.String{Null: true},
+								"version": types.String{Null: true},
+							},
+						}},
 					},
-					"apm": []interface{}{
-						map[string]interface{}{
-							"healthy": "true",
-						},
-					},
-					"enterprise_search": []interface{}{
-						map[string]interface{}{
-							"healthy": "false",
-						},
+					EnterpriseSearch: types.List{
+						ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind)},
+						Elems: []attr.Value{types.Object{
+							AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind),
+							Attrs: map[string]attr.Value{
+								"status":  types.String{Null: true},
+								"healthy": types.String{Value: "false"},
+								"version": types.String{Null: true},
+							},
+						}},
 					},
 				},
-			})},
+			},
 			want: &models.SearchRequest{
 				Size: 200,
 				Sort: []interface{}{"id"},
@@ -120,18 +134,18 @@ func Test_expandFilters(t *testing.T) {
 			},
 		},
 		{
-			name: "fails to parse the data source",
-			args: args{d: invalidDS},
-			err:  errors.New("invalid value for healthy (true|false): 'invalid value'"),
+			name:  "fails to parse the data source",
+			args:  args{state: newInvalidFilters()},
+			diags: diag.Diagnostics{diag.NewErrorDiagnostic("invalid value for healthy", "expected either [true] or [false] but got [invalid value]")},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := expandFilters(tt.args.d)
-			if tt.err != nil || err != nil {
-				assert.EqualError(t, err, tt.err.Error())
+			got, diags := expandFilters(context.Background(), tt.args.state)
+			if tt.diags != nil {
+				assert.Equal(t, tt.diags, diags)
 			} else {
-				assert.NoError(t, err)
+				assert.Empty(t, diags)
 			}
 
 			jsonWant, err := json.MarshalIndent(tt.want, "", "  ")
@@ -149,43 +163,72 @@ func Test_expandFilters(t *testing.T) {
 	}
 }
 
-func newInvalidFilters() map[string]interface{} {
-	return map[string]interface{}{
-		"healthy": "invalid value",
-		"apm": []interface{}{
-			map[string]interface{}{
-				"healthy": "invalid value",
-			},
+func newInvalidFilters() modelV0 {
+	return modelV0{
+		Healthy: types.String{Value: "invalid value"},
+		Apm: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Value: "invalid value"},
+				},
+			}},
 		},
 	}
 }
 
-func newSampleFilters() map[string]interface{} {
-	return map[string]interface{}{
-		"name_prefix": "test",
-		"healthy":     "true",
-		"tags": map[string]interface{}{
-			"foo": "bar",
+func newSampleFilters() modelV0 {
+	return modelV0{
+		NamePrefix: types.String{Value: "test"},
+		Healthy:    types.String{Value: "true"},
+		Size:       types.Int64{Value: 100},
+		Tags: types.Map{ElemType: types.StringType, Elems: map[string]attr.Value{
+			"foo": types.String{Value: "bar"},
+		}},
+		Elasticsearch: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.ElasticsearchResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Null: true},
+					"status":  types.String{Null: true},
+					"version": types.String{Value: "7.9.1"},
+				},
+			}},
 		},
-		"elasticsearch": []interface{}{
-			map[string]interface{}{
-				"version": "7.9.1",
-			},
+		Kibana: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.KibanaResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Null: true},
+					"status":  types.String{Value: "started"},
+					"version": types.String{Null: true},
+				},
+			}},
 		},
-		"kibana": []interface{}{
-			map[string]interface{}{
-				"status": "started",
-			},
+		Apm: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.ApmResourceKind),
+				Attrs: map[string]attr.Value{
+					"healthy": types.String{Value: "true"},
+					"status":  types.String{Null: true},
+					"version": types.String{Null: true},
+				},
+			}},
 		},
-		"apm": []interface{}{
-			map[string]interface{}{
-				"healthy": "true",
-			},
-		},
-		"enterprise_search": []interface{}{
-			map[string]interface{}{
-				"healthy": "false",
-			},
+		EnterpriseSearch: types.List{
+			ElemType: types.ObjectType{AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind)},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceFiltersAttrTypes(util.EnterpriseSearchResourceKind),
+				Attrs: map[string]attr.Value{
+					"status":  types.String{Null: true},
+					"healthy": types.String{Value: "false"},
+					"version": types.String{Null: true},
+				},
+			}},
 		},
 	}
 }

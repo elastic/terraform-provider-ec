@@ -9,11 +9,11 @@ resource "ec_deployment" "post_nr_upgrade" {
   version                = data.ec_stack.post_node_roles_upgrade.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id         = "hot_content"
-      size       = "1g"
-      zone_count = 1
+  elasticsearch = {
+    hot = {
+      size        = "1g"
+      zone_count  = 1
+      autoscaling = {}
     }
   }
 }

@@ -9,43 +9,42 @@ resource "ec_deployment" "autoscaling" {
   version                = data.ec_stack.autoscaling.version
   deployment_template_id = "%s"
 
-  elasticsearch {
+  elasticsearch = {
     autoscale = "true"
 
-    topology {
-      id         = "cold"
-      size       = "0g"
-      zone_count = 1
+    cold = {
+      size        = "0g"
+      zone_count  = 1
+      autoscaling = {}
     }
 
-    topology {
-      id         = "frozen"
-      size       = "0g"
-      zone_count = 1
+    frozen = {
+      size        = "0g"
+      zone_count  = 1
+      autoscaling = {}
     }
 
-    topology {
-      id         = "hot_content"
+    hot = {
       size       = "1g"
       zone_count = 1
-      autoscaling {
+      autoscaling = {
         max_size = "8g"
       }
     }
-    topology {
-      id         = "ml"
+
+    ml = {
       size       = "1g"
       zone_count = 1
-      autoscaling {
+      autoscaling = {
         min_size = "1g"
         max_size = "4g"
       }
     }
-    topology {
-      id         = "warm"
+
+    warm = {
       size       = "2g"
       zone_count = 1
-      autoscaling {
+      autoscaling = {
         max_size = "15g"
       }
     }

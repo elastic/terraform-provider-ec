@@ -27,10 +27,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/elastic/cloud-sdk-go/pkg/client/extensions"
 )
 
 func TestAccDeploymentExtension_bundleFile(t *testing.T) {
@@ -43,9 +44,9 @@ func TestAccDeploymentExtension_bundleFile(t *testing.T) {
 	cfg := fixtureAccExtensionBundleWithTF(t, "testdata/extension_bundle_file.tf", filePath, randomName, "desc")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccExtensionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() { writeFile(t, filePath, "extension.txt", "foo") },

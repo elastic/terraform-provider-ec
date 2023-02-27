@@ -1,0 +1,363 @@
+{
+    "instance_configurations": [], 
+    "description": "Use for for all-purpose workloads, including time-series data like logs and metrics.", 
+    "name": "I/O Optimized", 
+    "template_category_id": "io-optimized", 
+    "kibana_deeplink": [
+        {
+            "semver": ">=7.9.0", 
+            "uri": "/app/home"
+        }, 
+        {
+            "semver": "<7.9.0", 
+            "uri": "/app/kibana#/home"
+        }
+    ], 
+    "id": "aws-io-optimized-v2", 
+    "deployment_template": {
+        "resources": {
+            "integrations_server": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id", 
+                    "region": "us-east-1", 
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "aws.integrationsserver.r5d", 
+                                "zone_count": 1, 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 1024
+                                }
+                            }
+                        ], 
+                        "integrations_server": {}
+                    }, 
+                    "ref_id": "integrations_server-ref-id"
+                }
+            ], 
+            "elasticsearch": [
+                {
+                    "region": "us-east-1", 
+                    "settings": {
+                        "dedicated_masters_threshold": 6
+                    }, 
+                    "plan": {
+                        "autoscaling_enabled": false, 
+                        "cluster_topology": [
+                            {
+                                "zone_count": 2, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 0
+                                    }
+                                }, 
+                                "node_type": {
+                                    "data": false, 
+                                    "master": false, 
+                                    "ingest": true
+                                }, 
+                                "instance_configuration_id": "aws.coordinating.m5d", 
+                                "node_roles": [
+                                    "ingest", 
+                                    "remote_cluster_client"
+                                ], 
+                                "id": "coordinating", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }, 
+                            {
+                                "zone_count": 2, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 1024
+                                    }
+                                }, 
+                                "node_type": {
+                                    "data": true, 
+                                    "master": true, 
+                                    "ingest": true
+                                }, 
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "hot"
+                                    }
+                                }, 
+                                "autoscaling_max": {
+                                    "resource": "memory", 
+                                    "value": 118784
+                                }, 
+                                "instance_configuration_id": "aws.data.highio.i3", 
+                                "node_roles": [
+                                    "master", 
+                                    "ingest", 
+                                    "transform", 
+                                    "data_hot", 
+                                    "remote_cluster_client", 
+                                    "data_content"
+                                ], 
+                                "id": "hot_content", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 8192
+                                }
+                            }, 
+                            {
+                                "zone_count": 2, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 0
+                                    }
+                                }, 
+                                "node_type": {
+                                    "data": true, 
+                                    "master": false, 
+                                    "ingest": false
+                                }, 
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "warm"
+                                    }
+                                }, 
+                                "autoscaling_max": {
+                                    "resource": "memory", 
+                                    "value": 118784
+                                }, 
+                                "instance_configuration_id": "aws.data.highstorage.d3", 
+                                "node_roles": [
+                                    "data_warm", 
+                                    "remote_cluster_client"
+                                ], 
+                                "id": "warm", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }, 
+                            {
+                                "zone_count": 1, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 0
+                                    }
+                                }, 
+                                "node_type": {
+                                    "data": true, 
+                                    "master": false, 
+                                    "ingest": false
+                                }, 
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "cold"
+                                    }
+                                }, 
+                                "autoscaling_max": {
+                                    "resource": "memory", 
+                                    "value": 59392
+                                }, 
+                                "instance_configuration_id": "aws.data.highstorage.d3", 
+                                "node_roles": [
+                                    "data_cold", 
+                                    "remote_cluster_client"
+                                ], 
+                                "id": "cold", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }, 
+                            {
+                                "zone_count": 1, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 0
+                                    }
+                                }, 
+                                "node_type": {
+                                    "data": true, 
+                                    "master": false, 
+                                    "ingest": false
+                                }, 
+                                "elasticsearch": {
+                                    "node_attributes": {
+                                        "data": "frozen"
+                                    }
+                                }, 
+                                "autoscaling_max": {
+                                    "resource": "memory", 
+                                    "value": 122880
+                                }, 
+                                "instance_configuration_id": "aws.es.datafrozen.i3en", 
+                                "node_roles": [
+                                    "data_frozen"
+                                ], 
+                                "id": "frozen", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }, 
+                            {
+                                "zone_count": 3, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 0
+                                    }
+                                }, 
+                                "node_type": {
+                                    "data": false, 
+                                    "master": true, 
+                                    "ingest": false
+                                }, 
+                                "instance_configuration_id": "aws.master.r5d", 
+                                "node_roles": [
+                                    "master", 
+                                    "remote_cluster_client"
+                                ], 
+                                "id": "master", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }, 
+                            {
+                                "zone_count": 1, 
+                                "topology_element_control": {
+                                    "min": {
+                                        "resource": "memory", 
+                                        "value": 0
+                                    }
+                                }, 
+                                "autoscaling_min": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }, 
+                                "node_type": {
+                                    "data": false, 
+                                    "master": false, 
+                                    "ingest": false, 
+                                    "ml": true
+                                }, 
+                                "autoscaling_max": {
+                                    "resource": "memory", 
+                                    "value": 61440
+                                }, 
+                                "instance_configuration_id": "aws.ml.m5d", 
+                                "node_roles": [
+                                    "ml", 
+                                    "remote_cluster_client"
+                                ], 
+                                "id": "ml", 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }
+                        ], 
+                        "elasticsearch": {}
+                    }, 
+                    "ref_id": "es-ref-id"
+                }
+            ], 
+            "enterprise_search": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id", 
+                    "region": "us-east-1", 
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "node_type": {
+                                    "connector": true, 
+                                    "appserver": true, 
+                                    "worker": true
+                                }, 
+                                "instance_configuration_id": "aws.enterprisesearch.m5d", 
+                                "zone_count": 2, 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 0
+                                }
+                            }
+                        ], 
+                        "enterprise_search": {}
+                    }, 
+                    "ref_id": "enterprise_search-ref-id"
+                }
+            ], 
+            "kibana": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id", 
+                    "region": "us-east-1", 
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "aws.kibana.r5d", 
+                                "zone_count": 1, 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 1024
+                                }
+                            }
+                        ], 
+                        "kibana": {}
+                    }, 
+                    "ref_id": "kibana-ref-id"
+                }
+            ], 
+            "apm": [
+                {
+                    "elasticsearch_cluster_ref_id": "es-ref-id", 
+                    "region": "us-east-1", 
+                    "plan": {
+                        "cluster_topology": [
+                            {
+                                "instance_configuration_id": "aws.apm.r5d", 
+                                "zone_count": 1, 
+                                "size": {
+                                    "resource": "memory", 
+                                    "value": 1024
+                                }
+                            }
+                        ], 
+                        "apm": {}
+                    }, 
+                    "ref_id": "apm-ref-id"
+                }
+            ]
+        }, 
+        "settings": {
+            "autoscaling_enabled": false
+        }
+    }, 
+    "system_owned": true, 
+    "metadata": [
+        {
+            "value": "true", 
+            "key": "hidden"
+        }, 
+        {
+            "value": "aws-hot-warm-v2", 
+            "key": "hot_warm_template"
+        }, 
+        {
+            "value": "true", 
+            "key": "recommended"
+        }, 
+        {
+            "value": "true", 
+            "key": "trial-eligible"
+        }, 
+        {
+            "value": "stack", 
+            "key": "parent_solution"
+        }
+    ]
+}

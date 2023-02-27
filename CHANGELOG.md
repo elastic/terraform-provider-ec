@@ -1,10 +1,36 @@
-# 0.6.0 (Unreleased)
+# 0.7.0 (Unreleased)
 
 # 0.5.1 (Feb 15, 2023)
 
 FEATURES:
 
 * resource/deployment: Utilise the template migration API to build the base update request when changing `deployment_template_id`. This results in more reliable changes between deployment templates. ([#547](https://github.com/elastic/terraform-provider-ec/issues/547))
+
+# 0.6.0 (Unreleased)
+
+FEATURES:
+
+Migration to [TF Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework)
+
+**BREAKING CHANGES**:
+
+New schema for `ec_deployment`. Existing resources should be imported. Please see NOTES below and README for more details.
+
+BUG FIXES:
+
+[#336](https://github.com/elastic/terraform-provider-ec/issues/336)
+[#467](https://github.com/elastic/terraform-provider-ec/issues/467)
+[#445](https://github.com/elastic/terraform-provider-ec/issues/445)
+
+NOTES
+
+* Older versions of terraform CLI can report errors with the provider 0.6.0 and higher. Please make sure to update Terraform CLI to the latest version.
+* State upgrade is not implemented for `ec_deployment`.
+  The recommended way to proceed with existing TF resources is [state import](https://developer.hashicorp.com/terraform/cli/import#state-only).
+  However, this doesn't import user passwords and secret tokens.
+* After import, the next plan command can output more elements that the actual configuration defines, e.g. plan command can output `cold` Elasticsearch tier with 0 size or empty `config` block for configuration that doesn't specify `cold` tier and `config` for `elasticsearch`.
+  It should not be a problem. You can eigher execute the plan (the only result should be updated Terraform state while the deployment should stay the same) or add empty `cold` tier and `confg` to the configuration.
+* The migration is based on 0.4.1, so all changes from 0.5.0 are omitted.
 
 # 0.5.0 (Oct 12, 2022)
 

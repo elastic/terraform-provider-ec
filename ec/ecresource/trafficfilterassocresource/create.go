@@ -19,29 +19,41 @@ package trafficfilterassocresource
 
 import (
 	"context"
-	"strconv"
-	"strings"
+	"fmt"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// create will create a new deployment traffic filter ruleset association.
-func create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-	params := expand(d)
-	params.API = client
-
-	if err := trafficfilterapi.CreateAssociation(params); err != nil {
-		return diag.FromErr(err)
+func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
 	}
 
-	d.SetId(hashID(params.EntityID, params.ID))
-	return read(ctx, d, meta)
-}
+	var newState modelV0
 
-func hashID(elem ...string) string {
-	return strconv.Itoa(schema.HashString(strings.Join(elem, "-")))
+	diags := request.Plan.Get(ctx, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	if err := trafficfilterapi.CreateAssociation(trafficfilterapi.CreateAssociationParams{
+		API:        r.client,
+		ID:         newState.TrafficFilterID.Value,
+		EntityID:   newState.DeploymentID.Value,
+		EntityType: entityTypeDeployment,
+	}); err != nil {
+		response.Diagnostics.AddError(err.Error(), err.Error())
+		return
+	}
+
+	newState.ID = types.String{Value: fmt.Sprintf("%v-%v", newState.DeploymentID.Value, newState.TrafficFilterID.Value)}
+	diags = response.State.Set(ctx, newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 }

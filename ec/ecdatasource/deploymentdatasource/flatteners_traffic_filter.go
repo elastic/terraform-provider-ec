@@ -18,19 +18,25 @@
 package deploymentdatasource
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 // flattenTrafficFiltering parses a deployment's traffic filtering settings.
-func flattenTrafficFiltering(settings *models.DeploymentSettings) []interface{} {
+func flattenTrafficFiltering(ctx context.Context, settings *models.DeploymentSettings) (types.List, diag.Diagnostics) {
+	target := types.List{ElemType: types.StringType}
+
 	if settings == nil || settings.TrafficFilterSettings == nil {
-		return nil
+		target.Null = true
+		return target, nil
 	}
 
-	var rules []interface{}
-	for _, rule := range settings.TrafficFilterSettings.Rulesets {
-		rules = append(rules, rule)
-	}
+	diags := tfsdk.ValueFrom(ctx, settings.TrafficFilterSettings.Rulesets, target.Type(ctx), &target)
 
-	return rules
+	return target, diags
 }

@@ -15,142 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package deploymentresource
+package deploymentresource_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
-	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/go-openapi/runtime"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 )
 
-func Test_readResource(t *testing.T) {
-	tc500Err := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleLegacyDeployment(),
-		Schema: newSchema(),
-	})
-	wantTC500 := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleLegacyDeployment(),
-		Schema: newSchema(),
-	})
-
-	tc404Err := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleLegacyDeployment(),
-		Schema: newSchema(),
-	})
-
-	wantTC404 := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleLegacyDeployment(),
-		Schema: newSchema(),
-	})
-	wantTC404.SetId("")
-
-	tc200Stopped := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleLegacyDeployment(),
-		Schema: newSchema(),
-	})
-
-	wantTC200Stopped := util.NewResourceData(t, util.ResDataParams{
-		ID:     mock.ValidClusterID,
-		State:  newSampleLegacyDeployment(),
-		Schema: newSchema(),
-	})
-	wantTC200Stopped.SetId("")
-
+func Test_hasRunningResources(t *testing.T) {
 	type args struct {
-		ctx  context.Context
-		d    *schema.ResourceData
-		meta interface{}
-	}
-	tests := []struct {
-		name   string
-		args   args
-		want   diag.Diagnostics
-		wantRD *schema.ResourceData
-	}{
-		{
-			name: "returns an error when it receives a 500",
-			args: args{
-				d: tc500Err,
-				meta: api.NewMock(mock.NewErrorResponse(500, mock.APIError{
-					Code: "some", Message: "message",
-				})),
-			},
-			want: diag.Diagnostics{
-				{
-					Severity: diag.Error,
-					Summary:  "failed reading deployment: 1 error occurred:\n\t* api error: some: message\n\n",
-				},
-			},
-			wantRD: wantTC500,
-		},
-		{
-			name: "returns nil and unsets the state when the error is known",
-			args: args{
-				d: tc404Err,
-				meta: api.NewMock(mock.NewErrorResponse(404, mock.APIError{
-					Code: "some", Message: "message",
-				})),
-			},
-			want:   nil,
-			wantRD: wantTC404,
-		},
-		{
-			name: "returns nil and unsets the state when none of the deployment resources are running",
-			args: args{
-				d: tc200Stopped,
-				meta: api.NewMock(mock.New200StructResponse(models.DeploymentGetResponse{
-					Resources: &models.DeploymentResources{
-						Elasticsearch: []*models.ElasticsearchResourceInfo{{
-							Info: &models.ElasticsearchClusterInfo{Status: ec.String("stopped")},
-						}},
-					},
-				})),
-			},
-			want:   nil,
-			wantRD: wantTC200Stopped,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := readResource(tt.args.ctx, tt.args.d, tt.args.meta)
-			assert.Equal(t, tt.want, got)
-			var want interface{}
-			if tt.wantRD != nil {
-				if s := tt.wantRD.State(); s != nil {
-					want = s.Attributes
-				}
-			}
-
-			var gotState interface{}
-			if s := tt.args.d.State(); s != nil {
-				gotState = s.Attributes
-			}
-
-			assert.Equal(t, want, gotState)
-		})
-	}
-}
-
-func Test_deploymentNotFound(t *testing.T) {
-	type args struct {
-		err error
+		res *models.DeploymentGetResponse
 	}
 	tests := []struct {
 		name string
@@ -158,39 +35,64 @@ func Test_deploymentNotFound(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "When the error is empty, it returns false",
+			name: "has all the resources stopped",
+			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("stopped")}},
+				},
+				Kibana: []*models.KibanaResourceInfo{
+					{Info: &models.KibanaClusterInfo{Status: ec.String("stopped")}},
+				},
+				Apm: []*models.ApmResourceInfo{
+					{Info: &models.ApmInfo{Status: ec.String("stopped")}},
+				},
+				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+					{Info: &models.EnterpriseSearchInfo{Status: ec.String("stopped")}},
+				},
+			}}},
+			want: false,
 		},
 		{
-			name: "When the error is something else (500), it returns false",
-			args: args{
-				err: &apierror.Error{Err: &runtime.APIError{Code: 500}},
-			},
-		},
-		{
-			name: "When the error is something else (401), it returns false",
-			args: args{
-				err: &apierror.Error{Err: &deployments.GetDeploymentUnauthorized{}},
-			},
-		},
-		{
-			name: "When the deployment is not found, it returns true",
-			args: args{
-				err: &apierror.Error{Err: &deployments.GetDeploymentNotFound{}},
-			},
+			name: "has some resources stopped",
+			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("running")}},
+				},
+				Kibana: []*models.KibanaResourceInfo{
+					{Info: &models.KibanaClusterInfo{Status: ec.String("stopped")}},
+				},
+				Apm: []*models.ApmResourceInfo{
+					{Info: &models.ApmInfo{Status: ec.String("running")}},
+				},
+				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+					{Info: &models.EnterpriseSearchInfo{Status: ec.String("running")}},
+				},
+			}}},
 			want: true,
 		},
 		{
-			name: "When the deployment is not authorized it returns true, to account for the DR case (ESS)",
-			args: args{
-				err: &apierror.Error{Err: &runtime.APIError{Code: 403}},
-			},
+			name: "has all resources running",
+			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
+				Elasticsearch: []*models.ElasticsearchResourceInfo{
+					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("running")}},
+				},
+				Kibana: []*models.KibanaResourceInfo{
+					{Info: &models.KibanaClusterInfo{Status: ec.String("running")}},
+				},
+				Apm: []*models.ApmResourceInfo{
+					{Info: &models.ApmInfo{Status: ec.String("running")}},
+				},
+				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
+					{Info: &models.EnterpriseSearchInfo{Status: ec.String("running")}},
+				},
+			}}},
 			want: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := deploymentNotFound(tt.args.err); got != tt.want {
-				t.Errorf("deploymentNotFound() = %v, want %v", got, tt.want)
+			if got := deploymentresource.HasRunningResources(tt.args.res); got != tt.want {
+				t.Errorf("hasRunningResources() = %v, want %v", got, tt.want)
 			}
 		})
 	}

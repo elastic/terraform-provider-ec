@@ -38,9 +38,9 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, updateCfg, randomNameSecond, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentTrafficFilterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Expects a non-empty plan since "ec_deployment.traffic_filter"
@@ -66,6 +66,56 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resNameSecond, "type", "ip"),
 					resource.TestCheckResourceAttr(resNameSecond, "rule.#", "1"),
 					resource.TestCheckResourceAttr(resNameSecond, "rule.0.source", "0.0.0.0/0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDeploymentTrafficFilterAssociation_UpgradeFrom0_4_1(t *testing.T) {
+	t.Skip("skip until `ec_deployment` state upgrade is implemented")
+
+	resName := "ec_deployment_traffic_filter.tf_assoc"
+	resAssocName := "ec_deployment_traffic_filter_association.tf_assoc"
+	randomName := acctest.RandomWithPrefix(prefix)
+	startCfg := "testdata/deployment_traffic_filter_association_basic_041.tf"
+	ignoreChangesCfgFile := "testdata/deployment_traffic_filter_association_basic_ignore_changes.tf"
+	cfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, startCfg, randomName, getRegion(), defaultTemplate)
+	ignoreChangesCfg := fixtureAccDeploymentTrafficFilterResourceAssociationBasic(t, ignoreChangesCfgFile, randomName, getRegion(), defaultTemplate)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccDeploymentTrafficFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"ec": {
+						VersionConstraint: "0.4.1",
+						Source:            "elastic/ec",
+					},
+				},
+				// Expects a non-empty plan since "ec_deployment.traffic_filter"
+				// will have changes due to the traffic filter association.
+				ExpectNonEmptyPlan: true,
+				Config:             cfg,
+				Check: checkBasicDeploymentTrafficFilterAssociationResource(
+					resName, resAssocName, randomName,
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "ip"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
+				),
+			},
+			{
+				PlanOnly:                 true,
+				ProtoV6ProviderFactories: testAccProviderFactory,
+				Config:                   ignoreChangesCfg,
+				Check: checkBasicDeploymentTrafficFilterAssociationResource(
+					resName, resAssocName, randomName,
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "ip"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resName, "rule.0.source", "0.0.0.0/0"),
 				),
 			},
 		},

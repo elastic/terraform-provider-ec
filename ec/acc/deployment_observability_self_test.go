@@ -33,18 +33,18 @@ func TestAccDeployment_observability_createWithSelfObservability(t *testing.T) {
 	config := fixtureAccDeploymentResourceSelfObs(t, configFile, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Create a deployment with observability-target 'self'
 				// After creation, the target-deployment-id should be the id of the created deployment
 				Config: config,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", resName, "id"),
-					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "true"),
-					resource.TestCheckResourceAttr(resName, "observability.0.logs", "true"),
+					resource.TestCheckResourceAttr(resName, "observability.deployment_id", "self"),
+					resource.TestCheckResourceAttr(resName, "observability.metrics", "true"),
+					resource.TestCheckResourceAttr(resName, "observability.logs", "true"),
 				),
 			},
 		},

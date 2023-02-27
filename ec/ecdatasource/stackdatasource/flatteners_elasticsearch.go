@@ -18,48 +18,63 @@
 package stackdatasource
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"context"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// flattenElasticsearchResources takes in Elasticsearch resource models and returns its
-// flattened form.
-func flattenElasticsearchResources(res *models.StackVersionElasticsearchConfig) []interface{} {
-	var m = make(map[string]interface{})
+// flattenElasticsearchConfig takes a StackVersionElasticsearchConfig and flattens it.
+func flattenElasticsearchConfig(ctx context.Context, res *models.StackVersionElasticsearchConfig) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	model := newElasticsearchConfigModelV0()
+
+	target := types.List{ElemType: elasticsearchConfigSchema().FrameworkType().(types.ListType).ElemType}
+	target.Null = true
 
 	if res == nil {
-		return nil
+		return target, diags
 	}
 
 	if len(res.Blacklist) > 0 {
-		m["denylist"] = util.StringToItems(res.Blacklist...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.Blacklist, types.ListType{ElemType: types.StringType}, &model.DenyList)...)
+		target.Null = false
 	}
 
 	if res.CapacityConstraints != nil {
-		m["capacity_constraints_max"] = int(*res.CapacityConstraints.Max)
-		m["capacity_constraints_min"] = int(*res.CapacityConstraints.Min)
+		model.CapacityConstraintsMax = types.Int64{Value: int64(*res.CapacityConstraints.Max)}
+		model.CapacityConstraintsMin = types.Int64{Value: int64(*res.CapacityConstraints.Min)}
+		target.Null = false
 	}
 
 	if len(res.CompatibleNodeTypes) > 0 {
-		m["compatible_node_types"] = util.StringToItems(res.CompatibleNodeTypes...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.CompatibleNodeTypes, types.ListType{ElemType: types.StringType}, &model.CompatibleNodeTypes)...)
+		target.Null = false
 	}
 
 	if res.DockerImage != nil && *res.DockerImage != "" {
-		m["docker_image"] = *res.DockerImage
+		model.DockerImage = types.String{Value: *res.DockerImage}
+		target.Null = false
 	}
 
 	if len(res.Plugins) > 0 {
-		m["plugins"] = util.StringToItems(res.Plugins...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.Plugins, types.ListType{ElemType: types.StringType}, &model.Plugins)...)
+		target.Null = false
 	}
 
 	if len(res.DefaultPlugins) > 0 {
-		m["default_plugins"] = util.StringToItems(res.DefaultPlugins...)
+		diags.Append(tfsdk.ValueFrom(ctx, res.DefaultPlugins, types.ListType{ElemType: types.StringType}, &model.DefaultPlugins)...)
+		target.Null = false
 	}
 
-	if len(m) == 0 {
-		return nil
+	if target.Null {
+		return target, diags
 	}
 
-	return []interface{}{m}
+	diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchConfigModelV0{model}, elasticsearchConfigSchema().FrameworkType(), &target)...)
+
+	return target, diags
 }

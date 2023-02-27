@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDeployment_observability(t *testing.T) {
+func TestAccDeployment_observability_first(t *testing.T) {
 	resName := "ec_deployment.observability"
 	secondResName := "ec_deployment.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
@@ -40,42 +40,41 @@ func TestAccDeployment_observability(t *testing.T) {
 	fourthCfg := fixtureAccDeploymentResourceBasicObs(t, removeObsCfg, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", secondResName, "id"),
-					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "true"),
-					resource.TestCheckResourceAttr(resName, "observability.0.logs", "true"),
+					resource.TestCheckResourceAttrPair(resName, "observability.deployment_id", secondResName, "id"),
+					resource.TestCheckResourceAttr(resName, "observability.metrics", "true"),
+					resource.TestCheckResourceAttr(resName, "observability.logs", "true"),
 				),
 			},
 			{
 				Config: secondCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", secondResName, "id"),
-					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "false"),
-					resource.TestCheckResourceAttr(resName, "observability.0.logs", "true"),
+					resource.TestCheckResourceAttrPair(resName, "observability.deployment_id", secondResName, "id"),
+					resource.TestCheckResourceAttr(resName, "observability.metrics", "false"),
+					resource.TestCheckResourceAttr(resName, "observability.logs", "true"),
 				),
 			},
 			{
 				Config: thirdCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrPair(resName, "observability.0.deployment_id", secondResName, "id"),
-					resource.TestCheckResourceAttr(resName, "observability.0.metrics", "true"),
-					resource.TestCheckResourceAttr(resName, "observability.0.logs", "false"),
+					resource.TestCheckResourceAttrPair(resName, "observability.deployment_id", secondResName, "id"),
+					resource.TestCheckResourceAttr(resName, "observability.metrics", "true"),
+					resource.TestCheckResourceAttr(resName, "observability.logs", "false"),
 				),
 			},
 			{
 				Config: fourthCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "observability.#", "0"),
-					resource.TestCheckNoResourceAttr(resName, "observability.0.deployment_id"),
-					resource.TestCheckNoResourceAttr(resName, "observability.0.metrics"),
-					resource.TestCheckNoResourceAttr(resName, "observability.0.logs"),
-					resource.TestCheckNoResourceAttr(resName, "observability.0.ref_id"),
+					resource.TestCheckNoResourceAttr(resName, "observability.deployment_id"),
+					resource.TestCheckNoResourceAttr(resName, "observability.metrics"),
+					resource.TestCheckNoResourceAttr(resName, "observability.logs"),
+					resource.TestCheckNoResourceAttr(resName, "observability.ref_id"),
 				),
 			},
 		},

@@ -34,9 +34,9 @@ func TestAccDeploymentExtension_pluginDownload(t *testing.T) {
 	cfg := fixtureAccExtensionBundleDownloadWithTF(t, "testdata/extension_plugin_download.tf", randomName, downloadURL)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccExtensionDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,

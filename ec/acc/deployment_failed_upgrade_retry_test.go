@@ -23,7 +23,7 @@ import (
 	"regexp"
 	"testing"
 
-	semver "github.com/blang/semver/v4"
+	"github.com/blang/semver/v4"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -32,9 +32,9 @@ func TestAccDeployment_failed_upgrade_retry(t *testing.T) {
 	var esCreds creds
 	resName := "ec_deployment.upgrade_retry"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fixtureDeploymentDefaults(t, "testdata/deployment_upgrade_retry_1.tf"),
@@ -47,7 +47,7 @@ func TestAccDeployment_failed_upgrade_retry(t *testing.T) {
 				// Creates an Elasticsearch index that will make the kibana upgrade fail.
 				PreConfig:   createIndex(t, &esCreds, ".kibana_2"),
 				Config:      fixtureDeploymentDefaults(t, "testdata/deployment_upgrade_retry_2.tf"),
-				ExpectError: regexp.MustCompile(`\[kibana\].*Plan change failed.*`),
+				ExpectError: regexp.MustCompile(`\[kibana\].*Plan[ |\t|\n]+change[ |\t|\n]+failed.*`),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkMajorMinorVersion(t, resName, 7, 10),
 				),

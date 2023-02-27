@@ -20,9 +20,10 @@ package acc
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccDeploymentDestroy(s *terraform.State) error {

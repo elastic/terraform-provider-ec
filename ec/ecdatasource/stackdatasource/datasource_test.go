@@ -18,46 +18,44 @@
 package stackdatasource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp/syntax"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func Test_modelToState(t *testing.T) {
-	deploymentSchemaArg := schema.TestResourceDataRaw(t, newSchema(), nil)
-	deploymentSchemaArg.SetId("someid")
-	_ = deploymentSchemaArg.Set("region", "us-east-1")
-	_ = deploymentSchemaArg.Set("version_regex", "latest")
-
-	wantDeployment := util.NewResourceData(t, util.ResDataParams{
-		ID:     "someid",
-		State:  newSampleStack(),
-		Schema: newSchema(),
-	})
+	state := modelV0{
+		Region:       types.String{Value: "us-east-1"},
+		VersionRegex: types.String{Value: "latest"},
+	}
 
 	type args struct {
-		d   *schema.ResourceData
-		res *models.StackVersionConfig
+		state modelV0
+		res   *models.StackVersionConfig
 	}
 	tests := []struct {
 		name string
 		args args
-		want *schema.ResourceData
+		want modelV0
 		err  error
 	}{
 		{
-			name: "flattens deployment resources",
-			want: wantDeployment,
+			name: "flattens stack resources",
+			want: newSampleStack(),
 			args: args{
-				d: deploymentSchemaArg,
+				state: state,
 				res: &models.StackVersionConfig{
 					Version:           "7.9.1",
 					Accessible:        ec.Bool(true),
@@ -117,68 +115,100 @@ func Test_modelToState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := modelToState(tt.args.d, tt.args.res)
-			if tt.err != nil {
-				assert.EqualError(t, err, tt.err.Error())
-			} else {
-				assert.NoError(t, err)
-			}
+			state = tt.args.state
+			diags := modelToState(context.Background(), tt.args.res, &state)
+			assert.Empty(t, diags)
 
-			assert.Equal(t, tt.want.State().Attributes, tt.args.d.State().Attributes)
+			assert.Equal(t, tt.want, state)
 		})
 	}
 }
 
-func newSampleStack() map[string]interface{} {
-	return map[string]interface{}{
-		"id":            "someid",
-		"region":        "us-east-1",
-		"version_regex": "latest",
-
-		"version":             "7.9.1",
-		"accessible":          true,
-		"allowlisted":         true,
-		"min_upgradable_from": "6.8.0",
-		"elasticsearch": []interface{}{map[string]interface{}{
-			"denylist":                 []interface{}{"some"},
-			"capacity_constraints_max": 8192,
-			"capacity_constraints_min": 512,
-			"default_plugins":          []interface{}{"repository-s3"},
-			"docker_image":             "docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0",
-			"plugins": []interface{}{
-				"analysis-icu",
-				"analysis-kuromoji",
-				"analysis-nori",
-				"analysis-phonetic",
-				"analysis-smartcn",
-				"analysis-stempel",
-				"analysis-ukrainian",
-				"ingest-attachment",
-				"mapper-annotated-text",
-				"mapper-murmur3",
-				"mapper-size",
-				"repository-azure",
-				"repository-gcs",
+func newSampleStack() modelV0 {
+	return modelV0{
+		ID:                types.String{Value: "7.9.1"},
+		Region:            types.String{Value: "us-east-1"},
+		Version:           types.String{Value: "7.9.1"},
+		VersionRegex:      types.String{Value: "latest"},
+		Accessible:        types.Bool{Value: true},
+		AllowListed:       types.Bool{Value: true},
+		MinUpgradableFrom: types.String{Value: "6.8.0"},
+		Elasticsearch: types.List{
+			ElemType: types.ObjectType{
+				AttrTypes: elasticsearchConfigAttrTypes(),
 			},
-		}},
-		"kibana": []interface{}{map[string]interface{}{
-			"denylist":                 []interface{}{"some"},
-			"capacity_constraints_max": 8192,
-			"capacity_constraints_min": 512,
-			"docker_image":             "docker.elastic.co/cloud-assets/kibana:7.9.1-0",
-		}},
-		"apm": []interface{}{map[string]interface{}{
-			"denylist":                 []interface{}{"some"},
-			"capacity_constraints_max": 8192,
-			"capacity_constraints_min": 512,
-			"docker_image":             "docker.elastic.co/cloud-assets/apm:7.9.1-0",
-		}},
-		"enterprise_search": []interface{}{map[string]interface{}{
-			"denylist":                 []interface{}{"some"},
-			"capacity_constraints_max": 8192,
-			"capacity_constraints_min": 512,
-			"docker_image":             "docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0",
-		}},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: elasticsearchConfigAttrTypes(),
+				Attrs: map[string]attr.Value{
+					"denylist":                 util.StringListAsType([]string{"some"}),
+					"capacity_constraints_max": types.Int64{Value: 8192},
+					"capacity_constraints_min": types.Int64{Value: 512},
+					"compatible_node_types":    util.StringListAsType(nil),
+					"docker_image":             types.String{Value: "docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0"},
+					"plugins": util.StringListAsType([]string{
+						"analysis-icu",
+						"analysis-kuromoji",
+						"analysis-nori",
+						"analysis-phonetic",
+						"analysis-smartcn",
+						"analysis-stempel",
+						"analysis-ukrainian",
+						"ingest-attachment",
+						"mapper-annotated-text",
+						"mapper-murmur3",
+						"mapper-size",
+						"repository-azure",
+						"repository-gcs",
+					}),
+					"default_plugins": util.StringListAsType([]string{"repository-s3"}),
+				},
+			}},
+		},
+		Kibana: types.List{
+			ElemType: types.ObjectType{
+				AttrTypes: resourceKindConfigAttrTypes(util.KibanaResourceKind),
+			},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceKindConfigAttrTypes(util.KibanaResourceKind),
+				Attrs: map[string]attr.Value{
+					"denylist":                 util.StringListAsType([]string{"some"}),
+					"capacity_constraints_max": types.Int64{Value: 8192},
+					"capacity_constraints_min": types.Int64{Value: 512},
+					"compatible_node_types":    util.StringListAsType(nil),
+					"docker_image":             types.String{Value: "docker.elastic.co/cloud-assets/kibana:7.9.1-0"},
+				},
+			}},
+		},
+		EnterpriseSearch: types.List{
+			ElemType: types.ObjectType{
+				AttrTypes: resourceKindConfigAttrTypes(util.EnterpriseSearchResourceKind),
+			},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceKindConfigAttrTypes(util.EnterpriseSearchResourceKind),
+				Attrs: map[string]attr.Value{
+					"denylist":                 util.StringListAsType([]string{"some"}),
+					"capacity_constraints_max": types.Int64{Value: 8192},
+					"capacity_constraints_min": types.Int64{Value: 512},
+					"compatible_node_types":    util.StringListAsType(nil),
+					"docker_image":             types.String{Value: "docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0"},
+				},
+			}},
+		},
+		Apm: types.List{
+			ElemType: types.ObjectType{
+				AttrTypes: resourceKindConfigAttrTypes(util.ApmResourceKind),
+			},
+			Elems: []attr.Value{types.Object{
+				AttrTypes: resourceKindConfigAttrTypes(util.ApmResourceKind),
+				Attrs: map[string]attr.Value{
+					"denylist":                 util.StringListAsType([]string{"some"}),
+					"capacity_constraints_max": types.Int64{Value: 8192},
+					"capacity_constraints_min": types.Int64{Value: 512},
+					"compatible_node_types":    util.StringListAsType(nil),
+					"docker_image":             types.String{Value: "docker.elastic.co/cloud-assets/apm:7.9.1-0"},
+				},
+			}},
+		},
 	}
 }
 

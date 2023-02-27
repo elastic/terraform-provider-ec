@@ -38,9 +38,9 @@ func TestAccDeployment_snapshot_restore(t *testing.T) {
 	t.Skip("skipped due flakiness: https://github.com/elastic/terraform-provider-ec/issues/443")
 	var esCreds creds
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactory,
-		CheckDestroy:      testAccDeploymentDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fixtureDeploymentDefaults(t, "testdata/deployment_snapshot_1.tf"),
@@ -80,7 +80,7 @@ func readEsCredentials(t *testing.T, esCreds *creds) resource.TestCheckFunc {
 				continue
 			}
 
-			esCreds.URL = rs.Primary.Attributes["elasticsearch.0.https_endpoint"]
+			esCreds.URL = rs.Primary.Attributes["elasticsearch.https_endpoint"]
 			esCreds.User = rs.Primary.Attributes["elasticsearch_username"]
 			esCreds.Pass = rs.Primary.Attributes["elasticsearch_password"]
 		}

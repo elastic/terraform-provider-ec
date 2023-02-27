@@ -9,11 +9,11 @@ resource "ec_deployment" "basic" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id         = "hot_content"
-      size       = "1g"
-      zone_count = 1
+  elasticsearch = {
+    hot = {
+      size        = "1g"
+      zone_count  = 1
+      autoscaling = {}
     }
   }
 }
@@ -24,11 +24,11 @@ resource "ec_deployment" "observability" {
   version                = data.ec_stack.latest.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    topology {
-      id         = "hot_content"
-      size       = "1g"
-      zone_count = 1
+  elasticsearch = {
+    hot = {
+      size        = "1g"
+      zone_count  = 1
+      autoscaling = {}
     }
   }
 }

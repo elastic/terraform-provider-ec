@@ -18,103 +18,191 @@
 package stackdatasource
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"context"
+	"fmt"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func newSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"version_regex": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"region": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-		"lock": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
+func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
+			"version_regex": {
+				Type:     types.StringType,
+				Required: true,
+			},
+			"region": {
+				Type:     types.StringType,
+				Required: true,
+			},
+			"lock": {
+				Type:     types.BoolType,
+				Optional: true,
+			},
 
-		// Exported attributes
-		"version": {
-			Type:     schema.TypeString,
-			Computed: true,
+			// Computed attributes
+			"id": {
+				Type:                types.StringType,
+				Computed:            true,
+				MarkdownDescription: "Unique identifier of this data source.",
+			},
+			"version": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"accessible": {
+				Type:     types.BoolType,
+				Computed: true,
+			},
+			"min_upgradable_from": {
+				Type:     types.StringType,
+				Computed: true,
+			},
+			"upgradable_to": {
+				Type:     types.ListType{ElemType: types.StringType},
+				Computed: true,
+			},
+			"allowlisted": {
+				Type:     types.BoolType,
+				Computed: true,
+			},
+			"apm":               resourceKindConfigSchema(util.ApmResourceKind),
+			"enterprise_search": resourceKindConfigSchema(util.EnterpriseSearchResourceKind),
+			"elasticsearch":     elasticsearchConfigSchema(),
+			"kibana":            resourceKindConfigSchema(util.KibanaResourceKind),
 		},
-		"accessible": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-		"min_upgradable_from": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"upgradable_to": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-		},
-		"allowlisted": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-
-		"apm":               newKindResourceSchema(),
-		"enterprise_search": newKindResourceSchema(),
-		"elasticsearch":     newKindResourceSchema(),
-		"kibana":            newKindResourceSchema(),
-	}
+	}, nil
 }
 
-func newKindResourceSchema() *schema.Schema {
-	return &schema.Schema{
-		Computed: true,
-		Type:     schema.TypeList,
-		Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+func elasticsearchConfigSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Information for Elasticsearch workloads on this stack version.",
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"denylist": {
-				Computed: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of configuration options that cannot be overridden by user settings.",
+				Computed:    true,
 			},
 			"capacity_constraints_max": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        types.Int64Type,
+				Description: "Maximum size of the instances.",
+				Computed:    true,
 			},
 			"capacity_constraints_min": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        types.Int64Type,
+				Description: "Minimum size of the instances.",
+				Computed:    true,
 			},
 			"compatible_node_types": {
-				Computed: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of node types compatible with this one.",
+				Computed:    true,
 			},
 			"docker_image": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        types.StringType,
+				Description: "Docker image to use for the Elasticsearch cluster instances.",
+				Computed:    true,
 			},
 			"plugins": {
-				Computed: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of available plugins to be specified by users in Elasticsearch cluster instances.",
+				Computed:    true,
 			},
 			"default_plugins": {
-				Computed: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of default plugins.",
+				Computed:    true,
 			},
-
 			// node_types not added. It is highly unlikely they will be used
 			// for anything, and if they're needed in the future, then we can
 			// invest on adding them.
-		}},
+		}),
 	}
+}
+
+func elasticsearchConfigAttrTypes() map[string]attr.Type {
+	return elasticsearchConfigSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
+
+func resourceKindConfigSchema(resourceKind util.ResourceKind) tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: fmt.Sprintf("Information for %s workloads on this stack version.", resourceKind.Name()),
+		Computed:    true,
+		Validators:  []tfsdk.AttributeValidator{listvalidator.SizeAtMost(1)},
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"denylist": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of configuration options that cannot be overridden by user settings.",
+				Computed:    true,
+			},
+			"capacity_constraints_max": {
+				Type:        types.Int64Type,
+				Description: "Maximum size of the instances.",
+				Computed:    true,
+			},
+			"capacity_constraints_min": {
+				Type:        types.Int64Type,
+				Description: "Minimum size of the instances.",
+				Computed:    true,
+			},
+			"compatible_node_types": {
+				Type:        types.ListType{ElemType: types.StringType},
+				Description: "List of node types compatible with this one.",
+				Computed:    true,
+			},
+			"docker_image": {
+				Type:        types.StringType,
+				Description: fmt.Sprintf("Docker image to use for the %s instance.", resourceKind.Name()),
+				Computed:    true,
+			},
+			// node_types not added. It is highly unlikely they will be used
+			// for anything, and if they're needed in the future, then we can
+			// invest on adding them.
+		}),
+	}
+}
+
+func resourceKindConfigAttrTypes(resourceKind util.ResourceKind) map[string]attr.Type {
+	return resourceKindConfigSchema(resourceKind).Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
+
+type modelV0 struct {
+	ID                types.String `tfsdk:"id"`
+	VersionRegex      types.String `tfsdk:"version_regex"`
+	Region            types.String `tfsdk:"region"`
+	Lock              types.Bool   `tfsdk:"lock"`
+	Version           types.String `tfsdk:"version"`
+	Accessible        types.Bool   `tfsdk:"accessible"`
+	MinUpgradableFrom types.String `tfsdk:"min_upgradable_from"`
+	UpgradableTo      types.List   `tfsdk:"upgradable_to"`
+	AllowListed       types.Bool   `tfsdk:"allowlisted"`
+	Apm               types.List   `tfsdk:"apm"`               //< resourceKindConfigModelV0
+	EnterpriseSearch  types.List   `tfsdk:"enterprise_search"` //< resourceKindConfigModelV0
+	Elasticsearch     types.List   `tfsdk:"elasticsearch"`     //< elasticsearchConfigModelV0
+	Kibana            types.List   `tfsdk:"kibana"`            //< resourceKindConfigModelV0
+}
+
+type elasticsearchConfigModelV0 struct {
+	DenyList               types.List   `tfsdk:"denylist"`
+	CapacityConstraintsMax types.Int64  `tfsdk:"capacity_constraints_max"`
+	CapacityConstraintsMin types.Int64  `tfsdk:"capacity_constraints_min"`
+	CompatibleNodeTypes    types.List   `tfsdk:"compatible_node_types"`
+	DockerImage            types.String `tfsdk:"docker_image"`
+	Plugins                types.List   `tfsdk:"plugins"`
+	DefaultPlugins         types.List   `tfsdk:"default_plugins"`
+}
+
+type resourceKindConfigModelV0 struct {
+	DenyList               types.List   `tfsdk:"denylist"`
+	CapacityConstraintsMax types.Int64  `tfsdk:"capacity_constraints_max"`
+	CapacityConstraintsMin types.Int64  `tfsdk:"capacity_constraints_min"`
+	CompatibleNodeTypes    types.List   `tfsdk:"compatible_node_types"`
+	DockerImage            types.String `tfsdk:"docker_image"`
 }

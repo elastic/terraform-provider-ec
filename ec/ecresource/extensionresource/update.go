@@ -20,52 +20,72 @@ package extensionresource
 import (
 	"context"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/extensionapi"
-	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func updateResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-
-	_, err := updateRequest(client, d)
-	if err != nil {
-		return diag.FromErr(err)
+func (r *Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
 	}
 
-	if _, ok := d.GetOk("file_path"); ok && d.HasChanges("file_hash", "last_modified", "size") {
-		if err := uploadExtension(client, d); err != nil {
-			return diag.FromErr(multierror.NewPrefixed("failed to upload file", err))
+	var oldState modelV0
+	var newState modelV0
+
+	diags := request.State.Get(ctx, &oldState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	diags = request.Plan.Get(ctx, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	_, err := extensionapi.Update(
+		extensionapi.UpdateParams{
+			API:         r.client,
+			ExtensionID: newState.ID.Value,
+			Name:        newState.Name.Value,
+			Version:     newState.Version.Value,
+			Type:        newState.ExtensionType.Value,
+			Description: newState.Description.Value,
+			DownloadURL: newState.DownloadURL.Value,
+		},
+	)
+	if err != nil {
+		response.Diagnostics.AddError(err.Error(), err.Error())
+		return
+	}
+
+	hasChanges := !oldState.FileHash.Equal(newState.FileHash) ||
+		!oldState.LastModified.Equal(newState.LastModified) ||
+		!oldState.Size.Equal(newState.Size)
+
+	if !newState.FilePath.IsNull() && newState.FilePath.Value != "" && hasChanges {
+		response.Diagnostics.Append(r.uploadExtension(newState)...)
+		if response.Diagnostics.HasError() {
+			return
 		}
 	}
 
-	return readResource(ctx, d, meta)
-}
-
-func updateRequest(client *api.API, d *schema.ResourceData) (*models.Extension, error) {
-	name := d.Get("name").(string)
-	version := d.Get("version").(string)
-	extensionType := d.Get("extension_type").(string)
-	description := d.Get("description").(string)
-	downloadURL := d.Get("download_url").(string)
-
-	body := extensionapi.UpdateParams{
-		API:         client,
-		ExtensionID: d.Id(),
-		Name:        name,
-		Version:     version,
-		Type:        extensionType,
-		Description: description,
-		DownloadURL: downloadURL,
+	found, diags := r.read(newState.ID.Value, &newState)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		response.Diagnostics.AddError(
+			"Failed to read deployment extension after update.",
+			"Failed to read deployment extension after update.",
+		)
+		response.State.RemoveResource(ctx)
+		return
 	}
 
-	res, err := extensionapi.Update(body)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	// Finally, set the state
+	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }

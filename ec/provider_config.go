@@ -18,7 +18,6 @@
 package ec
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,8 +25,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
@@ -39,42 +36,35 @@ var (
 	DefaultHTTPRetries = 2
 )
 
-// configureAPI implements schema.ConfigureContextFunc
-func configureAPI(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	cfg, err := newAPIConfig(d)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	client, err := api.NewAPI(cfg)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	return client, nil
+type apiSetup struct {
+	endpoint           string
+	apikey             string
+	username           string
+	password           string
+	insecure           bool
+	timeout            time.Duration
+	verbose            bool
+	verboseCredentials bool
+	verboseFile        string
 }
 
-func newAPIConfig(d *schema.ResourceData) (api.Config, error) {
+func newAPIConfig(setup apiSetup) (api.Config, error) {
+
 	var cfg api.Config
 
-	timeout, err := time.ParseDuration(d.Get("timeout").(string))
-	if err != nil {
-		return cfg, err
-	}
-
 	authWriter, err := auth.NewAuthWriter(auth.Config{
-		APIKey:   d.Get("apikey").(string),
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
+		APIKey:   setup.apikey,
+		Username: setup.username,
+		Password: setup.password,
 	})
 	if err != nil {
 		return cfg, err
 	}
 
 	verboseCfg, err := verboseSettings(
-		d.Get("verbose_file").(string),
-		d.Get("verbose").(bool),
-		!d.Get("verbose_credentials").(bool),
+		setup.verboseFile,
+		setup.verbose,
+		!setup.verboseCredentials,
 	)
 	if err != nil {
 		return cfg, err
@@ -85,9 +75,9 @@ func newAPIConfig(d *schema.ResourceData) (api.Config, error) {
 		Client:          &http.Client{},
 		VerboseSettings: verboseCfg,
 		AuthWriter:      authWriter,
-		Host:            d.Get("endpoint").(string),
-		SkipTLSVerify:   d.Get("insecure").(bool),
-		Timeout:         timeout,
+		Host:            setup.endpoint,
+		SkipTLSVerify:   setup.insecure,
+		Timeout:         setup.timeout,
 		UserAgent:       userAgent(Version),
 		Retries:         DefaultHTTPRetries,
 	}, nil

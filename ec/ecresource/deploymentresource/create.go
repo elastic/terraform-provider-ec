@@ -21,62 +21,76 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
-	"github.com/elastic/cloud-sdk-go/pkg/multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// createResource will createResource a new deployment from the specified settings.
-func createResource(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*api.API)
-	reqID := deploymentapi.RequestID(d.Get("request_id").(string))
-
-	req, err := createResourceToModel(d, client)
-	if err != nil {
-		return diag.FromErr(err)
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	if !r.ready(&resp.Diagnostics) {
+		return
 	}
+
+	var config v2.DeploymentTF
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var plan v2.DeploymentTF
+	diags = req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	request, diags := plan.CreateRequest(ctx, r.client)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	requestId := deploymentapi.RequestID(plan.RequestId.Value)
 
 	res, err := deploymentapi.Create(deploymentapi.CreateParams{
-		API:       client,
-		RequestID: reqID,
-		Request:   req,
+		API:       r.client,
+		RequestID: requestId,
+		Request:   request,
 		Overrides: &deploymentapi.PayloadOverrides{
-			Name:    d.Get("name").(string),
-			Version: d.Get("version").(string),
-			Region:  d.Get("region").(string),
+			Name:    plan.Name.Value,
+			Version: plan.Version.Value,
+			Region:  plan.Region.Value,
 		},
 	})
+
 	if err != nil {
-		merr := multierror.NewPrefixed("failed creating deployment", err)
-		return diag.FromErr(merr.Append(newCreationError(reqID)))
+		resp.Diagnostics.AddError("failed creating deployment", err.Error())
+		resp.Diagnostics.AddError("failed creating deployment", newCreationError(requestId).Error())
+		return
 	}
 
-	if err := WaitForPlanCompletion(client, *res.ID); err != nil {
-		merr := multierror.NewPrefixed("failed tracking create progress", err)
-		return diag.FromErr(merr.Append(newCreationError(reqID)))
+	if err := WaitForPlanCompletion(r.client, *res.ID); err != nil {
+		resp.Diagnostics.AddError("failed tracking create progress", newCreationError(requestId).Error())
+		return
 	}
 
-	d.SetId(*res.ID)
+	tflog.Trace(ctx, "created deployment resource")
 
-	// Since before the deployment has been read, there's no real state
-	// persisted, it'd better to handle each of the errors by appending
-	// it to the `diag.Diagnostics` since it has support for it.
-	var diags diag.Diagnostics
-	if err := handleRemoteClusters(d, client); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
+
+	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources)
+
+	resp.Diagnostics.Append(diags...)
+
+	if deployment == nil {
+		resp.Diagnostics.AddError("cannot read just created resource", "")
+		resp.State.RemoveResource(ctx)
+		return
 	}
 
-	if diag := readResource(ctx, d, meta); diag != nil {
-		diags = append(diags, diags...)
-	}
-
-	if err := parseCredentials(d, res.Resources); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	return diags
+	resp.Diagnostics.Append(resp.State.Set(ctx, deployment)...)
 }
 
 func newCreationError(reqID string) error {

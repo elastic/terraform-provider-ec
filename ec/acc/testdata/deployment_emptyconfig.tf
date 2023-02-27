@@ -9,14 +9,14 @@ resource "ec_deployment" "emptyconfig" {
   version                = data.ec_stack.emptyconfig.version
   deployment_template_id = "%s"
 
-  elasticsearch {
-    config {
+  elasticsearch = {
+    config = {
       user_settings_yaml = null
     }
-    topology {
-      id         = "hot_content"
-      size       = "1g"
-      zone_count = 1
+    hot = {
+      size        = "1g"
+      zone_count  = 1
+      autoscaling = {}
     }
   }
 }

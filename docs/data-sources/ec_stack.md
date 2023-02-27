@@ -4,7 +4,7 @@ description: |-
   Retrieves information about an Elastic Cloud stack.
 ---
 
-# Data Source: ec_deployment
+# Data Source: ec_stack
 
 Use this data source to retrieve information about an existing Elastic Cloud stack.
 
