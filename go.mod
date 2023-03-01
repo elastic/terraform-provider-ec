@@ -8,7 +8,7 @@ require (
 	github.com/elastic/cloud-sdk-go v1.10.0
 	github.com/go-openapi/runtime v0.24.2
 	github.com/go-openapi/strfmt v0.21.3
-	github.com/hashicorp/terraform-plugin-framework v0.14.0
+	github.com/hashicorp/terraform-plugin-framework v1.1.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.5.0
 	github.com/hashicorp/terraform-plugin-go v0.14.3
 	github.com/hashicorp/terraform-plugin-log v0.8.0
