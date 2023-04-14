@@ -41,6 +41,7 @@ type Elasticsearch struct {
 	MlTier           *ElasticsearchTopology       `tfsdk:"ml"`
 	Config           *ElasticsearchConfig         `tfsdk:"config"`
 	RemoteCluster    ElasticsearchRemoteClusters  `tfsdk:"remote_cluster"`
+	Snapshot         *ElasticsearchSnapshot       `tfsdk:"snapshot"`
 	SnapshotSource   *ElasticsearchSnapshotSource `tfsdk:"snapshot_source"`
 	Extension        ElasticsearchExtensions      `tfsdk:"extension"`
 	TrustAccount     ElasticsearchTrustAccounts   `tfsdk:"trust_account"`
@@ -117,6 +118,12 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 		return nil, err
 	}
 	es.Extension = extensions
+
+	snapshot, err := readElasticsearchSnapshot(in.Info.Settings)
+	if err != nil {
+		return nil, err
+	}
+	es.Snapshot = snapshot
 
 	accounts, err := readElasticsearchTrustAccounts(in.Info.Settings)
 	if err != nil {

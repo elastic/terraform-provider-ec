@@ -112,6 +112,8 @@ func ElasticsearchSchema() tfsdk.Attribute {
 
 			"remote_cluster": ElasticsearchRemoteClusterSchema(),
 
+			"snapshot": elasticsearchSnapshotSchema(),
+
 			"snapshot_source": elasticsearchSnapshotSourceSchema(),
 
 			"extension": elasticsearchExtensionSchema(),
@@ -257,6 +259,56 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 				Optional: true,
 			},
 		}),
+	}
+}
+
+func elasticsearchSnapshotSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "(Elastic Cloud Enterprise only) Optional snapshot configuration settings for an Elasticsearch cluster.",
+		Optional:    true,
+		Computed:    true,
+		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+			"enabled": {
+				Description: "Indicates if Snapshotting is enabled.",
+				Type:        types.BoolType,
+				Required:    true,
+			},
+			"repository": elasticsearchSnapshotRepositorySchema(),
+		}),
+		PlanModifiers: []tfsdk.AttributePlanModifier{
+			resource.UseStateForUnknown(),
+		},
+	}
+}
+
+func elasticsearchSnapshotRepositorySchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Snapshot repository configuration",
+		Optional:    true,
+		Computed:    true,
+		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+			"reference": elasticsearchSnapshotRepositoryReferenceSchema(),
+		}),
+		PlanModifiers: []tfsdk.AttributePlanModifier{
+			resource.UseStateForUnknown(),
+		},
+	}
+}
+
+func elasticsearchSnapshotRepositoryReferenceSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "Cluster snapshot reference repository settings, containing the repository name in ECE fashion",
+		Optional:    true,
+		Computed:    true,
+		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+			"repository_name": {
+				Description: "ECE snapshot repository name, from the '/platform/configuration/snapshots/repositories' endpoint",
+				Type:        types.StringType,
+				Required:    true,
+			}}),
+		PlanModifiers: []tfsdk.AttributePlanModifier{
+			resource.UseStateForUnknown(),
+		},
 	}
 }
 
