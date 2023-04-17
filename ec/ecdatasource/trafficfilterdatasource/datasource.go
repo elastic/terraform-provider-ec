@@ -42,19 +42,35 @@ var _ datasource.DataSourceWithConfigure = &DataSource{}
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
-			"id": {
+			"name": {
 				Type:        types.StringType,
-				Description: "The ID of the traffic filter.",
+				Description: "The name we are filtering on.",
 				Required:    true,
 			},
 
 			// computed fields
-			"name": {
-				Type:     types.StringType,
-				Computed: true,
-			},
+			"rulesets": rulesetsListSchema(),
 		},
 	}, nil
+}
+
+func rulesetsListSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "List of all Rulesets for this user.",
+		Computed:    true,
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"id": {
+				Type:        types.StringType,
+				Description: "The ID of the ruleset",
+				Computed:    true,
+			},
+			"name": {
+				Type:        types.StringType,
+				Description: "The name of the ruleset.",
+				Computed:    true,
+			},
+		}),
+	}
 }
 
 func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
@@ -74,8 +90,8 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
-	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
-		API: d.client, ID: newState.ID.Value, IncludeAssociations: false,
+	res, err := trafficfilterapi.List(trafficfilterapi.ListParams{
+		API: d.client,
 	})
 
 	if err != nil {
@@ -103,11 +119,29 @@ func (d *DataSource) Configure(ctx context.Context, request datasource.Configure
 }
 
 type modelV0 struct {
-	ID   types.String `tfsdk:"id"`
+	Name     types.String     `tfsdk:"name"`
+	Rulesets []rulesetModelV0 `tfsdk:"rulesets"`
+}
+
+type rulesetModelV0 struct {
+	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }
 
-func modelToState(ctx context.Context, res *models.TrafficFilterRulesetInfo, state *modelV0) {
-	state.Name = types.String{Value: *res.Name}
-	state.ID = types.String{Value: *res.ID}
+func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state *modelV0) {
+	var result = make([]rulesetModelV0, 0, len(res.Rulesets))
+
+	for _, ruleset := range res.Rulesets {
+		var m rulesetModelV0
+		m.Name = types.String{Value: *ruleset.Name}
+		m.Id = types.String{Value: *ruleset.ID}
+		var nameToFind types.String
+		nameToFind = types.String{Value: state.Name.Value}
+
+		if m.Name == nameToFind {
+			result = append(result, m)
+		}
+	}
+
+	state.Rulesets = result
 }
