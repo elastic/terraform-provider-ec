@@ -258,36 +258,36 @@ func getLowestVersion(res *models.DeploymentResources) (string, error) {
 	}
 
 	for _, r := range res.Kibana {
-		if !util.IsCurrentKibanaPlanEmpty(r) {
+		if !util.IsCurrentKibanaPlanEmpty(r) && !kibanav2.IsKibanaStopped(r) {
 			v := r.Info.PlanInfo.Current.Plan.Kibana.Version
-			if err := swapLowerVersion(&version, v); err != nil && !kibanav2.IsKibanaStopped(r) {
+			if err := swapLowerVersion(&version, v); err != nil {
 				return version.String(), fmt.Errorf("kibana version '%s' is not semver compliant: %w", v, err)
 			}
 		}
 	}
 
 	for _, r := range res.Apm {
-		if !util.IsCurrentApmPlanEmpty(r) {
+		if !util.IsCurrentApmPlanEmpty(r) && !apmv2.IsApmStopped(r) {
 			v := r.Info.PlanInfo.Current.Plan.Apm.Version
-			if err := swapLowerVersion(&version, v); err != nil && !apmv2.IsApmStopped(r) {
+			if err := swapLowerVersion(&version, v); err != nil {
 				return version.String(), fmt.Errorf("apm version '%s' is not semver compliant: %w", v, err)
 			}
 		}
 	}
 
 	for _, r := range res.IntegrationsServer {
-		if !util.IsCurrentIntegrationsServerPlanEmpty(r) {
+		if !util.IsCurrentIntegrationsServerPlanEmpty(r) && !integrationsserverv2.IsIntegrationsServerStopped(r) {
 			v := r.Info.PlanInfo.Current.Plan.IntegrationsServer.Version
-			if err := swapLowerVersion(&version, v); err != nil && !integrationsserverv2.IsIntegrationsServerStopped(r) {
+			if err := swapLowerVersion(&version, v); err != nil {
 				return version.String(), fmt.Errorf("integrations_server version '%s' is not semver compliant: %w", v, err)
 			}
 		}
 	}
 
 	for _, r := range res.EnterpriseSearch {
-		if !util.IsCurrentEssPlanEmpty(r) {
+		if !util.IsCurrentEssPlanEmpty(r) && !enterprisesearchv2.IsEnterpriseSearchStopped(r) {
 			v := r.Info.PlanInfo.Current.Plan.EnterpriseSearch.Version
-			if err := swapLowerVersion(&version, v); err != nil && !enterprisesearchv2.IsEnterpriseSearchStopped(r) {
+			if err := swapLowerVersion(&version, v); err != nil {
 				return version.String(), fmt.Errorf("enterprise search version '%s' is not semver compliant: %w", v, err)
 			}
 		}
