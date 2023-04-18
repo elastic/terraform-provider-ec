@@ -28,7 +28,8 @@ func TestAccDeployment_post_node_roles(t *testing.T) {
 	resName := "ec_deployment.post_nr_upgrade"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_post_node_roles_upgrade_1.tf"
-	upgradeVersionCfg := "testdata/deployment_post_node_roles_upgrade_2.tf"
+	withoutEnterpriseSearch := "testdata/deployment_post_node_roles_upgrade_2.tf"
+	upgradeVersionCfg := "testdata/deployment_post_node_roles_upgrade_3.tf"
 
 	cfgF := func(cfg string) string {
 		return fixtureAccDeploymentResourceBasic(
@@ -43,6 +44,26 @@ func TestAccDeployment_post_node_roles(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: cfgF(startCfg),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "1g"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "1"),
+
+					resource.TestCheckNoResourceAttr(resName, "elastic.hot.node_type_data"),
+					resource.TestCheckNoResourceAttr(resName, "elastic.hot.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(resName, "elastic.hot.node_type_master"),
+					resource.TestCheckNoResourceAttr(resName, "elastic.hot.node_type_ml"),
+
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.size"),
+					resource.TestCheckResourceAttrSet(resName, "kibana.size"),
+
+					resource.TestCheckNoResourceAttr(resName, "apm"),
+				),
+			},
+			{
+				Config: cfgF(withoutEnterpriseSearch),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "1g"),
