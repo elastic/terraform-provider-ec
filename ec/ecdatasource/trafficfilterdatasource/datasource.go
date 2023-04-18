@@ -180,19 +180,19 @@ type modelV0 struct {
 }
 
 type rulesetModelV0 struct {
-	Id               types.String                `tfsdk:"id"`
-	Name             types.String                `tfsdk:"name"`
-	Description      types.String                `tfsdk:"description"`
-	Region           types.String                `tfsdk:"region"`
-	IncludeByDefault types.Bool                  `tfsdk:"include_by_default"`
-	Rules            []*models.TrafficFilterRule `tfsdk:"rules"`
+	Id               types.String  `tfsdk:"id"`
+	Name             types.String  `tfsdk:"name"`
+	Description      types.String  `tfsdk:"description"`
+	Region           types.String  `tfsdk:"region"`
+	IncludeByDefault types.Bool    `tfsdk:"include_by_default"`
+	Rules            []ruleModelV0 `tfsdk:"rules"`
 }
 
-// type ruleModelV0 struct {
-// 	Id                types.String `tfsdk:"id"`
-// 	source            types.String `tfsdk:"source"`
-// 	Description       types.String `tfsdk:"description"`
-// }
+type ruleModelV0 struct {
+	Id          types.String `tfsdk:"id"`
+	Source      types.String `tfsdk:"source"`
+	Description types.String `tfsdk:"description"`
+}
 
 func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state *modelV0) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -211,18 +211,17 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 			IncludeByDefault: types.Bool{Value: *ruleset.IncludeByDefault},
 		}
 
-		// var ruleArray = make([]*models.TrafficFilterRule, 0, len(ruleset.Rules))
-		// for _, rule := range ruleset.Rules {
-		// 	var t *models.TrafficFilterRule
-		// 	t.ID = rule.ID
-		// 	t.Source = rule.Source
-		// 	t.AzureEndpointGUID = rule.AzureEndpointGUID
-		// 	t.AzureEndpointName = rule.AzureEndpointName
-		// 	t.Source = rule.Source
-		// 	ruleArray = append(ruleArray, t)
-		// }
+		var ruleArray = make([]ruleModelV0, 0, len(ruleset.Rules))
+		for _, rule := range ruleset.Rules {
+			t := ruleModelV0{
+				Id:          types.String{Value: *&rule.ID},
+				Source:      types.String{Value: *&rule.Source},
+				Description: types.String{Value: *&rule.Description},
+			}
+			ruleArray = append(ruleArray, t)
+		}
 
-		// m.Rules = ruleArray
+		m.Rules = ruleArray
 
 		result = append(result, m)
 	}
