@@ -185,7 +185,7 @@ type rulesetModelV0 struct {
 	Description      types.String  `tfsdk:"description"`
 	Region           types.String  `tfsdk:"region"`
 	IncludeByDefault types.Bool    `tfsdk:"include_by_default"`
-	Rules            []ruleModelV0 `tfsdk:"rules"`
+	Rules            []ruleModelV0 `tfsdk:"rules"` //< ruleModelV0
 }
 
 type ruleModelV0 struct {
@@ -206,7 +206,7 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 		m := rulesetModelV0{
 			Name:             types.String{Value: *ruleset.Name},
 			Id:               types.String{Value: *ruleset.ID},
-			Description:      types.String{Value: *&ruleset.Description},
+			Description:      types.String{Value: ruleset.Description},
 			Region:           types.String{Value: *ruleset.Region},
 			IncludeByDefault: types.Bool{Value: *ruleset.IncludeByDefault},
 		}
@@ -214,9 +214,9 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 		var ruleArray = make([]ruleModelV0, 0, len(ruleset.Rules))
 		for _, rule := range ruleset.Rules {
 			t := ruleModelV0{
-				Id:          types.String{Value: *&rule.ID},
-				Source:      types.String{Value: *&rule.Source},
-				Description: types.String{Value: *&rule.Description},
+				Id:          types.String{Value: rule.ID},
+				Source:      types.String{Value: rule.Source},
+				Description: types.String{Value: rule.Description},
 			}
 			ruleArray = append(ruleArray, t)
 		}
