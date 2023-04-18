@@ -20,7 +20,9 @@ data "ec_stack" "latest" {
 }
 
 data "ec_trafficfilter" "test" {
-  name = "Oregon"
+  # name = "example-filter"
+  # id = "41d275439f884ce89359039e53eac516"
+  region = "us-east-1"
 }
 
 output "test" {

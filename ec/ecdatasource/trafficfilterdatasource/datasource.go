@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -45,7 +46,17 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 			"name": {
 				Type:        types.StringType,
 				Description: "The name we are filtering on.",
-				Required:    true,
+				Optional:    true,
+			},
+			"id": {
+				Type:        types.StringType,
+				Description: "The id we are filtering on.",
+				Optional:    true,
+			},
+			"region": {
+				Type:        types.StringType,
+				Description: "The region we are filtering on.",
+				Optional:    true,
 			},
 
 			// computed fields
@@ -67,6 +78,46 @@ func rulesetsListSchema() tfsdk.Attribute {
 			"name": {
 				Type:        types.StringType,
 				Description: "The name of the ruleset.",
+				Computed:    true,
+			},
+			"description": {
+				Type:        types.StringType,
+				Description: "The description of the ruleset.",
+				Computed:    true,
+			},
+			"region": {
+				Type:        types.StringType,
+				Description: "The ruleset can be attached only to deployments in the specific region.",
+				Computed:    true,
+			},
+			"include_by_default": {
+				Type:        types.BoolType,
+				Description: "Should the ruleset be automatically included in the new deployments.",
+				Computed:    true,
+			},
+			"rules": rulesetListSchema(),
+		}),
+	}
+}
+
+func rulesetListSchema() tfsdk.Attribute {
+	return tfsdk.Attribute{
+		Description: "List of rules in a ruleset",
+		Computed:    true,
+		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+			"id": {
+				Type:        types.StringType,
+				Description: "The ID of the rule",
+				Computed:    true,
+			},
+			"source": {
+				Type:        types.StringType,
+				Description: "Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID.",
+				Computed:    true,
+			},
+			"description": {
+				Type:        types.StringType,
+				Description: "The description of the rule.",
 				Computed:    true,
 			},
 		}),
@@ -102,7 +153,10 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
-	modelToState(ctx, res, &newState)
+	response.Diagnostics.Append(modelToState(ctx, res, &newState)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	// Finally, set the state
 	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
@@ -119,29 +173,69 @@ func (d *DataSource) Configure(ctx context.Context, request datasource.Configure
 }
 
 type modelV0 struct {
-	Name     types.String     `tfsdk:"name"`
-	Rulesets []rulesetModelV0 `tfsdk:"rulesets"`
+	Name     types.String `tfsdk:"name"`
+	Id       types.String `tfsdk:"id"`
+	Region   types.String `tfsdk:"region"`
+	Rulesets types.List   `tfsdk:"rulesets"` //< rulesetModelV0
 }
 
 type rulesetModelV0 struct {
-	Id   types.String `tfsdk:"id"`
-	Name types.String `tfsdk:"name"`
+	Id               types.String                `tfsdk:"id"`
+	Name             types.String                `tfsdk:"name"`
+	Description      types.String                `tfsdk:"description"`
+	Region           types.String                `tfsdk:"region"`
+	IncludeByDefault types.Bool                  `tfsdk:"include_by_default"`
+	Rules            []*models.TrafficFilterRule `tfsdk:"rules"`
 }
 
-func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state *modelV0) {
+// type ruleModelV0 struct {
+// 	Id                types.String `tfsdk:"id"`
+// 	source            types.String `tfsdk:"source"`
+// 	Description       types.String `tfsdk:"description"`
+// }
+
+func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state *modelV0) diag.Diagnostics {
+	var diags diag.Diagnostics
 	var result = make([]rulesetModelV0, 0, len(res.Rulesets))
 
 	for _, ruleset := range res.Rulesets {
-		var m rulesetModelV0
-		m.Name = types.String{Value: *ruleset.Name}
-		m.Id = types.String{Value: *ruleset.ID}
-		var nameToFind types.String
-		nameToFind = types.String{Value: state.Name.Value}
-
-		if m.Name == nameToFind {
-			result = append(result, m)
+		if *ruleset.Name != state.Name.Value && *ruleset.ID != state.Id.Value && *ruleset.Region != state.Region.Value {
+			continue
 		}
+
+		m := rulesetModelV0{
+			Name:             types.String{Value: *ruleset.Name},
+			Id:               types.String{Value: *ruleset.ID},
+			Description:      types.String{Value: *&ruleset.Description},
+			Region:           types.String{Value: *ruleset.Region},
+			IncludeByDefault: types.Bool{Value: *ruleset.IncludeByDefault},
+		}
+
+		// var ruleArray = make([]*models.TrafficFilterRule, 0, len(ruleset.Rules))
+		// for _, rule := range ruleset.Rules {
+		// 	var t *models.TrafficFilterRule
+		// 	t.ID = rule.ID
+		// 	t.Source = rule.Source
+		// 	t.AzureEndpointGUID = rule.AzureEndpointGUID
+		// 	t.AzureEndpointName = rule.AzureEndpointName
+		// 	t.Source = rule.Source
+		// 	ruleArray = append(ruleArray, t)
+		// }
+
+		// m.Rules = ruleArray
+
+		result = append(result, m)
 	}
 
-	state.Rulesets = result
+	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
+		ElemType: types.ObjectType{
+			AttrTypes: rulesetAttrTypes(),
+		},
+	}, &state.Rulesets)...)
+
+	return diags
+}
+
+func rulesetAttrTypes() map[string]attr.Type {
+	return rulesetsListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
