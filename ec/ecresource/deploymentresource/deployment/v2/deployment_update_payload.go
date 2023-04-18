@@ -22,6 +22,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
@@ -34,6 +35,71 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
+
+func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateResources, error) {
+	newDtId := plan.DeploymentTemplateId.Value
+	prevDtId := state.DeploymentTemplateId.Value
+
+	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
+		API:                        client,
+		TemplateID:                 newDtId,
+		Region:                     plan.Region.Value,
+		HideInstanceConfigurations: true,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	baseUpdatePayloads := &models.DeploymentUpdateResources{
+		Apm:                template.DeploymentTemplate.Resources.Apm,
+		Appsearch:          template.DeploymentTemplate.Resources.Appsearch,
+		Elasticsearch:      template.DeploymentTemplate.Resources.Elasticsearch,
+		EnterpriseSearch:   template.DeploymentTemplate.Resources.EnterpriseSearch,
+		IntegrationsServer: template.DeploymentTemplate.Resources.IntegrationsServer,
+		Kibana:             template.DeploymentTemplate.Resources.Kibana,
+	}
+
+	// If the deployment template has changed then we should use the template migration API
+	// to build the base update payloads
+	if newDtId != prevDtId && prevDtId != "" {
+		// Get an update request from the template migration API
+		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.Value).WithTemplateID(newDtId),
+			client.AuthWriter,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 {
+			baseUpdatePayloads.Apm = migrateUpdateRequest.Payload.Resources.Apm
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Appsearch) > 0 {
+			baseUpdatePayloads.Appsearch = migrateUpdateRequest.Payload.Resources.Appsearch
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Elasticsearch) > 0 {
+			baseUpdatePayloads.Elasticsearch = migrateUpdateRequest.Payload.Resources.Elasticsearch
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 {
+			baseUpdatePayloads.EnterpriseSearch = migrateUpdateRequest.Payload.Resources.EnterpriseSearch
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 {
+			baseUpdatePayloads.IntegrationsServer = migrateUpdateRequest.Payload.Resources.IntegrationsServer
+		}
+
+		if len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 {
+			baseUpdatePayloads.Kibana = migrateUpdateRequest.Payload.Resources.Kibana
+		}
+	}
+
+	return baseUpdatePayloads, nil
+}
 
 func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
 	var result = models.DeploymentUpdateRequest{
@@ -49,26 +115,11 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	var diagsnostics diag.Diagnostics
 
-	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
-		API:                        client,
-		TemplateID:                 dtID,
-		Region:                     plan.Region.Value,
-		HideInstanceConfigurations: true,
-	})
+	basePayloads, err := plan.getBaseUpdatePayloads(ctx, client, state)
 	if err != nil {
-		diagsnostics.AddError("Deployment template get error", err.Error())
+		diagsnostics.AddError("Failed to get base update payloads for deployment", err.Error())
 		return nil, diagsnostics
 	}
-
-	// When the deployment template is changed, we need to skip the missing
-	// resource topologies to account for a new instance_configuration_id and
-	// a different default value.
-	skipEStopologies := plan.DeploymentTemplateId.Value != "" && plan.DeploymentTemplateId.Value != state.DeploymentTemplateId.Value && state.DeploymentTemplateId.Value != ""
-	// If the deployment_template_id is changed, then we skip updating the
-	// Elasticsearch topology to account for the case where the
-	// instance_configuration_id changes, i.e. Hot / Warm, etc.
-	// This might not be necessary going forward as we move to
-	// tiered Elasticsearch nodes.
 
 	useNodeRoles, diags := elasticsearchv2.UseNodeRoles(ctx, state.Version, plan.Version, plan.Elasticsearch)
 
@@ -76,7 +127,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		return nil, diags
 	}
 
-	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, template, dtID, plan.Version.Value, useNodeRoles, skipEStopologies)
+	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, basePayloads, dtID, plan.Version.Value, useNodeRoles)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
@@ -91,7 +142,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, elasticsearchPayload)
 	}
 
-	kibanaPayload, diags := kibanav2.KibanaPayload(ctx, plan.Kibana, template)
+	kibanaPayload, diags := kibanav2.KibanaPayload(ctx, plan.Kibana, basePayloads)
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
 	}
@@ -100,7 +151,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		result.Resources.Kibana = append(result.Resources.Kibana, kibanaPayload)
 	}
 
-	apmPayload, diags := apmv2.ApmPayload(ctx, plan.Apm, template)
+	apmPayload, diags := apmv2.ApmPayload(ctx, plan.Apm, basePayloads)
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
 	}
@@ -109,7 +160,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		result.Resources.Apm = append(result.Resources.Apm, apmPayload)
 	}
 
-	integrationsServerPayload, diags := integrationsserverv2.IntegrationsServerPayload(ctx, plan.IntegrationsServer, template)
+	integrationsServerPayload, diags := integrationsserverv2.IntegrationsServerPayload(ctx, plan.IntegrationsServer, basePayloads)
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
 	}
@@ -118,7 +169,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		result.Resources.IntegrationsServer = append(result.Resources.IntegrationsServer, integrationsServerPayload)
 	}
 
-	enterpriseSearchPayload, diags := enterprisesearchv2.EnterpriseSearchesPayload(ctx, plan.EnterpriseSearch, template)
+	enterpriseSearchPayload, diags := enterprisesearchv2.EnterpriseSearchesPayload(ctx, plan.EnterpriseSearch, basePayloads)
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
 	}

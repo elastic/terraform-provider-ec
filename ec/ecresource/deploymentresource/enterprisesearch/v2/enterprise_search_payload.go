@@ -92,7 +92,7 @@ func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.Enterp
 	return &payload, diags
 }
 
-func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template *models.DeploymentTemplateInfoV2) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
+func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var es *EnterpriseSearchTF
@@ -105,7 +105,7 @@ func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template
 		return nil, nil
 	}
 
-	templatePayload := payloadFromTemplate(template)
+	templatePayload := payloadFromUpdate(updateResources)
 
 	if templatePayload == nil {
 		diags.AddError(
@@ -124,11 +124,11 @@ func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, template
 	return payload, nil
 }
 
-// payloadFromTemplate returns the EnterpriseSearchPayload from a deployment
+// payloadFromUpdate returns the EnterpriseSearchPayload from a deployment
 // template or an empty version of the payload.
-func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.EnterpriseSearchPayload {
-	if template == nil || len(template.DeploymentTemplate.Resources.EnterpriseSearch) == 0 {
+func payloadFromUpdate(updateResources *models.DeploymentUpdateResources) *models.EnterpriseSearchPayload {
+	if updateResources == nil || len(updateResources.EnterpriseSearch) == 0 {
 		return nil
 	}
-	return template.DeploymentTemplate.Resources.EnterpriseSearch[0]
+	return updateResources.EnterpriseSearch[0]
 }

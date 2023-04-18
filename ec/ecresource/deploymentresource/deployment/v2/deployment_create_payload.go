@@ -83,13 +83,22 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		return nil, diagsnostics
 	}
 
+	baseUpdatePayloads := &models.DeploymentUpdateResources{
+		Apm:                template.DeploymentTemplate.Resources.Apm,
+		Appsearch:          template.DeploymentTemplate.Resources.Appsearch,
+		Elasticsearch:      template.DeploymentTemplate.Resources.Elasticsearch,
+		EnterpriseSearch:   template.DeploymentTemplate.Resources.EnterpriseSearch,
+		IntegrationsServer: template.DeploymentTemplate.Resources.IntegrationsServer,
+		Kibana:             template.DeploymentTemplate.Resources.Kibana,
+	}
+
 	useNodeRoles, err := elasticsearchv2.CompatibleWithNodeRoles(version)
 	if err != nil {
 		diagsnostics.AddError("Deployment parse error", err.Error())
 		return nil, diagsnostics
 	}
 
-	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, dep.Elasticsearch, template, dtID, version, useNodeRoles, false)
+	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, dep.Elasticsearch, baseUpdatePayloads, dtID, version, useNodeRoles)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
@@ -99,7 +108,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		result.Resources.Elasticsearch = []*models.ElasticsearchPayload{elasticsearchPayload}
 	}
 
-	kibanaPayload, diags := kibanav2.KibanaPayload(ctx, dep.Kibana, template)
+	kibanaPayload, diags := kibanav2.KibanaPayload(ctx, dep.Kibana, baseUpdatePayloads)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
@@ -109,7 +118,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		result.Resources.Kibana = []*models.KibanaPayload{kibanaPayload}
 	}
 
-	apmPayload, diags := apmv2.ApmPayload(ctx, dep.Apm, template)
+	apmPayload, diags := apmv2.ApmPayload(ctx, dep.Apm, baseUpdatePayloads)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
@@ -119,7 +128,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		result.Resources.Apm = []*models.ApmPayload{apmPayload}
 	}
 
-	integrationsServerPayload, diags := integrationsserverv2.IntegrationsServerPayload(ctx, dep.IntegrationsServer, template)
+	integrationsServerPayload, diags := integrationsserverv2.IntegrationsServerPayload(ctx, dep.IntegrationsServer, baseUpdatePayloads)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
@@ -129,7 +138,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		result.Resources.IntegrationsServer = []*models.IntegrationsServerPayload{integrationsServerPayload}
 	}
 
-	enterpriseSearchPayload, diags := enterprisesearchv2.EnterpriseSearchesPayload(ctx, dep.EnterpriseSearch, template)
+	enterpriseSearchPayload, diags := enterprisesearchv2.EnterpriseSearchesPayload(ctx, dep.EnterpriseSearch, baseUpdatePayloads)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)

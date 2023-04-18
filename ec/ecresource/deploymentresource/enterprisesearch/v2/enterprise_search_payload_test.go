@@ -34,8 +34,8 @@ import (
 
 func Test_enterpriseSearchPayload(t *testing.T) {
 	type args struct {
-		es       *EnterpriseSearch
-		template *models.DeploymentTemplateInfoV2
+		es              *EnterpriseSearch
+		updateResources *models.DeploymentUpdateResources
 	}
 	tests := []struct {
 		name  string
@@ -49,7 +49,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with explicit topology",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("main-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -87,7 +87,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with no topology takes the minimum size",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("main-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -120,7 +120,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with topology but no instance_configuration_id",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("main-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -154,7 +154,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with topology but instance_configuration_id",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("main-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -188,7 +188,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with topology and zone_count",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("main-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -222,7 +222,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with explicit topology and config",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("secondary-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -276,7 +276,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "parses an enterprise_search resource with invalid instance_configuration_id",
 			args: args{
-				template: testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("main-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -296,7 +296,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 		{
 			name: "tries to parse an enterprise_search resource when the template doesn't have an Enterprise Search instance set.",
 			args: args{
-				template: nil,
+				updateResources: nil,
 				es: &EnterpriseSearch{
 					RefId:                     ec.String("tertiary-enterprise_search"),
 					ResourceId:                ec.String(mock.ValidClusterID),
@@ -327,7 +327,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, EnterpriseSearchSchema().FrameworkType(), &ess)
 			assert.Nil(t, diags)
 
-			got, diags := EnterpriseSearchesPayload(context.Background(), ess, tt.args.template)
+			got, diags := EnterpriseSearchesPayload(context.Background(), ess, tt.args.updateResources)
 			if tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			}

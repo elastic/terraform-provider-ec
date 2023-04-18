@@ -23,7 +23,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -148,7 +148,7 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 	}
 
 	// if template changed return
-	templateChanged, diags := attributeChanged(ctx, path.Root("deployment_template_id"), req)
+	templateChanged, diags := planmodifier.AttributeChanged(ctx, path.Root("deployment_template_id"), req)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -184,20 +184,4 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, req tfsdk.ModifyAt
 	}
 
 	return true, useNodeRoles
-}
-
-func attributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
-	var planValue attr.Value
-
-	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
-		return false, diags
-	}
-
-	var stateValue attr.Value
-
-	if diags := req.State.GetAttribute(ctx, p, &stateValue); diags.HasError() {
-		return false, diags
-	}
-
-	return !planValue.Equal(stateValue), nil
 }
