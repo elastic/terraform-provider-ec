@@ -31,7 +31,7 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	matchingId := models.TrafficFilterRulesets{
+	remoteStateForMatchingId := models.TrafficFilterRulesets{
 		Rulesets: []*models.TrafficFilterRulesetInfo{
 			{
 				ID:               ec.String("matching-id"),
@@ -61,10 +61,35 @@ func Test_modelToState(t *testing.T) {
 		},
 	}
 
+	remoteStateForMatchingRegion := models.TrafficFilterRulesets{
+		Rulesets: []*models.TrafficFilterRulesetInfo{
+			{
+				ID:               ec.String("matching-region"),
+				Name:             ec.String("my traffic filter"),
+				IncludeByDefault: ec.Bool(false),
+				Region:           ec.String("us-east-1"),
+				Description:      *ec.String("description"),
+				Rules: []*models.TrafficFilterRule{
+					{ID: "matching-region", Source: "1.1.1.1", Description: "desc"},
+				},
+			},
+			{
+				ID:               ec.String("matching-region"),
+				Name:             ec.String("my traffic filter"),
+				IncludeByDefault: ec.Bool(false),
+				Region:           ec.String("us-east-1"),
+				Description:      *ec.String("description"),
+				Rules: []*models.TrafficFilterRule{
+					{ID: "matching-region", Source: "1.1.1.1", Description: "desc"},
+				},
+			},
+		},
+	}
+
 	want := hasMatchingId("matching-id")
 	wantmatchingName := hasMatchingName("my traffic filter")
 	wantNoMatches := emptyResultSet("no-matches")
-	// want2 := blah("matching-name", "my traffic filter")
+	wantRegionMatches := hasMatchingRegion("us-east-1")
 
 	type args struct {
 		in    *models.TrafficFilterRulesets
@@ -78,14 +103,14 @@ func Test_modelToState(t *testing.T) {
 	}{
 		{
 			name: "has a matching id",
-			args: args{in: &matchingId, state: modelV0{
+			args: args{in: &remoteStateForMatchingId, state: modelV0{
 				Id: types.String{Value: "matching-id"},
 			}},
 			want: want,
 		},
 		{
 			name: "has no matching id or anything else",
-			args: args{in: &matchingId, state: modelV0{
+			args: args{in: &remoteStateForMatchingId, state: modelV0{
 				Id: types.String{Value: "no-matches"},
 			}},
 			want: wantNoMatches,
@@ -97,12 +122,52 @@ func Test_modelToState(t *testing.T) {
 			}},
 			want: wantmatchingName,
 		},
+		{
+			name: "has matching region",
+			args: args{in: &remoteStateForMatchingRegion, state: modelV0{
+				Region: types.String{Value: "us-east-1"},
+			}},
+			want: wantRegionMatches,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			modelToState(context.Background(), tt.args.in, &tt.args.state)
 			assert.Equal(t, tt.want, tt.args.state)
 		})
+	}
+}
+
+func hasMatchingRegion(region string) modelV0 {
+	return modelV0{
+		Region: types.String{Value: region},
+		Rulesets: types.List{
+			ElemType: rulesetElemType(),
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: rulesetAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"id":                 types.String{Value: "matching-region"},
+						"name":               types.String{Value: "my traffic filter"},
+						"region":             types.String{Value: "us-east-1"},
+						"include_by_default": types.Bool{Value: false},
+						"description":        types.String{Value: "description"},
+						"rules":              newSampleTrafficFilterRule("matching-region"),
+					},
+				},
+				types.Object{
+					AttrTypes: rulesetAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"id":                 types.String{Value: "matching-region"},
+						"name":               types.String{Value: "my traffic filter"},
+						"region":             types.String{Value: "us-east-1"},
+						"include_by_default": types.Bool{Value: false},
+						"description":        types.String{Value: "description"},
+						"rules":              newSampleTrafficFilterRule("matching-region"),
+					},
+				},
+			},
+		},
 	}
 }
 
