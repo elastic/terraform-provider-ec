@@ -308,6 +308,7 @@ The required `elasticsearch` block supports the following arguments:
 * `ref_id` - (Optional) Can be set on the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
 * `config` (Optional) Elasticsearch settings applied to all topologies unless overridden in the `topology` element.
 * `remote_cluster` (Optional) Elasticsearch remote clusters to configure for the Elasticsearch resource. Can be set multiple times.
+* `snapshot` (Elastic Cloud Enterprise only, Optional) snapshot configuration settings for an Elasticsearch cluster.
 * `snapshot_source` (Optional) Restores data from a snapshot of another deployment.
 * `extension` (Optional) Custom Elasticsearch bundles or plugins. Can be set multiple times.
 * `autoscale` (Optional) Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are `"true"` or `"false"`.
@@ -366,6 +367,25 @@ The optional `elasticsearch.remote_cluster` block can be set multiple times. It 
 * `alias` (Required) Alias for the Cross Cluster Search binding.
 * `ref_id` (Optional) Remote Elasticsearch `ref_id`. The default value `main-elasticsearch` is recommended.
 * `skip_unavailable` (Optional) If true, skip the cluster during search when disconnected. Defaults to `false`.
+
+##### Snapshot
+
+~> **This setting can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).
+
+* `enabled` (Required) Indicates if Snapshotting is enabled.
+* `repository` (Optional) Snapshot repository configuration.
+
+##### Repository
+
+~> **This setting can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).
+
+- `reference` (Optional) Cluster snapshot reference repository settings, containing the repository name in ECE fashion.
+
+##### Reference
+
+~> **This setting can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).
+
+- `repository_name` (Optional) ECE snapshot repository name, from the '/platform/configuration/snapshots/repositories' endpoint.
 
 ##### Snapshot source
 
