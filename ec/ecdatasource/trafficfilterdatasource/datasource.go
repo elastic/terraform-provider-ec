@@ -238,3 +238,7 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 func rulesetAttrTypes() map[string]attr.Type {
 	return rulesetsListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
+
+func rulesetElemType() attr.Type {
+	return rulesetsListSchema().Attributes.Type().(types.SetType).ElemType
+}
