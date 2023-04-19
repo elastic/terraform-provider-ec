@@ -1,5 +1,5 @@
 data "ec_stack" "post_node_roles_upgrade" {
-  version_regex = "7.12.?"
+  version_regex = "7.17.?"
   region        = "%s"
 }
 
@@ -16,7 +16,4 @@ resource "ec_deployment" "post_nr_upgrade" {
       autoscaling = {}
     }
   }
-
-  kibana            = {}
-  enterprise_search = {}
 }

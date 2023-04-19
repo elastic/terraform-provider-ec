@@ -20,7 +20,7 @@ _report_path:
 .PHONY: unit
 unit: _report_path
 	@ echo "-> Running unit tests for $(BINARY)..."
-	@ go test $(TEST) $(TESTARGS) $(TESTUNITARGS)
+	@ TF_ACC_TERRAFORM_VERSION=1.3.9 go test $(TEST) $(TESTARGS) $(TESTUNITARGS)
 
 ## Alias to "unit".
 tests: unit
@@ -42,7 +42,7 @@ endif
 
 .PHONY: testacc-ci
 testacc-ci:
-	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
+	@ TF_ACC_TERRAFORM_VERSION=1.3.9 EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
 
 .PHONY: sweep-ci
 sweep-ci:
