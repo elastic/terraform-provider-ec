@@ -31,22 +31,22 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	// this is the incoming data and it is in API models based
 	remoteState := models.TrafficFilterRulesets{
 		Rulesets: []*models.TrafficFilterRulesetInfo{
-			{ID: ec.String("some-random-id-1"),
+			{
+				ID:               ec.String("basic"),
 				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("ip"),
 				IncludeByDefault: ec.Bool(false),
 				Region:           ec.String("us-east-1"),
+				Description:      *ec.String("hhh"),
 				Rules: []*models.TrafficFilterRule{
-					{Source: "1.1.1.1"},
-					{Source: "0.0.0.0/0"},
-				}},
+					{ID: "rule-1", Source: "1.1.1.1", Description: "desc"},
+				},
+			},
 		},
 	}
 
-	want := newSampleTrafficFilterRuleset("some-random-id-2")
+	want := newSampleTrafficFilterRuleset("basic")
 
 	type args struct {
 		in *models.TrafficFilterRulesets
@@ -66,7 +66,9 @@ func Test_modelToState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			state := modelV0{}
+			state := modelV0{
+				Id: types.String{Value: "basic"},
+			}
 			diags := modelToState(context.Background(), tt.args.in, &state)
 
 			if tt.err != nil {
@@ -82,30 +84,33 @@ func Test_modelToState(t *testing.T) {
 
 func newSampleTrafficFilterRuleset(id string) modelV0 {
 	return modelV0{
-		Id:     types.String{Value: id},
-		Name:   types.String{Value: "name"},
-		Region: types.String{Value: "Region"},
+		Id: types.String{Value: id},
 		Rulesets: types.List{
-			ElemType: rulesetElemType(), // that is the modelV0 version, ie the internal representation
+			ElemType: rulesetsElemType(),
 			Elems: []attr.Value{
-				newSampleTrafficFilter(`test`),
-			},
-		},
-	}
-}
-
-func newSampleTrafficFilter(id string) rulesetModelV0 {
-	return rulesetModelV0{
-		Id:               types.String{Value: id},
-		Name:             types.String{Value: "my traffic filter"},
-		IncludeByDefault: types.Bool{Value: false},
-		Region:           types.String{Value: "us-east-1"},
-		Description:      types.String{Null: true},
-		Rules: []ruleModelV0{
-			{
-				Id:          types.String{Value: "test"},
-				Description: types.String{Value: "description"},
-				Source:      types.String{Value: "source"},
+				types.Object{
+					AttrTypes: rulesetsAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"id":                 types.String{Value: id},
+						"name":               types.String{Value: "my traffic filter"},
+						"region":             types.String{Value: "us-east-1"},
+						"include_by_default": types.Bool{Value: false},
+						"description":        types.String{Value: "hhh"},
+						"rules": types.List{
+							ElemType: ruleElemType(),
+							Elems: []attr.Value{
+								types.Object{
+									AttrTypes: ruleAttrTypes(),
+									Attrs: map[string]attr.Value{
+										"id":          types.String{Value: "rule-1"},
+										"source":      types.String{Value: "1.1.1.1"},
+										"description": types.String{Value: "desc"},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}

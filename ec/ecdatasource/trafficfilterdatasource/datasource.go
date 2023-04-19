@@ -220,25 +220,34 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 			}
 			ruleArray = append(ruleArray, t)
 		}
-
-		m.Rules = ruleArray
+		if len(ruleArray) > 0 {
+			m.Rules = ruleArray
+		}
 
 		result = append(result, m)
 	}
 
 	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: rulesetAttrTypes(),
+			AttrTypes: rulesetsAttrTypes(),
 		},
 	}, &state.Rulesets)...)
 
 	return diags
 }
 
-func rulesetAttrTypes() map[string]attr.Type {
+func rulesetsAttrTypes() map[string]attr.Type {
 	return rulesetsListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
-func rulesetElemType() attr.Type {
-	return rulesetsListSchema().Attributes.Type().(types.SetType).ElemType
+func rulesetsElemType() attr.Type {
+	return rulesetsListSchema().Attributes.Type().(types.ListType).ElemType
+}
+
+func ruleAttrTypes() map[string]attr.Type {
+	return rulesetListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+}
+
+func ruleElemType() attr.Type {
+	return rulesetListSchema().Attributes.Type().(types.ListType).ElemType
 }
