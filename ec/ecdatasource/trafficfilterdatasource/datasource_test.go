@@ -31,85 +31,144 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	remoteState := models.TrafficFilterRulesets{
+	matchingId := models.TrafficFilterRulesets{
 		Rulesets: []*models.TrafficFilterRulesetInfo{
 			{
-				ID:               ec.String("basic"),
+				ID:               ec.String("matching-id"),
 				Name:             ec.String("my traffic filter"),
 				IncludeByDefault: ec.Bool(false),
 				Region:           ec.String("us-east-1"),
-				Description:      *ec.String("hhh"),
+				Description:      *ec.String("description"),
 				Rules: []*models.TrafficFilterRule{
-					{ID: "rule-1", Source: "1.1.1.1", Description: "desc"},
+					{ID: "matching-id", Source: "1.1.1.1", Description: "desc"},
 				},
 			},
 		},
 	}
 
-	want := newSampleTrafficFilterRuleset("basic")
+	remoteStateForMatchingName := models.TrafficFilterRulesets{
+		Rulesets: []*models.TrafficFilterRulesetInfo{
+			{
+				ID:               ec.String("matching-name"),
+				Name:             ec.String("my traffic filter"),
+				IncludeByDefault: ec.Bool(false),
+				Region:           ec.String("us-east-1"),
+				Description:      *ec.String("description"),
+				Rules: []*models.TrafficFilterRule{
+					{ID: "matching-name", Source: "1.1.1.1", Description: "desc"},
+				},
+			},
+		},
+	}
+
+	want := hasMatchingId("matching-id")
+	wantmatchingName := hasMatchingName("my traffic filter")
+	wantNoMatches := emptyResultSet("no-matches")
+	// want2 := blah("matching-name", "my traffic filter")
 
 	type args struct {
-		in *models.TrafficFilterRulesets
+		in    *models.TrafficFilterRulesets
+		state modelV0
 	}
 
 	tests := []struct {
 		name string
 		args args
-		err  error
 		want modelV0
 	}{
 		{
-			name: "flattens the resource",
-			args: args{in: &remoteState},
+			name: "has a matching id",
+			args: args{in: &matchingId, state: modelV0{
+				Id: types.String{Value: "matching-id"},
+			}},
 			want: want,
+		},
+		{
+			name: "has no matching id or anything else",
+			args: args{in: &matchingId, state: modelV0{
+				Id: types.String{Value: "no-matches"},
+			}},
+			want: wantNoMatches,
+		},
+		{
+			name: "has matching name",
+			args: args{in: &remoteStateForMatchingName, state: modelV0{
+				Name: types.String{Value: "my traffic filter"},
+			}},
+			want: wantmatchingName,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			state := modelV0{
-				Id: types.String{Value: "basic"},
-			}
-			diags := modelToState(context.Background(), tt.args.in, &state)
-
-			if tt.err != nil {
-				assert.Equal(t, diags, tt.err)
-			} else {
-				assert.Empty(t, diags)
-			}
-
-			assert.Equal(t, tt.want, state)
+			modelToState(context.Background(), tt.args.in, &tt.args.state)
+			assert.Equal(t, tt.want, tt.args.state)
 		})
 	}
 }
 
-func newSampleTrafficFilterRuleset(id string) modelV0 {
+func hasMatchingId(id string) modelV0 {
 	return modelV0{
 		Id: types.String{Value: id},
 		Rulesets: types.List{
-			ElemType: rulesetsElemType(),
+			ElemType: rulesetElemType(),
 			Elems: []attr.Value{
 				types.Object{
-					AttrTypes: rulesetsAttrTypes(),
+					AttrTypes: rulesetAttrTypes(),
 					Attrs: map[string]attr.Value{
 						"id":                 types.String{Value: id},
 						"name":               types.String{Value: "my traffic filter"},
 						"region":             types.String{Value: "us-east-1"},
 						"include_by_default": types.Bool{Value: false},
-						"description":        types.String{Value: "hhh"},
-						"rules": types.List{
-							ElemType: ruleElemType(),
-							Elems: []attr.Value{
-								types.Object{
-									AttrTypes: ruleAttrTypes(),
-									Attrs: map[string]attr.Value{
-										"id":          types.String{Value: "rule-1"},
-										"source":      types.String{Value: "1.1.1.1"},
-										"description": types.String{Value: "desc"},
-									},
-								},
-							},
-						},
+						"description":        types.String{Value: "description"},
+						"rules":              newSampleTrafficFilterRule(id),
 					},
+				},
+			},
+		},
+	}
+}
+
+func hasMatchingName(name string) modelV0 {
+	return modelV0{
+		Name: types.String{Value: name},
+		Rulesets: types.List{
+			ElemType: rulesetElemType(),
+			Elems: []attr.Value{
+				types.Object{
+					AttrTypes: rulesetAttrTypes(),
+					Attrs: map[string]attr.Value{
+						"id":                 types.String{Value: "matching-name"},
+						"name":               types.String{Value: name},
+						"region":             types.String{Value: "us-east-1"},
+						"include_by_default": types.Bool{Value: false},
+						"description":        types.String{Value: "description"},
+						"rules":              newSampleTrafficFilterRule("matching-name"),
+					},
+				},
+			},
+		},
+	}
+}
+
+func emptyResultSet(id string) modelV0 {
+	return modelV0{
+		Id: types.String{Value: id},
+		Rulesets: types.List{
+			ElemType: rulesetElemType(),
+			Elems:    []attr.Value{}},
+	}
+}
+
+func newSampleTrafficFilterRule(id string) types.List {
+	return types.List{
+		ElemType: ruleElemType(),
+		Elems: []attr.Value{
+			types.Object{
+				AttrTypes: ruleAttrTypes(),
+				Attrs: map[string]attr.Value{
+					"id":          types.String{Value: id},
+					"source":      types.String{Value: "1.1.1.1"},
+					"description": types.String{Value: "desc"},
 				},
 			},
 		},

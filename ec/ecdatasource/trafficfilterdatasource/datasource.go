@@ -60,14 +60,14 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 			},
 
 			// computed fields
-			"rulesets": rulesetsListSchema(),
+			"rulesets": rulesetSchema(),
 		},
 	}, nil
 }
 
-func rulesetsListSchema() tfsdk.Attribute {
+func rulesetSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "List of all Rulesets for this user.",
+		Description: "An individual ruleset",
 		Computed:    true,
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"id": {
@@ -95,14 +95,14 @@ func rulesetsListSchema() tfsdk.Attribute {
 				Description: "Should the ruleset be automatically included in the new deployments.",
 				Computed:    true,
 			},
-			"rules": rulesetListSchema(),
+			"rules": ruleSchema(),
 		}),
 	}
 }
 
-func rulesetListSchema() tfsdk.Attribute {
+func ruleSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "List of rules in a ruleset",
+		Description: "An individual rule",
 		Computed:    true,
 		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 			"id": {
@@ -229,25 +229,25 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 
 	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
 		ElemType: types.ObjectType{
-			AttrTypes: rulesetsAttrTypes(),
+			AttrTypes: rulesetAttrTypes(),
 		},
 	}, &state.Rulesets)...)
 
 	return diags
 }
 
-func rulesetsAttrTypes() map[string]attr.Type {
-	return rulesetsListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+func rulesetAttrTypes() map[string]attr.Type {
+	return rulesetSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
-func rulesetsElemType() attr.Type {
-	return rulesetsListSchema().Attributes.Type().(types.ListType).ElemType
+func rulesetElemType() attr.Type {
+	return rulesetSchema().Attributes.Type().(types.ListType).ElemType
 }
 
 func ruleAttrTypes() map[string]attr.Type {
-	return rulesetListSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return ruleSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 func ruleElemType() attr.Type {
-	return rulesetListSchema().Attributes.Type().(types.ListType).ElemType
+	return ruleSchema().Attributes.Type().(types.ListType).ElemType
 }
