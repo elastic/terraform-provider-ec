@@ -1,4 +1,13 @@
-data "ec_trafficfilter" "id" {
+resource "ec_deployment_traffic_filter" "basic" {
+  name   = "%s"
   region = "%s"
-  id     = "test"
+  type   = "ip"
+
+  rule {
+    source = "0.0.0.0/0"
+  }
+}
+
+data "ec_trafficfilter" "name" {
+  id = ec_deployment_traffic_filter.basic.id
 }

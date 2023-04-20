@@ -22,13 +22,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// This test creates a resource of type traffic filter with the randomName
+// then it creates a data source that queries for this traffic filter by the id
 func TestAccDatasource_trafficfilter(t *testing.T) {
-	datasourceName := "data.ec_trafficfilter.id"
+	datasourceName := "data.ec_trafficfilter.name"
 	depCfg := "testdata/datasource_trafficfilter.tf"
-	cfg := fixtureAccTrafficFilterDataSource(t, depCfg, getRegion())
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	cfg := fixtureAccTrafficFilterDataSource(t, depCfg, randomName, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -37,28 +41,22 @@ func TestAccDatasource_trafficfilter(t *testing.T) {
 			{
 				Config:             cfg,
 				PreventDiskCleanup: true,
-				Check: checkDataSourceTrafficFilter(datasourceName,
-					resource.TestCheckResourceAttr(datasourceName, "region", getRegion()),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(datasourceName, "rulesets.#", "1"),
+					resource.TestCheckResourceAttr(datasourceName, "rulesets.0.name", randomName),
+					resource.TestCheckResourceAttr(datasourceName, "rulesets.0.region", getRegion()),
 				),
 			},
 		},
 	})
 }
 
-func fixtureAccTrafficFilterDataSource(t *testing.T, fileName string, region string) string {
+func fixtureAccTrafficFilterDataSource(t *testing.T, fileName string, name string, region string) string {
 	t.Helper()
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return fmt.Sprintf(string(b), region)
-}
-
-func checkDataSourceTrafficFilter(resName string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resName, "rulesets.#", "2"),
-		resource.TestCheckResourceAttr(resName, "rulesets.0.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "rulesets.0.name", "example-filter"),
-	}, checks...)...)
+	return fmt.Sprintf(string(b), name, region)
 }
