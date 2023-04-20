@@ -1,5 +1,10 @@
 # 0.7.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* Add resource ec_snapshot_repository for usage with Elastic Cloud Enterprise. ([#613](https://github.com/elastic/terraform-provider-ec/issues/613))
+* resource/ec_deployment: Add snapshot settings (for usage with Elastic Cloud Enterprise only). ([#620](https://github.com/elastic/terraform-provider-ec/issues/620))
+
 # 0.6.0 (Feb 28, 2023)
 
 FEATURES:

@@ -46,6 +46,7 @@ type ElasticsearchTF struct {
 	MlTier           types.Object `tfsdk:"ml"`
 	Config           types.Object `tfsdk:"config"`
 	RemoteCluster    types.Set    `tfsdk:"remote_cluster"`
+	Snapshot         types.Object `tfsdk:"snapshot"`
 	SnapshotSource   types.Object `tfsdk:"snapshot_source"`
 	Extension        types.Set    `tfsdk:"extension"`
 	TrustAccount     types.Set    `tfsdk:"trust_account"`
@@ -104,6 +105,9 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	updateNodeRolesOnDedicatedTiers(res.Plan.ClusterTopology)
 
 	res.Plan.Elasticsearch, ds = elasticsearchConfigPayload(ctx, es.Config, res.Plan.Elasticsearch)
+	diags.Append(ds...)
+
+	res.Settings, ds = elasticsearchSnapshotPayload(ctx, es.Snapshot, res.Settings)
 	diags.Append(ds...)
 
 	diags.Append(elasticsearchSnapshotSourcePayload(ctx, es.SnapshotSource, res.Plan)...)
