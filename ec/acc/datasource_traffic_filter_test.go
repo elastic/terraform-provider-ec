@@ -25,10 +25,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDatasource_trafficfilter_id(t *testing.T) {
+func TestAccDatasource_trafficfilter(t *testing.T) {
 	datasourceName := "data.ec_trafficfilter.id"
-	depCfg := "testdata/datasource_trafficfilter_id.tf"
-	cfg := fixtureAccTrafficFilterDataSource(t, depCfg)
+	depCfg := "testdata/datasource_trafficfilter.tf"
+	cfg := fixtureAccTrafficFilterDataSource(t, depCfg, getRegion())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -38,28 +38,27 @@ func TestAccDatasource_trafficfilter_id(t *testing.T) {
 				Config:             cfg,
 				PreventDiskCleanup: true,
 				Check: checkDataSourceTrafficFilter(datasourceName,
-					resource.TestCheckResourceAttr(datasourceName, "id", "41d275439f884ce89359039e53eac516"),
+					resource.TestCheckResourceAttr(datasourceName, "region", getRegion()),
 				),
 			},
 		},
 	})
 }
 
-func fixtureAccTrafficFilterDataSource(t *testing.T, fileName string) string {
+func fixtureAccTrafficFilterDataSource(t *testing.T, fileName string, region string) string {
 	t.Helper()
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return fmt.Sprintf(string(b))
+	return fmt.Sprintf(string(b), region)
 }
 
 func checkDataSourceTrafficFilter(resName string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resName, "rulesets.#", "1"),
-		resource.TestCheckResourceAttr(resName, "rulesets.0.id", "41d275439f884ce89359039e53eac516"),
-		resource.TestCheckResourceAttr(resName, "rulesets.0.region", "us-east-1"),
+		resource.TestCheckResourceAttr(resName, "rulesets.#", "2"),
+		resource.TestCheckResourceAttr(resName, "rulesets.0.region", getRegion()),
 		resource.TestCheckResourceAttr(resName, "rulesets.0.name", "example-filter"),
 	}, checks...)...)
 }
