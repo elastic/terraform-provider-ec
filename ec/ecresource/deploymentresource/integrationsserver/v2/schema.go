@@ -77,16 +77,16 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size": {
 				Type:     types.StringType,
 				Computed: true,
 				Optional: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					planmodifier.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size_resource": {

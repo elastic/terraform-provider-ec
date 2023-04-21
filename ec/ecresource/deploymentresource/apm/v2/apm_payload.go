@@ -87,7 +87,7 @@ func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*model
 	return &payload, diags
 }
 
-func ApmPayload(ctx context.Context, apmObj types.Object, template *models.DeploymentTemplateInfoV2) (*models.ApmPayload, diag.Diagnostics) {
+func ApmPayload(ctx context.Context, apmObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.ApmPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var apm *ApmTF
@@ -100,7 +100,7 @@ func ApmPayload(ctx context.Context, apmObj types.Object, template *models.Deplo
 		return nil, nil
 	}
 
-	templatePayload := payloadFromTemplate(template)
+	templatePayload := payloadFromUpdate(updateResources)
 
 	if templatePayload == nil {
 		diags.AddError("apm payload error", "apm specified but deployment template is not configured for it. Use a different template if you wish to add apm")
@@ -116,11 +116,11 @@ func ApmPayload(ctx context.Context, apmObj types.Object, template *models.Deplo
 	return payload, nil
 }
 
-// payloadFromTemplate returns the ApmPayload from a deployment
+// payloadFromUpdate returns the ApmPayload from a deployment
 // template or an empty version of the payload.
-func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.ApmPayload {
-	if template == nil || len(template.DeploymentTemplate.Resources.Apm) == 0 {
+func payloadFromUpdate(updateResources *models.DeploymentUpdateResources) *models.ApmPayload {
+	if updateResources == nil || len(updateResources.Apm) == 0 {
 		return nil
 	}
-	return template.DeploymentTemplate.Resources.Apm[0]
+	return updateResources.Apm[0]
 }

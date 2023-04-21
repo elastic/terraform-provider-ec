@@ -78,7 +78,7 @@ func KibanaSchema() tfsdk.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+					planmodifier.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size": {
@@ -86,7 +86,7 @@ func KibanaSchema() tfsdk.Attribute {
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+					planmodifier.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size_resource": {

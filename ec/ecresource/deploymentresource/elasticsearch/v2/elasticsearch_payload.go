@@ -54,7 +54,7 @@ type ElasticsearchTF struct {
 	Strategy         types.String `tfsdk:"strategy"`
 }
 
-func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *models.DeploymentTemplateInfoV2, dtID, version string, useNodeRoles bool, skipTopologies bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResources *models.DeploymentUpdateResources, dtID, version string, useNodeRoles bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var es *ElasticsearchTF
 
 	if esObj.IsNull() || esObj.IsUnknown() {
@@ -69,9 +69,9 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *mod
 		return nil, nil
 	}
 
-	templatePayload := EnrichElasticsearchTemplate(payloadFromTemplate(template), dtID, version, useNodeRoles)
+	templatePayload := EnrichElasticsearchTemplate(payloadFromUpdate(updateResources), dtID, version, useNodeRoles)
 
-	payload, diags := es.payload(ctx, templatePayload, skipTopologies)
+	payload, diags := es.payload(ctx, templatePayload)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -79,7 +79,7 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, template *mod
 	return payload, nil
 }
 
-func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, skipTopologies bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
@@ -96,9 +96,7 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 
 	var ds diag.Diagnostics
 
-	if !skipTopologies {
-		diags.Append(es.topologiesPayload(ctx, res.Plan.ClusterTopology)...)
-	}
+	diags.Append(es.topologiesPayload(ctx, res.Plan.ClusterTopology)...)
 
 	// Fixes the node_roles field to remove the dedicated tier roles from the
 	// list when these are set as a dedicated tier as a topology element.
@@ -274,8 +272,8 @@ func elasticsearchStrategyPayload(strategy types.String, payload *models.Elastic
 	}
 }
 
-func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.ElasticsearchPayload {
-	if template == nil || len(template.DeploymentTemplate.Resources.Elasticsearch) == 0 {
+func payloadFromUpdate(updateResources *models.DeploymentUpdateResources) *models.ElasticsearchPayload {
+	if updateResources == nil || len(updateResources.Elasticsearch) == 0 {
 		return &models.ElasticsearchPayload{
 			Plan: &models.ElasticsearchClusterPlan{
 				Elasticsearch: &models.ElasticsearchConfiguration{},
@@ -283,7 +281,7 @@ func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.Elas
 			Settings: &models.ElasticsearchClusterSettings{},
 		}
 	}
-	return template.DeploymentTemplate.Resources.Elasticsearch[0]
+	return updateResources.Elasticsearch[0]
 }
 
 func EnrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, templateId, version string, useNodeRoles bool) *models.ElasticsearchPayload {

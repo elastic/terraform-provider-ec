@@ -87,7 +87,7 @@ func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload
 	return &payload, diags
 }
 
-func KibanaPayload(ctx context.Context, kibanaObj types.Object, template *models.DeploymentTemplateInfoV2) (*models.KibanaPayload, diag.Diagnostics) {
+func KibanaPayload(ctx context.Context, kibanaObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.KibanaPayload, diag.Diagnostics) {
 	var kibanaTF *KibanaTF
 
 	var diags diag.Diagnostics
@@ -100,7 +100,7 @@ func KibanaPayload(ctx context.Context, kibanaObj types.Object, template *models
 		return nil, nil
 	}
 
-	templatePlayload := payloadFromTemplate(template)
+	templatePlayload := payloadFromUpdate(updateResources)
 
 	if templatePlayload == nil {
 		diags.AddError("kibana payload error", "kibana specified but deployment template is not configured for it. Use a different template if you wish to add kibana")
@@ -116,11 +116,11 @@ func KibanaPayload(ctx context.Context, kibanaObj types.Object, template *models
 	return payload, nil
 }
 
-// payloadFromTemplate returns the KibanaPayload from a deployment
+// payloadFromUpdate returns the KibanaPayload from a deployment
 // template or an empty version of the payload.
-func payloadFromTemplate(res *models.DeploymentTemplateInfoV2) *models.KibanaPayload {
-	if res == nil || len(res.DeploymentTemplate.Resources.Kibana) == 0 {
+func payloadFromUpdate(updateResources *models.DeploymentUpdateResources) *models.KibanaPayload {
+	if updateResources == nil || len(updateResources.Kibana) == 0 {
 		return nil
 	}
-	return res.DeploymentTemplate.Resources.Kibana[0]
+	return updateResources.Kibana[0]
 }

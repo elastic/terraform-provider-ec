@@ -34,12 +34,12 @@ import (
 
 func Test_KibanaPayload(t *testing.T) {
 	tplPath := "../../testdata/template-aws-io-optimized-v2.json"
-	tpl := func() *models.DeploymentTemplateInfoV2 {
-		return testutil.ParseDeploymentTemplate(t, tplPath)
+	getUpdateResources := func() *models.DeploymentUpdateResources {
+		return testutil.UpdatePayloadsFromTemplate(t, tplPath)
 	}
 	type args struct {
-		kibana *Kibana
-		tpl    *models.DeploymentTemplateInfoV2
+		kibana          *Kibana
+		updateResources *models.DeploymentUpdateResources
 	}
 	tests := []struct {
 		name  string
@@ -53,7 +53,7 @@ func Test_KibanaPayload(t *testing.T) {
 		{
 			name: "parses a kibana resource with topology",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				kibana: &Kibana{
 					RefId:                     ec.String("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -86,7 +86,7 @@ func Test_KibanaPayload(t *testing.T) {
 		{
 			name: "parses a kibana resource with incorrect instance_configuration_id",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				kibana: &Kibana{
 					RefId:                     ec.String("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -106,7 +106,7 @@ func Test_KibanaPayload(t *testing.T) {
 		{
 			name: "parses a kibana resource without topology",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				kibana: &Kibana{
 					RefId:                     ec.String("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -136,7 +136,7 @@ func Test_KibanaPayload(t *testing.T) {
 		{
 			name: "parses a kibana resource with a topology but no instance_configuration_id",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				kibana: &Kibana{
 					RefId:                     ec.String("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -168,7 +168,7 @@ func Test_KibanaPayload(t *testing.T) {
 		{
 			name: "parses a kibana resource with topology and settings",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				kibana: &Kibana{
 					RefId:                     ec.String("secondary-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -214,7 +214,7 @@ func Test_KibanaPayload(t *testing.T) {
 		{
 			name: "tries to parse an kibana resource when the template doesn't have a kibana instance set.",
 			args: args{
-				tpl: nil,
+				updateResources: nil,
 				kibana: &Kibana{
 					RefId:                     ec.String("tertiary-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -239,7 +239,7 @@ func Test_KibanaPayload(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.kibana, KibanaSchema().FrameworkType(), &kibana)
 			assert.Nil(t, diags)
 
-			if got, diags := KibanaPayload(context.Background(), kibana, tt.args.tpl); tt.diags != nil {
+			if got, diags := KibanaPayload(context.Background(), kibana, tt.args.updateResources); tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {
 				assert.Nil(t, diags)

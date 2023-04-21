@@ -35,12 +35,12 @@ import (
 
 func Test_ApmPayload(t *testing.T) {
 	tplPath := "../../testdata/template-aws-io-optimized-v2.json"
-	tpl := func() *models.DeploymentTemplateInfoV2 {
-		return testutil.ParseDeploymentTemplate(t, tplPath)
+	getUpdateResources := func() *models.DeploymentUpdateResources {
+		return testutil.UpdatePayloadsFromTemplate(t, tplPath)
 	}
 	type args struct {
-		apm *Apm
-		tpl *models.DeploymentTemplateInfoV2
+		apm             *Apm
+		updateResources *models.DeploymentUpdateResources
 	}
 	tests := []struct {
 		name  string
@@ -54,7 +54,7 @@ func Test_ApmPayload(t *testing.T) {
 		{
 			name: "parses an APM resource with explicit topology",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				apm: &Apm{
 					RefId:                     ec.String("main-apm"),
 					ResourceId:                &mock.ValidClusterID,
@@ -86,7 +86,7 @@ func Test_ApmPayload(t *testing.T) {
 		{
 			name: "parses an APM resource with invalid instance_configuration_id",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				apm: &Apm{
 					RefId:                     ec.String("main-apm"),
 					ResourceId:                &mock.ValidClusterID,
@@ -110,7 +110,7 @@ func Test_ApmPayload(t *testing.T) {
 		{
 			name: "parses an APM resource with no topology",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				apm: &Apm{
 					RefId:                     ec.String("main-apm"),
 					ResourceId:                &mock.ValidClusterID,
@@ -138,7 +138,7 @@ func Test_ApmPayload(t *testing.T) {
 		{
 			name: "parses an APM resource with a topology element but no instance_configuration_id",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				apm: &Apm{
 					RefId:                     ec.String("main-apm"),
 					ResourceId:                &mock.ValidClusterID,
@@ -168,7 +168,7 @@ func Test_ApmPayload(t *testing.T) {
 		{
 			name: "parses an APM resource with explicit topology and some config",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				apm: &Apm{
 					RefId:                     ec.String("tertiary-apm"),
 					ElasticsearchClusterRefId: ec.String("somerefid"),
@@ -221,7 +221,7 @@ func Test_ApmPayload(t *testing.T) {
 		{
 			name: "tries to parse an apm resource when the template doesn't have an APM instance set.",
 			args: args{
-				tpl: nil,
+				updateResources: nil,
 				apm: &Apm{
 					RefId:                     ec.String("tertiary-apm"),
 					ElasticsearchClusterRefId: ec.String("somerefid"),
@@ -249,7 +249,7 @@ func Test_ApmPayload(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.apm, ApmSchema().FrameworkType(), &apm)
 			assert.Nil(t, diags)
 
-			if got, diags := ApmPayload(context.Background(), apm, tt.args.tpl); tt.diags != nil {
+			if got, diags := ApmPayload(context.Background(), apm, tt.args.updateResources); tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {
 				assert.Nil(t, diags)
