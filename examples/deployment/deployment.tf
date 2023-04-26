@@ -19,16 +19,6 @@ data "ec_stack" "latest" {
   region        = "us-east-1"
 }
 
-data "ec_trafficfilter" "test" {
-  # name = "example-filter"
-  # id = "41d275439f884ce89359039e53eac516"
-  region = "us-east-1"
-}
-
-output "test" {
-  value = data.ec_trafficfilter.test
-}
-
 # Create an Elastic Cloud deployment
 resource "ec_deployment" "example_minimal" {
   # Optional name.
