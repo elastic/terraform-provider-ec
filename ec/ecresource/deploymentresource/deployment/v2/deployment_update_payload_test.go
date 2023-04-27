@@ -33,6 +33,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 )
@@ -61,8 +62,8 @@ func Test_updateResourceToModel(t *testing.T) {
 		return fileAsResponseBody(t, "../../testdata/template-aws-cross-cluster-search-v2.json")
 	}
 
-	emptyTpl := func() io.ReadCloser {
-		return fileAsResponseBody(t, "../../testdata/template-empty.json")
+	ccsDeploymentUpdate := func() io.ReadCloser {
+		return fileAsResponseBody(t, "../../testdata/deployment-update-aws-cross-cluster-search-v2.json")
 	}
 
 	type args struct {
@@ -820,7 +821,10 @@ func Test_updateResourceToModel(t *testing.T) {
 					},
 					TrafficFilter: []string{"0.0.0.0/0", "192.168.10.0/24"},
 				},
-				client: api.NewMock(mock.New200Response(ccsTpl())),
+				client: api.NewMock(
+					mock.New200Response(ccsTpl()),
+					mock.New200Response(ccsDeploymentUpdate()),
+				),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -949,7 +953,10 @@ func Test_updateResourceToModel(t *testing.T) {
 						Size:                      ec.String("2g"),
 					},
 				},
-				client: api.NewMock(mock.New200Response(ccsTpl())),
+				client: api.NewMock(
+					mock.New200Response(ccsTpl()),
+					mock.New200Response(ccsDeploymentUpdate()),
+				),
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
@@ -2072,70 +2079,6 @@ func Test_updateResourceToModel(t *testing.T) {
 				},
 			},
 		},
-
-		{
-			name: "topology change with invalid resources returns an error",
-			args: args{
-				plan: Deployment{
-					Id:                   mock.ValidClusterID,
-					Name:                 "my_deployment_name",
-					DeploymentTemplateId: "empty-deployment-template",
-					Region:               "us-east-1",
-					Version:              "7.9.2",
-					Elasticsearch:        defaultElasticsearch,
-					Kibana:               &kibanav2.Kibana{},
-					Apm:                  &apmv2.Apm{},
-					EnterpriseSearch:     &enterprisesearchv2.EnterpriseSearch{},
-				},
-				state: &Deployment{
-					Id:                   mock.ValidClusterID,
-					Name:                 "my_deployment_name",
-					DeploymentTemplateId: "aws-io-optimized-v2",
-					Region:               "us-east-1",
-					Version:              "7.9.2",
-					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
-						HotTier: elasticsearchv2.CreateTierForTest(
-							"hot_content",
-							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("16g"),
-								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-						),
-						CoordinatingTier: elasticsearchv2.CreateTierForTest(
-							"coordinating",
-							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("16g"),
-								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
-							},
-						),
-					},
-					Kibana: &kibanav2.Kibana{
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						RefId:                     ec.String("main-kibana"),
-						Size:                      ec.String("2g"),
-					},
-					Apm: &apmv2.Apm{
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						RefId:                     ec.String("main-apm"),
-						Size:                      ec.String("1g"),
-					},
-					EnterpriseSearch: &enterprisesearchv2.EnterpriseSearch{
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						RefId:                     ec.String("main-enterprise_search"),
-						Size:                      ec.String("8g"),
-					},
-				},
-				client: api.NewMock(mock.New200Response(emptyTpl())),
-			},
-			diags: func() diag.Diagnostics {
-				var diags diag.Diagnostics
-				diags.AddError("kibana payload error", "kibana specified but deployment template is not configured for it. Use a different template if you wish to add kibana")
-				diags.AddError("apm payload error", "apm specified but deployment template is not configured for it. Use a different template if you wish to add apm")
-				diags.AddError("enterprise_search payload error", "enterprise_search specified but deployment template is not configured for it. Use a different template if you wish to add enterprise_search")
-				return diags
-			}(),
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -2159,9 +2102,9 @@ func Test_updateResourceToModel(t *testing.T) {
 			if tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {
-				assert.Nil(t, diags)
-				assert.NotNil(t, got)
-				assert.Equal(t, *tt.want, *got)
+				require.Nil(t, diags)
+				require.NotNil(t, got)
+				require.Equal(t, *tt.want, *got)
 			}
 		})
 	}

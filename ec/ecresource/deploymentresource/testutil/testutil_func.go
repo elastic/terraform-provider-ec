@@ -25,7 +25,20 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// parseDeploymentTemplate is a test helper which parse a file by path and
+func UpdatePayloadsFromTemplate(t *testing.T, name string) *models.DeploymentUpdateResources {
+	template := ParseDeploymentTemplate(t, name)
+
+	return &models.DeploymentUpdateResources{
+		Apm:                template.DeploymentTemplate.Resources.Apm,
+		Appsearch:          template.DeploymentTemplate.Resources.Appsearch,
+		Elasticsearch:      template.DeploymentTemplate.Resources.Elasticsearch,
+		EnterpriseSearch:   template.DeploymentTemplate.Resources.EnterpriseSearch,
+		IntegrationsServer: template.DeploymentTemplate.Resources.IntegrationsServer,
+		Kibana:             template.DeploymentTemplate.Resources.Kibana,
+	}
+}
+
+// ParseDeploymentTemplate is a test helper which parse a file by path and
 // returns a models.DeploymentTemplateInfoV2.
 func ParseDeploymentTemplate(t *testing.T, name string) *models.DeploymentTemplateInfoV2 {
 	t.Helper()

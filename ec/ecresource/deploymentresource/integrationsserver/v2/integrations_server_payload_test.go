@@ -34,12 +34,12 @@ import (
 
 func Test_IntegrationsServerPayload(t *testing.T) {
 	tplPath := "../../testdata/template-ece-3.0.0-default.json"
-	tpl := func() *models.DeploymentTemplateInfoV2 {
-		return testutil.ParseDeploymentTemplate(t, tplPath)
+	getUpdateResources := func() *models.DeploymentUpdateResources {
+		return testutil.UpdatePayloadsFromTemplate(t, tplPath)
 	}
 	type args struct {
-		srv *IntegrationsServer
-		tpl *models.DeploymentTemplateInfoV2
+		srv             *IntegrationsServer
+		updateResources *models.DeploymentUpdateResources
 	}
 	tests := []struct {
 		name  string
@@ -53,7 +53,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 		{
 			name: "parses an Integrations Server resource with explicit topology",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -85,7 +85,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 		{
 			name: "parses an Integrations Server resource with invalid instance_configuration_id",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -106,7 +106,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 		{
 			name: "parses an Integrations Server resource with no topology",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -134,7 +134,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 		{
 			name: "parses an Integrations Server resource with a topology element but no instance_configuration_id",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -164,7 +164,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 		{
 			name: "parses an Integrations Server resource with explicit topology and some config",
 			args: args{
-				tpl: tpl(),
+				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("tertiary-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -215,7 +215,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 		{
 			name: "tries to parse an integrations_server resource when the template doesn't have an Integrations Server instance set.",
 			args: args{
-				tpl: nil,
+				updateResources: nil,
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("tertiary-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -243,7 +243,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.srv, IntegrationsServerSchema().FrameworkType(), &srv)
 			assert.Nil(t, diags)
 
-			if got, diags := IntegrationsServerPayload(context.Background(), srv, tt.args.tpl); tt.diags != nil {
+			if got, diags := IntegrationsServerPayload(context.Background(), srv, tt.args.updateResources); tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {
 				assert.Nil(t, diags)

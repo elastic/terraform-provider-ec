@@ -15,28 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package v2
+package planmodifier
 
 import (
 	"context"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
-func UseTopologyStateForUnknown(topologyAttributeName string) tfsdk.AttributePlanModifier {
-	return useTopologyState{topologyAttributeName: topologyAttributeName}
+func UseStateForUnknownUnlessTemplateChanged() tfsdk.AttributePlanModifier {
+	return useStateForUnknownUnlessTemplateChanged{}
 }
 
-type useTopologyState struct {
-	topologyAttributeName string
-}
+type useStateForUnknownUnlessTemplateChanged struct{}
 
-func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+func (m useStateForUnknownUnlessTemplateChanged) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
 	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
 		return
 	}
@@ -50,24 +45,12 @@ func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 		return
 	}
 
-	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
-	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
-	topologyStateDefined, diags := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), req)
-
-	resp.Diagnostics.Append(diags...)
-
-	if diags.HasError() {
+	if req.AttributeState.IsNull() {
 		return
 	}
 
-	if !topologyStateDefined {
-		return
-	}
-
-	templateChanged, diags := planmodifier.AttributeChanged(ctx, path.Root("deployment_template_id"), req)
-
+	templateChanged, diags := AttributeChanged(ctx, path.Root("deployment_template_id"), req)
 	resp.Diagnostics.Append(diags...)
-
 	if diags.HasError() {
 		return
 	}
@@ -79,20 +62,10 @@ func (m useTopologyState) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 	resp.AttributePlan = req.AttributeState
 }
 
-func (r useTopologyState) Description(ctx context.Context) string {
+func (r useStateForUnknownUnlessTemplateChanged) Description(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
 }
 
-func (r useTopologyState) MarkdownDescription(ctx context.Context) string {
+func (r useStateForUnknownUnlessTemplateChanged) MarkdownDescription(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
-}
-
-func attributeStateDefined(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
-	var val attr.Value
-
-	if diags := req.State.GetAttribute(ctx, p, &val); diags.HasError() {
-		return false, diags
-	}
-
-	return !val.IsNull() && !val.IsUnknown(), nil
 }

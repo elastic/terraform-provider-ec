@@ -77,7 +77,7 @@ func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.Inte
 	return &payload, diags
 }
 
-func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, template *models.DeploymentTemplateInfoV2) (*models.IntegrationsServerPayload, diag.Diagnostics) {
+func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.IntegrationsServerPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var srv *IntegrationsServerTF
@@ -90,7 +90,7 @@ func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, templat
 		return nil, nil
 	}
 
-	templatePayload := payloadFromTemplate(template)
+	templatePayload := payloadFromUpdate(updateResources)
 
 	if templatePayload == nil {
 		diags.AddError("integrations_server payload error", "integrations_server specified but deployment template is not configured for it. Use a different template if you wish to add integrations_server")
@@ -106,11 +106,11 @@ func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, templat
 	return payload, nil
 }
 
-// payloadFromTemplate returns the IntegrationsServerPayload from a deployment
+// payloadFromUpdate returns the IntegrationsServerPayload from a deployment
 // template or an empty version of the payload.
-func payloadFromTemplate(template *models.DeploymentTemplateInfoV2) *models.IntegrationsServerPayload {
-	if template == nil || len(template.DeploymentTemplate.Resources.IntegrationsServer) == 0 {
+func payloadFromUpdate(updateResources *models.DeploymentUpdateResources) *models.IntegrationsServerPayload {
+	if updateResources == nil || len(updateResources.IntegrationsServer) == 0 {
 		return nil
 	}
-	return template.DeploymentTemplate.Resources.IntegrationsServer[0]
+	return updateResources.IntegrationsServer[0]
 }

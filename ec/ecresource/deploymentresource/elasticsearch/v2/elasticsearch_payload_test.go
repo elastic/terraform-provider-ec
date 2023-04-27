@@ -37,7 +37,7 @@ func Test_writeElasticsearch(t *testing.T) {
 	tplPath := "../../testdata/template-aws-io-optimized-v2.json"
 	tp770 := func() *models.ElasticsearchPayload {
 		return EnrichElasticsearchTemplate(
-			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, tplPath)),
+			payloadFromUpdate(testutil.UpdatePayloadsFromTemplate(t, tplPath)),
 			"aws-io-optimized-v2",
 			"7.7.0",
 			false,
@@ -46,7 +46,7 @@ func Test_writeElasticsearch(t *testing.T) {
 
 	create710 := func() *models.ElasticsearchPayload {
 		return EnrichElasticsearchTemplate(
-			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, tplPath)),
+			payloadFromUpdate(testutil.UpdatePayloadsFromTemplate(t, tplPath)),
 			"aws-io-optimized-v2",
 			"7.10.0",
 			true,
@@ -55,7 +55,7 @@ func Test_writeElasticsearch(t *testing.T) {
 
 	update711 := func() *models.ElasticsearchPayload {
 		return EnrichElasticsearchTemplate(
-			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, tplPath)),
+			payloadFromUpdate(testutil.UpdatePayloadsFromTemplate(t, tplPath)),
 			"aws-io-optimized-v2",
 			"7.11.0",
 			true,
@@ -65,7 +65,7 @@ func Test_writeElasticsearch(t *testing.T) {
 	hotWarmTplPath := "../../testdata/template-aws-hot-warm-v2.json"
 	hotWarmTpl770 := func() *models.ElasticsearchPayload {
 		return EnrichElasticsearchTemplate(
-			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, hotWarmTplPath)),
+			payloadFromUpdate(testutil.UpdatePayloadsFromTemplate(t, hotWarmTplPath)),
 			"aws-io-optimized-v2",
 			"7.7.0",
 			false,
@@ -74,7 +74,7 @@ func Test_writeElasticsearch(t *testing.T) {
 
 	hotWarm7111Tpl := func() *models.ElasticsearchPayload {
 		return EnrichElasticsearchTemplate(
-			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, hotWarmTplPath)),
+			payloadFromUpdate(testutil.UpdatePayloadsFromTemplate(t, hotWarmTplPath)),
 			"aws-io-optimized-v2",
 			"7.11.1",
 			true,
@@ -84,7 +84,7 @@ func Test_writeElasticsearch(t *testing.T) {
 	eceDefaultTplPath := "../../testdata/template-ece-3.0.0-default.json"
 	eceDefaultTpl := func() *models.ElasticsearchPayload {
 		return EnrichElasticsearchTemplate(
-			payloadFromTemplate(testutil.ParseDeploymentTemplate(t, eceDefaultTplPath)),
+			payloadFromUpdate(testutil.UpdatePayloadsFromTemplate(t, eceDefaultTplPath)),
 			"aws-io-optimized-v2",
 			"7.17.3",
 			true,
@@ -92,11 +92,11 @@ func Test_writeElasticsearch(t *testing.T) {
 	}
 
 	type args struct {
-		es           Elasticsearch
-		template     *models.DeploymentTemplateInfoV2
-		templateID   string
-		version      string
-		useNodeRoles bool
+		es             Elasticsearch
+		updatePayloads *models.DeploymentUpdateResources
+		templateID     string
+		version        string
+		useNodeRoles   bool
 	}
 	tests := []struct {
 		name  string
@@ -117,10 +117,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -183,10 +183,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.10.0",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.10.0",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(create710(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -253,10 +253,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						NodeRoles: []string{"a", "b", "c"},
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.11.0",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.11.0",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(update711(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -312,10 +312,10 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -383,10 +383,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-hot-warm-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-hot-warm-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -488,10 +488,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-hot-warm-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-hot-warm-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -581,10 +581,10 @@ func Test_writeElasticsearch(t *testing.T) {
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-hot-warm-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-hot-warm-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -684,10 +684,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						NodeTypeMaster: ec.String("true"),
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-hot-warm-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-hot-warm-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(hotWarmTpl770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -792,10 +792,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						Size: ec.String("2g"),
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.11.1",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.11.1",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -925,10 +925,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						Size: ec.String("2g"),
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.11.1",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.11.1",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1075,10 +1075,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						},
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.11.1",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.11.1",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1239,10 +1239,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						},
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-ece-3.0.0-default.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.17.3",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-ece-3.0.0-default.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.17.3",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(eceDefaultTpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1361,10 +1361,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						},
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.11.1",
-				useNodeRoles: true,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.11.1",
+				useNodeRoles:   true,
 			},
 			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1499,10 +1499,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1576,10 +1576,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1654,10 +1654,10 @@ func Test_writeElasticsearch(t *testing.T) {
 						ZoneCount: 1,
 					},
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1727,10 +1727,10 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Strategy: ec.String("autodetect"),
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1799,10 +1799,10 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Strategy: ec.String("grow_and_shrink"),
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1871,10 +1871,10 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Strategy: ec.String("rolling_grow_and_shrink"),
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
 				Region: ec.String("some-region"),
@@ -1943,10 +1943,10 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Strategy: ec.String("rolling_all"),
 				},
-				template:     testutil.ParseDeploymentTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
-				templateID:   "aws-io-optimized-v2",
-				version:      "7.7.0",
-				useNodeRoles: false,
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
 			},
 
 			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
@@ -2011,7 +2011,7 @@ func Test_writeElasticsearch(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, ElasticsearchSchema().FrameworkType(), &elasticsearch)
 			assert.Nil(t, diags)
 
-			got, diags := ElasticsearchPayload(context.Background(), elasticsearch, tt.args.template, tt.args.templateID, tt.args.version, tt.args.useNodeRoles, false)
+			got, diags := ElasticsearchPayload(context.Background(), elasticsearch, tt.args.updatePayloads, tt.args.templateID, tt.args.version, tt.args.useNodeRoles)
 			if tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {
