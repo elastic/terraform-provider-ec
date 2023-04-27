@@ -31,4 +31,4 @@ data "ec_trafficfilter" "region" {
 * `region` (Optional) - Region where the traffic filter is. For Elastic Cloud Enterprise (ECE) installations, use `"ece-region`.
 
 ## Attributes Reference
-See https://www.elastic.co/guide/en/cloud/current/definitions.html#TrafficFilterRulesets for the API guide
+See the [API guide](https://www.elastic.co/guide/en/cloud/current/definitions.html#TrafficFilterRulesets) for the available fields.
