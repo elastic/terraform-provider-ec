@@ -26,7 +26,7 @@ import (
 
 func ObservabilitySchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional observability settings. Ship logs and metrics to a dedicated deployment.",
+		Description: "Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself by setting observability.deployment_id to `self`.",
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"deployment_id": {

@@ -1,0 +1,64 @@
+---
+page_title: "Elastic Cloud: {{ .Name }} {{ .Type }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Type }}: {{ .Name }}
+
+{{ .Description }}
+
+~> **Note on Elastic Stack versions** Using a version prior to `6.6.0` is not supported.
+
+-> **Note on regions and deployment templates** Before you start, you might want to read about [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html) and check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in Elasticsearch Service (ESS).
+
+-> **Note on Elasticsearch topology IDs** Since the addition of data tiers, each Elasticsearch topology block requires the `"id"` field to be set. The accepted values are set in the deployment template that you have chosen, but values are closely related to the Elasticsearch data tiers. [Learn more abut Elasticsearch data tiers](https://www.elastic.co/guide/en/elasticsearch/reference/current/data-tiers.html). For a complete list of all the supported values, refer to the deployment template definition used by your deployment.
+
+## Example Usage
+
+### Basic
+
+{{ tffile "examples/resources/ec_deployment/basic/deployment.tf" }}
+
+### With config
+
+`es.yaml`
+{{ codefile "yaml" "examples/resources/ec_deployment/with-config/es.yaml" }}
+
+`deployment.tf`:
+{{ tffile "examples/resources/ec_deployment/with-config/deployment.tf" }}
+
+### With autoscaling
+
+{{ tffile "examples/resources/ec_deployment/with-autoscaling/deployment.tf" }}
+
+### With observability
+
+{{ tffile "examples/resources/ec_deployment/with-o11y/deployment.tf" }}
+
+It is possible to enable observability without using a second deployment, by storing the observability data in the current deployment. To enable this, set `deployment_id` to `self`.
+```hcl
+observability = {
+  deployment_id = "self"
+}
+```
+
+### With Çross Cluster Search settings
+
+{{ tffile "examples/resources/ec_deployment/with-ccs/deployment.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+~> **Note on deployment credentials** The `elastic` user credentials are only available whilst creating a deployment. Importing a deployment will not import the `elasticsearch_username` or `elasticsearch_password` attributes.
+
+~> **Note on legacy (pre-slider) deployments** Importing deployments created prior to the addition of sliders in ECE or ESS, without being migrated to use sliders, is not supported.
+
+~> **Note on pre 6.6.0 deployments** Importing deployments with a version lower than `6.6.0` is not supported.
+
+~> **Note on deployments with topology user settings** Only deployments with global user settings (config) are supported. Make sure to migrate to global settings before importing.
+
+Deployments can be imported using the `id`, for example:
+
+{{ codefile "shell" .ImportFile }}

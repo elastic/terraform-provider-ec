@@ -26,7 +26,7 @@ import (
 
 func IntegrationsServerSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional Integrations Server resource definition",
+		Description: "Integrations Server cluster definition. Integrations Server replaces `apm` in Stack versions > 8.0",
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {

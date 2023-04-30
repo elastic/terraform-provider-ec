@@ -34,7 +34,7 @@ func DeploymentSchema() tfsdk.Schema {
 	return tfsdk.Schema{
 		Version: 2,
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Elastic Cloud Deployment resource",
+		MarkdownDescription: "Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.",
 
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
@@ -46,26 +46,29 @@ func DeploymentSchema() tfsdk.Schema {
 				},
 			},
 			"alias": {
-				Type:     types.StringType,
-				Computed: true,
-				Optional: true,
+				Type:        types.StringType,
+				Computed:    true,
+				Optional:    true,
+				Description: "Deployment alias, affects the format of the resource URLs.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
 			},
 			"version": {
-				Type:        types.StringType,
-				Description: "Elastic Stack version to use for all of the deployment resources.",
-				Required:    true,
+				Type: types.StringType,
+				Description: `Elastic Stack version to use for all of the deployment resources.
+
+-> Read the [ESS stack version policy](https://www.elastic.co/guide/en/cloud/current/ec-version-policy.html#ec-version-policy-available) to understand which versions are available.`,
+				Required: true,
 			},
 			"region": {
 				Type:        types.StringType,
-				Description: `Region when the deployment should be hosted. For ECE environments this should be set to "ece-region".`,
+				Description: "Elasticsearch Service (ESS) region where the deployment should be hosted. For Elastic Cloud Enterprise (ECE) installations, set to `\"ece-region\".",
 				Required:    true,
 			},
 			"deployment_template_id": {
 				Type:        types.StringType,
-				Description: "Deployment Template identifier to base the deployment from.",
+				Description: "Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.",
 				Required:    true,
 			},
 			"name": {
@@ -75,7 +78,7 @@ func DeploymentSchema() tfsdk.Schema {
 			},
 			"request_id": {
 				Type:        types.StringType,
-				Description: "request_id to set on the create operation, only used when a previous create attempt returns an error including a request_id.",
+				Description: "Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
@@ -91,10 +94,12 @@ func DeploymentSchema() tfsdk.Schema {
 				},
 			},
 			"elasticsearch_password": {
-				Type:        types.StringType,
-				Description: "Password for authenticating to the Elasticsearch resource.",
-				Computed:    true,
-				Sensitive:   true,
+				Type: types.StringType,
+				Description: `Password for authenticating to the Elasticsearch resource.
+
+~> **Note on deployment credentials** The <code>elastic</code> user credentials are only available whilst creating a deployment. Importing a deployment will not import the <code>elasticsearch_username</code> or <code>elasticsearch_password</code> attributes.`,
+				Computed:  true,
+				Sensitive: true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
@@ -109,7 +114,7 @@ func DeploymentSchema() tfsdk.Schema {
 					ElemType: types.StringType,
 				},
 				Optional:    true,
-				Description: "Optional list of traffic filters to apply to this deployment.",
+				Description: `List of traffic filters rule identifiers that will be applied to the deployment.`,
 			},
 			"tags": {
 				Description: "Optional map of deployment tags",

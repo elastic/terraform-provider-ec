@@ -1,18 +1,3 @@
-terraform {
-  # The Elastic Cloud provider is supported from ">=0.12"
-  # Version later than 0.12.29 is required for this terraform block to work.
-  required_version = ">= 1.0"
-
-  required_providers {
-    ec = {
-      source  = "elastic/ec"
-      version = "0.7.0"
-    }
-  }
-}
-
-provider "ec" {}
-
 # Retrieve the latest stack pack version
 data "ec_stack" "latest" {
   version_regex = "latest"
@@ -29,22 +14,14 @@ resource "ec_deployment" "example_minimal" {
   deployment_template_id = "aws-io-optimized-v2"
 
   elasticsearch = {
-
     hot = {
       autoscaling = {}
-    }
-    config = {
-      user_settings_yaml = file("./es_settings.yaml")
     }
   }
 
   kibana = {}
 
-  enterprise_search = {
-    zone_count = 1
-  }
+  enterprise_search = {}
 
-  apm = {
-    size = "0.5g"
-  }
+  integrations_server = {}
 }
