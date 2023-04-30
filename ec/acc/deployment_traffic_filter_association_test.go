@@ -43,10 +43,7 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Expects a non-empty plan since "ec_deployment.traffic_filter"
-				// will have changes due to the traffic filter association.
-				ExpectNonEmptyPlan: true,
-				Config:             cfg,
+				Config: cfg,
 				Check: checkBasicDeploymentTrafficFilterAssociationResource(
 					resName, resAssocName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
@@ -56,10 +53,7 @@ func TestAccDeploymentTrafficFilterAssociation_basic(t *testing.T) {
 				),
 			},
 			{
-				// Expects a non-empty plan since "ec_deployment.traffic_filter"
-				// will have changes due to the traffic filter association.
-				ExpectNonEmptyPlan: true,
-				Config:             updateConfigCfg,
+				Config: updateConfigCfg,
 				Check: checkBasicDeploymentTrafficFilterAssociationResource(
 					resNameSecond, resAssocName, randomNameSecond,
 					resource.TestCheckResourceAttr(resNameSecond, "include_by_default", "false"),
@@ -94,10 +88,7 @@ func TestAccDeploymentTrafficFilterAssociation_UpgradeFrom0_4_1(t *testing.T) {
 						Source:            "elastic/ec",
 					},
 				},
-				// Expects a non-empty plan since "ec_deployment.traffic_filter"
-				// will have changes due to the traffic filter association.
-				ExpectNonEmptyPlan: true,
-				Config:             cfg,
+				Config: cfg,
 				Check: checkBasicDeploymentTrafficFilterAssociationResource(
 					resName, resAssocName, randomName,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
