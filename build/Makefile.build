@@ -30,3 +30,7 @@ install: build
 	@ mkdir -p $(shell dirname $(PLUGIN_LOCATION)/$(PLUGIN_0.13))
 	@ cp $(BINARY_LOCATION) $(PLUGIN_LOCATION)/$(PLUGIN_0.13)
 	@ echo "-> Copied terraform provider to $(PLUGIN_LOCATION)/$(PLUGIN_0.13)"
+
+.PHONY: docs-generate
+docs-generate: tools ## Generate documentation for the provider
+	@ $(GOBIN)/tfplugindocs

@@ -9,6 +9,7 @@ VERSION_GOLANGCILINT:=v1.50.0
 VERSION_GORELEASER:=v1.15.2
 VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 VERSION_VERSIONBUMP:=v1.1.0
+VERSION_TFPLUGINDOCS:=v0.14.1
 
 deps: $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
 
@@ -59,3 +60,11 @@ $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP): | $(VERSION_DIR)
 $(GOBIN)/versionbump: $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP) | $(GOBIN)
 	@ echo "-> Installing versionbump..."
 	@ go install github.com/crosseyed/versionbump/cmd/versionbump@$(VERSION_VERSIONBUMP)
+
+$(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-tfplugindocs-*
+	@ echo $(VERSION_TFPLUGINDOCS) > $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS)
+
+$(GOBIN)/tfplugindocs: $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS) | $(GOBIN)
+	@ echo "-> Installing tfplugindocs..."
+	@ go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(VERSION_TFPLUGINDOCS)
