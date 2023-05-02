@@ -29,7 +29,7 @@ import (
 // This test creates a resource of type traffic filter with the randomName
 // then it creates a data source that queries for this traffic filter by the id
 func TestAccDatasource_trafficfilter(t *testing.T) {
-	datasourceName := "data.ec_trafficfilter.name"
+	datasourceName := "data.ec_traffic_filter.name"
 	depCfg := "testdata/datasource_trafficfilter.tf"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	cfg := fixtureAccTrafficFilterDataSource(t, depCfg, randomName, getRegion())

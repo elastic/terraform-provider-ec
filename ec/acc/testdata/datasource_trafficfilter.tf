@@ -8,6 +8,6 @@ resource "ec_deployment_traffic_filter" "basic" {
   }
 }
 
-data "ec_trafficfilter" "name" {
+data "ec_traffic_filter" "name" {
   id = ec_deployment_traffic_filter.basic.id
 }
