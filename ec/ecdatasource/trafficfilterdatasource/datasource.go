@@ -42,20 +42,21 @@ var _ datasource.DataSourceWithConfigure = &DataSource{}
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: "Use this data source to filter for an existing traffic filter that has been created via one of the provided filters.",
 		Attributes: map[string]tfsdk.Attribute{
 			"name": {
 				Type:        types.StringType,
-				Description: "The name we are filtering on.",
+				Description: "The exact name of the traffic filter to select.",
 				Optional:    true,
 			},
 			"id": {
 				Type:        types.StringType,
-				Description: "The id we are filtering on.",
+				Description: "The id of the traffic filter to select.",
 				Optional:    true,
 			},
 			"region": {
 				Type:        types.StringType,
-				Description: "The region we are filtering on.",
+				Description: "Region where the traffic filter is. For Elastic Cloud Enterprise (ECE) installations, use `ece-region`",
 				Optional:    true,
 			},
 
@@ -163,7 +164,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 }
 
 func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
-	response.TypeName = request.ProviderTypeName + "_trafficfilter"
+	response.TypeName = request.ProviderTypeName + "_traffic_filter"
 }
 
 func (d *DataSource) Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse) {
