@@ -24,13 +24,13 @@ jobs:
           go-version: 1.19
         id: go
 
-      - run: make changelog vendor
+      - run: make docs-generate changelog vendor
       - name: Commit & Push changes
         run: |
           if [[ ! -z  $(git status --porcelain) ]]; then
             git config --local user.email elasticcloudclients@elastic.co
             git config --local user.name elasticcloudclients
-            git add CHANGELOG.md NOTICE
-            git commit -m "Update CHANGELOG.md and NOTICE"
+            git add docs/ CHANGELOG.md NOTICE
+            git commit -m "Update documentation, CHANGELOG.md, and NOTICE"
             git push
           fi
