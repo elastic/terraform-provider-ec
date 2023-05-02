@@ -1,0 +1,31 @@
+---
+page_title: "Elastic Cloud: {{ .Name }} {{ .Type }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Type }}: {{ .Name }}
+
+{{ .Description }}
+
+## Example Usage
+
+### IP based traffic filter
+
+{{ tffile "examples/resources/ec_deployment_traffic_filter/ip/resource.tf" }}
+
+### Azure Private Link traffic filter
+
+{{ tffile "examples/resources/ec_deployment_traffic_filter/azure/resource.tf" }}
+
+###GCP Private Service Connect traffic filter
+
+{{ tffile "examples/resources/ec_deployment_traffic_filter/gcp/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Traffic filters can be imported using the `id`, for example:
+
+{{ codefile "shell" .ImportFile }}

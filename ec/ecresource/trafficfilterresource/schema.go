@@ -40,6 +40,7 @@ var _ resource.ResourceWithImportState = &Resource{}
 
 func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: `Provides an Elastic Cloud traffic filter resource, which allows traffic filter rules to be created, updated, and deleted. Traffic filter rules are used to limit inbound traffic to deployment resources.`,
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:                types.StringType,
@@ -51,22 +52,22 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 			},
 			"name": {
 				Type:        types.StringType,
-				Description: "Required name of the ruleset",
+				Description: "Name of the ruleset",
 				Required:    true,
 			},
 			"type": {
 				Type:        types.StringType,
-				Description: `Required type of the ruleset ("ip", "vpce" or "azure_private_endpoint")`,
+				Description: "Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, or `gcp_private_service_connect_endpoint`",
 				Required:    true,
 			},
 			"region": {
 				Type:        types.StringType,
-				Description: "Required filter region, the ruleset can only be attached to deployments in the specific region",
+				Description: "Filter region, the ruleset can only be attached to deployments in the specific region",
 				Required:    true,
 			},
 			"include_by_default": {
 				Type:        types.BoolType,
-				Description: "Should the ruleset be automatically included in the new deployments (Defaults to false)",
+				Description: "Indicates that the ruleset should be automatically included in new deployments (Defaults to false)",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -75,7 +76,7 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 			},
 			"description": {
 				Type:        types.StringType,
-				Description: "Optional ruleset description",
+				Description: "Ruleset description",
 				Optional:    true,
 			},
 		},
@@ -87,28 +88,28 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 
 func trafficFilterRuleSchema() tfsdk.Block {
 	return tfsdk.Block{
-		Description: "Required set of rules, which the ruleset is made of.",
+		Description: "Set of rules, which the ruleset is made of.",
 		NestingMode: tfsdk.BlockNestingModeSet,
 		MinItems:    1,
 		Attributes: map[string]tfsdk.Attribute{
 			"source": {
 				Type:        types.StringType,
-				Description: "Optional traffic filter source: IP address, CIDR mask, or VPC endpoint ID, not required when the type is azure_private_endpoint",
+				Description: "Traffic filter source: IP address, CIDR mask, or VPC endpoint ID, **only required** when the type is not `azure_private_endpoint`",
 				Optional:    true,
 			},
 			"description": {
 				Type:        types.StringType,
-				Description: "Optional rule description",
+				Description: "Description of this individual rule",
 				Optional:    true,
 			},
 			"azure_endpoint_name": {
 				Type:        types.StringType,
-				Description: "Optional Azure endpoint name",
+				Description: "Azure endpoint name. Only applicable when the ruleset type is set to `azure_private_endpoint`",
 				Optional:    true,
 			},
 			"azure_endpoint_guid": {
 				Type:        types.StringType,
-				Description: "Optional Azure endpoint GUID",
+				Description: "Azure endpoint GUID. Only applicable when the ruleset type is set to `azure_private_endpoint`",
 				Optional:    true,
 			},
 			"id": {
