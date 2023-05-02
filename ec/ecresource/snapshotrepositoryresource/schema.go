@@ -42,7 +42,7 @@ func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
 	return tfsdk.Schema{
 		Description: `Manages Elastic Cloud Enterprise snapshot repositories.
 
-~> **This resource can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
+  ~> **This resource can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:                types.StringType,
