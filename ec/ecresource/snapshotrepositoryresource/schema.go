@@ -40,6 +40,9 @@ var _ resource.ResourceWithConfigValidators = &Resource{}
 
 func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: `Manages Elastic Cloud Enterprise snapshot repositories.
+
+~> **This resource can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:                types.StringType,
@@ -75,7 +78,7 @@ func s3Schema() tfsdk.Attribute {
 			},
 			"bucket": {
 				Type:        types.StringType,
-				Description: "(Required) Name of the S3 bucket to use for snapshots.",
+				Description: "Name of the S3 bucket to use for snapshots.",
 				Required:    true,
 			},
 			"access_key": {
@@ -123,12 +126,12 @@ func genericSchema() tfsdk.Attribute {
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"type": {
 				Type:        types.StringType,
-				Description: "(Required) Repository type",
+				Description: "Repository type",
 				Required:    true,
 			},
 			"settings": {
 				Type:        types.StringType,
-				Description: "(Required) An arbitrary JSON object containing the repository settings.",
+				Description: "An arbitrary JSON object containing the repository settings.",
 				Required:    true,
 			},
 		}),
