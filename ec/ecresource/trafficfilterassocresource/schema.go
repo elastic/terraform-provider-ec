@@ -39,6 +39,7 @@ const entityTypeDeployment = "deployment"
 
 func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: `Provides an Elastic Cloud traffic filter association resource, which allows traffic filter rules to be associated to an Elastic Cloud deployment outside of the control of Terraform. Associations can be created and deleted.`,
 		Attributes: map[string]tfsdk.Attribute{
 			"deployment_id": {
 				Type:        types.StringType,
