@@ -1,0 +1,27 @@
+---
+page_title: "Elastic Cloud: {{ .Name }} {{ .Type }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Type }}: {{ .Name }}
+
+{{ .Description }}
+
+## Example Usage
+
+### With extension file
+
+{{ tffile "examples/resources/ec_deployment_extension/with-file/resource.tf" }}
+
+### With download URL
+
+{{ tffile "examples/resources/ec_deployment_extension/with-url/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Extensions can be imported using the `id`, for example:
+
+{{ codefile "shell" .ImportFile }}
