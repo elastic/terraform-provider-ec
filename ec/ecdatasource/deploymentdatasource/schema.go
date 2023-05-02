@@ -27,6 +27,7 @@ import (
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: "Use this data source to retrieve information about an existing Elastic Cloud deployment.",
 		Attributes: map[string]tfsdk.Attribute{
 			"alias": {
 				Type:        types.StringType,
