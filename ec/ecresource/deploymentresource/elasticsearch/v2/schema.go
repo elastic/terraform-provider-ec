@@ -264,7 +264,7 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 
 func elasticsearchSnapshotSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: `(ECE only) Optional snapshot configuration settings for an Elasticsearch cluster.
+		Description: `(ECE only) Snapshot configuration settings for an Elasticsearch cluster.
 
 For ESS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
 		Optional: true,

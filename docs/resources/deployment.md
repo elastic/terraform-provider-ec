@@ -8,11 +8,11 @@ description: |-
 
 Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.
 
+~> **Note on traffic filters** If you use `traffic_filter` on an `ec_deployment`, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, `traffic_filter` cannot be mixed with the `ec_deployment_traffic_filter_association` resource for a given deployment.
+
 ~> **Note on Elastic Stack versions** Using a version prior to `6.6.0` is not supported.
 
--> **Note on regions and deployment templates** Before you start, you might want to read about [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html) and check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in Elasticsearch Service (ESS).
-
--> **Note on Elasticsearch topology IDs** Since the addition of data tiers, each Elasticsearch topology block requires the `"id"` field to be set. The accepted values are set in the deployment template that you have chosen, but values are closely related to the Elasticsearch data tiers. [Learn more abut Elasticsearch data tiers](https://www.elastic.co/guide/en/elasticsearch/reference/current/data-tiers.html). For a complete list of all the supported values, refer to the deployment template definition used by your deployment.
+~> **Note on regions and deployment templates** Before you start, you might want to read about [Elastic Cloud deployments](https://www.elastic.co/guide/en/cloud/current/ec-create-deployment.html) and check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in Elasticsearch Service (ESS).
 
 ## Example Usage
 
@@ -297,7 +297,7 @@ Optional:
 - `ml` (Attributes) 'ml' topology element (see [below for nested schema](#nestedatt--elasticsearch--ml))
 - `ref_id` (String) A human readable reference for the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
 - `remote_cluster` (Attributes Set) Optional Elasticsearch remote clusters to configure for the Elasticsearch resource, can be set multiple times (see [below for nested schema](#nestedatt--elasticsearch--remote_cluster))
-- `snapshot` (Attributes) (ECE only) Optional snapshot configuration settings for an Elasticsearch cluster.
+- `snapshot` (Attributes) (ECE only) Snapshot configuration settings for an Elasticsearch cluster.
 
 For ESS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest). (see [below for nested schema](#nestedatt--elasticsearch--snapshot))
 - `snapshot_source` (Attributes) Restores data from a snapshot of another deployment.

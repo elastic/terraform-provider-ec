@@ -40,7 +40,9 @@ var _ resource.ResourceWithImportState = &Resource{}
 
 func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: `Provides an Elastic Cloud traffic filter resource, which allows traffic filter rules to be created, updated, and deleted. Traffic filter rules are used to limit inbound traffic to deployment resources.`,
+		Description: `Provides an Elastic Cloud traffic filter resource, which allows traffic filter rules to be created, updated, and deleted. Traffic filter rules are used to limit inbound traffic to deployment resources.
+
+  ~> **Note on traffic filters** If you use traffic_filter on an ec_deployment, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, traffic_filter cannot be mixed with the ec_deployment_traffic_filter_association resource for a given deployment.`,
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:                types.StringType,
