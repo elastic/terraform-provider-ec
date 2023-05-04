@@ -32,6 +32,7 @@ import (
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: "Use this data source to retrieve a list of IDs for the deployment and resource kinds, based on the specified query.",
 		Attributes: map[string]tfsdk.Attribute{
 			"name_prefix": {
 				Type:        types.StringType,
@@ -172,16 +173,19 @@ func resourceFiltersSchema(resourceKind util.ResourceKind) tfsdk.Block {
 		NestingMode: tfsdk.BlockNestingModeList,
 		Attributes: map[string]tfsdk.Attribute{
 			"healthy": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:        types.StringType,
+				Optional:    true,
+				Description: "Overall health status of the resource instances.",
 			},
 			"status": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:        types.StringType,
+				Optional:    true,
+				Description: "Resource kind status. Can be one of `initializing`, `stopping`, `stopped`, `rebooting`, `restarting`.",
 			},
 			"version": {
-				Type:     types.StringType,
-				Optional: true,
+				Type:        types.StringType,
+				Optional:    true,
+				Description: "Elastic stack version.",
 			},
 		},
 	}

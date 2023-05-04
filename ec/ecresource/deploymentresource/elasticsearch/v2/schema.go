@@ -46,12 +46,12 @@ var strategiesList = []string{
 
 func ElasticsearchSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Required Elasticsearch resource definition",
+		Description: "Elasticsearch cluster definition",
 		Required:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"autoscale": {
 				Type:        types.BoolType,
-				Description: `Enable or disable autoscaling. Defaults to the setting coming from the deployment template. Accepted values are "true" or "false".`,
+				Description: `Enable or disable autoscaling. Defaults to the setting coming from the deployment template.`,
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
@@ -60,7 +60,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 			},
 			"ref_id": {
 				Type:        types.StringType,
-				Description: "Optional ref_id to set on the Elasticsearch resource",
+				Description: "A human readable reference for the Elasticsearch resource. The default value `main-elasticsearch` is recommended.",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -130,12 +130,12 @@ func ElasticsearchSchema() tfsdk.Attribute {
 
 func elasticsearchConfigSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: `Optional Elasticsearch settings which will be applied to all topologies`,
+		Description: `Elasticsearch settings which will be applied to all topologies`,
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"docker_image": {
 				Type:        types.StringType,
-				Description: "Optionally override the docker image the Elasticsearch nodes will use. Note that this field will only work for internal users only.",
+				Description: "Overrides the docker image the Elasticsearch nodes will use. Note that this field will only work for internal users only.",
 				Optional:    true,
 			},
 			"plugins": {
@@ -264,9 +264,11 @@ func ElasticsearchRemoteClusterSchema() tfsdk.Attribute {
 
 func elasticsearchSnapshotSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "(Elastic Cloud Enterprise only) Optional snapshot configuration settings for an Elasticsearch cluster.",
-		Optional:    true,
-		Computed:    true,
+		Description: `(ECE only) Snapshot configuration settings for an Elasticsearch cluster.
+
+For ESS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
+		Optional: true,
+		Computed: true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"enabled": {
 				Description: "Indicates if Snapshotting is enabled.",
@@ -314,8 +316,10 @@ func elasticsearchSnapshotRepositoryReferenceSchema() tfsdk.Attribute {
 
 func elasticsearchSnapshotSourceSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional snapshot source settings. Restore data from a snapshot of another deployment.",
-		Optional:    true,
+		Description: `Restores data from a snapshot of another deployment.
+
+~> **Note on behavior** The <code>snapshot_source</code> block will not be saved in the Terraform state due to its transient nature. This means that whenever the <code>snapshot_source</code> block is set, a snapshot will **always be restored**, unless removed before running <code>terraform apply</code>.`,
+		Optional: true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"source_elasticsearch_cluster_id": {
 				Description: "ID of the Elasticsearch cluster that will be used as the source of the snapshot",

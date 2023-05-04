@@ -4,7 +4,7 @@ VERSION_TERRAFMT:=v0.5.2
 VERSION_TFPROVIDERLINT:=v0.28.1
 
 ## Installs the required static checks for terraform.
-tools: $(GOBIN)/tfproviderdocs $(GOBIN)/terrafmt $(GOBIN)/tfproviderlint
+tools: $(GOBIN)/tfproviderdocs $(GOBIN)/terrafmt $(GOBIN)/tfproviderlint $(GOBIN)/tfplugindocs
 
 
 $(VERSION_DIR)/.version-tfproviderdocs-$(VERSION_TFPROVIDERDOCS): | $(VERSION_DIR)

@@ -69,7 +69,7 @@ func ApmConfigSchema() tfsdk.Attribute {
 
 func ApmSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional APM resource definition",
+		Description: "**DEPRECATED** APM cluster definition. This should only be used for deployments running a version lower than 8.0",
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {

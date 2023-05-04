@@ -26,7 +26,7 @@ import (
 
 func EnterpriseSearchSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional Enterprise Search resource definition",
+		Description: "Enterprise Search cluster definition.",
 		Optional:    true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {

@@ -41,15 +41,22 @@ var _ resource.ResourceWithConfigValidators = &Resource{}
 
 func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: `
+  Provides an Elastic Cloud extension resource, which allows extensions to be created, updated, and deleted.
+
+  Extensions allow users of Elastic Cloud to use custom plugins, scripts, or dictionaries to enhance the core functionality of Elasticsearch. Before you install an extension, be sure to check out the supported and official [Elasticsearch plugins](https://www.elastic.co/guide/en/elasticsearch/plugins/current/index.html) already available.
+
+  **Tip :** If you experience timeouts when uploading an extension through a slow network, you might need to increase the [timeout setting](https://registry.terraform.io/providers/elastic/ec/latest/docs#timeout).
+`,
 		Attributes: map[string]tfsdk.Attribute{
 			"name": {
 				Type:        types.StringType,
-				Description: "Required name of the ruleset",
+				Description: "Name of the extension",
 				Required:    true,
 			},
 			"description": {
 				Type:        types.StringType,
-				Description: "Description for extension",
+				Description: "Description for the extension",
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -57,17 +64,17 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 				}},
 			"extension_type": {
 				Type:        types.StringType,
-				Description: "Extension type. bundle or plugin",
+				Description: "Extension type. Must be `bundle` or `plugin`. A `bundle` will usually contain a dictionary or script, where a `plugin` is compiled from source.",
 				Required:    true,
 			},
 			"version": {
 				Type:        types.StringType,
-				Description: "Elasticsearch version",
+				Description: "Elastic stack version. A full version (e.g 8.7.0) should be set for plugins. A wildcard (e.g 8.*) may be used for bundles.",
 				Required:    true,
 			},
 			"download_url": {
 				Type:        types.StringType,
-				Description: "download url",
+				Description: "The URL to download the extension archive.",
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -78,27 +85,27 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 			// Uploading file via API
 			"file_path": {
 				Type:        types.StringType,
-				Description: "file path",
+				Description: "Local file path to upload as the extension.",
 				Optional:    true,
 			},
 			"file_hash": {
 				Type:        types.StringType,
-				Description: "file hash",
+				Description: "Hash value of the file. Triggers re-uploading the file on change.",
 				Optional:    true,
 			},
 			"url": {
 				Type:        types.StringType,
-				Description: "",
+				Description: "The extension URL which will be used in the Elastic Cloud deployment plan.",
 				Computed:    true,
 			},
 			"last_modified": {
 				Type:        types.StringType,
-				Description: "",
+				Description: "The datatime the extension was last modified.",
 				Computed:    true,
 			},
 			"size": {
 				Type:        types.Int64Type,
-				Description: "",
+				Description: "The size of the extension file in bytes.",
 				Computed:    true,
 			},
 			// Computed attributes

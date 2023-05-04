@@ -26,8 +26,10 @@ import (
 
 func KibanaSchema() tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Description: "Optional Kibana resource definition",
-		Optional:    true,
+		Description: `Kibana cluster definition.
+
+-> **Note on disabling Kibana** While optional it is recommended deployments specify a Kibana block, since not doing so might cause issues when modifying or upgrading the deployment.`,
+		Optional: true,
 		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
 			"elasticsearch_cluster_ref_id": {
 				Type: types.StringType,

@@ -31,18 +31,24 @@ import (
 
 func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: `Use this data source to retrieve information about an existing Elastic Cloud stack.
+
+  -> **Note on regions** Before you start, you might want to check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions available in Elasticsearch Service (ESS).`,
 		Attributes: map[string]tfsdk.Attribute{
 			"version_regex": {
-				Type:     types.StringType,
-				Required: true,
+				Type:        types.StringType,
+				Required:    true,
+				Description: "Regex to filter the available stacks. Can be any valid regex expression, when multiple stacks are matched through a regex, the latest version is returned. `latest` is also accepted to obtain the latest available stack version.",
 			},
 			"region": {
-				Type:     types.StringType,
-				Required: true,
+				Type:        types.StringType,
+				Required:    true,
+				Description: "Region where the stack pack is. For Elastic Cloud Enterprise (ECE) installations, use `ece-region`.",
 			},
 			"lock": {
-				Type:     types.BoolType,
-				Optional: true,
+				Type:        types.BoolType,
+				Optional:    true,
+				Description: "Lock the `latest` `version_regex` obtained, so that the new stack release doesn't cascade the changes down to the deployments. It can be changed at any time.",
 			},
 
 			// Computed attributes
@@ -52,24 +58,29 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 				MarkdownDescription: "Unique identifier of this data source.",
 			},
 			"version": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:        types.StringType,
+				Computed:    true,
+				Description: "The stack version",
 			},
 			"accessible": {
-				Type:     types.BoolType,
-				Computed: true,
+				Type:        types.BoolType,
+				Computed:    true,
+				Description: "To have this version accessible/not accessible by the calling user. This is only relevant for Elasticsearch Service (ESS), not for ECE.",
 			},
 			"min_upgradable_from": {
-				Type:     types.StringType,
-				Computed: true,
+				Type:        types.StringType,
+				Computed:    true,
+				Description: "The minimum stack version which can be upgraded to this stack version.",
 			},
 			"upgradable_to": {
-				Type:     types.ListType{ElemType: types.StringType},
-				Computed: true,
+				Type:        types.ListType{ElemType: types.StringType},
+				Computed:    true,
+				Description: "A list of stack versions which this stack version can be upgraded to.",
 			},
 			"allowlisted": {
-				Type:     types.BoolType,
-				Computed: true,
+				Type:        types.BoolType,
+				Computed:    true,
+				Description: "To include/not include this version in the `allowlist`. This is only relevant for Elasticsearch Service (ESS), not for ECE.",
 			},
 			"apm":               resourceKindConfigSchema(util.ApmResourceKind),
 			"enterprise_search": resourceKindConfigSchema(util.EnterpriseSearchResourceKind),
