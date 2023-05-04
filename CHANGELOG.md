@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 
 * Add resource ec_snapshot_repository for usage with Elastic Cloud Enterprise. ([#613](https://github.com/elastic/terraform-provider-ec/issues/613))
+* data-source/traffic_filter: Add `ec_traffic_filter` data source. ([#619](https://github.com/elastic/terraform-provider-ec/issues/619))
+* resource/deployment: Ignore stopped resources when calculating the deployment version. ([#623](https://github.com/elastic/terraform-provider-ec/issues/623))
 * resource/ec_deployment: Add snapshot settings (for usage with Elastic Cloud Enterprise only). ([#620](https://github.com/elastic/terraform-provider-ec/issues/620))
 * resource/ec_deployment: Support the template migration api when changing deployment_template_id. ([#625](https://github.com/elastic/terraform-provider-ec/issues/625))
 
