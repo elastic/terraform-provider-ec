@@ -1,0 +1,3 @@
+```release-note:enhancement
+ resource/deployment: Ignore stopped resources when calculating the deployment version.
+ ```
