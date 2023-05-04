@@ -1,3 +1,0 @@
-```release-note:enhancement
-Add resource ec_snapshot_repository for usage with Elastic Cloud Enterprise.
-```

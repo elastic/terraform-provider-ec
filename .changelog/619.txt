@@ -1,3 +1,0 @@
-```release-note:enhancement
- data-source/traffic_filter: Add `ec_traffic_filter` data source.
- ```

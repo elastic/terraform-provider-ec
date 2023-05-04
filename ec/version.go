@@ -18,4 +18,4 @@
 package ec
 
 // Version contains the current terraform provider version.
-const Version = "0.7.0-dev"
+const Version = "0.8.0-dev"

@@ -1,3 +1,0 @@
-```release-note:enhancement
- resource/ec_deployment: Support the template migration api when changing deployment_template_id.
- ```
