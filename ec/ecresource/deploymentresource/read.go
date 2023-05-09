@@ -153,17 +153,12 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		return nil, diags
 	}
 
-	if deployment.TrafficFilter == nil {
-		diags.Append(base.TrafficFilter.ElementsAs(ctx, &deployment.TrafficFilter, true)...)
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
 	deployment.RequestId = base.RequestId.Value
 	if !base.ResetElasticsearchPassword.IsNull() && !base.ResetElasticsearchPassword.IsUnknown() {
 		deployment.ResetElasticsearchPassword = &base.ResetElasticsearchPassword.Value
 	}
+
+	diags.Append(deployment.HandleEmptyTrafficFilters(ctx, base)...)
 
 	deployment.SetCredentialsIfEmpty(state)
 
