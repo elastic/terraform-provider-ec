@@ -772,6 +772,7 @@ Optional:
 
 Read-Only:
 
+- `endpoints` (Object) URLs for the accessing the Fleet and APM API's within this Integrations Server resource. (see [below for nested schema](#nestedatt--integrations_server--endpoints))
 - `http_endpoint` (String)
 - `https_endpoint` (String)
 - `region` (String)
@@ -788,6 +789,15 @@ Optional:
 - `user_settings_override_json` (String) An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
 - `user_settings_override_yaml` (String) An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
 - `user_settings_yaml` (String) An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
+
+
+<a id="nestedatt--integrations_server--endpoints"></a>
+### Nested Schema for `integrations_server.endpoints`
+
+Optional:
+
+- `apm` (String)
+- `fleet` (String)
 
 
 
