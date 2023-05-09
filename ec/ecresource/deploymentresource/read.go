@@ -154,6 +154,9 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	}
 
 	deployment.RequestId = base.RequestId.Value
+	if !base.ResetElasticsearchPassword.IsNull() && !base.ResetElasticsearchPassword.IsUnknown() {
+		deployment.ResetElasticsearchPassword = &base.ResetElasticsearchPassword.Value
+	}
 
 	deployment.SetCredentialsIfEmpty(state)
 

@@ -18,6 +18,9 @@
 package v2
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -102,6 +105,7 @@ func DeploymentSchema() tfsdk.Schema {
 				Sensitive: true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
+					setUnknownIfResetPasswordIsTrue{},
 				},
 			},
 			"apm_secret_token": {
@@ -123,6 +127,11 @@ func DeploymentSchema() tfsdk.Schema {
 				},
 				Optional: true,
 			},
+			"reset_elasticsearch_password": {
+				Description: "Explicitly resets the elasticsearch_password when true",
+				Type:        types.BoolType,
+				Optional:    true,
+			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
 			"kibana":              kibanav2.KibanaSchema(),
 			"apm":                 apmv2.ApmSchema(),
@@ -130,5 +139,40 @@ func DeploymentSchema() tfsdk.Schema {
 			"enterprise_search":   enterprisesearchv2.EnterpriseSearchSchema(),
 			"observability":       observabilityv2.ObservabilitySchema(),
 		},
+	}
+}
+
+type setUnknownIfResetPasswordIsTrue struct{}
+
+var _ tfsdk.AttributePlanModifier = setUnknownIfResetPasswordIsTrue{}
+
+func (m setUnknownIfResetPasswordIsTrue) Description(ctx context.Context) string {
+	return m.MarkdownDescription(ctx)
+}
+
+func (m setUnknownIfResetPasswordIsTrue) MarkdownDescription(ctx context.Context) string {
+	return "Sets the planned value to unknown if the reset_elasticsearch_password config value is true"
+}
+
+func (m setUnknownIfResetPasswordIsTrue) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
+	if resp.AttributePlan == nil || req.AttributeConfig == nil {
+		return
+	}
+
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	if req.AttributeConfig.IsUnknown() {
+		return
+	}
+
+	var isResetting *bool
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("reset_elasticsearch_password"), &isResetting)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if isResetting != nil && *isResetting {
+		planVal := resp.AttributePlan.(types.String)
+		planVal.Unknown = true
+		resp.AttributePlan = planVal
 	}
 }

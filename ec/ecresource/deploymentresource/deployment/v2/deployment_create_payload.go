@@ -38,24 +38,25 @@ import (
 )
 
 type DeploymentTF struct {
-	Id                    types.String `tfsdk:"id"`
-	Alias                 types.String `tfsdk:"alias"`
-	Version               types.String `tfsdk:"version"`
-	Region                types.String `tfsdk:"region"`
-	DeploymentTemplateId  types.String `tfsdk:"deployment_template_id"`
-	Name                  types.String `tfsdk:"name"`
-	RequestId             types.String `tfsdk:"request_id"`
-	ElasticsearchUsername types.String `tfsdk:"elasticsearch_username"`
-	ElasticsearchPassword types.String `tfsdk:"elasticsearch_password"`
-	ApmSecretToken        types.String `tfsdk:"apm_secret_token"`
-	TrafficFilter         types.Set    `tfsdk:"traffic_filter"`
-	Tags                  types.Map    `tfsdk:"tags"`
-	Elasticsearch         types.Object `tfsdk:"elasticsearch"`
-	Kibana                types.Object `tfsdk:"kibana"`
-	Apm                   types.Object `tfsdk:"apm"`
-	IntegrationsServer    types.Object `tfsdk:"integrations_server"`
-	EnterpriseSearch      types.Object `tfsdk:"enterprise_search"`
-	Observability         types.Object `tfsdk:"observability"`
+	Id                         types.String `tfsdk:"id"`
+	Alias                      types.String `tfsdk:"alias"`
+	Version                    types.String `tfsdk:"version"`
+	Region                     types.String `tfsdk:"region"`
+	DeploymentTemplateId       types.String `tfsdk:"deployment_template_id"`
+	Name                       types.String `tfsdk:"name"`
+	RequestId                  types.String `tfsdk:"request_id"`
+	ElasticsearchUsername      types.String `tfsdk:"elasticsearch_username"`
+	ElasticsearchPassword      types.String `tfsdk:"elasticsearch_password"`
+	ApmSecretToken             types.String `tfsdk:"apm_secret_token"`
+	TrafficFilter              types.Set    `tfsdk:"traffic_filter"`
+	Tags                       types.Map    `tfsdk:"tags"`
+	Elasticsearch              types.Object `tfsdk:"elasticsearch"`
+	Kibana                     types.Object `tfsdk:"kibana"`
+	Apm                        types.Object `tfsdk:"apm"`
+	IntegrationsServer         types.Object `tfsdk:"integrations_server"`
+	EnterpriseSearch           types.Object `tfsdk:"enterprise_search"`
+	Observability              types.Object `tfsdk:"observability"`
+	ResetElasticsearchPassword types.Bool   `tfsdk:"reset_elasticsearch_password"`
 }
 
 func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*models.DeploymentCreateRequest, diag.Diagnostics) {
