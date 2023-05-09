@@ -34,7 +34,7 @@ type IntegrationsServerTF struct {
 	Region                    types.String `tfsdk:"region"`
 	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
 	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	Endpoints                 *EndpointsTF `tfsdk:"endpoints"`
+	Endpoints                 types.Object `tfsdk:"endpoints"`
 	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
 	Size                      types.String `tfsdk:"size"`
 	SizeResource              types.String `tfsdk:"size_resource"`
