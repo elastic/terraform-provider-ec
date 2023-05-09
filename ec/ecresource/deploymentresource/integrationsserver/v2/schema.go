@@ -19,6 +19,7 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -69,6 +70,19 @@ func IntegrationsServerSchema() tfsdk.Attribute {
 			"https_endpoint": {
 				Type:     types.StringType,
 				Computed: true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					resource.UseStateForUnknown(),
+				},
+			},
+			"endpoints": {
+				Computed:    true,
+				Description: "URLs for the accessing the Fleet and APM API's within this Integrations Server resource.",
+				Type: types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"apm":   types.StringType,
+						"fleet": types.StringType,
+					},
+				},
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
