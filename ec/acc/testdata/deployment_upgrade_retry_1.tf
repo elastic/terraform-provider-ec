@@ -4,7 +4,7 @@ locals {
 }
 
 data "ec_stack" "latest" {
-  version_regex = "7.10.?"
+  version_regex = "7\\.10\\.\\d+?"
   region        = local.region
 }
 
