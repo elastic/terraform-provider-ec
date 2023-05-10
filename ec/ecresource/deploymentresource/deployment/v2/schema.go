@@ -171,8 +171,6 @@ func (m setUnknownIfResetPasswordIsTrue) Modify(ctx context.Context, req tfsdk.M
 	}
 
 	if isResetting != nil && *isResetting {
-		planVal := resp.AttributePlan.(types.String)
-		planVal.Unknown = true
-		resp.AttributePlan = planVal
+		resp.AttributePlan = types.String{Unknown: true}
 	}
 }
