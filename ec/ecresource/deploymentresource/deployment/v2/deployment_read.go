@@ -240,13 +240,9 @@ func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base Deplo
 			return diags
 		}
 
-		if len(baseFilters) > 0 {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic("Unable to override traffic filters with non-empty value", "Overriding missing traffic filters with a non-empty value should not occur. This is likely a bug with the underlying Cloud API."),
-			}
+		if len(baseFilters) == 0 {
+			dep.TrafficFilter = baseFilters
 		}
-
-		dep.TrafficFilter = baseFilters
 	}
 
 	return diags
