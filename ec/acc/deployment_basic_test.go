@@ -18,12 +18,14 @@
 package acc
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDeployment_basic_tf(t *testing.T) {
@@ -33,14 +35,17 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 	randomAlias := "alias" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter_2.tf"
 	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_3.tf"
+	resetPasswordCfg := "testdata/deployment_basic_reset_password.tf"
 	cfg := fixtureAccDeploymentResourceBasicWithAppsAlias(t, startCfg, randomAlias, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilter := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilterUpdate := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
+	cfgResetPassword := fixtureAccDeploymentResourceBasicWithAppsAlias(t, resetPasswordCfg, randomAlias, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	elasticsearchPassword := ""
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactory,
@@ -76,10 +81,45 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 				Config: cfg,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
+					func(s *terraform.State) error {
+						pw, ok := captureElasticsearchPassword(s, resName)
+						if !ok {
+							return errors.New("unable to capture current elasticsearch_password")
+						}
+
+						elasticsearchPassword = pw
+						return nil
+					},
+				),
+			},
+			// Reset the elasticsearch_password
+			{
+				Config:             cfgResetPassword,
+				ExpectNonEmptyPlan: true, // reset_elasticsearch_password will always result in a non-empty plan
+				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
+					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
+					func(s *terraform.State) error {
+						currentPw, ok := captureElasticsearchPassword(s, resName)
+						if !ok {
+							return errors.New("unable to capture current elasticsearch_password")
+						}
+
+						if currentPw == elasticsearchPassword {
+							return fmt.Errorf("expected elasticsearch_password to be reset: %s == %s", elasticsearchPassword, currentPw)
+						}
+
+						return nil
+					},
 				),
 			},
 		},
 	})
+}
+
+func captureElasticsearchPassword(s *terraform.State, resName string) (string, bool) {
+	res := s.RootModule().Resources[resName]
+	pw, ok := res.Primary.Attributes["elasticsearch_password"]
+	return pw, ok
 }
 
 func TestAccDeployment_basic_config(t *testing.T) {

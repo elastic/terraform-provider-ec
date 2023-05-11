@@ -39,24 +39,25 @@ import (
 )
 
 type Deployment struct {
-	Id                    string                                   `tfsdk:"id"`
-	Alias                 string                                   `tfsdk:"alias"`
-	Version               string                                   `tfsdk:"version"`
-	Region                string                                   `tfsdk:"region"`
-	DeploymentTemplateId  string                                   `tfsdk:"deployment_template_id"`
-	Name                  string                                   `tfsdk:"name"`
-	RequestId             string                                   `tfsdk:"request_id"`
-	ElasticsearchUsername string                                   `tfsdk:"elasticsearch_username"`
-	ElasticsearchPassword string                                   `tfsdk:"elasticsearch_password"`
-	ApmSecretToken        *string                                  `tfsdk:"apm_secret_token"`
-	TrafficFilter         []string                                 `tfsdk:"traffic_filter"`
-	Tags                  map[string]string                        `tfsdk:"tags"`
-	Elasticsearch         *elasticsearchv2.Elasticsearch           `tfsdk:"elasticsearch"`
-	Kibana                *kibanav2.Kibana                         `tfsdk:"kibana"`
-	Apm                   *apmv2.Apm                               `tfsdk:"apm"`
-	IntegrationsServer    *integrationsserverv2.IntegrationsServer `tfsdk:"integrations_server"`
-	EnterpriseSearch      *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
-	Observability         *observabilityv2.Observability           `tfsdk:"observability"`
+	Id                         string                                   `tfsdk:"id"`
+	Alias                      string                                   `tfsdk:"alias"`
+	Version                    string                                   `tfsdk:"version"`
+	Region                     string                                   `tfsdk:"region"`
+	DeploymentTemplateId       string                                   `tfsdk:"deployment_template_id"`
+	Name                       string                                   `tfsdk:"name"`
+	RequestId                  string                                   `tfsdk:"request_id"`
+	ElasticsearchUsername      string                                   `tfsdk:"elasticsearch_username"`
+	ElasticsearchPassword      string                                   `tfsdk:"elasticsearch_password"`
+	ApmSecretToken             *string                                  `tfsdk:"apm_secret_token"`
+	TrafficFilter              []string                                 `tfsdk:"traffic_filter"`
+	Tags                       map[string]string                        `tfsdk:"tags"`
+	Elasticsearch              *elasticsearchv2.Elasticsearch           `tfsdk:"elasticsearch"`
+	Kibana                     *kibanav2.Kibana                         `tfsdk:"kibana"`
+	Apm                        *apmv2.Apm                               `tfsdk:"apm"`
+	IntegrationsServer         *integrationsserverv2.IntegrationsServer `tfsdk:"integrations_server"`
+	EnterpriseSearch           *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
+	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
+	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan
