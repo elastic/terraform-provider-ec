@@ -14,6 +14,8 @@ resource "ec_deployment" "defaults" {
       size        = "1g"
       autoscaling = {}
     }
+
+    strategy = "grow_and_shrink"
   }
 
   kibana = {}

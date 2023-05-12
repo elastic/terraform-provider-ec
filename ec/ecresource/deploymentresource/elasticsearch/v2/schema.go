@@ -30,18 +30,18 @@ import (
 // These constants are only used to determine whether or not a dedicated
 // tier of masters or ingest (coordinating) nodes are set.
 const (
-	dataTierRolePrefix   = "data_"
-	ingestDataTierRole   = "ingest"
-	masterDataTierRole   = "master"
-	autodetect           = "autodetect"
-	growAndShrink        = "grow_and_shrink"
-	rollingGrowAndShrink = "rolling_grow_and_shrink"
-	rollingAll           = "rolling_all"
+	dataTierRolePrefix           = "data_"
+	ingestDataTierRole           = "ingest"
+	masterDataTierRole           = "master"
+	strategyAutodetect           = "autodetect"
+	strategyGrowAndShrink        = "grow_and_shrink"
+	strategyRollingGrowAndShrink = "rolling_grow_and_shrink"
+	strategyRollingAll           = "rolling_all"
 )
 
 // List of update strategies availables.
 var strategiesList = []string{
-	autodetect, growAndShrink, rollingGrowAndShrink, rollingAll,
+	strategyAutodetect, strategyGrowAndShrink, strategyRollingGrowAndShrink, strategyRollingAll,
 }
 
 func ElasticsearchSchema() tfsdk.Attribute {
@@ -119,10 +119,12 @@ func ElasticsearchSchema() tfsdk.Attribute {
 			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": {
-				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
-				Type:        types.StringType,
-				Optional:    true,
-				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf(strategiesList...)},
+				Description:   "Configuration strategy type " + strings.Join(strategiesList, ", "),
+				Type:          types.StringType,
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{resource.UseStateForUnknown()},
+				Validators:    []tfsdk.AttributeValidator{stringvalidator.OneOf(strategiesList...)},
 			},
 		}),
 	}

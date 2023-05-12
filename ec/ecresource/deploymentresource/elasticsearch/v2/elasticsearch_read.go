@@ -19,6 +19,7 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -137,6 +138,8 @@ func readElasticsearch(in *models.ElasticsearchResourceInfo, remotes *models.Rem
 	}
 	es.TrustExternal = externals
 
+	es.Strategy = readElasticsearchStrategy(plan)
+
 	return &es, nil
 }
 
@@ -168,4 +171,25 @@ func (es *Elasticsearch) setTopology(topologies ElasticsearchTopologies) {
 func IsElasticsearchStopped(res *models.ElasticsearchResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
+}
+
+func readElasticsearchStrategy(plan *models.ElasticsearchClusterPlan) *string {
+	if plan == nil || plan.Transient == nil || plan.Transient.Strategy == nil {
+		return nil
+	}
+
+	strategy := plan.Transient.Strategy
+
+	switch {
+	case strategy.Autodetect != nil:
+		return ec.String(strategyAutodetect)
+	case strategy.GrowAndShrink != nil:
+		return ec.String(strategyGrowAndShrink)
+	case strategy.Rolling != nil && strategy.Rolling.GroupBy == "__all__":
+		return ec.String(strategyRollingAll)
+	case strategy.RollingGrowAndShrink != nil:
+		return ec.String(strategyRollingGrowAndShrink)
+	}
+
+	return nil
 }

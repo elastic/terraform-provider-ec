@@ -13,6 +13,8 @@ resource "ec_deployment" "defaults" {
     hot = {
       autoscaling = {}
     }
+
+    strategy = "rolling_all"
   }
 
   kibana = {
