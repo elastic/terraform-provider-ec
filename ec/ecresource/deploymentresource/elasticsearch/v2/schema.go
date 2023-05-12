@@ -122,7 +122,7 @@ func ElasticsearchSchema() tfsdk.Attribute {
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
 				Type:        types.StringType,
 				Optional:    true,
-				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf("bundle", "plugin")},
+				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf(strategiesList...)},
 			},
 		}),
 	}
