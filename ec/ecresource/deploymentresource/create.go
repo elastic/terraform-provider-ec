@@ -72,6 +72,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	if err := WaitForPlanCompletion(r.client, *res.ID); err != nil {
+		resp.Diagnostics.AddError("failed tracking create progress", err.Error())
 		resp.Diagnostics.AddError("failed tracking create progress", newCreationError(requestId).Error())
 		return
 	}
