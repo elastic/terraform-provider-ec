@@ -116,7 +116,7 @@ func (r *Resource) ResetElasticsearchPassword(deploymentID string, refID string)
 }
 
 func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan, state v2.DeploymentTF) diag.Diagnostics {
-	if plan.TrafficFilter.IsNull() || plan.TrafficFilter.Equal(state.TrafficFilter) {
+	if plan.TrafficFilter.Equal(state.TrafficFilter) {
 		return nil
 	}
 
