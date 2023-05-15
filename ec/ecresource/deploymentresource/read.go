@@ -164,6 +164,13 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
 
+	// Set Elasticsearch `strategy` to the one from plan.
+	// We don't care about backend current `strategy`'s value and should not trigger a change,
+	// if the backend's value differs from the local state.
+	if baseElasticsearch != nil && !baseElasticsearch.Strategy.IsNull() {
+		deployment.Elasticsearch.Strategy = &baseElasticsearch.Strategy.Value
+	}
+
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it
 	// we use state for plan in Read and there is no state during import so we need to check elasticsearchPlan against nil
 	if baseElasticsearch != nil &&

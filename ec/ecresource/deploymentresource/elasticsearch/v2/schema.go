@@ -119,12 +119,10 @@ func ElasticsearchSchema() tfsdk.Attribute {
 			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": {
-				Description:   "Configuration strategy type " + strings.Join(strategiesList, ", "),
-				Type:          types.StringType,
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{resource.UseStateForUnknown()},
-				Validators:    []tfsdk.AttributeValidator{stringvalidator.OneOf(strategiesList...)},
+				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
+				Type:        types.StringType,
+				Optional:    true,
+				Validators:  []tfsdk.AttributeValidator{stringvalidator.OneOf(strategiesList...)},
 			},
 		}),
 	}
