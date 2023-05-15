@@ -35,10 +35,12 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 	randomAlias := "alias" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 	trafficFilterCfg := "testdata/deployment_basic_with_traffic_filter_2.tf"
 	trafficFilterUpdateCfg := "testdata/deployment_basic_with_traffic_filter_3.tf"
+	emptyTrafficFilterCfg := "testdata/deployment_basic_with_empty_traffic_filter.tf"
 	resetPasswordCfg := "testdata/deployment_basic_reset_password.tf"
 	cfg := fixtureAccDeploymentResourceBasicWithAppsAlias(t, startCfg, randomAlias, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilter := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterCfg, randomName, getRegion(), defaultTemplate)
 	cfgWithTrafficFilterUpdate := fixtureAccDeploymentResourceBasicWithTF(t, trafficFilterUpdateCfg, randomName, getRegion(), defaultTemplate)
+	cfgWithEmptyTrafficFilter := fixtureAccDeploymentResourceBasicWithAppsAlias(t, emptyTrafficFilterCfg, randomAlias, randomName, getRegion(), defaultTemplate)
 	cfgResetPassword := fixtureAccDeploymentResourceBasicWithAppsAlias(t, resetPasswordCfg, randomAlias, randomName, getRegion(), defaultTemplate)
 	deploymentVersion, err := latestStackVersion()
 	if err != nil {
@@ -76,9 +78,16 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
 				),
 			},
-			// Remove traffic filter.
+			// Unset the traffic filter (this should not remove the traffic filter)
 			{
 				Config: cfg,
+				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
+					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "1"),
+				),
+			},
+			// Explicitly set the traffic filter to an empty list to remove the traffic filter
+			{
+				Config: cfgWithEmptyTrafficFilter,
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
 					func(s *terraform.State) error {

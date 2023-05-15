@@ -1,0 +1,5 @@
+```release-note:bug-fix
+Prevents traffic filters managed with the `ec_deployment_traffic_filter_association` from being disassociated by the `ec_deployment` resource ([#419](https://github.com/elastic/terraform-provider-ec/issues/419)).
+This also fixes a provider crash for the above scenario present in 0.6 ([#621](https://github.com/elastic/terraform-provider-ec/issues/621))
+```
+https://github.com/elastic/terraform-provider-ec/pull/632

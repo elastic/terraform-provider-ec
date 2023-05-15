@@ -118,7 +118,8 @@ func DeploymentSchema() tfsdk.Schema {
 					ElemType: types.StringType,
 				},
 				Optional:    true,
-				Description: `List of traffic filters rule identifiers that will be applied to the deployment.`,
+				Computed:    true,
+				Description: "List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.",
 			},
 			"tags": {
 				Description: "Optional map of deployment tags",
