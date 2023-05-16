@@ -255,16 +255,16 @@ func elasticsearchStrategyPayload(strategy types.String, payload *models.Elastic
 	}
 
 	switch strategy.Value {
-	case autodetect:
+	case strategyAutodetect:
 		createModelIfNeeded()
-		payload.Transient.Strategy.Autodetect = new(models.AutodetectStrategyConfig)
-	case growAndShrink:
+		payload.Transient.Strategy.Autodetect = models.AutodetectStrategyConfig(map[string]interface{}{})
+	case strategyGrowAndShrink:
 		createModelIfNeeded()
-		payload.Transient.Strategy.GrowAndShrink = new(models.GrowShrinkStrategyConfig)
-	case rollingGrowAndShrink:
+		payload.Transient.Strategy.GrowAndShrink = models.GrowShrinkStrategyConfig(map[string]interface{}{})
+	case strategyRollingGrowAndShrink:
 		createModelIfNeeded()
-		payload.Transient.Strategy.RollingGrowAndShrink = new(models.RollingGrowShrinkStrategyConfig)
-	case rollingAll:
+		payload.Transient.Strategy.RollingGrowAndShrink = models.RollingGrowShrinkStrategyConfig(map[string]interface{}{})
+	case strategyRollingAll:
 		createModelIfNeeded()
 		payload.Transient.Strategy.Rolling = &models.RollingStrategyConfig{
 			GroupBy: "__all__",

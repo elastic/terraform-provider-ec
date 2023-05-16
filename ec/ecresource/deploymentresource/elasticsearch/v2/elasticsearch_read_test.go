@@ -100,6 +100,13 @@ func Test_readElasticsearch(t *testing.T) {
 											},
 										},
 									},
+									Transient: &models.TransientElasticsearchPlanConfiguration{
+										Strategy: &models.PlanStrategy{
+											Rolling: &models.RollingStrategyConfig{
+												GroupBy: "__all__",
+											},
+										},
+									},
 								},
 							},
 						},
@@ -218,6 +225,11 @@ func Test_readElasticsearch(t *testing.T) {
 											Ml:     ec.Bool(false),
 										},
 									}},
+									Transient: &models.TransientElasticsearchPlanConfiguration{
+										Strategy: &models.PlanStrategy{
+											GrowAndShrink: new(models.GrowShrinkStrategyConfig),
+										},
+									},
 								},
 							},
 						},
@@ -299,6 +311,11 @@ func Test_readElasticsearch(t *testing.T) {
 												Master: ec.Bool(true),
 												Ml:     ec.Bool(false),
 											},
+										},
+									},
+									Transient: &models.TransientElasticsearchPlanConfiguration{
+										Strategy: &models.PlanStrategy{
+											RollingGrowAndShrink: new(models.RollingGrowShrinkStrategyConfig),
 										},
 									},
 								},

@@ -1779,7 +1779,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Transient: &models.TransientElasticsearchPlanConfiguration{
 						Strategy: &models.PlanStrategy{
-							Autodetect: new(models.AutodetectStrategyConfig),
+							Autodetect: models.AutodetectStrategyConfig(map[string]interface{}{}),
 						},
 					},
 				},
@@ -1851,7 +1851,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Transient: &models.TransientElasticsearchPlanConfiguration{
 						Strategy: &models.PlanStrategy{
-							GrowAndShrink: new(models.GrowShrinkStrategyConfig),
+							GrowAndShrink: models.GrowShrinkStrategyConfig(map[string]interface{}{}),
 						},
 					},
 				},
@@ -1923,7 +1923,7 @@ func Test_writeElasticsearch(t *testing.T) {
 					},
 					Transient: &models.TransientElasticsearchPlanConfiguration{
 						Strategy: &models.PlanStrategy{
-							RollingGrowAndShrink: new(models.RollingGrowShrinkStrategyConfig),
+							RollingGrowAndShrink: models.RollingGrowShrinkStrategyConfig(map[string]interface{}{}),
 						},
 					},
 				},
