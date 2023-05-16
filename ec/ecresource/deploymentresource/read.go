@@ -158,6 +158,8 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.ResetElasticsearchPassword = &base.ResetElasticsearchPassword.Value
 	}
 
+	diags.Append(deployment.HandleEmptyTrafficFilters(ctx, base)...)
+
 	deployment.SetCredentialsIfEmpty(state)
 
 	deployment.ProcessSelfInObservability()

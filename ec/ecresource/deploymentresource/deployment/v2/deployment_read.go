@@ -35,6 +35,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -225,6 +226,26 @@ func (dep *Deployment) ProcessSelfInObservability() {
 	if *dep.Observability.DeploymentId == dep.Id {
 		*dep.Observability.DeploymentId = "self"
 	}
+}
+
+func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base DeploymentTF) diag.Diagnostics {
+	var diags diag.Diagnostics
+	// Ensure consistency between null, and empty configured traffic filter values.
+	// The Cloud API represents an empty set of traffic filters as a null/missing value. Terraform does distinguish between those two cases.
+	// If the Cloud response does not include traffic filters, then set the read value as the planned value, but only if the planned value is empty.
+	if dep.TrafficFilter == nil {
+		var baseFilters []string
+		diags := base.TrafficFilter.ElementsAs(ctx, &baseFilters, true)
+		if diags.HasError() {
+			return diags
+		}
+
+		if len(baseFilters) == 0 {
+			dep.TrafficFilter = baseFilters
+		}
+	}
+
+	return diags
 }
 
 func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
