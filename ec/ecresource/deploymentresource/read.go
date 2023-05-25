@@ -125,14 +125,14 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	refId := ""
 
-	var elasticsearchPlan *elasticsearchv2.ElasticsearchTF
+	var baseElasticsearch *elasticsearchv2.ElasticsearchTF
 
-	if diags = tfsdk.ValueAs(ctx, base.Elasticsearch, &elasticsearchPlan); diags.HasError() {
+	if diags = tfsdk.ValueAs(ctx, base.Elasticsearch, &baseElasticsearch); diags.HasError() {
 		return nil, diags
 	}
 
-	if elasticsearchPlan != nil {
-		refId = elasticsearchPlan.RefId.Value
+	if baseElasticsearch != nil {
+		refId = baseElasticsearch.RefId.Value
 	}
 
 	remotes, err := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
@@ -154,17 +154,29 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	}
 
 	deployment.RequestId = base.RequestId.Value
+	if !base.ResetElasticsearchPassword.IsNull() && !base.ResetElasticsearchPassword.IsUnknown() {
+		deployment.ResetElasticsearchPassword = &base.ResetElasticsearchPassword.Value
+	}
+
+	diags.Append(deployment.HandleEmptyTrafficFilters(ctx, base)...)
 
 	deployment.SetCredentialsIfEmpty(state)
 
 	deployment.ProcessSelfInObservability()
 
-	deployment.NullifyUnusedEsTopologies(ctx, elasticsearchPlan)
+	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
+
+	// Set Elasticsearch `strategy` to the one from plan.
+	// We don't care about backend current `strategy`'s value and should not trigger a change,
+	// if the backend's value differs from the local state.
+	if baseElasticsearch != nil && !baseElasticsearch.Strategy.IsNull() {
+		deployment.Elasticsearch.Strategy = &baseElasticsearch.Strategy.Value
+	}
 
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it
 	// we use state for plan in Read and there is no state during import so we need to check elasticsearchPlan against nil
-	if elasticsearchPlan != nil &&
-		elasticsearchPlan.Config.IsNull() &&
+	if baseElasticsearch != nil &&
+		baseElasticsearch.Config.IsNull() &&
 		deployment.Elasticsearch != nil &&
 		deployment.Elasticsearch.Config != nil &&
 		deployment.Elasticsearch.Config.IsEmpty() {

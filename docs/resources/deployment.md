@@ -266,8 +266,9 @@ resource "ec_deployment" "ccs" {
 - `name` (String) Name for the deployment
 - `observability` (Attributes) Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself by setting observability.deployment_id to `self`. (see [below for nested schema](#nestedatt--observability))
 - `request_id` (String) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
+- `reset_elasticsearch_password` (Boolean) Explicitly resets the elasticsearch_password when true
 - `tags` (Map of String) Optional map of deployment tags
-- `traffic_filter` (Set of String) List of traffic filters rule identifiers that will be applied to the deployment.
+- `traffic_filter` (Set of String) List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.
 
 ### Read-Only
 

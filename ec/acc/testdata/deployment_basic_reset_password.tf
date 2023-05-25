@@ -3,7 +3,8 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "defaults" {
+resource "ec_deployment" "basic" {
+  alias                  = "%s"
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
@@ -14,9 +15,19 @@ resource "ec_deployment" "defaults" {
       size        = "1g"
       autoscaling = {}
     }
-
-    strategy = "grow_and_shrink"
   }
 
-  kibana = {}
+  kibana = {
+    instance_configuration_id = "%s"
+  }
+
+  apm = {
+    instance_configuration_id = "%s"
+  }
+
+  enterprise_search = {
+    instance_configuration_id = "%s"
+  }
+
+  reset_elasticsearch_password = true
 }

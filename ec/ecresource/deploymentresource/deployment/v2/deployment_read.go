@@ -35,28 +35,30 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type Deployment struct {
-	Id                    string                                   `tfsdk:"id"`
-	Alias                 string                                   `tfsdk:"alias"`
-	Version               string                                   `tfsdk:"version"`
-	Region                string                                   `tfsdk:"region"`
-	DeploymentTemplateId  string                                   `tfsdk:"deployment_template_id"`
-	Name                  string                                   `tfsdk:"name"`
-	RequestId             string                                   `tfsdk:"request_id"`
-	ElasticsearchUsername string                                   `tfsdk:"elasticsearch_username"`
-	ElasticsearchPassword string                                   `tfsdk:"elasticsearch_password"`
-	ApmSecretToken        *string                                  `tfsdk:"apm_secret_token"`
-	TrafficFilter         []string                                 `tfsdk:"traffic_filter"`
-	Tags                  map[string]string                        `tfsdk:"tags"`
-	Elasticsearch         *elasticsearchv2.Elasticsearch           `tfsdk:"elasticsearch"`
-	Kibana                *kibanav2.Kibana                         `tfsdk:"kibana"`
-	Apm                   *apmv2.Apm                               `tfsdk:"apm"`
-	IntegrationsServer    *integrationsserverv2.IntegrationsServer `tfsdk:"integrations_server"`
-	EnterpriseSearch      *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
-	Observability         *observabilityv2.Observability           `tfsdk:"observability"`
+	Id                         string                                   `tfsdk:"id"`
+	Alias                      string                                   `tfsdk:"alias"`
+	Version                    string                                   `tfsdk:"version"`
+	Region                     string                                   `tfsdk:"region"`
+	DeploymentTemplateId       string                                   `tfsdk:"deployment_template_id"`
+	Name                       string                                   `tfsdk:"name"`
+	RequestId                  string                                   `tfsdk:"request_id"`
+	ElasticsearchUsername      string                                   `tfsdk:"elasticsearch_username"`
+	ElasticsearchPassword      string                                   `tfsdk:"elasticsearch_password"`
+	ApmSecretToken             *string                                  `tfsdk:"apm_secret_token"`
+	TrafficFilter              []string                                 `tfsdk:"traffic_filter"`
+	Tags                       map[string]string                        `tfsdk:"tags"`
+	Elasticsearch              *elasticsearchv2.Elasticsearch           `tfsdk:"elasticsearch"`
+	Kibana                     *kibanav2.Kibana                         `tfsdk:"kibana"`
+	Apm                        *apmv2.Apm                               `tfsdk:"apm"`
+	IntegrationsServer         *integrationsserverv2.IntegrationsServer `tfsdk:"integrations_server"`
+	EnterpriseSearch           *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
+	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
+	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan
@@ -224,6 +226,26 @@ func (dep *Deployment) ProcessSelfInObservability() {
 	if *dep.Observability.DeploymentId == dep.Id {
 		*dep.Observability.DeploymentId = "self"
 	}
+}
+
+func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base DeploymentTF) diag.Diagnostics {
+	var diags diag.Diagnostics
+	// Ensure consistency between null, and empty configured traffic filter values.
+	// The Cloud API represents an empty set of traffic filters as a null/missing value. Terraform does distinguish between those two cases.
+	// If the Cloud response does not include traffic filters, then set the read value as the planned value, but only if the planned value is empty.
+	if dep.TrafficFilter == nil {
+		var baseFilters []string
+		diags := base.TrafficFilter.ElementsAs(ctx, &baseFilters, true)
+		if diags.HasError() {
+			return diags
+		}
+
+		if len(baseFilters) == 0 {
+			dep.TrafficFilter = baseFilters
+		}
+	}
+
+	return diags
 }
 
 func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {

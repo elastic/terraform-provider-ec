@@ -22,6 +22,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/depresourceapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -77,7 +78,6 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.Value, plan.Elasticsearch)...)
 
 	deployment, diags := r.read(ctx, plan.Id.Value, &state, &plan, res.Resources)
-
 	resp.Diagnostics.Append(diags...)
 
 	if deployment == nil {
@@ -86,11 +86,37 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
+	if plan.ResetElasticsearchPassword.Value {
+		newPassword, diags := r.ResetElasticsearchPassword(plan.Id.Value, *deployment.Elasticsearch.RefId)
+		if resp.Diagnostics.Append(diags...); resp.Diagnostics.HasError() {
+			return
+		}
+
+		deployment.ElasticsearchPassword = newPassword
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, deployment)...)
 }
 
+func (r *Resource) ResetElasticsearchPassword(deploymentID string, refID string) (string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	resetResp, err := depresourceapi.ResetElasticsearchPassword(depresourceapi.ResetElasticsearchPasswordParams{
+		API:   r.client,
+		ID:    deploymentID,
+		RefID: refID,
+	})
+
+	if err != nil {
+		diags.AddError("failed to reset elasticsearch password", err.Error())
+		return "", diags
+	}
+
+	return *resetResp.Password, diags
+}
+
 func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan, state v2.DeploymentTF) diag.Diagnostics {
-	if plan.TrafficFilter.IsNull() || plan.TrafficFilter.Equal(state.TrafficFilter) {
+	if plan.TrafficFilter.Equal(state.TrafficFilter) {
 		return nil
 	}
 
