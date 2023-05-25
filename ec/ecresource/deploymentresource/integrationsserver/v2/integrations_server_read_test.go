@@ -113,124 +113,130 @@ func Test_readIntegrationsServer(t *testing.T) {
 				Region:                    ec.String("some-region"),
 				HttpEndpoint:              ec.String("http://integrations_serverresource.cloud.elastic.co:9200"),
 				HttpsEndpoint:             ec.String("https://integrations_serverresource.cloud.elastic.co:9243"),
-				InstanceConfigurationId:   ec.String("aws.integrations_server.r4"),
-				Size:                      ec.String("1g"),
-				SizeResource:              ec.String("memory"),
-				ZoneCount:                 1,
+				Endpoints: &Endpoints{
+					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
+					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
+				},
+				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
+				Size:                    ec.String("1g"),
+				SizeResource:            ec.String("memory"),
+				ZoneCount:               1,
 			},
 		},
 		{
 			name: "parses the integrations_server resource with config overrides, ignoring a stopped resource",
-			args: args{in: []*models.IntegrationsServerResourceInfo{
-				{
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-integrations_server"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-					Info: &models.IntegrationsServerInfo{
-						ID:     &mock.ValidClusterID,
-						Name:   ec.String("some-integrations_server-name"),
-						Region: "some-region",
-						Status: ec.String("started"),
-						Metadata: &models.ClusterMetadataInfo{
-							Endpoint: "integrations_serverresource.cloud.elastic.co",
-							Ports: &models.ClusterMetadataPortInfo{
-								HTTP:  ec.Int32(9200),
-								HTTPS: ec.Int32(9243),
-							},
-							ServicesUrls: []*models.ServiceURL{
-								{
-									Service: ec.String("apm"),
-									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+			args: args{
+				in: []*models.IntegrationsServerResourceInfo{
+					{
+						Region:                    ec.String("some-region"),
+						RefID:                     ec.String("main-integrations_server"),
+						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						Info: &models.IntegrationsServerInfo{
+							ID:     &mock.ValidClusterID,
+							Name:   ec.String("some-integrations_server-name"),
+							Region: "some-region",
+							Status: ec.String("started"),
+							Metadata: &models.ClusterMetadataInfo{
+								Endpoint: "integrations_serverresource.cloud.elastic.co",
+								Ports: &models.ClusterMetadataPortInfo{
+									HTTP:  ec.Int32(9200),
+									HTTPS: ec.Int32(9243),
 								},
-								{
-									Service: ec.String("fleet"),
-									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
-								},
-							},
-						},
-						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
-							Plan: &models.IntegrationsServerPlan{
-								IntegrationsServer: &models.IntegrationsServerConfiguration{
-									Version:                  "7.8.0",
-									UserSettingsYaml:         `some.setting: value`,
-									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON: map[string]interface{}{
-										"some.setting": "value",
-									},
-									UserSettingsOverrideJSON: map[string]interface{}{
-										"some.setting": "value2",
-									},
-									SystemSettings: &models.IntegrationsServerSystemSettings{},
-								},
-								ClusterTopology: []*models.IntegrationsServerTopologyElement{
+								ServicesUrls: []*models.ServiceURL{
 									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.integrations_server.r4",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(1024),
+										Service: ec.String("apm"),
+										URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+									},
+									{
+										Service: ec.String("fleet"),
+										URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+									},
+								},
+							},
+							PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
+								Plan: &models.IntegrationsServerPlan{
+									IntegrationsServer: &models.IntegrationsServerConfiguration{
+										Version:                  "7.8.0",
+										UserSettingsYaml:         `some.setting: value`,
+										UserSettingsOverrideYaml: `some.setting: value2`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "value2",
+										},
+										SystemSettings: &models.IntegrationsServerSystemSettings{},
+									},
+									ClusterTopology: []*models.IntegrationsServerTopologyElement{
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.integrations_server.r4",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
 										},
 									},
 								},
-							},
-						}},
-					},
-				},
-				{
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-integrations_server"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-					Info: &models.IntegrationsServerInfo{
-						ID:     &mock.ValidClusterID,
-						Name:   ec.String("some-integrations_server-name"),
-						Region: "some-region",
-						Status: ec.String("stopped"),
-						Metadata: &models.ClusterMetadataInfo{
-							Endpoint: "integrations_serverresource.cloud.elastic.co",
-							Ports: &models.ClusterMetadataPortInfo{
-								HTTP:  ec.Int32(9200),
-								HTTPS: ec.Int32(9243),
-							},
-							ServicesUrls: []*models.ServiceURL{
-								{
-									Service: ec.String("apm"),
-									URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
-								},
-								{
-									Service: ec.String("fleet"),
-									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
-								},
-							},
+							}},
 						},
-						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
-							Plan: &models.IntegrationsServerPlan{
-								IntegrationsServer: &models.IntegrationsServerConfiguration{
-									Version:                  "7.8.0",
-									UserSettingsYaml:         `some.setting: value`,
-									UserSettingsOverrideYaml: `some.setting: value2`,
-									UserSettingsJSON: map[string]interface{}{
-										"some.setting": "value",
-									},
-									UserSettingsOverrideJSON: map[string]interface{}{
-										"some.setting": "value2",
-									},
-									SystemSettings: &models.IntegrationsServerSystemSettings{},
+					},
+					{
+						Region:                    ec.String("some-region"),
+						RefID:                     ec.String("main-integrations_server"),
+						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						Info: &models.IntegrationsServerInfo{
+							ID:     &mock.ValidClusterID,
+							Name:   ec.String("some-integrations_server-name"),
+							Region: "some-region",
+							Status: ec.String("stopped"),
+							Metadata: &models.ClusterMetadataInfo{
+								Endpoint: "integrations_serverresource.cloud.elastic.co",
+								Ports: &models.ClusterMetadataPortInfo{
+									HTTP:  ec.Int32(9200),
+									HTTPS: ec.Int32(9243),
 								},
-								ClusterTopology: []*models.IntegrationsServerTopologyElement{
+								ServicesUrls: []*models.ServiceURL{
 									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.integrations_server.r4",
-										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
-											Value:    ec.Int32(1024),
+										Service: ec.String("apm"),
+										URL:     ec.String("https://apm_endpoint.cloud.elastic.co"),
+									},
+									{
+										Service: ec.String("fleet"),
+										URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+									},
+								},
+							},
+							PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
+								Plan: &models.IntegrationsServerPlan{
+									IntegrationsServer: &models.IntegrationsServerConfiguration{
+										Version:                  "7.8.0",
+										UserSettingsYaml:         `some.setting: value`,
+										UserSettingsOverrideYaml: `some.setting: value2`,
+										UserSettingsJSON: map[string]interface{}{
+											"some.setting": "value",
+										},
+										UserSettingsOverrideJSON: map[string]interface{}{
+											"some.setting": "value2",
+										},
+										SystemSettings: &models.IntegrationsServerSystemSettings{},
+									},
+									ClusterTopology: []*models.IntegrationsServerTopologyElement{
+										{
+											ZoneCount:               1,
+											InstanceConfigurationID: "aws.integrations_server.r4",
+											Size: &models.TopologySize{
+												Resource: ec.String("memory"),
+												Value:    ec.Int32(1024),
+											},
 										},
 									},
 								},
-							},
-						}},
+							}},
+						},
 					},
 				},
-			}},
+			},
 			want: &IntegrationsServer{
 				ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
 				RefId:                     ec.String("main-integrations_server"),
@@ -238,10 +244,14 @@ func Test_readIntegrationsServer(t *testing.T) {
 				Region:                    ec.String("some-region"),
 				HttpEndpoint:              ec.String("http://integrations_serverresource.cloud.elastic.co:9200"),
 				HttpsEndpoint:             ec.String("https://integrations_serverresource.cloud.elastic.co:9243"),
-				InstanceConfigurationId:   ec.String("aws.integrations_server.r4"),
-				Size:                      ec.String("1g"),
-				SizeResource:              ec.String("memory"),
-				ZoneCount:                 1,
+				Endpoints: &Endpoints{
+					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
+					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
+				},
+				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
+				Size:                    ec.String("1g"),
+				SizeResource:            ec.String("memory"),
+				ZoneCount:               1,
 				Config: &IntegrationsServerConfig{
 					UserSettingsYaml:         ec.String("some.setting: value"),
 					UserSettingsOverrideYaml: ec.String("some.setting: value2"),
@@ -317,10 +327,14 @@ func Test_readIntegrationsServer(t *testing.T) {
 				Region:                    ec.String("some-region"),
 				HttpEndpoint:              ec.String("http://integrations_serverresource.cloud.elastic.co:9200"),
 				HttpsEndpoint:             ec.String("https://integrations_serverresource.cloud.elastic.co:9243"),
-				InstanceConfigurationId:   ec.String("aws.integrations_server.r4"),
-				Size:                      ec.String("1g"),
-				SizeResource:              ec.String("memory"),
-				ZoneCount:                 1,
+				Endpoints: &Endpoints{
+					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
+					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
+				},
+				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
+				Size:                    ec.String("1g"),
+				SizeResource:            ec.String("memory"),
+				ZoneCount:               1,
 				Config: &IntegrationsServerConfig{
 					UserSettingsYaml:         ec.String("some.setting: value"),
 					UserSettingsOverrideYaml: ec.String("some.setting: value2"),

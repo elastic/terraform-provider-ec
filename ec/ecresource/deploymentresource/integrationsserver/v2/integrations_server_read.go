@@ -30,11 +30,17 @@ type IntegrationsServer struct {
 	Region                    *string                   `tfsdk:"region"`
 	HttpEndpoint              *string                   `tfsdk:"http_endpoint"`
 	HttpsEndpoint             *string                   `tfsdk:"https_endpoint"`
+	Endpoints                 *Endpoints                `tfsdk:"endpoints"`
 	InstanceConfigurationId   *string                   `tfsdk:"instance_configuration_id"`
 	Size                      *string                   `tfsdk:"size"`
 	SizeResource              *string                   `tfsdk:"size_resource"`
 	ZoneCount                 int                       `tfsdk:"zone_count"`
 	Config                    *IntegrationsServerConfig `tfsdk:"config"`
+}
+
+type Endpoints struct {
+	Fleet *string `tfsdk:"fleet"`
+	APM   *string `tfsdk:"apm"`
 }
 
 func ReadIntegrationsServers(in []*models.IntegrationsServerResourceInfo) (*IntegrationsServer, error) {
@@ -82,6 +88,7 @@ func readIntegrationsServer(in *models.IntegrationsServerResourceInfo) (*Integra
 	srv.ElasticsearchClusterRefId = in.ElasticsearchClusterRefID
 
 	srv.HttpEndpoint, srv.HttpsEndpoint = converters.ExtractEndpoints(in.Info.Metadata)
+	srv.Endpoints = readEndpoints(in)
 
 	cfg, err := readIntegrationsServerConfigs(plan.IntegrationsServer)
 
@@ -92,6 +99,31 @@ func readIntegrationsServer(in *models.IntegrationsServerResourceInfo) (*Integra
 	srv.Config = cfg
 
 	return &srv, nil
+}
+
+func readEndpoints(in *models.IntegrationsServerResourceInfo) *Endpoints {
+	endpoints := &Endpoints{}
+	hasValidEndpoints := false
+	for _, url := range in.Info.Metadata.ServicesUrls {
+		if url.Service == nil || url.URL == nil {
+			continue
+		}
+
+		switch *url.Service {
+		case "apm":
+			endpoints.APM = url.URL
+			hasValidEndpoints = true
+		case "fleet":
+			endpoints.Fleet = url.URL
+			hasValidEndpoints = true
+		}
+	}
+
+	if !hasValidEndpoints {
+		return nil
+	}
+
+	return endpoints
 }
 
 // IsIntegrationsServerStopped returns true if the resource is stopped.
