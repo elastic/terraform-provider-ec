@@ -1,5 +1,9 @@
 # 0.8.0 (Unreleased)
 
+FEATURES:
+
+* resource/deployment: Adds endpoints integrations server resources. This allows consumers to explicitly capture service urls for dependent modules (e.g APM and Fleet). ([#640](https://github.com/elastic/terraform-provider-ec/issues/640))
+
 # 0.7.0 (May 4, 2023)
 
 ENHANCEMENTS:
