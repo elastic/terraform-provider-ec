@@ -23,45 +23,63 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mitchellh/mapstructure"
 )
 
 //go:embed regionPrivateLinkMap.json
 var privateLinkDataJson string
 
-type provider struct {
-	name             string
-	populateResource func(map[string]interface{}, *schema.ResourceData) error
-}
-
 var (
 	errUnknownRegion   = errors.New("could not find a privatelink endpoint for region")
 	errUnknownProvider = errors.New("could not find a privatelink endpoint map for provider")
-	errMissingKey      = errors.New("expected region data key not available")
-	errWrongType       = errors.New("unexapected type in region data key")
 )
 
-func readContextFor(p provider) func(context.Context, *schema.ResourceData, interface{}) diag.Diagnostics {
-	return func(ctx context.Context, rd *schema.ResourceData, i interface{}) diag.Diagnostics {
-		regionName, ok := rd.Get("region").(string)
-		if !ok {
-			return diag.Errorf("a region is required to lookup a privatelink endpoint")
-		}
+type regioner interface {
+	Region() string
+}
 
-		if rd.Id() == "" {
-			rd.SetId(strconv.Itoa(schema.HashString(fmt.Sprintf("%s:%s", p.name, regionName))))
-		}
+type privateLinkDataSource[T regioner] struct {
+	csp             string
+	privateLinkName string
+}
 
-		regionData, err := getRegionData(p.name, regionName)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+func (d *privateLinkDataSource[T]) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
+	response.TypeName = fmt.Sprintf("%s_%s_%s_endpoint", request.ProviderTypeName, d.csp, d.privateLinkName)
+}
 
-		return diag.FromErr(p.populateResource(regionData, rd))
+func (d privateLinkDataSource[T]) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
+	var state T
+
+	response.Diagnostics.Append(request.Config.Get(ctx, &state)...)
+	if response.Diagnostics.HasError() {
+		return
 	}
+
+	state, err := d.readRegionData(state)
+	if err != nil {
+		response.Diagnostics.AddError("Failed to read private link data for region", err.Error())
+	}
+	response.State.Set(ctx, state)
+}
+
+func (d privateLinkDataSource[T]) readRegionData(state T) (T, error) {
+	regionData, err := getRegionData(d.csp, state.Region())
+	if err != nil {
+		return state, err
+	}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  &state,
+		TagName: "tfsdk",
+	})
+	if err != nil {
+		return state, err
+	}
+
+	err = decoder.Decode(regionData)
+	return state, err
 }
 
 type configMap = map[string]interface{}
@@ -85,18 +103,4 @@ func getRegionData(providerName string, regionName string) (map[string]interface
 	}
 
 	return regionData, nil
-}
-
-func copyToStateAs[T any](key string, from map[string]interface{}, rd *schema.ResourceData) error {
-	value, ok := from[key]
-	if !ok {
-		return fmt.Errorf("%w: %s", errMissingKey, key)
-	}
-
-	castValue, ok := value.(T)
-	if !ok {
-		return fmt.Errorf("%w: %s", errWrongType, key)
-	}
-
-	return rd.Set(key, castValue)
 }

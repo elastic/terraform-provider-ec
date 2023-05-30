@@ -18,54 +18,58 @@
 package privatelinkdatasource
 
 import (
-	"time"
+	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// GcpDataSource returns the ec_gcp_privateserviceconnect_endpoint data source schema.
-func GcpDataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: readContextFor(provider{
-			name:             "gcp",
-			populateResource: populateGcpResource,
-		}),
-
-		Schema: newGcpSchema(),
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(5 * time.Minute),
+func GcpDataSource() datasource.DataSource {
+	return &gcpDataSource{
+		privateLinkDataSource: privateLinkDataSource[v0GcpModel]{
+			csp:             "gcp",
+			privateLinkName: "private_service_connect",
 		},
 	}
 }
 
-func newGcpSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"region": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-
-		// Computed
-		"service_attachment_uri": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"domain_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
+type gcpDataSource struct {
+	privateLinkDataSource[v0GcpModel]
 }
 
-func populateGcpResource(regionData map[string]interface{}, d *schema.ResourceData) error {
-	if err := copyToStateAs[string]("service_attachment_uri", regionData, d); err != nil {
-		return err
-	}
+func (d *gcpDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Description: "Use this data source to retrieve information about the GCP Private Service Connect configuration for a given region. Further documentation on how to establish a PrivateLink connection can be found in the ESS [documentation](https://www.elastic.co/guide/en/cloud/current/ec-traffic-filtering-psc.html).",
+		Attributes: map[string]tfsdk.Attribute{
+			"region": {
+				Type:        types.StringType,
+				Description: "Region to retrieve the Prive Link configuration for.",
+				Required:    true,
+			},
 
-	if err := copyToStateAs[string]("domain_name", regionData, d); err != nil {
-		return err
-	}
+			// Computed
+			"service_attachment_uri": {
+				Type:        types.StringType,
+				Description: "The service attachment URI to attach the PSC endpoint to.",
+				Computed:    true,
+			},
+			"domain_name": {
+				Type:        types.StringType,
+				Description: "The domain name to point towards the PSC endpoint.",
+				Computed:    true,
+			},
+		},
+	}, nil
+}
 
-	return nil
+type v0GcpModel struct {
+	RegionField          string  `tfsdk:"region"`
+	ServiceAttachmentUri *string `tfsdk:"service_attachment_uri"`
+	DomainName           *string `tfsdk:"domain_name"`
+}
+
+func (m v0GcpModel) Region() string {
+	return m.RegionField
 }
