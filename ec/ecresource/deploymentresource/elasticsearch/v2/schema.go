@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -244,54 +245,52 @@ func ElasticsearchRemoteClusterSchema() schema.Attribute {
 	}
 }
 
-func elasticsearchSnapshotSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchSnapshotSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: `(ECE only) Snapshot configuration settings for an Elasticsearch cluster.
 
 For ESS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
 		Optional: true,
 		Computed: true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"enabled": {
+		Attributes: map[string]schema.Attribute{
+			"enabled": schema.BoolAttribute{
 				Description: "Indicates if Snapshotting is enabled.",
-				Type:        types.BoolType,
 				Required:    true,
 			},
 			"repository": elasticsearchSnapshotRepositorySchema(),
-		}),
-		PlanModifiers: []tfsdk.AttributePlanModifier{
-			resource.UseStateForUnknown(),
+		},
+		PlanModifiers: []planmodifier.Object{
+			objectplanmodifier.UseStateForUnknown(),
 		},
 	}
 }
 
-func elasticsearchSnapshotRepositorySchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchSnapshotRepositorySchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "Snapshot repository configuration",
 		Optional:    true,
 		Computed:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+		Attributes: map[string]schema.Attribute{
 			"reference": elasticsearchSnapshotRepositoryReferenceSchema(),
-		}),
-		PlanModifiers: []tfsdk.AttributePlanModifier{
-			resource.UseStateForUnknown(),
+		},
+		PlanModifiers: []planmodifier.Object{
+			objectplanmodifier.UseStateForUnknown(),
 		},
 	}
 }
 
-func elasticsearchSnapshotRepositoryReferenceSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func elasticsearchSnapshotRepositoryReferenceSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "Cluster snapshot reference repository settings, containing the repository name in ECE fashion",
 		Optional:    true,
 		Computed:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"repository_name": {
+		Attributes: map[string]schema.Attribute{
+			"repository_name": schema.StringAttribute{
 				Description: "ECE snapshot repository name, from the '/platform/configuration/snapshots/repositories' endpoint",
-				Type:        types.StringType,
 				Required:    true,
-			}}),
-		PlanModifiers: []tfsdk.AttributePlanModifier{
-			resource.UseStateForUnknown(),
+			}},
+		PlanModifiers: []planmodifier.Object{
+			objectplanmodifier.UseStateForUnknown(),
 		},
 	}
 }

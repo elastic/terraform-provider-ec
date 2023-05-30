@@ -43,7 +43,7 @@ func (r *Resource) Delete(ctx context.Context, request resource.DeleteRequest, r
 	err := snaprepoapi.Delete(snaprepoapi.DeleteParams{
 		API:    r.client,
 		Region: "ece-region", // This resource is only usable for ECE installations. Thus, we can default to ece-region.
-		Name:   state.Name.Value,
+		Name:   state.Name.ValueString(),
 	})
 	if err != nil {
 		if !apierror.IsRuntimeStatusCode(err, 404) {

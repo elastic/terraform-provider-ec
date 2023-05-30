@@ -23,7 +23,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -148,7 +148,7 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, configValue attr.V
 	}
 
 	// if template changed return
-	templateChanged, diags := planmodifier.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
+	templateChanged, diags := planmodifiers.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
 	if diags.HasError() {
 		return false, false, diags
 	}

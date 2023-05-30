@@ -20,7 +20,7 @@ package v2
 import (
 	"context"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -82,7 +82,7 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 		return false, diags
 	}
 
-	templateChanged, d := planmodifier.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
+	templateChanged, d := planmodifiers.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
 
 	diags.Append(d...)
 

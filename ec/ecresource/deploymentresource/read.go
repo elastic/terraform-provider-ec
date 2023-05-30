@@ -132,7 +132,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	}
 
 	if baseElasticsearch != nil {
-		refId = baseElasticsearch.RefId.Value
+		refId = baseElasticsearch.RefId.ValueString()
 	}
 
 	remotes, err := esremoteclustersapi.Get(esremoteclustersapi.GetParams{

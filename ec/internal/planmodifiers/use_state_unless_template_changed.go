@@ -15,41 +15,37 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package planmodifier
+package planmodifiers
 
 import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
-func UseStateForUnknownUnlessTemplateChanged() tfsdk.AttributePlanModifier {
+func UseStateForUnknownUnlessTemplateChanged() planmodifier.String {
 	return useStateForUnknownUnlessTemplateChanged{}
 }
 
 type useStateForUnknownUnlessTemplateChanged struct{}
 
-func (m useStateForUnknownUnlessTemplateChanged) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if req.AttributeState == nil || resp.AttributePlan == nil || req.AttributeConfig == nil {
-		return
-	}
-
-	if !resp.AttributePlan.IsUnknown() {
+func (m useStateForUnknownUnlessTemplateChanged) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if !resp.PlanValue.IsUnknown() {
 		return
 	}
 
 	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.AttributeConfig.IsUnknown() {
+	if req.ConfigValue.IsUnknown() {
 		return
 	}
 
-	if req.AttributeState.IsNull() {
+	if req.StateValue.IsNull() {
 		return
 	}
 
-	templateChanged, diags := AttributeChanged(ctx, path.Root("deployment_template_id"), req)
+	templateChanged, diags := AttributeChanged(ctx, path.Root("deployment_template_id"), req.Plan, req.State)
 	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
 		return
@@ -59,7 +55,7 @@ func (m useStateForUnknownUnlessTemplateChanged) Modify(ctx context.Context, req
 		return
 	}
 
-	resp.AttributePlan = req.AttributeState
+	resp.PlanValue = req.StateValue
 }
 
 func (r useStateForUnknownUnlessTemplateChanged) Description(ctx context.Context) string {

@@ -159,13 +159,13 @@ resource "ec_deployment_traffic_filter" "gcp_psc" {
 
 - `name` (String) Name of the ruleset
 - `region` (String) Filter region, the ruleset can only be attached to deployments in the specific region
-- `rule` (Block Set, Min: 1) Set of rules, which the ruleset is made of. (see [below for nested schema](#nestedblock--rule))
 - `type` (String) Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, or `gcp_private_service_connect_endpoint`
 
 ### Optional
 
 - `description` (String) Ruleset description
 - `include_by_default` (Boolean) Indicates that the ruleset should be automatically included in new deployments (Defaults to false)
+- `rule` (Block Set) Set of rules, which the ruleset is made of. (see [below for nested schema](#nestedblock--rule))
 
 ### Read-Only
 

@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -116,9 +115,8 @@ func DeploymentSchema() schema.Schema {
 				ElementType: types.StringType,
 				Optional:    true,
 			},
-			"reset_elasticsearch_password": {
+			"reset_elasticsearch_password": schema.BoolAttribute{
 				Description: "Explicitly resets the elasticsearch_password when true",
-				Type:        types.BoolType,
 				Optional:    true,
 			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
@@ -133,7 +131,7 @@ func DeploymentSchema() schema.Schema {
 
 type setUnknownIfResetPasswordIsTrue struct{}
 
-var _ tfsdk.AttributePlanModifier = setUnknownIfResetPasswordIsTrue{}
+var _ planmodifier.String = setUnknownIfResetPasswordIsTrue{}
 
 func (m setUnknownIfResetPasswordIsTrue) Description(ctx context.Context) string {
 	return m.MarkdownDescription(ctx)
@@ -143,13 +141,9 @@ func (m setUnknownIfResetPasswordIsTrue) MarkdownDescription(ctx context.Context
 	return "Sets the planned value to unknown if the reset_elasticsearch_password config value is true"
 }
 
-func (m setUnknownIfResetPasswordIsTrue) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if resp.AttributePlan == nil || req.AttributeConfig == nil {
-		return
-	}
-
+func (m setUnknownIfResetPasswordIsTrue) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.AttributeConfig.IsUnknown() {
+	if req.ConfigValue.IsUnknown() {
 		return
 	}
 
@@ -160,6 +154,6 @@ func (m setUnknownIfResetPasswordIsTrue) Modify(ctx context.Context, req tfsdk.M
 	}
 
 	if isResetting != nil && *isResetting {
-		resp.AttributePlan = types.String{Unknown: true}
+		resp.PlanValue = types.StringUnknown()
 	}
 }
