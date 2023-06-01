@@ -18,65 +18,66 @@
 package privatelinkdatasource
 
 import (
-	"time"
+	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// AwsDataSource returns the ec_aws_privatelink_endpoint data source schema.
-func AwsDataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: readContextFor(provider{
-			name:             "aws",
-			populateResource: populateAwsResource,
-		}),
-
-		Schema: newAwsSchema(),
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(5 * time.Minute),
+func AwsDataSource() datasource.DataSource {
+	return &awsDataSource{
+		privateLinkDataSource: privateLinkDataSource[v0AwsModel]{
+			csp:             "aws",
+			privateLinkName: "privatelink",
 		},
 	}
 }
 
-func newAwsSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"region": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
+type awsDataSource struct {
+	privateLinkDataSource[v0AwsModel]
+}
 
-		// Computed
-		"vpc_service_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"domain_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"zone_ids": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+func (d *awsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Description: "Use this data source to retrieve information about the AWS Private Link configuration for a given region. Further documentation on how to establish a PrivateLink connection can be found in the ESS [documentation](https://www.elastic.co/guide/en/cloud/current/ec-traffic-filtering-vpc.html).",
+		Attributes: map[string]tfsdk.Attribute{
+			"region": {
+				Type:        types.StringType,
+				Description: "Region to retrieve the Private Link configuration for.",
+				Required:    true,
+			},
+
+			// Computed
+			"vpc_service_name": {
+				Type:        types.StringType,
+				Description: "The VPC service name used to connect to the region.",
+				Computed:    true,
+			},
+			"domain_name": {
+				Type:        types.StringType,
+				Description: "The domain name to used in when configuring a private hosted zone in the VPCE connection.",
+				Computed:    true,
+			},
+			"zone_ids": {
+				Type: types.ListType{
+					ElemType: types.StringType,
+				},
+				Description: "The IDs of the availability zones hosting the VPC endpoints.",
+				Computed:    true,
 			},
 		},
-	}
+	}, nil
 }
 
-func populateAwsResource(regionData map[string]interface{}, d *schema.ResourceData) error {
-	if err := copyToStateAs[string]("vpc_service_name", regionData, d); err != nil {
-		return err
-	}
+type v0AwsModel struct {
+	RegionField    string    `tfsdk:"region"`
+	VpcServiceName *string   `tfsdk:"vpc_service_name"`
+	DomainName     *string   `tfsdk:"domain_name"`
+	ZoneIDs        *[]string `tfsdk:"zone_ids"`
+}
 
-	if err := copyToStateAs[string]("domain_name", regionData, d); err != nil {
-		return err
-	}
-
-	if err := copyToStateAs[[]interface{}]("zone_ids", regionData, d); err != nil {
-		return err
-	}
-
-	return nil
+func (m v0AwsModel) Region() string {
+	return m.RegionField
 }

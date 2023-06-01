@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymentsdatasource"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/privatelinkdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/trafficfilterdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
@@ -95,6 +96,9 @@ func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSour
 		func() datasource.DataSource { return &deploymentsdatasource.DataSource{} },
 		func() datasource.DataSource { return &stackdatasource.DataSource{} },
 		func() datasource.DataSource { return &trafficfilterdatasource.DataSource{} },
+		privatelinkdatasource.AwsDataSource,
+		privatelinkdatasource.GcpDataSource,
+		privatelinkdatasource.AzureDataSource,
 	}
 }
 

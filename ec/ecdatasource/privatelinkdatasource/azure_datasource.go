@@ -18,54 +18,58 @@
 package privatelinkdatasource
 
 import (
-	"time"
+	"context"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// AzureDataSource returns the ec_gcp_privateserviceconnect_endpoint data source schema.
-func AzureDataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: readContextFor(provider{
-			name:             "azure",
-			populateResource: populateAzureResource,
-		}),
-
-		Schema: newAzureSchema(),
-
-		Timeouts: &schema.ResourceTimeout{
-			Default: schema.DefaultTimeout(5 * time.Minute),
+func AzureDataSource() datasource.DataSource {
+	return &azureDataSource{
+		privateLinkDataSource: privateLinkDataSource[v0AzureModel]{
+			csp:             "azure",
+			privateLinkName: "privatelink",
 		},
 	}
 }
 
-func newAzureSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"region": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-
-		// Computed
-		"service_alias": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"domain_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
+type azureDataSource struct {
+	privateLinkDataSource[v0AzureModel]
 }
 
-func populateAzureResource(regionData map[string]interface{}, d *schema.ResourceData) error {
-	if err := copyToStateAs[string]("service_alias", regionData, d); err != nil {
-		return err
-	}
+func (d *azureDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Description: "Use this data source to retrieve information about the Azure Private Link configuration for a given region. Further documentation on how to establish a PrivateLink connection can be found in the ESS [documentation](https://www.elastic.co/guide/en/cloud/current/ec-traffic-filtering-vnet.html).",
+		Attributes: map[string]tfsdk.Attribute{
+			"region": {
+				Type:        types.StringType,
+				Description: "Region to retrieve the Private Link configuration for.",
+				Required:    true,
+			},
 
-	if err := copyToStateAs[string]("domain_name", regionData, d); err != nil {
-		return err
-	}
+			// Computed
+			"service_alias": {
+				Type:        types.StringType,
+				Description: "The service alias to establish a connection to.",
+				Computed:    true,
+			},
+			"domain_name": {
+				Type:        types.StringType,
+				Description: "The domain name to used in when configuring a private hosted zone in the VNet connection.",
+				Computed:    true,
+			},
+		},
+	}, nil
+}
 
-	return nil
+type v0AzureModel struct {
+	RegionField  string  `tfsdk:"region"`
+	ServiceAlias *string `tfsdk:"service_alias"`
+	DomainName   *string `tfsdk:"domain_name"`
+}
+
+func (m v0AzureModel) Region() string {
+	return m.RegionField
 }
