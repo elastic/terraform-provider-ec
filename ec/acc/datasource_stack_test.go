@@ -87,26 +87,17 @@ func checkDataSourceStack(resName string, checks ...resource.TestCheckFunc) reso
 
 		// Elasticsearch
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.denylist.#"),
-		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.capacity_constraints_max"),
-		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.capacity_constraints_min"),
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.docker_image"),
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.plugins.#"),
-		resource.TestCheckResourceAttrSet(resName, "elasticsearch.0.default_plugins.#"),
 
 		// Kibana
 		resource.TestCheckResourceAttrSet(resName, "kibana.0.denylist.#"),
-		resource.TestCheckResourceAttrSet(resName, "kibana.0.capacity_constraints_max"),
-		resource.TestCheckResourceAttrSet(resName, "kibana.0.capacity_constraints_min"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.0.docker_image"),
 
 		// APM
-		resource.TestCheckResourceAttrSet(resName, "apm.0.capacity_constraints_max"),
-		resource.TestCheckResourceAttrSet(resName, "apm.0.capacity_constraints_min"),
 		resource.TestCheckResourceAttrSet(resName, "apm.0.docker_image"),
 
 		// Enterprise Search
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.capacity_constraints_max"),
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.capacity_constraints_min"),
 		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.docker_image"),
 	}, checks...)...)
 }

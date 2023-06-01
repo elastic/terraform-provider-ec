@@ -111,6 +111,9 @@ func trafficFilterRuleSchema() schema.Block {
 				"id": schema.StringAttribute{
 					Description: "Computed rule ID",
 					Computed:    true,
+					PlanModifiers: []planmodifier.String{
+						StringIsUnknown(),
+					},
 					// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
 				},
 			},
@@ -182,4 +185,26 @@ type trafficFilterRuleModelV0 struct {
 	Description       types.String `tfsdk:"description"`
 	AzureEndpointName types.String `tfsdk:"azure_endpoint_name"`
 	AzureEndpointGUID types.String `tfsdk:"azure_endpoint_guid"`
+}
+
+type stringIsUnknown struct{}
+
+func StringIsUnknown() planmodifier.String {
+	return &stringIsUnknown{}
+}
+
+func (m *stringIsUnknown) Description(ctx context.Context) string {
+	return m.MarkdownDescription(ctx)
+}
+
+func (m *stringIsUnknown) MarkdownDescription(ctx context.Context) string {
+	return "Sets the plan to unknown"
+}
+
+func (m *stringIsUnknown) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if !req.ConfigValue.IsNull() {
+		return
+	}
+
+	req.PlanValue = types.StringUnknown()
 }
