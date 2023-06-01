@@ -21,8 +21,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -39,36 +38,31 @@ type awsDataSource struct {
 	privateLinkDataSource[v0AwsModel]
 }
 
-func (d *awsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (d *awsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Use this data source to retrieve information about the AWS Private Link configuration for a given region. Further documentation on how to establish a PrivateLink connection can be found in the ESS [documentation](https://www.elastic.co/guide/en/cloud/current/ec-traffic-filtering-vpc.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"region": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"region": schema.StringAttribute{
 				Description: "Region to retrieve the Private Link configuration for.",
 				Required:    true,
 			},
 
 			// Computed
-			"vpc_service_name": {
-				Type:        types.StringType,
+			"vpc_service_name": schema.StringAttribute{
 				Description: "The VPC service name used to connect to the region.",
 				Computed:    true,
 			},
-			"domain_name": {
-				Type:        types.StringType,
+			"domain_name": schema.StringAttribute{
 				Description: "The domain name to used in when configuring a private hosted zone in the VPCE connection.",
 				Computed:    true,
 			},
-			"zone_ids": {
-				Type: types.ListType{
-					ElemType: types.StringType,
-				},
+			"zone_ids": schema.ListAttribute{
+				ElementType: types.StringType,
 				Description: "The IDs of the availability zones hosting the VPC endpoints.",
 				Computed:    true,
 			},
 		},
-	}, nil
+	}
 }
 
 type v0AwsModel struct {
