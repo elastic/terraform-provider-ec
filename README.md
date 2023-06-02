@@ -21,6 +21,11 @@ Things which are out of scope for provider:
 
 We now have Terraform provider for Elastic Stack https://github.com/elastic/terraform-provider-elasticstack which should be used for any operations on Elastic Stack products.
 
+## Support
+
+Support tickets related to the terraform provider can be opened with Elastic, however, since terraform is a 3rd party tool (by Hashicorp) which Elastic has no full control over, we will not be able to treat support requests as severity-1(immediate time frame). Also, since urgent production-related terraform issues can be resolved via regular API or UI interaction, we ask customers to resort to such methods in case of urgent deployment downtime or issue.
+
+
 ## Example usage
 
 _These examples are forward looking and might use an unreleased version, for a current view of working examples, please refer to the [Terraform registry documentation](https://registry.terraform.io/providers/elastic/ec/latest/docs)._
