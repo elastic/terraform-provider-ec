@@ -8,11 +8,12 @@ require (
 	github.com/elastic/cloud-sdk-go v1.12.1
 	github.com/go-openapi/runtime v0.26.0
 	github.com/go-openapi/strfmt v0.21.7
-	github.com/hashicorp/terraform-plugin-framework v0.14.0
-	github.com/hashicorp/terraform-plugin-framework-validators v0.5.0
+	github.com/hashicorp/terraform-plugin-framework v1.1.1
+	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
 	github.com/hashicorp/terraform-plugin-go v0.14.3
 	github.com/hashicorp/terraform-plugin-log v0.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 )
@@ -60,7 +61,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
