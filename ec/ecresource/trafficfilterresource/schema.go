@@ -30,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"golang.org/x/exp/slices"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 
@@ -112,7 +113,7 @@ func trafficFilterRuleSchema() schema.Block {
 					Description: "Computed rule ID",
 					Computed:    true,
 					PlanModifiers: []planmodifier.String{
-						StringIsUnknown(),
+						StringIsUnknownIfRulesChange(),
 					},
 					// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
 				},
@@ -174,7 +175,7 @@ type modelV0 struct {
 	Name             types.String `tfsdk:"name"`
 	Type             types.String `tfsdk:"type"`
 	Region           types.String `tfsdk:"region"`
-	Rule             types.Set    `tfsdk:"rule"` //< trafficFilterRuleModelV0
+	Rule             types.Set    `tfsdk:"rule"` //< trafficFilterRuleModelV0TF
 	IncludeByDefault types.Bool   `tfsdk:"include_by_default"`
 	Description      types.String `tfsdk:"description"`
 }
@@ -187,24 +188,48 @@ type trafficFilterRuleModelV0 struct {
 	AzureEndpointGUID types.String `tfsdk:"azure_endpoint_guid"`
 }
 
-type stringIsUnknown struct{}
+type stringIsUnknownIfRulesChange struct{}
 
-func StringIsUnknown() planmodifier.String {
-	return &stringIsUnknown{}
+func StringIsUnknownIfRulesChange() planmodifier.String {
+	return &stringIsUnknownIfRulesChange{}
 }
 
-func (m *stringIsUnknown) Description(ctx context.Context) string {
+func (m *stringIsUnknownIfRulesChange) Description(ctx context.Context) string {
 	return m.MarkdownDescription(ctx)
 }
 
-func (m *stringIsUnknown) MarkdownDescription(ctx context.Context) string {
-	return "Sets the plan to unknown"
+func (m *stringIsUnknownIfRulesChange) MarkdownDescription(ctx context.Context) string {
+	return "Sets the plan to unknown if there are rule changes"
 }
 
-func (m *stringIsUnknown) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (m *stringIsUnknownIfRulesChange) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.ConfigValue.IsNull() {
 		return
 	}
 
-	req.PlanValue = types.StringUnknown()
+	var stateRules []trafficFilterRuleModelV0
+	resp.Diagnostics = append(resp.Diagnostics, req.State.GetAttribute(ctx, path.Root("rule"), &stateRules)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var planRules []trafficFilterRuleModelV0
+	resp.Diagnostics = append(resp.Diagnostics, req.Plan.GetAttribute(ctx, path.Root("rule"), &planRules)...)
+
+	hasChanges := false
+	for _, stateRule := range stateRules {
+		if !slices.Contains(planRules, stateRule) {
+			hasChanges = true
+		}
+	}
+
+	for _, planRule := range planRules {
+		if !slices.Contains(stateRules, planRule) {
+			hasChanges = true
+		}
+	}
+
+	if hasChanges {
+		resp.PlanValue = types.StringUnknown()
+	}
 }
