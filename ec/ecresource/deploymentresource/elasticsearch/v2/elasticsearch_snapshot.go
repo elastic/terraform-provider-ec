@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
@@ -40,6 +41,11 @@ type ElasticsearchSnapshotRepositoryReference struct {
 	RepositoryName string `tfsdk:"repository_name"`
 }
 
+type ElasticsearchSnapshotTF struct {
+	Enabled    bool         `tfsdk:"enabled"`
+	Repository types.Object `tfsdk:"repository"` //< ElasticsearchSnapshotRepositoryInfo
+}
+
 func readElasticsearchSnapshot(in *models.ElasticsearchClusterSettings) (*ElasticsearchSnapshot, error) {
 	if in == nil || in.Snapshot == nil {
 		return nil, nil
@@ -50,20 +56,22 @@ func readElasticsearchSnapshot(in *models.ElasticsearchClusterSettings) (*Elasti
 	if in.Snapshot.Enabled != nil {
 		snapshot.Enabled = *in.Snapshot.Enabled
 	}
-	if in.Snapshot.Repository != nil {
-		snapshot.Repository = &ElasticsearchSnapshotRepositoryInfo{}
-		if in.Snapshot.Repository.Reference != nil {
-			snapshot.Repository.Reference = &ElasticsearchSnapshotRepositoryReference{
-				RepositoryName: in.Snapshot.Repository.Reference.RepositoryName,
-			}
-		}
+
+	if in.Snapshot.Repository == nil || in.Snapshot.Repository.Reference == nil {
+		return &snapshot, nil
+	}
+
+	snapshot.Repository = &ElasticsearchSnapshotRepositoryInfo{
+		Reference: &ElasticsearchSnapshotRepositoryReference{
+			RepositoryName: in.Snapshot.Repository.Reference.RepositoryName,
+		},
 	}
 
 	return &snapshot, nil
 }
 
 func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
-	var snapshot *ElasticsearchSnapshot
+	var snapshot *ElasticsearchSnapshotTF
 	if srcObj.IsNull() || srcObj.IsUnknown() {
 		return model, nil
 	}
@@ -76,14 +84,22 @@ func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model 
 		model = &models.ElasticsearchClusterSettings{}
 	}
 	model.Snapshot = &models.ClusterSnapshotSettings{
-		Enabled:    &snapshot.Enabled,
-		Repository: &models.ClusterSnapshotRepositoryInfo{},
+		Enabled: &snapshot.Enabled,
 	}
 
-	if snapshot.Repository != nil && snapshot.Repository.Reference != nil {
-		model.Snapshot.Repository.Reference = &models.ClusterSnapshotRepositoryReference{
-			RepositoryName: snapshot.Repository.Reference.RepositoryName,
-		}
+	if snapshot.Repository.IsNull() || snapshot.Repository.IsUnknown() {
+		return model, nil
+	}
+
+	var repo *ElasticsearchSnapshotRepositoryInfo
+	if diags := tfsdk.ValueAs(ctx, snapshot.Repository, &repo); diags.HasError() {
+		return model, diags
+	}
+
+	model.Snapshot.Repository = &models.ClusterSnapshotRepositoryInfo{
+		Reference: &models.ClusterSnapshotRepositoryReference{
+			RepositoryName: repo.Reference.RepositoryName,
+		},
 	}
 
 	return model, nil
