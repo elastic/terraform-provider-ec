@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -51,11 +52,11 @@ func elasticsearchSnapshotSourcePayload(ctx context.Context, srcObj attr.Value, 
 	}
 
 	if !snapshot.SourceElasticsearchClusterId.IsNull() {
-		payload.Transient.RestoreSnapshot.SourceClusterID = snapshot.SourceElasticsearchClusterId.Value
+		payload.Transient.RestoreSnapshot.SourceClusterID = snapshot.SourceElasticsearchClusterId.ValueString()
 	}
 
 	if !snapshot.SnapshotName.IsNull() {
-		payload.Transient.RestoreSnapshot.SnapshotName = &snapshot.SnapshotName.Value
+		payload.Transient.RestoreSnapshot.SnapshotName = ec.String(snapshot.SnapshotName.ValueString())
 	}
 
 	return nil

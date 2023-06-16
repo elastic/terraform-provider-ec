@@ -18,45 +18,41 @@
 package v2
 
 import (
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
-func ObservabilitySchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func ObservabilitySchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself by setting observability.deployment_id to `self`.",
 		Optional:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"deployment_id": {
-				Type:     types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"deployment_id": schema.StringAttribute{
 				Required: true,
 			},
-			"ref_id": {
-				Type:     types.StringType,
+			"ref_id": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"logs": {
-				Type:     types.BoolType,
+			"logs": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: true}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(true),
 				},
 			},
-			"metrics": {
-				Type:     types.BoolType,
+			"metrics": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: true}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(true),
 				},
 			},
-		}),
+		},
 	}
 }

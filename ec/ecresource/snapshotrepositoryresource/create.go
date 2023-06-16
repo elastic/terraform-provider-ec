@@ -45,18 +45,18 @@ func (r *Resource) Create(ctx context.Context, request resource.CreateRequest, r
 	if newState.S3 != nil {
 		repositoryType = "s3"
 		repositoryConfig = snaprepoapi.S3Config{
-			Region:               newState.S3.Region.Value,
-			Bucket:               newState.S3.Bucket.Value,
-			AccessKey:            newState.S3.AccessKey.Value,
-			SecretKey:            newState.S3.SecretKey.Value,
-			ServerSideEncryption: newState.S3.ServerSideEncryption.Value,
-			Endpoint:             newState.S3.Endpoint.Value,
-			PathStyleAccess:      newState.S3.PathStyleAccess.Value,
+			Region:               newState.S3.Region.ValueString(),
+			Bucket:               newState.S3.Bucket.ValueString(),
+			AccessKey:            newState.S3.AccessKey.ValueString(),
+			SecretKey:            newState.S3.SecretKey.ValueString(),
+			ServerSideEncryption: newState.S3.ServerSideEncryption.ValueBool(),
+			Endpoint:             newState.S3.Endpoint.ValueString(),
+			PathStyleAccess:      newState.S3.PathStyleAccess.ValueBool(),
 		}
 	} else {
 		var err error
-		repositoryType = newState.Generic.Type.Value
-		repositoryConfig, err = snaprepoapi.ParseGenericConfig(strings.NewReader(newState.Generic.Settings.Value))
+		repositoryType = newState.Generic.Type.ValueString()
+		repositoryConfig, err = snaprepoapi.ParseGenericConfig(strings.NewReader(newState.Generic.Settings.ValueString()))
 		if err != nil {
 			response.Diagnostics.AddError(err.Error(), err.Error())
 			return
@@ -67,7 +67,7 @@ func (r *Resource) Create(ctx context.Context, request resource.CreateRequest, r
 		snaprepoapi.SetParams{
 			API:    r.client,
 			Region: "ece-region", // This resource is only usable for ECE installations. Thus, we can default to ece-region.
-			Name:   newState.Name.Value,
+			Name:   newState.Name.ValueString(),
 			Type:   repositoryType,
 			Config: repositoryConfig,
 		},
@@ -79,7 +79,7 @@ func (r *Resource) Create(ctx context.Context, request resource.CreateRequest, r
 
 	newState.ID = newState.Name
 
-	found, diags := r.read(newState.ID.Value, &newState)
+	found, diags := r.read(newState.ID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

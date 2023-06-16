@@ -25,6 +25,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -253,16 +254,16 @@ func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
 		return
 	}
 
-	if dep.ElasticsearchPassword == "" && state.ElasticsearchPassword.Value != "" {
-		dep.ElasticsearchPassword = state.ElasticsearchPassword.Value
+	if dep.ElasticsearchPassword == "" && state.ElasticsearchPassword.ValueString() != "" {
+		dep.ElasticsearchPassword = state.ElasticsearchPassword.ValueString()
 	}
 
-	if dep.ElasticsearchUsername == "" && state.ElasticsearchUsername.Value != "" {
-		dep.ElasticsearchUsername = state.ElasticsearchUsername.Value
+	if dep.ElasticsearchUsername == "" && state.ElasticsearchUsername.ValueString() != "" {
+		dep.ElasticsearchUsername = state.ElasticsearchUsername.ValueString()
 	}
 
-	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.Value != "" {
-		dep.ApmSecretToken = &state.ApmSecretToken.Value
+	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.ValueString() != "" {
+		dep.ApmSecretToken = ec.String(state.ApmSecretToken.ValueString())
 	}
 }
 

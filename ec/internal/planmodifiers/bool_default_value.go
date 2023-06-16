@@ -15,41 +15,43 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package validators
+// NOTE! copied from terraform-provider-tls
+package planmodifiers
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type knownValidator struct{}
-
-func (v knownValidator) Description(ctx context.Context) string {
-	return "Value must be known"
+type boolDefaultValue struct {
+	value bool
 }
 
-func (v knownValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
+func BoolDefaultValue(v bool) planmodifier.Bool {
+	return &boolDefaultValue{v}
 }
 
-func (v knownValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			v.Description(ctx),
-			"Value must be known",
-		)
+var _ planmodifier.Bool = (*boolDefaultValue)(nil)
+
+func (m *boolDefaultValue) Description(ctx context.Context) string {
+	return m.MarkdownDescription(ctx)
+}
+
+func (m *boolDefaultValue) MarkdownDescription(ctx context.Context) string {
+	return fmt.Sprintf("Sets the default value %v if the attribute is not set", m.value)
+}
+
+func (m *boolDefaultValue) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+	if !req.ConfigValue.IsNull() {
 		return
 	}
-}
 
-// Known returns an AttributeValidator which ensures that any configured
-// attribute value:
-//
-//   - Is known.
-//
-// Null (unconfigured) values are skipped.
-func Known() validator.String {
-	return knownValidator{}
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	resp.PlanValue = types.BoolValue(m.value)
 }

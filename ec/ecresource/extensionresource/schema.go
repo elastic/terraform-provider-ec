@@ -24,13 +24,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -39,8 +41,8 @@ var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 var _ resource.ResourceWithConfigValidators = &Resource{}
 
-func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: `
   Provides an Elastic Cloud extension resource, which allows extensions to be created, updated, and deleted.
 
@@ -48,77 +50,66 @@ func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 
   **Tip :** If you experience timeouts when uploading an extension through a slow network, you might need to increase the [timeout setting](https://registry.terraform.io/providers/elastic/ec/latest/docs#timeout).
 `,
-		Attributes: map[string]tfsdk.Attribute{
-			"name": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
 				Description: "Name of the extension",
 				Required:    true,
 			},
-			"description": {
-				Type:        types.StringType,
+			"description": schema.StringAttribute{
 				Description: "Description for the extension",
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: ""}),
-				}},
-			"extension_type": {
-				Type:        types.StringType,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue(""),
+				},
+			},
+			"extension_type": schema.StringAttribute{
 				Description: "Extension type. Must be `bundle` or `plugin`. A `bundle` will usually contain a dictionary or script, where a `plugin` is compiled from source.",
 				Required:    true,
 			},
-			"version": {
-				Type:        types.StringType,
+			"version": schema.StringAttribute{
 				Description: "Elastic stack version. A full version (e.g 8.7.0) should be set for plugins. A wildcard (e.g 8.*) may be used for bundles.",
 				Required:    true,
 			},
-			"download_url": {
-				Type:        types.StringType,
+			"download_url": schema.StringAttribute{
 				Description: "The URL to download the extension archive.",
 				Computed:    true,
 				Optional:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: ""}),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue(""),
 				},
 			},
-
 			// Uploading file via API
-			"file_path": {
-				Type:        types.StringType,
+			"file_path": schema.StringAttribute{
 				Description: "Local file path to upload as the extension.",
 				Optional:    true,
 			},
-			"file_hash": {
-				Type:        types.StringType,
+			"file_hash": schema.StringAttribute{
 				Description: "Hash value of the file. Triggers re-uploading the file on change.",
 				Optional:    true,
 			},
-			"url": {
-				Type:        types.StringType,
+			"url": schema.StringAttribute{
 				Description: "The extension URL which will be used in the Elastic Cloud deployment plan.",
 				Computed:    true,
 			},
-			"last_modified": {
-				Type:        types.StringType,
+			"last_modified": schema.StringAttribute{
 				Description: "The datatime the extension was last modified.",
 				Computed:    true,
 			},
-			"size": {
-				Type:        types.Int64Type,
+			"size": schema.Int64Attribute{
 				Description: "The size of the extension file in bytes.",
 				Computed:    true,
 			},
 			// Computed attributes
-			"id": {
-				Type:                types.StringType,
+			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier of this resource.",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *Resource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {

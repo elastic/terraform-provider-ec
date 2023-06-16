@@ -100,44 +100,44 @@ func modelToState(ctx context.Context, res *models.DeploymentsSearchResponse, st
 	var diags diag.Diagnostics
 
 	if b, _ := res.MarshalBinary(); len(b) > 0 {
-		state.ID = types.String{Value: strconv.Itoa(schema.HashString(string(b)))}
+		state.ID = types.StringValue(strconv.Itoa(schema.HashString(string(b))))
 	}
-	state.ReturnCount = types.Int64{Value: int64(*res.ReturnCount)}
+	state.ReturnCount = types.Int64Value(int64(*res.ReturnCount))
 
 	var result = make([]deploymentModelV0, 0, len(res.Deployments))
 	for _, deployment := range res.Deployments {
 		var m deploymentModelV0
 
-		m.DeploymentID = types.String{Value: *deployment.ID}
-		m.Alias = types.String{Value: deployment.Alias}
+		m.DeploymentID = types.StringValue(*deployment.ID)
+		m.Alias = types.StringValue(deployment.Alias)
 
 		if deployment.Name != nil {
-			m.Name = types.String{Value: *deployment.Name}
+			m.Name = types.StringValue(*deployment.Name)
 		}
 
 		if len(deployment.Resources.Elasticsearch) > 0 {
-			m.ElasticsearchResourceID = types.String{Value: *deployment.Resources.Elasticsearch[0].ID}
-			m.ElasticsearchRefID = types.String{Value: *deployment.Resources.Elasticsearch[0].RefID}
+			m.ElasticsearchResourceID = types.StringValue(*deployment.Resources.Elasticsearch[0].ID)
+			m.ElasticsearchRefID = types.StringValue(*deployment.Resources.Elasticsearch[0].RefID)
 		}
 
 		if len(deployment.Resources.Kibana) > 0 {
-			m.KibanaResourceID = types.String{Value: *deployment.Resources.Kibana[0].ID}
-			m.KibanaRefID = types.String{Value: *deployment.Resources.Kibana[0].RefID}
+			m.KibanaResourceID = types.StringValue(*deployment.Resources.Kibana[0].ID)
+			m.KibanaRefID = types.StringValue(*deployment.Resources.Kibana[0].RefID)
 		}
 
 		if len(deployment.Resources.Apm) > 0 {
-			m.ApmResourceID = types.String{Value: *deployment.Resources.Apm[0].ID}
-			m.ApmRefID = types.String{Value: *deployment.Resources.Apm[0].RefID}
+			m.ApmResourceID = types.StringValue(*deployment.Resources.Apm[0].ID)
+			m.ApmRefID = types.StringValue(*deployment.Resources.Apm[0].RefID)
 		}
 
 		if len(deployment.Resources.IntegrationsServer) > 0 {
-			m.IntegrationsServerResourceID = types.String{Value: *deployment.Resources.IntegrationsServer[0].ID}
-			m.IntegrationsServerRefID = types.String{Value: *deployment.Resources.IntegrationsServer[0].RefID}
+			m.IntegrationsServerResourceID = types.StringValue(*deployment.Resources.IntegrationsServer[0].ID)
+			m.IntegrationsServerRefID = types.StringValue(*deployment.Resources.IntegrationsServer[0].RefID)
 		}
 
 		if len(deployment.Resources.EnterpriseSearch) > 0 {
-			m.EnterpriseSearchResourceID = types.String{Value: *deployment.Resources.EnterpriseSearch[0].ID}
-			m.EnterpriseSearchRefID = types.String{Value: *deployment.Resources.EnterpriseSearch[0].RefID}
+			m.EnterpriseSearchResourceID = types.StringValue(*deployment.Resources.EnterpriseSearch[0].ID)
+			m.EnterpriseSearchRefID = types.StringValue(*deployment.Resources.EnterpriseSearch[0].RefID)
 		}
 
 		result = append(result, m)

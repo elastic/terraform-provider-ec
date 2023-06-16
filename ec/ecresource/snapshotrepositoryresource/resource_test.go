@@ -44,8 +44,8 @@ func TestResourceSnapshotRepository(t *testing.T) {
 				updateResponse(s3Json2),
 				readResponse(s3Json2),
 				readResponse(s3Json2),
-				readResponse(s3Json2),
-				readResponse(s3Json2),
+				readResponse(s3Json2WithPathStyleAccess),
+				readResponse(s3Json2WithPathStyleAccess),
 				updateResponse(genericJson),
 				readResponse(genericJson),
 				readResponse(genericJson),
@@ -378,6 +378,7 @@ const genericSnapshotRepository = `
 
 const s3Json1 = `{"settings":{"region":"us-east-1","bucket":"my-bucket","access_key":"my-access-key","secret_key":"my-secret-key","server_side_encryption":true,"endpoint":"s3.amazonaws.com","path_style_access":true},"type":"s3"}`
 const s3Json2 = `{"settings":{"region":"us-west-1","bucket":"my-bucket2","access_key":"my-access-key2","secret_key":"my-secret-key2","endpoint":"s3.us-west-1.amazonaws.com"},"type":"s3"}`
+const s3Json2WithPathStyleAccess = `{"settings":{"region":"us-west-1","bucket":"my-bucket2","access_key":"my-access-key2","secret_key":"my-secret-key2","endpoint":"s3.us-west-1.amazonaws.com","server_side_encryption":false,"path_style_access":false},"type":"s3"}`
 const genericJson = `{"settings":{"bucket":"my-bucket","client":"my_alternate_client","compress":false},"type":"azure"}`
 
 func checkS3Resource1() r.TestCheckFunc {

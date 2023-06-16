@@ -71,7 +71,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
 		API:          d.client,
-		DeploymentID: newState.ID.Value,
+		DeploymentID: newState.ID.ValueString(),
 		QueryParams: deputil.QueryParams{
 			ShowPlans:        true,
 			ShowSettings:     true,
@@ -99,17 +99,17 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state *modelV0) diag.Diagnostics {
 	var diagsnostics diag.Diagnostics
 
-	state.Name = types.String{Value: *res.Name}
-	state.Healthy = types.Bool{Value: *res.Healthy}
-	state.Alias = types.String{Value: res.Alias}
+	state.Name = types.StringValue(*res.Name)
+	state.Healthy = types.BoolValue(*res.Healthy)
+	state.Alias = types.StringValue(res.Alias)
 
 	es := res.Resources.Elasticsearch[0]
 	if es.Region != nil {
-		state.Region = types.String{Value: *es.Region}
+		state.Region = types.StringValue(*es.Region)
 	}
 
 	if !util.IsCurrentEsPlanEmpty(es) {
-		state.DeploymentTemplateID = types.String{Value: *es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID}
+		state.DeploymentTemplateID = types.StringValue(*es.Info.PlanInfo.Current.Plan.DeploymentTemplate.ID)
 	}
 
 	var diags diag.Diagnostics
@@ -136,7 +136,8 @@ func modelToState(ctx context.Context, res *models.DeploymentGetResponse, state 
 	diagsnostics.Append(diags...)
 
 	if res.Metadata != nil {
-		state.Tags = converters.ModelsTagsToTypesMap(res.Metadata.Tags)
+		state.Tags, diags = converters.ModelsTagsToTypesMap(res.Metadata.Tags)
+		diagsnostics.Append(diags...)
 	}
 
 	return diagsnostics

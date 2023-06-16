@@ -23,8 +23,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -40,22 +40,19 @@ type DataSource struct {
 var _ datasource.DataSource = &DataSource{}
 var _ datasource.DataSourceWithConfigure = &DataSource{}
 
-func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Use this data source to filter for an existing traffic filter that has been created via one of the provided filters.",
-		Attributes: map[string]tfsdk.Attribute{
-			"name": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"name": schema.StringAttribute{
 				Description: "The exact name of the traffic filter to select.",
 				Optional:    true,
 			},
-			"id": {
-				Type:        types.StringType,
+			"id": schema.StringAttribute{
 				Description: "The id of the traffic filter to select.",
 				Optional:    true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: "Region where the traffic filter is. For Elastic Cloud Enterprise (ECE) installations, use `ece-region`",
 				Optional:    true,
 			},
@@ -63,65 +60,61 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 			// computed fields
 			"rulesets": rulesetSchema(),
 		},
-	}, nil
-}
-
-func rulesetSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
-		Description: "An individual ruleset",
-		Computed:    true,
-		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-			"id": {
-				Type:        types.StringType,
-				Description: "The ID of the ruleset",
-				Computed:    true,
-			},
-			"name": {
-				Type:        types.StringType,
-				Description: "The name of the ruleset.",
-				Computed:    true,
-			},
-			"description": {
-				Type:        types.StringType,
-				Description: "The description of the ruleset.",
-				Computed:    true,
-			},
-			"region": {
-				Type:        types.StringType,
-				Description: "The ruleset can be attached only to deployments in the specific region.",
-				Computed:    true,
-			},
-			"include_by_default": {
-				Type:        types.BoolType,
-				Description: "Should the ruleset be automatically included in the new deployments.",
-				Computed:    true,
-			},
-			"rules": ruleSchema(),
-		}),
 	}
 }
 
-func ruleSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func rulesetSchema() schema.Attribute {
+	return schema.ListNestedAttribute{
+		Description: "An individual ruleset",
+		Computed:    true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Description: "The ID of the ruleset",
+					Computed:    true,
+				},
+				"name": schema.StringAttribute{
+					Description: "The name of the ruleset.",
+					Computed:    true,
+				},
+				"description": schema.StringAttribute{
+					Description: "The description of the ruleset.",
+					Computed:    true,
+				},
+				"region": schema.StringAttribute{
+					Description: "The ruleset can be attached only to deployments in the specific region.",
+					Computed:    true,
+				},
+				"include_by_default": schema.BoolAttribute{
+					Description: "Should the ruleset be automatically included in the new deployments.",
+					Computed:    true,
+				},
+				"rules": ruleSchema(),
+			},
+		},
+	}
+}
+
+func ruleSchema() schema.Attribute {
+	return schema.ListNestedAttribute{
 		Description: "An individual rule",
 		Computed:    true,
-		Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-			"id": {
-				Type:        types.StringType,
-				Description: "The ID of the rule",
-				Computed:    true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Description: "The ID of the rule",
+					Computed:    true,
+				},
+				"source": schema.StringAttribute{
+					Description: "Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID.",
+					Computed:    true,
+				},
+				"description": schema.StringAttribute{
+					Description: "The description of the rule.",
+					Computed:    true,
+				},
 			},
-			"source": {
-				Type:        types.StringType,
-				Description: "Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID.",
-				Computed:    true,
-			},
-			"description": {
-				Type:        types.StringType,
-				Description: "The description of the rule.",
-				Computed:    true,
-			},
-		}),
+		},
 	}
 }
 
@@ -200,24 +193,24 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 	var result = make([]rulesetModelV0, 0, len(res.Rulesets))
 
 	for _, ruleset := range res.Rulesets {
-		if *ruleset.Name != state.Name.Value && *ruleset.ID != state.Id.Value && *ruleset.Region != state.Region.Value {
+		if *ruleset.Name != state.Name.ValueString() && *ruleset.ID != state.Id.ValueString() && *ruleset.Region != state.Region.ValueString() {
 			continue
 		}
 
 		m := rulesetModelV0{
-			Name:             types.String{Value: *ruleset.Name},
-			Id:               types.String{Value: *ruleset.ID},
-			Description:      types.String{Value: ruleset.Description},
-			Region:           types.String{Value: *ruleset.Region},
-			IncludeByDefault: types.Bool{Value: *ruleset.IncludeByDefault},
+			Name:             types.StringValue(*ruleset.Name),
+			Id:               types.StringValue(*ruleset.ID),
+			Description:      types.StringValue(ruleset.Description),
+			Region:           types.StringValue(*ruleset.Region),
+			IncludeByDefault: types.BoolValue(*ruleset.IncludeByDefault),
 		}
 
 		var ruleArray = make([]ruleModelV0, 0, len(ruleset.Rules))
 		for _, rule := range ruleset.Rules {
 			t := ruleModelV0{
-				Id:          types.String{Value: rule.ID},
-				Source:      types.String{Value: rule.Source},
-				Description: types.String{Value: rule.Description},
+				Id:          types.StringValue(rule.ID),
+				Source:      types.StringValue(rule.Source),
+				Description: types.StringValue(rule.Description),
 			}
 			ruleArray = append(ruleArray, t)
 		}
@@ -228,27 +221,22 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 		result = append(result, m)
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
-		ElemType: types.ObjectType{
-			AttrTypes: rulesetAttrTypes(),
-		},
-	}, &state.Rulesets)...)
-
+	state.Rulesets, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: rulesetAttrTypes()}, result)
 	return diags
 }
 
 func rulesetAttrTypes() map[string]attr.Type {
-	return rulesetSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return rulesetSchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 func rulesetElemType() attr.Type {
-	return rulesetSchema().Attributes.Type().(types.ListType).ElemType
+	return rulesetSchema().GetType().(types.ListType).ElemType
 }
 
 func ruleAttrTypes() map[string]attr.Type {
-	return ruleSchema().Attributes.Type().(types.ListType).ElemType.(types.ObjectType).AttrTypes
+	return ruleSchema().GetType().(types.ListType).ElemType.(types.ObjectType).AttrTypes
 }
 
 func ruleElemType() attr.Type {
-	return ruleSchema().Attributes.Type().(types.ListType).ElemType
+	return ruleSchema().GetType().(types.ListType).ElemType
 }

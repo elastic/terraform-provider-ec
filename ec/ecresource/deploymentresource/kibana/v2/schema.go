@@ -18,127 +18,113 @@
 package v2
 
 import (
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
-func KibanaSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func KibanaSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: `Kibana cluster definition.
 
 -> **Note on disabling Kibana** While optional it is recommended deployments specify a Kibana block, since not doing so might cause issues when modifying or upgrading the deployment.`,
 		Optional: true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"elasticsearch_cluster_ref_id": {
-				Type: types.StringType,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "main-elasticsearch"}),
+		Attributes: map[string]schema.Attribute{
+			"elasticsearch_cluster_ref_id": schema.StringAttribute{
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue("main-elasticsearch"),
 				},
 				Computed: true,
 				Optional: true,
 			},
-			"ref_id": {
-				Type: types.StringType,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "main-kibana"}),
+			"ref_id": schema.StringAttribute{
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue("main-kibana"),
 				},
 				Computed: true,
 				Optional: true,
 			},
-			"resource_id": {
-				Type:     types.StringType,
+			"resource_id": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"region": {
-				Type:     types.StringType,
+			"region": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"http_endpoint": {
-				Type:     types.StringType,
+			"http_endpoint": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"https_endpoint": {
-				Type:     types.StringType,
+			"https_endpoint": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"instance_configuration_id": {
-				Type:     types.StringType,
+			"instance_configuration_id": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.UseStateForUnknownUnlessTemplateChanged(),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
-			"size": {
-				Type:     types.StringType,
+			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.UseStateForUnknownUnlessTemplateChanged(),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
-			"size_resource": {
-				Type:        types.StringType,
+			"size_resource": schema.StringAttribute{
 				Description: `Optional size type, defaults to "memory".`,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.String{Value: "memory"}),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.StringDefaultValue("memory"),
 				},
 				Computed: true,
 				Optional: true,
 			},
-			"zone_count": {
-				Type:     types.Int64Type,
+			"zone_count": schema.Int64Attribute{
 				Computed: true,
 				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
 				},
 			},
-			"config": {
+			"config": schema.SingleNestedAttribute{
 				Optional:    true,
 				Description: `Optionally define the Kibana configuration options for the Kibana Server`,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"docker_image": {
-						Type:        types.StringType,
+				Attributes: map[string]schema.Attribute{
+					"docker_image": schema.StringAttribute{
 						Description: "Optionally override the docker image the Kibana nodes will use. Note that this field will only work for internal users only.",
 						Optional:    true,
 					},
-					"user_settings_json": {
-						Type:        types.StringType,
+					"user_settings_json": schema.StringAttribute{
 						Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
 						Optional:    true,
 					},
-					"user_settings_override_json": {
-						Type:        types.StringType,
+					"user_settings_override_json": schema.StringAttribute{
 						Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
 						Optional:    true,
 					},
-					"user_settings_yaml": {
-						Type:        types.StringType,
+					"user_settings_yaml": schema.StringAttribute{
 						Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
 						Optional:    true,
 					},
-					"user_settings_override_yaml": {
-						Type:        types.StringType,
+					"user_settings_override_yaml": schema.StringAttribute{
 						Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
 						Optional:    true,
 					},
-				}),
+				},
 			},
-		}),
+		},
 	}
 }

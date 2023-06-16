@@ -58,7 +58,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	var newState *deploymentv2.Deployment
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	newState, diags = r.read(ctx, curState.Id.Value, &curState, nil, nil)
+	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil)
 
 	response.Diagnostics.Append(diags...)
 
@@ -132,7 +132,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	}
 
 	if baseElasticsearch != nil {
-		refId = baseElasticsearch.RefId.Value
+		refId = baseElasticsearch.RefId.ValueString()
 	}
 
 	remotes, err := esremoteclustersapi.Get(esremoteclustersapi.GetParams{
@@ -153,9 +153,9 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		return nil, diags
 	}
 
-	deployment.RequestId = base.RequestId.Value
+	deployment.RequestId = base.RequestId.ValueString()
 	if !base.ResetElasticsearchPassword.IsNull() && !base.ResetElasticsearchPassword.IsUnknown() {
-		deployment.ResetElasticsearchPassword = &base.ResetElasticsearchPassword.Value
+		deployment.ResetElasticsearchPassword = base.ResetElasticsearchPassword.ValueBoolPointer()
 	}
 
 	diags.Append(deployment.HandleEmptyTrafficFilters(ctx, base)...)
@@ -170,7 +170,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	// We don't care about backend current `strategy`'s value and should not trigger a change,
 	// if the backend's value differs from the local state.
 	if baseElasticsearch != nil && !baseElasticsearch.Strategy.IsNull() {
-		deployment.Elasticsearch.Strategy = &baseElasticsearch.Strategy.Value
+		deployment.Elasticsearch.Strategy = baseElasticsearch.Strategy.ValueStringPointer()
 	}
 
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it

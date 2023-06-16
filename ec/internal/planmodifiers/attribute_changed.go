@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package planmodifier
+package planmodifiers
 
 import (
 	"context"
@@ -26,16 +26,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-func AttributeChanged(ctx context.Context, p path.Path, req tfsdk.ModifyAttributePlanRequest) (bool, diag.Diagnostics) {
+func AttributeChanged(ctx context.Context, p path.Path, plan tfsdk.Plan, state tfsdk.State) (bool, diag.Diagnostics) {
 	var planValue attr.Value
 
-	if diags := req.Plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
+	if diags := plan.GetAttribute(ctx, p, &planValue); diags.HasError() {
 		return false, diags
 	}
 
 	var stateValue attr.Value
 
-	if diags := req.State.GetAttribute(ctx, p, &stateValue); diags.HasError() {
+	if diags := state.GetAttribute(ctx, p, &stateValue); diags.HasError() {
 		return false, diags
 	}
 
