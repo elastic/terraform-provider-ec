@@ -96,7 +96,8 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 	var result = make([]elasticsearchTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		model := elasticsearchTopologyModelV0{
-			NodeRoles: types.SetNull(types.StringType),
+			NodeRoles:   types.SetNull(types.StringType),
+			Autoscaling: types.ListNull(elasticsearchAutoscalingElemType()),
 		}
 
 		if isElasticsearchSizePopulated(topology) && *topology.Size.Value == 0 {
