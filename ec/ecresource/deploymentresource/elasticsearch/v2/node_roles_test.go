@@ -146,11 +146,11 @@ func Test_UseNodeRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var elasticsearchObject types.Object
 
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.elasticsearch, ElasticsearchSchema().FrameworkType(), &elasticsearchObject)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.elasticsearch, ElasticsearchSchema().GetType(), &elasticsearchObject)
 
 			assert.Nil(t, diags)
 
-			got, diags := UseNodeRoles(context.Background(), types.String{Value: tt.args.stateVersion}, types.String{Value: tt.args.planVersion}, elasticsearchObject)
+			got, diags := UseNodeRoles(context.Background(), types.StringValue(tt.args.stateVersion), types.StringValue(tt.args.planVersion), elasticsearchObject)
 
 			if tt.expectedDiags == nil {
 				assert.Nil(t, diags)

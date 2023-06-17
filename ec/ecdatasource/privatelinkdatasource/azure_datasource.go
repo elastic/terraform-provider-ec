@@ -21,9 +21,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
 func AzureDataSource() datasource.DataSource {
@@ -39,29 +37,26 @@ type azureDataSource struct {
 	privateLinkDataSource[v0AzureModel]
 }
 
-func (d *azureDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (d *azureDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Use this data source to retrieve information about the Azure Private Link configuration for a given region. Further documentation on how to establish a PrivateLink connection can be found in the ESS [documentation](https://www.elastic.co/guide/en/cloud/current/ec-traffic-filtering-vnet.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"region": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"region": schema.StringAttribute{
 				Description: "Region to retrieve the Private Link configuration for.",
 				Required:    true,
 			},
 
 			// Computed
-			"service_alias": {
-				Type:        types.StringType,
+			"service_alias": schema.StringAttribute{
 				Description: "The service alias to establish a connection to.",
 				Computed:    true,
 			},
-			"domain_name": {
-				Type:        types.StringType,
+			"domain_name": schema.StringAttribute{
 				Description: "The domain name to used in when configuring a private hosted zone in the VNet connection.",
 				Computed:    true,
 			},
 		},
-	}, nil
+	}
 }
 
 type v0AzureModel struct {

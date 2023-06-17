@@ -21,9 +21,11 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -33,104 +35,88 @@ import (
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 )
 
-func DeploymentSchema() tfsdk.Schema {
-	return tfsdk.Schema{
-		Version: 2,
-		// This description is used by the documentation generator and the language server.
+func DeploymentSchema() schema.Schema {
+	return schema.Schema{
+		Version:             2,
 		MarkdownDescription: "Provides an Elastic Cloud deployment resource, which allows deployments to be created, updated, and deleted.",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:                types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier of this deployment.",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"alias": {
-				Type:        types.StringType,
+			"alias": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
 				Description: "Deployment alias, affects the format of the resource URLs.",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"version": {
-				Type: types.StringType,
+			"version": schema.StringAttribute{
 				Description: `Elastic Stack version to use for all of the deployment resources.
 
 -> Read the [ESS stack version policy](https://www.elastic.co/guide/en/cloud/current/ec-version-policy.html#ec-version-policy-available) to understand which versions are available.`,
 				Required: true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: "Elasticsearch Service (ESS) region where the deployment should be hosted. For Elastic Cloud Enterprise (ECE) installations, set to `\"ece-region\".",
 				Required:    true,
 			},
-			"deployment_template_id": {
-				Type:        types.StringType,
+			"deployment_template_id": schema.StringAttribute{
 				Description: "Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.",
 				Required:    true,
 			},
-			"name": {
-				Type:        types.StringType,
+			"name": schema.StringAttribute{
 				Description: "Name for the deployment",
 				Optional:    true,
 			},
-			"request_id": {
-				Type:        types.StringType,
+			"request_id": schema.StringAttribute{
 				Description: "Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"elasticsearch_username": {
-				Type:        types.StringType,
+			"elasticsearch_username": schema.StringAttribute{
 				Description: "Username for authenticating to the Elasticsearch resource.",
 				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"elasticsearch_password": {
-				Type: types.StringType,
+			"elasticsearch_password": schema.StringAttribute{
 				Description: `Password for authenticating to the Elasticsearch resource.
 
 ~> **Note on deployment credentials** The <code>elastic</code> user credentials are only available whilst creating a deployment. Importing a deployment will not import the <code>elasticsearch_username</code> or <code>elasticsearch_password</code> attributes.`,
 				Computed:  true,
 				Sensitive: true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 					setUnknownIfResetPasswordIsTrue{},
 				},
 			},
-			"apm_secret_token": {
-				Type:      types.StringType,
+			"apm_secret_token": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
 			},
-			"traffic_filter": {
-				Type: types.SetType{
-					ElemType: types.StringType,
-				},
+			"traffic_filter": schema.SetAttribute{
+				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
 				Description: "List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.",
 			},
-			"tags": {
+			"tags": schema.MapAttribute{
 				Description: "Optional map of deployment tags",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
+				ElementType: types.StringType,
+				Optional:    true,
 			},
-			"reset_elasticsearch_password": {
+			"reset_elasticsearch_password": schema.BoolAttribute{
 				Description: "Explicitly resets the elasticsearch_password when true",
-				Type:        types.BoolType,
 				Optional:    true,
 			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
@@ -145,7 +131,7 @@ func DeploymentSchema() tfsdk.Schema {
 
 type setUnknownIfResetPasswordIsTrue struct{}
 
-var _ tfsdk.AttributePlanModifier = setUnknownIfResetPasswordIsTrue{}
+var _ planmodifier.String = setUnknownIfResetPasswordIsTrue{}
 
 func (m setUnknownIfResetPasswordIsTrue) Description(ctx context.Context) string {
 	return m.MarkdownDescription(ctx)
@@ -155,13 +141,9 @@ func (m setUnknownIfResetPasswordIsTrue) MarkdownDescription(ctx context.Context
 	return "Sets the planned value to unknown if the reset_elasticsearch_password config value is true"
 }
 
-func (m setUnknownIfResetPasswordIsTrue) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if resp.AttributePlan == nil || req.AttributeConfig == nil {
-		return
-	}
-
+func (m setUnknownIfResetPasswordIsTrue) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.AttributeConfig.IsUnknown() {
+	if req.ConfigValue.IsUnknown() {
 		return
 	}
 
@@ -172,6 +154,6 @@ func (m setUnknownIfResetPasswordIsTrue) Modify(ctx context.Context, req tfsdk.M
 	}
 
 	if isResetting != nil && *isResetting {
-		resp.AttributePlan = types.String{Unknown: true}
+		resp.PlanValue = types.StringUnknown()
 	}
 }

@@ -1,2 +1,3 @@
 ```release-note:feature
 datasource/privatelink: Adds data sources (`aws_privatelink_endpoint`, `azure_privatelink_endpoint`, and `gcp_private_service_connect_endpoint`) to lookup private networking endpoint information.
+```

@@ -104,28 +104,28 @@ func Test_modelToState(t *testing.T) {
 		{
 			name: "has a matching id",
 			args: args{in: &remoteStateForMatchingId, state: modelV0{
-				Id: types.String{Value: "matching-id"},
+				Id: types.StringValue("matching-id"),
 			}},
 			want: want,
 		},
 		{
 			name: "has no matching id or anything else",
 			args: args{in: &remoteStateForMatchingId, state: modelV0{
-				Id: types.String{Value: "no-matches"},
+				Id: types.StringValue("no-matches"),
 			}},
 			want: wantNoMatches,
 		},
 		{
 			name: "has matching name",
 			args: args{in: &remoteStateForMatchingName, state: modelV0{
-				Name: types.String{Value: "my traffic filter"},
+				Name: types.StringValue("my traffic filter"),
 			}},
 			want: wantmatchingName,
 		},
 		{
 			name: "has matching region",
 			args: args{in: &remoteStateForMatchingRegion, state: modelV0{
-				Region: types.String{Value: "us-east-1"},
+				Region: types.StringValue("us-east-1"),
 			}},
 			want: wantRegionMatches,
 		},
@@ -140,102 +140,74 @@ func Test_modelToState(t *testing.T) {
 
 func hasMatchingRegion(region string) modelV0 {
 	return modelV0{
-		Region: types.String{Value: region},
-		Rulesets: types.List{
-			ElemType: rulesetElemType(),
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: rulesetAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"id":                 types.String{Value: "matching-region"},
-						"name":               types.String{Value: "my traffic filter"},
-						"region":             types.String{Value: "us-east-1"},
-						"include_by_default": types.Bool{Value: false},
-						"description":        types.String{Value: "description"},
-						"rules":              newSampleTrafficFilterRule("matching-region"),
-					},
-				},
-				types.Object{
-					AttrTypes: rulesetAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"id":                 types.String{Value: "matching-region"},
-						"name":               types.String{Value: "my traffic filter"},
-						"region":             types.String{Value: "us-east-1"},
-						"include_by_default": types.Bool{Value: false},
-						"description":        types.String{Value: "description"},
-						"rules":              newSampleTrafficFilterRule("matching-region"),
-					},
-				},
-			},
-		},
+		Region: types.StringValue(region),
+		Rulesets: types.ListValueMust(rulesetElemType(), []attr.Value{
+			types.ObjectValueMust(rulesetAttrTypes(), map[string]attr.Value{
+				"id":                 types.StringValue("matching-region"),
+				"name":               types.StringValue("my traffic filter"),
+				"region":             types.StringValue("us-east-1"),
+				"include_by_default": types.BoolValue(false),
+				"description":        types.StringValue("description"),
+				"rules":              newSampleTrafficFilterRule("matching-region"),
+			}),
+			types.ObjectValueMust(rulesetAttrTypes(), map[string]attr.Value{
+				"id":                 types.StringValue("matching-region"),
+				"name":               types.StringValue("my traffic filter"),
+				"region":             types.StringValue("us-east-1"),
+				"include_by_default": types.BoolValue(false),
+				"description":        types.StringValue("description"),
+				"rules":              newSampleTrafficFilterRule("matching-region"),
+			}),
+		}),
 	}
 }
 
 func hasMatchingId(id string) modelV0 {
 	return modelV0{
-		Id: types.String{Value: id},
-		Rulesets: types.List{
-			ElemType: rulesetElemType(),
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: rulesetAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"id":                 types.String{Value: id},
-						"name":               types.String{Value: "my traffic filter"},
-						"region":             types.String{Value: "us-east-1"},
-						"include_by_default": types.Bool{Value: false},
-						"description":        types.String{Value: "description"},
-						"rules":              newSampleTrafficFilterRule(id),
-					},
-				},
-			},
-		},
+		Id: types.StringValue(id),
+		Rulesets: types.ListValueMust(rulesetElemType(), []attr.Value{
+			types.ObjectValueMust(rulesetAttrTypes(), map[string]attr.Value{
+				"id":                 types.StringValue(id),
+				"name":               types.StringValue("my traffic filter"),
+				"region":             types.StringValue("us-east-1"),
+				"include_by_default": types.BoolValue(false),
+				"description":        types.StringValue("description"),
+				"rules":              newSampleTrafficFilterRule(id),
+			}),
+		}),
 	}
 }
 
 func hasMatchingName(name string) modelV0 {
 	return modelV0{
-		Name: types.String{Value: name},
-		Rulesets: types.List{
-			ElemType: rulesetElemType(),
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: rulesetAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"id":                 types.String{Value: "matching-name"},
-						"name":               types.String{Value: name},
-						"region":             types.String{Value: "us-east-1"},
-						"include_by_default": types.Bool{Value: false},
-						"description":        types.String{Value: "description"},
-						"rules":              newSampleTrafficFilterRule("matching-name"),
-					},
-				},
-			},
-		},
+		Name: types.StringValue(name),
+		Rulesets: types.ListValueMust(rulesetElemType(), []attr.Value{
+			types.ObjectValueMust(rulesetAttrTypes(), map[string]attr.Value{
+				"id":                 types.StringValue("matching-name"),
+				"name":               types.StringValue(name),
+				"region":             types.StringValue("us-east-1"),
+				"include_by_default": types.BoolValue(false),
+				"description":        types.StringValue("description"),
+				"rules":              newSampleTrafficFilterRule("matching-name"),
+			}),
+		}),
 	}
 }
 
 func emptyResultSet(id string) modelV0 {
 	return modelV0{
-		Id: types.String{Value: id},
-		Rulesets: types.List{
-			ElemType: rulesetElemType(),
-			Elems:    []attr.Value{}},
+		Id:       types.StringValue(id),
+		Rulesets: types.ListValueMust(rulesetElemType(), []attr.Value{}),
 	}
 }
 
 func newSampleTrafficFilterRule(id string) types.List {
-	return types.List{
-		ElemType: ruleElemType(),
-		Elems: []attr.Value{
-			types.Object{
-				AttrTypes: ruleAttrTypes(),
-				Attrs: map[string]attr.Value{
-					"id":          types.String{Value: id},
-					"source":      types.String{Value: "1.1.1.1"},
-					"description": types.String{Value: "desc"},
-				},
-			},
-		},
-	}
+	return types.ListValueMust(ruleElemType(), []attr.Value{
+		types.ObjectValueMust(ruleAttrTypes(), map[string]attr.Value{
+			"id":          types.StringValue(id),
+			"source":      types.StringValue("1.1.1.1"),
+			"description": types.StringValue("desc"),
+		}),
+	},
+	)
 }

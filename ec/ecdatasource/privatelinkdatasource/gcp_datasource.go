@@ -21,9 +21,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
 func GcpDataSource() datasource.DataSource {
@@ -39,29 +37,26 @@ type gcpDataSource struct {
 	privateLinkDataSource[v0GcpModel]
 }
 
-func (d *gcpDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (d *gcpDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Use this data source to retrieve information about the GCP Private Service Connect configuration for a given region. Further documentation on how to establish a PrivateLink connection can be found in the ESS [documentation](https://www.elastic.co/guide/en/cloud/current/ec-traffic-filtering-psc.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"region": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"region": schema.StringAttribute{
 				Description: "Region to retrieve the Prive Link configuration for.",
 				Required:    true,
 			},
 
 			// Computed
-			"service_attachment_uri": {
-				Type:        types.StringType,
+			"service_attachment_uri": schema.StringAttribute{
 				Description: "The service attachment URI to attach the PSC endpoint to.",
 				Computed:    true,
 			},
-			"domain_name": {
-				Type:        types.StringType,
+			"domain_name": schema.StringAttribute{
 				Description: "The domain name to point towards the PSC endpoint.",
 				Computed:    true,
 			},
 		},
-	}, nil
+	}
 }
 
 type v0GcpModel struct {

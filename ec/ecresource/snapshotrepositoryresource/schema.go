@@ -24,12 +24,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -38,103 +40,92 @@ var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 var _ resource.ResourceWithConfigValidators = &Resource{}
 
-func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: `Manages Elastic Cloud Enterprise snapshot repositories.
 
   ~> **This resource can only be used with Elastic Cloud Enterprise** For Elastic Cloud SaaS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest).`,
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:                types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier of this resource.",
 				Computed:            true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name": {
-				Type:        types.StringType,
+			"name": schema.StringAttribute{
 				Description: "The name of the snapshot repository configuration.",
 				Required:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"generic": genericSchema(),
 			"s3":      s3Schema(),
 		},
-	}, nil
+	}
 }
 
-func s3Schema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func s3Schema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "S3 repository settings.",
 		Optional:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"region": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"region": schema.StringAttribute{
 				Description: "Allows specifying the signing region to use. Specifying this setting manually should not be necessary for most use cases. Generally, the SDK will correctly guess the signing region to use. It should be considered an expert level setting to support S3-compatible APIs that require v4 signatures and use a region other than the default us-east-1. Defaults to empty string which means that the SDK will try to automatically determine the correct signing region.",
 				Optional:    true,
 			},
-			"bucket": {
-				Type:        types.StringType,
+			"bucket": schema.StringAttribute{
 				Description: "Name of the S3 bucket to use for snapshots.",
 				Required:    true,
 			},
-			"access_key": {
-				Type:        types.StringType,
+			"access_key": schema.StringAttribute{
 				Description: "An S3 access key. If set, the secret_key setting must also be specified. If unset, the client will use the instance or container role instead.",
 				Optional:    true,
 			},
-			"secret_key": {
-				Type:        types.StringType,
+			"secret_key": schema.StringAttribute{
 				Description: "An S3 secret key. If set, the access_key setting must also be specified.",
 				Optional:    true,
 				Sensitive:   true,
 			},
-			"server_side_encryption": {
-				Type:        types.BoolType,
+			"server_side_encryption": schema.BoolAttribute{
 				Description: "When set to true files are encrypted on server side using AES256 algorithm. Defaults to false.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: false}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
 				},
 			},
-			"endpoint": {
-				Type:        types.StringType,
+			"endpoint": schema.StringAttribute{
 				Description: "The S3 service endpoint to connect to. This defaults to s3.amazonaws.com but the AWS documentation lists alternative S3 endpoints. If you are using an S3-compatible service then you should set this to the service’s endpoint.",
 				Optional:    true,
 			},
-			"path_style_access": {
-				Type:        types.BoolType,
+			"path_style_access": schema.BoolAttribute{
 				Description: "Whether to force the use of the path style access pattern. If true, the path style access pattern will be used. If false, the access pattern will be automatically determined by the AWS Java SDK (See AWS documentation for details). Defaults to false.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: false}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
 				},
 			},
-		}),
+		},
 	}
 }
 
-func genericSchema() tfsdk.Attribute {
-	return tfsdk.Attribute{
+func genericSchema() schema.Attribute {
+	return schema.SingleNestedAttribute{
 		Description: "Generic repository settings.",
 		Optional:    true,
-		Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			"type": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"type": schema.StringAttribute{
 				Description: "Repository type",
 				Required:    true,
 			},
-			"settings": {
-				Type:        types.StringType,
+			"settings": schema.StringAttribute{
 				Description: "An arbitrary JSON object containing the repository settings.",
 				Required:    true,
 			},
-		}),
+		},
 	}
 }
 

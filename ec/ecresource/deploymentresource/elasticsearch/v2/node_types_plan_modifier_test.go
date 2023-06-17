@@ -23,6 +23,7 @@ import (
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ import (
 func Test_nodeTypesPlanModifier(t *testing.T) {
 	type args struct {
 		attributeState  types.String
-		attributePlan   *types.String
+		attributePlan   types.String
 		deploymentState *deploymentv2.Deployment
 		deploymentPlan  deploymentv2.Deployment
 	}
@@ -43,20 +44,23 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 		{
 			name: "it should keep current plan value if it's defined",
 			args: args{
-				attributePlan: &types.String{Value: "some value"},
+				attributePlan: types.StringValue("some value"),
 			},
-			expected: types.String{Value: "some value"},
+			expected: types.StringValue("some value"),
 		},
 
 		{
-			name:     "it should not use state if state doesn't have `version`",
-			args:     args{},
-			expected: types.String{Unknown: true},
+			name: "it should not use state if state doesn't have `version`",
+			args: args{
+				attributePlan: types.StringUnknown(),
+			},
+			expected: types.StringUnknown(),
 		},
 
 		{
 			name: "it should not use state if plan changed deployment template`",
 			args: args{
+				attributePlan: types.StringUnknown(),
 				deploymentState: &deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 				},
@@ -64,13 +68,14 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 					DeploymentTemplateId: "aws-storage-optimized-v3",
 				},
 			},
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 
 		{
 			name: "it should not use state if plan version is less than 7.10.0 but the attribute state is null`",
 			args: args{
-				attributeState: types.String{Null: true},
+				attributePlan:  types.StringUnknown(),
+				attributeState: types.StringNull(),
 				deploymentState: &deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 				},
@@ -79,13 +84,14 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 					Version:              "7.9.0",
 				},
 			},
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 
 		{
 			name: "it should not use state if plan version is changed over 7.10.0, but the attribute state is null`",
 			args: args{
-				attributeState: types.String{Null: true},
+				attributePlan:  types.StringUnknown(),
+				attributeState: types.StringNull(),
 				deploymentState: &deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Version:              "7.9.0",
@@ -95,13 +101,14 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 					Version:              "7.10.1",
 				},
 			},
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 
 		{
 			name: "it should not use state if both plan and state versions is or higher than 7.10.0, but the attribute state is not null`",
 			args: args{
-				attributeState: types.String{Value: "false"},
+				attributePlan:  types.StringUnknown(),
+				attributeState: types.StringValue("false"),
 				deploymentState: &deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Version:              "7.10.0",
@@ -111,13 +118,14 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 					Version:              "7.10.0",
 				},
 			},
-			expected: types.String{Unknown: true},
+			expected: types.StringUnknown(),
 		},
 
 		{
 			name: "it should use state if both plan and state versions is or higher than 7.10.0 and the attribute state is null`",
 			args: args{
-				attributeState: types.String{Null: true},
+				attributePlan:  types.StringUnknown(),
+				attributeState: types.StringNull(),
 				deploymentState: &deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Version:              "7.10.0",
@@ -127,7 +135,7 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 					Version:              "7.10.0",
 				},
 			},
-			expected: types.String{Null: true},
+			expected: types.StringNull(),
 		},
 	}
 
@@ -135,19 +143,15 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			modifier := v2.UseNodeTypesDefault()
 
-			// attributeConfig value is not used in the plan modifer
-			// it just should be known
-			attributeConfigValue := attrValueFromGoTypeValue(t, types.String{}, types.StringType)
-
-			attributeStateValue := attrValueFromGoTypeValue(t, tt.args.attributeState, types.StringType)
-
 			deploymentStateValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
 			deploymentPlanValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
-			req := tfsdk.ModifyAttributePlanRequest{
-				AttributeConfig: attributeConfigValue,
-				AttributeState:  attributeStateValue,
+			req := planmodifier.StringRequest{
+				// ConfigValue value is not used in the plan modifer,
+				// it just should be known
+				ConfigValue: types.StringValue(""),
+				StateValue:  tt.args.attributeState,
 				State: tfsdk.State{
 					Raw:    deploymentStateValue,
 					Schema: deploymentv2.DeploymentSchema(),
@@ -158,29 +162,13 @@ func Test_nodeTypesPlanModifier(t *testing.T) {
 				},
 			}
 
-			// the default plan value is `Unknown` ("known after apply")
-			// the plan modifier either keeps this value or uses the current state
-			// if test doesn't specify plan value, let's use the default (`Unknown`) value that is used by TF during plan modifier execution
+			resp := planmodifier.StringResponse{PlanValue: tt.args.attributePlan}
 
-			if tt.args.attributePlan == nil {
-				tt.args.attributePlan = &types.String{Unknown: true}
-			}
-
-			attributePlanValue := attrValueFromGoTypeValue(t, tt.args.attributePlan, types.StringType)
-
-			resp := tfsdk.ModifyAttributePlanResponse{AttributePlan: attributePlanValue}
-
-			modifier.Modify(context.Background(), req, &resp)
+			modifier.PlanModifyString(context.Background(), req, &resp)
 
 			assert.Nil(t, resp.Diagnostics)
 
-			var attributePlan types.String
-
-			diags := tfsdk.ValueAs(context.Background(), resp.AttributePlan, &attributePlan)
-
-			assert.Nil(t, diags)
-
-			assert.Equal(t, tt.expected, attributePlan)
+			assert.Equal(t, tt.expected, resp.PlanValue)
 		})
 	}
 }

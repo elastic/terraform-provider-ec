@@ -84,8 +84,8 @@ func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID 
 		topologyElem.Size = size
 	}
 
-	if topology.ZoneCount.Value > 0 {
-		topologyElem.ZoneCount = int32(topology.ZoneCount.Value)
+	if topology.ZoneCount.ValueInt64() > 0 {
+		topologyElem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
 	if err := topology.parseLegacyNodeType(topologyElem.NodeType); err != nil {
@@ -200,32 +200,32 @@ func (topology *ElasticsearchTopologyTF) parseLegacyNodeType(nodeType *models.El
 		return nil
 	}
 
-	if topology.NodeTypeData.Value != "" {
-		nt, err := strconv.ParseBool(topology.NodeTypeData.Value)
+	if topology.NodeTypeData.ValueString() != "" {
+		nt, err := strconv.ParseBool(topology.NodeTypeData.ValueString())
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_data value: %w", err)
 		}
 		nodeType.Data = &nt
 	}
 
-	if topology.NodeTypeMaster.Value != "" {
-		nt, err := strconv.ParseBool(topology.NodeTypeMaster.Value)
+	if topology.NodeTypeMaster.ValueString() != "" {
+		nt, err := strconv.ParseBool(topology.NodeTypeMaster.ValueString())
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_master value: %w", err)
 		}
 		nodeType.Master = &nt
 	}
 
-	if topology.NodeTypeIngest.Value != "" {
-		nt, err := strconv.ParseBool(topology.NodeTypeIngest.Value)
+	if topology.NodeTypeIngest.ValueString() != "" {
+		nt, err := strconv.ParseBool(topology.NodeTypeIngest.ValueString())
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_ingest value: %w", err)
 		}
 		nodeType.Ingest = &nt
 	}
 
-	if topology.NodeTypeMl.Value != "" {
-		nt, err := strconv.ParseBool(topology.NodeTypeMl.Value)
+	if topology.NodeTypeMl.ValueString() != "" {
+		nt, err := strconv.ParseBool(topology.NodeTypeMl.ValueString())
 		if err != nil {
 			return fmt.Errorf("failed parsing node_type_ml value: %w", err)
 		}
@@ -237,7 +237,7 @@ func (topology *ElasticsearchTopologyTF) parseLegacyNodeType(nodeType *models.El
 
 func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
 	for _, nodeType := range []types.String{topology.NodeTypeData, topology.NodeTypeIngest, topology.NodeTypeMaster, topology.NodeTypeMl} {
-		if !nodeType.IsUnknown() && !nodeType.IsNull() && nodeType.Value != "" {
+		if !nodeType.IsUnknown() && !nodeType.IsNull() && nodeType.ValueString() != "" {
 			return true
 		}
 	}
@@ -348,8 +348,8 @@ func elasticsearchTopologyAutoscalingPayload(ctx context.Context, autoObj attr.V
 		}
 	}
 
-	if autoscale.PolicyOverrideJson.Value != "" {
-		if err := json.Unmarshal([]byte(autoscale.PolicyOverrideJson.Value),
+	if autoscale.PolicyOverrideJson.ValueString() != "" {
+		if err := json.Unmarshal([]byte(autoscale.PolicyOverrideJson.ValueString()),
 			&payload.AutoscalingPolicyOverrideJSON,
 		); err != nil {
 			diag.AddError(fmt.Sprintf("elasticsearch topology %s: unable to load policy_override_json", topologyID), err.Error())
@@ -362,8 +362,8 @@ func elasticsearchTopologyAutoscalingPayload(ctx context.Context, autoObj attr.V
 
 // expandAutoscalingDimension centralises processing of %_size and %_size_resource attributes
 func expandAutoscalingDimension(autoscale v1.ElasticsearchTopologyAutoscalingTF, model *models.TopologySize, size, sizeResource types.String) error {
-	if size.Value != "" {
-		val, err := deploymentsize.ParseGb(size.Value)
+	if size.ValueString() != "" {
+		val, err := deploymentsize.ParseGb(size.ValueString())
 		if err != nil {
 			return err
 		}
@@ -374,8 +374,8 @@ func expandAutoscalingDimension(autoscale v1.ElasticsearchTopologyAutoscalingTF,
 		}
 	}
 
-	if sizeResource.Value != "" {
-		model.Resource = &sizeResource.Value
+	if sizeResource.ValueString() != "" {
+		model.Resource = ec.String(sizeResource.ValueString())
 	}
 
 	return nil

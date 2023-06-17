@@ -46,19 +46,19 @@ func ObservabilityPayload(ctx context.Context, obsObj types.Object, client *api.
 
 	var payload models.DeploymentObservabilitySettings
 
-	if observability.DeploymentId.Value == "" {
+	if observability.DeploymentId.ValueString() == "" {
 		return nil, nil
 	}
 
-	refID := observability.RefId.Value
+	refID := observability.RefId.ValueString()
 
-	if observability.DeploymentId.Value != "self" && refID == "" {
+	if observability.DeploymentId.ValueString() != "self" && refID == "" {
 		// Since ms-77, the refID is optional.
 		// To not break ECE users with older versions, we still pre-calculate the refID here
 		params := deploymentapi.PopulateRefIDParams{
 			Kind:         util.Elasticsearch,
 			API:          client,
-			DeploymentID: observability.DeploymentId.Value,
+			DeploymentID: observability.DeploymentId.ValueString(),
 			RefID:        ec.String(""),
 		}
 
@@ -71,19 +71,19 @@ func ObservabilityPayload(ctx context.Context, obsObj types.Object, client *api.
 		refID = *params.RefID
 	}
 
-	if observability.Logs.Value {
+	if observability.Logs.ValueBool() {
 		payload.Logging = &models.DeploymentLoggingSettings{
 			Destination: &models.ObservabilityAbsoluteDeployment{
-				DeploymentID: ec.String(observability.DeploymentId.Value),
+				DeploymentID: ec.String(observability.DeploymentId.ValueString()),
 				RefID:        refID,
 			},
 		}
 	}
 
-	if observability.Metrics.Value {
+	if observability.Metrics.ValueBool() {
 		payload.Metrics = &models.DeploymentMetricsSettings{
 			Destination: &models.ObservabilityAbsoluteDeployment{
-				DeploymentID: ec.String(observability.DeploymentId.Value),
+				DeploymentID: ec.String(observability.DeploymentId.ValueString()),
 				RefID:        refID,
 			},
 		}

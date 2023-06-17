@@ -23,44 +23,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func expandModel(ctx context.Context, state modelV0) (*models.TrafficFilterRulesetRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	ruleSet := make([]trafficFilterRuleModelV0, 0, len(state.Rule.Elems))
+	ruleSet := make([]trafficFilterRuleModelV0, 0, len(state.Rule.Elements()))
 	diags.Append(state.Rule.ElementsAs(ctx, &ruleSet, false)...)
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	var request = models.TrafficFilterRulesetRequest{
-		Name:             &state.Name.Value,
-		Type:             &state.Type.Value,
-		Region:           &state.Region.Value,
-		Description:      state.Description.Value,
-		IncludeByDefault: &state.IncludeByDefault.Value,
+		Name:             ec.String(state.Name.ValueString()),
+		Type:             ec.String(state.Type.ValueString()),
+		Region:           ec.String(state.Region.ValueString()),
+		Description:      *ec.String(state.Description.ValueString()),
+		IncludeByDefault: ec.Bool(state.IncludeByDefault.ValueBool()),
 		Rules:            make([]*models.TrafficFilterRule, 0, len(ruleSet)),
 	}
 
 	for _, r := range ruleSet {
 		var rule = models.TrafficFilterRule{
-			Source: r.Source.Value,
+			Source: r.Source.ValueString(),
 		}
 
 		if !r.ID.IsNull() && !r.ID.IsUnknown() {
-			rule.ID = r.ID.Value
+			rule.ID = r.ID.ValueString()
 		}
 
 		if !r.Description.IsNull() && !r.Description.IsUnknown() {
-			rule.Description = r.Description.Value
+			rule.Description = r.Description.ValueString()
 		}
 
 		if !r.AzureEndpointName.IsNull() && !r.AzureEndpointName.IsUnknown() {
-			rule.AzureEndpointName = r.AzureEndpointName.Value
+			rule.AzureEndpointName = r.AzureEndpointName.ValueString()
 		}
 		if !r.AzureEndpointGUID.IsNull() && !r.AzureEndpointGUID.IsUnknown() {
-			rule.AzureEndpointGUID = r.AzureEndpointGUID.Value
+			rule.AzureEndpointGUID = r.AzureEndpointGUID.ValueString()
 		}
 
 		request.Rules = append(request.Rules, &rule)

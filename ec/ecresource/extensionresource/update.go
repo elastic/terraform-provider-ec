@@ -48,12 +48,12 @@ func (r *Resource) Update(ctx context.Context, request resource.UpdateRequest, r
 	_, err := extensionapi.Update(
 		extensionapi.UpdateParams{
 			API:         r.client,
-			ExtensionID: newState.ID.Value,
-			Name:        newState.Name.Value,
-			Version:     newState.Version.Value,
-			Type:        newState.ExtensionType.Value,
-			Description: newState.Description.Value,
-			DownloadURL: newState.DownloadURL.Value,
+			ExtensionID: newState.ID.ValueString(),
+			Name:        newState.Name.ValueString(),
+			Version:     newState.Version.ValueString(),
+			Type:        newState.ExtensionType.ValueString(),
+			Description: newState.Description.ValueString(),
+			DownloadURL: newState.DownloadURL.ValueString(),
 		},
 	)
 	if err != nil {
@@ -65,14 +65,14 @@ func (r *Resource) Update(ctx context.Context, request resource.UpdateRequest, r
 		!oldState.LastModified.Equal(newState.LastModified) ||
 		!oldState.Size.Equal(newState.Size)
 
-	if !newState.FilePath.IsNull() && newState.FilePath.Value != "" && hasChanges {
+	if !newState.FilePath.IsNull() && newState.FilePath.ValueString() != "" && hasChanges {
 		response.Diagnostics.Append(r.uploadExtension(newState)...)
 		if response.Diagnostics.HasError() {
 			return
 		}
 	}
 
-	found, diags := r.read(newState.ID.Value, &newState)
+	found, diags := r.read(newState.ID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

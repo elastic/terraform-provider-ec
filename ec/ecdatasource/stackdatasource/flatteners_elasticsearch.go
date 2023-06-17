@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -32,49 +31,59 @@ func flattenElasticsearchConfig(ctx context.Context, res *models.StackVersionEla
 	var diags diag.Diagnostics
 	model := newElasticsearchConfigModelV0()
 
-	target := types.List{ElemType: elasticsearchConfigSchema().FrameworkType().(types.ListType).ElemType}
-	target.Null = true
+	target := types.ListNull(elasticsearchConfigSchema().GetType().(types.ListType).ElemType)
+	empty := true
 
 	if res == nil {
 		return target, diags
 	}
 
 	if len(res.Blacklist) > 0 {
-		diags.Append(tfsdk.ValueFrom(ctx, res.Blacklist, types.ListType{ElemType: types.StringType}, &model.DenyList)...)
-		target.Null = false
+		var d diag.Diagnostics
+		model.DenyList, d = types.ListValueFrom(ctx, types.StringType, res.Blacklist)
+		diags.Append(d...)
+		empty = false
 	}
 
 	if res.CapacityConstraints != nil {
-		model.CapacityConstraintsMax = types.Int64{Value: int64(*res.CapacityConstraints.Max)}
-		model.CapacityConstraintsMin = types.Int64{Value: int64(*res.CapacityConstraints.Min)}
-		target.Null = false
+		model.CapacityConstraintsMax = types.Int64Value(int64(*res.CapacityConstraints.Max))
+		model.CapacityConstraintsMin = types.Int64Value(int64(*res.CapacityConstraints.Min))
+		empty = false
 	}
 
 	if len(res.CompatibleNodeTypes) > 0 {
-		diags.Append(tfsdk.ValueFrom(ctx, res.CompatibleNodeTypes, types.ListType{ElemType: types.StringType}, &model.CompatibleNodeTypes)...)
-		target.Null = false
+		var d diag.Diagnostics
+		model.CompatibleNodeTypes, d = types.ListValueFrom(ctx, types.StringType, res.CompatibleNodeTypes)
+		diags.Append(d...)
+		empty = false
 	}
 
 	if res.DockerImage != nil && *res.DockerImage != "" {
-		model.DockerImage = types.String{Value: *res.DockerImage}
-		target.Null = false
+		model.DockerImage = types.StringValue(*res.DockerImage)
+		empty = false
 	}
 
 	if len(res.Plugins) > 0 {
-		diags.Append(tfsdk.ValueFrom(ctx, res.Plugins, types.ListType{ElemType: types.StringType}, &model.Plugins)...)
-		target.Null = false
+		var d diag.Diagnostics
+		model.Plugins, d = types.ListValueFrom(ctx, types.StringType, res.Plugins)
+		diags.Append(d...)
+		empty = false
 	}
 
 	if len(res.DefaultPlugins) > 0 {
-		diags.Append(tfsdk.ValueFrom(ctx, res.DefaultPlugins, types.ListType{ElemType: types.StringType}, &model.DefaultPlugins)...)
-		target.Null = false
+		var d diag.Diagnostics
+		model.DefaultPlugins, d = types.ListValueFrom(ctx, types.StringType, res.DefaultPlugins)
+		diags.Append(d...)
+		empty = false
 	}
 
-	if target.Null {
+	if empty {
 		return target, diags
 	}
 
-	diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchConfigModelV0{model}, elasticsearchConfigSchema().FrameworkType(), &target)...)
+	var d diag.Diagnostics
+	target, d = types.ListValueFrom(ctx, target.ElementType(ctx), []elasticsearchConfigModelV0{model})
+	diags.Append(d...)
 
 	return target, diags
 }
