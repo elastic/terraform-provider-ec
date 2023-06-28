@@ -20,17 +20,22 @@ package trafficfilterresource
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"golang.org/x/exp/slices"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -38,87 +43,80 @@ var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 
-func (r *Resource) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: `Provides an Elastic Cloud traffic filter resource, which allows traffic filter rules to be created, updated, and deleted. Traffic filter rules are used to limit inbound traffic to deployment resources.
 
   ~> **Note on traffic filters** If you use traffic_filter on an ec_deployment, Terraform will manage the full set of traffic rules for the deployment, and treat additional traffic filters as drift. For this reason, traffic_filter cannot be mixed with the ec_deployment_traffic_filter_association resource for a given deployment.`,
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:                types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier of this resource.",
 				Computed:            true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"name": {
-				Type:        types.StringType,
+			"name": schema.StringAttribute{
 				Description: "Name of the ruleset",
 				Required:    true,
 			},
-			"type": {
-				Type:        types.StringType,
+			"type": schema.StringAttribute{
 				Description: "Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, or `gcp_private_service_connect_endpoint`",
 				Required:    true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: "Filter region, the ruleset can only be attached to deployments in the specific region",
 				Required:    true,
 			},
-			"include_by_default": {
-				Type:        types.BoolType,
+			"include_by_default": schema.BoolAttribute{
 				Description: "Indicates that the ruleset should be automatically included in new deployments (Defaults to false)",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: false}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
 				},
 			},
-			"description": {
-				Type:        types.StringType,
+			"description": schema.StringAttribute{
 				Description: "Ruleset description",
 				Optional:    true,
 			},
 		},
-		Blocks: map[string]tfsdk.Block{
+		Blocks: map[string]schema.Block{
 			"rule": trafficFilterRuleSchema(),
 		},
-	}, nil
+	}
 }
 
-func trafficFilterRuleSchema() tfsdk.Block {
-	return tfsdk.Block{
+func trafficFilterRuleSchema() schema.Block {
+	return schema.SetNestedBlock{
 		Description: "Set of rules, which the ruleset is made of.",
-		NestingMode: tfsdk.BlockNestingModeSet,
-		MinItems:    1,
-		Attributes: map[string]tfsdk.Attribute{
-			"source": {
-				Type:        types.StringType,
-				Description: "Traffic filter source: IP address, CIDR mask, or VPC endpoint ID, **only required** when the type is not `azure_private_endpoint`",
-				Optional:    true,
-			},
-			"description": {
-				Type:        types.StringType,
-				Description: "Description of this individual rule",
-				Optional:    true,
-			},
-			"azure_endpoint_name": {
-				Type:        types.StringType,
-				Description: "Azure endpoint name. Only applicable when the ruleset type is set to `azure_private_endpoint`",
-				Optional:    true,
-			},
-			"azure_endpoint_guid": {
-				Type:        types.StringType,
-				Description: "Azure endpoint GUID. Only applicable when the ruleset type is set to `azure_private_endpoint`",
-				Optional:    true,
-			},
-			"id": {
-				Type:        types.StringType,
-				Description: "Computed rule ID",
-				Computed:    true,
-				// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
+		Validators:  []validator.Set{setvalidator.SizeAtLeast(1)},
+		NestedObject: schema.NestedBlockObject{
+			Attributes: map[string]schema.Attribute{
+				"source": schema.StringAttribute{
+					Description: "Traffic filter source: IP address, CIDR mask, or VPC endpoint ID, **only required** when the type is not `azure_private_endpoint`",
+					Optional:    true,
+				},
+				"description": schema.StringAttribute{
+					Description: "Description of this individual rule",
+					Optional:    true,
+				},
+				"azure_endpoint_name": schema.StringAttribute{
+					Description: "Azure endpoint name. Only applicable when the ruleset type is set to `azure_private_endpoint`",
+					Optional:    true,
+				},
+				"azure_endpoint_guid": schema.StringAttribute{
+					Description: "Azure endpoint GUID. Only applicable when the ruleset type is set to `azure_private_endpoint`",
+					Optional:    true,
+				},
+				"id": schema.StringAttribute{
+					Description: "Computed rule ID",
+					Computed:    true,
+					PlanModifiers: []planmodifier.String{
+						StringIsUnknownIfRulesChange(),
+					},
+					// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
+				},
 			},
 		},
 	}
@@ -177,7 +175,7 @@ type modelV0 struct {
 	Name             types.String `tfsdk:"name"`
 	Type             types.String `tfsdk:"type"`
 	Region           types.String `tfsdk:"region"`
-	Rule             types.Set    `tfsdk:"rule"` //< trafficFilterRuleModelV0
+	Rule             types.Set    `tfsdk:"rule"` //< trafficFilterRuleModelV0TF
 	IncludeByDefault types.Bool   `tfsdk:"include_by_default"`
 	Description      types.String `tfsdk:"description"`
 }
@@ -188,4 +186,50 @@ type trafficFilterRuleModelV0 struct {
 	Description       types.String `tfsdk:"description"`
 	AzureEndpointName types.String `tfsdk:"azure_endpoint_name"`
 	AzureEndpointGUID types.String `tfsdk:"azure_endpoint_guid"`
+}
+
+type stringIsUnknownIfRulesChange struct{}
+
+func StringIsUnknownIfRulesChange() planmodifier.String {
+	return &stringIsUnknownIfRulesChange{}
+}
+
+func (m *stringIsUnknownIfRulesChange) Description(ctx context.Context) string {
+	return m.MarkdownDescription(ctx)
+}
+
+func (m *stringIsUnknownIfRulesChange) MarkdownDescription(ctx context.Context) string {
+	return "Sets the plan to unknown if there are rule changes"
+}
+
+func (m *stringIsUnknownIfRulesChange) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if !req.ConfigValue.IsNull() {
+		return
+	}
+
+	var stateRules []trafficFilterRuleModelV0
+	resp.Diagnostics = append(resp.Diagnostics, req.State.GetAttribute(ctx, path.Root("rule"), &stateRules)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var planRules []trafficFilterRuleModelV0
+	resp.Diagnostics = append(resp.Diagnostics, req.Plan.GetAttribute(ctx, path.Root("rule"), &planRules)...)
+
+	hasChanges := false
+	for _, stateRule := range stateRules {
+		if !slices.Contains(planRules, stateRule) {
+			hasChanges = true
+		}
+	}
+
+	for _, planRule := range planRules {
+		if !slices.Contains(stateRules, planRule) {
+			hasChanges = true
+		}
+	}
+
+	if hasChanges {
+		resp.PlanValue = types.StringUnknown()
+	}
 }

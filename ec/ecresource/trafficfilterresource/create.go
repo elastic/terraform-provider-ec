@@ -54,9 +54,9 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	newState.ID = types.String{Value: *res.ID}
+	newState.ID = types.StringValue(*res.ID)
 
-	found, diags := r.read(ctx, newState.ID.Value, &newState)
+	found, diags := r.read(ctx, newState.ID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if !found {
 		response.Diagnostics.AddError(

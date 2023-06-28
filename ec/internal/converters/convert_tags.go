@@ -32,14 +32,14 @@ import (
 
 // flattenTags takes in Deployment Metadata resource models and returns its
 // Tags in flattened form.
-func ModelsTagsToTypesMap(metadataItems []*models.MetadataItem) types.Map {
+func ModelsTagsToTypesMap(metadataItems []*models.MetadataItem) (types.Map, diag.Diagnostics) {
 	var tags = make(map[string]attr.Value)
 	for _, res := range metadataItems {
 		if res.Key != nil {
-			tags[*res.Key] = types.String{Value: *res.Value}
+			tags[*res.Key] = types.StringValue(*res.Value)
 		}
 	}
-	return types.Map{ElemType: types.StringType, Elems: tags}
+	return types.MapValue(types.StringType, tags)
 }
 
 // flattenTags takes in Deployment Metadata resource models and returns its
@@ -75,8 +75,8 @@ func MapToModelsTags(raw map[string]string) []*models.MetadataItem {
 }
 
 func TypesMapToModelsTags(ctx context.Context, raw types.Map) ([]*models.MetadataItem, diag.Diagnostics) {
-	result := make([]*models.MetadataItem, 0, len(raw.Elems))
-	for k, v := range raw.Elems {
+	result := make([]*models.MetadataItem, 0, len(raw.Elements()))
+	for k, v := range raw.Elements() {
 		var tag string
 		if diags := tfsdk.ValueAs(ctx, v, &tag); diags.HasError() {
 			return nil, diags

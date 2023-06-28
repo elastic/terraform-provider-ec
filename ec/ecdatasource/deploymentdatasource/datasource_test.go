@@ -34,7 +34,7 @@ import (
 )
 
 func Test_modelToState(t *testing.T) {
-	wantDeployment := newSampleDeployment()
+	wantDeployment := newSampleDeployment(t)
 	type args struct {
 		res *models.DeploymentGetResponse
 	}
@@ -130,7 +130,7 @@ func Test_modelToState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			model := modelV0{
-				ID: types.String{Value: mock.ValidClusterID},
+				ID: types.StringValue(mock.ValidClusterID),
 			}
 			diags := modelToState(context.Background(), tt.args.res, &model)
 			if tt.err != nil {
@@ -144,140 +144,121 @@ func Test_modelToState(t *testing.T) {
 	}
 }
 
-func newSampleDeployment() modelV0 {
+func newSampleDeployment(t *testing.T) modelV0 {
 	return modelV0{
-		ID:                   types.String{Value: mock.ValidClusterID},
-		Name:                 types.String{Value: "my_deployment_name"},
-		Alias:                types.String{Value: "some-alias"},
-		DeploymentTemplateID: types.String{Value: "aws-io-optimized"},
-		Healthy:              types.Bool{Value: true},
-		Region:               types.String{Value: "us-east-1"},
-		TrafficFilter:        util.StringListAsType([]string{"0.0.0.0/0", "192.168.10.0/24"}),
-		Observability: types.List{
-			ElemType: types.ObjectType{AttrTypes: observabilitySettingsAttrTypes()},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: observabilitySettingsAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"deployment_id": types.String{Value: mock.ValidClusterID},
-						"ref_id":        types.String{Value: "main-elasticsearch"},
-						"logs":          types.Bool{Value: true},
-						"metrics":       types.Bool{Value: true},
+		ID:                   types.StringValue(mock.ValidClusterID),
+		Name:                 types.StringValue("my_deployment_name"),
+		Alias:                types.StringValue("some-alias"),
+		DeploymentTemplateID: types.StringValue("aws-io-optimized"),
+		Healthy:              types.BoolValue(true),
+		Region:               types.StringValue("us-east-1"),
+		TrafficFilter:        util.StringListAsType(t, []string{"0.0.0.0/0", "192.168.10.0/24"}),
+		Observability: func() types.List {
+			res, diags := types.ListValueFrom(
+				context.Background(),
+				types.ObjectType{AttrTypes: observabilitySettingsAttrTypes()},
+				[]observabilitySettingsModel{
+					{
+						DeploymentID: types.StringValue(mock.ValidClusterID),
+						RefID:        types.StringValue("main-elasticsearch"),
+						Logs:         types.BoolValue(true),
+						Metrics:      types.BoolValue(true),
 					},
 				},
-			},
-		},
-		Elasticsearch: types.List{
-			ElemType: types.ObjectType{AttrTypes: elasticsearchResourceInfoAttrTypes()},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: elasticsearchResourceInfoAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"cloud_id":       types.String{Value: ""},
-						"healthy":        types.Bool{Value: true},
-						"autoscale":      types.String{Value: ""},
-						"http_endpoint":  types.String{Value: ""},
-						"https_endpoint": types.String{Value: ""},
-						"ref_id":         types.String{Value: ""},
-						"resource_id":    types.String{Value: ""},
-						"status":         types.String{Value: ""},
-						"version":        types.String{Value: ""},
-						"topology": types.List{
-							ElemType: types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()},
-							Elems:    []attr.Value{},
-						},
+			)
+			assert.Nil(t, diags)
+
+			return res
+		}(),
+		Elasticsearch: func() types.List {
+			topology, diags := types.ListValue(
+				types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()},
+				[]attr.Value{},
+			)
+			assert.Nil(t, diags)
+
+			res, diags := types.ListValueFrom(
+				context.Background(),
+				types.ObjectType{AttrTypes: elasticsearchResourceInfoAttrTypes()},
+				[]elasticsearchResourceInfoModelV0{
+					{
+						Healthy:  types.BoolValue(true),
+						Topology: topology,
 					},
 				},
-			},
-		},
-		Kibana: types.List{
-			ElemType: types.ObjectType{AttrTypes: kibanaResourceInfoAttrTypes()},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: kibanaResourceInfoAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"elasticsearch_cluster_ref_id": types.String{Value: ""},
-						"healthy":                      types.Bool{Value: true},
-						"http_endpoint":                types.String{Value: ""},
-						"https_endpoint":               types.String{Value: ""},
-						"ref_id":                       types.String{Value: ""},
-						"resource_id":                  types.String{Value: ""},
-						"status":                       types.String{Value: ""},
-						"version":                      types.String{Value: ""},
-						"topology": types.List{
-							ElemType: types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()},
-							Elems:    []attr.Value{},
-						},
+			)
+			assert.Nil(t, diags)
+
+			return res
+		}(),
+		Kibana: func() types.List {
+			res, diags := types.ListValueFrom(
+				context.Background(),
+				types.ObjectType{AttrTypes: kibanaResourceInfoAttrTypes()},
+				[]kibanaResourceInfoModelV0{
+					{
+						Healthy: types.BoolValue(true),
+						Topology: types.ListNull(
+							types.ObjectType{AttrTypes: kibanaTopologyAttrTypes()},
+						),
 					},
 				},
-			},
-		},
-		Apm: types.List{
-			ElemType: types.ObjectType{AttrTypes: apmResourceInfoAttrTypes()},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: apmResourceInfoAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"elasticsearch_cluster_ref_id": types.String{Value: ""},
-						"healthy":                      types.Bool{Value: true},
-						"http_endpoint":                types.String{Value: ""},
-						"https_endpoint":               types.String{Value: ""},
-						"ref_id":                       types.String{Value: ""},
-						"resource_id":                  types.String{Value: ""},
-						"status":                       types.String{Value: ""},
-						"version":                      types.String{Value: ""},
-						"topology": types.List{
-							ElemType: types.ObjectType{AttrTypes: apmTopologyAttrTypes()},
-							Elems:    []attr.Value{},
-						},
+			)
+			assert.Nil(t, diags)
+
+			return res
+		}(),
+		Apm: func() types.List {
+			res, diags := types.ListValueFrom(
+				context.Background(),
+				types.ObjectType{AttrTypes: apmResourceInfoAttrTypes()},
+				[]apmResourceInfoModelV0{
+					{
+						Healthy: types.BoolValue(true),
+						Topology: types.ListNull(
+							types.ObjectType{AttrTypes: apmTopologyAttrTypes()},
+						),
 					},
 				},
-			},
-		},
-		IntegrationsServer: types.List{
-			ElemType: types.ObjectType{AttrTypes: integrationsServerResourceInfoAttrTypes()},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: integrationsServerResourceInfoAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"elasticsearch_cluster_ref_id": types.String{Value: ""},
-						"healthy":                      types.Bool{Value: true},
-						"http_endpoint":                types.String{Value: ""},
-						"https_endpoint":               types.String{Value: ""},
-						"ref_id":                       types.String{Value: ""},
-						"resource_id":                  types.String{Value: ""},
-						"status":                       types.String{Value: ""},
-						"version":                      types.String{Value: ""},
-						"topology": types.List{
-							ElemType: types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()},
-							Elems:    []attr.Value{},
-						},
+			)
+			assert.Nil(t, diags)
+
+			return res
+		}(),
+		IntegrationsServer: func() types.List {
+			res, diags := types.ListValueFrom(
+				context.Background(),
+				types.ObjectType{AttrTypes: integrationsServerResourceInfoAttrTypes()},
+				[]integrationsServerResourceInfoModelV0{
+					{
+						Healthy: types.BoolValue(true),
+						Topology: types.ListNull(
+							types.ObjectType{AttrTypes: integrationsServerTopologyAttrTypes()},
+						),
 					},
 				},
-			},
-		},
-		EnterpriseSearch: types.List{
-			ElemType: types.ObjectType{AttrTypes: enterpriseSearchResourceInfoAttrTypes()},
-			Elems: []attr.Value{
-				types.Object{
-					AttrTypes: enterpriseSearchResourceInfoAttrTypes(),
-					Attrs: map[string]attr.Value{
-						"elasticsearch_cluster_ref_id": types.String{Value: ""},
-						"healthy":                      types.Bool{Value: true},
-						"http_endpoint":                types.String{Value: ""},
-						"https_endpoint":               types.String{Value: ""},
-						"ref_id":                       types.String{Value: ""},
-						"resource_id":                  types.String{Value: ""},
-						"status":                       types.String{Value: ""},
-						"version":                      types.String{Value: ""},
-						"topology": types.List{
-							ElemType: types.ObjectType{AttrTypes: enterpriseSearchTopologyAttrTypes()},
-							Elems:    []attr.Value{},
-						},
+			)
+			assert.Nil(t, diags)
+
+			return res
+		}(),
+		EnterpriseSearch: func() types.List {
+			res, diags := types.ListValueFrom(
+				context.Background(),
+				types.ObjectType{AttrTypes: enterpriseSearchResourceInfoAttrTypes()},
+				[]enterpriseSearchResourceInfoModelV0{
+					{
+						Healthy: types.BoolValue(true),
+						Topology: types.ListNull(
+							types.ObjectType{AttrTypes: enterpriseSearchTopologyAttrTypes()},
+						),
 					},
 				},
-			},
-		},
-		Tags: util.StringMapAsType(map[string]string{"foo": "bar"}),
+			)
+			assert.Nil(t, diags)
+
+			return res
+		}(),
+		Tags: util.StringMapAsType(t, map[string]string{"foo": "bar"}),
 	}
 }

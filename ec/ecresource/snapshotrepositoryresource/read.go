@@ -44,7 +44,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 		return
 	}
 
-	found, diags := r.read(newState.ID.Value, &newState)
+	found, diags := r.read(newState.ID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -79,9 +79,7 @@ func (r *Resource) read(id string, state *modelV0) (found bool, diags diag.Diagn
 func modelToState(model *models.RepositoryConfig, state *modelV0) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if model.RepositoryName != nil {
-		state.Name = types.String{Value: *model.RepositoryName}
-	}
+	state.Name = types.StringPointerValue(model.RepositoryName)
 
 	config, _ := model.Config.(map[string]interface{})
 	if repositoryType, ok := config["type"]; ok && repositoryType != nil {
@@ -93,31 +91,31 @@ func modelToState(model *models.RepositoryConfig, state *modelV0) diag.Diagnosti
 					state.S3 = &s3RepositoryV0{}
 				}
 				if region, ok := settings["region"]; ok && region != nil {
-					state.S3.Region = types.String{Value: region.(string)}
+					state.S3.Region = types.StringValue(region.(string))
 				}
 				if bucket, ok := settings["bucket"]; ok && bucket != nil {
-					state.S3.Bucket = types.String{Value: bucket.(string)}
+					state.S3.Bucket = types.StringValue(bucket.(string))
 				}
 				if accessKey, ok := settings["access_key"]; ok && accessKey != nil {
-					state.S3.AccessKey = types.String{Value: accessKey.(string)}
+					state.S3.AccessKey = types.StringValue(accessKey.(string))
 				}
 				if secretKey, ok := settings["secret_key"]; ok && secretKey != nil {
-					state.S3.SecretKey = types.String{Value: secretKey.(string)}
+					state.S3.SecretKey = types.StringValue(secretKey.(string))
 				}
 				if serverSideEncryption, ok := settings["server_side_encryption"]; ok && serverSideEncryption != nil {
-					state.S3.ServerSideEncryption = types.Bool{Value: serverSideEncryption.(bool)}
+					state.S3.ServerSideEncryption = types.BoolValue(serverSideEncryption.(bool))
 				}
 				if endpoint, ok := settings["endpoint"]; ok && endpoint != nil {
-					state.S3.Endpoint = types.String{Value: endpoint.(string)}
+					state.S3.Endpoint = types.StringValue(endpoint.(string))
 				}
 				if pathStyleAccess, ok := settings["path_style_access"]; ok && pathStyleAccess != nil {
-					state.S3.PathStyleAccess = types.Bool{Value: pathStyleAccess.(bool)}
+					state.S3.PathStyleAccess = types.BoolValue(pathStyleAccess.(bool))
 				}
 			} else {
 				if state.Generic == nil {
 					state.Generic = &genericRepositoryV0{}
 				}
-				state.Generic.Type = types.String{Value: repositoryType.(string)}
+				state.Generic.Type = types.StringValue(repositoryType.(string))
 				jsonSettings, err := json.Marshal(settings)
 				if err != nil {
 					diags.AddError(
@@ -125,7 +123,7 @@ func modelToState(model *models.RepositoryConfig, state *modelV0) diag.Diagnosti
 						fmt.Sprintf("failed reading snapshot repository: unable to marshal settings - %s", err),
 					)
 				} else {
-					state.Generic.Settings = types.String{Value: string(jsonSettings)}
+					state.Generic.Settings = types.StringValue(string(jsonSettings))
 				}
 			}
 		}
@@ -134,7 +132,7 @@ func modelToState(model *models.RepositoryConfig, state *modelV0) diag.Diagnosti
 }
 
 func containsOnlyKnownS3Settings(settings map[string]interface{}) bool {
-	attributes := s3Schema().Attributes.GetAttributes()
+	attributes := s3Schema().GetType().(types.ObjectType).AttributeTypes()
 	for key := range settings {
 		if _, ok := attributes[key]; !ok {
 			return false

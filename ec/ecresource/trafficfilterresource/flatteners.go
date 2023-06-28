@@ -21,25 +21,24 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 func modelToState(ctx context.Context, res *models.TrafficFilterRulesetInfo, state *modelV0) diag.Diagnostics {
-	state.Name = types.String{Value: *res.Name}
-	state.Region = types.String{Value: *res.Region}
-	state.Type = types.String{Value: *res.Type}
-	state.IncludeByDefault = types.Bool{Value: *res.IncludeByDefault}
+	state.Name = types.StringValue(*res.Name)
+	state.Region = types.StringValue(*res.Region)
+	state.Type = types.StringValue(*res.Type)
+	state.IncludeByDefault = types.BoolValue(*res.IncludeByDefault)
 
 	var diags diag.Diagnostics
 	state.Rule, diags = flattenRules(ctx, res.Rules)
 
 	if res.Description == "" {
-		state.Description = types.String{Null: true}
+		state.Description = types.StringNull()
 	} else {
-		state.Description = types.String{Value: res.Description}
+		state.Description = types.StringValue(res.Description)
 	}
 
 	return diags
@@ -49,35 +48,33 @@ func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule) (types
 	var result = make([]trafficFilterRuleModelV0, 0, len(rules))
 	for _, rule := range rules {
 		model := trafficFilterRuleModelV0{
-			ID:                types.String{Value: rule.ID},
-			Source:            types.String{Null: true},
-			Description:       types.String{Null: true},
-			AzureEndpointGUID: types.String{Null: true},
-			AzureEndpointName: types.String{Null: true},
+			ID:                types.StringValue(rule.ID),
+			Source:            types.StringNull(),
+			Description:       types.StringNull(),
+			AzureEndpointGUID: types.StringNull(),
+			AzureEndpointName: types.StringNull(),
 		}
 
 		if rule.Source != "" {
-			model.Source = types.String{Value: rule.Source}
+			model.Source = types.StringValue(rule.Source)
 		}
 
 		if rule.Description != "" {
-			model.Description = types.String{Value: rule.Description}
+			model.Description = types.StringValue(rule.Description)
 		}
 
 		if rule.AzureEndpointGUID != "" {
-			model.AzureEndpointGUID = types.String{Value: rule.AzureEndpointGUID}
+			model.AzureEndpointGUID = types.StringValue(rule.AzureEndpointGUID)
 		}
 
 		if rule.AzureEndpointName != "" {
-			model.AzureEndpointName = types.String{Value: rule.AzureEndpointName}
+			model.AzureEndpointName = types.StringValue(rule.AzureEndpointName)
 		}
 
 		result = append(result, model)
 	}
 
-	target := types.Set{ElemType: trafficFilterRuleSetType().(types.SetType).ElementType()}
-
-	diags := tfsdk.ValueFrom(ctx, result, trafficFilterRuleSetType(), &target)
+	target, diags := types.SetValueFrom(ctx, trafficFilterRuleSetType().(types.SetType).ElementType(), result)
 
 	return target, diags
 }

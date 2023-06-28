@@ -37,7 +37,7 @@ const (
 
 func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.TopologyTF, planModels []*models.IntegrationsServerTopologyElement, index int) (*models.IntegrationsServerTopologyElement, diag.Diagnostics) {
 
-	icID := topology.InstanceConfigurationId.Value
+	icID := topology.InstanceConfigurationId.ValueString()
 
 	// When a topology element is set but no instance_configuration_id
 	// is set, then obtain the instance_configuration_id from the topology
@@ -64,8 +64,8 @@ func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.
 		elem.Size = size
 	}
 
-	if topology.ZoneCount.Value > 0 {
-		elem.ZoneCount = int32(topology.ZoneCount.Value)
+	if topology.ZoneCount.ValueInt64() > 0 {
+		elem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
 	return elem, nil

@@ -24,7 +24,6 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -41,35 +40,35 @@ func flattenElasticsearchResources(ctx context.Context, in []*models.Elasticsear
 
 	for _, res := range in {
 		model := elasticsearchResourceInfoModelV0{
-			Topology: types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()}},
+			Topology: types.ListNull(types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()}),
 		}
 
 		if res.RefID != nil {
-			model.RefID = types.String{Value: *res.RefID}
+			model.RefID = types.StringValue(*res.RefID)
 		}
 
 		if res.Info != nil {
 			if res.Info.Healthy != nil {
-				model.Healthy = types.Bool{Value: *res.Info.Healthy}
+				model.Healthy = types.BoolValue(*res.Info.Healthy)
 			}
 
 			if res.Info.ClusterID != nil {
-				model.ResourceID = types.String{Value: *res.Info.ClusterID}
+				model.ResourceID = types.StringValue(*res.Info.ClusterID)
 			}
 
 			if res.Info.Status != nil {
-				model.Status = types.String{Value: *res.Info.Status}
+				model.Status = types.StringValue(*res.Info.Status)
 			}
 
 			if !util.IsCurrentEsPlanEmpty(res) {
 				var plan = res.Info.PlanInfo.Current.Plan
 
 				if plan.Elasticsearch != nil {
-					model.Version = types.String{Value: plan.Elasticsearch.Version}
+					model.Version = types.StringValue(plan.Elasticsearch.Version)
 				}
 
 				if plan.AutoscalingEnabled != nil {
-					model.Autoscale = types.String{Value: strconv.FormatBool(*plan.AutoscalingEnabled)}
+					model.Autoscale = types.StringValue(strconv.FormatBool(*plan.AutoscalingEnabled))
 				}
 
 				var diags diag.Diagnostics
@@ -78,7 +77,7 @@ func flattenElasticsearchResources(ctx context.Context, in []*models.Elasticsear
 			}
 
 			if res.Info.Metadata != nil {
-				model.CloudID = types.String{Value: res.Info.Metadata.CloudID}
+				model.CloudID = types.StringValue(res.Info.Metadata.CloudID)
 				model.HttpEndpoint, model.HttpsEndpoint = converters.ExtractEndpointsToTypes(res.Info.Metadata)
 			}
 		}
@@ -86,13 +85,8 @@ func flattenElasticsearchResources(ctx context.Context, in []*models.Elasticsear
 		result = append(result, model)
 	}
 
-	var target types.List
-
-	diagnostics.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
-		ElemType: types.ObjectType{
-			AttrTypes: elasticsearchResourceInfoAttrTypes(),
-		},
-	}, &target)...)
+	target, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: elasticsearchResourceInfoAttrTypes()}, result)
+	diagnostics.Append(diags...)
 
 	return target, diagnostics
 }
@@ -102,55 +96,58 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 	var result = make([]elasticsearchTopologyModelV0, 0, len(plan.ClusterTopology))
 	for _, topology := range plan.ClusterTopology {
 		model := elasticsearchTopologyModelV0{
-			NodeRoles: types.Set{ElemType: types.StringType},
+			NodeRoles:   types.SetNull(types.StringType),
+			Autoscaling: types.ListNull(elasticsearchAutoscalingElemType()),
 		}
 
 		if isElasticsearchSizePopulated(topology) && *topology.Size.Value == 0 {
 			continue
 		}
 
-		model.InstanceConfigurationID = types.String{Value: topology.InstanceConfigurationID}
+		model.InstanceConfigurationID = types.StringValue(topology.InstanceConfigurationID)
 
 		if isElasticsearchSizePopulated(topology) {
-			model.Size = types.String{Value: util.MemoryToState(*topology.Size.Value)}
-			model.SizeResource = types.String{Value: *topology.Size.Resource}
+			model.Size = types.StringValue(util.MemoryToState(*topology.Size.Value))
+			model.SizeResource = types.StringValue(*topology.Size.Resource)
 		}
 
-		model.ZoneCount = types.Int64{Value: int64(topology.ZoneCount)}
+		model.ZoneCount = types.Int64Value(int64(topology.ZoneCount))
 
 		if topology.NodeType != nil {
 			if topology.NodeType.Data != nil {
-				model.NodeTypeData = types.Bool{Value: *topology.NodeType.Data}
+				model.NodeTypeData = types.BoolValue(*topology.NodeType.Data)
 			}
 
 			if topology.NodeType.Ingest != nil {
-				model.NodeTypeIngest = types.Bool{Value: *topology.NodeType.Ingest}
+				model.NodeTypeIngest = types.BoolValue(*topology.NodeType.Ingest)
 			}
 
 			if topology.NodeType.Master != nil {
-				model.NodeTypeMaster = types.Bool{Value: *topology.NodeType.Master}
+				model.NodeTypeMaster = types.BoolValue(*topology.NodeType.Master)
 			}
 
 			if topology.NodeType.Ml != nil {
-				model.NodeTypeMl = types.Bool{Value: *topology.NodeType.Ml}
+				model.NodeTypeMl = types.BoolValue(*topology.NodeType.Ml)
 			}
 		}
 
 		if len(topology.NodeRoles) > 0 {
-			diags.Append(tfsdk.ValueFrom(ctx, topology.NodeRoles, types.SetType{ElemType: types.StringType}, &model.NodeRoles)...)
+			var d diag.Diagnostics
+			model.NodeRoles, d = types.SetValueFrom(ctx, types.StringType, topology.NodeRoles)
+			diags.Append(d...)
 		}
 
 		var autoscaling elasticsearchAutoscalingModel
 		var hasAutoscalingModel = false
 		if limit := topology.AutoscalingMax; limit != nil {
-			autoscaling.MaxSizeResource = types.String{Value: *limit.Resource}
-			autoscaling.MaxSize = types.String{Value: util.MemoryToState(*limit.Value)}
+			autoscaling.MaxSizeResource = types.StringValue(*limit.Resource)
+			autoscaling.MaxSize = types.StringValue(util.MemoryToState(*limit.Value))
 			hasAutoscalingModel = true
 		}
 
 		if limit := topology.AutoscalingMin; limit != nil {
-			autoscaling.MinSizeResource = types.String{Value: *limit.Resource}
-			autoscaling.MinSize = types.String{Value: util.MemoryToState(*limit.Value)}
+			autoscaling.MinSizeResource = types.StringValue(*limit.Resource)
+			autoscaling.MinSize = types.StringValue(util.MemoryToState(*limit.Value))
 			hasAutoscalingModel = true
 		}
 
@@ -162,25 +159,23 @@ func flattenElasticsearchTopology(ctx context.Context, plan *models.Elasticsearc
 					fmt.Sprintf("elasticsearch topology %s: unable to persist policy_override_json: %v", topology.ID, err),
 				)
 			} else {
-				autoscaling.PolicyOverrideJson = types.String{Value: string(b)}
+				autoscaling.PolicyOverrideJson = types.StringValue(string(b))
 				hasAutoscalingModel = true
 			}
 		}
 
 		if hasAutoscalingModel {
-			diags.Append(tfsdk.ValueFrom(ctx, []elasticsearchAutoscalingModel{autoscaling}, elasticsearchAutoscalingListType(), &model.Autoscaling)...)
+			var d diag.Diagnostics
+			model.Autoscaling, d = types.ListValueFrom(ctx, elasticsearchAutoscalingElemType(), []elasticsearchAutoscalingModel{autoscaling})
+			diags.Append(d...)
 		}
 
 		result = append(result, model)
 	}
 
-	var target types.List
-
-	diags.Append(tfsdk.ValueFrom(ctx, result, types.ListType{
-		ElemType: types.ObjectType{
-			AttrTypes: elasticsearchTopologyAttrTypes(),
-		},
-	}, &target)...)
+	var d diag.Diagnostics
+	target, d := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()}, result)
+	diags.Append(d...)
 
 	return target, diags
 }

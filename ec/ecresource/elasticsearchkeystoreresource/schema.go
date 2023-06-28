@@ -22,20 +22,22 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifier"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
 
-func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: `Provides an Elastic Cloud Deployment Elasticsearch keystore resource, which allows you to create and update Elasticsearch keystore settings.
 
   Elasticsearch keystore settings can be created and updated through this resource, **each resource represents a single Elasticsearch Keystore setting**. After adding a key and its secret value to the keystore, you can use the key in place of the secret value when you configure sensitive settings.
@@ -47,48 +49,43 @@ func (r *Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostic
     To force the keystore setting to the value it is configured to hold, you may want to taint the resource and force its recreation.
 
   Before you create Elasticsearch keystore settings, check the [official Elasticsearch keystore documentation](https://www.elastic.co/guide/en/elasticsearch/reference/master/elasticsearch-keystore.html) and the [Elastic Cloud specific documentation](https://www.elastic.co/guide/en/cloud/current/ec-configuring-keystore.html).`,
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:                types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier of this resource.",
 				Computed:            true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"deployment_id": {
-				Type:        types.StringType,
+			"deployment_id": schema.StringAttribute{
 				Description: `Deployment ID of the Deployment that holds the Elasticsearch cluster where the keystore setting will be written to.`,
 				Required:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"setting_name": {
-				Type:        types.StringType,
+			"setting_name": schema.StringAttribute{
 				Description: "Name for the keystore setting, if the setting already exists in the Elasticsearch cluster, it will be overridden.",
 				Required:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"value": {
-				Type:        types.StringType,
+			"value": schema.StringAttribute{
 				Description: "Value of this setting. This can either be a string or a JSON object that is stored as a JSON string in the keystore.",
 				Sensitive:   true,
 				Required:    true,
 			},
-			"as_file": {
-				Type:        types.BoolType,
+			"as_file": schema.BoolAttribute{
 				Description: "Indicates the the remote keystore setting should be stored as a file. The default is false, which stores the keystore setting as string when value is a plain string.",
 				Optional:    true,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					planmodifier.DefaultValue(types.Bool{Value: false}),
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
 				},
 			},
 		},
-	}, nil
+	}
 }
 
 type Resource struct {

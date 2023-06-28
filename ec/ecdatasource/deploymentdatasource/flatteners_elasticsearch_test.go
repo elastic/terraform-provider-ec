@@ -21,7 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
@@ -126,49 +125,60 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 				},
 			}},
 			want: []elasticsearchResourceInfoModelV0{{
-				Autoscale:     types.String{Value: "true"},
-				RefID:         types.String{Value: "main-elasticsearch"},
-				ResourceID:    types.String{Value: mock.ValidClusterID},
-				Version:       types.String{Value: "7.7.0"},
-				CloudID:       types.String{Value: "some CLOUD ID"},
-				HttpEndpoint:  types.String{Value: "http://somecluster.cloud.elastic.co:9200"},
-				HttpsEndpoint: types.String{Value: "https://somecluster.cloud.elastic.co:9243"},
-				Healthy:       types.Bool{Value: true},
-				Status:        types.String{Value: "started"},
-				Topology: types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()},
-					Elems: []attr.Value{types.Object{
-						AttrTypes: elasticsearchTopologyAttrTypes(),
-						Attrs: map[string]attr.Value{
-							"instance_configuration_id": types.String{Value: "aws.data.highio.i3"},
-							"size":                      types.String{Value: "2g"},
-							"size_resource":             types.String{Value: "memory"},
-							"node_type_data":            types.Bool{Value: true},
-							"node_type_ingest":          types.Bool{Value: true},
-							"node_type_master":          types.Bool{Value: true},
-							"node_type_ml":              types.Bool{Value: false},
-							"node_roles": types.Set{ElemType: types.StringType, Elems: func() []attr.Value {
-								result := make([]attr.Value, 0, 2)
-								for _, role := range []string{"data_content", "data_hot"} {
-									result = append(result, types.String{Value: role})
-								}
-								return result
-							}()},
-							"zone_count": types.Int64{Value: 1},
-							"autoscaling": types.List{ElemType: types.ObjectType{AttrTypes: elasticsearchAutoscalingAttrTypes()},
-								Elems: []attr.Value{types.Object{
-									AttrTypes: elasticsearchAutoscalingAttrTypes(),
-									Attrs: map[string]attr.Value{
-										"max_size":             types.String{Value: "15g"},
-										"max_size_resource":    types.String{Value: "memory"},
-										"min_size":             types.String{Value: "1g"},
-										"min_size_resource":    types.String{Value: "memory"},
-										"policy_override_json": types.String{Value: "{\"proactive_storage\":{\"forecast_window\":\"3 h\"}}"},
-									}},
-								},
+				Autoscale:     types.StringValue("true"),
+				RefID:         types.StringValue("main-elasticsearch"),
+				ResourceID:    types.StringValue(mock.ValidClusterID),
+				Version:       types.StringValue("7.7.0"),
+				CloudID:       types.StringValue("some CLOUD ID"),
+				HttpEndpoint:  types.StringValue("http://somecluster.cloud.elastic.co:9200"),
+				HttpsEndpoint: types.StringValue("https://somecluster.cloud.elastic.co:9243"),
+				Healthy:       types.BoolValue(true),
+				Status:        types.StringValue("started"),
+				Topology: func() types.List {
+					nodeRoles, diags := types.SetValueFrom(
+						context.Background(),
+						types.StringType,
+						[]string{"data_content", "data_hot"},
+					)
+					assert.Nil(t, diags)
+
+					autoscalingList, diags := types.ListValueFrom(
+						context.Background(),
+						elasticsearchAutoscalingElemType(),
+						[]elasticsearchAutoscalingModel{
+							{
+								MaxSize:            types.StringValue("15g"),
+								MaxSizeResource:    types.StringValue("memory"),
+								MinSize:            types.StringValue("1g"),
+								MinSizeResource:    types.StringValue("memory"),
+								PolicyOverrideJson: types.StringValue("{\"proactive_storage\":{\"forecast_window\":\"3 h\"}}"),
 							},
-						}},
-					},
-				},
+						},
+					)
+					assert.Nil(t, diags)
+
+					res, diags := types.ListValueFrom(
+						context.Background(),
+						types.ObjectType{AttrTypes: elasticsearchTopologyAttrTypes()},
+						[]elasticsearchTopologyModelV0{
+							{
+								InstanceConfigurationID: types.StringValue("aws.data.highio.i3"),
+								Size:                    types.StringValue("2g"),
+								SizeResource:            types.StringValue("memory"),
+								NodeTypeData:            types.BoolValue(true),
+								NodeTypeIngest:          types.BoolValue(true),
+								NodeTypeMaster:          types.BoolValue(true),
+								NodeTypeMl:              types.BoolValue(false),
+								NodeRoles:               nodeRoles,
+								ZoneCount:               types.Int64Value(1),
+								Autoscaling:             autoscalingList,
+							},
+						},
+					)
+					assert.Nil(t, diags)
+
+					return res
+				}(),
 			}},
 		},
 	}

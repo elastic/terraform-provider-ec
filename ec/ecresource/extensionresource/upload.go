@@ -28,7 +28,7 @@ import (
 func (r *Resource) uploadExtension(state modelV0) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	reader, err := os.Open(state.FilePath.Value)
+	reader, err := os.Open(state.FilePath.ValueString())
 	if err != nil {
 		diags.AddError("failed to open file", err.Error())
 		return diags
@@ -36,7 +36,7 @@ func (r *Resource) uploadExtension(state modelV0) diag.Diagnostics {
 
 	_, err = extensionapi.Upload(extensionapi.UploadParams{
 		API:         r.client,
-		ExtensionID: state.ID.Value,
+		ExtensionID: state.ID.ValueString(),
 		File:        reader,
 	})
 	if err != nil {

@@ -112,7 +112,7 @@ func Test_handleRemoteClusters(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.plan, schema.Type(), &planTF)
 			assert.Nil(t, diags)
 
-			diags = HandleRemoteClusters(context.Background(), tt.args.client, planTF.Id.Value, planTF.Elasticsearch)
+			diags = HandleRemoteClusters(context.Background(), tt.args.client, planTF.Id.ValueString(), planTF.Elasticsearch)
 			assert.Nil(t, diags)
 		})
 	}
@@ -169,7 +169,7 @@ func Test_writeRemoteClusters(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var remoteClustersTF types.Set
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.remoteClusters, elasticsearchv2.ElasticsearchRemoteClusterSchema().FrameworkType(), &remoteClustersTF)
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.remoteClusters, elasticsearchv2.ElasticsearchRemoteClusterSchema().GetType(), &remoteClustersTF)
 			assert.Nil(t, diags)
 
 			got, diags := elasticsearchv2.ElasticsearchRemoteClustersPayload(context.Background(), remoteClustersTF)

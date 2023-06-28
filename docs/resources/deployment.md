@@ -773,7 +773,7 @@ Optional:
 
 Read-Only:
 
-- `endpoints` (Object) URLs for the accessing the Fleet and APM API's within this Integrations Server resource. (see [below for nested schema](#nestedatt--integrations_server--endpoints))
+- `endpoints` (Attributes) URLs for the accessing the Fleet and APM API's within this Integrations Server resource. (see [below for nested schema](#nestedatt--integrations_server--endpoints))
 - `http_endpoint` (String)
 - `https_endpoint` (String)
 - `region` (String)
@@ -795,10 +795,10 @@ Optional:
 <a id="nestedatt--integrations_server--endpoints"></a>
 ### Nested Schema for `integrations_server.endpoints`
 
-Optional:
+Read-Only:
 
-- `apm` (String)
-- `fleet` (String)
+- `apm` (String) URL to access the APM server instance for this Integrations Server resource
+- `fleet` (String) URL to access the Fleet server instance for this Integrations Server resource
 
 
 

@@ -25,7 +25,7 @@ import (
 )
 
 func ParseTopologySizeTypes(size, sizeResource types.String) (*models.TopologySize, error) {
-	return ParseTopologySize(&size.Value, &sizeResource.Value)
+	return ParseTopologySize(ec.String(size.ValueString()), ec.String(sizeResource.ValueString()))
 }
 
 func ParseTopologySize(size, sizeResource *string) (*models.TopologySize, error) {

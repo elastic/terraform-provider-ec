@@ -95,7 +95,7 @@ func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*m
 
 func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, planModels []*models.KibanaClusterTopologyElement, index int) (*models.KibanaClusterTopologyElement, diag.Diagnostics) {
 
-	icID := topology.InstanceConfigurationId.Value
+	icID := topology.InstanceConfigurationId.ValueString()
 
 	// When a topology element is set but no instance_configuration_id
 	// is set, then obtain the instance_configuration_id from the topology
@@ -122,8 +122,8 @@ func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, planMode
 		elem.Size = size
 	}
 
-	if topology.ZoneCount.Value > 0 {
-		elem.ZoneCount = int32(topology.ZoneCount.Value)
+	if topology.ZoneCount.ValueInt64() > 0 {
+		elem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
 	return elem, nil

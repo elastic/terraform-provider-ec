@@ -43,7 +43,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 		return
 	}
 
-	found, diags := r.read(newState.ID.Value, &newState)
+	found, diags := r.read(newState.ID.ValueString(), &newState)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -83,38 +83,38 @@ func extensionNotFound(err error) bool {
 
 func modelToState(model *models.Extension, state *modelV0) {
 	if model.Name != nil {
-		state.Name = types.String{Value: *model.Name}
+		state.Name = types.StringValue(*model.Name)
 	} else {
-		state.Name = types.String{Null: true}
+		state.Name = types.StringNull()
 	}
 
 	if model.Version != nil {
-		state.Version = types.String{Value: *model.Version}
+		state.Version = types.StringValue(*model.Version)
 	} else {
-		state.Version = types.String{Null: true}
+		state.Version = types.StringNull()
 	}
 
 	if model.ExtensionType != nil {
-		state.ExtensionType = types.String{Value: *model.ExtensionType}
+		state.ExtensionType = types.StringValue(*model.ExtensionType)
 	} else {
-		state.ExtensionType = types.String{Null: true}
+		state.ExtensionType = types.StringNull()
 	}
 
-	state.Description = types.String{Value: model.Description}
+	state.Description = types.StringValue(model.Description)
 
 	if model.URL != nil {
-		state.URL = types.String{Value: *model.URL}
+		state.URL = types.StringValue(*model.URL)
 	} else {
-		state.URL = types.String{Null: true}
+		state.URL = types.StringNull()
 	}
 
-	state.DownloadURL = types.String{Value: model.DownloadURL}
+	state.DownloadURL = types.StringValue(model.DownloadURL)
 
 	if metadata := model.FileMetadata; metadata != nil {
-		state.LastModified = types.String{Value: metadata.LastModifiedDate.String()}
-		state.Size = types.Int64{Value: metadata.Size}
+		state.LastModified = types.StringValue(metadata.LastModifiedDate.String())
+		state.Size = types.Int64Value(metadata.Size)
 	} else {
-		state.LastModified = types.String{Null: true}
-		state.Size = types.Int64{Null: true}
+		state.LastModified = types.StringNull()
+		state.Size = types.Int64Null()
 	}
 }

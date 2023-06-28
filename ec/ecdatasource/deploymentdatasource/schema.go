@@ -20,52 +20,46 @@ package deploymentdatasource
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Use this data source to retrieve information about an existing Elastic Cloud deployment.",
-		Attributes: map[string]tfsdk.Attribute{
-			"alias": {
-				Type:        types.StringType,
+		Attributes: map[string]schema.Attribute{
+			"alias": schema.StringAttribute{
 				Description: "Deployment alias.",
 				Computed:    true,
 			},
-			"healthy": {
-				Type:        types.BoolType,
+			"healthy": schema.BoolAttribute{
 				Description: "Overall health status of the deployment.",
 				Computed:    true,
 			},
-			"id": {
-				Type:        types.StringType,
+			"id": schema.StringAttribute{
 				Description: "The unique ID of the deployment.",
 				Required:    true,
 			},
-			"name": {
-				Type:        types.StringType,
+			"name": schema.StringAttribute{
 				Description: "The name of the deployment.",
 				Computed:    true,
 			},
-			"region": {
-				Type:        types.StringType,
+			"region": schema.StringAttribute{
 				Description: "Region where the deployment is hosted.",
 				Computed:    true,
 			},
-			"deployment_template_id": {
-				Type:        types.StringType,
+			"deployment_template_id": schema.StringAttribute{
 				Description: "ID of the deployment template this deployment is based off.",
 				Computed:    true,
 			},
-			"traffic_filter": {
-				Type:        types.ListType{ElemType: types.StringType},
+			"traffic_filter": schema.ListAttribute{
+				ElementType: types.StringType,
 				Description: "Traffic filter block, which contains a list of traffic filter rule identifiers.",
 				Computed:    true,
 			},
-			"tags": {
-				Type:        types.MapType{ElemType: types.StringType},
+			"tags": schema.MapAttribute{
+				ElementType: types.StringType,
 				Description: "Key value map of arbitrary string tags.",
 				Computed:    true,
 			},
@@ -76,7 +70,7 @@ func (d *DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnost
 			"integrations_server": integrationsServerResourceInfoSchema(),
 			"enterprise_search":   enterpriseSearchResourceInfoSchema(),
 		},
-	}, nil
+	}
 }
 
 type modelV0 struct {

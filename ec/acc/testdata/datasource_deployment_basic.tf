@@ -10,6 +10,7 @@ resource "ec_deployment" "basic_observability" {
   deployment_template_id = "%s"
 
   elasticsearch = {
+    autoscale = "%s"
     hot = {
       size        = "1g"
       zone_count  = 1

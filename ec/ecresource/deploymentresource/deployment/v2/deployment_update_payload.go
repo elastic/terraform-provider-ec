@@ -37,13 +37,13 @@ import (
 )
 
 func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateResources, error) {
-	newDtId := plan.DeploymentTemplateId.Value
-	prevDtId := state.DeploymentTemplateId.Value
+	newDtId := plan.DeploymentTemplateId.ValueString()
+	prevDtId := state.DeploymentTemplateId.ValueString()
 
 	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
 		API:                        client,
 		TemplateID:                 newDtId,
-		Region:                     plan.Region.Value,
+		Region:                     plan.Region.ValueString(),
 		HideInstanceConfigurations: true,
 	})
 
@@ -65,7 +65,7 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 	if newDtId != prevDtId && prevDtId != "" {
 		// Get an update request from the template migration API
 		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
-			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.Value).WithTemplateID(newDtId),
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
 			client.AuthWriter,
 		)
 
@@ -103,15 +103,15 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 
 func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
 	var result = models.DeploymentUpdateRequest{
-		Name:         plan.Name.Value,
-		Alias:        plan.Alias.Value,
+		Name:         plan.Name.ValueString(),
+		Alias:        plan.Alias.ValueString(),
 		PruneOrphans: ec.Bool(true),
 		Resources:    &models.DeploymentUpdateResources{},
 		Settings:     &models.DeploymentUpdateSettings{},
 		Metadata:     &models.DeploymentUpdateMetadata{},
 	}
 
-	dtID := plan.DeploymentTemplateId.Value
+	dtID := plan.DeploymentTemplateId.ValueString()
 
 	var diagsnostics diag.Diagnostics
 
@@ -127,7 +127,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		return nil, diags
 	}
 
-	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, basePayloads, dtID, plan.Version.Value, useNodeRoles)
+	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, basePayloads, dtID, plan.Version.ValueString(), useNodeRoles)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)

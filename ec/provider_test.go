@@ -76,9 +76,9 @@ func Test_Configure(t *testing.T) {
 					"EC_INSECURE": "invalid",
 				},
 				config: providerConfig{
-					Endpoint: types.String{Value: "https://cloud.elastic.co/api"},
-					ApiKey:   types.String{Value: "secret"},
-					Insecure: types.Bool{Null: true},
+					Endpoint: types.StringValue("https://cloud.elastic.co/api"),
+					ApiKey:   types.StringValue("secret"),
+					Insecure: types.BoolNull(),
 				},
 			},
 			diags: func() diag.Diagnostics {
@@ -95,9 +95,9 @@ func Test_Configure(t *testing.T) {
 					"EC_VERBOSE": "invalid",
 				},
 				config: providerConfig{
-					Endpoint: types.String{Value: "https://cloud.elastic.co/api"},
-					ApiKey:   types.String{Value: "secret"},
-					Verbose:  types.Bool{Null: true},
+					Endpoint: types.StringValue("https://cloud.elastic.co/api"),
+					ApiKey:   types.StringValue("secret"),
+					Verbose:  types.BoolNull(),
 				},
 			},
 			diags: func() diag.Diagnostics {
@@ -114,9 +114,9 @@ func Test_Configure(t *testing.T) {
 					"EC_VERBOSE_CREDENTIALS": "invalid",
 				},
 				config: providerConfig{
-					Endpoint:           types.String{Value: "https://cloud.elastic.co/api"},
-					ApiKey:             types.String{Value: "secret"},
-					VerboseCredentials: types.Bool{Null: true},
+					Endpoint:           types.StringValue("https://cloud.elastic.co/api"),
+					ApiKey:             types.StringValue("secret"),
+					VerboseCredentials: types.BoolNull(),
 				},
 			},
 			diags: func() diag.Diagnostics {
@@ -139,13 +139,13 @@ func Test_Configure(t *testing.T) {
 					"EC_VERBOSE_FILE":        "requests.log",
 				},
 				config: providerConfig{
-					Endpoint:           types.String{Null: true},
-					ApiKey:             types.String{Null: true},
-					Insecure:           types.Bool{Null: true},
-					Timeout:            types.String{Null: true},
-					Verbose:            types.Bool{Null: true},
-					VerboseCredentials: types.Bool{Null: true},
-					VerboseFile:        types.String{Null: true},
+					Endpoint:           types.StringNull(),
+					ApiKey:             types.StringNull(),
+					Insecure:           types.BoolNull(),
+					Timeout:            types.StringNull(),
+					Verbose:            types.BoolNull(),
+					VerboseCredentials: types.BoolNull(),
+					VerboseFile:        types.StringNull(),
 				},
 			},
 		},
@@ -155,9 +155,10 @@ func Test_Configure(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var p Provider
 
-			schema, diags := p.GetSchema(context.Background())
+			schemaResp := provider.SchemaResponse{}
+			p.Schema(context.Background(), provider.SchemaRequest{}, &schemaResp)
 
-			assert.Nil(t, diags)
+			assert.Nil(t, schemaResp.Diagnostics)
 
 			resp := provider.ConfigureResponse{}
 
@@ -167,7 +168,7 @@ func Test_Configure(t *testing.T) {
 
 			var config types.Object
 
-			diags = tfsdk.ValueFrom(context.Background(), &tt.args.config, schema.Type(), &config)
+			diags := tfsdk.ValueFrom(context.Background(), &tt.args.config, schemaResp.Schema.Type(), &config)
 
 			assert.Nil(t, diags)
 
@@ -178,7 +179,7 @@ func Test_Configure(t *testing.T) {
 			p.Configure(
 				context.Background(),
 				provider.ConfigureRequest{
-					Config: tfsdk.Config{Schema: schema, Raw: rawConfig},
+					Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: rawConfig},
 				},
 				&resp,
 			)

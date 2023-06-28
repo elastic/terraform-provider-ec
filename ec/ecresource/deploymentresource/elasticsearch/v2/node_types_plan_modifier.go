@@ -20,17 +20,19 @@ package v2
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-func UseNodeTypesDefault() tfsdk.AttributePlanModifier {
+func UseNodeTypesDefault() nodeTypesDefault {
 	return nodeTypesDefault{}
 }
 
 type nodeTypesDefault struct{}
 
-func (m nodeTypesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	useState, useNodeRoles := useStateAndNodeRolesInPlanModifiers(ctx, req, resp)
+func (m nodeTypesDefault) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	useState, useNodeRoles, diags := useStateAndNodeRolesInPlanModifiers(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue)
+
+	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -41,7 +43,7 @@ func (m nodeTypesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 	}
 
 	// If useNodeRoles is false, we can use the current state if it's not null
-	if !useNodeRoles && req.AttributeState.IsNull() {
+	if !useNodeRoles && req.StateValue.IsNull() {
 		return
 	}
 
@@ -49,12 +51,12 @@ func (m nodeTypesDefault) Modify(ctx context.Context, req tfsdk.ModifyAttributeP
 	// 	* state already uses node_roles or
 	// 	* state uses node_types but we need to migrate to node_roles.
 	// We cannot use state in the second case (migration to node_roles)
-	// It happens when the attriubute state is not null.
-	if useNodeRoles && !req.AttributeState.IsNull() {
+	// It happens when node_type attribute's state is not null.
+	if useNodeRoles && !req.StateValue.IsNull() {
 		return
 	}
 
-	resp.AttributePlan = req.AttributeState
+	resp.PlanValue = req.StateValue
 }
 
 // Description returns a human-readable description of the plan modifier.
