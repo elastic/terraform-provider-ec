@@ -92,7 +92,8 @@ func Test_writeElasticsearch(t *testing.T) {
 	}
 
 	type args struct {
-		es             Elasticsearch
+		esPlan         Elasticsearch
+		esState        *Elasticsearch
 		updatePayloads *models.DeploymentUpdateResources
 		templateID     string
 		version        string
@@ -107,7 +108,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -173,7 +174,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with empty version (7.10.0) in state uses node_roles from the DT",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -242,7 +243,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with version 7.11.0 has node_roles coming from the saved state",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -307,7 +308,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource without a topology",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -368,7 +369,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource (HotWarm)",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -470,7 +471,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with config (HotWarm)",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -576,7 +577,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource without a topology (HotWarm)",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -668,7 +669,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with node type overrides (HotWarm)",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -772,7 +773,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "migrates old node_type state to new node_roles payload when the cold tier is set",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -909,7 +910,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "autoscaling enabled",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
@@ -1042,7 +1043,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "autoscaling enabled overriding the size with ml",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
@@ -1219,7 +1220,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "autoscaling enabled no dimension in template, default resource",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
@@ -1331,7 +1332,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "autoscaling enabled overriding the size and resources",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					Autoscale:  ec.Bool(true),
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
@@ -1482,7 +1483,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with plugins",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1562,7 +1563,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with snapshot source settings",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1636,7 +1637,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parses an ES resource with snapshot settings",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1716,7 +1717,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parse autodetect configuration strategy",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1788,7 +1789,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parse grow_and_shrink configuration strategy",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1860,7 +1861,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parse rolling_grow_and_shrink configuration strategy",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -1932,7 +1933,7 @@ func Test_writeElasticsearch(t *testing.T) {
 		{
 			name: "parse rolling configuration strategy",
 			args: args{
-				es: Elasticsearch{
+				esPlan: Elasticsearch{
 					RefId:      ec.String("main-elasticsearch"),
 					ResourceId: ec.String(mock.ValidClusterID),
 					Region:     ec.String("some-region"),
@@ -2004,14 +2005,124 @@ func Test_writeElasticsearch(t *testing.T) {
 				},
 			}),
 		},
+		{
+			name: "parses an ES resource with keystore entries",
+			args: args{
+				esPlan: Elasticsearch{
+					RefId:      ec.String("main-elasticsearch"),
+					ResourceId: ec.String(mock.ValidClusterID),
+					Region:     ec.String("some-region"),
+					HotTier: &ElasticsearchTopology{
+						id:        "hot_content",
+						Size:      ec.String("2g"),
+						ZoneCount: 1,
+					},
+					KeystoreContents: map[string]ElasticsearchKeystoreContents{
+						"secret-key1": {
+							Value: "secret-text-value",
+						},
+						"secret-key2": {
+							Value:  "secret-file-value",
+							AsFile: ec.Bool(true),
+						},
+					},
+				},
+				esState: &Elasticsearch{
+					RefId:      ec.String("main-elasticsearch"),
+					ResourceId: ec.String(mock.ValidClusterID),
+					Region:     ec.String("some-region"),
+					HotTier: &ElasticsearchTopology{
+						id:        "hot_content",
+						Size:      ec.String("2g"),
+						ZoneCount: 1,
+					},
+					KeystoreContents: map[string]ElasticsearchKeystoreContents{
+						"secret-key-to-remove": {
+							Value: "obsolete-secret-value",
+						},
+					},
+				},
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
+			},
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+					KeystoreContents: &models.KeystoreContents{
+						Secrets: map[string]models.KeystoreSecret{
+							"secret-key1": {
+								Value:  "secret-text-value",
+								AsFile: ec.Bool(false),
+							},
+							"secret-key2": {
+								Value:  "secret-file-value",
+								AsFile: ec.Bool(true),
+							},
+							"secret-key-to-remove": {},
+						},
+					},
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version: "7.7.0",
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID:                      "hot_content",
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(2048),
+							},
+							NodeType: &models.ElasticsearchNodeType{
+								Data:   ec.Bool(true),
+								Ingest: ec.Bool(true),
+								Master: ec.Bool(true),
+							},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+				},
+			}),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var elasticsearch types.Object
-			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, ElasticsearchSchema().GetType(), &elasticsearch)
+			var esPlan types.Object
+			diags := tfsdk.ValueFrom(context.Background(), tt.args.esPlan, ElasticsearchSchema().GetType(), &esPlan)
 			assert.Nil(t, diags)
 
-			got, diags := ElasticsearchPayload(context.Background(), elasticsearch, nil, tt.args.updatePayloads, tt.args.templateID, tt.args.version, tt.args.useNodeRoles)
+			var esState *types.Object
+			if tt.args.esState != nil {
+				esState = new(types.Object)
+				diags := tfsdk.ValueFrom(context.Background(), tt.args.esState, ElasticsearchSchema().GetType(), esState)
+				assert.Nil(t, diags)
+			}
+
+			got, diags := ElasticsearchPayload(context.Background(), esPlan, esState, tt.args.updatePayloads, tt.args.templateID, tt.args.version, tt.args.useNodeRoles)
 			if tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {

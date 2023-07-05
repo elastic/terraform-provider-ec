@@ -41,7 +41,7 @@ func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsT
 	var diags diag.Diagnostics
 
 	if (keystoreContentsTF.IsNull() || len(keystoreContentsTF.Elems) == 0) && esStateObj == nil {
-		return nil, nil
+		return model, nil
 	}
 
 	secrets := make(map[string]models.KeystoreSecret, len(keystoreContentsTF.Elems))
@@ -86,7 +86,7 @@ func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsT
 	}
 
 	if len(secrets) == 0 {
-		return nil, nil
+		return model, nil
 	}
 
 	if model == nil {
