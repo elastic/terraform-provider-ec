@@ -2011,7 +2011,7 @@ func Test_writeElasticsearch(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.es, ElasticsearchSchema().GetType(), &elasticsearch)
 			assert.Nil(t, diags)
 
-			got, diags := ElasticsearchPayload(context.Background(), elasticsearch, tt.args.updatePayloads, tt.args.templateID, tt.args.version, tt.args.useNodeRoles)
+			got, diags := ElasticsearchPayload(context.Background(), elasticsearch, nil, tt.args.updatePayloads, tt.args.templateID, tt.args.version, tt.args.useNodeRoles)
 			if tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {

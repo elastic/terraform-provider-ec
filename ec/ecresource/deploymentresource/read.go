@@ -180,6 +180,11 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.Elasticsearch.Strategy = baseElasticsearch.Strategy.ValueStringPointer()
 	}
 
+	if baseElasticsearch != nil && deployment.Elasticsearch != nil && !baseElasticsearch.KeystoreContents.IsNull() {
+		ds := baseElasticsearch.KeystoreContents.ElementsAs(ctx, &deployment.Elasticsearch.KeystoreContents, true)
+		diags.Append(ds...)
+	}
+
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it
 	// we use state for plan in Read and there is no state during import so we need to check elasticsearchPlan against nil
 	if baseElasticsearch != nil &&
