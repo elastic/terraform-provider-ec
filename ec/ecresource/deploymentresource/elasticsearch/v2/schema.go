@@ -170,6 +170,10 @@ func keystoreContentsSchema() schema.Attribute {
 				"as_file": schema.BoolAttribute{
 					Description: "If true, the secret is handled as a file. Otherwise, it's handled as a plain string.",
 					Optional:    true,
+					Computed:    true,
+					PlanModifiers: []planmodifier.Bool{
+						planmodifiers.BoolDefaultValue(false),
+					},
 				},
 			},
 		},

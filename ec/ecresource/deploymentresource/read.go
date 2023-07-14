@@ -26,6 +26,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -183,6 +184,28 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	if baseElasticsearch != nil && deployment.Elasticsearch != nil && !baseElasticsearch.KeystoreContents.IsNull() {
 		ds := baseElasticsearch.KeystoreContents.ElementsAs(ctx, &deployment.Elasticsearch.KeystoreContents, true)
 		diags.Append(ds...)
+
+		// response.Resources.Elasticsearch[0].Info.Metadata.Raw
+		keystoreContents, err := eskeystoreapi.Get(eskeystoreapi.GetParams{
+			API:          r.client,
+			DeploymentID: id,
+		})
+		if err != nil {
+			diags.AddError("Deployment keystore read error", err.Error())
+			return nil, diags
+		}
+
+		for entryName, entryVal := range deployment.Elasticsearch.KeystoreContents {
+			secret, ok := keystoreContents.Secrets[entryName]
+			if !ok {
+				delete(deployment.Elasticsearch.KeystoreContents, entryName)
+				continue
+			}
+			if secret.AsFile != nil {
+				entryVal.AsFile = secret.AsFile
+				deployment.Elasticsearch.KeystoreContents[entryName] = entryVal
+			}
+		}
 	}
 
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it
