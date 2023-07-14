@@ -294,6 +294,7 @@ Optional:
 - `coordinating` (Attributes) 'coordinating' topology element (see [below for nested schema](#nestedatt--elasticsearch--coordinating))
 - `extension` (Attributes Set) Optional Elasticsearch extensions such as custom bundles or plugins. (see [below for nested schema](#nestedatt--elasticsearch--extension))
 - `frozen` (Attributes) 'frozen' topology element (see [below for nested schema](#nestedatt--elasticsearch--frozen))
+- `keystore_contents` (Attributes Map) Keystore contents that are controlled by the deployment resource. (see [below for nested schema](#nestedatt--elasticsearch--keystore_contents))
 - `master` (Attributes) 'master' topology element (see [below for nested schema](#nestedatt--elasticsearch--master))
 - `ml` (Attributes) 'ml' topology element (see [below for nested schema](#nestedatt--elasticsearch--ml))
 - `ref_id` (String) A human readable reference for the Elasticsearch resource. The default value `main-elasticsearch` is recommended.
@@ -491,6 +492,18 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
+
+
+<a id="nestedatt--elasticsearch--keystore_contents"></a>
+### Nested Schema for `elasticsearch.keystore_contents`
+
+Required:
+
+- `value` (String, Sensitive) Secret value. This can either be a string or a JSON object that is stored as a JSON string in the keystore.
+
+Optional:
+
+- `as_file` (Boolean) If true, the secret is handled as a file. Otherwise, it's handled as a plain string.
 
 
 <a id="nestedatt--elasticsearch--master"></a>
