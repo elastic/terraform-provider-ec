@@ -163,7 +163,9 @@ func Test_readElasticsearch(t *testing.T) {
 				CloudID:       ec.String("some CLOUD ID"),
 				HttpEndpoint:  ec.String("http://somecluster.cloud.elastic.co:9200"),
 				HttpsEndpoint: ec.String("https://somecluster.cloud.elastic.co:9243"),
-				Config:        &ElasticsearchConfig{},
+				Config: &ElasticsearchConfig{
+					Plugins: []string{},
+				},
 				HotTier: &ElasticsearchTopology{
 					id:                      "hot_content",
 					InstanceConfigurationId: ec.String("aws.data.highio.i3"),
@@ -243,6 +245,7 @@ func Test_readElasticsearch(t *testing.T) {
 				HttpEndpoint:  ec.String("http://othercluster.cloud.elastic.co:9200"),
 				HttpsEndpoint: ec.String("https://othercluster.cloud.elastic.co:9243"),
 				Config: &ElasticsearchConfig{
+					Plugins:                  []string{},
 					UserSettingsYaml:         ec.String("some.setting: value"),
 					UserSettingsOverrideYaml: ec.String("some.setting: value2"),
 					UserSettingsJson:         ec.String("{\"some.setting\":\"value\"}"),
@@ -374,7 +377,9 @@ func Test_readElasticsearch(t *testing.T) {
 				CloudID:       ec.String("some CLOUD ID"),
 				HttpEndpoint:  ec.String("http://somecluster.cloud.elastic.co:9200"),
 				HttpsEndpoint: ec.String("https://somecluster.cloud.elastic.co:9243"),
-				Config:        &ElasticsearchConfig{},
+				Config: &ElasticsearchConfig{
+					Plugins: []string{},
+				},
 				HotTier: &ElasticsearchTopology{
 					id:                      "hot_content",
 					InstanceConfigurationId: ec.String("aws.data.highio.i3"),

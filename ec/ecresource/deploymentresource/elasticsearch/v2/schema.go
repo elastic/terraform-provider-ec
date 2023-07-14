@@ -73,6 +73,9 @@ func ElasticsearchSchema() schema.Attribute {
 			"resource_id": schema.StringAttribute{
 				Description: "The Elasticsearch resource unique identifier",
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"region": schema.StringAttribute{
 				Description: "The Elasticsearch resource region",
@@ -84,14 +87,23 @@ func ElasticsearchSchema() schema.Attribute {
 			"cloud_id": schema.StringAttribute{
 				Description: "The encoded Elasticsearch credentials to use in Beats or Logstash",
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"http_endpoint": schema.StringAttribute{
 				Description: "The Elasticsearch resource HTTP endpoint",
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"https_endpoint": schema.StringAttribute{
 				Description: "The Elasticsearch resource HTTPs endpoint",
 				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 
 			"hot":          elasticsearchTopologySchema("'hot' topology element", true, "hot"),
@@ -139,6 +151,9 @@ func elasticsearchConfigSchema() schema.Attribute {
 				Description: "List of Elasticsearch supported plugins, which vary from version to version. Check the Stack Pack version to see which plugins are supported for each version. This is currently only available from the UI and [ecctl](https://www.elastic.co/guide/en/ecctl/master/ecctl_stack_list.html)",
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"user_settings_json": schema.StringAttribute{
 				Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,

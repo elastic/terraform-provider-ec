@@ -44,6 +44,7 @@ func readElasticsearchConfig(in *models.ElasticsearchConfiguration) (*Elasticsea
 		return &ElasticsearchConfig{}, nil
 	}
 
+	config.Plugins = []string{}
 	if len(in.EnabledBuiltInPlugins) > 0 {
 		config.Plugins = append(config.Plugins, in.EnabledBuiltInPlugins...)
 	}

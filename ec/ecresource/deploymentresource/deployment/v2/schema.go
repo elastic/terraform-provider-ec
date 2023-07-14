@@ -103,6 +103,9 @@ func DeploymentSchema() schema.Schema {
 			"apm_secret_token": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"traffic_filter": schema.SetAttribute{
 				ElementType: types.StringType,
