@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"reflect"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
@@ -34,7 +33,12 @@ import (
 type ElasticsearchConfig v1.ElasticsearchConfig
 
 func (c *ElasticsearchConfig) IsEmpty() bool {
-	return c == nil || reflect.ValueOf(*c).IsZero()
+	return c == nil || (c.DockerImage == nil &&
+		len(c.Plugins) == 0 &&
+		c.UserSettingsJson == nil &&
+		c.UserSettingsOverrideJson == nil &&
+		c.UserSettingsOverrideYaml == nil &&
+		c.UserSettingsYaml == nil)
 }
 
 func readElasticsearchConfig(in *models.ElasticsearchConfiguration) (*ElasticsearchConfig, error) {
