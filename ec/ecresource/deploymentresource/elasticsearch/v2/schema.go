@@ -88,7 +88,7 @@ func ElasticsearchSchema() schema.Attribute {
 				Description: "The encoded Elasticsearch credentials to use in Beats or Logstash",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					UseStateForUnknownUnlessNameOrKibanaStateChanges(),
 				},
 			},
 			"http_endpoint": schema.StringAttribute{

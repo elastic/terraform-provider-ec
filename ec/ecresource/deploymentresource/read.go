@@ -180,7 +180,6 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.Elasticsearch != nil &&
 		deployment.Elasticsearch.Config != nil &&
 		deployment.Elasticsearch.Config.IsEmpty() {
-
 		deployment.Elasticsearch.Config = nil
 	}
 
