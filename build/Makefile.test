@@ -42,7 +42,7 @@ endif
 
 .PHONY: testacc-ci
 testacc-ci:
-	@ TF_ACC_TERRAFORM_VERSION=1.3.9 EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
+	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
 
 .PHONY: sweep-ci
 sweep-ci:
