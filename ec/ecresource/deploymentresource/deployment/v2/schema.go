@@ -156,6 +156,10 @@ func (m useNullIfNotAPM) PlanModifyString(ctx context.Context, req planmodifier.
 		return
 	}
 
+	if !req.PlanValue.IsUnknown() {
+		return
+	}
+
 	hasAPM, diags := planmodifiers.HasAttribute(ctx, path.Root("apm"), req.Plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
