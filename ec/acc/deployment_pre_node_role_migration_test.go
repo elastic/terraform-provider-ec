@@ -62,7 +62,7 @@ func TestAccDeployment_pre_node_roles(t *testing.T) {
 			},
 			{
 				Config: cfgF(upgradeVersionCfg),
-				// Expect a non-empty plan here. We explictly avoid migrating node_roles when the version changes
+				// Expect a non-empty plan here. We explicitly avoid migrating node_roles when the version changes
 				// however will the migrate the deployment to node_roles on the next TF application.
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
