@@ -114,7 +114,7 @@ func DeploymentSchema() schema.Schema {
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
-				Description: "List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.",
+				Description: "List of traffic filters rule identifiers that will be applied to the deployment.",
 				PlanModifiers: []planmodifier.Set{
 					planmodifiers.SetDefaultValue(types.StringType, []attr.Value{}),
 				},

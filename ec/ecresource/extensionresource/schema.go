@@ -101,6 +101,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					useUnknownIfOtherChanges{},
 				},
 			},
 			"size": schema.Int64Attribute{
@@ -119,6 +120,38 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				},
 			},
 		},
+	}
+}
+
+type useUnknownIfOtherChanges struct{}
+
+var _ planmodifier.String = useUnknownIfOtherChanges{}
+
+func (m useUnknownIfOtherChanges) Description(ctx context.Context) string {
+	return m.MarkdownDescription(ctx)
+}
+
+func (m useUnknownIfOtherChanges) MarkdownDescription(ctx context.Context) string {
+	return "Sets the plan value to null if there is no apm or integrations_server resource"
+}
+
+func (m useUnknownIfOtherChanges) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	for attrName := range req.Config.Schema.GetAttributes() {
+		hasChanged, diags := planmodifiers.AttributeChanged(ctx, path.Root(attrName), req.Plan, req.State)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if hasChanged {
+			resp.PlanValue = types.StringUnknown()
+			return
+		}
 	}
 }
 
