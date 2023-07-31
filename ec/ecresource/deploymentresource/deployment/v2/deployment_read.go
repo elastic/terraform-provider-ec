@@ -230,14 +230,19 @@ func (dep *Deployment) ProcessSelfInObservability() {
 	}
 }
 
-func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base DeploymentTF) diag.Diagnostics {
+func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base DeploymentTF, privateFilters []string) diag.Diagnostics {
 	var baseFilters []string
 	diags := base.TrafficFilter.ElementsAs(ctx, &baseFilters, true)
 	if diags.HasError() {
 		return diags
 	}
 
-	// Only include traffic filters which are part of the TF plan.
+	for _, filter := range privateFilters {
+		if !slices.Contains[string](baseFilters, filter) {
+			baseFilters = append(baseFilters, filter)
+		}
+	}
+
 	if len(baseFilters) == 0 {
 		dep.TrafficFilter = baseFilters
 	}
@@ -250,6 +255,21 @@ func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base Deplo
 	}
 
 	dep.TrafficFilter = intersectionFilters
+
+	// // Ensure consistency between null, and empty configured traffic filter values.
+	// // The Cloud API represents an empty set of traffic filters as a null/missing value. Terraform does distinguish between those two cases.
+	// // If the Cloud response does not include traffic filters, then set the read value as the planned value, but only if the planned value is empty.
+	// if dep.TrafficFilter == nil {
+	// 	var baseFilters []string
+	// 	diags := base.TrafficFilter.ElementsAs(ctx, &baseFilters, true)
+	// 	if diags.HasError() {
+	// 		return diags
+	// 	}
+
+	// 	if len(baseFilters) == 0 {
+	// 		dep.TrafficFilter = baseFilters
+	// 	}
+	// }
 
 	return diags
 }
