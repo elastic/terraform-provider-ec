@@ -20,6 +20,7 @@ package v2
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -114,6 +115,9 @@ func DeploymentSchema() schema.Schema {
 				Optional:    true,
 				Computed:    true,
 				Description: "List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.SetDefaultValue(types.StringType, []attr.Value{}),
+				},
 			},
 			"tags": schema.MapAttribute{
 				Description: "Optional map of deployment tags",
