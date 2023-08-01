@@ -73,14 +73,14 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	privateFilters, d := readPrivateStateTrafficFiltersFromUpdate(ctx, req)
+	privateFilters, d := readPrivateStateTrafficFilters(ctx, req.Private)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	planRules, diags := HandleTrafficFilterChange(ctx, r.client, plan, privateFilters)
 	resp.Diagnostics.Append(diags...)
-	updatePrivateStateTrafficFiltersFromUpdate(ctx, resp, planRules)
+	updatePrivateStateTrafficFilters(ctx, resp.Private, planRules)
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.ValueString(), plan.Elasticsearch)...)
 
 	deployment, diags := r.read(ctx, plan.Id.ValueString(), &state, &plan, res.Resources, planRules)
@@ -123,10 +123,6 @@ func (r *Resource) ResetElasticsearchPassword(deploymentID string, refID string)
 }
 
 func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan v2.DeploymentTF, stateRules ruleSet) ([]string, diag.Diagnostics) {
-	// if plan.TrafficFilter.Equal(state.TrafficFilter) {
-	// 	return nil
-	// }
-
 	var planRules ruleSet
 	if diags := plan.TrafficFilter.ElementsAs(ctx, &planRules, true); diags.HasError() {
 		return []string{}, diags

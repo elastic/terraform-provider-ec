@@ -87,7 +87,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters)
-	updatePrivateStateTrafficFiltersFromCreate(ctx, resp, filters)
+	updatePrivateStateTrafficFilters(ctx, resp.Private, filters)
 
 	resp.Diagnostics.Append(diags...)
 

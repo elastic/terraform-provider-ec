@@ -57,7 +57,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 
 	var newState *deploymentv2.Deployment
 
-	privateFilters, d := readPrivateStateTrafficFiltersFromRead(ctx, request)
+	privateFilters, d := readPrivateStateTrafficFilters(ctx, request.Private)
 	response.Diagnostics.Append(d...)
 	if response.Diagnostics.HasError() {
 		return
@@ -164,7 +164,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.ResetElasticsearchPassword = base.ResetElasticsearchPassword.ValueBoolPointer()
 	}
 
-	diags.Append(deployment.HandleEmptyTrafficFilters(ctx, base, privateFilters)...)
+	diags.Append(deployment.IncludePrivateStateTrafficFilters(ctx, base, privateFilters)...)
 
 	deployment.SetCredentialsIfEmpty(state)
 

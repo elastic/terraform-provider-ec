@@ -22,20 +22,17 @@ import (
 	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
+
+type PrivateState interface {
+	GetKey(context.Context, string) ([]byte, diag.Diagnostics)
+	SetKey(context.Context, string, []byte) diag.Diagnostics
+}
 
 const trafficFilterStateKey = "traffic_filters"
 
-func readPrivateStateTrafficFiltersFromRead(ctx context.Context, req resource.ReadRequest) ([]string, diag.Diagnostics) {
-	return readPrivateStateTrafficFilters(req.Private.GetKey(ctx, trafficFilterStateKey))
-}
-
-func readPrivateStateTrafficFiltersFromUpdate(ctx context.Context, req resource.UpdateRequest) ([]string, diag.Diagnostics) {
-	return readPrivateStateTrafficFilters(req.Private.GetKey(ctx, trafficFilterStateKey))
-}
-
-func readPrivateStateTrafficFilters(privateFilterBytes []byte, diags diag.Diagnostics) ([]string, diag.Diagnostics) {
+func readPrivateStateTrafficFilters(ctx context.Context, state PrivateState) ([]string, diag.Diagnostics) {
+	privateFilterBytes, diags := state.GetKey(ctx, trafficFilterStateKey)
 	if privateFilterBytes == nil || diags.HasError() {
 		return []string{}, diags
 	}
@@ -50,7 +47,7 @@ func readPrivateStateTrafficFilters(privateFilterBytes []byte, diags diag.Diagno
 	return privateFilters, diags
 }
 
-func updatePrivateStateTrafficFiltersFromUpdate(ctx context.Context, resp *resource.UpdateResponse, filters []string) diag.Diagnostics {
+func updatePrivateStateTrafficFilters(ctx context.Context, state PrivateState, filters []string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	filterBytes, err := json.Marshal(filters)
 	if err != nil {
@@ -58,16 +55,5 @@ func updatePrivateStateTrafficFiltersFromUpdate(ctx context.Context, resp *resou
 		return diags
 	}
 
-	return resp.Private.SetKey(ctx, trafficFilterStateKey, filterBytes)
-}
-
-func updatePrivateStateTrafficFiltersFromCreate(ctx context.Context, resp *resource.CreateResponse, filters []string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	filterBytes, err := json.Marshal(filters)
-	if err != nil {
-		diags.AddError("failed to update private state", err.Error())
-		return diags
-	}
-
-	return resp.Private.SetKey(ctx, trafficFilterStateKey, filterBytes)
+	return state.SetKey(ctx, trafficFilterStateKey, filterBytes)
 }
