@@ -446,7 +446,7 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 	}
 
 	if options.nodeRolesImpactedBySizeChange {
-		nodeRolesPlanModifiers = append(nodeRolesPlanModifiers, setUnknownOnTopologyChanges{})
+		nodeRolesPlanModifiers = append(nodeRolesPlanModifiers, SetUnknownOnTopologySizeChange())
 	}
 
 	return schema.SingleNestedAttribute{
