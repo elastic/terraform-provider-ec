@@ -238,7 +238,7 @@ func (dep *Deployment) IncludePrivateStateTrafficFilters(ctx context.Context, ba
 	}
 
 	for _, filter := range privateFilters {
-		if !slices.Contains[string](baseFilters, filter) {
+		if !slices.Contains(baseFilters, filter) {
 			baseFilters = append(baseFilters, filter)
 		}
 	}
