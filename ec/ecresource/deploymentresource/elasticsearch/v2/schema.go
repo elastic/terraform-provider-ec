@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
@@ -94,13 +95,29 @@ func ElasticsearchSchema() schema.Attribute {
 				Computed:    true,
 			},
 
-			"hot":          elasticsearchTopologySchema("'hot' topology element", true, "hot"),
-			"coordinating": elasticsearchTopologySchema("'coordinating' topology element", false, "coordinating"),
-			"master":       elasticsearchTopologySchema("'master' topology element", false, "master"),
-			"warm":         elasticsearchTopologySchema("'warm' topology element", false, "warm"),
-			"cold":         elasticsearchTopologySchema("'cold' topology element", false, "cold"),
-			"frozen":       elasticsearchTopologySchema("'frozen' topology element", false, "frozen"),
-			"ml":           elasticsearchTopologySchema("'ml' topology element", false, "ml"),
+			"hot": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName:                      "hot",
+				required:                      true,
+				nodeRolesImpactedBySizeChange: true,
+			}),
+			"coordinating": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName: "coordinating",
+			}),
+			"master": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName: "master",
+			}),
+			"warm": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName: "warm",
+			}),
+			"cold": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName: "cold",
+			}),
+			"frozen": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName: "frozen",
+			}),
+			"ml": elasticsearchTopologySchema(topologySchemaOptions{
+				tierName: "ml",
+			}),
 
 			"trust_account": elasticsearchTrustAccountSchema(),
 
@@ -402,19 +419,33 @@ func elasticsearchTrustExternalSchema() schema.Attribute {
 	}
 }
 
-func elasticsearchTopologySchema(description string, required bool, topologyAttributeName string) schema.Attribute {
+type topologySchemaOptions struct {
+	required                      bool
+	nodeRolesImpactedBySizeChange bool
+	tierName                      string
+}
+
+func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute {
+	nodeRolesPlanModifiers := []planmodifier.Set{
+		UseNodeRolesDefault(),
+	}
+
+	if options.nodeRolesImpactedBySizeChange {
+		nodeRolesPlanModifiers = append(nodeRolesPlanModifiers, setUnknownOnTopologyChanges{})
+	}
+
 	return schema.SingleNestedAttribute{
-		Optional: !required,
+		Optional: !options.required,
 		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
 		// Computed:    true,
-		Required:    required,
-		Description: description,
+		Required:    options.required,
+		Description: fmt.Sprintf("'%s' topology element", options.tierName),
 		Attributes: map[string]schema.Attribute{
 			"instance_configuration_id": schema.StringAttribute{
 				Description: `Computed Instance Configuration ID of the topology element`,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
-					UseTopologyStateForUnknown(topologyAttributeName),
+					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
 			"size": schema.StringAttribute{
@@ -422,7 +453,7 @@ func elasticsearchTopologySchema(description string, required bool, topologyAttr
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.String{
-					UseTopologyStateForUnknown(topologyAttributeName),
+					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
 			"size_resource": schema.StringAttribute{
@@ -438,7 +469,7 @@ func elasticsearchTopologySchema(description string, required bool, topologyAttr
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.Int64{
-					UseTopologyStateForUnknown(topologyAttributeName),
+					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
 			"node_type_data": schema.StringAttribute{
@@ -474,14 +505,12 @@ func elasticsearchTopologySchema(description string, required bool, topologyAttr
 				},
 			},
 			"node_roles": schema.SetAttribute{
-				ElementType: types.StringType,
-				Description: `The computed list of node roles for the current topology element`,
-				Computed:    true,
-				PlanModifiers: []planmodifier.Set{
-					UseNodeRolesDefault(),
-				},
+				ElementType:   types.StringType,
+				Description:   `The computed list of node roles for the current topology element`,
+				Computed:      true,
+				PlanModifiers: nodeRolesPlanModifiers,
 			},
-			"autoscaling": elasticsearchTopologyAutoscalingSchema(topologyAttributeName),
+			"autoscaling": elasticsearchTopologyAutoscalingSchema(options.tierName),
 		},
 	}
 }
