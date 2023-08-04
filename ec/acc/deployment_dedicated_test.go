@@ -69,8 +69,10 @@ func TestAccDeployment_dedicated_coordinating(t *testing.T) {
 func TestAccDeployment_dedicated_master(t *testing.T) {
 	resName := "ec_deployment.dedicated_master"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_dedicated_master.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
+	belowCfg := "testdata/deployment_dedicated_master_below_threshold.tf"
+	aboveCfg := "testdata/deployment_dedicated_master_above_threshold.tf"
+	belowThresholdCfg := fixtureAccDeploymentResourceBasicDefaults(t, belowCfg, randomName, getRegion(), defaultTemplate)
+	aboveThresholdCfg := fixtureAccDeploymentResourceBasicDefaults(t, aboveCfg, randomName, getRegion(), defaultTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -78,8 +80,28 @@ func TestAccDeployment_dedicated_master(t *testing.T) {
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create a deployment with dedicated master nodes.
-				Config: cfg,
+				// Create a deployment below the dedicate master threshold.
+				Config: belowThresholdCfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
+
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.cold"),
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.master"),
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.warm"),
+
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "3"),
+
+					resource.TestCheckNoResourceAttr(resName, "kibana"),
+					resource.TestCheckNoResourceAttr(resName, "apm"),
+					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
+				),
+			},
+			{
+				// Expand the deployment above the dedicated master threshold.
+				Config: aboveThresholdCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.cold.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
@@ -105,6 +127,26 @@ func TestAccDeployment_dedicated_master(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.zone_count", "2"),
+
+					resource.TestCheckNoResourceAttr(resName, "kibana"),
+					resource.TestCheckNoResourceAttr(resName, "apm"),
+					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
+				),
+			},
+			{
+				// Shrink it back below the threshold.
+				Config: belowThresholdCfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
+
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.cold"),
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.master"),
+					resource.TestCheckNoResourceAttr(resName, "elasticsearch.warm"),
+
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "3"),
 
 					resource.TestCheckNoResourceAttr(resName, "kibana"),
 					resource.TestCheckNoResourceAttr(resName, "apm"),
