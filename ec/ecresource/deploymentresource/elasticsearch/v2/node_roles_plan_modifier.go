@@ -20,6 +20,10 @@ package v2
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
@@ -69,4 +73,42 @@ func (r nodeRolesDefault) Description(ctx context.Context) string {
 // MarkdownDescription returns a markdown description of the plan modifier.
 func (r nodeRolesDefault) MarkdownDescription(ctx context.Context) string {
 	return "Use current state if it's still valid."
+}
+
+type setUnknownOnTopologyChanges struct{}
+
+var (
+	tierNames        = []string{"hot", "coordinating", "master", "warm", "cold", "frozen"}
+	sizingAttributes = []string{"size", "zone_count"}
+)
+
+func (m setUnknownOnTopologyChanges) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if req.PlanValue.IsUnknown() || req.PlanValue.IsNull() {
+		return
+	}
+
+	for _, tierName := range tierNames {
+		for _, attr := range sizingAttributes {
+			hasChanged, diags := planmodifiers.AttributeChanged(ctx, path.Root("elasticsearch").AtName(tierName).AtName(attr), req.Plan, req.State)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			if hasChanged {
+				resp.PlanValue = types.SetUnknown(types.StringType)
+				return
+			}
+		}
+	}
+}
+
+// Description returns a human-readable description of the plan modifier.
+func (r setUnknownOnTopologyChanges) Description(ctx context.Context) string {
+	return "Sets the plan value to unknown if the size of any topology element has changed."
+}
+
+// MarkdownDescription returns a markdown description of the plan modifier.
+func (r setUnknownOnTopologyChanges) MarkdownDescription(ctx context.Context) string {
+	return "Sets the plan value to unknown if the size of any topology element has changed."
 }

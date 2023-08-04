@@ -34,9 +34,11 @@ google.golang.org/grpc                                        Apache-2.0
 gopkg.in/yaml.v2                                              Apache-2.0
 gopkg.in/yaml.v3                                              Apache-2.0
 github.com/pkg/errors                                         BSD-2-Clause
-github.com/vmihailenco/msgpack/v4                             BSD-2-Clause
+github.com/vmihailenco/msgpack/v5                             BSD-2-Clause
 github.com/vmihailenco/msgpack                                BSD-2-Clause
-github.com/vmihailenco/tagparser                              BSD-2-Clause
+github.com/vmihailenco/tagparser/v2                           BSD-2-Clause
+github.com/protonmail/go-crypto                               BSD-3-Clause
+github.com/cloudflare/circl                                   BSD-3-Clause
 github.com/golang/protobuf                                    BSD-3-Clause
 github.com/google/go-cmp                                      BSD-3-Clause
 github.com/pmezard/go-difflib                                 BSD-3-Clause
@@ -64,26 +66,26 @@ github.com/mitchellh/mapstructure                             MIT
 github.com/mitchellh/reflectwalk                              MIT
 github.com/stretchr/testify                                   MIT
 github.com/zclconf/go-cty                                     MIT
-github.com/hashicorp/go-multierror                            MPL-2.0
+github.com/hashicorp/errwrap                                  MPL-2.0
+github.com/hashicorp/go-checkpoint                            MPL-2.0
+github.com/hashicorp/go-cleanhttp                             MPL-2.0
 github.com/hashicorp/go-plugin                                MPL-2.0
+github.com/hashicorp/go-uuid                                  MPL-2.0
 github.com/hashicorp/go-version                               MPL-2.0
-github.com/hashicorp/terraform-exec                           MPL-2.0
-github.com/hashicorp/terraform-json                           MPL-2.0
-github.com/hashicorp/terraform-plugin-sdk/v2                  MPL-2.0
-github.com/hashicorp/terraform-svchost                        MPL-2.0
+github.com/hashicorp/terraform-plugin-framework-validators    MPL-2.0
+github.com/hashicorp/terraform-plugin-log                     MPL-2.0
+github.com/hashicorp/terraform-registry-address               MPL-2.0
 github.com/hashicorp/yamux                                    MPL-2.0
-github.com/hashicorp/errwrap                                  MPL-2.0-no-copyleft-exception
-github.com/hashicorp/go-checkpoint                            MPL-2.0-no-copyleft-exception
-github.com/hashicorp/go-cleanhttp                             MPL-2.0-no-copyleft-exception
-github.com/hashicorp/go-uuid                                  MPL-2.0-no-copyleft-exception
+github.com/hashicorp/go-multierror                            MPL-2.0-no-copyleft-exception
 github.com/hashicorp/hc-install                               MPL-2.0-no-copyleft-exception
 github.com/hashicorp/hcl/v2                                   MPL-2.0-no-copyleft-exception
 github.com/hashicorp/logutils                                 MPL-2.0-no-copyleft-exception
-github.com/hashicorp/terraform-plugin-framework-validators    MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-exec                           MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-json                           MPL-2.0-no-copyleft-exception
 github.com/hashicorp/terraform-plugin-framework               MPL-2.0-no-copyleft-exception
 github.com/hashicorp/terraform-plugin-go                      MPL-2.0-no-copyleft-exception
-github.com/hashicorp/terraform-plugin-log                     MPL-2.0-no-copyleft-exception
-github.com/hashicorp/terraform-registry-address               MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-plugin-sdk/v2                  MPL-2.0-no-copyleft-exception
+github.com/hashicorp/terraform-svchost                        MPL-2.0-no-copyleft-exception
 github.com/ghodss/yaml                                        no license file was found
 
 =========================================================================
