@@ -20,6 +20,7 @@ package v2
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -33,6 +34,7 @@ import (
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 )
 
 func DeploymentSchema() schema.Schema {
@@ -103,12 +105,19 @@ func DeploymentSchema() schema.Schema {
 			"apm_secret_token": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					useNullIfNotAPM{},
+				},
 			},
 			"traffic_filter": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
-				Description: "List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.",
+				Description: "List of traffic filters rule identifiers that will be applied to the deployment.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.SetDefaultValue(types.StringType, []attr.Value{}),
+				},
 			},
 			"tags": schema.MapAttribute{
 				Description: "Optional map of deployment tags",
@@ -127,6 +136,51 @@ func DeploymentSchema() schema.Schema {
 			"observability":       observabilityv2.ObservabilitySchema(),
 		},
 	}
+}
+
+type useNullIfNotAPM struct{}
+
+var _ planmodifier.String = useNullIfNotAPM{}
+
+func (m useNullIfNotAPM) Description(ctx context.Context) string {
+	return m.MarkdownDescription(ctx)
+}
+
+func (m useNullIfNotAPM) MarkdownDescription(ctx context.Context) string {
+	return "Sets the plan value to null if there is no apm or integrations_server resource"
+}
+
+func (m useNullIfNotAPM) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	if !req.PlanValue.IsUnknown() {
+		return
+	}
+
+	hasAPM, diags := planmodifiers.HasAttribute(ctx, path.Root("apm"), req.Plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if hasAPM {
+		return
+	}
+
+	hasIntegrationsServer, diags := planmodifiers.HasAttribute(ctx, path.Root("integrations_server"), req.Plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if hasIntegrationsServer {
+		return
+	}
+
+	resp.PlanValue = types.StringNull()
 }
 
 type setUnknownIfResetPasswordIsTrue struct{}

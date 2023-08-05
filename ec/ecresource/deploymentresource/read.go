@@ -57,8 +57,14 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 
 	var newState *deploymentv2.Deployment
 
+	privateFilters, d := readPrivateStateTrafficFilters(ctx, request.Private)
+	response.Diagnostics.Append(d...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil)
+	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil, privateFilters)
 
 	response.Diagnostics.Append(diags...)
 
@@ -74,7 +80,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 }
 
 // at least one of state and plan should not be nil
-func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource) (*deploymentv2.Deployment, diag.Diagnostics) {
+func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource, privateFilters []string) (*deploymentv2.Deployment, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var base deploymentv2.DeploymentTF
@@ -158,7 +164,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.ResetElasticsearchPassword = base.ResetElasticsearchPassword.ValueBoolPointer()
 	}
 
-	diags.Append(deployment.HandleEmptyTrafficFilters(ctx, base)...)
+	diags.Append(deployment.IncludePrivateStateTrafficFilters(ctx, base, privateFilters)...)
 
 	deployment.SetCredentialsIfEmpty(state)
 
@@ -180,7 +186,6 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.Elasticsearch != nil &&
 		deployment.Elasticsearch.Config != nil &&
 		deployment.Elasticsearch.Config.IsEmpty() {
-
 		deployment.Elasticsearch.Config = nil
 	}
 

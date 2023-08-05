@@ -81,7 +81,13 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
 
-	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources)
+	filters := []string{}
+	if request.Settings != nil && request.Settings.TrafficFilterSettings != nil && request.Settings.TrafficFilterSettings.Rulesets != nil {
+		filters = request.Settings.TrafficFilterSettings.Rulesets
+	}
+
+	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters)
+	updatePrivateStateTrafficFilters(ctx, resp.Private, filters)
 
 	resp.Diagnostics.Append(diags...)
 

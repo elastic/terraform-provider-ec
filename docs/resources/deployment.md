@@ -268,7 +268,7 @@ resource "ec_deployment" "ccs" {
 - `request_id` (String) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
 - `reset_elasticsearch_password` (Boolean) Explicitly resets the elasticsearch_password when true
 - `tags` (Map of String) Optional map of deployment tags
-- `traffic_filter` (Set of String) List of traffic filters rule identifiers that will be applied to the deployment. Removing this attribute entirely *will not* remove managed traffic filters, instead first set it to an empty list (e.g `traffic_filter = []`) to remove the managed traffic filters.
+- `traffic_filter` (Set of String) List of traffic filters rule identifiers that will be applied to the deployment.
 
 ### Read-Only
 
@@ -765,6 +765,7 @@ Optional:
 
 - `config` (Attributes) Optionally define the Integrations Server configuration options for the IntegrationsServer Server (see [below for nested schema](#nestedatt--integrations_server--config))
 - `elasticsearch_cluster_ref_id` (String)
+- `endpoints` (Object) URLs for the accessing the Fleet and APM API's within this Integrations Server resource. (see [below for nested schema](#nestedatt--integrations_server--endpoints))
 - `instance_configuration_id` (String)
 - `ref_id` (String)
 - `size` (String)
@@ -773,7 +774,6 @@ Optional:
 
 Read-Only:
 
-- `endpoints` (Attributes) URLs for the accessing the Fleet and APM API's within this Integrations Server resource. (see [below for nested schema](#nestedatt--integrations_server--endpoints))
 - `http_endpoint` (String)
 - `https_endpoint` (String)
 - `region` (String)
@@ -795,10 +795,10 @@ Optional:
 <a id="nestedatt--integrations_server--endpoints"></a>
 ### Nested Schema for `integrations_server.endpoints`
 
-Read-Only:
+Optional:
 
-- `apm` (String) URL to access the APM server instance for this Integrations Server resource
-- `fleet` (String) URL to access the Fleet server instance for this Integrations Server resource
+- `apm` (String)
+- `fleet` (String)
 
 
 

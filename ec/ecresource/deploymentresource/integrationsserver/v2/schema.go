@@ -19,10 +19,13 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func IntegrationsServerSchema() schema.Attribute {
@@ -68,24 +71,16 @@ func IntegrationsServerSchema() schema.Attribute {
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"endpoints": schema.SingleNestedAttribute{
+			"endpoints": schema.ObjectAttribute{
+				Optional:    true,
 				Computed:    true,
 				Description: "URLs for the accessing the Fleet and APM API's within this Integrations Server resource.",
-				Attributes: map[string]schema.Attribute{
-					"apm": schema.StringAttribute{
-						Description: "URL to access the APM server instance for this Integrations Server resource",
-						Computed:    true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"fleet": schema.StringAttribute{
-						Description: "URL to access the Fleet server instance for this Integrations Server resource",
-						Computed:    true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
+				AttributeTypes: map[string]attr.Type{
+					"apm":   types.StringType,
+					"fleet": types.StringType,
+				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"instance_configuration_id": schema.StringAttribute{

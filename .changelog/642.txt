@@ -1,0 +1,3 @@
+```release-note:feature
+resource/deployment: Add `reset_elasticsearch_password` attribute to the deployment resource. When true, this will reset the system password for the target deployment, updating the `elasticsearch_password` output as a result.
+```

@@ -50,6 +50,12 @@ func TestAccDeployment_ccs(t *testing.T) {
 			{
 				// Create a CCS deployment with the default settings.
 				Config: cfg,
+				// The legacy CCS DT does not support autoscaling, which leads to autoscaling being 'unknown'.
+				// Ideally we would set autoscaling to null if the deployment template does not support autoscaling,
+				// but that would require's refactoring our schema and this template is no longer part of the public offering.
+				//
+				// We can revisit this if there's demand for clean plans when the template does not support autoscaling.
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// CCS Checks
@@ -94,7 +100,8 @@ func TestAccDeployment_ccs(t *testing.T) {
 			},
 			{
 				// Change the Elasticsearch topology size and node count.
-				Config: secondConfigCfg,
+				Config:             secondConfigCfg,
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
 					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.instance_configuration_id"),

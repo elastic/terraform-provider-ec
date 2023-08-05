@@ -1,0 +1,3 @@
+```release-note:bug-fix
+provider: Fix incompatibilities causing infinite configuration drift when used with Terraform CLI 1.4 or higher
+```

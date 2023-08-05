@@ -187,26 +187,14 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 				TrafficFilter: tt.args.plan,
 			}
 
-			state := v2.Deployment{
-				Id:            deploymentID,
-				TrafficFilter: tt.args.state,
-			}
-
 			var planTF v2.DeploymentTF
-
 			diags := tfsdk.ValueFrom(context.Background(), &plan, v2.DeploymentSchema().Type(), &planTF)
-
 			assert.Nil(t, diags)
 
-			var stateTF v2.DeploymentTF
-
-			diags = tfsdk.ValueFrom(context.Background(), &state, v2.DeploymentSchema().Type(), &stateTF)
+			filters, diags := deploymentresource.HandleTrafficFilterChange(context.Background(), nil, planTF, tt.args.state)
 
 			assert.Nil(t, diags)
-
-			diags = deploymentresource.HandleTrafficFilterChange(context.Background(), nil, planTF, stateTF)
-
-			assert.Nil(t, diags)
+			assert.ElementsMatch(t, tt.args.plan, filters)
 		})
 
 	}

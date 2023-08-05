@@ -20,6 +20,7 @@ package v2
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
@@ -75,6 +76,10 @@ func (r nodeRolesDefault) MarkdownDescription(ctx context.Context) string {
 	return "Use current state if it's still valid."
 }
 
+func SetUnknownOnTopologySizeChange() planmodifier.Set {
+	return setUnknownOnTopologyChanges{}
+}
+
 type setUnknownOnTopologyChanges struct{}
 
 var (
@@ -88,8 +93,28 @@ func (m setUnknownOnTopologyChanges) PlanModifySet(ctx context.Context, req plan
 	}
 
 	for _, tierName := range tierNames {
-		for _, attr := range sizingAttributes {
-			hasChanged, diags := planmodifiers.AttributeChanged(ctx, path.Root("elasticsearch").AtName(tierName).AtName(attr), req.Plan, req.State)
+		for _, attrName := range sizingAttributes {
+			attrPath := path.Root("elasticsearch").AtName(tierName).AtName(attrName)
+			var planValue attr.Value
+			resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, attrPath, &planValue)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			var stateValue attr.Value
+
+			resp.Diagnostics.Append(req.State.GetAttribute(ctx, attrPath, &stateValue)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			// If the plan value is unknown then planmodifiers haven't run for this topology element
+			// Eventually the plan value will be set to the state value and it will be unchanged.
+			if planValue.IsUnknown() && !(stateValue.IsUnknown() || stateValue.IsNull()) {
+				continue
+			}
+
+			hasChanged, diags := planmodifiers.AttributeChanged(ctx, attrPath, req.Plan, req.State)
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return

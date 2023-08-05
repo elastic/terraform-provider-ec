@@ -19,15 +19,18 @@ package v2_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_nodeRolesPlanModifier(t *testing.T) {
@@ -218,6 +221,352 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 			assert.Nil(t, diags)
 
 			assert.Equal(t, tt.expected, attributePlan)
+		})
+	}
+}
+
+func ptr[T any](t T) *T {
+	return &t
+}
+
+func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
+	tests := []struct {
+		name              string
+		setSizesToUnknown bool
+		plan              *deploymentv2.Deployment
+		state             *deploymentv2.Deployment
+		requestModifier   func(*testing.T, planmodifier.SetRequest) planmodifier.SetRequest
+		planValue         types.Set
+		expectedPlanValue types.Set
+	}{
+		{
+			name:              "should do nothing if the plan value is unknown",
+			planValue:         types.SetUnknown(types.StringType),
+			plan:              &deploymentv2.Deployment{},
+			state:             &deploymentv2.Deployment{},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+		},
+		{
+			name:              "should do nothing if the plan value is null",
+			planValue:         types.SetNull(types.StringType),
+			plan:              &deploymentv2.Deployment{},
+			state:             &deploymentv2.Deployment{},
+			expectedPlanValue: types.SetNull(types.StringType),
+		},
+		{
+			name:      "should do nothing if the only deployment topology size is unchanged",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			expectedPlanValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+		},
+		{
+			name:      "should set the plan value to unknown if the only deployment topology size has changed",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("2g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+		},
+		{
+			name:      "should set the plan value to unknown if the only deployment topology zone count has changed",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 2,
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+		},
+		{
+			name:      "should set the plan value to unknown if the another deployment topology is added",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+		},
+		{
+			name:      "should set the plan value to unknown if the another deployment topology size has changed",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("2g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+		},
+		{
+			name:      "should set the plan value to unknown if the another deployment topology zone count has changed",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 2,
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+		},
+		{
+			name:      "should do nothing if the another deployment topology size is unknown in plan but known in state",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						ZoneCount: 3,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+				},
+			},
+			expectedPlanValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			requestModifier: func(t *testing.T, sr planmodifier.SetRequest) planmodifier.SetRequest {
+				diags := sr.Plan.SetAttribute(context.Background(), path.Root("elasticsearch").AtName("warm").AtName("size"), types.StringUnknown())
+				require.Empty(t, diags)
+				return sr
+			},
+		},
+		{
+			name:      "should do nothing if the another deployment topology zone count is unknown in plan but known in state",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size: ptr("1g"),
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 2,
+					},
+				},
+			},
+			expectedPlanValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			requestModifier: func(t *testing.T, sr planmodifier.SetRequest) planmodifier.SetRequest {
+				diags := sr.Plan.SetAttribute(context.Background(), path.Root("elasticsearch").AtName("warm").AtName("zone_count"), types.Int64Unknown())
+				require.Empty(t, diags)
+				return sr
+			},
+		},
+		{
+			name:      "should set the plan value to unknown if the another deployment topology size is unknown in plan and null in state",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						ZoneCount: 2,
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						ZoneCount: 2,
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+			requestModifier: func(t *testing.T, sr planmodifier.SetRequest) planmodifier.SetRequest {
+				diags := sr.Plan.SetAttribute(context.Background(), path.Root("elasticsearch").AtName("warm").AtName("size"), types.StringUnknown())
+				require.Empty(t, diags)
+				return sr
+			},
+		},
+		{
+			name:      "should set the plan value to unknown if the another deployment topology zone count is unknown in plan and null in state",
+			planValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue("hot")}),
+			plan: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size: ptr("1g"),
+					},
+				},
+			},
+			state: &deploymentv2.Deployment{
+				Elasticsearch: &v2.Elasticsearch{
+					HotTier: &v2.ElasticsearchTopology{
+						Size:      ptr("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &v2.ElasticsearchTopology{
+						Size: ptr("1g"),
+					},
+				},
+			},
+			expectedPlanValue: types.SetUnknown(types.StringType),
+			requestModifier: func(t *testing.T, sr planmodifier.SetRequest) planmodifier.SetRequest {
+				attrPath := path.Root("elasticsearch").AtName("warm").AtName("zone_count")
+				diags := sr.Plan.SetAttribute(context.Background(), attrPath, types.Int64Unknown())
+				require.Empty(t, diags)
+
+				sr.State.SetAttribute(context.Background(), attrPath, types.Int64Null())
+				require.Empty(t, diags)
+
+				return sr
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateValue := tftypesValueFromGoTypeValue(t, tt.state, deploymentv2.DeploymentSchema().Type())
+			planValue := tftypesValueFromGoTypeValue(t, tt.plan, deploymentv2.DeploymentSchema().Type())
+			req := planmodifier.SetRequest{
+				PlanValue: tt.planValue,
+				State: tfsdk.State{
+					Raw:    stateValue,
+					Schema: deploymentv2.DeploymentSchema(),
+				},
+				Plan: tfsdk.Plan{
+					Raw:    planValue,
+					Schema: deploymentv2.DeploymentSchema(),
+				},
+			}
+			if tt.requestModifier != nil {
+				req = tt.requestModifier(t, req)
+				var v attr.Value
+				req.Plan.GetAttribute(context.Background(), path.Root("elasticsearch").AtName("warm").AtName("zone_count"), &v)
+				if v.IsUnknown() {
+					fmt.Println("unknown!")
+				}
+			}
+
+			resp := planmodifier.SetResponse{
+				PlanValue: tt.planValue,
+			}
+			modifier := v2.SetUnknownOnTopologySizeChange()
+			modifier.PlanModifySet(context.Background(), req, &resp)
+
+			require.Equal(t, tt.expectedPlanValue, resp.PlanValue)
 		})
 	}
 }

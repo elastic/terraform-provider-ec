@@ -26,6 +26,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"golang.org/x/exp/slices"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -229,22 +230,31 @@ func (dep *Deployment) ProcessSelfInObservability() {
 	}
 }
 
-func (dep *Deployment) HandleEmptyTrafficFilters(ctx context.Context, base DeploymentTF) diag.Diagnostics {
-	var diags diag.Diagnostics
-	// Ensure consistency between null, and empty configured traffic filter values.
-	// The Cloud API represents an empty set of traffic filters as a null/missing value. Terraform does distinguish between those two cases.
-	// If the Cloud response does not include traffic filters, then set the read value as the planned value, but only if the planned value is empty.
-	if dep.TrafficFilter == nil {
-		var baseFilters []string
-		diags := base.TrafficFilter.ElementsAs(ctx, &baseFilters, true)
-		if diags.HasError() {
-			return diags
-		}
+func (dep *Deployment) IncludePrivateStateTrafficFilters(ctx context.Context, base DeploymentTF, privateFilters []string) diag.Diagnostics {
+	var baseFilters []string
+	diags := base.TrafficFilter.ElementsAs(ctx, &baseFilters, true)
+	if diags.HasError() {
+		return diags
+	}
 
-		if len(baseFilters) == 0 {
-			dep.TrafficFilter = baseFilters
+	for _, filter := range privateFilters {
+		if !slices.Contains(baseFilters, filter) {
+			baseFilters = append(baseFilters, filter)
 		}
 	}
+
+	if len(baseFilters) == 0 {
+		dep.TrafficFilter = baseFilters
+	}
+
+	intersectionFilters := []string{}
+	for _, filter := range dep.TrafficFilter {
+		if slices.Contains(baseFilters, filter) {
+			intersectionFilters = append(intersectionFilters, filter)
+		}
+	}
+
+	dep.TrafficFilter = intersectionFilters
 
 	return diags
 }
