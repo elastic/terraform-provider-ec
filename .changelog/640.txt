@@ -1,3 +1,0 @@
-```release-note:feature
-resource/deployment: Adds endpoints integrations server resources. This allows consumers to explicitly capture service urls for dependent modules (e.g APM and Fleet).
-```

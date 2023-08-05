@@ -1,4 +1,6 @@
-# 0.8.0 (Unreleased)
+# 0.9.0 (Unreleased)
+
+# 0.8.0 (August 5, 2023)
 
 FEATURES:
 
@@ -6,6 +8,12 @@ FEATURES:
 * datasource/privatelink: Adds data sources (`aws_privatelink_endpoint`, `azure_privatelink_endpoint`, and `gcp_private_service_connect_endpoint`) to lookup private networking endpoint information. ([#659](https://github.com/elastic/terraform-provider-ec/issues/659))
 * resource/deployment: Add `reset_elasticsearch_password` attribute to the deployment resource. When true, this will reset the system password for the target deployment, updating the `elasticsearch_password` output as a result. ([#642](https://github.com/elastic/terraform-provider-ec/issues/642))
 * resource/deployment: Adds endpoints integrations server resources. This allows consumers to explicitly capture service urls for dependent modules (e.g APM and Fleet). ([#640](https://github.com/elastic/terraform-provider-ec/issues/640))
+* Prevents traffic filters managed with the `ec_deployment_traffic_filter_association` from being disassociated by the `ec_deployment` resource ([#419](https://github.com/elastic/terraform-provider-ec/issues/419)). This also fixes a provider crash for the above scenario present in 0.6 ([#621](https://github.com/elastic/terraform-provider-ec/issues/621)) ([#632](https://github.com/elastic/terraform-provider-ec/issues/632))
+* resource/deployment: Fix validation and application of elasticsearch plan strategy. ([#648](https://github.com/elastic/terraform-provider-ec/issues/648))
+* resource/deployment: Fix a value conversion error encountered when attempting to parse deployments without a snapshot repository. ([#666](https://github.com/elastic/terraform-provider-ec/issues/666))
+* datasource/deployments: Fix bug causing a provider crash when no autoscaling fields are defined in the matching deployment. ([#667](https://github.com/elastic/terraform-provider-ec/issues/667))
+* provider: Fix incompatibilities causing infinite configuration drift when used with Terraform CLI 1.4 or higher. ([#677](https://github.com/elastic/terraform-provider-ec/issues/677))
+* resource/deployment: Fix bugs related to transitioning to/from deployment topologies which include dedicated master nodes. ([#682](https://github.com/elastic/terraform-provider-ec/issues/682))
 
 # 0.7.0 (May 4, 2023)
 

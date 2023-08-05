@@ -1,3 +1,0 @@
-```release-note:bug-fix
-datasource/deployments: Fix bug causing a provider crash when no autoscaling fields are defined in the matching deployment
-```

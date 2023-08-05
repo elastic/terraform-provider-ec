@@ -1,3 +1,0 @@
-```release-note:bug-fix
-resource/deployment: Fix a value conversion error encountered when attempting to parse deployments without a snapshot repository
-```

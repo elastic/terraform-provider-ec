@@ -1,3 +1,0 @@
-```release-note:feature
-Upgrades the provider to terraform-plugin-framework:1.2.0
-```
