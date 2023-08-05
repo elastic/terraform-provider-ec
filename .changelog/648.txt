@@ -1,0 +1,3 @@
+```release-note:bug-fix
+resource/deployment: Fix validation and application of elasticsearch plan strategy
+```
