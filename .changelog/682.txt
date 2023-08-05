@@ -1,0 +1,3 @@
+```release-note:bug-fix
+resource/deployment: Fix bugs related to transitioning to/from deployment topologies which include dedicated master nodes
+```
