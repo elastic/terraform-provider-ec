@@ -4,6 +4,7 @@ FEATURES:
 
 * Upgrades the provider to terraform-plugin-framework:1.2.0 ([#660](https://github.com/elastic/terraform-provider-ec/issues/660))
 * datasource/privatelink: Adds data sources (`aws_privatelink_endpoint`, `azure_privatelink_endpoint`, and `gcp_private_service_connect_endpoint`) to lookup private networking endpoint information. ([#659](https://github.com/elastic/terraform-provider-ec/issues/659))
+* resource/deployment: Add `reset_elasticsearch_password` attribute to the deployment resource. When true, this will reset the system password for the target deployment, updating the `elasticsearch_password` output as a result. ([#642](https://github.com/elastic/terraform-provider-ec/issues/642))
 * resource/deployment: Adds endpoints integrations server resources. This allows consumers to explicitly capture service urls for dependent modules (e.g APM and Fleet). ([#640](https://github.com/elastic/terraform-provider-ec/issues/640))
 
 # 0.7.0 (May 4, 2023)
