@@ -24,5 +24,6 @@ const (
 )
 
 var (
-	DataTiersVersion = semver.MustParse("7.10.0")
+	DataTiersVersion           = semver.MustParse("7.10.0")
+	MinVersionWithoutNodeTypes = semver.MustParse("8.0.0")
 )

@@ -491,6 +491,9 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description: `The node type for the Elasticsearch Topology element (data node)`,
 				Computed:    true,
 				Optional:    true,
+				Validators: []validator.String{
+					VersionSupportsNodeTypes(),
+				},
 				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
@@ -499,6 +502,9 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description: `The node type for the Elasticsearch Topology element (master node)`,
 				Computed:    true,
 				Optional:    true,
+				Validators: []validator.String{
+					versionSupportsNodeTypes{},
+				},
 				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
@@ -507,6 +513,9 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description: `The node type for the Elasticsearch Topology element (ingest node)`,
 				Computed:    true,
 				Optional:    true,
+				Validators: []validator.String{
+					VersionSupportsNodeTypes(),
+				},
 				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
@@ -515,6 +524,9 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description: `The node type for the Elasticsearch Topology element (machine learning node)`,
 				Computed:    true,
 				Optional:    true,
+				Validators: []validator.String{
+					VersionSupportsNodeTypes(),
+				},
 				PlanModifiers: []planmodifier.String{
 					UseNodeTypesDefault(),
 				},
@@ -524,6 +536,9 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description:   `The computed list of node roles for the current topology element`,
 				Computed:      true,
 				PlanModifiers: nodeRolesPlanModifiers,
+				Validators: []validator.Set{
+					VersionSupportsNodeRoles(),
+				},
 			},
 			"autoscaling": elasticsearchTopologyAutoscalingSchema(options.tierName),
 		},
