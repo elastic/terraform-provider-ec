@@ -178,6 +178,8 @@ func Test_readElasticsearch(t *testing.T) {
 					ZoneCount:               1,
 					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
 				},
+				TrustAccount:  ElasticsearchTrustAccounts{},
+				TrustExternal: ElasticsearchTrustExternals{},
 			},
 		},
 		{
@@ -263,6 +265,8 @@ func Test_readElasticsearch(t *testing.T) {
 					ZoneCount:               1,
 					Autoscaling:             &ElasticsearchTopologyAutoscaling{},
 				},
+				TrustAccount:  ElasticsearchTrustAccounts{},
+				TrustExternal: ElasticsearchTrustExternals{},
 			},
 		},
 		{
@@ -400,6 +404,8 @@ func Test_readElasticsearch(t *testing.T) {
 						},
 					},
 				},
+				TrustAccount:  ElasticsearchTrustAccounts{},
+				TrustExternal: ElasticsearchTrustExternals{},
 			},
 		},
 	}

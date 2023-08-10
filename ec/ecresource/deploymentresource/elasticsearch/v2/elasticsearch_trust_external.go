@@ -30,11 +30,10 @@ import (
 type ElasticsearchTrustExternals v1.ElasticsearchTrustExternals
 
 func readElasticsearchTrustExternals(in *models.ElasticsearchClusterSettings) (ElasticsearchTrustExternals, error) {
+	externals := ElasticsearchTrustExternals{}
 	if in == nil || in.Trust == nil {
-		return nil, nil
+		return externals, nil
 	}
-
-	externals := make(ElasticsearchTrustExternals, 0, len(in.Trust.External))
 
 	for _, model := range in.Trust.External {
 		external, err := readElasticsearchTrustExternal(model)
@@ -101,6 +100,10 @@ func elasticsearchTrustExternalPayload(ctx context.Context, externals types.Set,
 
 func readElasticsearchTrustExternal(in *models.ExternalTrustRelationship) (*v1.ElasticsearchTrustExternal, error) {
 	var ext v1.ElasticsearchTrustExternal
+
+	if in == nil {
+		return &ext, nil
+	}
 
 	if in.TrustRelationshipID != nil {
 		ext.RelationshipId = in.TrustRelationshipID

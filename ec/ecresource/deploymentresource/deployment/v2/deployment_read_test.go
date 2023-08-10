@@ -53,9 +53,11 @@ func Test_readDeployment(t *testing.T) {
 				Region:               "us-east-1",
 				Version:              "7.7.0",
 				Elasticsearch: &elasticsearchv2.Elasticsearch{
-					RefId:      ec.String("main-elasticsearch"),
-					ResourceId: &mock.ValidClusterID,
-					Region:     ec.String("us-east-1"),
+					RefId:         ec.String("main-elasticsearch"),
+					ResourceId:    &mock.ValidClusterID,
+					Region:        ec.String("us-east-1"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					Config: &elasticsearchv2.ElasticsearchConfig{
 						Plugins:                  []string{},
 						UserSettingsYaml:         ec.String("some.setting: value"),
@@ -426,9 +428,11 @@ func Test_readDeployment(t *testing.T) {
 				Region:               "us-east-1",
 				Version:              "7.6.2",
 				Elasticsearch: &elasticsearchv2.Elasticsearch{
-					RefId:      ec.String("main-elasticsearch"),
-					ResourceId: &mock.ValidClusterID,
-					Region:     ec.String("us-east-1"),
+					RefId:         ec.String("main-elasticsearch"),
+					ResourceId:    &mock.ValidClusterID,
+					Region:        ec.String("us-east-1"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					Config: &elasticsearchv2.ElasticsearchConfig{
 						Plugins:                  []string{},
 						UserSettingsYaml:         ec.String("some.setting: value"),
@@ -483,6 +487,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("azure-eastus2"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d:somecloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9200"),
 					HttpsEndpoint: ec.String("https://1238f19957874af69306787dca662154.eastus2.azure.elastic-cloud.com:9243"),
 					HotTier: elasticsearchv2.CreateTierForTest(
@@ -546,6 +552,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("aws-eu-central-1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9200"),
 					HttpsEndpoint: ec.String("https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -611,6 +619,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("aws-eu-central-1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9200"),
 					HttpsEndpoint: ec.String("https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -852,6 +862,8 @@ func Test_readDeployment(t *testing.T) {
 					Config: &elasticsearchv2.ElasticsearchConfig{
 						Plugins: []string{},
 					},
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HotTier: elasticsearchv2.CreateTierForTest(
 						"hot_content",
 						elasticsearchv2.ElasticsearchTopology{
@@ -1001,6 +1013,8 @@ func Test_readDeployment(t *testing.T) {
 						Plugins:     []string{},
 						DockerImage: ec.String("docker.elastic.com/elasticsearch/cloud:7.14.1-hash"),
 					},
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HotTier: elasticsearchv2.CreateTierForTest(
 						"hot_content",
 						elasticsearchv2.ElasticsearchTopology{
@@ -1075,6 +1089,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("aws-eu-central-1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9200"),
 					HttpsEndpoint: ec.String("https://1239f7ee7196439ba2d105319ac5eba7.eu-central-1.aws.cloud.es.io:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -1138,6 +1154,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("gcp-asia-east1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9200"),
 					HttpsEndpoint: ec.String("https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -1201,6 +1219,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("gcp-asia-east1"),
 					Autoscale:     ec.Bool(true),
 					CloudID:       ec.String("up2d:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9200"),
 					HttpsEndpoint: ec.String("https://123695e76d914005bf90b717e668ad4b.asia-east1.gcp.elastic-cloud.com:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -1314,6 +1334,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("gcp-us-central1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d-hot-warm:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9200"),
 					HttpsEndpoint: ec.String("https://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -1404,6 +1426,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("gcp-us-central1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("up2d-hot-warm:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9200"),
 					HttpsEndpoint: ec.String("https://123e837db6ee4391bb74887be35a7a91.us-central1.gcp.cloud.es.io:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
@@ -1531,6 +1555,8 @@ func Test_readDeployment(t *testing.T) {
 					Region:        ec.String("eu-west-1"),
 					Autoscale:     ec.Bool(false),
 					CloudID:       ec.String("ccs:someCloudID"),
+					TrustAccount:  elasticsearchv2.ElasticsearchTrustAccounts{},
+					TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{},
 					HttpEndpoint:  ec.String("http://1230b3ae633b4f51a432d50971f7f1c1.eu-west-1.aws.found.io:9200"),
 					HttpsEndpoint: ec.String("https://1230b3ae633b4f51a432d50971f7f1c1.eu-west-1.aws.found.io:9243"),
 					Config: &elasticsearchv2.ElasticsearchConfig{
