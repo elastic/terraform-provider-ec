@@ -52,6 +52,6 @@ func (v isVersion) ValidateString(ctx context.Context, req validator.StringReque
 	resp.Diagnostics.AddAttributeError(
 		req.Path,
 		fmt.Sprintf("[%s] is not a valid semver", req.Path),
-		fmt.Sprintf("The specified version [%s] is not a valid version string", version),
+		fmt.Sprintf("The specified version [%s] is not a valid version string: %s", version, err.Error()),
 	)
 }
