@@ -1,5 +1,9 @@
 # 0.9.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/deployment: Validates that the node_types/node_roles configuration used is supported by the specified Stack version. ([#683](https://github.com/elastic/terraform-provider-ec/issues/683))
+
 # 0.8.0 (August 5, 2023)
 
 FEATURES:
