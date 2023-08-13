@@ -24,10 +24,9 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -119,9 +118,9 @@ func Test_topologyPlanModifier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			modifier := v2.UseTopologyStateForUnknown("hot")
 
-			deploymentStateValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
+			deploymentStateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
-			deploymentPlanValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
+			deploymentPlanValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
 			plan := tfsdk.Plan{
 				Raw:    deploymentPlanValue,
@@ -145,18 +144,4 @@ func Test_topologyPlanModifier(t *testing.T) {
 			}())
 		})
 	}
-}
-
-func attrValueFromGoTypeValue(t *testing.T, goValue any, attributeType attr.Type) attr.Value {
-	var attrValue attr.Value
-	diags := tfsdk.ValueFrom(context.Background(), goValue, attributeType, &attrValue)
-	assert.Nil(t, diags)
-	return attrValue
-}
-
-func tftypesValueFromGoTypeValue(t *testing.T, goValue any, attributeType attr.Type) tftypes.Value {
-	attrValue := attrValueFromGoTypeValue(t, goValue, attributeType)
-	tftypesValue, err := attrValue.ToTerraformValue(context.Background())
-	assert.Nil(t, err)
-	return tftypesValue
 }

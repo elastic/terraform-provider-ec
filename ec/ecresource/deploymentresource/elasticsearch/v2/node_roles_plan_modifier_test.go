@@ -19,11 +19,11 @@ package v2_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -174,9 +174,9 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 			stateValue, diags := types.SetValueFrom(context.Background(), types.StringType, tt.args.attributeState)
 			assert.Nil(t, diags)
 
-			deploymentStateValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
+			deploymentStateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
-			deploymentPlanValue := tftypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
+			deploymentPlanValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
 			req := planmodifier.SetRequest{
 				// AttributeState:  attributeStateValue,
@@ -538,8 +538,8 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stateValue := tftypesValueFromGoTypeValue(t, tt.state, deploymentv2.DeploymentSchema().Type())
-			planValue := tftypesValueFromGoTypeValue(t, tt.plan, deploymentv2.DeploymentSchema().Type())
+			stateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.state, deploymentv2.DeploymentSchema().Type())
+			planValue := testutil.TfTypesValueFromGoTypeValue(t, tt.plan, deploymentv2.DeploymentSchema().Type())
 			req := planmodifier.SetRequest{
 				PlanValue: tt.planValue,
 				State: tfsdk.State{
@@ -553,11 +553,6 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			}
 			if tt.requestModifier != nil {
 				req = tt.requestModifier(t, req)
-				var v attr.Value
-				req.Plan.GetAttribute(context.Background(), path.Root("elasticsearch").AtName("warm").AtName("zone_count"), &v)
-				if v.IsUnknown() {
-					fmt.Println("unknown!")
-				}
 			}
 
 			resp := planmodifier.SetResponse{
