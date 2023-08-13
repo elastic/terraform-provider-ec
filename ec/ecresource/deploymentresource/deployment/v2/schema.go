@@ -108,7 +108,7 @@ func DeploymentSchema() schema.Schema {
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
-					useNullIfNotAPM{},
+					UseNullUnlessAddingAPMOrIntegrationsServer(),
 				},
 			},
 			"traffic_filter": schema.SetAttribute{
