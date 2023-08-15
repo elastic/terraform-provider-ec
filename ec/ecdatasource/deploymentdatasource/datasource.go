@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -84,6 +85,10 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 			"Failed retrieving deployment information",
 			fmt.Sprintf("Failed retrieving deployment information: %s", err),
 		)
+		return
+	}
+
+	if !deploymentresource.HasRunningResources(res) {
 		return
 	}
 

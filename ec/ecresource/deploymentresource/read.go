@@ -96,7 +96,8 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	}
 
 	response, err := deploymentapi.Get(deploymentapi.GetParams{
-		API: r.client, DeploymentID: id,
+		API:          r.client,
+		DeploymentID: id,
 		QueryParams: deputil.QueryParams{
 			ShowSettings:     true,
 			ShowPlans:        true,
