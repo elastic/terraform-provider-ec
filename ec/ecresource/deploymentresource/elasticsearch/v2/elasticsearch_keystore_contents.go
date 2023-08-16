@@ -40,13 +40,13 @@ type ElasticsearchKeystoreContents struct {
 func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsTF types.Map, model *models.ElasticsearchClusterSettings, esStateObj *types.Object) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if (keystoreContentsTF.IsNull() || len(keystoreContentsTF.Elems) == 0) && esStateObj == nil {
+	if (keystoreContentsTF.IsNull() || len(keystoreContentsTF.Elements()) == 0) && esStateObj == nil {
 		return model, nil
 	}
 
-	secrets := make(map[string]models.KeystoreSecret, len(keystoreContentsTF.Elems))
+	secrets := make(map[string]models.KeystoreSecret, len(keystoreContentsTF.Elements()))
 
-	for secretKey, elem := range keystoreContentsTF.Elems {
+	for secretKey, elem := range keystoreContentsTF.Elements() {
 		var secretTF ElasticsearchKeystoreContentsTF
 
 		ds := tfsdk.ValueAs(ctx, elem, &secretTF)
@@ -61,9 +61,9 @@ func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsT
 		secret.AsFile = ec.Bool(false)
 
 		if !secretTF.AsFile.IsUnknown() && !secretTF.AsFile.IsNull() {
-			secret.AsFile = &secretTF.AsFile.Value
+			secret.AsFile = ec.Bool(secretTF.AsFile.ValueBool())
 		}
-		secret.Value = secretTF.Value.Value
+		secret.Value = secretTF.Value.ValueString()
 
 		secrets[secretKey] = secret
 	}
@@ -77,7 +77,7 @@ func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsT
 		}
 
 		if !esState.KeystoreContents.IsNull() {
-			for k := range esState.KeystoreContents.Elems {
+			for k := range esState.KeystoreContents.Elements() {
 				if _, ok := secrets[k]; !ok {
 					secrets[k] = models.KeystoreSecret{}
 				}
