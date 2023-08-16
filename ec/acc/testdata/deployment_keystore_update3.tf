@@ -40,8 +40,8 @@ EOF
 
     keystore_contents = {
       "xpack.security.authc.realms.oidc.oidc3.rp.client_secret" = {
-         value = "secret-3"
-         as_file = true
+        value   = "secret-3"
+        as_file = true
       }
     }
   }
