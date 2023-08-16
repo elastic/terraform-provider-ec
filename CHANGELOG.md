@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* resource/deployment: Set the deployment ID in state as soon as possible to avoid an unmanaged deployment as a result of a subsequent failure. ([#690](https://github.com/elastic/terraform-provider-ec/issues/690))
 * resource/deployment: Validates that the node_types/node_roles configuration used is supported by the specified Stack version. ([#683](https://github.com/elastic/terraform-provider-ec/issues/683))
 
 BUG FIXES:
