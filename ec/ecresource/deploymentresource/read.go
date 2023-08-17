@@ -181,11 +181,13 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.Elasticsearch.Strategy = baseElasticsearch.Strategy.ValueStringPointer()
 	}
 
+	// sync Elasticsearch keystore contents if plan or state defines it:
+	// - all keystore entries that are not managed by the resource are left alone
+	// - if backend doesn't contain some keystore entry, the entry should be removed from the future state as well
 	if baseElasticsearch != nil && deployment.Elasticsearch != nil && !baseElasticsearch.KeystoreContents.IsNull() {
 		ds := baseElasticsearch.KeystoreContents.ElementsAs(ctx, &deployment.Elasticsearch.KeystoreContents, true)
 		diags.Append(ds...)
 
-		// response.Resources.Elasticsearch[0].Info.Metadata.Raw
 		keystoreContents, err := eskeystoreapi.Get(eskeystoreapi.GetParams{
 			API:          r.client,
 			DeploymentID: id,
