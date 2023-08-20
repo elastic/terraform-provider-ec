@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -71,6 +72,14 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
+	// Set the ID immediately so the deployment is managed by Terraform.
+	// If the rest of this fails the deployment will be tainted and recreated,
+	// but that's preferable to leaving an unmanaged resource.
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), *res.ID)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	if err := WaitForPlanCompletion(r.client, *res.ID); err != nil {
 		resp.Diagnostics.AddError("failed tracking create progress", err.Error())
 		resp.Diagnostics.AddError("failed tracking create progress", newCreationError(requestId).Error())
@@ -90,10 +99,8 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	updatePrivateStateTrafficFilters(ctx, resp.Private, filters)
 
 	resp.Diagnostics.Append(diags...)
-
 	if deployment == nil {
 		resp.Diagnostics.AddError("cannot read just created resource", "")
-		resp.State.RemoveResource(ctx)
 		return
 	}
 

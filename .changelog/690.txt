@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/deployment: Set the deployment ID in state as soon as possible to avoid an unmanaged deployment as a result of a subsequent failure.
+```
