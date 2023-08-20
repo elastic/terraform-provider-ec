@@ -77,19 +77,19 @@ func (m useNullUnlessAddingAPMOrIntegrationsServer) PlanModifyString(ctx context
 }
 
 func wasAttributeAdded(ctx context.Context, p path.Path, plan tfsdk.Plan, state tfsdk.State) (bool, diag.Diagnostics) {
-	hasIntegrationsServer, diags := planmodifiers.HasAttribute(ctx, p, plan)
+	hasAttribute, diags := planmodifiers.HasAttribute(ctx, p, plan)
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if hasIntegrationsServer {
+	if hasAttribute {
 		var value attr.Value
 		diags.Append(state.GetAttribute(ctx, p, &value)...)
 		if diags.HasError() {
 			return false, diags
 		}
 
-		// Check if Integrations Server has been enabled, i.e exists in plan, but not in state
+		// Check if the attribute has been added, i.e exists in plan, but not in state
 		if value.IsNull() {
 			return true, diags
 		}
