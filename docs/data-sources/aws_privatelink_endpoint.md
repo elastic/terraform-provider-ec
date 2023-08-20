@@ -11,8 +11,8 @@ Use this data source to retrieve information about the AWS Private Link configur
 ## Example Usage
 
 ```terraform
-data "ec_azure_privatelink_endpoint" "eastus" {
-  region = "eastus"
+data "ec_aws_privatelink_endpoint" "us-east-1" {
+  region = "us-east-1"
 }
 ```
 
