@@ -18,10 +18,7 @@
 package v2
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -111,7 +108,7 @@ func DeploymentSchema() schema.Schema {
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
-					useNullIfNotAPM{},
+					UseNullUnlessAddingAPMOrIntegrationsServer(),
 				},
 			},
 			"traffic_filter": schema.SetAttribute{
@@ -139,79 +136,5 @@ func DeploymentSchema() schema.Schema {
 			"enterprise_search":   enterprisesearchv2.EnterpriseSearchSchema(),
 			"observability":       observabilityv2.ObservabilitySchema(),
 		},
-	}
-}
-
-type useNullIfNotAPM struct{}
-
-var _ planmodifier.String = useNullIfNotAPM{}
-
-func (m useNullIfNotAPM) Description(ctx context.Context) string {
-	return m.MarkdownDescription(ctx)
-}
-
-func (m useNullIfNotAPM) MarkdownDescription(ctx context.Context) string {
-	return "Sets the plan value to null if there is no apm or integrations_server resource"
-}
-
-func (m useNullIfNotAPM) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.ConfigValue.IsUnknown() {
-		return
-	}
-
-	if !req.PlanValue.IsUnknown() {
-		return
-	}
-
-	hasAPM, diags := planmodifiers.HasAttribute(ctx, path.Root("apm"), req.Plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if hasAPM {
-		return
-	}
-
-	hasIntegrationsServer, diags := planmodifiers.HasAttribute(ctx, path.Root("integrations_server"), req.Plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if hasIntegrationsServer {
-		return
-	}
-
-	resp.PlanValue = types.StringNull()
-}
-
-type setUnknownIfResetPasswordIsTrue struct{}
-
-var _ planmodifier.String = setUnknownIfResetPasswordIsTrue{}
-
-func (m setUnknownIfResetPasswordIsTrue) Description(ctx context.Context) string {
-	return m.MarkdownDescription(ctx)
-}
-
-func (m setUnknownIfResetPasswordIsTrue) MarkdownDescription(ctx context.Context) string {
-	return "Sets the planned value to unknown if the reset_elasticsearch_password config value is true"
-}
-
-func (m setUnknownIfResetPasswordIsTrue) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
-	if req.ConfigValue.IsUnknown() {
-		return
-	}
-
-	var isResetting *bool
-	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("reset_elasticsearch_password"), &isResetting)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if isResetting != nil && *isResetting {
-		resp.PlanValue = types.StringUnknown()
 	}
 }
