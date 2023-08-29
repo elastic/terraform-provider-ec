@@ -197,7 +197,7 @@ observability = {
 }
 ```
 
-### With Çross Cluster Search settings
+### With Cross Cluster Search settings
 
 ```terraform
 data "ec_stack" "latest" {
