@@ -175,18 +175,30 @@ func elasticsearchConfigSchema() schema.Attribute {
 			"user_settings_json": schema.StringAttribute{
 				Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.SetNullWhenEmptyString(),
+				},
 			},
 			"user_settings_override_json": schema.StringAttribute{
 				Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.SetNullWhenEmptyString(),
+				},
 			},
 			"user_settings_yaml": schema.StringAttribute{
 				Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.SetNullWhenEmptyString(),
+				},
 			},
 			"user_settings_override_yaml": schema.StringAttribute{
 				Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.SetNullWhenEmptyString(),
+				},
 			},
 		},
 	}
