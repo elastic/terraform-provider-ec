@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
-	github.com/elastic/cloud-sdk-go v1.12.1
+	github.com/elastic/cloud-sdk-go v1.13.0
 	github.com/go-openapi/runtime v0.26.0
 	github.com/go-openapi/strfmt v0.21.7
 	github.com/hashicorp/terraform-plugin-framework v1.3.5
