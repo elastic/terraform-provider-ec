@@ -1,3 +1,3 @@
-data "ec_azure_privatelink_endpoint" "eastus" {
-  region = "eastus"
+data "ec_aws_privatelink_endpoint" "us-east-1" {
+  region = "us-east-1"
 }

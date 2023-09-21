@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * datasource/deployment: Prevent a provider crash when the deployment data source is referencing a deleted deployment ([#688](https://github.com/elastic/terraform-provider-ec/issues/688))
+* resource/deployment: Prevent an endless diff loop after importing deployments with APM or Integrations Server resources. ([#689](https://github.com/elastic/terraform-provider-ec/issues/689))
 * resource/deployment: Prevent endless diff loops when deployment trust settings are empty ([#687](https://github.com/elastic/terraform-provider-ec/issues/687))
 
 # 0.8.0 (August 5, 2023)
