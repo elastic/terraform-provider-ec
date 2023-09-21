@@ -86,6 +86,10 @@ func setDefaultTemplate(region, template string) string {
 }
 
 func buildAwsTemplate(template string) string {
+	if template == "default" {
+		return template
+	}
+
 	v2Templates := []string{defaultTemplate, hotWarmTemplate, ccsTemplate,
 		computeOpTemplate, memoryOpTemplate, enterpriseSearchTemplate,
 	}

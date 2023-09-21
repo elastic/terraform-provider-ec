@@ -150,6 +150,32 @@ func ElasticsearchSchema() schema.Attribute {
 				Optional:    true,
 				Validators:  []validator.String{stringvalidator.OneOf(strategiesList...)},
 			},
+
+			"keystore_contents": keystoreContentsSchema(),
+		},
+	}
+}
+
+func keystoreContentsSchema() schema.Attribute {
+	return schema.MapNestedAttribute{
+		Description: "Keystore contents that are controlled by the deployment resource.",
+		Optional:    true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"value": schema.StringAttribute{
+					Description: "Secret value. This can either be a string or a JSON object that is stored as a JSON string in the keystore.",
+					Required:    true,
+					Sensitive:   true,
+				},
+				"as_file": schema.BoolAttribute{
+					Description: "If true, the secret is handled as a file. Otherwise, it's handled as a plain string.",
+					Optional:    true,
+					Computed:    true,
+					PlanModifiers: []planmodifier.Bool{
+						planmodifiers.BoolDefaultValue(false),
+					},
+				},
+			},
 		},
 	}
 }

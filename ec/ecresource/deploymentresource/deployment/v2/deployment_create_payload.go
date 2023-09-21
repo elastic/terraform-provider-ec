@@ -99,7 +99,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		return nil, diagsnostics
 	}
 
-	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, dep.Elasticsearch, baseUpdatePayloads, dtID, version, useNodeRoles)
+	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, dep.Elasticsearch, nil, baseUpdatePayloads, dtID, version, useNodeRoles)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)

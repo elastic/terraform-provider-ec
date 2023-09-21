@@ -52,16 +52,17 @@ type ElasticsearchTF struct {
 	TrustAccount     types.Set    `tfsdk:"trust_account"`
 	TrustExternal    types.Set    `tfsdk:"trust_external"`
 	Strategy         types.String `tfsdk:"strategy"`
+	KeystoreContents types.Map    `tfsdk:"keystore_contents"`
 }
 
-func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResources *models.DeploymentUpdateResources, dtID, version string, useNodeRoles bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.Object, updateResources *models.DeploymentUpdateResources, dtID, version string, useNodeRoles bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var es *ElasticsearchTF
 
-	if esObj.IsNull() || esObj.IsUnknown() {
+	if plan.IsNull() || plan.IsUnknown() {
 		return nil, nil
 	}
 
-	if diags := tfsdk.ValueAs(ctx, esObj, &es); diags.HasError() {
+	if diags := tfsdk.ValueAs(ctx, plan, &es); diags.HasError() {
 		return nil, diags
 	}
 
@@ -71,7 +72,7 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResourc
 
 	templatePayload := EnrichElasticsearchTemplate(payloadFromUpdate(updateResources), dtID, version, useNodeRoles)
 
-	payload, diags := es.payload(ctx, templatePayload)
+	payload, diags := es.payload(ctx, templatePayload, state)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -79,7 +80,7 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResourc
 	return payload, nil
 }
 
-func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *types.Object) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
@@ -120,6 +121,9 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	diags.Append(ds...)
 
 	res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
+	diags.Append(ds...)
+
+	res.Settings, ds = elasticsearchKeystoreContentsPayload(ctx, es.KeystoreContents, res.Settings, state)
 	diags.Append(ds...)
 
 	elasticsearchStrategyPayload(es.Strategy, res.Plan)

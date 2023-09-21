@@ -127,7 +127,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		return nil, diags
 	}
 
-	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, basePayloads, dtID, plan.Version.ValueString(), useNodeRoles)
+	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, &state.Elasticsearch, basePayloads, dtID, plan.Version.ValueString(), useNodeRoles)
 
 	if diags.HasError() {
 		diagsnostics.Append(diags...)
