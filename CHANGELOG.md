@@ -1,5 +1,9 @@
 # 0.9.0 (Unreleased)
 
+FEATURES:
+
+* resource/deployment: new "elasticsearch"'s "keystore_contents" attribute to manage deployment keystore items during deployment create and update calls. ([#674](https://github.com/elastic/terraform-provider-ec/issues/674))
+
 ENHANCEMENTS:
 
 * resource/deployment: Set the deployment ID in state as soon as possible to avoid an unmanaged deployment as a result of a subsequent failure. ([#690](https://github.com/elastic/terraform-provider-ec/issues/690))
