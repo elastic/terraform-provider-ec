@@ -95,7 +95,8 @@ func DeploymentSchema() schema.Schema {
 			"elasticsearch_password": schema.StringAttribute{
 				Description: `Password for authenticating to the Elasticsearch resource.
 
-~> **Note on deployment credentials** The <code>elastic</code> user credentials are only available whilst creating a deployment. Importing a deployment will not import the <code>elasticsearch_username</code> or <code>elasticsearch_password</code> attributes.`,
+~> **Note on deployment credentials** The <code>elastic</code> user credentials are only available whilst creating a deployment. Importing a deployment will not import the <code>elasticsearch_username</code> or <code>elasticsearch_password</code> attributes.
+~> **Note on deployment credentials in state** The <code>elastic</code> user credentials are stored in the state file as plain text. Please follow the official Terraform recommendation regarding senstaive data in state.`,
 				Computed:  true,
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
