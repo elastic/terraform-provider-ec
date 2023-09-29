@@ -46,9 +46,11 @@ func elasticsearchSnapshotSourcePayload(ctx context.Context, srcObj attr.Value, 
 	}
 
 	if payload.Transient == nil {
-		payload.Transient = &models.TransientElasticsearchPlanConfiguration{
-			RestoreSnapshot: &models.RestoreSnapshotConfiguration{},
-		}
+		payload.Transient = &models.TransientElasticsearchPlanConfiguration{}
+	}
+
+	if payload.Transient.RestoreSnapshot == nil {
+		payload.Transient.RestoreSnapshot = &models.RestoreSnapshotConfiguration{}
 	}
 
 	if !snapshot.SourceElasticsearchClusterId.IsNull() {
