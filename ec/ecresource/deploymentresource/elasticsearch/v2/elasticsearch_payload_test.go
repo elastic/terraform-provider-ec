@@ -1742,7 +1742,7 @@ func Test_writeElasticsearch(t *testing.T) {
 				Settings: &models.ElasticsearchClusterSettings{
 					DedicatedMastersThreshold: 6,
 					Snapshot: &models.ClusterSnapshotSettings{
-						Enabled:    ec.Bool(true),
+						Enabled: ec.Bool(true),
 					},
 				},
 				Plan: &models.ElasticsearchClusterPlan{
