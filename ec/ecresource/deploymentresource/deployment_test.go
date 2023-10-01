@@ -28,7 +28,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	r "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	r "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
@@ -61,24 +61,24 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 
 	createDeploymentResponseJson := []byte(`
 	{
-		"alias": "my-deployment-name", 
-		"created": true, 
-		"id": "accd2e61fa835a5a32bb6b2938ce91f3", 
+		"alias": "my-deployment-name",
+		"created": true,
+		"id": "accd2e61fa835a5a32bb6b2938ce91f3",
 		"resources": [
 			{
-				"kind": "elasticsearch", 
-				"cloud_id": "my_deployment_name:cloud_id", 
-				"region": "us-east-1", 
-				"ref_id": "main-elasticsearch", 
+				"kind": "elasticsearch",
+				"cloud_id": "my_deployment_name:cloud_id",
+				"region": "us-east-1",
+				"ref_id": "main-elasticsearch",
 				"credentials": {
-					"username": "elastic", 
+					"username": "elastic",
 					"password": "password"
-				}, 
+				},
 				"id": "resource_id"
 			}
-		], 
+		],
 		"name": "my_deployment_name"
-	}	
+	}
 	`)
 
 	templateFileName := "testdata/aws-io-optimized-v2.json"
