@@ -252,9 +252,10 @@ func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement
 func elasticsearchStrategyPayload(strategy types.String, payload *models.ElasticsearchClusterPlan) {
 	createModelIfNeeded := func() {
 		if payload.Transient == nil {
-			payload.Transient = &models.TransientElasticsearchPlanConfiguration{
-				Strategy: &models.PlanStrategy{},
-			}
+			payload.Transient = &models.TransientElasticsearchPlanConfiguration{}
+		}
+		if payload.Transient.Strategy == nil {
+			payload.Transient.Strategy = &models.PlanStrategy{}
 		}
 	}
 
