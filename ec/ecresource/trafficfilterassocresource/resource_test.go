@@ -24,7 +24,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	r "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	r "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
@@ -226,11 +226,11 @@ func readResponse() mock.Response {
 			},
 		},
 		mock.NewStringBody(`{
-							"id": "9db94e68e2f040a19dfb664d0e83bc2a", 
-							"name": "dummy", 
-							"type": "ip",  
-							"include_by_default": false,  
-							"region": "us-east-1",  
+							"id": "9db94e68e2f040a19dfb664d0e83bc2a",
+							"name": "dummy",
+							"type": "ip",
+							"include_by_default": false,
+							"region": "us-east-1",
 							"rules": [{"id": "6e4c8874f90d4793a2290f8199461952","source": "127.0.0.1"}  ],
 							"associations": [{"entity_type": "deployment", "id": "0a592ab2c5baf0fa95c77ac62135782e"}],
 							"total_associations": 1
@@ -251,11 +251,11 @@ func readResponseAssociationDeleted() mock.Response {
 			},
 		},
 		mock.NewStringBody(`{
-							"id": "9db94e68e2f040a19dfb664d0e83bc2a", 
-							"name": "dummy", 
-							"type": "ip",  
-							"include_by_default": false,  
-							"region": "us-east-1",  
+							"id": "9db94e68e2f040a19dfb664d0e83bc2a",
+							"name": "dummy",
+							"type": "ip",
+							"include_by_default": false,
+							"region": "us-east-1",
 							"rules": [{"id": "6e4c8874f90d4793a2290f8199461952","source": "127.0.0.1"}  ],
 							"associations": [{"entity_type": "deployment", "id": "some-unrelated-id"}],
 							"total_associations": 1

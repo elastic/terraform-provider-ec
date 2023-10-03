@@ -20,19 +20,18 @@ package deploymentsdatasource
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 var _ datasource.DataSource = &DataSource{}
@@ -100,7 +99,7 @@ func modelToState(ctx context.Context, res *models.DeploymentsSearchResponse, st
 	var diags diag.Diagnostics
 
 	if b, _ := res.MarshalBinary(); len(b) > 0 {
-		state.ID = types.StringValue(strconv.Itoa(schema.HashString(string(b))))
+		state.ID = types.StringValue(util.HashString(string(b)))
 	}
 	state.ReturnCount = types.Int64Value(int64(*res.ReturnCount))
 

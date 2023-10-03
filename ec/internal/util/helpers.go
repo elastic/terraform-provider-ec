@@ -18,6 +18,7 @@
 package util
 
 import (
+	"hash/crc32"
 	"os"
 	"strconv"
 
@@ -81,4 +82,10 @@ func StringToBool(str string) (bool, error) {
 	}
 
 	return v, nil
+}
+
+func HashString(str string) string {
+	// Consistent with the old TF SDK HashString
+	resHash := crc32.ChecksumIEEE([]byte(str))
+	return strconv.FormatUint(uint64(resHash), 10)
 }
