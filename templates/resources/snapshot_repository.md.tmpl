@@ -10,7 +10,17 @@ description: |-
 
 ## Example Usage
 
-{{ tffile .ExampleFile }}
+### S3 style
+
+{{ tffile "examples/resources/ec_snapshot_repository/resource-s3.tf" }}
+
+### Azure
+
+{{ tffile "examples/resources/ec_snapshot_repository/resource-azure.tf" }}
+
+### GCS
+
+{{ tffile "examples/resources/ec_snapshot_repository/resource-gcs.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 
