@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -euo pipefail
+
+#Mimic Jenkins behavior during the migration
+export BUILD_ID=$BUILDKITE_BUILD_ID
+
+VAULT_PATH=secret/ci/elastic-terraform-provider-ec/terraform-provider-secrets
+
+# Secrets must be redacted
+# https://buildkite.com/docs/pipelines/managing-log-output#redacted-environment-variables
+
+if [[ "$BUILDKITE_PIPELINE_SLUG" == "terraform-provider-ec" ]]; then
+  export TERRAFORM_PROVIDER_API_KEY_SECRET=$(scripts/retry.sh 5 vault kv get -field apikey ${VAULT_PATH})
+fi
