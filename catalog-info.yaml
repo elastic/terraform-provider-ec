@@ -50,3 +50,14 @@ spec:
         build_tags: true
         filter_condition: 'build.tag =~ /^v[0-9.]+$/'
         filter_enabled: true
+      teams:
+        control-plane-stateful:
+          access_level: MANAGE_BUILD_AND_READ
+        cloud-applications-es:
+          access_level: MANAGE_BUILD_AND_READ
+        cloud-applications-solutions:
+          access_level: MANAGE_BUILD_AND_READ
+        platform-writers:
+          access_level: BUILD_AND_READ
+        everyone:
+          access_level: READ_ONLY
