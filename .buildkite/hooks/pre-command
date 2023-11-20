@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -euo pipefail
+
+VAULT_PATH=secret/ci/elastic-terraform-provider-ec/terraform-provider-secrets
+
+# Secrets must be redacted
+# https://buildkite.com/docs/pipelines/managing-log-output#redacted-environment-variables
+
+if [[ "$BUILDKITE_PIPELINE_SLUG" == "terraform-provider-ec-release" ]]; then
+  export GPG_PRIVATE_SECRET=$(scripts/retry.sh 5 vault kv get -field gpg_private ${VAULT_PATH})
+  export GPG_PASSPHRASE_SECRET=$(scripts/retry.sh 5 vault kv get -field gpg_passphrase ${VAULT_PATH})
+  export GPG_FINGERPRINT_SECRET=$(scripts/retry.sh 5 vault kv get -field gpg_fingerprint ${VAULT_PATH})
+  export GITHUB_TOKEN=$(scripts/retry.sh 5 vault kv get -field gh_personal_access_token ${VAULT_PATH})
+fi
