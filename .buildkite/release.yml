@@ -1,0 +1,3 @@
+steps:
+  - label: ":wave: Greetings"
+    command: "echo 'My release pipeline!'"
