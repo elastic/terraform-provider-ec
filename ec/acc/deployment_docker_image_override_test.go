@@ -27,7 +27,6 @@ import (
 )
 
 func TestAccDeployment_docker_image_override(t *testing.T) {
-    t.Skip("skip during Buildkite migration - test failing in Jenkins as well")
 	resName := "ec_deployment.docker_image"
 	randomName := prefix + "docker_image_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 

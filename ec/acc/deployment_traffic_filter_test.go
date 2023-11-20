@@ -28,7 +28,6 @@ import (
 )
 
 func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
-	t.Skip("skip during Buildkite migration - test failing in Jenkins as well")
 	resName := "ec_deployment_traffic_filter.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_traffic_filter_basic.tf"
