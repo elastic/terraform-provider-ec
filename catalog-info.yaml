@@ -3,8 +3,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: buildkite-pipeline-terraform-provider-ec
-  description: Buildkite Pipeline for terraform-provider-ec
+  name: buildkite-pipeline-terraform-provider-ec-acceptance
+  description: Buildkite Pipeline for terraform-provider-ec acceptance tests
   links:
     - title: Pipeline
       url: https://buildkite.com/elastic/terraform-provider-ec
@@ -17,7 +17,18 @@ spec:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
     metadata:
-      name: terraform-provider-ec
+      name: terraform-provider-ec-acceptance
     spec:
       repository: elastic/terraform-provider-ec
       pipeline_file: ".buildkite/pipeline.yml"
+      teams:
+        control-plane-stateful:
+          access_level: MANAGE_BUILD_AND_READ
+        cloud-applications-es:
+          access_level: MANAGE_BUILD_AND_READ
+        cloud-applications-solutions:
+          access_level: MANAGE_BUILD_AND_READ
+        platform-writers:
+          access_level: BUILD_AND_READ
+        everyone:
+          access_level: READ_ONLY
