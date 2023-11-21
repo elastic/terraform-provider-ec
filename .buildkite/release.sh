@@ -8,6 +8,4 @@ echo "--- Caching GPG passphrase"
 echo "$GPG_PASSPHRASE_SECRET" | gpg --armor --detach-sign --passphrase-fd 0 --pinentry-mode loopback
 
 echo "--- Release the binaries"
-# While debugging the pipeline
-make release-no-publish
-#make release
+make release
