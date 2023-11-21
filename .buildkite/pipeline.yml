@@ -2,6 +2,6 @@ steps:
   - label: ":test_tube: Acceptance tests"
     command: .buildkite/acceptance.sh
     agents:
-      image: "docker.io/library/golang:1.21.3"
+      image: "docker.io/library/golang:1.21"
       cpu: "8"
       memory: "4G"
