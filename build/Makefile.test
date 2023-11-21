@@ -39,11 +39,3 @@ ifndef BUILD_ID
 	@ read -r -p "do you wish to continue? [y/N]: " res && if [[ "$${res:0:1}" =~ ^([yY]) ]]; then echo "-> Continuing..."; else exit 1; fi
 endif
 	@ go test $(SWEEP_DIR) -v -sweep=$(SWEEP) $(SWEEPARGS) -timeout 60m
-
-.PHONY: testacc-ci
-testacc-ci:
-	@ EC_API_KEY=$(shell cat .ci/.apikey) $(MAKE) testacc
-
-.PHONY: sweep-ci
-sweep-ci:
-	@ EC_API_KEY=$(shell cat .ci/.apikey) SWEEPARGS=-sweep-run=$(SWEEP_CI_RUN_FILTER) $(MAKE) sweep
