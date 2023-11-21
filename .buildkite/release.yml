@@ -3,5 +3,5 @@ steps:
     command: .buildkite/release.sh
     agents:
       image: "docker.io/library/golang:1.21"
-      cpu: "8" # The release flow needs that many or hits https://github.com/goreleaser/goreleaser/issues/304
-      memory: "16Gi"
+      cpu: "8"
+      memory: "4G"

@@ -27,12 +27,12 @@ snapshot: $(GOBIN)/goreleaser
 ## Releases a new version of the terraform provider with a matching tag.
 release: $(GOBIN)/goreleaser
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ $(GOBIN)/goreleaser --clean --skip-validate
+	@ $(GOBIN)/goreleaser --clean --skip-validate --parallelism=4
 
 ## Builds a new version of the terraform provider with a matching tag without publishing it.
 release-no-publish: $(GOBIN)/goreleaser
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ $(GOBIN)/goreleaser --clean --skip-validate --skip-publish
+	@ $(GOBIN)/goreleaser --clean --skip-validate --skip-publish --parallelism=4
 
 .PHONY: changelog
 changelog: $(GOBIN)/changelog-build
