@@ -21,7 +21,7 @@ spec:
     spec:
       repository: elastic/terraform-provider-ec
       pipeline_file: ".buildkite/acceptance_pipeline.yml"
-
+---
 # yaml-language-server: $schema=https://gist.githubusercontent.com/elasticmachine/988b80dae436cafea07d9a4a460a011d/raw/rre.schema.json
 apiVersion: backstage.io/v1alpha1
 kind: Resource
