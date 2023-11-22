@@ -21,10 +21,10 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"golang.org/x/exp/slices"
 )
 
 type isURLWithSchemeValidator struct {

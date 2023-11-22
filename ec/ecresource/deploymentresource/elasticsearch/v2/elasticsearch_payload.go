@@ -19,6 +19,7 @@ package v2
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/exp/slices"
 )
 
 type ElasticsearchTF struct {
