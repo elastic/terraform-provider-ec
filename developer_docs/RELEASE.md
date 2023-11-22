@@ -51,7 +51,7 @@ When releasing patch versions, the changelog will be branched out in the minor b
 
 ## Executing the release
 
-After all the prerequisites have been ticked off, the only thing remaining is to run `make tag`. The Jenkins CI will attempt to release a new version. Make sure the published version is listed in the [Terraform registry](https://registry.terraform.io/providers/elastic/ec/latest/docs), you can follow the progress on the [Jenkins dashboard](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+release/).
+After all the prerequisites have been ticked off, the only thing remaining is to run `make tag`. The Buildkite Release job will attempt to release a new version. Make sure the published version is listed in the [Terraform registry](https://registry.terraform.io/providers/elastic/ec/latest/docs), you can follow the progress on the [Buildkite job](https://buildkite.com/elastic/terraform-provider-ec-release).
 
 ## Post release tasks
 
