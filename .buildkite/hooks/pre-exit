@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if  [[ "$BUILDKITE_STEP_KEY" == "acceptance-tests" ]]; then
+  echo "--- Sweeps any deployments older than 1h."
+  EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET SWEEPARGS=-sweep-run=ec_deployments make sweep
+  rm -rf reports bin
+fi
