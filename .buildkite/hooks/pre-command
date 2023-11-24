@@ -4,7 +4,7 @@ set -euo pipefail
 
 #Mimic Jenkins behavior during the migration
 export BUILD_ID=$BUILDKITE_BUILD_ID
-export GOMAXPROCS=2
+export GOMAXPROCS=4
 
 VAULT_PATH=secret/ci/elastic-terraform-provider-ec/terraform-provider-secrets
 
