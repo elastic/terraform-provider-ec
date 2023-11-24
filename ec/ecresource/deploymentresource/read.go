@@ -111,7 +111,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 			diags.AddError("Deployment not found", err.Error())
 			return nil, diags
 		}
-		diags.AddError("Deloyment get error", err.Error())
+		diags.AddError("Deployment get error", err.Error())
 		return nil, diags
 	}
 
