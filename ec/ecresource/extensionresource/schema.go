@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -109,6 +110,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:    true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
+					useUnknownIfOtherChanges{},
 				},
 			},
 			// Computed attributes
@@ -126,6 +128,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 type useUnknownIfOtherChanges struct{}
 
 var _ planmodifier.String = useUnknownIfOtherChanges{}
+var _ planmodifier.Int64 = useUnknownIfOtherChanges{}
 
 func (m useUnknownIfOtherChanges) Description(ctx context.Context) string {
 	return m.MarkdownDescription(ctx)
@@ -135,24 +138,55 @@ func (m useUnknownIfOtherChanges) MarkdownDescription(ctx context.Context) strin
 	return "Sets the plan value to null if there is no apm or integrations_server resource"
 }
 
+func (m useUnknownIfOtherChanges) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	hasChanged, diags := m.hasAttributesChanged(ctx, req.Config, req.Plan, req.State)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if hasChanged {
+		resp.PlanValue = types.Int64Unknown()
+	}
+}
+
 func (m useUnknownIfOtherChanges) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	// if the config is the unknown value, use the unknown value otherwise, interpolation gets messed up
 	if req.ConfigValue.IsUnknown() {
 		return
 	}
 
-	for attrName := range req.Config.Schema.GetAttributes() {
-		hasChanged, diags := planmodifiers.AttributeChanged(ctx, path.Root(attrName), req.Plan, req.State)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+	hasChanged, diags := m.hasAttributesChanged(ctx, req.Config, req.Plan, req.State)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if hasChanged {
+		resp.PlanValue = types.StringUnknown()
+	}
+}
+
+func (m useUnknownIfOtherChanges) hasAttributesChanged(ctx context.Context, config tfsdk.Config, plan tfsdk.Plan, state tfsdk.State) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	for attrName := range config.Schema.GetAttributes() {
+		hasChanged, diags := planmodifiers.AttributeChanged(ctx, path.Root(attrName), plan, state)
+		diags.Append(diags...)
+		if diags.HasError() {
+			return false, diags
 		}
 
 		if hasChanged {
-			resp.PlanValue = types.StringUnknown()
-			return
+			return true, diags
 		}
 	}
+
+	return false, diags
 }
 
 func (r *Resource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
