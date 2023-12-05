@@ -1,0 +1,3 @@
+```release-note:bug
+resource/extension: Fix provider crash when updating the contents of an extension.
+```
