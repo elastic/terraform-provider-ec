@@ -98,6 +98,7 @@ func TestAccDeployment_basic_tf(t *testing.T) {
 				ExpectNonEmptyPlan: true, // reset_elasticsearch_password will always result in a non-empty plan
 				Check: checkBasicDeploymentResource(resName, randomName, deploymentVersion,
 					resource.TestCheckResourceAttr(resName, "traffic_filter.#", "0"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch_username", "elastic"),
 					func(s *terraform.State) error {
 						currentPw, ok := captureElasticsearchPassword(s, resName)
 						if !ok {

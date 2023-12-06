@@ -94,18 +94,19 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	if plan.ResetElasticsearchPassword.ValueBool() {
-		newPassword, diags := r.ResetElasticsearchPassword(plan.Id.ValueString(), *deployment.Elasticsearch.RefId)
+		newUsername, newPassword, diags := r.ResetElasticsearchPassword(plan.Id.ValueString(), *deployment.Elasticsearch.RefId)
 		if resp.Diagnostics.Append(diags...); resp.Diagnostics.HasError() {
 			return
 		}
 
+		deployment.ElasticsearchUsername = newUsername
 		deployment.ElasticsearchPassword = newPassword
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, deployment)...)
 }
 
-func (r *Resource) ResetElasticsearchPassword(deploymentID string, refID string) (string, diag.Diagnostics) {
+func (r *Resource) ResetElasticsearchPassword(deploymentID string, refID string) (string, string, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	resetResp, err := depresourceapi.ResetElasticsearchPassword(depresourceapi.ResetElasticsearchPasswordParams{
@@ -116,10 +117,10 @@ func (r *Resource) ResetElasticsearchPassword(deploymentID string, refID string)
 
 	if err != nil {
 		diags.AddError("failed to reset elasticsearch password", err.Error())
-		return "", diags
+		return "", "", diags
 	}
 
-	return *resetResp.Password, diags
+	return *resetResp.Username, *resetResp.Password, diags
 }
 
 func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan v2.DeploymentTF, stateRules ruleSet) ([]string, diag.Diagnostics) {
