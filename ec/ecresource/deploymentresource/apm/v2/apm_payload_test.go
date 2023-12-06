@@ -38,6 +38,10 @@ func Test_ApmPayload(t *testing.T) {
 	getUpdateResources := func() *models.DeploymentUpdateResources {
 		return testutil.UpdatePayloadsFromTemplate(t, tplPath)
 	}
+	tplPathWithIcVersion := "../../testdata/template-aws-io-optimized-v2-ic_version.json"
+	getUpdateResourcesWithIcVersion := func() *models.DeploymentUpdateResources {
+		return testutil.UpdatePayloadsFromTemplate(t, tplPathWithIcVersion)
+	}
 	type args struct {
 		apm             *Apm
 		updateResources *models.DeploymentUpdateResources
@@ -84,30 +88,6 @@ func Test_ApmPayload(t *testing.T) {
 			},
 		},
 		{
-			name: "parses an APM resource with invalid instance_configuration_id",
-			args: args{
-				updateResources: getUpdateResources(),
-				apm: &Apm{
-					RefId:                     ec.String("main-apm"),
-					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					InstanceConfigurationId:   ec.String("so invalid"),
-					Size:                      ec.String("2g"),
-					SizeResource:              ec.String("memory"),
-					ZoneCount:                 1,
-				},
-			},
-			diags: func() diag.Diagnostics {
-				var diags diag.Diagnostics
-				diags.AddError(
-					"cannot match topology element",
-					`apm topology: invalid instance_configuration_id: "so invalid" doesn't match any of the deployment template instance configurations`,
-				)
-				return diags
-			}(),
-		},
-		{
 			name: "parses an APM resource with no topology",
 			args: args{
 				updateResources: getUpdateResources(),
@@ -136,9 +116,9 @@ func Test_ApmPayload(t *testing.T) {
 			},
 		},
 		{
-			name: "parses an APM resource with a topology element but no instance_configuration_id",
+			name: "parses an APM resource with a topology element but no instance_configuration_id or instance_configuration_version - use values from template",
 			args: args{
-				updateResources: getUpdateResources(),
+				updateResources: getUpdateResourcesWithIcVersion(),
 				apm: &Apm{
 					RefId:                     ec.String("main-apm"),
 					ResourceId:                &mock.ValidClusterID,
@@ -155,8 +135,42 @@ func Test_ApmPayload(t *testing.T) {
 				Plan: &models.ApmPlan{
 					Apm: &models.ApmConfiguration{},
 					ClusterTopology: []*models.ApmTopologyElement{{
-						ZoneCount:               1,
-						InstanceConfigurationID: "aws.apm.r5d",
+						ZoneCount:                    1,
+						InstanceConfigurationID:      "aws.apm.r5d",
+						InstanceConfigurationVersion: 4,
+						Size: &models.TopologySize{
+							Resource: ec.String("memory"),
+							Value:    ec.Int32(2048),
+						},
+					}},
+				},
+			},
+		},
+		{
+			name: "parses an APM resource with instance_configuration_id and instance_configuration_version",
+			args: args{
+				updateResources: getUpdateResources(),
+				apm: &Apm{
+					RefId:                        ec.String("main-apm"),
+					ResourceId:                   &mock.ValidClusterID,
+					Region:                       ec.String("some-region"),
+					ElasticsearchClusterRefId:    ec.String("somerefid"),
+					InstanceConfigurationId:      ec.String("testing.ic"),
+					InstanceConfigurationVersion: 5,
+					Size:                         ec.String("2g"),
+					SizeResource:                 ec.String("memory"),
+				},
+			},
+			want: &models.ApmPayload{
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-apm"),
+				Plan: &models.ApmPlan{
+					Apm: &models.ApmConfiguration{},
+					ClusterTopology: []*models.ApmTopologyElement{{
+						ZoneCount:                    1,
+						InstanceConfigurationID:      "testing.ic",
+						InstanceConfigurationVersion: 5,
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),

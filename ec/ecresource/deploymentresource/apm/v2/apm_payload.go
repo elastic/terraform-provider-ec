@@ -30,17 +30,18 @@ import (
 )
 
 type ApmTF struct {
-	ElasticsearchClusterRefId types.String `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     types.String `tfsdk:"ref_id"`
-	ResourceId                types.String `tfsdk:"resource_id"`
-	Region                    types.String `tfsdk:"region"`
-	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
-	Size                      types.String `tfsdk:"size"`
-	SizeResource              types.String `tfsdk:"size_resource"`
-	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
-	Config                    types.Object `tfsdk:"config"`
+	ElasticsearchClusterRefId    types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                        types.String `tfsdk:"ref_id"`
+	ResourceId                   types.String `tfsdk:"resource_id"`
+	Region                       types.String `tfsdk:"region"`
+	HttpEndpoint                 types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint                types.String `tfsdk:"https_endpoint"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
+	Config                       types.Object `tfsdk:"config"`
 }
 
 func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*models.ApmPayload, diag.Diagnostics) {
@@ -71,13 +72,15 @@ func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*model
 	}
 
 	topology := topologyv1.TopologyTF{
-		InstanceConfigurationId: apm.InstanceConfigurationId,
-		Size:                    apm.Size,
-		SizeResource:            apm.SizeResource,
-		ZoneCount:               apm.ZoneCount,
+		InstanceConfigurationId:      apm.InstanceConfigurationId,
+		InstanceConfigurationVersion: apm.InstanceConfigurationVersion,
+		Size:                         apm.Size,
+		SizeResource:                 apm.SizeResource,
+		ZoneCount:                    apm.ZoneCount,
 	}
 
-	topologyPayload, ds := apmTopologyPayload(ctx, topology, defaultApmTopology(payload.Plan.ClusterTopology), 0)
+	// Always use the first topology element - discard any other topology elements
+	topologyPayload, ds := apmTopologyPayload(ctx, topology, defaultApmTopology(payload.Plan.ClusterTopology)[0])
 
 	diags.Append(ds...)
 

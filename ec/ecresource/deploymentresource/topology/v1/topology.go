@@ -22,17 +22,19 @@ import (
 )
 
 type TopologyTF struct {
-	InstanceConfigurationId types.String `tfsdk:"instance_configuration_id"`
-	Size                    types.String `tfsdk:"size"`
-	SizeResource            types.String `tfsdk:"size_resource"`
-	ZoneCount               types.Int64  `tfsdk:"zone_count"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
 }
 
 type Topology struct {
-	InstanceConfigurationId *string `tfsdk:"instance_configuration_id"`
-	Size                    *string `tfsdk:"size"`
-	SizeResource            *string `tfsdk:"size_resource"`
-	ZoneCount               int     `tfsdk:"zone_count"`
+	InstanceConfigurationId      *string `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion int     `tfsdk:"instance_configuration_version"`
+	Size                         *string `tfsdk:"size"`
+	SizeResource                 *string `tfsdk:"size_resource"`
+	ZoneCount                    int     `tfsdk:"zone_count"`
 }
 
 type Topologies []Topology

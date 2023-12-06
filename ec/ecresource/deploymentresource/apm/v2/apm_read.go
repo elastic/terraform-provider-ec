@@ -24,17 +24,18 @@ import (
 )
 
 type Apm struct {
-	ElasticsearchClusterRefId *string    `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     *string    `tfsdk:"ref_id"`
-	ResourceId                *string    `tfsdk:"resource_id"`
-	Region                    *string    `tfsdk:"region"`
-	HttpEndpoint              *string    `tfsdk:"http_endpoint"`
-	HttpsEndpoint             *string    `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   *string    `tfsdk:"instance_configuration_id"`
-	Size                      *string    `tfsdk:"size"`
-	SizeResource              *string    `tfsdk:"size_resource"`
-	ZoneCount                 int        `tfsdk:"zone_count"`
-	Config                    *ApmConfig `tfsdk:"config"`
+	ElasticsearchClusterRefId    *string    `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                        *string    `tfsdk:"ref_id"`
+	ResourceId                   *string    `tfsdk:"resource_id"`
+	Region                       *string    `tfsdk:"region"`
+	HttpEndpoint                 *string    `tfsdk:"http_endpoint"`
+	HttpsEndpoint                *string    `tfsdk:"https_endpoint"`
+	InstanceConfigurationId      *string    `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion int        `tfsdk:"instance_configuration_version"`
+	Size                         *string    `tfsdk:"size"`
+	SizeResource                 *string    `tfsdk:"size_resource"`
+	ZoneCount                    int        `tfsdk:"zone_count"`
+	Config                       *ApmConfig `tfsdk:"config"`
 }
 
 func ReadApms(in []*models.ApmResourceInfo) (*Apm, error) {
@@ -69,6 +70,7 @@ func ReadApm(in *models.ApmResourceInfo) (*Apm, error) {
 
 	if len(topologies) > 0 {
 		apm.InstanceConfigurationId = topologies[0].InstanceConfigurationId
+		apm.InstanceConfigurationVersion = topologies[0].InstanceConfigurationVersion
 		apm.Size = topologies[0].Size
 		apm.SizeResource = topologies[0].SizeResource
 		apm.ZoneCount = topologies[0].ZoneCount
