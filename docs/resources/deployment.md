@@ -263,6 +263,7 @@ resource "ec_deployment" "ccs" {
 - `kibana` (Attributes) Kibana cluster definition.
 
 -> **Note on disabling Kibana** While optional it is recommended deployments specify a Kibana block, since not doing so might cause issues when modifying or upgrading the deployment. (see [below for nested schema](#nestedatt--kibana))
+- `migrate_to_latest_hardware` (Boolean) When true, updates deployment according to the latest deployment template values.
 - `name` (String) Name for the deployment
 - `observability` (Attributes) Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself by setting observability.deployment_id to `self`. (see [below for nested schema](#nestedatt--observability))
 - `request_id` (String) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
@@ -328,6 +329,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -338,7 +341,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--hot--autoscaling"></a>
@@ -366,6 +368,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -376,7 +380,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--cold--autoscaling"></a>
@@ -417,6 +420,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -427,7 +432,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--coordinating--autoscaling"></a>
@@ -466,6 +470,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -476,7 +482,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--frozen--autoscaling"></a>
@@ -516,6 +521,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -526,7 +533,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--master--autoscaling"></a>
@@ -554,6 +560,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -564,7 +572,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--ml--autoscaling"></a>
@@ -672,6 +679,8 @@ Required:
 
 Optional:
 
+- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -682,7 +691,6 @@ Optional:
 
 Read-Only:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--warm--autoscaling"></a>
@@ -710,6 +718,7 @@ Optional:
 - `config` (Attributes) Optionally define the Apm configuration options for the APM Server (see [below for nested schema](#nestedatt--apm--config))
 - `elasticsearch_cluster_ref_id` (String)
 - `instance_configuration_id` (String)
+- `instance_configuration_version` (Number)
 - `ref_id` (String)
 - `size` (String)
 - `size_resource` (String) Optional size type, defaults to "memory".
@@ -744,6 +753,7 @@ Optional:
 - `config` (Attributes) Optionally define the Enterprise Search configuration options for the Enterprise Search Server (see [below for nested schema](#nestedatt--enterprise_search--config))
 - `elasticsearch_cluster_ref_id` (String)
 - `instance_configuration_id` (String)
+- `instance_configuration_version` (Number)
 - `ref_id` (String)
 - `size` (String)
 - `size_resource` (String) Optional size type, defaults to "memory".
@@ -781,6 +791,7 @@ Optional:
 - `elasticsearch_cluster_ref_id` (String)
 - `endpoints` (Object) URLs for the accessing the Fleet and APM API's within this Integrations Server resource. (see [below for nested schema](#nestedatt--integrations_server--endpoints))
 - `instance_configuration_id` (String)
+- `instance_configuration_version` (Number)
 - `ref_id` (String)
 - `size` (String)
 - `size_resource` (String) Optional size type, defaults to "memory".
@@ -824,6 +835,7 @@ Optional:
 - `config` (Attributes) Optionally define the Kibana configuration options for the Kibana Server (see [below for nested schema](#nestedatt--kibana--config))
 - `elasticsearch_cluster_ref_id` (String)
 - `instance_configuration_id` (String)
+- `instance_configuration_version` (Number)
 - `ref_id` (String)
 - `size` (String)
 - `size_resource` (String) Optional size type, defaults to "memory".
