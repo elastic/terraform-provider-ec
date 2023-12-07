@@ -90,6 +90,13 @@ func IntegrationsServerSchema() schema.Attribute {
 					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
+			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,

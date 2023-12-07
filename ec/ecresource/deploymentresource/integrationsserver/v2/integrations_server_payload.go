@@ -29,18 +29,19 @@ import (
 )
 
 type IntegrationsServerTF struct {
-	ElasticsearchClusterRefId types.String `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     types.String `tfsdk:"ref_id"`
-	ResourceId                types.String `tfsdk:"resource_id"`
-	Region                    types.String `tfsdk:"region"`
-	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	Endpoints                 types.Object `tfsdk:"endpoints"`
-	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
-	Size                      types.String `tfsdk:"size"`
-	SizeResource              types.String `tfsdk:"size_resource"`
-	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
-	Config                    types.Object `tfsdk:"config"`
+	ElasticsearchClusterRefId    types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                        types.String `tfsdk:"ref_id"`
+	ResourceId                   types.String `tfsdk:"resource_id"`
+	Region                       types.String `tfsdk:"region"`
+	HttpEndpoint                 types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint                types.String `tfsdk:"https_endpoint"`
+	Endpoints                    types.Object `tfsdk:"endpoints"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
+	Config                       types.Object `tfsdk:"config"`
 }
 
 type EndpointsTF struct {
@@ -67,13 +68,14 @@ func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.Inte
 	diags.Append(ds...)
 
 	topologyTF := topologyv1.TopologyTF{
-		InstanceConfigurationId: srv.InstanceConfigurationId,
-		Size:                    srv.Size,
-		SizeResource:            srv.SizeResource,
-		ZoneCount:               srv.ZoneCount,
+		InstanceConfigurationId:      srv.InstanceConfigurationId,
+		InstanceConfigurationVersion: srv.InstanceConfigurationVersion,
+		Size:                         srv.Size,
+		SizeResource:                 srv.SizeResource,
+		ZoneCount:                    srv.ZoneCount,
 	}
 
-	toplogyPayload, ds := integrationsServerTopologyPayload(ctx, topologyTF, defaultIntegrationsServerTopology(payload.Plan.ClusterTopology), 0)
+	toplogyPayload, ds := integrationsServerTopologyPayload(ctx, topologyTF, defaultIntegrationsServerTopology(payload.Plan.ClusterTopology)[0])
 
 	diags.Append(ds...)
 

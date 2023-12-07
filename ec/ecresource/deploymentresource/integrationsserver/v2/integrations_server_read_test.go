@@ -93,8 +93,9 @@ func Test_readIntegrationsServer(t *testing.T) {
 								},
 								ClusterTopology: []*models.IntegrationsServerTopologyElement{
 									{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.integrations_server.r4",
+										ZoneCount:                    1,
+										InstanceConfigurationID:      "aws.integrations_server.r4",
+										InstanceConfigurationVersion: 5,
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
@@ -117,10 +118,11 @@ func Test_readIntegrationsServer(t *testing.T) {
 					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
 					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
 				},
-				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
-				Size:                    ec.String("1g"),
-				SizeResource:            ec.String("memory"),
-				ZoneCount:               1,
+				InstanceConfigurationId:      ec.String("aws.integrations_server.r4"),
+				InstanceConfigurationVersion: 5,
+				Size:                         ec.String("1g"),
+				SizeResource:                 ec.String("memory"),
+				ZoneCount:                    1,
 			},
 		},
 		{

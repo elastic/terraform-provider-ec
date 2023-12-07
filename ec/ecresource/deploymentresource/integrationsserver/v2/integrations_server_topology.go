@@ -19,8 +19,6 @@ package v2
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
@@ -35,15 +33,14 @@ const (
 	minimumIntegrationsServerSize = 1024
 )
 
-func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.TopologyTF, planModels []*models.IntegrationsServerTopologyElement, index int) (*models.IntegrationsServerTopologyElement, diag.Diagnostics) {
+func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.TopologyTF, model *models.IntegrationsServerTopologyElement) (*models.IntegrationsServerTopologyElement, diag.Diagnostics) {
 
-	icID := topology.InstanceConfigurationId.ValueString()
+	if topology.InstanceConfigurationId.ValueString() != "" {
+		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
+	}
 
-	// When a topology element is set but no instance_configuration_id
-	// is set, then obtain the instance_configuration_id from the topology
-	// element.
-	if icID == "" && index < len(planModels) {
-		icID = planModels[index].InstanceConfigurationID
+	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+		model.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 
 	var diags diag.Diagnostics
@@ -54,33 +51,15 @@ func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.
 		return nil, diags
 	}
 
-	elem, err := matchIntegrationsServerTopology(icID, planModels)
-	if err != nil {
-		diags.AddError("integrations_server topology payload error", err.Error())
-		return nil, diags
-	}
-
 	if size != nil {
-		elem.Size = size
+		model.Size = size
 	}
 
 	if topology.ZoneCount.ValueInt64() > 0 {
-		elem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
+		model.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
-	return elem, nil
-}
-
-func matchIntegrationsServerTopology(id string, topologies []*models.IntegrationsServerTopologyElement) (*models.IntegrationsServerTopologyElement, error) {
-	for _, t := range topologies {
-		if t.InstanceConfigurationID == id {
-			return t, nil
-		}
-	}
-	return nil, fmt.Errorf(
-		`invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
-		id,
-	)
+	return model, nil
 }
 
 // DefaultIntegrationsServerTopology iterates over all the templated topology elements and
@@ -127,6 +106,8 @@ func readIntegrationsServerTopology(in *models.IntegrationsServerTopologyElement
 	if in.InstanceConfigurationID != "" {
 		top.InstanceConfigurationId = &in.InstanceConfigurationID
 	}
+
+	top.InstanceConfigurationVersion = int(in.InstanceConfigurationVersion)
 
 	if in.Size != nil {
 		top.Size = ec.String(util.MemoryToState(*in.Size.Value))

@@ -37,6 +37,10 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 	getUpdateResources := func() *models.DeploymentUpdateResources {
 		return testutil.UpdatePayloadsFromTemplate(t, tplPath)
 	}
+	tplPathWithIcVersion := "../../testdata/template-aws-io-optimized-v2-ic_version.json"
+	getUpdateResourcesWithIcVersion := func() *models.DeploymentUpdateResources {
+		return testutil.UpdatePayloadsFromTemplate(t, tplPathWithIcVersion)
+	}
 	type args struct {
 		srv             *IntegrationsServer
 		updateResources *models.DeploymentUpdateResources
@@ -83,27 +87,6 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			},
 		},
 		{
-			name: "parses an Integrations Server resource with invalid instance_configuration_id",
-			args: args{
-				updateResources: getUpdateResources(),
-				srv: &IntegrationsServer{
-					RefId:                     ec.String("main-integrations_server"),
-					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					InstanceConfigurationId:   ec.String("invalid"),
-					Size:                      ec.String("2g"),
-					SizeResource:              ec.String("memory"),
-					ZoneCount:                 1,
-				},
-			},
-			diags: func() diag.Diagnostics {
-				var diags diag.Diagnostics
-				diags.AddError("integrations_server topology payload error", `invalid instance_configuration_id: "invalid" doesn't match any of the deployment template instance configurations`)
-				return diags
-			}(),
-		},
-		{
 			name: "parses an Integrations Server resource with no topology",
 			args: args{
 				updateResources: getUpdateResources(),
@@ -132,9 +115,9 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			},
 		},
 		{
-			name: "parses an Integrations Server resource with a topology element but no instance_configuration_id",
+			name: "parses an Integrations Server resource with a topology element but no instance_configuration_id or instance_configuration_version - use values from template",
 			args: args{
-				updateResources: getUpdateResources(),
+				updateResources: getUpdateResourcesWithIcVersion(),
 				srv: &IntegrationsServer{
 					RefId:                     ec.String("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
@@ -151,8 +134,42 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
-						ZoneCount:               1,
-						InstanceConfigurationID: "integrations.server",
+						ZoneCount:                    1,
+						InstanceConfigurationID:      "aws.integrationsserver.r5",
+						InstanceConfigurationVersion: 3,
+						Size: &models.TopologySize{
+							Resource: ec.String("memory"),
+							Value:    ec.Int32(2048),
+						},
+					}},
+				},
+			},
+		},
+		{
+			name: "parses an Integrations Server resource with instance_configuration_id and instance_configuration_version",
+			args: args{
+				updateResources: getUpdateResourcesWithIcVersion(),
+				srv: &IntegrationsServer{
+					RefId:                        ec.String("main-integrations_server"),
+					ResourceId:                   &mock.ValidClusterID,
+					Region:                       ec.String("some-region"),
+					ElasticsearchClusterRefId:    ec.String("somerefid"),
+					InstanceConfigurationId:      ec.String("testing.ic"),
+					InstanceConfigurationVersion: 4,
+					Size:                         ec.String("2g"),
+					SizeResource:                 ec.String("memory"),
+				},
+			},
+			want: &models.IntegrationsServerPayload{
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-integrations_server"),
+				Plan: &models.IntegrationsServerPlan{
+					IntegrationsServer: &models.IntegrationsServerConfiguration{},
+					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
+						ZoneCount:                    1,
+						InstanceConfigurationID:      "testing.ic",
+						InstanceConfigurationVersion: 4,
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
