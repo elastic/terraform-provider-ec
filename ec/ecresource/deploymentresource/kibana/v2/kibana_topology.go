@@ -19,8 +19,6 @@ package v2
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
@@ -42,6 +40,8 @@ func readKibanaTopology(in *models.KibanaClusterTopologyElement) (*topologyv1.To
 	if in.InstanceConfigurationID != "" {
 		top.InstanceConfigurationId = &in.InstanceConfigurationID
 	}
+
+	top.InstanceConfigurationVersion = int(in.InstanceConfigurationVersion)
 
 	if in.Size != nil {
 		top.Size = ec.String(util.MemoryToState(*in.Size.Value))
@@ -93,15 +93,14 @@ func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*m
 	return topology
 }
 
-func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, planModels []*models.KibanaClusterTopologyElement, index int) (*models.KibanaClusterTopologyElement, diag.Diagnostics) {
+func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, model *models.KibanaClusterTopologyElement) (*models.KibanaClusterTopologyElement, diag.Diagnostics) {
 
-	icID := topology.InstanceConfigurationId.ValueString()
+	if topology.InstanceConfigurationId.ValueString() != "" {
+		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
+	}
 
-	// When a topology element is set but no instance_configuration_id
-	// is set, then obtain the instance_configuration_id from the topology
-	// element.
-	if icID == "" && index < len(planModels) {
-		icID = planModels[index].InstanceConfigurationID
+	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+		model.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 
 	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
@@ -112,31 +111,13 @@ func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, planMode
 		return nil, diags
 	}
 
-	elem, err := matchKibanaTopology(icID, planModels)
-	if err != nil {
-		diags.AddError("kibana topology payload error", err.Error())
-		return nil, diags
-	}
-
 	if size != nil {
-		elem.Size = size
+		model.Size = size
 	}
 
 	if topology.ZoneCount.ValueInt64() > 0 {
-		elem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
+		model.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
-	return elem, nil
-}
-
-func matchKibanaTopology(id string, topologies []*models.KibanaClusterTopologyElement) (*models.KibanaClusterTopologyElement, error) {
-	for _, t := range topologies {
-		if t.InstanceConfigurationID == id {
-			return t, nil
-		}
-	}
-	return nil, fmt.Errorf(
-		`kibana topology: invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
-		id,
-	)
+	return model, nil
 }

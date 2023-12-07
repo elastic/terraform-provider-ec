@@ -30,17 +30,18 @@ import (
 )
 
 type KibanaTF struct {
-	ElasticsearchClusterRefId types.String `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     types.String `tfsdk:"ref_id"`
-	ResourceId                types.String `tfsdk:"resource_id"`
-	Region                    types.String `tfsdk:"region"`
-	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
-	Size                      types.String `tfsdk:"size"`
-	SizeResource              types.String `tfsdk:"size_resource"`
-	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
-	Config                    types.Object `tfsdk:"config"`
+	ElasticsearchClusterRefId    types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                        types.String `tfsdk:"ref_id"`
+	ResourceId                   types.String `tfsdk:"resource_id"`
+	Region                       types.String `tfsdk:"region"`
+	HttpEndpoint                 types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint                types.String `tfsdk:"https_endpoint"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
+	Config                       types.Object `tfsdk:"config"`
 }
 
 func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload) (*models.KibanaPayload, diag.Diagnostics) {
@@ -71,13 +72,14 @@ func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload
 	}
 
 	topologyTF := topologyv1.TopologyTF{
-		InstanceConfigurationId: kibana.InstanceConfigurationId,
-		Size:                    kibana.Size,
-		SizeResource:            kibana.SizeResource,
-		ZoneCount:               kibana.ZoneCount,
+		InstanceConfigurationId:      kibana.InstanceConfigurationId,
+		InstanceConfigurationVersion: kibana.InstanceConfigurationVersion,
+		Size:                         kibana.Size,
+		SizeResource:                 kibana.SizeResource,
+		ZoneCount:                    kibana.ZoneCount,
 	}
 
-	topologyPayload, ds := kibanaTopologyPayload(ctx, topologyTF, defaultKibanaTopology(payload.Plan.ClusterTopology), 0)
+	topologyPayload, ds := kibanaTopologyPayload(ctx, topologyTF, defaultKibanaTopology(payload.Plan.ClusterTopology)[0])
 
 	diags.Append(ds...)
 
