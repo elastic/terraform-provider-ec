@@ -29,20 +29,21 @@ import (
 )
 
 type EnterpriseSearchTF struct {
-	ElasticsearchClusterRefId types.String `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     types.String `tfsdk:"ref_id"`
-	ResourceId                types.String `tfsdk:"resource_id"`
-	Region                    types.String `tfsdk:"region"`
-	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
-	Size                      types.String `tfsdk:"size"`
-	SizeResource              types.String `tfsdk:"size_resource"`
-	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
-	NodeTypeAppserver         types.Bool   `tfsdk:"node_type_appserver"`
-	NodeTypeConnector         types.Bool   `tfsdk:"node_type_connector"`
-	NodeTypeWorker            types.Bool   `tfsdk:"node_type_worker"`
-	Config                    types.Object `tfsdk:"config"`
+	ElasticsearchClusterRefId    types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                        types.String `tfsdk:"ref_id"`
+	ResourceId                   types.String `tfsdk:"resource_id"`
+	Region                       types.String `tfsdk:"region"`
+	HttpEndpoint                 types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint                types.String `tfsdk:"https_endpoint"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
+	NodeTypeAppserver            types.Bool   `tfsdk:"node_type_appserver"`
+	NodeTypeConnector            types.Bool   `tfsdk:"node_type_connector"`
+	NodeTypeWorker               types.Bool   `tfsdk:"node_type_worker"`
+	Config                       types.Object `tfsdk:"config"`
 }
 
 func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.EnterpriseSearchPayload) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
@@ -73,16 +74,18 @@ func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.Enterp
 	}
 
 	topologyTF := v1.EnterpriseSearchTopologyTF{
-		InstanceConfigurationId: es.InstanceConfigurationId,
-		Size:                    es.Size,
-		SizeResource:            es.SizeResource,
-		ZoneCount:               es.ZoneCount,
-		NodeTypeAppserver:       es.NodeTypeAppserver,
-		NodeTypeConnector:       es.NodeTypeConnector,
-		NodeTypeWorker:          es.NodeTypeWorker,
+		InstanceConfigurationId:      es.InstanceConfigurationId,
+		InstanceConfigurationVersion: es.InstanceConfigurationVersion,
+		Size:                         es.Size,
+		SizeResource:                 es.SizeResource,
+		ZoneCount:                    es.ZoneCount,
+		NodeTypeAppserver:            es.NodeTypeAppserver,
+		NodeTypeConnector:            es.NodeTypeConnector,
+		NodeTypeWorker:               es.NodeTypeWorker,
 	}
 
-	topology, ds := enterpriseSearchTopologyPayload(ctx, topologyTF, defaultTopology(payload.Plan.ClusterTopology), 0)
+	// Always use the first topology element - discard any other topology elements
+	topology, ds := enterpriseSearchTopologyPayload(ctx, topologyTF, defaultTopology(payload.Plan.ClusterTopology)[0])
 
 	diags = append(diags, ds...)
 

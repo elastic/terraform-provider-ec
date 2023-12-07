@@ -76,6 +76,13 @@ func EnterpriseSearchSchema() schema.Attribute {
 					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
+			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
