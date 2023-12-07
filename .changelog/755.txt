@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/deployment: Add instance_configuration_version field to all resources and allow to update the instance_configuration_id to a value not defined in the template.
+```
