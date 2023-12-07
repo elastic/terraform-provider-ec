@@ -38,30 +38,32 @@ import (
 )
 
 type ElasticsearchTopologyTF struct {
-	InstanceConfigurationId types.String `tfsdk:"instance_configuration_id"`
-	Size                    types.String `tfsdk:"size"`
-	SizeResource            types.String `tfsdk:"size_resource"`
-	ZoneCount               types.Int64  `tfsdk:"zone_count"`
-	NodeTypeData            types.String `tfsdk:"node_type_data"`
-	NodeTypeMaster          types.String `tfsdk:"node_type_master"`
-	NodeTypeIngest          types.String `tfsdk:"node_type_ingest"`
-	NodeTypeMl              types.String `tfsdk:"node_type_ml"`
-	NodeRoles               types.Set    `tfsdk:"node_roles"`
-	Autoscaling             types.Object `tfsdk:"autoscaling"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
+	NodeTypeData                 types.String `tfsdk:"node_type_data"`
+	NodeTypeMaster               types.String `tfsdk:"node_type_master"`
+	NodeTypeIngest               types.String `tfsdk:"node_type_ingest"`
+	NodeTypeMl                   types.String `tfsdk:"node_type_ml"`
+	NodeRoles                    types.Set    `tfsdk:"node_roles"`
+	Autoscaling                  types.Object `tfsdk:"autoscaling"`
 }
 
 type ElasticsearchTopology struct {
-	id                      string
-	InstanceConfigurationId *string                           `tfsdk:"instance_configuration_id"`
-	Size                    *string                           `tfsdk:"size"`
-	SizeResource            *string                           `tfsdk:"size_resource"`
-	ZoneCount               int                               `tfsdk:"zone_count"`
-	NodeTypeData            *string                           `tfsdk:"node_type_data"`
-	NodeTypeMaster          *string                           `tfsdk:"node_type_master"`
-	NodeTypeIngest          *string                           `tfsdk:"node_type_ingest"`
-	NodeTypeMl              *string                           `tfsdk:"node_type_ml"`
-	NodeRoles               []string                          `tfsdk:"node_roles"`
-	Autoscaling             *ElasticsearchTopologyAutoscaling `tfsdk:"autoscaling"`
+	id                           string
+	InstanceConfigurationId      *string                           `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion int                               `tfsdk:"instance_configuration_version"`
+	Size                         *string                           `tfsdk:"size"`
+	SizeResource                 *string                           `tfsdk:"size_resource"`
+	ZoneCount                    int                               `tfsdk:"zone_count"`
+	NodeTypeData                 *string                           `tfsdk:"node_type_data"`
+	NodeTypeMaster               *string                           `tfsdk:"node_type_master"`
+	NodeTypeIngest               *string                           `tfsdk:"node_type_ingest"`
+	NodeTypeMl                   *string                           `tfsdk:"node_type_ml"`
+	NodeRoles                    []string                          `tfsdk:"node_roles"`
+	Autoscaling                  *ElasticsearchTopologyAutoscaling `tfsdk:"autoscaling"`
 }
 
 type ElasticsearchTopologyAutoscaling v1.ElasticsearchTopologyAutoscaling
@@ -73,6 +75,14 @@ func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID 
 	if err != nil {
 		diags.AddError("topology matching error", err.Error())
 		return diags
+	}
+
+	if topology.InstanceConfigurationId.ValueString() != "" {
+		topologyElem.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
+	}
+
+	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+		topologyElem.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 
 	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
@@ -134,6 +144,8 @@ func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 	if model.InstanceConfigurationID != "" {
 		topology.InstanceConfigurationId = &model.InstanceConfigurationID
 	}
+
+	topology.InstanceConfigurationVersion = int(model.InstanceConfigurationVersion)
 
 	if model.Size != nil {
 		topology.Size = ec.String(util.MemoryToState(*model.Size.Value))

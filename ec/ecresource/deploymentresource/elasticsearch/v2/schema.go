@@ -485,7 +485,16 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 			"instance_configuration_id": schema.StringAttribute{
 				Description: `Computed Instance Configuration ID of the topology element`,
 				Computed:    true,
+				Optional:    true,
 				PlanModifiers: []planmodifier.String{
+					UseTopologyStateForUnknown(options.tierName),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Description: `Computed Instance Configuration version of the topology element`,
+				Computed:    true,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Int64{
 					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
