@@ -80,7 +80,7 @@ func EnterpriseSearchSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size": schema.StringAttribute{

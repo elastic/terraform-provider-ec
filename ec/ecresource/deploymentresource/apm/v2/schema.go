@@ -109,21 +109,21 @@ func ApmSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"instance_configuration_version": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
 				},
 			},
 			"size_resource": schema.StringAttribute{
