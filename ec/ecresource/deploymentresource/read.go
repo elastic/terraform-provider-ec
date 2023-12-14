@@ -166,6 +166,10 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.ResetElasticsearchPassword = base.ResetElasticsearchPassword.ValueBoolPointer()
 	}
 
+	if !base.MigrateToLatestHardware.IsNull() && !base.MigrateToLatestHardware.IsUnknown() {
+		deployment.MigrateToLatestHardware = base.MigrateToLatestHardware.ValueBoolPointer()
+	}
+
 	diags.Append(deployment.IncludePrivateStateTrafficFilters(ctx, base, privateFilters)...)
 
 	deployment.SetCredentialsIfEmpty(state)

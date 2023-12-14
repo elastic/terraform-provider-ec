@@ -61,6 +61,7 @@ type Deployment struct {
 	EnterpriseSearch           *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
 	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
 	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
+	MigrateToLatestHardware    *bool                                    `tfsdk:"migrate_to_latest_hardware"`
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan

@@ -19,7 +19,6 @@ package v2
 
 import (
 	"context"
-
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -86,11 +85,14 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 
 	diags.Append(d...)
 
+	var migrateToLatestHw bool
+	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
+
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged {
+	if templateChanged || migrateToLatestHw {
 		return false, diags
 	}
 

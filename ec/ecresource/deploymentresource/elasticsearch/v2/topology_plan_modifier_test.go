@@ -88,7 +88,34 @@ func Test_topologyPlanModifier(t *testing.T) {
 		},
 
 		{
-			name: "it should use the current state if the topology is defined in the state and the template has not changed",
+			name: "it should not use state if the migrate_to_latest_hardware is true",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: ec.String("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: ec.Bool(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: false,
+		},
+
+		{
+			name: "it should use the current state if the topology is defined in the state, the template has not changed, and migrate_to_latest_hardware is undefined",
 			args: args{
 				attributePlan: types.StringUnknown(),
 				deploymentState: deploymentv2.Deployment{

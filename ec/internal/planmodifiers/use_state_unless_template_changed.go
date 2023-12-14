@@ -67,11 +67,15 @@ func (m useStateForUnknownUnlessTemplateChanged) UseState(ctx context.Context, c
 
 	templateChanged, diags := AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
 	diags.Append(diags...)
+
+	var migrateToLatestHw bool
+	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
+
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged {
+	if templateChanged || migrateToLatestHw {
 		return false, diags
 	}
 

@@ -60,9 +60,11 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		Kibana:             template.DeploymentTemplate.Resources.Kibana,
 	}
 
-	// If the deployment template has changed then we should use the template migration API
-	// to build the base update payloads
-	if newDtId != prevDtId && prevDtId != "" {
+	// If the deployment template has changed or MigrateToLatestHardware is true, we should use the template migration
+	// API to build the base update payloads
+	migrateToLatest := plan.MigrateToLatestHardware.ValueBool() || (newDtId != prevDtId && prevDtId != "")
+
+	if migrateToLatest {
 		// Get an update request from the template migration API
 		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
 			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),

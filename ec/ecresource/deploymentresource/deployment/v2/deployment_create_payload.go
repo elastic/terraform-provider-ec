@@ -57,6 +57,7 @@ type DeploymentTF struct {
 	EnterpriseSearch           types.Object `tfsdk:"enterprise_search"`
 	Observability              types.Object `tfsdk:"observability"`
 	ResetElasticsearchPassword types.Bool   `tfsdk:"reset_elasticsearch_password"`
+	MigrateToLatestHardware    types.Bool   `tfsdk:"migrate_to_latest_hardware"`
 }
 
 func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*models.DeploymentCreateRequest, diag.Diagnostics) {

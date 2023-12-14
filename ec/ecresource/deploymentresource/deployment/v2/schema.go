@@ -130,6 +130,10 @@ func DeploymentSchema() schema.Schema {
 				Description: "Explicitly resets the elasticsearch_password when true",
 				Optional:    true,
 			},
+			"migrate_to_latest_hardware": schema.BoolAttribute{
+				Description: "When true, updates deployment according to the latest deployment template values.",
+				Optional:    true,
+			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
 			"kibana":              kibanav2.KibanaSchema(),
 			"apm":                 apmv2.ApmSchema(),
