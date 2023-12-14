@@ -32,7 +32,7 @@ type IntegrationsServer struct {
 	HttpsEndpoint                *string                   `tfsdk:"https_endpoint"`
 	Endpoints                    *Endpoints                `tfsdk:"endpoints"`
 	InstanceConfigurationId      *string                   `tfsdk:"instance_configuration_id"`
-	InstanceConfigurationVersion int                       `tfsdk:"instance_configuration_version"`
+	InstanceConfigurationVersion *int                      `tfsdk:"instance_configuration_version"`
 	Size                         *string                   `tfsdk:"size"`
 	SizeResource                 *string                   `tfsdk:"size_resource"`
 	ZoneCount                    int                       `tfsdk:"zone_count"`

@@ -39,7 +39,7 @@ func readApmTopology(in *models.ApmTopologyElement) (*v1.Topology, error) {
 		top.InstanceConfigurationId = &in.InstanceConfigurationID
 	}
 
-	top.InstanceConfigurationVersion = int(in.InstanceConfigurationVersion)
+	top.InstanceConfigurationVersion = ec.Int(int(in.InstanceConfigurationVersion))
 
 	if in.Size != nil {
 		top.Size = ec.String(util.MemoryToState(*in.Size.Value))
@@ -92,7 +92,7 @@ func apmTopologyPayload(ctx context.Context, topology v1.TopologyTF, model *mode
 		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
 		model.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 

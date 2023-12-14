@@ -156,7 +156,7 @@ func Test_ApmPayload(t *testing.T) {
 					Region:                       ec.String("some-region"),
 					ElasticsearchClusterRefId:    ec.String("somerefid"),
 					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: 5,
+					InstanceConfigurationVersion: ec.Int(5),
 					Size:                         ec.String("2g"),
 					SizeResource:                 ec.String("memory"),
 				},
@@ -171,6 +171,39 @@ func Test_ApmPayload(t *testing.T) {
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "testing.ic",
 						InstanceConfigurationVersion: 5,
+						Size: &models.TopologySize{
+							Resource: ec.String("memory"),
+							Value:    ec.Int32(2048),
+						},
+					}},
+				},
+			},
+		},
+		{
+			name: "parses an APM resource with instance_configuration_version set to 0",
+			args: args{
+				updateResources: getUpdateResources(),
+				apm: &Apm{
+					RefId:                        ec.String("main-apm"),
+					ResourceId:                   &mock.ValidClusterID,
+					Region:                       ec.String("some-region"),
+					ElasticsearchClusterRefId:    ec.String("somerefid"),
+					InstanceConfigurationId:      ec.String("testing.ic"),
+					InstanceConfigurationVersion: ec.Int(0),
+					Size:                         ec.String("2g"),
+					SizeResource:                 ec.String("memory"),
+				},
+			},
+			want: &models.ApmPayload{
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-apm"),
+				Plan: &models.ApmPlan{
+					Apm: &models.ApmConfiguration{},
+					ClusterTopology: []*models.ApmTopologyElement{{
+						ZoneCount:                    1,
+						InstanceConfigurationID:      "testing.ic",
+						InstanceConfigurationVersion: 0,
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),

@@ -39,7 +39,7 @@ func readEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*
 
 	topology.InstanceConfigurationId = ec.String(in.InstanceConfigurationID)
 
-	topology.InstanceConfigurationVersion = int(in.InstanceConfigurationVersion)
+	topology.InstanceConfigurationVersion = ec.Int(int(in.InstanceConfigurationVersion))
 
 	if in.Size != nil {
 		topology.Size = ec.String(util.MemoryToState(*in.Size.Value))
@@ -94,7 +94,7 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
 		model.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 

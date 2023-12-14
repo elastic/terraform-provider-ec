@@ -173,7 +173,7 @@ func Test_readEnterpriseSearch(t *testing.T) {
 					UserSettingsYaml:         ec.String("some.setting: some value"),
 				},
 				InstanceConfigurationId:      ec.String("aws.enterprisesearch.r4"),
-				InstanceConfigurationVersion: 5,
+				InstanceConfigurationVersion: ec.Int(5),
 				Size:                         ec.String("1g"),
 				SizeResource:                 ec.String("memory"),
 				ZoneCount:                    1,

@@ -155,7 +155,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 					Region:                       ec.String("some-region"),
 					ElasticsearchClusterRefId:    ec.String("somerefid"),
 					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: 4,
+					InstanceConfigurationVersion: ec.Int(4),
 					Size:                         ec.String("2g"),
 					SizeResource:                 ec.String("memory"),
 				},
@@ -170,6 +170,39 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "testing.ic",
 						InstanceConfigurationVersion: 4,
+						Size: &models.TopologySize{
+							Resource: ec.String("memory"),
+							Value:    ec.Int32(2048),
+						},
+					}},
+				},
+			},
+		},
+		{
+			name: "parses an Integrations Server resource with instance_configuration_version set to 0",
+			args: args{
+				updateResources: getUpdateResourcesWithIcVersion(),
+				srv: &IntegrationsServer{
+					RefId:                        ec.String("main-integrations_server"),
+					ResourceId:                   &mock.ValidClusterID,
+					Region:                       ec.String("some-region"),
+					ElasticsearchClusterRefId:    ec.String("somerefid"),
+					InstanceConfigurationId:      ec.String("testing.ic"),
+					InstanceConfigurationVersion: ec.Int(0),
+					Size:                         ec.String("2g"),
+					SizeResource:                 ec.String("memory"),
+				},
+			},
+			want: &models.IntegrationsServerPayload{
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-integrations_server"),
+				Plan: &models.IntegrationsServerPlan{
+					IntegrationsServer: &models.IntegrationsServerConfiguration{},
+					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
+						ZoneCount:                    1,
+						InstanceConfigurationID:      "testing.ic",
+						InstanceConfigurationVersion: 0,
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),

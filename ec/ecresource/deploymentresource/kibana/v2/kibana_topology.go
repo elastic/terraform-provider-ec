@@ -41,7 +41,7 @@ func readKibanaTopology(in *models.KibanaClusterTopologyElement) (*topologyv1.To
 		top.InstanceConfigurationId = &in.InstanceConfigurationID
 	}
 
-	top.InstanceConfigurationVersion = int(in.InstanceConfigurationVersion)
+	top.InstanceConfigurationVersion = ec.Int(int(in.InstanceConfigurationVersion))
 
 	if in.Size != nil {
 		top.Size = ec.String(util.MemoryToState(*in.Size.Value))
@@ -99,7 +99,7 @@ func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, model *m
 		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
 		model.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 

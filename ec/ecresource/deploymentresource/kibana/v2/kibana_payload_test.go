@@ -160,7 +160,7 @@ func Test_KibanaPayload(t *testing.T) {
 					Region:                       ec.String("some-region"),
 					ElasticsearchClusterRefId:    ec.String("somerefid"),
 					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: 4,
+					InstanceConfigurationVersion: ec.Int(4),
 					Size:                         ec.String("4g"),
 				},
 			},

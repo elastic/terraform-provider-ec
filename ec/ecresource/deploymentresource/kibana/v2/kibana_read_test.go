@@ -157,7 +157,7 @@ func Test_ReadKibana(t *testing.T) {
 					UserSettingsOverrideJson: ec.String(`{"some.setting":"override"}`),
 				},
 				InstanceConfigurationId:      ec.String("aws.kibana.r4"),
-				InstanceConfigurationVersion: 5,
+				InstanceConfigurationVersion: ec.Int(5),
 				Size:                         ec.String("1g"),
 				SizeResource:                 ec.String("memory"),
 				ZoneCount:                    1,

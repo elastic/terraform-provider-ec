@@ -54,7 +54,7 @@ type ElasticsearchTopologyTF struct {
 type ElasticsearchTopology struct {
 	id                           string
 	InstanceConfigurationId      *string                           `tfsdk:"instance_configuration_id"`
-	InstanceConfigurationVersion int                               `tfsdk:"instance_configuration_version"`
+	InstanceConfigurationVersion *int                              `tfsdk:"instance_configuration_version"`
 	Size                         *string                           `tfsdk:"size"`
 	SizeResource                 *string                           `tfsdk:"size_resource"`
 	ZoneCount                    int                               `tfsdk:"zone_count"`
@@ -81,7 +81,7 @@ func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID 
 		topologyElem.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if topology.InstanceConfigurationVersion.ValueInt64() > 0 {
+	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
 		topologyElem.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
 	}
 
@@ -145,7 +145,7 @@ func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 		topology.InstanceConfigurationId = &model.InstanceConfigurationID
 	}
 
-	topology.InstanceConfigurationVersion = int(model.InstanceConfigurationVersion)
+	topology.InstanceConfigurationVersion = ec.Int(int(model.InstanceConfigurationVersion))
 
 	if model.Size != nil {
 		topology.Size = ec.String(util.MemoryToState(*model.Size.Value))

@@ -164,7 +164,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 					Region:                       ec.String("some-region"),
 					ElasticsearchClusterRefId:    ec.String("somerefid"),
 					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: 1,
+					InstanceConfigurationVersion: ec.Int(1),
 				},
 			},
 			want: &models.EnterpriseSearchPayload{
@@ -177,6 +177,42 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 						ZoneCount:                    2,
 						InstanceConfigurationID:      "testing.ic",
 						InstanceConfigurationVersion: 1,
+						Size: &models.TopologySize{
+							Resource: ec.String("memory"),
+							Value:    ec.Int32(2048),
+						},
+						NodeType: &models.EnterpriseSearchNodeTypes{
+							Appserver: ec.Bool(true),
+							Connector: ec.Bool(true),
+							Worker:    ec.Bool(true),
+						},
+					}},
+				},
+			},
+		},
+		{
+			name: "parses an enterprise_search resource with instance_configuration_version set to 0",
+			args: args{
+				updateResources: testutil.UpdatePayloadsFromTemplate(t, tplPathWithIcVersion),
+				es: &EnterpriseSearch{
+					RefId:                        ec.String("main-enterprise_search"),
+					ResourceId:                   ec.String(mock.ValidClusterID),
+					Region:                       ec.String("some-region"),
+					ElasticsearchClusterRefId:    ec.String("somerefid"),
+					InstanceConfigurationId:      ec.String("testing.ic"),
+					InstanceConfigurationVersion: ec.Int(0),
+				},
+			},
+			want: &models.EnterpriseSearchPayload{
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-enterprise_search"),
+				Plan: &models.EnterpriseSearchPlan{
+					EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
+					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
+						ZoneCount:                    2,
+						InstanceConfigurationID:      "testing.ic",
+						InstanceConfigurationVersion: 0,
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
