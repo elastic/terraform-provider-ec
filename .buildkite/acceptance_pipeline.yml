@@ -3,3 +3,4 @@ steps:
     command: .buildkite/acceptance.sh
     agents:
       provider: "gcp"
+      machineType: n1-highcpu-8
