@@ -1,8 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "--- Download dependencies"
-make vendor
+DOCKER_IMAGE="golang:1.21"
+APP_PATH="/go/src/github.com/elastic/terraform-provider-ec"
 
 echo "--- Run acceptance tests"
-EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET make testacc
+docker run \
+  -u "root:root" \
+  --env "EC_API_KEY=${TERRAFORM_PROVIDER_API_KEY_SECRET}" \
+  -v "$PWD:${APP_PATH}" \
+  -w ${APP_PATH} \
+  --rm \
+  $DOCKER_IMAGE \
+  TEST_NAME=TestAccDeploymentExtension_basic make vendor && make testacc
