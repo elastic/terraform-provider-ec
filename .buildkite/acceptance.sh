@@ -12,4 +12,4 @@ docker run \
   -w ${APP_PATH} \
   --rm \
   $DOCKER_IMAGE \
-  TEST_NAME=TestAccDeploymentExtension_basic make vendor && make testacc
+  /bin/bash -c "make vendor && TEST_NAME=TestAccDeploymentExtension_basic make testacc"
