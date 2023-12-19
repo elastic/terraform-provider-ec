@@ -12,4 +12,7 @@ docker run \
   -w ${APP_PATH} \
   --rm \
   $DOCKER_IMAGE \
-  /bin/bash -c "make vendor && TEST_NAME=TestAccDeploymentExtension_basic make testacc"
+  /bin/bash -c "echo '--- Download dependencies' &&
+                make vendor &&
+                echo '--- Run acceptance tests' &&
+                make testacc"
