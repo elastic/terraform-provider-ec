@@ -1,3 +1,6 @@
+env:
+  USE_HTTPS_CLONE: true
+
 steps:
   - label: ":test_tube: Acceptance tests"
     command: .buildkite/acceptance.sh
