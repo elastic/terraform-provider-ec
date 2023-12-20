@@ -82,7 +82,7 @@ func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID 
 	}
 
 	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
-		topologyElem.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
+		topologyElem.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
 	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
@@ -145,7 +145,9 @@ func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 		topology.InstanceConfigurationId = &model.InstanceConfigurationID
 	}
 
-	topology.InstanceConfigurationVersion = ec.Int(int(model.InstanceConfigurationVersion))
+	if model.InstanceConfigurationVersion != nil {
+		topology.InstanceConfigurationVersion = ec.Int(int(*model.InstanceConfigurationVersion))
+	}
 
 	if model.Size != nil {
 		topology.Size = ec.String(util.MemoryToState(*model.Size.Value))

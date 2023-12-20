@@ -86,7 +86,7 @@ func Test_ReadKibana(t *testing.T) {
 										{
 											ZoneCount:                    1,
 											InstanceConfigurationID:      "aws.kibana.r4",
-											InstanceConfigurationVersion: 5,
+											InstanceConfigurationVersion: ec.Int32(5),
 											Size: &models.TopologySize{
 												Resource: ec.String("memory"),
 												Value:    ec.Int32(1024),
@@ -131,7 +131,7 @@ func Test_ReadKibana(t *testing.T) {
 									ClusterTopology: []*models.KibanaClusterTopologyElement{{
 										ZoneCount:                    1,
 										InstanceConfigurationID:      "aws.kibana.r4",
-										InstanceConfigurationVersion: 5,
+										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),

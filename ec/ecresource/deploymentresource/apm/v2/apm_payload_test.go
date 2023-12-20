@@ -137,7 +137,7 @@ func Test_ApmPayload(t *testing.T) {
 					ClusterTopology: []*models.ApmTopologyElement{{
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "aws.apm.r5d",
-						InstanceConfigurationVersion: 4,
+						InstanceConfigurationVersion: ec.Int32(4),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
@@ -170,7 +170,7 @@ func Test_ApmPayload(t *testing.T) {
 					ClusterTopology: []*models.ApmTopologyElement{{
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "testing.ic",
-						InstanceConfigurationVersion: 5,
+						InstanceConfigurationVersion: ec.Int32(5),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
@@ -203,7 +203,7 @@ func Test_ApmPayload(t *testing.T) {
 					ClusterTopology: []*models.ApmTopologyElement{{
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "testing.ic",
-						InstanceConfigurationVersion: 0,
+						InstanceConfigurationVersion: ec.Int32(0),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),

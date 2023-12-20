@@ -136,7 +136,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "aws.integrationsserver.r5",
-						InstanceConfigurationVersion: 3,
+						InstanceConfigurationVersion: ec.Int32(3),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
@@ -169,7 +169,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "testing.ic",
-						InstanceConfigurationVersion: 4,
+						InstanceConfigurationVersion: ec.Int32(4),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
@@ -202,7 +202,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
 						ZoneCount:                    1,
 						InstanceConfigurationID:      "testing.ic",
-						InstanceConfigurationVersion: 0,
+						InstanceConfigurationVersion: ec.Int32(0),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),

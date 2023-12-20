@@ -140,7 +140,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 						ZoneCount:                    2,
 						InstanceConfigurationID:      "aws.enterprisesearch.m5d",
-						InstanceConfigurationVersion: 3,
+						InstanceConfigurationVersion: ec.Int32(3),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(4096),
@@ -176,7 +176,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 						ZoneCount:                    2,
 						InstanceConfigurationID:      "testing.ic",
-						InstanceConfigurationVersion: 1,
+						InstanceConfigurationVersion: ec.Int32(1),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),
@@ -212,7 +212,7 @@ func Test_enterpriseSearchPayload(t *testing.T) {
 					ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 						ZoneCount:                    2,
 						InstanceConfigurationID:      "testing.ic",
-						InstanceConfigurationVersion: 0,
+						InstanceConfigurationVersion: ec.Int32(0),
 						Size: &models.TopologySize{
 							Resource: ec.String("memory"),
 							Value:    ec.Int32(2048),

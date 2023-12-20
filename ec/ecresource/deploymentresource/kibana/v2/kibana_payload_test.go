@@ -140,7 +140,7 @@ func Test_KibanaPayload(t *testing.T) {
 						{
 							ZoneCount:                    1,
 							InstanceConfigurationID:      "aws.kibana.r5d",
-							InstanceConfigurationVersion: 3,
+							InstanceConfigurationVersion: ec.Int32(3),
 							Size: &models.TopologySize{
 								Resource: ec.String("memory"),
 								Value:    ec.Int32(4096),
@@ -175,7 +175,7 @@ func Test_KibanaPayload(t *testing.T) {
 						{
 							ZoneCount:                    1,
 							InstanceConfigurationID:      "testing.ic",
-							InstanceConfigurationVersion: 4,
+							InstanceConfigurationVersion: ec.Int32(4),
 							Size: &models.TopologySize{
 								Resource: ec.String("memory"),
 								Value:    ec.Int32(4096),

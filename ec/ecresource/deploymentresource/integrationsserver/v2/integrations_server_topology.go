@@ -21,12 +21,11 @@ import (
 	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-
-	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 )
 
 const (
@@ -40,7 +39,7 @@ func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.
 	}
 
 	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
-		model.InstanceConfigurationVersion = int32(topology.InstanceConfigurationVersion.ValueInt64())
+		model.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
 	var diags diag.Diagnostics
@@ -107,7 +106,9 @@ func readIntegrationsServerTopology(in *models.IntegrationsServerTopologyElement
 		top.InstanceConfigurationId = &in.InstanceConfigurationID
 	}
 
-	top.InstanceConfigurationVersion = ec.Int(int(in.InstanceConfigurationVersion))
+	if in.InstanceConfigurationVersion != nil {
+		top.InstanceConfigurationVersion = ec.Int(int(*in.InstanceConfigurationVersion))
+	}
 
 	if in.Size != nil {
 		top.Size = ec.String(util.MemoryToState(*in.Size.Value))

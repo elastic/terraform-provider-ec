@@ -95,7 +95,7 @@ func Test_readIntegrationsServer(t *testing.T) {
 									{
 										ZoneCount:                    1,
 										InstanceConfigurationID:      "aws.integrations_server.r4",
-										InstanceConfigurationVersion: 5,
+										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
@@ -250,11 +250,10 @@ func Test_readIntegrationsServer(t *testing.T) {
 					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
 					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
 				},
-				InstanceConfigurationId:      ec.String("aws.integrations_server.r4"),
-				InstanceConfigurationVersion: ec.Int(0), // Missing IC versions are interpreted as version 0
-				Size:                         ec.String("1g"),
-				SizeResource:                 ec.String("memory"),
-				ZoneCount:                    1,
+				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
+				Size:                    ec.String("1g"),
+				SizeResource:            ec.String("memory"),
+				ZoneCount:               1,
 				Config: &IntegrationsServerConfig{
 					UserSettingsYaml:         ec.String("some.setting: value"),
 					UserSettingsOverrideYaml: ec.String("some.setting: value2"),
@@ -334,11 +333,10 @@ func Test_readIntegrationsServer(t *testing.T) {
 					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
 					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
 				},
-				InstanceConfigurationId:      ec.String("aws.integrations_server.r4"),
-				InstanceConfigurationVersion: ec.Int(0), // Missing IC versions are interpreted as version 0
-				Size:                         ec.String("1g"),
-				SizeResource:                 ec.String("memory"),
-				ZoneCount:                    1,
+				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
+				Size:                    ec.String("1g"),
+				SizeResource:            ec.String("memory"),
+				ZoneCount:               1,
 				Config: &IntegrationsServerConfig{
 					UserSettingsYaml:         ec.String("some.setting: value"),
 					UserSettingsOverrideYaml: ec.String("some.setting: value2"),

@@ -94,7 +94,7 @@ func Test_readEnterpriseSearch(t *testing.T) {
 										EnterpriseSearch:             &models.EnterpriseSearchConfiguration{},
 										ZoneCount:                    1,
 										InstanceConfigurationID:      "aws.enterprisesearch.r4",
-										InstanceConfigurationVersion: 5,
+										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
@@ -143,7 +143,7 @@ func Test_readEnterpriseSearch(t *testing.T) {
 										EnterpriseSearch:             &models.EnterpriseSearchConfiguration{},
 										ZoneCount:                    1,
 										InstanceConfigurationID:      "aws.enterprisesearch.r4",
-										InstanceConfigurationVersion: 5,
+										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
