@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"reflect"
 	"strconv"
 	"strings"
@@ -38,32 +39,36 @@ import (
 )
 
 type ElasticsearchTopologyTF struct {
-	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
-	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
-	Size                         types.String `tfsdk:"size"`
-	SizeResource                 types.String `tfsdk:"size_resource"`
-	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
-	NodeTypeData                 types.String `tfsdk:"node_type_data"`
-	NodeTypeMaster               types.String `tfsdk:"node_type_master"`
-	NodeTypeIngest               types.String `tfsdk:"node_type_ingest"`
-	NodeTypeMl                   types.String `tfsdk:"node_type_ml"`
-	NodeRoles                    types.Set    `tfsdk:"node_roles"`
-	Autoscaling                  types.Object `tfsdk:"autoscaling"`
+	InstanceConfigurationId            types.String `tfsdk:"instance_configuration_id"`
+	LatestInstanceConfigurationId      types.String `tfsdk:"latest_instance_configuration_id"`
+	InstanceConfigurationVersion       types.Int64  `tfsdk:"instance_configuration_version"`
+	LatestInstanceConfigurationVersion types.Int64  `tfsdk:"latest_instance_configuration_version"`
+	Size                               types.String `tfsdk:"size"`
+	SizeResource                       types.String `tfsdk:"size_resource"`
+	ZoneCount                          types.Int64  `tfsdk:"zone_count"`
+	NodeTypeData                       types.String `tfsdk:"node_type_data"`
+	NodeTypeMaster                     types.String `tfsdk:"node_type_master"`
+	NodeTypeIngest                     types.String `tfsdk:"node_type_ingest"`
+	NodeTypeMl                         types.String `tfsdk:"node_type_ml"`
+	NodeRoles                          types.Set    `tfsdk:"node_roles"`
+	Autoscaling                        types.Object `tfsdk:"autoscaling"`
 }
 
 type ElasticsearchTopology struct {
-	id                           string
-	InstanceConfigurationId      *string                           `tfsdk:"instance_configuration_id"`
-	InstanceConfigurationVersion *int                              `tfsdk:"instance_configuration_version"`
-	Size                         *string                           `tfsdk:"size"`
-	SizeResource                 *string                           `tfsdk:"size_resource"`
-	ZoneCount                    int                               `tfsdk:"zone_count"`
-	NodeTypeData                 *string                           `tfsdk:"node_type_data"`
-	NodeTypeMaster               *string                           `tfsdk:"node_type_master"`
-	NodeTypeIngest               *string                           `tfsdk:"node_type_ingest"`
-	NodeTypeMl                   *string                           `tfsdk:"node_type_ml"`
-	NodeRoles                    []string                          `tfsdk:"node_roles"`
-	Autoscaling                  *ElasticsearchTopologyAutoscaling `tfsdk:"autoscaling"`
+	id                                 string
+	InstanceConfigurationId            *string                           `tfsdk:"instance_configuration_id"`
+	LatestInstanceConfigurationId      *string                           `tfsdk:"latest_instance_configuration_id"`
+	InstanceConfigurationVersion       *int                              `tfsdk:"instance_configuration_version"`
+	LatestInstanceConfigurationVersion *int                              `tfsdk:"latest_instance_configuration_version"`
+	Size                               *string                           `tfsdk:"size"`
+	SizeResource                       *string                           `tfsdk:"size_resource"`
+	ZoneCount                          int                               `tfsdk:"zone_count"`
+	NodeTypeData                       *string                           `tfsdk:"node_type_data"`
+	NodeTypeMaster                     *string                           `tfsdk:"node_type_master"`
+	NodeTypeIngest                     *string                           `tfsdk:"node_type_ingest"`
+	NodeTypeMl                         *string                           `tfsdk:"node_type_ml"`
+	NodeRoles                          []string                          `tfsdk:"node_roles"`
+	Autoscaling                        *ElasticsearchTopologyAutoscaling `tfsdk:"autoscaling"`
 }
 
 type ElasticsearchTopologyAutoscaling v1.ElasticsearchTopologyAutoscaling
@@ -393,4 +398,30 @@ func expandAutoscalingDimension(autoscale v1.ElasticsearchTopologyAutoscalingTF,
 	}
 
 	return nil
+}
+
+func SetLatestInstanceConfigInfo(currentTopology *ElasticsearchTopology, latestTopology *models.ElasticsearchClusterTopologyElement) {
+	if currentTopology != nil && latestTopology != nil {
+		currentTopology.LatestInstanceConfigurationId = &latestTopology.InstanceConfigurationID
+		if latestTopology.InstanceConfigurationVersion != nil {
+			latestVersion := int(*latestTopology.InstanceConfigurationVersion)
+			currentTopology.LatestInstanceConfigurationVersion = &latestVersion
+		}
+	}
+}
+
+func GetTopologyFromMigrateRequest(migrateUpdateRequest *deployments.MigrateDeploymentTemplateOK, esTier string) *models.ElasticsearchClusterTopologyElement {
+	var topologyElement *models.ElasticsearchClusterTopologyElement
+
+	if migrateUpdateRequest.Payload.Resources.Elasticsearch == nil || len(migrateUpdateRequest.Payload.Resources.Elasticsearch) == 0 {
+		return nil
+	}
+
+	for _, t := range migrateUpdateRequest.Payload.Resources.Elasticsearch[0].Plan.ClusterTopology {
+		if strings.Contains(t.ID, esTier) {
+			topologyElement = t
+		}
+	}
+
+	return topologyElement
 }

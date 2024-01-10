@@ -19,6 +19,7 @@ package v2
 
 import (
 	"context"
+
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -88,11 +89,15 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 	var migrateToLatestHw bool
 	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
 
+	isMigrationAvailable, d := planmodifiers.CheckAvailableMigration(ctx, plan, state, path.Root("elasticsearch").AtName(m.topologyAttributeName))
+
+	diags.Append(d...)
+
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged || migrateToLatestHw {
+	if templateChanged || (migrateToLatestHw && isMigrationAvailable) {
 		return false, diags
 	}
 

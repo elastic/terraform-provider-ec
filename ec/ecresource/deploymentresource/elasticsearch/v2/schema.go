@@ -483,19 +483,33 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 		Description: fmt.Sprintf("'%s' topology element", options.tierName),
 		Attributes: map[string]schema.Attribute{
 			"instance_configuration_id": schema.StringAttribute{
-				Description: `Computed Instance Configuration ID of the topology element`,
+				Description: `Instance Configuration ID of the topology element`,
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.String{
 					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Description: `Latest Instance Configuration ID available on the deployment template for the topology element`,
+				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"instance_configuration_version": schema.Int64Attribute{
-				Description: `Computed Instance Configuration version of the topology element`,
+				Description: `Instance Configuration version of the topology element`,
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.Int64{
 					UseTopologyStateForUnknown(options.tierName),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Description: `Latest version available for the Instance Configuration with the latest_instance_configuration_id`,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownInt64OrNull(),
 				},
 			},
 			"size": schema.StringAttribute{

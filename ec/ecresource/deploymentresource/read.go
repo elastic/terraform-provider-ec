@@ -178,6 +178,18 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
 
+	migrateUpdateRequest, err := r.client.V1API.Deployments.MigrateDeploymentTemplate(
+		deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(deployment.Id).WithTemplateID(deployment.DeploymentTemplateId),
+		r.client.AuthWriter,
+	)
+
+	if err != nil {
+		diags.AddError("Template migrate request error", err.Error())
+		return nil, diags
+	}
+
+	deployment.SetLatestInstanceConfigInfo(migrateUpdateRequest)
+
 	// Set Elasticsearch `strategy` to the one from plan.
 	// We don't care about backend current `strategy`'s value and should not trigger a change,
 	// if the backend's value differs from the local state.

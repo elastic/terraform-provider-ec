@@ -19,6 +19,7 @@ package planmodifiers
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -27,11 +28,13 @@ import (
 )
 
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
-func UseStateForUnknownUnlessTemplateChanged() useStateForUnknownUnlessTemplateChanged {
-	return useStateForUnknownUnlessTemplateChanged{}
+func UseStateForUnknownUnlessMigrationisRequired(resourceKind string) useStateForUnknownUnlessTemplateChanged {
+	return useStateForUnknownUnlessTemplateChanged{resourceKind: resourceKind}
 }
 
-type useStateForUnknownUnlessTemplateChanged struct{}
+type useStateForUnknownUnlessTemplateChanged struct {
+	resourceKind string
+}
 
 type PlanModifierResponse interface {
 	planmodifier.StringResponse | planmodifier.Int64Response
@@ -65,17 +68,20 @@ func (m useStateForUnknownUnlessTemplateChanged) UseState(ctx context.Context, c
 		return false, nil
 	}
 
-	templateChanged, diags := AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
-	diags.Append(diags...)
+	templateChanged, d := AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
+	diags.Append(d...)
 
 	var migrateToLatestHw bool
 	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
+
+	isMigrationAvailable, d := CheckAvailableMigration(ctx, plan, state, path.Root(m.resourceKind))
+	diags.Append(d...)
 
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged || migrateToLatestHw {
+	if templateChanged || (migrateToLatestHw && isMigrationAvailable) {
 		return false, diags
 	}
 
@@ -88,4 +94,62 @@ func (r useStateForUnknownUnlessTemplateChanged) Description(ctx context.Context
 
 func (r useStateForUnknownUnlessTemplateChanged) MarkdownDescription(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
+}
+
+func diffStateAttributes(ctx context.Context, p1 path.Path, p2 path.Path, state tfsdk.State) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var p1Value attr.Value
+
+	d1 := state.GetAttribute(ctx, p1, &p1Value)
+
+	diags.Append(d1...)
+
+	var p2Value attr.Value
+
+	d2 := state.GetAttribute(ctx, p2, &p2Value)
+
+	diags.Append(d2...)
+
+	return !p1Value.Equal(p2Value), diags
+}
+
+func attributePlanDefined(ctx context.Context, p path.Path, plan tfsdk.Plan) (bool, diag.Diagnostics) {
+	var value attr.Value
+
+	diags := plan.GetAttribute(ctx, p, &value)
+
+	return !value.IsNull() && !value.IsUnknown(), diags
+}
+
+func CheckAvailableMigration(ctx context.Context, plan tfsdk.Plan, state tfsdk.State, topologyPath path.Path) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	planHasInstanceConfigId, d := attributePlanDefined(ctx, topologyPath.AtName("instance_configuration_id"), plan)
+
+	diags.Append(d...)
+
+	planHasInstanceConfigVersion, d := attributePlanDefined(ctx, topologyPath.AtName("instance_configuration_version"), plan)
+
+	diags.Append(d...)
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if planHasInstanceConfigId || planHasInstanceConfigVersion {
+		return false, diags
+	}
+
+	instanceConfigIdsDiff, d := diffStateAttributes(ctx, topologyPath.AtName("instance_configuration_id"), topologyPath.AtName("latest_instance_configuration_id"), state)
+
+	diags.Append(d...)
+
+	instanceConfigVersionsDiff, d := diffStateAttributes(ctx, topologyPath.AtName("instance_configuration_version"), topologyPath.AtName("latest_instance_configuration_version"), state)
+
+	diags.Append(d...)
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, diags
 }
