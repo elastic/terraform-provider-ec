@@ -11,7 +11,7 @@ resource "ec_deployment" "compute_optimized" {
 
   elasticsearch = {
     hot = {
-      instance_configuration_id = "aws.data.highmem.r5d"
+      instance_configuration_id = "aws.es.datahot.m5d"
       autoscaling               = {}
     }
   }

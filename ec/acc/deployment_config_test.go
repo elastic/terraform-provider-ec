@@ -37,6 +37,7 @@ const (
 	enterpriseSearchTemplate = "enterprise-search-dedicated"
 	observabilityTemplate    = "observability"
 	securityTemplate         = "security"
+	cpuOpTemplate            = "cpu-optimized"
 )
 
 func getRegion() string {

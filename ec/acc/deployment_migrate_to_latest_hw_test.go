@@ -30,8 +30,8 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 	customHotIc := "testdata/deployment_compute_optimized_with_custom_hot_ic.tf"
 	migrateToLatestHw := "testdata/deployment_compute_optimized_with_migrate_to_latest_hw.tf"
 	region := getRegion()
-	customHotIcCfg := fixtureAccDeploymentResourceBasicDefaults(t, customHotIc, randomName, region, computeOpTemplate)
-	migrateToLatestHwCfg := fixtureAccDeploymentResourceBasicDefaults(t, migrateToLatestHw, randomName, region, computeOpTemplate)
+	customHotIcCfg := fixtureAccDeploymentResourceBasicDefaults(t, customHotIc, randomName, region, cpuOpTemplate)
+	migrateToLatestHwCfg := fixtureAccDeploymentResourceBasicDefaults(t, migrateToLatestHw, randomName, region, cpuOpTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -42,8 +42,8 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				// Create a Compute Optimized deployment with the default settings.
 				Config: customHotIcCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, computeOpTemplate)),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.data.highmem.r5d"), // it should contain custom IC
+					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.m5d"), // it should contain custom IC
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
@@ -60,8 +60,8 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				// Create a Compute Optimized deployment with the default settings.
 				Config: migrateToLatestHwCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, computeOpTemplate)),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.data.highcpu.m5d"), // it should contain compute opt IC
+					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.c5d"), // it should contain compute opt IC
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
