@@ -404,8 +404,7 @@ func SetLatestInstanceConfigInfo(currentTopology *ElasticsearchTopology, latestT
 	if currentTopology != nil && latestTopology != nil {
 		currentTopology.LatestInstanceConfigurationId = &latestTopology.InstanceConfigurationID
 		if latestTopology.InstanceConfigurationVersion != nil {
-			latestVersion := int(*latestTopology.InstanceConfigurationVersion)
-			currentTopology.LatestInstanceConfigurationVersion = &latestVersion
+			currentTopology.LatestInstanceConfigurationVersion = ec.Int(int(*latestTopology.InstanceConfigurationVersion))
 		}
 	}
 }
