@@ -255,6 +255,14 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
+			"tier_autoscale": schema.BoolAttribute{
+				Description: `Whether this specific tier should be auto-scaled, overrides deployment-wide setting`,
+				Computed:    true,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Bool{
+					UseTopologyStateForUnknown(topologyAttributeName),
+				},
+			},
 			"policy_override_json": schema.StringAttribute{
 				Description: "Computed policy overrides set directly via the API or other clients.",
 				Computed:    true,

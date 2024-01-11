@@ -19,7 +19,6 @@ package v2
 
 import (
 	"context"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
@@ -83,6 +82,9 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		diagsnostics.AddError("Deployment template get error", err.Error())
 		return nil, diagsnostics
 	}
+
+	// We don't want this setting to be inferred from deployment template when using TF provider - it should be specified explicitly in resource declaration
+	removeAutoscalingTierOverridesFromTemplate(template)
 
 	baseUpdatePayloads := &models.DeploymentUpdateResources{
 		Apm:                template.DeploymentTemplate.Resources.Apm,

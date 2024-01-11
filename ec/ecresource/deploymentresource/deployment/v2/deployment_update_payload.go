@@ -51,6 +51,9 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		return nil, err
 	}
 
+	// Similarly to deployment creation, we don't want this setting to be inferred from deployment template
+	removeAutoscalingTierOverridesFromTemplate(template)
+
 	baseUpdatePayloads := &models.DeploymentUpdateResources{
 		Apm:                template.DeploymentTemplate.Resources.Apm,
 		Appsearch:          template.DeploymentTemplate.Resources.Appsearch,
