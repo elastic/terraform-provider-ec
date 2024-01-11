@@ -19,6 +19,7 @@ package planmodifiers
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
@@ -43,7 +44,17 @@ func (m useStateForUnknownInt64OrNullModifier) MarkdownDescription(_ context.Con
 }
 
 // PlanModifyInt64 implements the plan modification logic.
-func (m useStateForUnknownInt64OrNullModifier) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+func (m useStateForUnknownInt64OrNullModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	// Do nothing if there is no state value and deployment is being created
+	deploymentIdDefined, d := AttributeStateDefined(ctx, path.Root("id"), req.State)
+	if !deploymentIdDefined && req.StateValue.IsNull() {
+		return
+	}
+
+	if d.HasError() {
+		return
+	}
+
 	// Do nothing if there is a known planned value.
 	if !req.PlanValue.IsUnknown() {
 		return

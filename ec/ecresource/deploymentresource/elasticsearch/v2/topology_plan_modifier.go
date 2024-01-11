@@ -70,7 +70,7 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 
 	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
 	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
-	topologyStateDefined, d := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), state)
+	topologyStateDefined, d := planmodifiers.AttributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), state)
 
 	diags.Append(d...)
 
@@ -110,14 +110,4 @@ func (r useTopologyState) Description(ctx context.Context) string {
 
 func (r useTopologyState) MarkdownDescription(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
-}
-
-func attributeStateDefined(ctx context.Context, p path.Path, state tfsdk.State) (bool, diag.Diagnostics) {
-	var val attr.Value
-
-	if diags := state.GetAttribute(ctx, p, &val); diags.HasError() {
-		return false, diags
-	}
-
-	return !val.IsNull() && !val.IsUnknown(), nil
 }
