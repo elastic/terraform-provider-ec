@@ -329,8 +329,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -341,6 +341,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--hot--autoscaling"></a>
@@ -368,8 +370,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -380,6 +382,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--cold--autoscaling"></a>
@@ -420,8 +424,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -432,6 +436,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--coordinating--autoscaling"></a>
@@ -470,8 +476,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -482,6 +488,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--frozen--autoscaling"></a>
@@ -521,8 +529,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -533,6 +541,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--master--autoscaling"></a>
@@ -560,8 +570,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -572,6 +582,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--ml--autoscaling"></a>
@@ -679,8 +691,8 @@ Required:
 
 Optional:
 
-- `instance_configuration_id` (String) Computed Instance Configuration ID of the topology element
-- `instance_configuration_version` (Number) Computed Instance Configuration version of the topology element
+- `instance_configuration_id` (String) Instance Configuration ID of the topology element
+- `instance_configuration_version` (Number) Instance Configuration version of the topology element
 - `node_type_data` (String) The node type for the Elasticsearch Topology element (data node)
 - `node_type_ingest` (String) The node type for the Elasticsearch Topology element (ingest node)
 - `node_type_master` (String) The node type for the Elasticsearch Topology element (master node)
@@ -691,6 +703,8 @@ Optional:
 
 Read-Only:
 
+- `latest_instance_configuration_id` (String) Latest Instance Configuration ID available on the deployment template for the topology element
+- `latest_instance_configuration_version` (Number) Latest version available for the Instance Configuration with the latest_instance_configuration_id
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--warm--autoscaling"></a>
@@ -728,6 +742,8 @@ Read-Only:
 
 - `http_endpoint` (String)
 - `https_endpoint` (String)
+- `latest_instance_configuration_id` (String)
+- `latest_instance_configuration_version` (Number)
 - `region` (String)
 - `resource_id` (String)
 
@@ -763,6 +779,8 @@ Read-Only:
 
 - `http_endpoint` (String)
 - `https_endpoint` (String)
+- `latest_instance_configuration_id` (String)
+- `latest_instance_configuration_version` (Number)
 - `node_type_appserver` (Boolean)
 - `node_type_connector` (Boolean)
 - `node_type_worker` (Boolean)
@@ -801,6 +819,8 @@ Read-Only:
 
 - `http_endpoint` (String)
 - `https_endpoint` (String)
+- `latest_instance_configuration_id` (String)
+- `latest_instance_configuration_version` (Number)
 - `region` (String)
 - `resource_id` (String)
 
@@ -845,6 +865,8 @@ Read-Only:
 
 - `http_endpoint` (String)
 - `https_endpoint` (String)
+- `latest_instance_configuration_id` (String)
+- `latest_instance_configuration_version` (Number)
 - `region` (String)
 - `resource_id` (String)
 
