@@ -494,7 +494,7 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description: `Latest Instance Configuration ID available on the deployment template for the topology element`,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
 			"instance_configuration_version": schema.Int64Attribute{
@@ -509,7 +509,7 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 				Description: `Latest version available for the Instance Configuration with the latest_instance_configuration_id`,
 				Computed:    true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64OrNull(),
+					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
 			"size": schema.StringAttribute{

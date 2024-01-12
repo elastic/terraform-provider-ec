@@ -115,7 +115,7 @@ func ApmSchema() schema.Attribute {
 			"latest_instance_configuration_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
 				},
 			},
 			"instance_configuration_version": schema.Int64Attribute{
@@ -128,7 +128,7 @@ func ApmSchema() schema.Attribute {
 			"latest_instance_configuration_version": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64OrNull(),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
 				},
 			},
 			"size": schema.StringAttribute{

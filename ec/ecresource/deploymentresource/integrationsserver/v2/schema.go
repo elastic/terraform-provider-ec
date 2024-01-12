@@ -93,7 +93,7 @@ func IntegrationsServerSchema() schema.Attribute {
 			"latest_instance_configuration_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("integrations_server"),
 				},
 			},
 			"instance_configuration_version": schema.Int64Attribute{
@@ -106,7 +106,7 @@ func IntegrationsServerSchema() schema.Attribute {
 			"latest_instance_configuration_version": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64OrNull(),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("integrations_server"),
 				},
 			},
 			"size": schema.StringAttribute{
