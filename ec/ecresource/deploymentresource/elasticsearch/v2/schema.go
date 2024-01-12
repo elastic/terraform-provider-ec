@@ -256,7 +256,7 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 				},
 			},
 			"autoscale": schema.BoolAttribute{
-				Description: `Whether this specific tier should be auto-scaled, overrides deployment-wide setting`,
+				Description: "Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.",
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.Bool{
