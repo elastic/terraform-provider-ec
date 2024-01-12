@@ -255,7 +255,7 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
-			"tier_autoscale": schema.BoolAttribute{
+			"autoscale": schema.BoolAttribute{
 				Description: `Whether this specific tier should be auto-scaled, overrides deployment-wide setting`,
 				Computed:    true,
 				Optional:    true,

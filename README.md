@@ -90,7 +90,7 @@ resource "ec_deployment" "example_minimal" {
     
     ml = {
        autoscaling = {
-          tier_autoscale = true
+          autoscale = true
        }
     }
     
