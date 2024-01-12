@@ -83,9 +83,6 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 		return nil, diagsnostics
 	}
 
-	// We don't want this setting to be inferred from the deployment template when using TF provider - it should be specified explicitly in resource declaration
-	removeAutoscalingTierOverridesFromTemplate(template)
-
 	baseUpdatePayloads := &models.DeploymentUpdateResources{
 		Apm:                template.DeploymentTemplate.Resources.Apm,
 		Appsearch:          template.DeploymentTemplate.Resources.Appsearch,
