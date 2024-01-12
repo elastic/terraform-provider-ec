@@ -192,7 +192,7 @@ func readElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterT
 		a.PolicyOverrideJson = ec.String(string(b))
 	}
 
-	if topology.AutoscalingTierOverride != nil && *topology.AutoscalingTierOverride {
+	if topology.AutoscalingTierOverride != nil {
 		a.TierAutoscale = topology.AutoscalingTierOverride
 	}
 
