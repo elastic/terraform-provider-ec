@@ -109,33 +109,33 @@ func ApmSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm", false),
 				},
 			},
 			"latest_instance_configuration_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm", false),
 				},
 			},
 			"instance_configuration_version": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm", true),
 				},
 			},
 			"latest_instance_configuration_version": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm"),
+					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("apm", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{

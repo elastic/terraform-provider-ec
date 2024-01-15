@@ -28,12 +28,13 @@ import (
 )
 
 // Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
-func UseStateForUnknownUnlessMigrationisRequired(resourceKind string) useStateForUnknownUnlessTemplateChanged {
-	return useStateForUnknownUnlessTemplateChanged{resourceKind: resourceKind}
+func UseStateForUnknownUnlessMigrationisRequired(resourceKind string, isNullable bool) useStateForUnknownUnlessTemplateChanged {
+	return useStateForUnknownUnlessTemplateChanged{resourceKind: resourceKind, isNullable: isNullable}
 }
 
 type useStateForUnknownUnlessTemplateChanged struct {
 	resourceKind string
+	isNullable   bool
 }
 
 type PlanModifierResponse interface {
@@ -41,7 +42,7 @@ type PlanModifierResponse interface {
 }
 
 func (m useStateForUnknownUnlessTemplateChanged) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue)
+	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue, req.StateValue)
 	resp.Diagnostics.Append(diags...)
 	if useState {
 		resp.PlanValue = req.StateValue
@@ -49,15 +50,19 @@ func (m useStateForUnknownUnlessTemplateChanged) PlanModifyString(ctx context.Co
 }
 
 func (m useStateForUnknownUnlessTemplateChanged) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
-	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue)
+	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue, req.StateValue)
 	resp.Diagnostics.Append(diags...)
 	if useState {
 		resp.PlanValue = req.StateValue
 	}
 }
 
-func (m useStateForUnknownUnlessTemplateChanged) UseState(ctx context.Context, configValue attr.Value, plan tfsdk.Plan, state tfsdk.State, planValue attr.Value) (bool, diag.Diagnostics) {
+func (m useStateForUnknownUnlessTemplateChanged) UseState(ctx context.Context, configValue attr.Value, plan tfsdk.Plan, state tfsdk.State, planValue attr.Value, stateValue attr.Value) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	if stateValue.IsNull() && !m.isNullable {
+		return false, nil
+	}
 
 	if !planValue.IsUnknown() {
 		return false, nil
