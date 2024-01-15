@@ -31,17 +31,24 @@ import (
 func TestAccDeploymentWithMLOnlyAutoscale(t *testing.T) {
 
 	resourceName := "ec_deployment.autoscale_ml"
-	tfConfig := "testdata/deployment_autoscale_ml.tf"
+	initialTfConfigWithMlAutoscale := "testdata/deployment_autoscale_ml.tf"
+	tfConfigWithMlAutoscaleDisabled := "testdata/deployment_autoscale_ml_2.tf"
 	testID := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	randomName := prefix + testID
-	cfg := fixtureAccDeploymentResourceBasic(t, tfConfig, randomName, getRegion(), defaultTemplate)
+
+	cfgF := func(cfg string) string {
+		return fixtureAccDeploymentResourceBasic(
+			t, cfg, randomName, getRegion(), defaultTemplate,
+		)
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactory,
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
+				Config: cfgF(initialTfConfigWithMlAutoscale),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "elasticsearch.autoscale", "false"),
 					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.size", "0g"),
@@ -49,6 +56,17 @@ func TestAccDeploymentWithMLOnlyAutoscale(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.zone_count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.autoscaling.min_size", "0g"),
 					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.autoscaling.autoscale", "true"),
+				),
+			},
+			{
+				Config: cfgF(tfConfigWithMlAutoscaleDisabled),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch.autoscale", "false"),
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.size", "0g"),
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.zone_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.autoscaling.min_size", "0g"),
+					resource.TestCheckResourceAttr(resourceName, "elasticsearch.ml.autoscaling.autoscale", "false"),
 				),
 			},
 		},
