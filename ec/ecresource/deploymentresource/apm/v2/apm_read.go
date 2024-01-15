@@ -109,3 +109,10 @@ func SetLatestInstanceConfigInfo(currentTopology *Apm, latestTopology *models.Ap
 		}
 	}
 }
+
+func SetLatestInstanceConfigInfoToCurrent(topology *Apm) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
+	}
+}

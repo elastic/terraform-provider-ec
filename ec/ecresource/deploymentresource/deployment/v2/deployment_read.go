@@ -139,6 +139,25 @@ func (dep *Deployment) SetLatestInstanceConfigInfo(migrateUpdateRequest *deploym
 	}
 }
 
+// SetLatestInstanceConfigInfoToCurrent Sets latest instance_configuration_id and instance_configuration_version for each
+// topology element, based on the current values
+func (dep *Deployment) SetLatestInstanceConfigInfoToCurrent() {
+	if dep.Elasticsearch != nil {
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.HotTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.WarmTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.ColdTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.FrozenTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.MlTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.MasterTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.CoordinatingTier)
+	}
+
+	apmv2.SetLatestInstanceConfigInfoToCurrent(dep.Apm)
+	enterprisesearchv2.SetLatestInstanceConfigInfoToCurrent(dep.EnterpriseSearch)
+	integrationsserverv2.SetLatestInstanceConfigInfoToCurrent(dep.IntegrationsServer)
+	kibanav2.SetLatestInstanceConfigInfoToCurrent(dep.Kibana)
+}
+
 func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteResources, deploymentResources []*models.DeploymentResource) (*Deployment, error) {
 	var dep Deployment
 
@@ -311,6 +330,17 @@ func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
 	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.ValueString() != "" {
 		dep.ApmSecretToken = ec.String(state.ApmSecretToken.ValueString())
 	}
+}
+
+func (dep *Deployment) HasNodeTypes() bool {
+	if dep.Elasticsearch != nil {
+		for _, t := range dep.Elasticsearch.GetTopologies() {
+			if t.HasNodeTypes() {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func getLowestVersion(res *models.DeploymentResources) (string, error) {

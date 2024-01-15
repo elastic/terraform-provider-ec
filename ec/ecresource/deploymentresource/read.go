@@ -178,17 +178,25 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
 
-	migrateUpdateRequest, err := r.client.V1API.Deployments.MigrateDeploymentTemplate(
-		deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(deployment.Id).WithTemplateID(deployment.DeploymentTemplateId),
-		r.client.AuthWriter,
-	)
+	if !deployment.HasNodeTypes() {
+		// The MigrateDeploymentTemplate request can only be performed for deployments that use node roles.
+		// We'll skip this logic for deployments with node types.
+		migrateUpdateRequest, err := r.client.V1API.Deployments.MigrateDeploymentTemplate(
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(deployment.Id).WithTemplateID(deployment.DeploymentTemplateId),
+			r.client.AuthWriter,
+		)
 
-	if err != nil {
-		diags.AddError("Template migrate request error", err.Error())
-		return nil, diags
+		if err != nil {
+			diags.AddError("Template migrate request error", err.Error())
+			return nil, diags
+		}
+
+		deployment.SetLatestInstanceConfigInfo(migrateUpdateRequest)
+	} else {
+		// Set latest_instance_configuration_* fields to current values
+		// If this isn't done, when migrating a deployment to node roles, these fields will contain inconsistent values
+		deployment.SetLatestInstanceConfigInfoToCurrent()
 	}
-
-	deployment.SetLatestInstanceConfigInfo(migrateUpdateRequest)
 
 	// Set Elasticsearch `strategy` to the one from plan.
 	// We don't care about backend current `strategy`'s value and should not trigger a change,

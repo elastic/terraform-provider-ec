@@ -111,3 +111,10 @@ func SetLatestInstanceConfigInfo(currentTopology *Kibana, latestTopology *models
 		}
 	}
 }
+
+func SetLatestInstanceConfigInfoToCurrent(topology *Kibana) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
+	}
+}

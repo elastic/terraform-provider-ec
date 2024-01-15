@@ -122,3 +122,10 @@ func SetLatestInstanceConfigInfo(currentTopology *EnterpriseSearch, latestTopolo
 		}
 	}
 }
+
+func SetLatestInstanceConfigInfoToCurrent(topology *EnterpriseSearch) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
+	}
+}

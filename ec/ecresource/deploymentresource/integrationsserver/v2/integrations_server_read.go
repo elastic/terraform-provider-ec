@@ -145,3 +145,10 @@ func SetLatestInstanceConfigInfo(currentTopology *IntegrationsServer, latestTopo
 		}
 	}
 }
+
+func SetLatestInstanceConfigInfoToCurrent(topology *IntegrationsServer) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
+	}
+}

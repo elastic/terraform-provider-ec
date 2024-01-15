@@ -263,6 +263,19 @@ func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
 	return false
 }
 
+func (topology *ElasticsearchTopology) HasNodeTypes() bool {
+	if topology != nil {
+		// Check if node types are defined (this means that node roles aren't being used)
+		for _, nodeType := range []*string{topology.NodeTypeData, topology.NodeTypeIngest, topology.NodeTypeMaster, topology.NodeTypeMl} {
+			if nodeType != nil && len(*nodeType) > 0 {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopologyTF, diag.Diagnostics) {
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil, nil
@@ -278,6 +291,20 @@ func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopo
 }
 
 type ElasticsearchTopologies []ElasticsearchTopology
+
+func (es *Elasticsearch) GetTopologies() []*ElasticsearchTopology {
+	topologies := []*ElasticsearchTopology{
+		es.HotTier,
+		es.WarmTier,
+		es.ColdTier,
+		es.FrozenTier,
+		es.MasterTier,
+		es.CoordinatingTier,
+		es.MlTier,
+	}
+
+	return topologies
+}
 
 func (tops ElasticsearchTopologies) AsSet() map[string]ElasticsearchTopology {
 	set := make(map[string]ElasticsearchTopology, len(tops))
@@ -406,6 +433,13 @@ func SetLatestInstanceConfigInfo(currentTopology *ElasticsearchTopology, latestT
 		if latestTopology.InstanceConfigurationVersion != nil {
 			currentTopology.LatestInstanceConfigurationVersion = ec.Int(int(*latestTopology.InstanceConfigurationVersion))
 		}
+	}
+}
+
+func SetLatestInstanceConfigInfoToCurrent(topology *ElasticsearchTopology) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
 	}
 }
 
