@@ -131,8 +131,10 @@ func DeploymentSchema() schema.Schema {
 				Optional:    true,
 			},
 			"migrate_to_latest_hardware": schema.BoolAttribute{
-				Description: "When true, updates deployment according to the latest deployment template values.",
-				Optional:    true,
+				Description: `When set to true, the deployment will be updated according to the latest deployment template values.
+
+~> **Note** If the <code>instance_configuration_id</code> or <code>instance_configuration_version</code> fields are set for a specific topology element, that element will not be updated.`,
+				Optional: true,
 			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
 			"kibana":              kibanav2.KibanaSchema(),

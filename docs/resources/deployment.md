@@ -263,7 +263,9 @@ resource "ec_deployment" "ccs" {
 - `kibana` (Attributes) Kibana cluster definition.
 
 -> **Note on disabling Kibana** While optional it is recommended deployments specify a Kibana block, since not doing so might cause issues when modifying or upgrading the deployment. (see [below for nested schema](#nestedatt--kibana))
-- `migrate_to_latest_hardware` (Boolean) When true, updates deployment according to the latest deployment template values.
+- `migrate_to_latest_hardware` (Boolean) When set to true, the deployment will be updated according to the latest deployment template values.
+
+~> **Note** If the <code>instance_configuration_id</code> or <code>instance_configuration_version</code> fields are set for a specific topology element, that element will not be updated.
 - `name` (String) Name for the deployment
 - `observability` (Attributes) Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself by setting observability.deployment_id to `self`. (see [below for nested schema](#nestedatt--observability))
 - `request_id` (String) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
