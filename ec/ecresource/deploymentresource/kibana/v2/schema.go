@@ -74,33 +74,33 @@ func KibanaSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("kibana", false),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("kibana", false),
 				},
 			},
 			"latest_instance_configuration_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("kibana", false),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("kibana", false),
 				},
 			},
 			"instance_configuration_version": schema.Int64Attribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("kibana", true),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("kibana", true),
 				},
 			},
 			"latest_instance_configuration_version": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("kibana", true),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("kibana", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessMigrationisRequired("kibana", false),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("kibana", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{

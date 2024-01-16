@@ -28,7 +28,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
+// UseTopologyStateForUnknown Use current state for a topology's attribute, unless one of the following scenarios occurs:
+//  1. The deployment template attribute has changed
+//  2. `migrate_to_latest_hardware` is set to `true` and there is a migration available to be performed
 func UseTopologyStateForUnknown(topologyAttributeName string) useTopologyState {
 	return useTopologyState{topologyAttributeName: topologyAttributeName}
 }
