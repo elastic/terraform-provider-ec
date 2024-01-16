@@ -254,7 +254,7 @@ func (topology *ElasticsearchTopologyTF) parseLegacyNodeType(nodeType *models.El
 	return nil
 }
 
-func (topology *ElasticsearchTopologyTF) HasNodeType() bool {
+func (topology *ElasticsearchTopologyTF) HasNodeTypes() bool {
 	for _, nodeType := range []types.String{topology.NodeTypeData, topology.NodeTypeIngest, topology.NodeTypeMaster, topology.NodeTypeMl} {
 		if !nodeType.IsUnknown() && !nodeType.IsNull() && nodeType.ValueString() != "" {
 			return true

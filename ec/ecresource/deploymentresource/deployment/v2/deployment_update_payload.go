@@ -36,7 +36,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateResources, error) {
+func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateResources, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	newDtId := plan.DeploymentTemplateId.ValueString()
 	prevDtId := state.DeploymentTemplateId.ValueString()
 
@@ -48,7 +50,8 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 	})
 
 	if err != nil {
-		return nil, err
+		diags.AddError("Failed to get template", err.Error())
+		return nil, diags
 	}
 
 	baseUpdatePayloads := &models.DeploymentUpdateResources{
@@ -60,11 +63,18 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		Kibana:             template.DeploymentTemplate.Resources.Kibana,
 	}
 
+	planHasNodeTypes, diags := elasticsearchv2.PlanHasNodeTypes(ctx, plan.Elasticsearch)
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
 	// If the deployment template has changed or MigrateToLatestHardware is true, we should use the template migration
 	// API to build the base update payloads
 	migrateToLatest := plan.MigrateToLatestHardware.ValueBool() || (newDtId != prevDtId && prevDtId != "")
 
-	if migrateToLatest {
+	// Template migration isn't available for deployments using node types
+	if migrateToLatest && !planHasNodeTypes {
 		// Get an update request from the template migration API
 		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
 			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
@@ -72,7 +82,8 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		)
 
 		if err != nil {
-			return nil, err
+			diags.AddError("Failed to get template migration request", err.Error())
+			return nil, diags
 		}
 
 		if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 {
@@ -100,7 +111,7 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		}
 	}
 
-	return baseUpdatePayloads, nil
+	return baseUpdatePayloads, diags
 }
 
 func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
@@ -115,12 +126,12 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	dtID := plan.DeploymentTemplateId.ValueString()
 
-	var diagsnostics diag.Diagnostics
+	var diagnostics diag.Diagnostics
 
-	basePayloads, err := plan.getBaseUpdatePayloads(ctx, client, state)
-	if err != nil {
-		diagsnostics.AddError("Failed to get base update payloads for deployment", err.Error())
-		return nil, diagsnostics
+	basePayloads, diags := plan.getBaseUpdatePayloads(ctx, client, state)
+
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	useNodeRoles, diags := elasticsearchv2.UseNodeRoles(ctx, state.Version, plan.Version, plan.Elasticsearch)
@@ -132,7 +143,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, &state.Elasticsearch, basePayloads, dtID, plan.Version.ValueString(), useNodeRoles)
 
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if elasticsearchPayload != nil {
@@ -146,7 +157,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	kibanaPayload, diags := kibanav2.KibanaPayload(ctx, plan.Kibana, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if kibanaPayload != nil {
@@ -155,7 +166,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	apmPayload, diags := apmv2.ApmPayload(ctx, plan.Apm, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if apmPayload != nil {
@@ -164,7 +175,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	integrationsServerPayload, diags := integrationsserverv2.IntegrationsServerPayload(ctx, plan.IntegrationsServer, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if integrationsServerPayload != nil {
@@ -173,7 +184,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	enterpriseSearchPayload, diags := enterprisesearchv2.EnterpriseSearchesPayload(ctx, plan.EnterpriseSearch, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if enterpriseSearchPayload != nil {
@@ -182,7 +193,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	observabilityPayload, diags := observabilityv2.ObservabilityPayload(ctx, plan.Observability, client)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 	result.Settings.Observability = observabilityPayload
 
@@ -195,10 +206,10 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, plan.Tags)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
-	return &result, diagsnostics
+	return &result, diagnostics
 }
 
 func ensurePartialSnapshotStrategy(es *models.ElasticsearchPayload) {
