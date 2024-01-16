@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
@@ -95,8 +96,12 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		filters = request.Settings.TrafficFilterSettings.Rulesets
 	}
 
-	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters)
+	var migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK
+	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters, migrateTemplateRequest)
 	updatePrivateStateTrafficFilters(ctx, resp.Private, filters)
+
+	// Store migrate request in private state
+	updatePrivateStateMigrateTemplateRequest(ctx, resp.Private, migrateTemplateRequest)
 
 	resp.Diagnostics.Append(diags...)
 	if deployment == nil {

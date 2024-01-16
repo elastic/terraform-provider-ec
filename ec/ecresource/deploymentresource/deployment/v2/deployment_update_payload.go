@@ -36,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateResources, diag.Diagnostics) {
+func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*models.DeploymentUpdateResources, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	newDtId := plan.DeploymentTemplateId.ValueString()
@@ -69,52 +69,57 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		return nil, diags
 	}
 
+	templateChanged := newDtId != prevDtId && prevDtId != ""
+
 	// If the deployment template has changed or MigrateToLatestHardware is true, we should use the template migration
 	// API to build the base update payloads
-	migrateToLatest := plan.MigrateToLatestHardware.ValueBool() || (newDtId != prevDtId && prevDtId != "")
+	migrateToLatest := plan.MigrateToLatestHardware.ValueBool() || templateChanged
 
 	// Template migration isn't available for deployments using node types
 	if migrateToLatest && !planHasNodeTypes {
-		// Get an update request from the template migration API
-		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
-			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
-			client.AuthWriter,
-		)
+		// If the template has changed, we can't use the migrate request from private state.
+		// In this case, we fetch a new update request again from the template migration API
+		if migrateTemplateRequest == nil {
+			migrateTemplateRequest, err = client.V1API.Deployments.MigrateDeploymentTemplate(
+				deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
+				client.AuthWriter,
+			)
+		}
 
 		if err != nil {
 			diags.AddError("Failed to get template migration request", err.Error())
 			return nil, diags
 		}
 
-		if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 {
-			baseUpdatePayloads.Apm = migrateUpdateRequest.Payload.Resources.Apm
+		if len(migrateTemplateRequest.Payload.Resources.Apm) > 0 {
+			baseUpdatePayloads.Apm = migrateTemplateRequest.Payload.Resources.Apm
 		}
 
-		if len(migrateUpdateRequest.Payload.Resources.Appsearch) > 0 {
-			baseUpdatePayloads.Appsearch = migrateUpdateRequest.Payload.Resources.Appsearch
+		if len(migrateTemplateRequest.Payload.Resources.Appsearch) > 0 {
+			baseUpdatePayloads.Appsearch = migrateTemplateRequest.Payload.Resources.Appsearch
 		}
 
-		if len(migrateUpdateRequest.Payload.Resources.Elasticsearch) > 0 {
-			baseUpdatePayloads.Elasticsearch = migrateUpdateRequest.Payload.Resources.Elasticsearch
+		if len(migrateTemplateRequest.Payload.Resources.Elasticsearch) > 0 {
+			baseUpdatePayloads.Elasticsearch = migrateTemplateRequest.Payload.Resources.Elasticsearch
 		}
 
-		if len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 {
-			baseUpdatePayloads.EnterpriseSearch = migrateUpdateRequest.Payload.Resources.EnterpriseSearch
+		if len(migrateTemplateRequest.Payload.Resources.EnterpriseSearch) > 0 {
+			baseUpdatePayloads.EnterpriseSearch = migrateTemplateRequest.Payload.Resources.EnterpriseSearch
 		}
 
-		if len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 {
-			baseUpdatePayloads.IntegrationsServer = migrateUpdateRequest.Payload.Resources.IntegrationsServer
+		if len(migrateTemplateRequest.Payload.Resources.IntegrationsServer) > 0 {
+			baseUpdatePayloads.IntegrationsServer = migrateTemplateRequest.Payload.Resources.IntegrationsServer
 		}
 
-		if len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 {
-			baseUpdatePayloads.Kibana = migrateUpdateRequest.Payload.Resources.Kibana
+		if len(migrateTemplateRequest.Payload.Resources.Kibana) > 0 {
+			baseUpdatePayloads.Kibana = migrateTemplateRequest.Payload.Resources.Kibana
 		}
 	}
 
 	return baseUpdatePayloads, diags
 }
 
-func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
+func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
 	var result = models.DeploymentUpdateRequest{
 		Name:         plan.Name.ValueString(),
 		Alias:        plan.Alias.ValueString(),
@@ -128,7 +133,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	var diagnostics diag.Diagnostics
 
-	basePayloads, diags := plan.getBaseUpdatePayloads(ctx, client, state)
+	basePayloads, diags := plan.getBaseUpdatePayloads(ctx, client, state, migrateTemplateRequest)
 
 	if diags.HasError() {
 		return nil, diags

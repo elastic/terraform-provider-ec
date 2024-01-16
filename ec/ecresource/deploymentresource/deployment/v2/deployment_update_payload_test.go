@@ -19,6 +19,7 @@ package v2
 
 import (
 	"context"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"io"
 	"testing"
 
@@ -2098,7 +2099,8 @@ func Test_updateResourceToModel(t *testing.T) {
 			diags = tfsdk.ValueFrom(context.Background(), state, schema.Type(), &stateTF)
 			assert.Nil(t, diags)
 
-			got, diags := plan.UpdateRequest(context.Background(), tt.args.client, stateTF)
+			var migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK
+			got, diags := plan.UpdateRequest(context.Background(), tt.args.client, stateTF, migrateTemplateRequest)
 			if tt.diags != nil {
 				assert.Equal(t, tt.diags, diags)
 			} else {
