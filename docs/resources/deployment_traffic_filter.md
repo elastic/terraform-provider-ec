@@ -105,7 +105,7 @@ resource "ec_deployment_traffic_filter" "azure" {
 }
 ```
 
-###GCP Private Service Connect traffic filter
+### GCP Private Service Connect traffic filter
 
 ```terraform
 locals {
