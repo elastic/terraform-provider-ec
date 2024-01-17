@@ -82,8 +82,12 @@ func (m useStateForUnknownUnlessMigrationIsRequired) UseState(ctx context.Contex
 	var migrateToLatestHw bool
 	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
 
-	isMigrationAvailable, d := CheckAvailableMigration(ctx, plan, state, path.Root(m.resourceKind))
-	diags.Append(d...)
+	isMigrationAvailable := false
+	// It's not necessary to check if a migration is available, when migrate_to_latest_hardware is not set
+	if migrateToLatestHw {
+		isMigrationAvailable, d = CheckAvailableMigration(ctx, plan, state, path.Root(m.resourceKind))
+		diags.Append(d...)
+	}
 
 	if diags.HasError() {
 		return false, diags

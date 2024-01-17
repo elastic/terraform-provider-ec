@@ -79,16 +79,16 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 	if migrateToLatest && !planHasNodeTypes {
 		// If the template has changed, we can't use the migrate request from private state.
 		// In this case, we fetch a new update request again from the template migration API
-		if migrateTemplateRequest == nil {
+		if migrateTemplateRequest == nil || templateChanged {
 			migrateTemplateRequest, err = client.V1API.Deployments.MigrateDeploymentTemplate(
 				deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
 				client.AuthWriter,
 			)
-		}
 
-		if err != nil {
-			diags.AddError("Failed to get template migration request", err.Error())
-			return nil, diags
+			if err != nil {
+				diags.AddError("Failed to get template migration request", err.Error())
+				return nil, diags
+			}
 		}
 
 		if len(migrateTemplateRequest.Payload.Resources.Apm) > 0 {
