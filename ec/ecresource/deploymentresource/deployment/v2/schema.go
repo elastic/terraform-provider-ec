@@ -133,7 +133,8 @@ func DeploymentSchema() schema.Schema {
 			"migrate_to_latest_hardware": schema.BoolAttribute{
 				Description: `When set to true, the deployment will be updated according to the latest deployment template values.
 
-~> **Note** If the <code>instance_configuration_id</code> or <code>instance_configuration_version</code> fields are set for a specific topology element, that element will not be updated.`,
+~> **Note** If the <code>instance_configuration_id</code> or <code>instance_configuration_version</code> fields are set for a specific topology element, that element will not be updated.
+~> **Note** Hardware migrations are not supported for deployments with node types. To use this field, the deployment needs to be migrated to node roles first.`,
 				Optional: true,
 			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
