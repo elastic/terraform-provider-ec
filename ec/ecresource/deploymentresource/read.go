@@ -65,11 +65,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	}
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	var migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK
-	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil, privateFilters, migrateTemplateRequest)
-
-	// Store migrate request in private state
-	updatePrivateStateMigrateTemplateRequest(ctx, response.Private, migrateTemplateRequest)
+	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil, privateFilters, response)
 
 	response.Diagnostics.Append(diags...)
 
@@ -85,7 +81,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 }
 
 // at least one of state and plan should not be nil
-func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource, privateFilters []string, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*deploymentv2.Deployment, diag.Diagnostics) {
+func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource, privateFilters []string, readResponse *resource.ReadResponse) (*deploymentv2.Deployment, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var base deploymentv2.DeploymentTF
@@ -185,11 +181,14 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	if !deployment.HasNodeTypes() {
 		// The MigrateDeploymentTemplate request can only be performed for deployments that use node roles.
 		// We'll skip this logic for deployments with node types.
-		if migrateTemplateRequest == nil {
-			migrateTemplateRequest, err = r.client.V1API.Deployments.MigrateDeploymentTemplate(
-				deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(deployment.Id).WithTemplateID(deployment.DeploymentTemplateId),
-				r.client.AuthWriter,
-			)
+		migrateTemplateRequest, err := r.client.V1API.Deployments.MigrateDeploymentTemplate(
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(deployment.Id).WithTemplateID(deployment.DeploymentTemplateId),
+			r.client.AuthWriter,
+		)
+
+		// Store migrate request in private state
+		if readResponse != nil {
+			updatePrivateStateMigrateTemplateRequest(ctx, readResponse.Private, migrateTemplateRequest)
 		}
 
 		if err != nil {
