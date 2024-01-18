@@ -276,6 +276,23 @@ func (topology *ElasticsearchTopology) HasNodeTypes() bool {
 	return false
 }
 
+func (topology *ElasticsearchTopologyTF) checkAvailableMigration(state *ElasticsearchTopologyTF) bool {
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !topology.InstanceConfigurationId.IsUnknown() || !topology.InstanceConfigurationVersion.IsUnknown() {
+		return false
+	}
+
+	instanceConfigIdsDiff := state.InstanceConfigurationId != state.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := state.InstanceConfigurationVersion != state.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff
+}
+
 func objectToTopology(ctx context.Context, obj types.Object) (*ElasticsearchTopologyTF, diag.Diagnostics) {
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil, nil

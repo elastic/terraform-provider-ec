@@ -56,13 +56,8 @@ type ElasticsearchTF struct {
 }
 
 func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.Object, updateResources *models.DeploymentUpdateResources, dtID, version string, useNodeRoles bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
-	var es *ElasticsearchTF
-
-	if plan.IsNull() || plan.IsUnknown() {
-		return nil, nil
-	}
-
-	if diags := tfsdk.ValueAs(ctx, plan, &es); diags.HasError() {
+	es, diags := objectToElasticsearch(ctx, plan)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -78,6 +73,50 @@ func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.O
 	}
 
 	return payload, nil
+}
+
+func objectToElasticsearch(ctx context.Context, plan types.Object) (*ElasticsearchTF, diag.Diagnostics) {
+	var es *ElasticsearchTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &es); diags.HasError() {
+		return nil, diags
+	}
+
+	return es, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	esPlan, diags := objectToElasticsearch(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	esState, diags := objectToElasticsearch(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	planTiers, diags := esPlan.topologies(ctx)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	stateTiers, diags := esState.topologies(ctx)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	for topologyId, tier := range planTiers {
+		if tier != nil && stateTiers[topologyId] != nil && tier.checkAvailableMigration(stateTiers[topologyId]) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *types.Object) (*models.ElasticsearchPayload, diag.Diagnostics) {

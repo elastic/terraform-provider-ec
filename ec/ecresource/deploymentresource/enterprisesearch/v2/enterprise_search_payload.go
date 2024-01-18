@@ -99,11 +99,8 @@ func (es *EnterpriseSearchTF) payload(ctx context.Context, payload models.Enterp
 }
 
 func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.EnterpriseSearchPayload, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	var es *EnterpriseSearchTF
-
-	if diags = tfsdk.ValueAs(ctx, esObj, &es); diags.HasError() {
+	es, diags := objectToEnterpriseSearch(ctx, esObj)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -128,6 +125,47 @@ func EnterpriseSearchesPayload(ctx context.Context, esObj types.Object, updateRe
 	}
 
 	return payload, nil
+}
+
+func objectToEnterpriseSearch(ctx context.Context, plan types.Object) (*EnterpriseSearchTF, diag.Diagnostics) {
+	var enterpriseSearch *EnterpriseSearchTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &enterpriseSearch); diags.HasError() {
+		return nil, diags
+	}
+
+	return enterpriseSearch, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	esPlan, diags := objectToEnterpriseSearch(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	esState, diags := objectToEnterpriseSearch(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !esPlan.InstanceConfigurationId.IsUnknown() || !esPlan.InstanceConfigurationVersion.IsUnknown() {
+		return false, nil
+	}
+
+	instanceConfigIdsDiff := esState.InstanceConfigurationId != esState.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := esState.InstanceConfigurationVersion != esState.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, nil
 }
 
 // payloadFromUpdate returns the EnterpriseSearchPayload from a deployment

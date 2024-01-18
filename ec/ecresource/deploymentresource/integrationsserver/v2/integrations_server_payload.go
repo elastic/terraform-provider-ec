@@ -89,11 +89,8 @@ func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.Inte
 }
 
 func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.IntegrationsServerPayload, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	var srv *IntegrationsServerTF
-
-	if diags = tfsdk.ValueAs(ctx, srvObj, &srv); diags.HasError() {
+	srv, diags := objectToIntegrationsServer(ctx, srvObj)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -115,6 +112,47 @@ func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, updateR
 	}
 
 	return payload, nil
+}
+
+func objectToIntegrationsServer(ctx context.Context, plan types.Object) (*IntegrationsServerTF, diag.Diagnostics) {
+	var integrationsServer *IntegrationsServerTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &integrationsServer); diags.HasError() {
+		return nil, diags
+	}
+
+	return integrationsServer, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	integrationsServerPlan, diags := objectToIntegrationsServer(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	integrationsServerState, diags := objectToIntegrationsServer(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !integrationsServerPlan.InstanceConfigurationId.IsUnknown() || !integrationsServerPlan.InstanceConfigurationVersion.IsUnknown() {
+		return false, nil
+	}
+
+	instanceConfigIdsDiff := integrationsServerState.InstanceConfigurationId != integrationsServerState.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := integrationsServerState.InstanceConfigurationVersion != integrationsServerState.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, nil
 }
 
 // payloadFromUpdate returns the IntegrationsServerPayload from a deployment

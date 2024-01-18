@@ -19,13 +19,11 @@ package v2
 
 import (
 	"context"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
@@ -63,17 +61,24 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		Kibana:             template.DeploymentTemplate.Resources.Kibana,
 	}
 
-	planHasNodeTypes, diags := elasticsearchv2.PlanHasNodeTypes(ctx, plan.Elasticsearch)
+	planHasNodeTypes, d := elasticsearchv2.PlanHasNodeTypes(ctx, plan.Elasticsearch)
 
-	if diags.HasError() {
-		return nil, diags
+	if d.HasError() {
+		return nil, d
 	}
 
 	templateChanged := newDtId != prevDtId && prevDtId != ""
 
+	isMigrationAvailable := false
+	// It's not necessary to check if a migration is available, when migrate_to_latest_hardware is not set
+	if plan.MigrateToLatestHardware.ValueBool() {
+		isMigrationAvailable, d = plan.checkAvailableMigration(ctx, state)
+		diags.Append(d...)
+	}
+
 	// If the deployment template has changed or MigrateToLatestHardware is true, we should use the template migration
 	// API to build the base update payloads
-	migrateToLatest := plan.MigrateToLatestHardware.ValueBool() || templateChanged
+	migrateToLatest := templateChanged || (plan.MigrateToLatestHardware.ValueBool() && isMigrationAvailable)
 
 	// Template migration isn't available for deployments using node types
 	if migrateToLatest && !planHasNodeTypes {
@@ -215,6 +220,34 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	}
 
 	return &result, diagnostics
+}
+
+func (plan DeploymentTF) checkAvailableMigration(ctx context.Context, state DeploymentTF) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	esHasMigration, d := elasticsearchv2.CheckAvailableMigration(ctx, plan.Elasticsearch, state.Elasticsearch)
+
+	diags.Append(d...)
+
+	apmHasMigration, d := apmv2.CheckAvailableMigration(ctx, plan.Apm, state.Apm)
+
+	diags.Append(d...)
+
+	entSearchHasMigration, d := enterprisesearchv2.CheckAvailableMigration(ctx, plan.EnterpriseSearch, state.EnterpriseSearch)
+
+	diags.Append(d...)
+
+	intServerHasMigration, d := integrationsserverv2.CheckAvailableMigration(ctx, plan.IntegrationsServer, state.IntegrationsServer)
+
+	diags.Append(d...)
+
+	kibanaHasMigration, d := kibanav2.CheckAvailableMigration(ctx, plan.Kibana, state.Kibana)
+
+	diags.Append(d...)
+
+	isMigrationAvailable := esHasMigration || apmHasMigration || entSearchHasMigration || intServerHasMigration || kibanaHasMigration
+
+	return isMigrationAvailable, diags
 }
 
 func ensurePartialSnapshotStrategy(es *models.ElasticsearchPayload) {

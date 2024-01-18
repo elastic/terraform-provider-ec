@@ -94,11 +94,8 @@ func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*model
 }
 
 func ApmPayload(ctx context.Context, apmObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.ApmPayload, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	var apm *ApmTF
-
-	if diags = tfsdk.ValueAs(ctx, apmObj, &apm); diags.HasError() {
+	apm, diags := objectToApm(ctx, apmObj)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -120,6 +117,47 @@ func ApmPayload(ctx context.Context, apmObj types.Object, updateResources *model
 	}
 
 	return payload, nil
+}
+
+func objectToApm(ctx context.Context, plan types.Object) (*ApmTF, diag.Diagnostics) {
+	var apm *ApmTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &apm); diags.HasError() {
+		return nil, diags
+	}
+
+	return apm, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	apmPlan, diags := objectToApm(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	apmState, diags := objectToApm(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !apmPlan.InstanceConfigurationId.IsUnknown() || !apmPlan.InstanceConfigurationVersion.IsUnknown() {
+		return false, nil
+	}
+
+	instanceConfigIdsDiff := apmState.InstanceConfigurationId != apmState.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := apmState.InstanceConfigurationVersion != apmState.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, nil
 }
 
 // payloadFromUpdate returns the ApmPayload from a deployment

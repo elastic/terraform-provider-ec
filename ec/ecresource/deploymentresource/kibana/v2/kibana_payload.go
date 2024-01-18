@@ -93,11 +93,8 @@ func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload
 }
 
 func KibanaPayload(ctx context.Context, kibanaObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.KibanaPayload, diag.Diagnostics) {
-	var kibanaTF *KibanaTF
-
-	var diags diag.Diagnostics
-
-	if diags = tfsdk.ValueAs(ctx, kibanaObj, &kibanaTF); diags.HasError() {
+	kibanaTF, diags := objectToKibana(ctx, kibanaObj)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -119,6 +116,47 @@ func KibanaPayload(ctx context.Context, kibanaObj types.Object, updateResources 
 	}
 
 	return payload, nil
+}
+
+func objectToKibana(ctx context.Context, plan types.Object) (*KibanaTF, diag.Diagnostics) {
+	var kibana *KibanaTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &kibana); diags.HasError() {
+		return nil, diags
+	}
+
+	return kibana, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	kibanaPlan, diags := objectToKibana(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	kibanaState, diags := objectToKibana(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !kibanaPlan.InstanceConfigurationId.IsUnknown() || !kibanaPlan.InstanceConfigurationVersion.IsUnknown() {
+		return false, nil
+	}
+
+	instanceConfigIdsDiff := kibanaState.InstanceConfigurationId != kibanaState.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := kibanaState.InstanceConfigurationVersion != kibanaState.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, nil
 }
 
 // payloadFromUpdate returns the KibanaPayload from a deployment
