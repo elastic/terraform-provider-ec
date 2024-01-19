@@ -47,7 +47,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	}
 
 	// Read migrate request from private state
-	migrateTemplateRequest, diags := readPrivateStateMigrateTemplateRequest(ctx, req.Private)
+	migrateTemplateRequest, diags := ReadPrivateStateMigrateTemplateRequest(ctx, req.Private)
 
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)

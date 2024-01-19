@@ -188,7 +188,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 		// Store migrate request in private state
 		if readResponse != nil {
-			updatePrivateStateMigrateTemplateRequest(ctx, readResponse.Private, migrateTemplateRequest)
+			UpdatePrivateStateMigrateTemplateRequest(ctx, readResponse.Private, migrateTemplateRequest)
 		}
 
 		if err != nil {
