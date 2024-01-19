@@ -73,7 +73,6 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
 	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
 	topologyStateDefined, d := planmodifiers.AttributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), state)
-
 	diags.Append(d...)
 
 	if diags.HasError() {
@@ -85,21 +84,29 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 	}
 
 	templateChanged, d := planmodifiers.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
-
 	diags.Append(d...)
+
+	// If template changed, we won't use state
+	if templateChanged {
+		return false, diags
+	}
 
 	var migrateToLatestHw bool
 	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
 
-	isMigrationAvailable, d := planmodifiers.CheckAvailableMigration(ctx, plan, state, path.Root("elasticsearch").AtName(m.topologyAttributeName))
+	// If migrate_to_latest_hardware isn't set, we want to use state
+	if !migrateToLatestHw {
+		return true, diags
+	}
 
+	isMigrationAvailable, d := planmodifiers.CheckAvailableMigration(ctx, plan, state, path.Root("elasticsearch").AtName(m.topologyAttributeName))
 	diags.Append(d...)
 
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged || (migrateToLatestHw && isMigrationAvailable) {
+	if isMigrationAvailable {
 		return false, diags
 	}
 

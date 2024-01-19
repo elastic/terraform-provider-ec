@@ -79,21 +79,27 @@ func (m useStateForUnknownUnlessMigrationIsRequired) UseState(ctx context.Contex
 	templateChanged, d := AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
 	diags.Append(d...)
 
+	// If template changed, we won't use state
+	if templateChanged {
+		return false, diags
+	}
+
 	var migrateToLatestHw bool
 	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
 
-	isMigrationAvailable := false
-	// It's not necessary to check if a migration is available, when migrate_to_latest_hardware is not set
-	if migrateToLatestHw {
-		isMigrationAvailable, d = CheckAvailableMigration(ctx, plan, state, path.Root(m.resourceKind))
-		diags.Append(d...)
+	// If migrate_to_latest_hardware isn't set, we want to use state
+	if !migrateToLatestHw {
+		return true, diags
 	}
+
+	isMigrationAvailable, d := CheckAvailableMigration(ctx, plan, state, path.Root(m.resourceKind))
+	diags.Append(d...)
 
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged || (migrateToLatestHw && isMigrationAvailable) {
+	if isMigrationAvailable {
 		return false, diags
 	}
 

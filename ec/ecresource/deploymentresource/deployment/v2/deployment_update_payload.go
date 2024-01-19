@@ -63,65 +63,88 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 
 	planHasNodeTypes, d := elasticsearchv2.PlanHasNodeTypes(ctx, plan.Elasticsearch)
 
+	// Template migration isn't available for deployments using node types
+	if planHasNodeTypes {
+		return baseUpdatePayloads, diags
+	}
+
 	if d.HasError() {
 		return nil, d
 	}
 
 	templateChanged := newDtId != prevDtId && prevDtId != ""
 
-	isMigrationAvailable := false
-	// It's not necessary to check if a migration is available, when migrate_to_latest_hardware is not set
-	if plan.MigrateToLatestHardware.ValueBool() {
-		isMigrationAvailable, d = plan.checkAvailableMigration(ctx, state)
+	// If the deployment template has changed, we should use the template migration API to build the base update payloads
+	if templateChanged {
+		// If the template has changed, we can't use the migrate request from private state. This is why we set
+		// migrateTemplateRequest to nil here, so that a new request has to be performed
+		d = plan.updateBasePayloadsForMigration(client, newDtId, nil, baseUpdatePayloads)
+		diags.Append(d...)
+
+		return baseUpdatePayloads, diags
+	}
+
+	// If migrate_to_latest_hardware isn't set, we won't update the base payloads
+	if !plan.MigrateToLatestHardware.ValueBool() {
+		return baseUpdatePayloads, diags
+	}
+
+	isMigrationAvailable, d := plan.checkAvailableMigration(ctx, state)
+	diags.Append(d...)
+
+	// If MigrateToLatestHardware is true and a migration is available, we should use the template migration API to
+	// build the base update payloads
+	if isMigrationAvailable {
+		// Update baseUpdatePayloads according to migrateTemplateRequest
+		d = plan.updateBasePayloadsForMigration(client, newDtId, migrateTemplateRequest, baseUpdatePayloads)
 		diags.Append(d...)
 	}
 
-	// If the deployment template has changed or MigrateToLatestHardware is true, we should use the template migration
-	// API to build the base update payloads
-	migrateToLatest := templateChanged || (plan.MigrateToLatestHardware.ValueBool() && isMigrationAvailable)
+	return baseUpdatePayloads, diags
+}
 
-	// Template migration isn't available for deployments using node types
-	if migrateToLatest && !planHasNodeTypes {
-		// If the template has changed, we can't use the migrate request from private state.
-		// In this case, we fetch a new update request again from the template migration API
-		if migrateTemplateRequest == nil || templateChanged {
-			migrateTemplateRequest, err = client.V1API.Deployments.MigrateDeploymentTemplate(
-				deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
-				client.AuthWriter,
-			)
+func (plan DeploymentTF) updateBasePayloadsForMigration(client *api.API, newDtId string, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK, baseUpdatePayloads *models.DeploymentUpdateResources) diag.Diagnostics {
+	var err error
+	var diags diag.Diagnostics
 
-			if err != nil {
-				diags.AddError("Failed to get template migration request", err.Error())
-				return nil, diags
-			}
-		}
+	// If migrate request is nil, we need fetch a new update request from the template migration API
+	if migrateTemplateRequest == nil {
+		migrateTemplateRequest, err = client.V1API.Deployments.MigrateDeploymentTemplate(
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
+			client.AuthWriter,
+		)
 
-		if len(migrateTemplateRequest.Payload.Resources.Apm) > 0 {
-			baseUpdatePayloads.Apm = migrateTemplateRequest.Payload.Resources.Apm
-		}
-
-		if len(migrateTemplateRequest.Payload.Resources.Appsearch) > 0 {
-			baseUpdatePayloads.Appsearch = migrateTemplateRequest.Payload.Resources.Appsearch
-		}
-
-		if len(migrateTemplateRequest.Payload.Resources.Elasticsearch) > 0 {
-			baseUpdatePayloads.Elasticsearch = migrateTemplateRequest.Payload.Resources.Elasticsearch
-		}
-
-		if len(migrateTemplateRequest.Payload.Resources.EnterpriseSearch) > 0 {
-			baseUpdatePayloads.EnterpriseSearch = migrateTemplateRequest.Payload.Resources.EnterpriseSearch
-		}
-
-		if len(migrateTemplateRequest.Payload.Resources.IntegrationsServer) > 0 {
-			baseUpdatePayloads.IntegrationsServer = migrateTemplateRequest.Payload.Resources.IntegrationsServer
-		}
-
-		if len(migrateTemplateRequest.Payload.Resources.Kibana) > 0 {
-			baseUpdatePayloads.Kibana = migrateTemplateRequest.Payload.Resources.Kibana
+		if err != nil {
+			diags.AddError("Failed to get template migration request", err.Error())
+			return diags
 		}
 	}
 
-	return baseUpdatePayloads, diags
+	if len(migrateTemplateRequest.Payload.Resources.Apm) > 0 {
+		baseUpdatePayloads.Apm = migrateTemplateRequest.Payload.Resources.Apm
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.Appsearch) > 0 {
+		baseUpdatePayloads.Appsearch = migrateTemplateRequest.Payload.Resources.Appsearch
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.Elasticsearch) > 0 {
+		baseUpdatePayloads.Elasticsearch = migrateTemplateRequest.Payload.Resources.Elasticsearch
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.EnterpriseSearch) > 0 {
+		baseUpdatePayloads.EnterpriseSearch = migrateTemplateRequest.Payload.Resources.EnterpriseSearch
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.IntegrationsServer) > 0 {
+		baseUpdatePayloads.IntegrationsServer = migrateTemplateRequest.Payload.Resources.IntegrationsServer
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.Kibana) > 0 {
+		baseUpdatePayloads.Kibana = migrateTemplateRequest.Payload.Resources.Kibana
+	}
+
+	return diags
 }
 
 func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
