@@ -144,6 +144,10 @@ func CheckAvailableMigration(ctx context.Context, plan types.Object, state types
 		return false, diags
 	}
 
+	if apmPlan == nil || apmState == nil {
+		return false, nil
+	}
+
 	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
 	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
 	// template IC has different size increments

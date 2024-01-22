@@ -100,6 +100,10 @@ func CheckAvailableMigration(ctx context.Context, plan types.Object, state types
 		return false, diags
 	}
 
+	if esPlan == nil || esState == nil {
+		return false, nil
+	}
+
 	planTiers, diags := esPlan.topologies(ctx)
 	if diags.HasError() {
 		return false, diags
