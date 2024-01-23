@@ -37,6 +37,10 @@ func Test_KibanaPayload(t *testing.T) {
 	getUpdateResources := func() *models.DeploymentUpdateResources {
 		return testutil.UpdatePayloadsFromTemplate(t, tplPath)
 	}
+	tplPathWithIcVersion := "../../testdata/template-aws-io-optimized-v2-ic_version.json"
+	getUpdateResourcesWithIcVersion := func() *models.DeploymentUpdateResources {
+		return testutil.UpdatePayloadsFromTemplate(t, tplPathWithIcVersion)
+	}
 	type args struct {
 		kibana          *Kibana
 		updateResources *models.DeploymentUpdateResources
@@ -84,26 +88,6 @@ func Test_KibanaPayload(t *testing.T) {
 			},
 		},
 		{
-			name: "parses a kibana resource with incorrect instance_configuration_id",
-			args: args{
-				updateResources: getUpdateResources(),
-				kibana: &Kibana{
-					RefId:                     ec.String("main-kibana"),
-					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					InstanceConfigurationId:   ec.String("gcp.some.config"),
-					Size:                      ec.String("2g"),
-					ZoneCount:                 1,
-				},
-			},
-			diags: func() diag.Diagnostics {
-				var diags diag.Diagnostics
-				diags.AddError("kibana topology payload error", `kibana topology: invalid instance_configuration_id: "gcp.some.config" doesn't match any of the deployment template instance configurations`)
-				return diags
-			}(),
-		},
-		{
 			name: "parses a kibana resource without topology",
 			args: args{
 				updateResources: getUpdateResources(),
@@ -134,9 +118,9 @@ func Test_KibanaPayload(t *testing.T) {
 			},
 		},
 		{
-			name: "parses a kibana resource with a topology but no instance_configuration_id",
+			name: "parses a kibana resource with a topology but no instance_configuration_id or instance_configuration_version - use values from template",
 			args: args{
-				updateResources: getUpdateResources(),
+				updateResources: getUpdateResourcesWithIcVersion(),
 				kibana: &Kibana{
 					RefId:                     ec.String("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
@@ -154,8 +138,44 @@ func Test_KibanaPayload(t *testing.T) {
 					Kibana: &models.KibanaConfiguration{},
 					ClusterTopology: []*models.KibanaClusterTopologyElement{
 						{
-							ZoneCount:               1,
-							InstanceConfigurationID: "aws.kibana.r5d",
+							ZoneCount:                    1,
+							InstanceConfigurationID:      "aws.kibana.r5d",
+							InstanceConfigurationVersion: ec.Int32(3),
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "parses a kibana resource with instance_configuration_id or instance_configuration_version",
+			args: args{
+				updateResources: getUpdateResources(),
+				kibana: &Kibana{
+					RefId:                        ec.String("main-kibana"),
+					ResourceId:                   &mock.ValidClusterID,
+					Region:                       ec.String("some-region"),
+					ElasticsearchClusterRefId:    ec.String("somerefid"),
+					InstanceConfigurationId:      ec.String("testing.ic"),
+					InstanceConfigurationVersion: ec.Int(4),
+					Size:                         ec.String("4g"),
+				},
+			},
+			want: &models.KibanaPayload{
+
+				ElasticsearchClusterRefID: ec.String("somerefid"),
+				Region:                    ec.String("some-region"),
+				RefID:                     ec.String("main-kibana"),
+				Plan: &models.KibanaClusterPlan{
+					Kibana: &models.KibanaConfiguration{},
+					ClusterTopology: []*models.KibanaClusterTopologyElement{
+						{
+							ZoneCount:                    1,
+							InstanceConfigurationID:      "testing.ic",
+							InstanceConfigurationVersion: ec.Int32(4),
 							Size: &models.TopologySize{
 								Resource: ec.String("memory"),
 								Value:    ec.Int32(4096),

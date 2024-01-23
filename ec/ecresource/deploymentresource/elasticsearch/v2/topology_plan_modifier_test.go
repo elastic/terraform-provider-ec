@@ -88,13 +88,135 @@ func Test_topologyPlanModifier(t *testing.T) {
 		},
 
 		{
-			name: "it should use the current state if the topology is defined in the state and the template has not changed",
+			name: "it should not use state if the migrate_to_latest_hardware is true and migration is available",
 			args: args{
 				attributePlan: types.StringUnknown(),
 				deploymentState: deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion:       ec.Int(0),
+							LatestInstanceConfigurationVersion: ec.Int(1),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: ec.String("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: ec.Bool(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: false,
+		},
+
+		{
+			name: "it should use state if the migrate_to_latest_hardware is true but migration is not available",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationId:            ec.String("aws.data.highio.i3"),
+							LatestInstanceConfigurationId:      ec.String("aws.data.highio.i3"),
+							InstanceConfigurationVersion:       ec.Int(0),
+							LatestInstanceConfigurationVersion: ec.Int(0),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: ec.String("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: ec.Bool(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: true,
+		},
+
+		{
+			name: "it should use state if IC version is defined for the topology element, even if migration is available",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion:       ec.Int(0),
+							LatestInstanceConfigurationVersion: ec.Int(1),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: ec.String("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: ec.Bool(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion: ec.Int(1),
+							Autoscaling:                  &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: true,
+		},
+
+		{
+			name: "it should use state if IC ID is defined for the topology element, even if migration is available",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion:       ec.Int(0),
+							LatestInstanceConfigurationVersion: ec.Int(1),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: ec.String("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: ec.Bool(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationId: ec.String("aws.data.highio.c5d"),
+							Autoscaling:             &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: true,
+		},
+
+		{
+			name: "it should use the current state if the topology is defined in the state, the template has not changed, and migrate_to_latest_hardware is undefined",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationId:       ec.String("aws.data.highio.i3"),
+							LatestInstanceConfigurationId: ec.String("aws.data.highio.c5d"),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
 								MaxSize: ec.String("1g"),
 							},

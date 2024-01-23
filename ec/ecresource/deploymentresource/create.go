@@ -20,7 +20,6 @@ package deploymentresource
 import (
 	"context"
 	"fmt"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -95,7 +94,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		filters = request.Settings.TrafficFilterSettings.Rulesets
 	}
 
-	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters)
+	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters, nil)
 	updatePrivateStateTrafficFilters(ctx, resp.Private, filters)
 
 	resp.Diagnostics.Append(diags...)

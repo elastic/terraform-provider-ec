@@ -94,15 +94,24 @@ func legacyToNodeRoles(ctx context.Context, stateVersion, planVersion types.Stri
 	// properties set, the node_role field cannot be used, since
 	// we'd be changing the version AND migrating over `node_role`s
 	// which is not permitted by the API.
+	hasNodeTypes, d := PlanHasNodeTypes(ctx, planElasticsearch)
 
+	diags.Append(d...)
+
+	return !hasNodeTypes, d
+}
+
+func PlanHasNodeTypes(ctx context.Context, planElasticsearch types.Object) (bool, diag.Diagnostics) {
 	var es *ElasticsearchTF
 
-	if diags := tfsdk.ValueAs(ctx, planElasticsearch, &es); diags.HasError() {
+	diags := tfsdk.ValueAs(ctx, planElasticsearch, &es)
+
+	if diags.HasError() {
 		return false, diags
 	}
 
 	if es == nil {
-		diags.AddError("Cannot migrate node types to node roles", "cannot find elasticsearch object")
+		diags.AddError("Cannot determine if node types are defined", "cannot find elasticsearch object")
 		return false, diags
 	}
 
@@ -113,12 +122,12 @@ func legacyToNodeRoles(ctx context.Context, stateVersion, planVersion types.Stri
 	}
 
 	for _, tier := range tiers {
-		if tier != nil && tier.HasNodeType() {
-			return false, nil
+		if tier != nil && tier.HasNodeTypes() {
+			return true, nil
 		}
 	}
 
-	return true, nil
+	return false, nil
 }
 
 // if useState is false, useNodeRoles is always false

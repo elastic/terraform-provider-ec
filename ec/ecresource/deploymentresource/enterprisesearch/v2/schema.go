@@ -73,14 +73,33 @@ func EnterpriseSearchSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", false),
+				},
+			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", false),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", true),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{

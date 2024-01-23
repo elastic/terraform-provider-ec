@@ -84,8 +84,9 @@ func Test_ReadKibana(t *testing.T) {
 									},
 									ClusterTopology: []*models.KibanaClusterTopologyElement{
 										{
-											ZoneCount:               1,
-											InstanceConfigurationID: "aws.kibana.r4",
+											ZoneCount:                    1,
+											InstanceConfigurationID:      "aws.kibana.r4",
+											InstanceConfigurationVersion: ec.Int32(5),
 											Size: &models.TopologySize{
 												Resource: ec.String("memory"),
 												Value:    ec.Int32(1024),
@@ -128,8 +129,9 @@ func Test_ReadKibana(t *testing.T) {
 										},
 									},
 									ClusterTopology: []*models.KibanaClusterTopologyElement{{
-										ZoneCount:               1,
-										InstanceConfigurationID: "aws.kibana.r4",
+										ZoneCount:                    1,
+										InstanceConfigurationID:      "aws.kibana.r4",
+										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
 											Resource: ec.String("memory"),
 											Value:    ec.Int32(1024),
@@ -154,10 +156,11 @@ func Test_ReadKibana(t *testing.T) {
 					UserSettingsJson:         ec.String(`{"some.setting":"value"}`),
 					UserSettingsOverrideJson: ec.String(`{"some.setting":"override"}`),
 				},
-				InstanceConfigurationId: ec.String("aws.kibana.r4"),
-				Size:                    ec.String("1g"),
-				SizeResource:            ec.String("memory"),
-				ZoneCount:               1,
+				InstanceConfigurationId:      ec.String("aws.kibana.r4"),
+				InstanceConfigurationVersion: ec.Int(5),
+				Size:                         ec.String("1g"),
+				SizeResource:                 ec.String("memory"),
+				ZoneCount:                    1,
 			},
 		},
 	}

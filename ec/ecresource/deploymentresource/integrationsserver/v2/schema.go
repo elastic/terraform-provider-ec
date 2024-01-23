@@ -87,14 +87,33 @@ func IntegrationsServerSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", false),
+				},
+			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", false),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", true),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{

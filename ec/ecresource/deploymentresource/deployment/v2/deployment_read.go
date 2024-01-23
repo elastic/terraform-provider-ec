@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"slices"
 	"strings"
 
@@ -61,6 +62,7 @@ type Deployment struct {
 	EnterpriseSearch           *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
 	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
 	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
+	MigrateToLatestHardware    *bool                                    `tfsdk:"migrate_to_latest_hardware"`
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan
@@ -101,6 +103,59 @@ func nullifyUnspecifiedZeroSizedTier(tierPlan types.Object, tier *elasticsearchv
 	}
 
 	return tier
+}
+
+// SetLatestInstanceConfigInfo Sets latest instance_configuration_id and instance_configuration_version for each
+// topology element, based on the migrate template request
+func (dep *Deployment) SetLatestInstanceConfigInfo(migrateUpdateRequest *deployments.MigrateDeploymentTemplateOK) {
+	if migrateUpdateRequest == nil {
+		return
+	}
+
+	if dep.Elasticsearch != nil {
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.HotTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "hot"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.WarmTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "warm"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.ColdTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "cold"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.FrozenTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "frozen"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.MlTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "ml"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.MasterTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "master"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.CoordinatingTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "coordinating"))
+	}
+
+	if migrateUpdateRequest.Payload.Resources.Apm != nil && len(migrateUpdateRequest.Payload.Resources.Apm) > 0 && len(migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology) > 0 {
+		apmv2.SetLatestInstanceConfigInfo(dep.Apm, migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology[0])
+	}
+
+	if migrateUpdateRequest.Payload.Resources.EnterpriseSearch != nil && len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 && len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology) > 0 {
+		enterprisesearchv2.SetLatestInstanceConfigInfo(dep.EnterpriseSearch, migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology[0])
+	}
+
+	if migrateUpdateRequest.Payload.Resources.IntegrationsServer != nil && len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 && len(migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology) > 0 {
+		integrationsserverv2.SetLatestInstanceConfigInfo(dep.IntegrationsServer, migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology[0])
+	}
+
+	if migrateUpdateRequest.Payload.Resources.Kibana != nil && len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 && len(migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology) > 0 {
+		kibanav2.SetLatestInstanceConfigInfo(dep.Kibana, migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology[0])
+	}
+}
+
+// SetLatestInstanceConfigInfoToCurrent Sets latest instance_configuration_id and instance_configuration_version for each
+// topology element, based on the current values
+func (dep *Deployment) SetLatestInstanceConfigInfoToCurrent() {
+	if dep.Elasticsearch != nil {
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.HotTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.WarmTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.ColdTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.FrozenTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.MlTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.MasterTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.CoordinatingTier)
+	}
+
+	apmv2.SetLatestInstanceConfigInfoToCurrent(dep.Apm)
+	enterprisesearchv2.SetLatestInstanceConfigInfoToCurrent(dep.EnterpriseSearch)
+	integrationsserverv2.SetLatestInstanceConfigInfoToCurrent(dep.IntegrationsServer)
+	kibanav2.SetLatestInstanceConfigInfoToCurrent(dep.Kibana)
 }
 
 func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteResources, deploymentResources []*models.DeploymentResource) (*Deployment, error) {
@@ -275,6 +330,17 @@ func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
 	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.ValueString() != "" {
 		dep.ApmSecretToken = ec.String(state.ApmSecretToken.ValueString())
 	}
+}
+
+func (dep *Deployment) HasNodeTypes() bool {
+	if dep.Elasticsearch != nil {
+		for _, t := range dep.Elasticsearch.GetTopologies() {
+			if t.HasNodeTypes() {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func getLowestVersion(res *models.DeploymentResources) (string, error) {

@@ -19,8 +19,6 @@ package v2
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v1"
@@ -40,6 +38,10 @@ func readEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*
 	var topology v1.EnterpriseSearchTopology
 
 	topology.InstanceConfigurationId = ec.String(in.InstanceConfigurationID)
+
+	if in.InstanceConfigurationVersion != nil {
+		topology.InstanceConfigurationVersion = ec.Int(int(*in.InstanceConfigurationVersion))
+	}
 
 	if in.Size != nil {
 		topology.Size = ec.String(util.MemoryToState(*in.Size.Value))
@@ -87,22 +89,15 @@ func readEnterpriseSearchTopologies(in []*models.EnterpriseSearchTopologyElement
 	return topologies, nil
 }
 
-func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.EnterpriseSearchTopologyTF, planModels []*models.EnterpriseSearchTopologyElement, index int) (*models.EnterpriseSearchTopologyElement, diag.Diagnostics) {
+func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.EnterpriseSearchTopologyTF, model *models.EnterpriseSearchTopologyElement) (*models.EnterpriseSearchTopologyElement, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	icID := topology.InstanceConfigurationId.ValueString()
-
-	// When a topology element is set but no instance_configuration_id
-	// is set, then obtain the instance_configuration_id from the topology
-	// element.
-	if icID == "" && index < len(planModels) {
-		icID = planModels[index].InstanceConfigurationID
+	if topology.InstanceConfigurationId.ValueString() != "" {
+		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	elem, err := matchTopology(icID, planModels)
-	if err != nil {
-		diags.AddError("cannot match enterprise search topology", err.Error())
-		return nil, diags
+	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
+		model.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
 	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
@@ -122,13 +117,13 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 		}
 	}
 
-	elem.Size = size
+	model.Size = size
 
 	if topology.ZoneCount.ValueInt64() > 0 {
-		elem.ZoneCount = int32(topology.ZoneCount.ValueInt64())
+		model.ZoneCount = int32(topology.ZoneCount.ValueInt64())
 	}
 
-	return elem, nil
+	return model, nil
 }
 
 // defaultTopology iterates over all the templated topology elements and
@@ -145,16 +140,4 @@ func defaultTopology(topology []*models.EnterpriseSearchTopologyElement) []*mode
 	}
 
 	return topology
-}
-
-func matchTopology(id string, topologies []*models.EnterpriseSearchTopologyElement) (*models.EnterpriseSearchTopologyElement, error) {
-	for _, t := range topologies {
-		if t.InstanceConfigurationID == id {
-			return t, nil
-		}
-	}
-	return nil, fmt.Errorf(
-		`invalid instance_configuration_id: "%s" doesn't match any of the deployment template instance configurations`,
-		id,
-	)
 }

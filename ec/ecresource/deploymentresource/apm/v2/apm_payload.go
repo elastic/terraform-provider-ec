@@ -30,17 +30,20 @@ import (
 )
 
 type ApmTF struct {
-	ElasticsearchClusterRefId types.String `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     types.String `tfsdk:"ref_id"`
-	ResourceId                types.String `tfsdk:"resource_id"`
-	Region                    types.String `tfsdk:"region"`
-	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
-	Size                      types.String `tfsdk:"size"`
-	SizeResource              types.String `tfsdk:"size_resource"`
-	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
-	Config                    types.Object `tfsdk:"config"`
+	ElasticsearchClusterRefId          types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                              types.String `tfsdk:"ref_id"`
+	ResourceId                         types.String `tfsdk:"resource_id"`
+	Region                             types.String `tfsdk:"region"`
+	HttpEndpoint                       types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint                      types.String `tfsdk:"https_endpoint"`
+	InstanceConfigurationId            types.String `tfsdk:"instance_configuration_id"`
+	LatestInstanceConfigurationId      types.String `tfsdk:"latest_instance_configuration_id"`
+	InstanceConfigurationVersion       types.Int64  `tfsdk:"instance_configuration_version"`
+	LatestInstanceConfigurationVersion types.Int64  `tfsdk:"latest_instance_configuration_version"`
+	Size                               types.String `tfsdk:"size"`
+	SizeResource                       types.String `tfsdk:"size_resource"`
+	ZoneCount                          types.Int64  `tfsdk:"zone_count"`
+	Config                             types.Object `tfsdk:"config"`
 }
 
 func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*models.ApmPayload, diag.Diagnostics) {
@@ -71,13 +74,15 @@ func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*model
 	}
 
 	topology := topologyv1.TopologyTF{
-		InstanceConfigurationId: apm.InstanceConfigurationId,
-		Size:                    apm.Size,
-		SizeResource:            apm.SizeResource,
-		ZoneCount:               apm.ZoneCount,
+		InstanceConfigurationId:      apm.InstanceConfigurationId,
+		InstanceConfigurationVersion: apm.InstanceConfigurationVersion,
+		Size:                         apm.Size,
+		SizeResource:                 apm.SizeResource,
+		ZoneCount:                    apm.ZoneCount,
 	}
 
-	topologyPayload, ds := apmTopologyPayload(ctx, topology, defaultApmTopology(payload.Plan.ClusterTopology), 0)
+	// Always use the first topology element - discard any other topology elements
+	topologyPayload, ds := apmTopologyPayload(ctx, topology, defaultApmTopology(payload.Plan.ClusterTopology)[0])
 
 	diags.Append(ds...)
 
@@ -89,11 +94,8 @@ func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*model
 }
 
 func ApmPayload(ctx context.Context, apmObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.ApmPayload, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	var apm *ApmTF
-
-	if diags = tfsdk.ValueAs(ctx, apmObj, &apm); diags.HasError() {
+	apm, diags := objectToApm(ctx, apmObj)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -115,6 +117,51 @@ func ApmPayload(ctx context.Context, apmObj types.Object, updateResources *model
 	}
 
 	return payload, nil
+}
+
+func objectToApm(ctx context.Context, plan types.Object) (*ApmTF, diag.Diagnostics) {
+	var apm *ApmTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &apm); diags.HasError() {
+		return nil, diags
+	}
+
+	return apm, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	apmPlan, diags := objectToApm(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	apmState, diags := objectToApm(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	if apmPlan == nil || apmState == nil {
+		return false, nil
+	}
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !apmPlan.InstanceConfigurationId.IsUnknown() || !apmPlan.InstanceConfigurationVersion.IsUnknown() {
+		return false, nil
+	}
+
+	instanceConfigIdsDiff := apmState.InstanceConfigurationId != apmState.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := apmState.InstanceConfigurationVersion != apmState.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, nil
 }
 
 // payloadFromUpdate returns the ApmPayload from a deployment

@@ -19,7 +19,6 @@ package deploymentresource
 
 import (
 	"context"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/depresourceapi"
@@ -47,7 +46,15 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	updateReq, diags := plan.UpdateRequest(ctx, r.client, state)
+	// Read migrate request from private state
+	migrateTemplateRequest, diags := ReadPrivateStateMigrateTemplateRequest(ctx, req.Private)
+
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	updateReq, diags := plan.UpdateRequest(ctx, r.client, state, migrateTemplateRequest)
 
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
@@ -83,7 +90,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	updatePrivateStateTrafficFilters(ctx, resp.Private, planRules)
 	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.ValueString(), plan.Elasticsearch)...)
 
-	deployment, diags := r.read(ctx, plan.Id.ValueString(), &state, &plan, res.Resources, planRules)
+	deployment, diags := r.read(ctx, plan.Id.ValueString(), &state, &plan, res.Resources, planRules, nil)
 
 	resp.Diagnostics.Append(diags...)
 

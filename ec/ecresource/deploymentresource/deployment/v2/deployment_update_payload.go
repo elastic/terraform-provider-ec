@@ -19,13 +19,11 @@ package v2
 
 import (
 	"context"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
@@ -36,7 +34,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateResources, error) {
+func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.API, state DeploymentTF, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*models.DeploymentUpdateResources, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	newDtId := plan.DeploymentTemplateId.ValueString()
 	prevDtId := state.DeploymentTemplateId.ValueString()
 
@@ -48,7 +48,8 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 	})
 
 	if err != nil {
-		return nil, err
+		diags.AddError("Failed to get template", err.Error())
+		return nil, diags
 	}
 
 	baseUpdatePayloads := &models.DeploymentUpdateResources{
@@ -60,48 +61,93 @@ func (plan DeploymentTF) getBaseUpdatePayloads(ctx context.Context, client *api.
 		Kibana:             template.DeploymentTemplate.Resources.Kibana,
 	}
 
-	// If the deployment template has changed then we should use the template migration API
-	// to build the base update payloads
-	if newDtId != prevDtId && prevDtId != "" {
-		// Get an update request from the template migration API
-		migrateUpdateRequest, err := client.V1API.Deployments.MigrateDeploymentTemplate(
+	planHasNodeTypes, d := elasticsearchv2.PlanHasNodeTypes(ctx, plan.Elasticsearch)
+
+	// Template migration isn't available for deployments using node types
+	if planHasNodeTypes {
+		return baseUpdatePayloads, diags
+	}
+
+	if d.HasError() {
+		return nil, d
+	}
+
+	templateChanged := newDtId != prevDtId && prevDtId != ""
+
+	// If the deployment template has changed, we should use the template migration API to build the base update payloads
+	if templateChanged {
+		// If the template has changed, we can't use the migrate request from private state. This is why we set
+		// migrateTemplateRequest to nil here, so that a new request has to be performed
+		d = plan.updateBasePayloadsForMigration(client, newDtId, nil, baseUpdatePayloads)
+		diags.Append(d...)
+
+		return baseUpdatePayloads, diags
+	}
+
+	// If migrate_to_latest_hardware isn't set, we won't update the base payloads
+	if !plan.MigrateToLatestHardware.ValueBool() {
+		return baseUpdatePayloads, diags
+	}
+
+	isMigrationAvailable, d := plan.checkAvailableMigration(ctx, state)
+	diags.Append(d...)
+
+	// If MigrateToLatestHardware is true and a migration is available, we should use the template migration API to
+	// build the base update payloads
+	if isMigrationAvailable {
+		// Update baseUpdatePayloads according to migrateTemplateRequest
+		d = plan.updateBasePayloadsForMigration(client, newDtId, migrateTemplateRequest, baseUpdatePayloads)
+		diags.Append(d...)
+	}
+
+	return baseUpdatePayloads, diags
+}
+
+func (plan DeploymentTF) updateBasePayloadsForMigration(client *api.API, newDtId string, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK, baseUpdatePayloads *models.DeploymentUpdateResources) diag.Diagnostics {
+	var err error
+	var diags diag.Diagnostics
+
+	// If migrate request is nil, we need fetch a new update request from the template migration API
+	if migrateTemplateRequest == nil {
+		migrateTemplateRequest, err = client.V1API.Deployments.MigrateDeploymentTemplate(
 			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(plan.Id.ValueString()).WithTemplateID(newDtId),
 			client.AuthWriter,
 		)
 
 		if err != nil {
-			return nil, err
-		}
-
-		if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 {
-			baseUpdatePayloads.Apm = migrateUpdateRequest.Payload.Resources.Apm
-		}
-
-		if len(migrateUpdateRequest.Payload.Resources.Appsearch) > 0 {
-			baseUpdatePayloads.Appsearch = migrateUpdateRequest.Payload.Resources.Appsearch
-		}
-
-		if len(migrateUpdateRequest.Payload.Resources.Elasticsearch) > 0 {
-			baseUpdatePayloads.Elasticsearch = migrateUpdateRequest.Payload.Resources.Elasticsearch
-		}
-
-		if len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 {
-			baseUpdatePayloads.EnterpriseSearch = migrateUpdateRequest.Payload.Resources.EnterpriseSearch
-		}
-
-		if len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 {
-			baseUpdatePayloads.IntegrationsServer = migrateUpdateRequest.Payload.Resources.IntegrationsServer
-		}
-
-		if len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 {
-			baseUpdatePayloads.Kibana = migrateUpdateRequest.Payload.Resources.Kibana
+			diags.AddError("Failed to get template migration request", err.Error())
+			return diags
 		}
 	}
 
-	return baseUpdatePayloads, nil
+	if len(migrateTemplateRequest.Payload.Resources.Apm) > 0 {
+		baseUpdatePayloads.Apm = migrateTemplateRequest.Payload.Resources.Apm
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.Appsearch) > 0 {
+		baseUpdatePayloads.Appsearch = migrateTemplateRequest.Payload.Resources.Appsearch
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.Elasticsearch) > 0 {
+		baseUpdatePayloads.Elasticsearch = migrateTemplateRequest.Payload.Resources.Elasticsearch
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.EnterpriseSearch) > 0 {
+		baseUpdatePayloads.EnterpriseSearch = migrateTemplateRequest.Payload.Resources.EnterpriseSearch
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.IntegrationsServer) > 0 {
+		baseUpdatePayloads.IntegrationsServer = migrateTemplateRequest.Payload.Resources.IntegrationsServer
+	}
+
+	if len(migrateTemplateRequest.Payload.Resources.Kibana) > 0 {
+		baseUpdatePayloads.Kibana = migrateTemplateRequest.Payload.Resources.Kibana
+	}
+
+	return diags
 }
 
-func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
+func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
 	var result = models.DeploymentUpdateRequest{
 		Name:         plan.Name.ValueString(),
 		Alias:        plan.Alias.ValueString(),
@@ -113,12 +159,12 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	dtID := plan.DeploymentTemplateId.ValueString()
 
-	var diagsnostics diag.Diagnostics
+	var diagnostics diag.Diagnostics
 
-	basePayloads, err := plan.getBaseUpdatePayloads(ctx, client, state)
-	if err != nil {
-		diagsnostics.AddError("Failed to get base update payloads for deployment", err.Error())
-		return nil, diagsnostics
+	basePayloads, diags := plan.getBaseUpdatePayloads(ctx, client, state, migrateTemplateRequest)
+
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	useNodeRoles, diags := elasticsearchv2.UseNodeRoles(ctx, state.Version, plan.Version, plan.Elasticsearch)
@@ -130,7 +176,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	elasticsearchPayload, diags := elasticsearchv2.ElasticsearchPayload(ctx, plan.Elasticsearch, &state.Elasticsearch, basePayloads, dtID, plan.Version.ValueString(), useNodeRoles)
 
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if elasticsearchPayload != nil {
@@ -144,7 +190,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	kibanaPayload, diags := kibanav2.KibanaPayload(ctx, plan.Kibana, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if kibanaPayload != nil {
@@ -153,7 +199,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	apmPayload, diags := apmv2.ApmPayload(ctx, plan.Apm, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if apmPayload != nil {
@@ -162,7 +208,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	integrationsServerPayload, diags := integrationsserverv2.IntegrationsServerPayload(ctx, plan.IntegrationsServer, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if integrationsServerPayload != nil {
@@ -171,7 +217,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	enterpriseSearchPayload, diags := enterprisesearchv2.EnterpriseSearchesPayload(ctx, plan.EnterpriseSearch, basePayloads)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
 	if enterpriseSearchPayload != nil {
@@ -180,7 +226,7 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	observabilityPayload, diags := observabilityv2.ObservabilityPayload(ctx, plan.Observability, client)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 	result.Settings.Observability = observabilityPayload
 
@@ -193,10 +239,38 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 
 	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, plan.Tags)
 	if diags.HasError() {
-		diagsnostics.Append(diags...)
+		diagnostics.Append(diags...)
 	}
 
-	return &result, diagsnostics
+	return &result, diagnostics
+}
+
+func (plan DeploymentTF) checkAvailableMigration(ctx context.Context, state DeploymentTF) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	esHasMigration, d := elasticsearchv2.CheckAvailableMigration(ctx, plan.Elasticsearch, state.Elasticsearch)
+
+	diags.Append(d...)
+
+	apmHasMigration, d := apmv2.CheckAvailableMigration(ctx, plan.Apm, state.Apm)
+
+	diags.Append(d...)
+
+	entSearchHasMigration, d := enterprisesearchv2.CheckAvailableMigration(ctx, plan.EnterpriseSearch, state.EnterpriseSearch)
+
+	diags.Append(d...)
+
+	intServerHasMigration, d := integrationsserverv2.CheckAvailableMigration(ctx, plan.IntegrationsServer, state.IntegrationsServer)
+
+	diags.Append(d...)
+
+	kibanaHasMigration, d := kibanav2.CheckAvailableMigration(ctx, plan.Kibana, state.Kibana)
+
+	diags.Append(d...)
+
+	isMigrationAvailable := esHasMigration || apmHasMigration || entSearchHasMigration || intServerHasMigration || kibanaHasMigration
+
+	return isMigrationAvailable, diags
 }
 
 func ensurePartialSnapshotStrategy(es *models.ElasticsearchPayload) {

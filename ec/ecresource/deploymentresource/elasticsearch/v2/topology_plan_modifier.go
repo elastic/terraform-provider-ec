@@ -28,7 +28,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// Use current state for a topology's attribute if the topology's state is not nil and the template attribute has not changed
+// UseTopologyStateForUnknown Use current state for a topology's attribute, unless one of the following scenarios occurs:
+//  1. The deployment template attribute has changed
+//  2. `migrate_to_latest_hardware` is set to `true` and there is a migration available to be performed
 func UseTopologyStateForUnknown(topologyAttributeName string) useTopologyState {
 	return useTopologyState{topologyAttributeName: topologyAttributeName}
 }
@@ -78,8 +80,7 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 
 	// we check state of entire topology state instead of topology attributes states because nil can be a valid state for some topology attributes
 	// e.g. `aws-io-optimized-v2` template doesn't specify `autoscaling_min` for `hot_content` so `min_size`'s state is nil
-	topologyStateDefined, d := attributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), state)
-
+	topologyStateDefined, d := planmodifiers.AttributeStateDefined(ctx, path.Root("elasticsearch").AtName(m.topologyAttributeName), state)
 	diags.Append(d...)
 
 	if diags.HasError() {
@@ -91,14 +92,29 @@ func (m useTopologyState) UseState(ctx context.Context, configValue attr.Value, 
 	}
 
 	templateChanged, d := planmodifiers.AttributeChanged(ctx, path.Root("deployment_template_id"), plan, state)
+	diags.Append(d...)
 
+	// If template changed, we won't use state
+	if templateChanged {
+		return false, diags
+	}
+
+	var migrateToLatestHw bool
+	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
+
+	// If migrate_to_latest_hardware isn't set, we want to use state
+	if !migrateToLatestHw {
+		return true, diags
+	}
+
+	isMigrationAvailable, d := planmodifiers.CheckAvailableMigration(ctx, plan, state, path.Root("elasticsearch").AtName(m.topologyAttributeName))
 	diags.Append(d...)
 
 	if diags.HasError() {
 		return false, diags
 	}
 
-	if templateChanged {
+	if isMigrationAvailable {
 		return false, diags
 	}
 
@@ -111,14 +127,4 @@ func (r useTopologyState) Description(ctx context.Context) string {
 
 func (r useTopologyState) MarkdownDescription(ctx context.Context) string {
 	return "Use tier's state if it's defined and template is the same."
-}
-
-func attributeStateDefined(ctx context.Context, p path.Path, state tfsdk.State) (bool, diag.Diagnostics) {
-	var val attr.Value
-
-	if diags := state.GetAttribute(ctx, p, &val); diags.HasError() {
-		return false, diags
-	}
-
-	return !val.IsNull() && !val.IsUnknown(), nil
 }

@@ -19,23 +19,27 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 type IntegrationsServer struct {
-	ElasticsearchClusterRefId *string                   `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     *string                   `tfsdk:"ref_id"`
-	ResourceId                *string                   `tfsdk:"resource_id"`
-	Region                    *string                   `tfsdk:"region"`
-	HttpEndpoint              *string                   `tfsdk:"http_endpoint"`
-	HttpsEndpoint             *string                   `tfsdk:"https_endpoint"`
-	Endpoints                 *Endpoints                `tfsdk:"endpoints"`
-	InstanceConfigurationId   *string                   `tfsdk:"instance_configuration_id"`
-	Size                      *string                   `tfsdk:"size"`
-	SizeResource              *string                   `tfsdk:"size_resource"`
-	ZoneCount                 int                       `tfsdk:"zone_count"`
-	Config                    *IntegrationsServerConfig `tfsdk:"config"`
+	ElasticsearchClusterRefId          *string                   `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                              *string                   `tfsdk:"ref_id"`
+	ResourceId                         *string                   `tfsdk:"resource_id"`
+	Region                             *string                   `tfsdk:"region"`
+	HttpEndpoint                       *string                   `tfsdk:"http_endpoint"`
+	HttpsEndpoint                      *string                   `tfsdk:"https_endpoint"`
+	Endpoints                          *Endpoints                `tfsdk:"endpoints"`
+	InstanceConfigurationId            *string                   `tfsdk:"instance_configuration_id"`
+	LatestInstanceConfigurationId      *string                   `tfsdk:"latest_instance_configuration_id"`
+	InstanceConfigurationVersion       *int                      `tfsdk:"instance_configuration_version"`
+	LatestInstanceConfigurationVersion *int                      `tfsdk:"latest_instance_configuration_version"`
+	Size                               *string                   `tfsdk:"size"`
+	SizeResource                       *string                   `tfsdk:"size_resource"`
+	ZoneCount                          int                       `tfsdk:"zone_count"`
+	Config                             *IntegrationsServerConfig `tfsdk:"config"`
 }
 
 type Endpoints struct {
@@ -80,6 +84,7 @@ func readIntegrationsServer(in *models.IntegrationsServerResourceInfo) (*Integra
 
 	if len(topologies) > 0 {
 		srv.InstanceConfigurationId = topologies[0].InstanceConfigurationId
+		srv.InstanceConfigurationVersion = topologies[0].InstanceConfigurationVersion
 		srv.Size = topologies[0].Size
 		srv.SizeResource = topologies[0].SizeResource
 		srv.ZoneCount = topologies[0].ZoneCount
@@ -130,4 +135,20 @@ func readEndpoints(in *models.IntegrationsServerResourceInfo) *Endpoints {
 func IsIntegrationsServerStopped(res *models.IntegrationsServerResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
+}
+
+func SetLatestInstanceConfigInfo(currentTopology *IntegrationsServer, latestTopology *models.IntegrationsServerTopologyElement) {
+	if currentTopology != nil && latestTopology != nil {
+		currentTopology.LatestInstanceConfigurationId = &latestTopology.InstanceConfigurationID
+		if latestTopology.InstanceConfigurationVersion != nil {
+			currentTopology.LatestInstanceConfigurationVersion = ec.Int(int(*latestTopology.InstanceConfigurationVersion))
+		}
+	}
+}
+
+func SetLatestInstanceConfigInfoToCurrent(topology *IntegrationsServer) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
+	}
 }
