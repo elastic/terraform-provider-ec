@@ -353,6 +353,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.
@@ -394,6 +395,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.
@@ -448,6 +450,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.
@@ -500,6 +503,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.
@@ -553,6 +557,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.
@@ -594,6 +599,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.
@@ -715,6 +721,7 @@ Read-Only:
 
 Optional:
 
+- `autoscale` (Boolean) Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.
 - `max_size` (String) Maximum size value for the maximum autoscaling setting.
 - `max_size_resource` (String) Maximum resource type for the maximum autoscaling setting.
 - `min_size` (String) Minimum size value for the minimum autoscaling setting.

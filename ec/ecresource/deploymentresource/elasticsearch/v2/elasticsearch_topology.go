@@ -211,6 +211,10 @@ func readElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterT
 		a.PolicyOverrideJson = ec.String(string(b))
 	}
 
+	if topology.AutoscalingTierOverride != nil {
+		a.TierAutoscale = topology.AutoscalingTierOverride
+	}
+
 	return &a, nil
 }
 
@@ -418,6 +422,10 @@ func elasticsearchTopologyAutoscalingPayload(ctx context.Context, autoObj attr.V
 			diag.AddError(fmt.Sprintf("elasticsearch topology %s: unable to load policy_override_json", topologyID), err.Error())
 			return diag
 		}
+	}
+
+	if !autoscale.TierAutoscale.IsNull() && !autoscale.TierAutoscale.IsUnknown() {
+		payload.AutoscalingTierOverride = autoscale.TierAutoscale.ValueBoolPointer()
 	}
 
 	return diag

@@ -87,6 +87,13 @@ resource "ec_deployment" "example_minimal" {
     hot = {
       autoscaling = {}
     }
+    
+    ml = {
+       autoscaling = {
+          autoscale = true
+       }
+    }
+    
   }
 
   kibana = {

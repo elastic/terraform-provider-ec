@@ -1123,6 +1123,109 @@ func Test_writeElasticsearch(t *testing.T) {
 			}),
 		},
 		{
+			name: "autoscaling enabled for ML tier only",
+			args: args{
+				esPlan: Elasticsearch{
+					RefId:      ec.String("main-elasticsearch"),
+					ResourceId: ec.String(mock.ValidClusterID),
+					Region:     ec.String("some-region"),
+					HotTier: &ElasticsearchTopology{
+						id: "hot_content",
+					},
+					MlTier: &ElasticsearchTopology{
+						id: "ml",
+						Autoscaling: &ElasticsearchTopologyAutoscaling{
+							TierAutoscale: ec.Bool(true),
+						},
+					},
+				},
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-hot-warm-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.11.1",
+				useNodeRoles:   true,
+			},
+			want: EnrichWithEmptyTopologies(hotWarm7111Tpl(), &models.ElasticsearchPayload{
+				Region: ec.String("some-region"),
+				RefID:  ec.String("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+					Curation:                  nil,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: ec.Bool(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version:  "7.11.1",
+						Curation: nil,
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: ec.String("aws-hot-warm-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID: "hot_content",
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							ZoneCount:               2,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(4096),
+							},
+							NodeRoles: []string{
+								"master",
+								"ingest",
+								"remote_cluster_client",
+								"data_hot",
+								"transform",
+								"data_content",
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: ec.String("memory"),
+							},
+						},
+						{
+							ID:                      "ml",
+							ZoneCount:               1,
+							InstanceConfigurationID: "aws.ml.m5d",
+							Size: &models.TopologySize{
+								Resource: ec.String("memory"),
+								Value:    ec.Int32(0),
+							},
+							NodeRoles: []string{
+								"ml",
+								"remote_cluster_client",
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: ec.String("memory"),
+									Value:    ec.Int32(0),
+								},
+							},
+							AutoscalingTierOverride: ec.Bool(true),
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(61440),
+								Resource: ec.String("memory"),
+							},
+							AutoscalingMin: &models.TopologySize{
+								Value:    ec.Int32(0),
+								Resource: ec.String("memory"),
+							},
+						},
+					},
+				},
+			}),
+		},
+		{
 			name: "autoscaling enabled",
 			args: args{
 				esPlan: Elasticsearch{
