@@ -90,6 +90,7 @@ func DeploymentSchema() schema.Schema {
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					setUnknownIfResetPasswordIsTrue{},
 				},
 			},
 			"elasticsearch_password": schema.StringAttribute{
