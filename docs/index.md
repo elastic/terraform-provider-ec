@@ -11,6 +11,10 @@ APIs. Use the navigation to the left to read about data sources and resources su
 * Elastic Cloud Enterprise (ECE).
 * Elasticsearch Service Private (ESSP).
 
+## Version guidance
+
+It is strongly recommended to consistently utilize the latest versions of both the Terraform ec provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
+
 ## Minimum Terraform version
 
 Due to bugs present in the Terraform CLI, this provider requires Terraform >= 1.2.7. Versions lower than this may not provide access to all defined attributes, and should not be used with this provider.
