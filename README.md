@@ -21,6 +21,10 @@ Things which are out of scope for provider:
 
 We now have Terraform provider for Elastic Stack https://github.com/elastic/terraform-provider-elasticstack which should be used for any operations on Elastic Stack products.
 
+## Version guidance
+
+It is strongly recommended to consistently utilize the latest versions of both the Terraform ec provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
+
 ## Support
 
 We welcome questions on how to use the Elastic providers. The providers are supported by Elastic. General questions, bugs and product issues should be raised in their corresponding repositories, either for the Elastic Stack provider, or the Elastic Cloud one. Questions can also be directed to the discuss forum. https://discuss.elastic.co/c/orchestration.
