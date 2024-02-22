@@ -13,7 +13,7 @@ APIs. Use the navigation to the left to read about data sources and resources su
 
 ## Version guidance
 
-It is strongly recommended to consistently utilize the latest versions of both the Terraform ec provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
+It is strongly recommended to consistently utilize the latest versions of both the Elastic Cloud terraform provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
 
 ## Minimum Terraform version
 
