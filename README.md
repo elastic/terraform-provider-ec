@@ -21,6 +21,10 @@ Things which are out of scope for provider:
 
 We now have Terraform provider for Elastic Stack https://github.com/elastic/terraform-provider-elasticstack which should be used for any operations on Elastic Stack products.
 
+## Version guidance
+
+It is strongly recommended to consistently utilize the latest versions of both the Elastic Cloud terraform provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
+
 ## Support
 
 We welcome questions on how to use the Elastic providers. The providers are supported by Elastic. General questions, bugs and product issues should be raised in their corresponding repositories, either for the Elastic Stack provider, or the Elastic Cloud one. Questions can also be directed to the discuss forum. https://discuss.elastic.co/c/orchestration.
@@ -87,13 +91,13 @@ resource "ec_deployment" "example_minimal" {
     hot = {
       autoscaling = {}
     }
-    
+
     ml = {
        autoscaling = {
           autoscale = true
        }
     }
-    
+
   }
 
   kibana = {
@@ -168,7 +172,7 @@ resource "ec_deployment" "defaults" {
 }
 ```
 
-- `topology` attribute of `elasticsearch` is replaced with a number of dedicated attributes, one per tier, e.g. 
+- `topology` attribute of `elasticsearch` is replaced with a number of dedicated attributes, one per tier, e.g.
 
 ```
   elasticsearch {
@@ -189,7 +193,7 @@ resource "ec_deployment" "defaults" {
   }
 ```
 
-has to be converted to 
+has to be converted to
 
 ```
   elasticsearch = {
@@ -210,7 +214,7 @@ has to be converted to
 
 ```
 
-- due to some existing limitations of TF, nested attributes that are nested inside other nested attributes cannot be `Computed`. It means that all such attributes have to be mentioned in configurations even if they are empty. E.g., a definition of `elasticsearch` has to include all topology elements (tiers) that have non-zero size or can be scaled up (if autoscaling is enabled) in the corresponding template. For example, the simplest definition of `elasticsearch` for `aws-io-optimized-v2` template is 
+- due to some existing limitations of TF, nested attributes that are nested inside other nested attributes cannot be `Computed`. It means that all such attributes have to be mentioned in configurations even if they are empty. E.g., a definition of `elasticsearch` has to include all topology elements (tiers) that have non-zero size or can be scaled up (if autoscaling is enabled) in the corresponding template. For example, the simplest definition of `elasticsearch` for `aws-io-optimized-v2` template is
 
 ```hcl
 resource "ec_deployment" "defaults" {
