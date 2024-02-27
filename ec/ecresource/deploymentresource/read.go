@@ -177,6 +177,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 	deployment.ProcessSelfInObservability()
 
 	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
+	diags.Append(deployment.PersistSnapshotSource(ctx, baseElasticsearch)...)
 
 	if !deployment.HasNodeTypes() {
 		// The MigrateDeploymentTemplate request can only be performed for deployments that use node roles.
