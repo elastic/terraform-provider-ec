@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -30,6 +31,8 @@ import (
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	observabilityv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v1"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1730,7 +1733,9 @@ func Test_ProcessSelfInObservability(t *testing.T) {
 	tests := []struct {
 		name                              string
 		deployment                        *Deployment
+		baseObservability                 *observabilityv1.Observability
 		expectedObservabilityDeploymentID *string
+		expectNonNilDiags                 bool
 	}{
 		{
 			name: "should noop if deployment is nil",
@@ -1746,13 +1751,40 @@ func Test_ProcessSelfInObservability(t *testing.T) {
 			},
 		},
 		{
-			name: "should set observability deployment id to _self_ if it equals the deployment id",
+			name: "should not change the observability deployment id to self if it equals the deployment id and the configured value is not self",
 			deployment: &Deployment{
 				Id: "deployment-id",
 				Observability: &observabilityv1.Observability{
 					DeploymentId: ec.String("deployment-id"),
 				},
 			},
+			baseObservability: &observabilityv1.Observability{
+				DeploymentId: ec.String("deployment-id"),
+			},
+			expectedObservabilityDeploymentID: ec.String("deployment-id"),
+		},
+		{
+			name: "should set observability deployment id to self if it equals the deployment id and the configured value is self",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv1.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			baseObservability: &observabilityv1.Observability{
+				DeploymentId: ec.String("self"),
+			},
+			expectedObservabilityDeploymentID: ec.String("self"),
+		},
+		{
+			name: "should set observability deployment id to self if it equals the deployment id and the configured value is not set",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv1.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			baseObservability:                 &observabilityv1.Observability{},
 			expectedObservabilityDeploymentID: ec.String("self"),
 		},
 		{
@@ -1769,7 +1801,20 @@ func Test_ProcessSelfInObservability(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.deployment.ProcessSelfInObservability()
+			var obj types.Object
+			if tt.baseObservability != nil {
+				diags := tfsdk.ValueFrom(context.Background(), tt.baseObservability, observabilityv2.ObservabilitySchema().GetType(), &obj)
+				require.Nil(t, diags)
+			}
+
+			baseDeployment := DeploymentTF{Observability: obj}
+
+			diags := tt.deployment.ProcessSelfInObservability(context.Background(), baseDeployment)
+			if tt.expectNonNilDiags {
+				require.NotNil(t, diags)
+			} else {
+				require.Nil(t, diags)
+			}
 
 			var finalObservabilityDeploymentID *string
 			if tt.deployment != nil && tt.deployment.Observability != nil {
