@@ -28,8 +28,10 @@ import (
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
+	observabilityv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v1"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_readDeployment(t *testing.T) {
@@ -1720,6 +1722,61 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_ProcessSelfInObservability(t *testing.T) {
+	tests := []struct {
+		name                              string
+		deployment                        *Deployment
+		expectedObservabilityDeploymentID *string
+	}{
+		{
+			name: "should noop if deployment is nil",
+		},
+		{
+			name:       "should noop if observability section is nil",
+			deployment: &Deployment{},
+		},
+		{
+			name: "should noop if observability deployment id is nil",
+			deployment: &Deployment{
+				Observability: &observabilityv1.Observability{},
+			},
+		},
+		{
+			name: "should set observability deployment id to _self_ if it equals the deployment id",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv1.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			expectedObservabilityDeploymentID: ec.String("self"),
+		},
+		{
+			name: "should not change the observability deployment id if it does not equal the deployment id",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv1.Observability{
+					DeploymentId: ec.String("another-deployment-id"),
+				},
+			},
+			expectedObservabilityDeploymentID: ec.String("another-deployment-id"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.deployment.ProcessSelfInObservability()
+
+			var finalObservabilityDeploymentID *string
+			if tt.deployment != nil && tt.deployment.Observability != nil {
+				finalObservabilityDeploymentID = tt.deployment.Observability.DeploymentId
+			}
+
+			require.Equal(t, tt.expectedObservabilityDeploymentID, finalObservabilityDeploymentID)
 		})
 	}
 }

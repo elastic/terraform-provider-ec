@@ -21,9 +21,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"slices"
 	"strings"
+
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 
 	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -271,8 +272,7 @@ func (dep *Deployment) parseCredentials(resources []*models.DeploymentResource) 
 }
 
 func (dep *Deployment) ProcessSelfInObservability() {
-
-	if dep.Observability == nil {
+	if dep == nil || dep.Observability == nil {
 		return
 	}
 
