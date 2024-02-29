@@ -84,6 +84,14 @@ func Test_readIntegrationsServer(t *testing.T) {
 									Service: ec.String("fleet"),
 									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
 								},
+								{
+									Service: ec.String("symbols"),
+									URL:     ec.String("https://symbols_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("profiling"),
+									URL:     ec.String("https://profiling_endpoint.cloud.elastic.co"),
+								},
 							},
 						},
 						PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
@@ -115,8 +123,10 @@ func Test_readIntegrationsServer(t *testing.T) {
 				HttpEndpoint:              ec.String("http://integrations_serverresource.cloud.elastic.co:9200"),
 				HttpsEndpoint:             ec.String("https://integrations_serverresource.cloud.elastic.co:9243"),
 				Endpoints: &Endpoints{
-					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
-					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
+					Fleet:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+					APM:       ec.String("https://apm_endpoint.cloud.elastic.co"),
+					Symbols:   ec.String("https://symbols_endpoint.cloud.elastic.co"),
+					Profiling: ec.String("https://profiling_endpoint.cloud.elastic.co"),
 				},
 				InstanceConfigurationId:      ec.String("aws.integrations_server.r4"),
 				InstanceConfigurationVersion: ec.Int(5),
@@ -152,6 +162,14 @@ func Test_readIntegrationsServer(t *testing.T) {
 									{
 										Service: ec.String("fleet"),
 										URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+									},
+									{
+										Service: ec.String("symbols"),
+										URL:     ec.String("https://symbols_endpoint.cloud.elastic.co"),
+									},
+									{
+										Service: ec.String("profiling"),
+										URL:     ec.String("https://profiling_endpoint.cloud.elastic.co"),
 									},
 								},
 							},
@@ -207,6 +225,14 @@ func Test_readIntegrationsServer(t *testing.T) {
 										Service: ec.String("fleet"),
 										URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
 									},
+									{
+										Service: ec.String("symbols"),
+										URL:     ec.String("https://symbols_endpoint.cloud.elastic.co"),
+									},
+									{
+										Service: ec.String("profiling"),
+										URL:     ec.String("https://profiling_endpoint.cloud.elastic.co"),
+									},
 								},
 							},
 							PlanInfo: &models.IntegrationsServerPlansInfo{Current: &models.IntegrationsServerPlanInfo{
@@ -247,8 +273,10 @@ func Test_readIntegrationsServer(t *testing.T) {
 				HttpEndpoint:              ec.String("http://integrations_serverresource.cloud.elastic.co:9200"),
 				HttpsEndpoint:             ec.String("https://integrations_serverresource.cloud.elastic.co:9243"),
 				Endpoints: &Endpoints{
-					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
-					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
+					Fleet:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+					APM:       ec.String("https://apm_endpoint.cloud.elastic.co"),
+					Symbols:   ec.String("https://symbols_endpoint.cloud.elastic.co"),
+					Profiling: ec.String("https://profiling_endpoint.cloud.elastic.co"),
 				},
 				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
 				Size:                    ec.String("1g"),
@@ -288,6 +316,14 @@ func Test_readIntegrationsServer(t *testing.T) {
 								{
 									Service: ec.String("fleet"),
 									URL:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("symbols"),
+									URL:     ec.String("https://symbols_endpoint.cloud.elastic.co"),
+								},
+								{
+									Service: ec.String("profiling"),
+									URL:     ec.String("https://profiling_endpoint.cloud.elastic.co"),
 								},
 							},
 						},
@@ -330,8 +366,10 @@ func Test_readIntegrationsServer(t *testing.T) {
 				HttpEndpoint:              ec.String("http://integrations_serverresource.cloud.elastic.co:9200"),
 				HttpsEndpoint:             ec.String("https://integrations_serverresource.cloud.elastic.co:9243"),
 				Endpoints: &Endpoints{
-					Fleet: ec.String("https://fleet_endpoint.cloud.elastic.co"),
-					APM:   ec.String("https://apm_endpoint.cloud.elastic.co"),
+					Fleet:     ec.String("https://fleet_endpoint.cloud.elastic.co"),
+					APM:       ec.String("https://apm_endpoint.cloud.elastic.co"),
+					Symbols:   ec.String("https://symbols_endpoint.cloud.elastic.co"),
+					Profiling: ec.String("https://profiling_endpoint.cloud.elastic.co"),
 				},
 				InstanceConfigurationId: ec.String("aws.integrations_server.r4"),
 				Size:                    ec.String("1g"),

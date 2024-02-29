@@ -43,8 +43,10 @@ type IntegrationsServer struct {
 }
 
 type Endpoints struct {
-	Fleet *string `tfsdk:"fleet"`
-	APM   *string `tfsdk:"apm"`
+	Fleet     *string `tfsdk:"fleet"`
+	APM       *string `tfsdk:"apm"`
+	Symbols   *string `tfsdk:"symbols"`
+	Profiling *string `tfsdk:"profiling"`
 }
 
 func ReadIntegrationsServers(in []*models.IntegrationsServerResourceInfo) (*IntegrationsServer, error) {
@@ -120,6 +122,12 @@ func readEndpoints(in *models.IntegrationsServerResourceInfo) *Endpoints {
 			hasValidEndpoints = true
 		case "fleet":
 			endpoints.Fleet = url.URL
+			hasValidEndpoints = true
+		case "symbols":
+			endpoints.Symbols = url.URL
+			hasValidEndpoints = true
+		case "profiling":
+			endpoints.Profiling = url.URL
 			hasValidEndpoints = true
 		}
 	}

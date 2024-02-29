@@ -76,8 +76,10 @@ func IntegrationsServerSchema() schema.Attribute {
 				Computed:    true,
 				Description: "URLs for the accessing the Fleet and APM API's within this Integrations Server resource.",
 				AttributeTypes: map[string]attr.Type{
-					"apm":   types.StringType,
-					"fleet": types.StringType,
+					"apm":       types.StringType,
+					"fleet":     types.StringType,
+					"symbols":   types.StringType,
+					"profiling": types.StringType,
 				},
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.UseStateForUnknown(),
