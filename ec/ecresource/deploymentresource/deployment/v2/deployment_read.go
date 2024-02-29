@@ -69,6 +69,10 @@ type Deployment struct {
 }
 
 func (dep *Deployment) PersistSnapshotSource(ctx context.Context, esPlan *elasticsearchv2.ElasticsearchTF) diag.Diagnostics {
+	if dep == nil || dep.Elasticsearch == nil {
+		return nil
+	}
+
 	if esPlan == nil || esPlan.SnapshotSource.IsNull() || esPlan.SnapshotSource.IsUnknown() {
 		return nil
 	}
