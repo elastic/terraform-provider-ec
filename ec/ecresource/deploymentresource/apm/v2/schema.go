@@ -19,16 +19,22 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 func ApmConfigSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
 		Description: `Optionally define the Apm configuration options for the APM Server`,
 		Optional:    true,
+		Validators: []validator.Object{
+			objectvalidator.AlsoRequires(path.MatchRoot("kibana")),
+		},
 		Attributes: map[string]schema.Attribute{
 			"docker_image": schema.StringAttribute{
 				Description: "Optionally override the docker image the APM nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",
