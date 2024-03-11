@@ -21,15 +21,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"slices"
 	"strings"
+
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 
 	"github.com/blang/semver"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
+	elasticsearchv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
@@ -39,6 +41,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -63,6 +66,28 @@ type Deployment struct {
 	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
 	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
 	MigrateToLatestHardware    *bool                                    `tfsdk:"migrate_to_latest_hardware"`
+}
+
+func (dep *Deployment) PersistSnapshotSource(ctx context.Context, esPlan *elasticsearchv2.ElasticsearchTF) diag.Diagnostics {
+	if dep == nil || dep.Elasticsearch == nil {
+		return nil
+	}
+
+	if esPlan == nil || esPlan.SnapshotSource.IsNull() || esPlan.SnapshotSource.IsUnknown() {
+		return nil
+	}
+
+	var snapshotSource *elasticsearchv1.ElasticsearchSnapshotSourceTF
+	if diags := tfsdk.ValueAs(ctx, esPlan.SnapshotSource, &snapshotSource); diags.HasError() {
+		return diags
+	}
+
+	dep.Elasticsearch.SnapshotSource = &elasticsearchv2.ElasticsearchSnapshotSource{
+		SourceElasticsearchClusterId: snapshotSource.SourceElasticsearchClusterId.ValueString(),
+		SnapshotName:                 snapshotSource.SnapshotName.ValueString(),
+	}
+
+	return nil
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan
