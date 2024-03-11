@@ -141,7 +141,7 @@ func ElasticsearchSchema() schema.Attribute {
 
 			"snapshot": elasticsearchSnapshotSchema(),
 
-			"snapshot_source": elasticsearchSnapshotSourceSchema(),
+			"snapshot_source": ElasticsearchSnapshotSourceSchema(),
 
 			"extension": elasticsearchExtensionSchema(),
 
@@ -361,7 +361,7 @@ func elasticsearchSnapshotRepositoryReferenceSchema() schema.Attribute {
 	}
 }
 
-func elasticsearchSnapshotSourceSchema() schema.Attribute {
+func ElasticsearchSnapshotSourceSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
 		Description: `Restores data from a snapshot of another deployment.
 

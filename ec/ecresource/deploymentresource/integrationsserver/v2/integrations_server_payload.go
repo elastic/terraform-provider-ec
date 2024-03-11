@@ -47,8 +47,10 @@ type IntegrationsServerTF struct {
 }
 
 type EndpointsTF struct {
-	Fleet *string `tfsdk:"fleet"`
-	APM   *string `tfsdk:"apm"`
+	Fleet     *string `tfsdk:"fleet"`
+	APM       *string `tfsdk:"apm"`
+	Symbols   *string `tfsdk:"symbols"`
+	Profiling *string `tfsdk:"profiling"`
 }
 
 func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.IntegrationsServerPayload) (*models.IntegrationsServerPayload, diag.Diagnostics) {

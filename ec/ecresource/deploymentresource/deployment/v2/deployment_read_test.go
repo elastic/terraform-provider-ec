@@ -26,6 +26,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
+	elasticsearchv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
@@ -1741,8 +1742,7 @@ func Test_ProcessSelfInObservability(t *testing.T) {
 		{
 			name: "should noop if deployment is nil",
 		},
-		{
-			name:       "should noop if observability section is nil",
+		{name: "should noop if observability section is nil",
 			deployment: &Deployment{},
 		},
 		{
@@ -1852,6 +1852,62 @@ func Test_ProcessSelfInObservability(t *testing.T) {
 			}
 
 			require.Equal(t, tt.expectedObservabilityDeploymentID, finalObservabilityDeploymentID)
+		})
+	}
+}
+
+func Test_PersistSnapshotSource(t *testing.T) {
+	tests := []struct {
+		name                                 string
+		deployment                           *Deployment
+		snapshotSource                       *elasticsearchv1.ElasticsearchSnapshotSource
+		expectedSourceElasticsearchClusterId string
+		expectedSnapshotName                 string
+	}{
+		{
+			name: "should noop if deployment is nil",
+		},
+		{
+			name:       "should noop if the esplan snapshot source is null",
+			deployment: &Deployment{},
+		},
+		{
+			name: "should set the snapshot source cluster and snapshot name if specified in the plan",
+			deployment: &Deployment{
+				Elasticsearch: &elasticsearchv2.Elasticsearch{},
+			},
+			snapshotSource: &elasticsearchv1.ElasticsearchSnapshotSource{
+				SourceElasticsearchClusterId: "source-cluster-id",
+				SnapshotName:                 "snapshot-name",
+			},
+			expectedSourceElasticsearchClusterId: "source-cluster-id",
+			expectedSnapshotName:                 "snapshot-name",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var obj types.Object
+			if tt.snapshotSource != nil {
+				diags := tfsdk.ValueFrom(context.Background(), tt.snapshotSource, elasticsearchv2.ElasticsearchSnapshotSourceSchema().GetType(), &obj)
+				require.Nil(t, diags)
+			}
+
+			esPlan := elasticsearchv2.ElasticsearchTF{
+				SnapshotSource: obj,
+			}
+
+			diags := tt.deployment.PersistSnapshotSource(context.Background(), &esPlan)
+			require.Nil(t, diags)
+
+			var snapshotName, sourceESClusterID string
+			if tt.deployment != nil && tt.deployment.Elasticsearch != nil && tt.deployment.Elasticsearch.SnapshotSource != nil {
+				snapshotName = tt.deployment.Elasticsearch.SnapshotSource.SnapshotName
+				sourceESClusterID = tt.deployment.Elasticsearch.SnapshotSource.SourceElasticsearchClusterId
+			}
+
+			require.Equal(t, tt.expectedSnapshotName, snapshotName)
+			require.Equal(t, tt.expectedSourceElasticsearchClusterId, sourceESClusterID)
 		})
 	}
 }
