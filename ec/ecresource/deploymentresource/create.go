@@ -20,8 +20,13 @@ package deploymentresource
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -94,7 +99,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		filters = request.Settings.TrafficFilterSettings.Rulesets
 	}
 
-	deployment, diags := r.read(ctx, *res.ID, nil, &plan, res.Resources, filters, nil)
+	deployment, diags := r.readUntilEndpointsAreAvailable(ctx, *res.ID, nil, &plan, res.Resources, filters, nil)
 	updatePrivateStateTrafficFilters(ctx, resp.Private, filters)
 
 	resp.Diagnostics.Append(diags...)
@@ -104,6 +109,27 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, deployment)...)
+}
+
+func (r *Resource) readUntilEndpointsAreAvailable(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource, privateFilters []string, readResponse *resource.ReadResponse) (deployment *deploymentv2.Deployment, diags diag.Diagnostics) {
+	for i := 12; i > 0; i-- {
+		deployment, diags = r.read(ctx, id, state, plan, deploymentResources, privateFilters, readResponse)
+		if diags.HasError() {
+			return deployment, diags
+		}
+
+		if deployment.IntegrationsServer == nil {
+			return deployment, diags
+		}
+
+		if deployment.IntegrationsServer.Endpoints != nil && deployment.IntegrationsServer.Endpoints.APM != nil && deployment.IntegrationsServer.Endpoints.Fleet != nil {
+			return deployment, diags
+		}
+
+		time.Sleep(15 * time.Second)
+	}
+
+	return deployment, diags
 }
 
 func newCreationError(reqID string) error {
