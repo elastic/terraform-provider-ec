@@ -174,7 +174,7 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 
 	deployment.SetCredentialsIfEmpty(state)
 
-	deployment.ProcessSelfInObservability()
+	diags.Append(deployment.ProcessSelfInObservability(ctx, base)...)
 
 	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
 	diags.Append(deployment.PersistSnapshotSource(ctx, baseElasticsearch)...)

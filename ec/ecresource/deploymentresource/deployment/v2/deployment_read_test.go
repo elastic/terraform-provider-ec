@@ -31,6 +31,7 @@ import (
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -1725,6 +1726,132 @@ func Test_getDeploymentTemplateID(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_ProcessSelfInObservability(t *testing.T) {
+	tests := []struct {
+		name                              string
+		deployment                        *Deployment
+		baseObservability                 *observabilityv2.Observability
+		observabilityIsUnknown            bool
+		expectedObservabilityDeploymentID *string
+		expectNonNilDiags                 bool
+	}{
+		{
+			name: "should noop if deployment is nil",
+		},
+		{name: "should noop if observability section is nil",
+			deployment: &Deployment{},
+		},
+		{
+			name: "should noop if observability deployment id is nil",
+			deployment: &Deployment{
+				Observability: &observabilityv2.Observability{},
+			},
+		},
+		{
+			name: "should not change the observability deployment id to self if it equals the deployment id and the configured value is not self",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv2.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			baseObservability: &observabilityv2.Observability{
+				DeploymentId: ec.String("deployment-id"),
+			},
+			expectedObservabilityDeploymentID: ec.String("deployment-id"),
+		},
+		{
+			name: "should set observability deployment id to self if it equals the deployment id and the configured value is self",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv2.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			baseObservability: &observabilityv2.Observability{
+				DeploymentId: ec.String("self"),
+			},
+			expectedObservabilityDeploymentID: ec.String("self"),
+		},
+		{
+			name: "should set observability deployment id to self if it equals the deployment id and the configured value is not set",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv2.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			baseObservability:                 &observabilityv2.Observability{},
+			expectedObservabilityDeploymentID: ec.String("self"),
+		},
+		{
+			name: "should not change the observability deployment id if it does not equal the deployment id",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv2.Observability{
+					DeploymentId: ec.String("another-deployment-id"),
+				},
+			},
+			expectedObservabilityDeploymentID: ec.String("another-deployment-id"),
+		},
+		{
+			name: "should set observability deployment id to self if it equals the deployment id and no observability is configured",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv2.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			expectedObservabilityDeploymentID: ec.String("self"),
+		},
+		{
+			name: "should set observability deployment id to self if it equals the deployment id and the configured value is unknown",
+			deployment: &Deployment{
+				Id: "deployment-id",
+				Observability: &observabilityv2.Observability{
+					DeploymentId: ec.String("deployment-id"),
+				},
+			},
+			observabilityIsUnknown:            true,
+			expectedObservabilityDeploymentID: ec.String("self"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var obj types.Object
+			observabilitySchema := observabilityv2.ObservabilitySchema().GetType()
+			schemaWithAttrs, ok := observabilitySchema.(attr.TypeWithAttributeTypes)
+			require.True(t, ok)
+
+			if tt.baseObservability != nil {
+				diags := tfsdk.ValueFrom(context.Background(), tt.baseObservability, observabilitySchema, &obj)
+				require.Nil(t, diags)
+			} else if tt.observabilityIsUnknown {
+				obj = types.ObjectUnknown(schemaWithAttrs.AttributeTypes())
+			} else {
+				obj = types.ObjectNull(schemaWithAttrs.AttributeTypes())
+			}
+
+			baseDeployment := DeploymentTF{Observability: obj}
+
+			diags := tt.deployment.ProcessSelfInObservability(context.Background(), baseDeployment)
+			if tt.expectNonNilDiags {
+				require.NotNil(t, diags)
+			} else {
+				require.Nil(t, diags)
+			}
+
+			var finalObservabilityDeploymentID *string
+			if tt.deployment != nil && tt.deployment.Observability != nil {
+				finalObservabilityDeploymentID = tt.deployment.Observability.DeploymentId
+			}
+
+			require.Equal(t, tt.expectedObservabilityDeploymentID, finalObservabilityDeploymentID)
 		})
 	}
 }

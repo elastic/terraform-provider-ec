@@ -36,6 +36,7 @@ import (
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
+	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v1"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
@@ -43,6 +44,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type Deployment struct {
@@ -295,19 +297,34 @@ func (dep *Deployment) parseCredentials(resources []*models.DeploymentResource) 
 	}
 }
 
-func (dep *Deployment) ProcessSelfInObservability() {
-
-	if dep.Observability == nil {
-		return
+func (dep *Deployment) ProcessSelfInObservability(ctx context.Context, base DeploymentTF) diag.Diagnostics {
+	if dep == nil || dep.Observability == nil {
+		return nil
 	}
 
 	if dep.Observability.DeploymentId == nil {
-		return
+		return nil
+	}
+
+	var baseObservability v1.ObservabilityTF
+	diags := base.Observability.As(ctx, &baseObservability, basetypes.ObjectAsOptions{
+		UnhandledNullAsEmpty:    true,
+		UnhandledUnknownAsEmpty: true,
+	})
+	if diags.HasError() {
+		return diags
+	}
+
+	deploymentIDIsKnown := !(baseObservability.DeploymentId.IsNull() || baseObservability.DeploymentId.IsUnknown())
+	if deploymentIDIsKnown && baseObservability.DeploymentId.ValueString() != "self" {
+		return nil
 	}
 
 	if *dep.Observability.DeploymentId == dep.Id {
 		*dep.Observability.DeploymentId = "self"
 	}
+
+	return nil
 }
 
 func (dep *Deployment) IncludePrivateStateTrafficFilters(ctx context.Context, base DeploymentTF, privateFilters []string) diag.Diagnostics {
