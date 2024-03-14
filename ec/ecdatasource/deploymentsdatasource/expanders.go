@@ -45,6 +45,15 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 		})
 	}
 
+	name := state.Name.ValueString()
+	if name != "" {
+		queries = append(queries, &models.QueryContainer{
+			Term: map[string]models.TermQuery{
+				"name.keyword": {Value: &name},
+			},
+		})
+	}
+
 	depTemplateID := state.DeploymentTemplateID.ValueString()
 	if depTemplateID != "" {
 		esPath := "resources.elasticsearch"

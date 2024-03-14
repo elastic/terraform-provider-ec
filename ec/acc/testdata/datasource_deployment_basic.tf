@@ -87,3 +87,11 @@ data "ec_deployments" "query" {
     ec_deployment.basic_datasource,
   ]
 }
+
+data "ec_deployments" "name_query" {
+  name = ec_deployment.basic_datasource.name
+
+  depends_on = [
+    ec_deployment.basic_datasource,
+  ]
+}

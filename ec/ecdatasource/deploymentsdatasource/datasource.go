@@ -21,8 +21,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -36,6 +38,7 @@ import (
 
 var _ datasource.DataSource = &DataSource{}
 var _ datasource.DataSourceWithConfigure = &DataSource{}
+var _ datasource.DataSourceWithConfigValidators = &DataSource{}
 
 type DataSource struct {
 	client *api.API
@@ -45,6 +48,16 @@ func (d *DataSource) Configure(ctx context.Context, request datasource.Configure
 	client, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
 	d.client = client
+}
+
+func (d *DataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		// Only one of name_prefix and name should be configured
+		datasourcevalidator.Conflicting(
+			path.MatchRoot("name_prefix"),
+			path.MatchRoot("name"),
+		),
+	}
 }
 
 func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {

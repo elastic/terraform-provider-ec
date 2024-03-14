@@ -158,6 +158,35 @@ func Test_expandFilters(t *testing.T) {
 			args:  args{state: newInvalidFilters(t)},
 			diags: diag.Diagnostics{diag.NewErrorDiagnostic("invalid value for healthy", "expected either [true] or [false] but got [invalid value]")},
 		},
+		{
+			name: "parses name filter correctly",
+			args: args{
+				state: modelV0{
+					Name: types.StringValue("test"),
+					Tags: types.MapNull(types.StringType),
+				},
+			},
+			want: &models.SearchRequest{
+				Sort: []interface{}{"id"},
+				Query: &models.QueryContainer{
+					Bool: &models.BoolQuery{
+						Filter: []*models.QueryContainer{
+							{
+								Bool: &models.BoolQuery{
+									Must: []*models.QueryContainer{
+										{
+											Term: map[string]models.TermQuery{
+												"name.keyword": {Value: ec.String("test")},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
