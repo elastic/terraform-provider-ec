@@ -78,8 +78,8 @@ Closes #1234
 
 ### Environment prerequisites
 
-- [Terraform](https://www.terraform.io/downloads.html) 0.13+
-- [Go](https://golang.org/doc/install) 1.13
+- [Terraform](https://www.terraform.io/downloads.html) At least 1.2.7
+- [Go](https://golang.org/doc/install) 1.21
 
 This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). Running `make vendor` will download all the required dependencies.
 

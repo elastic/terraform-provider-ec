@@ -919,6 +919,8 @@ Optional:
 
 - `apm` (String)
 - `fleet` (String)
+- `profiling` (String)
+- `symbols` (String)
 
 
 

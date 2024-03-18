@@ -1,0 +1,3 @@
+```release-note:feature
+datasource/deployments: Adds additional parameter `name` to allow searching by exact deployment name.
+```
