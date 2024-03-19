@@ -43,11 +43,18 @@ Since we heavily depend on `github.com/elastic/cloud-sdk-go`, make sure that dep
 
 ### Generating a changelog for the new version
 
-The changelog should be automatically generated on each push to `master` or the relevant branch, and the resulting changelog can be found at the top level under `CHANGELOG.md`. It is generated from a set of `<pr>.txt` files that are saved as a changelog. 
+The changelog can be found at the top level under `CHANGELOG.md`. It is generated from a set of `<pr>.txt` files that
+are saved as a changelog.
+
+To update the changelog, run `make changelog`.
 
 #### Patch version changelog
 
-When releasing patch versions, the changelog will be branched out in the minor branch, once the 
+When releasing patch versions, the changelog will be branched out in the minor branch.
+
+### Ensure the NOTICE file is up-to-date
+
+Run `make notice` to update the `NOTICE`.
 
 ## Executing the release
 
