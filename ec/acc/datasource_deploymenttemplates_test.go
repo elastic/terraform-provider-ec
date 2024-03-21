@@ -24,7 +24,7 @@ import (
 	"testing"
 )
 
-func Test_datasource_deploymenttemplates(t *testing.T) {
+func TestAcc_datasource_deploymenttemplates(t *testing.T) {
 	cfg := renderTerraformFile(t, "testdata/datasource_deploymenttemplates.tf", getRegion())
 	datasourceName := "data.ec_deployment_templates.test"
 	resource.ParallelTest(t, resource.TestCase{
