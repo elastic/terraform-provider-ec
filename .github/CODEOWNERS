@@ -1,4 +1,3 @@
 # These owners will be the default owners for everything in
 # the repository.
 *       @elastic/control-plane-stateful-applications @tobio
-docs/   @alaudazzi @elastic/control-plane-stateful-applications
