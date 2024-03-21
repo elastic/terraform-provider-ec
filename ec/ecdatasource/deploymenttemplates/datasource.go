@@ -85,6 +85,10 @@ func deploymentTemplatesListSchema() schema.ListNestedAttribute {
 					Description: "The minimum stack version that can used with this deployment template.",
 					Computed:    true,
 				},
+				"hidden": schema.BoolAttribute{
+					Description: "If the template is visible by default. (Outdated templates are hidden, but can still be used)",
+					Computed:    true,
+				},
 			},
 		},
 	}
@@ -144,7 +148,8 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 func mapResponseToModel(response []*models.DeploymentTemplateInfoV2, showHidden bool) []deploymentTemplateModel {
 	templates := make([]deploymentTemplateModel, 0, len(response))
 	for _, template := range response {
-		if !showHidden && isHidden(template) {
+		hidden := isHidden(template)
+		if !showHidden && hidden {
 			continue
 		}
 		templateModel := deploymentTemplateModel{
@@ -152,6 +157,7 @@ func mapResponseToModel(response []*models.DeploymentTemplateInfoV2, showHidden 
 			Name:            types.StringValue(*template.Name),
 			Description:     types.StringValue(template.Description),
 			MinStackVersion: types.StringValue(template.MinVersion),
+			Hidden:          types.BoolValue(hidden),
 		}
 		templates = append(templates, templateModel)
 	}
@@ -184,4 +190,5 @@ type deploymentTemplateModel struct {
 	Name            types.String `tfsdk:"name"`
 	Description     types.String `tfsdk:"description"`
 	MinStackVersion types.String `tfsdk:"min_stack_version"`
+	Hidden          types.Bool   `tfsdk:"hidden"`
 }

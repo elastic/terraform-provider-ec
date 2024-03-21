@@ -35,6 +35,7 @@ Use this data source to retrieve a list of available deployment templates.
 Read-Only:
 
 - `description` (String) The description of the deployment template.
+- `hidden` (Boolean) If the template is visible by default. (Outdated templates are hidden, but can still be used)
 - `id` (String) The id of the deployment template.
 - `min_stack_version` (String) The minimum stack version that can used with this deployment template.
 - `name` (String) The name of the deployment template.
