@@ -27,6 +27,7 @@ import (
 func TestAcc_datasource_deploymenttemplates(t *testing.T) {
 	cfg := renderTerraformFile(t, "testdata/datasource_deploymenttemplates.tf", getRegion())
 	datasourceName := "data.ec_deployment_templates.test"
+	datasourceNameById := "data.ec_deployment_templates.by_id"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactory,
@@ -40,6 +41,18 @@ func TestAcc_datasource_deploymenttemplates(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.description"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.elasticsearch.hot.instance_configuration_id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.elasticsearch.hot.default_size"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.elasticsearch.hot.available_sizes.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.elasticsearch.hot.size_resource"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.kibana.instance_configuration_id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.kibana.default_size"),
+					resource.TestCheckResourceAttrSet(datasourceName, "templates.0.kibana.size_resource"),
+
+					// Template found by id
+					resource.TestCheckResourceAttrSet(datasourceNameById, "templates.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceNameById, "templates.0.name"),
+					resource.TestCheckResourceAttrSet(datasourceNameById, "templates.0.description"),
 				),
 			},
 		},
@@ -52,5 +65,5 @@ func renderTerraformFile(t *testing.T, fileName string, region string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return fmt.Sprintf(string(b), region)
+	return fmt.Sprintf(string(b), region, region)
 }
