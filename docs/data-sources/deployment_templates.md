@@ -97,7 +97,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_enabled` (Boolean)
+- `autoscale` (Boolean)
 - `cold` (Attributes) Defines the default configuration for each topology. (
   see [below for nested schema](#nestedatt--templates--elasticsearch--cold))
 - `coordinating` (Attributes) Defines the default configuration for each topology. (
@@ -130,7 +130,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
@@ -154,7 +154,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
@@ -177,7 +177,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
@@ -200,7 +200,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
@@ -223,7 +223,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
@@ -246,7 +246,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
@@ -269,7 +269,7 @@ Read-Only:
 
 Read-Only:
 
-- `autoscaling_tier_override` (Boolean)
+- `autoscale` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
