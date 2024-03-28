@@ -59,8 +59,7 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 	showDeprecated := data.ShowDeprecated.ValueBool()
 	filerById := data.Id.ValueString()
 
-	templates := mapResponseToModel(res, showDeprecated, filerById)
-	data.Templates = templates
+	data.Templates = mapResponseToModel(res, showDeprecated, filerById)
 
 	// Finally, set the state
 	diags := response.State.Set(ctx, data)
