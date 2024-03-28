@@ -18,14 +18,14 @@
 package deploymenttemplates
 
 type elasticsearchModel struct {
-	AutoscalingEnabled *bool          `tfsdk:"autoscaling_enabled"`
-	HotTier            *topologyModel `tfsdk:"hot"`
-	CoordinatingTier   *topologyModel `tfsdk:"coordinating"`
-	MasterTier         *topologyModel `tfsdk:"master"`
-	WarmTier           *topologyModel `tfsdk:"warm"`
-	ColdTier           *topologyModel `tfsdk:"cold"`
-	FrozenTier         *topologyModel `tfsdk:"frozen"`
-	MlTier             *topologyModel `tfsdk:"ml"`
+	Autoscale        *bool          `tfsdk:"autoscale"`
+	HotTier          *topologyModel `tfsdk:"hot"`
+	CoordinatingTier *topologyModel `tfsdk:"coordinating"`
+	MasterTier       *topologyModel `tfsdk:"master"`
+	WarmTier         *topologyModel `tfsdk:"warm"`
+	ColdTier         *topologyModel `tfsdk:"cold"`
+	FrozenTier       *topologyModel `tfsdk:"frozen"`
+	MlTier           *topologyModel `tfsdk:"ml"`
 }
 
 type topologyModel struct {
@@ -38,9 +38,9 @@ type topologyModel struct {
 }
 
 type autoscalingModel struct {
-	AutoscalingTierOverride *bool   `tfsdk:"autoscaling_tier_override"`
-	MaxSizeResource         *string `tfsdk:"max_size_resource"`
-	MaxSize                 *string `tfsdk:"max_size"`
-	MinSizeResource         *string `tfsdk:"min_size_resource"`
-	MinSize                 *string `tfsdk:"min_size"`
+	Autoscale       *bool   `tfsdk:"autoscale"`
+	MaxSizeResource *string `tfsdk:"max_size_resource"`
+	MaxSize         *string `tfsdk:"max_size"`
+	MinSizeResource *string `tfsdk:"min_size_resource"`
+	MinSize         *string `tfsdk:"min_size"`
 }

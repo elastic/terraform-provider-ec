@@ -90,7 +90,7 @@ func elasticsearchSchema() schema.SingleNestedAttribute {
 		Description: "Defines the default configuration for Elasticsearch.",
 		Computed:    true,
 		Attributes: map[string]schema.Attribute{
-			"autoscaling_enabled": schema.BoolAttribute{
+			"autoscale": schema.BoolAttribute{
 				Computed: true,
 			},
 			"hot":          topologySchema(),
@@ -134,7 +134,7 @@ func autoscalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed: true,
 		Attributes: map[string]schema.Attribute{
-			"autoscaling_tier_override": schema.BoolAttribute{
+			"autoscale": schema.BoolAttribute{
 				Computed: true,
 			},
 			"max_size_resource": schema.StringAttribute{
