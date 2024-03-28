@@ -31,7 +31,13 @@ resource "ec_deployment" "my_deployment" {
   region                 = data.ec_deployment_templates.all_templates.region
   deployment_template_id = data.ec_deployment_templates.all_templates.templates.0.id
 
-  elasticsearch = data.ec_deployment_templates.all_templates.templates.0.elasticsearch
+  elasticsearch = {
+    hot = {
+      autoscaling = {}
+    }
+  }
+
+  kibana = {}
 }
 ```
 
@@ -75,7 +81,6 @@ Read-Only:
 - `name` (String) The name of the deployment template.
 
 <a id="nestedatt--templates--apm"></a>
-
 ### Nested Schema for `templates.apm`
 
 Read-Only:
@@ -86,12 +91,13 @@ Read-Only:
 - `instance_configuration_version` (Number)
 - `size_resource` (String)
 
-<a id="nestedatt--templates--elasticsearch"></a>
 
+<a id="nestedatt--templates--elasticsearch"></a>
 ### Nested Schema for `templates.elasticsearch`
 
 Read-Only:
 
+- `autoscaling_enabled` (Boolean)
 - `cold` (Attributes) Defines the default configuration for each topology. (
   see [below for nested schema](#nestedatt--templates--elasticsearch--cold))
 - `coordinating` (Attributes) Defines the default configuration for each topology. (
@@ -108,7 +114,6 @@ Read-Only:
   see [below for nested schema](#nestedatt--templates--elasticsearch--warm))
 
 <a id="nestedatt--templates--elasticsearch--cold"></a>
-
 ### Nested Schema for `templates.elasticsearch.cold`
 
 Read-Only:
@@ -121,18 +126,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--cold--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.cold.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--coordinating"></a>
-
 ### Nested Schema for `templates.elasticsearch.coordinating`
 
 Read-Only:
@@ -146,18 +150,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--coordinating--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.coordinating.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--frozen"></a>
-
 ### Nested Schema for `templates.elasticsearch.frozen`
 
 Read-Only:
@@ -170,18 +173,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--frozen--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.frozen.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--hot"></a>
-
 ### Nested Schema for `templates.elasticsearch.hot`
 
 Read-Only:
@@ -194,18 +196,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--hot--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.hot.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--master"></a>
-
 ### Nested Schema for `templates.elasticsearch.master`
 
 Read-Only:
@@ -218,18 +219,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--master--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.master.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--ml"></a>
-
 ### Nested Schema for `templates.elasticsearch.ml`
 
 Read-Only:
@@ -242,18 +242,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--ml--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.ml.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--warm"></a>
-
 ### Nested Schema for `templates.elasticsearch.warm`
 
 Read-Only:
@@ -266,18 +265,17 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--warm--autoscaling"></a>
-
 ### Nested Schema for `templates.elasticsearch.warm.size_resource`
 
 Read-Only:
 
+- `autoscaling_tier_override` (Boolean)
 - `max_size` (String)
 - `max_size_resource` (String)
 - `min_size` (String)
 - `min_size_resource` (String)
 
 <a id="nestedatt--templates--enterprise_search"></a>
-
 ### Nested Schema for `templates.enterprise_search`
 
 Read-Only:
@@ -289,7 +287,6 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--integrations_server"></a>
-
 ### Nested Schema for `templates.integrations_server`
 
 Read-Only:
@@ -301,7 +298,6 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--kibana"></a>
-
 ### Nested Schema for `templates.kibana`
 
 Read-Only:
