@@ -15,24 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package util
+package deploymenttemplates
 
-import (
-	"fmt"
-)
-
-// MemoryToState parses a megabyte int notation to a gigabyte notation.
-func MemoryToState(mem int32) string {
-	if mem%1024 > 1 && mem%512 == 0 {
-		return fmt.Sprintf("%0.1fg", float32(mem)/1024)
-	}
-	return fmt.Sprintf("%dg", mem/1024)
-}
-
-func MemoryToStateOptional(mem *int32) *string {
-	if mem == nil {
-		return nil
-	}
-	result := MemoryToState(*mem)
-	return &result
+type statelessModel struct {
+	InstanceConfigurationId      string   `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion *int32   `tfsdk:"instance_configuration_version"`
+	DefaultSize                  *string  `tfsdk:"default_size"`
+	AvailableSizes               []string `tfsdk:"available_sizes"`
+	SizeResource                 *string  `tfsdk:"size_resource"`
 }

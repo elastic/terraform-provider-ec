@@ -20,6 +20,7 @@ package ec
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymenttemplates"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -99,6 +100,7 @@ func (p *Provider) DataSources(ctx context.Context) []func() datasource.DataSour
 		privatelinkdatasource.AwsDataSource,
 		privatelinkdatasource.GcpDataSource,
 		privatelinkdatasource.AzureDataSource,
+		func() datasource.DataSource { return &deploymenttemplates.DataSource{} },
 	}
 }
 
