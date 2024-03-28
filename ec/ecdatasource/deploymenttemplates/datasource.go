@@ -21,7 +21,9 @@ import (
 	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 type DataSource struct {
@@ -30,6 +32,7 @@ type DataSource struct {
 
 var _ datasource.DataSource = &DataSource{}
 var _ datasource.DataSourceWithConfigure = &DataSource{}
+var _ datasource.DataSourceWithConfigValidators = &DataSource{}
 
 func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
 	response.TypeName = request.ProviderTypeName + "_deployment_templates"
@@ -39,4 +42,18 @@ func (d *DataSource) Configure(ctx context.Context, request datasource.Configure
 	client, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
 	d.client = client
+}
+
+func (d *DataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		// When setting a specific id, it doesn't make sense have additional filters
+		datasourcevalidator.Conflicting(
+			path.MatchRoot("id"),
+			path.MatchRoot("stack_version"),
+		),
+		datasourcevalidator.Conflicting(
+			path.MatchRoot("id"),
+			path.MatchRoot("show_deprecated"),
+		),
+	}
 }
