@@ -126,6 +126,7 @@ func Test_mapResponseToModel(t *testing.T) {
 							Elasticsearch: []*models.ElasticsearchPayload{
 								{
 									Plan: &models.ElasticsearchClusterPlan{
+										AutoscalingEnabled: ec.Bool(true),
 										ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 											buildRequestTopology("hot_content", "es-hot"),
 											buildRequestTopology("coordinating", "es-coord"),
@@ -224,13 +225,14 @@ func Test_mapResponseToModel(t *testing.T) {
 					ID:   "id",
 					Name: "name",
 					Elasticsearch: &elasticsearchModel{
-						HotTier:          buildTopologyModel("es-hot"),
-						CoordinatingTier: buildTopologyModel("es-coord"),
-						MasterTier:       buildTopologyModel("es-master"),
-						WarmTier:         buildTopologyModel("es-warm"),
-						ColdTier:         buildTopologyModel("es-cold"),
-						FrozenTier:       buildTopologyModel("es-frozen"),
-						MlTier:           buildTopologyModel("es-ml"),
+						AutoscalingEnabled: ec.Bool(true),
+						HotTier:            buildTopologyModel("es-hot"),
+						CoordinatingTier:   buildTopologyModel("es-coord"),
+						MasterTier:         buildTopologyModel("es-master"),
+						WarmTier:           buildTopologyModel("es-warm"),
+						ColdTier:           buildTopologyModel("es-cold"),
+						FrozenTier:         buildTopologyModel("es-frozen"),
+						MlTier:             buildTopologyModel("es-ml"),
 					},
 					Kibana:             buildStatelessModel("kibana-id"),
 					EnterpriseSearch:   buildStatelessModel("enterprise-search-id"),
@@ -257,6 +259,7 @@ func buildRequestTopology(id string, instanceConfigurationId string) *models.Ela
 			Resource: ec.String("memory"),
 			Value:    ec.Int32(2048),
 		},
+		AutoscalingTierOverride: ec.Bool(true),
 		AutoscalingMin: &models.TopologySize{
 			Resource: ec.String("memory"),
 			Value:    ec.Int32(0),
@@ -286,10 +289,11 @@ func buildTopologyModel(instanceConfigurationId string) *topologyModel {
 		AvailableSizes:               []string{"1g", "2g", "4g"},
 		SizeResource:                 ec.String("memory"),
 		Autoscaling: autoscalingModel{
-			MaxSizeResource: ec.String("memory"),
-			MaxSize:         ec.String("64g"),
-			MinSizeResource: ec.String("memory"),
-			MinSize:         ec.String("0g"),
+			AutoscalingTierOverride: ec.Bool(true),
+			MaxSizeResource:         ec.String("memory"),
+			MaxSize:                 ec.String("64g"),
+			MinSizeResource:         ec.String("memory"),
+			MinSize:                 ec.String("0g"),
 		},
 	}
 }

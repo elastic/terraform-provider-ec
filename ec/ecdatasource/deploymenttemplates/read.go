@@ -128,6 +128,7 @@ func mapElasticsearch(templateDefinition *models.DeploymentCreateRequest, config
 	}
 
 	es := elasticsearchModel{}
+	es.AutoscalingEnabled = firstEs.Plan.AutoscalingEnabled
 	for _, element := range firstEs.Plan.ClusterTopology {
 		var availableSizes []string
 		ic, found := configurations[element.InstanceConfigurationID]
@@ -186,6 +187,7 @@ func getSizeValue(size *models.TopologySize) *int32 {
 
 func mapAutoscaling(element *models.ElasticsearchClusterTopologyElement) autoscalingModel {
 	model := autoscalingModel{}
+	model.AutoscalingTierOverride = element.AutoscalingTierOverride
 	if element.AutoscalingMin != nil {
 		model.MinSizeResource = element.AutoscalingMin.Resource
 		model.MinSize = util.MemoryToStateOptional(element.AutoscalingMin.Value)
