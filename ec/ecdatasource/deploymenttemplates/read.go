@@ -129,24 +129,14 @@ func mapElasticsearch(templateDefinition *models.DeploymentCreateRequest, config
 	es := elasticsearchModel{}
 	es.AutoscalingEnabled = firstEs.Plan.AutoscalingEnabled
 	for _, element := range firstEs.Plan.ClusterTopology {
-		var availableSizes []string
-		ic, found := configurations[element.InstanceConfigurationID]
-		if found {
-			if ic.DiscreteSizes != nil {
-				availableSizes = make([]string, 0)
-				for _, size := range ic.DiscreteSizes.Sizes {
-					availableSizes = append(availableSizes, util.MemoryToState(size))
-				}
-			}
-		}
-
 		size := element.Size
+		id := element.InstanceConfigurationID
 		topology := topologyModel{
-			InstanceConfigurationId:      element.InstanceConfigurationID,
+			InstanceConfigurationId:      id,
 			InstanceConfigurationVersion: element.InstanceConfigurationVersion,
 			DefaultSize:                  util.MemoryToStateOptional(getSizeValue(size)),
 			SizeResource:                 getSizeResource(size),
-			AvailableSizes:               availableSizes,
+			AvailableSizes:               collectAvailableSizes(configurations, id),
 			Autoscaling:                  mapAutoscaling(element),
 		}
 
@@ -168,6 +158,20 @@ func mapElasticsearch(templateDefinition *models.DeploymentCreateRequest, config
 		}
 	}
 	return &es
+}
+
+func collectAvailableSizes(configurations map[string]models.InstanceConfigurationInfo, id string) []string {
+	var availableSizes []string
+	ic, found := configurations[id]
+	if found {
+		if ic.DiscreteSizes != nil {
+			availableSizes = make([]string, 0)
+			for _, size := range ic.DiscreteSizes.Sizes {
+				availableSizes = append(availableSizes, util.MemoryToState(size))
+			}
+		}
+	}
+	return availableSizes
 }
 
 func getSizeResource(size *models.TopologySize) *string {
@@ -224,23 +228,12 @@ func mapKibana(templateDefinition *models.DeploymentCreateRequest, icMap map[str
 	}
 	element := topologies[0]
 
-	var availableSizes []string
-	ic, found := icMap[element.InstanceConfigurationID]
-	if found {
-		if ic.DiscreteSizes != nil {
-			availableSizes = make([]string, 0)
-			for _, size := range ic.DiscreteSizes.Sizes {
-				availableSizes = append(availableSizes, util.MemoryToState(size))
-			}
-		}
-	}
-
 	return &statelessModel{
 		InstanceConfigurationId:      element.InstanceConfigurationID,
 		InstanceConfigurationVersion: element.InstanceConfigurationVersion,
 		DefaultSize:                  util.MemoryToStateOptional(getSizeValue(element.Size)),
 		SizeResource:                 getSizeResource(element.Size),
-		AvailableSizes:               availableSizes,
+		AvailableSizes:               collectAvailableSizes(icMap, element.InstanceConfigurationID),
 	}
 }
 
@@ -270,23 +263,12 @@ func mapEnterpriseSearch(templateDefinition *models.DeploymentCreateRequest, icM
 	}
 	element := topologies[0]
 
-	var availableSizes []string
-	ic, found := icMap[element.InstanceConfigurationID]
-	if found {
-		if ic.DiscreteSizes != nil {
-			availableSizes = make([]string, 0)
-			for _, size := range ic.DiscreteSizes.Sizes {
-				availableSizes = append(availableSizes, util.MemoryToState(size))
-			}
-		}
-	}
-
 	return &statelessModel{
 		InstanceConfigurationId:      element.InstanceConfigurationID,
 		InstanceConfigurationVersion: element.InstanceConfigurationVersion,
 		DefaultSize:                  util.MemoryToStateOptional(getSizeValue(element.Size)),
 		SizeResource:                 getSizeResource(element.Size),
-		AvailableSizes:               availableSizes,
+		AvailableSizes:               collectAvailableSizes(icMap, element.InstanceConfigurationID),
 	}
 }
 
@@ -316,23 +298,12 @@ func mapApm(templateDefinition *models.DeploymentCreateRequest, icMap map[string
 	}
 	element := topologies[0]
 
-	var availableSizes []string
-	ic, found := icMap[element.InstanceConfigurationID]
-	if found {
-		if ic.DiscreteSizes != nil {
-			availableSizes = make([]string, 0)
-			for _, size := range ic.DiscreteSizes.Sizes {
-				availableSizes = append(availableSizes, util.MemoryToState(size))
-			}
-		}
-	}
-
 	return &statelessModel{
 		InstanceConfigurationId:      element.InstanceConfigurationID,
 		InstanceConfigurationVersion: element.InstanceConfigurationVersion,
 		DefaultSize:                  util.MemoryToStateOptional(getSizeValue(element.Size)),
 		SizeResource:                 getSizeResource(element.Size),
-		AvailableSizes:               availableSizes,
+		AvailableSizes:               collectAvailableSizes(icMap, element.InstanceConfigurationID),
 	}
 }
 
@@ -362,23 +333,12 @@ func mapIntegrationsServer(templateDefinition *models.DeploymentCreateRequest, i
 	}
 	element := topologies[0]
 
-	var availableSizes []string
-	ic, found := icMap[element.InstanceConfigurationID]
-	if found {
-		if ic.DiscreteSizes != nil {
-			availableSizes = make([]string, 0)
-			for _, size := range ic.DiscreteSizes.Sizes {
-				availableSizes = append(availableSizes, util.MemoryToState(size))
-			}
-		}
-	}
-
 	return &statelessModel{
 		InstanceConfigurationId:      element.InstanceConfigurationID,
 		InstanceConfigurationVersion: element.InstanceConfigurationVersion,
 		DefaultSize:                  util.MemoryToStateOptional(getSizeValue(element.Size)),
 		SizeResource:                 getSizeResource(element.Size),
-		AvailableSizes:               availableSizes,
+		AvailableSizes:               collectAvailableSizes(icMap, element.InstanceConfigurationID),
 	}
 }
 
