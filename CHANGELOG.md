@@ -2,43 +2,31 @@
 
 FEATURES:
 
-* datasource/deployments: Adds additional parameter `name` to allow searching by exact deployment
-  name. ([#797](https://github.com/elastic/terraform-provider-ec/issues/797))
-* resource/deployment: Added support for autoscaling Machine Learning tier
-  only ([#761](https://github.com/elastic/terraform-provider-ec/issues/761))
-* resource/deployment: Added support for symbols and profiling
-  endpoints. ([#783](https://github.com/elastic/terraform-provider-ec/issues/783))
-* resource/deployment: Validate the Kibana is present when attempting to enable other stateless
-  resources. ([#792](https://github.com/elastic/terraform-provider-ec/issues/792))
+* datasource/deployments: Adds additional parameter `name` to allow searching by exact deployment name. ([#797](https://github.com/elastic/terraform-provider-ec/issues/797))
+* datasource/deploymenttemplates: Adds a new datasource to list all deployment-templates available in a region. ([#799](https://github.com/elastic/terraform-provider-ec/issues/799))
+* resource/deployment: Added support for autoscaling Machine Learning tier only ([#761](https://github.com/elastic/terraform-provider-ec/issues/761))
+* resource/deployment: Added support for symbols and profiling endpoints. ([#783](https://github.com/elastic/terraform-provider-ec/issues/783))
+* resource/deployment: Validate the Kibana is present when attempting to enable other stateless resources. ([#792](https://github.com/elastic/terraform-provider-ec/issues/792))
 
 ENHANCEMENTS:
 
-* provider: Remove direct dependency on the old Terraform Plugin
-  SDK ([#720](https://github.com/elastic/terraform-provider-ec/issues/720))
+* provider: Remove direct dependency on the old Terraform Plugin SDK ([#720](https://github.com/elastic/terraform-provider-ec/issues/720))
 * provider: Update go version to 1.21 ([#713](https://github.com/elastic/terraform-provider-ec/issues/713))
-* resource/deployment: Add instance_configuration_version field to all resources and allow to update the
-  instance_configuration_id to a value not defined in the template.
-  resource/deployment: Add migrate_to_latest_hardware field to allow migrating to the latest deployment template values.
-  resource/deployment: Add latest_instance_configuration_id and latest_instance_configuration_version read-only
-  fields. ([#755](https://github.com/elastic/terraform-provider-ec/issues/755))
+* resource/deployment: Add support for instance configuration versions
+  * Add instance_configuration_version field to all resources and allow to update the instance_configuration_id to a value not defined in the template.
+  * Add migrate_to_latest_hardware field to allow migrating to the latest deployment template values.
+  * Add latest_instance_configuration_id and latest_instance_configuration_version read-only fields. ([#755](https://github.com/elastic/terraform-provider-ec/issues/755))
 
 BUG FIXES:
 
-* resource/deployment: Don't rewrite the observability deployment ID to `self` when it's been explicitly
-  configured. ([#789](https://github.com/elastic/terraform-provider-ec/issues/789))
-* resource/deployment: Fix issue setting the elasticsearch_username when resetting the
-  elasticsearch_password ([#777](https://github.com/elastic/terraform-provider-ec/issues/777))
-* resource/deployment: Fix segfaults during Create/Update when `elasticsearch` attribute contains both `strategy`
-  and `snapshot_source`.
-  resource/deployment: Fix segfaults during Create/Update when `elasticsearch` defines `snapshot` with `repository` that
-  doesn't contain `reference`. ([#719](https://github.com/elastic/terraform-provider-ec/issues/719))
-* resource/deployment: Persist the snapshot source settings during reads. This fixes
-  a [provider crash](https://github.com/elastic/terraform-provider-ec/issues/787) when creating a deployment from a
-  snapshot. ([#788](https://github.com/elastic/terraform-provider-ec/issues/788))
-* resource/deployment: Update the elasticsearch_username when resetting the
-  password. ([#752](https://github.com/elastic/terraform-provider-ec/issues/752))
-* resource/extension: Fix provider crash when updating the contents of an
-  extension. ([#749](https://github.com/elastic/terraform-provider-ec/issues/749))
+* resource/deployment: Don't rewrite the observability deployment ID to `self` when it's been explicitly configured. ([#789](https://github.com/elastic/terraform-provider-ec/issues/789))
+* resource/deployment: Fix issue setting the elasticsearch_username when resetting the elasticsearch_password ([#777](https://github.com/elastic/terraform-provider-ec/issues/777))
+* resource/deployment: Fix segfaults during Create/Update
+  * When `elasticsearch` attribute contains both `strategy` and `snapshot_source`.
+  * When `elasticsearch` defines `snapshot` with `repository` that doesn't contain `reference`. ([#719](https://github.com/elastic/terraform-provider-ec/issues/719))
+* resource/deployment: Persist the snapshot source settings during reads. This fixes a [provider crash](https://github.com/elastic/terraform-provider-ec/issues/787) when creating a deployment from a snapshot. ([#788](https://github.com/elastic/terraform-provider-ec/issues/788))
+* resource/deployment: Update the elasticsearch_username when resetting the password. ([#752](https://github.com/elastic/terraform-provider-ec/issues/752))
+* resource/extension: Fix provider crash when updating the contents of an extension. ([#749](https://github.com/elastic/terraform-provider-ec/issues/749))
 
 # 0.9.0 (September 22, 2023)
 
