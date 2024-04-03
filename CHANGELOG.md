@@ -12,9 +12,12 @@ ENHANCEMENTS:
 
 * provider: Remove direct dependency on the old Terraform Plugin SDK ([#720](https://github.com/elastic/terraform-provider-ec/issues/720))
 * provider: Update go version to 1.21 ([#713](https://github.com/elastic/terraform-provider-ec/issues/713))
-* resource/deployment: Add instance_configuration_version field to all resources and allow to update the instance_configuration_id to a value not defined in the template.
-resource/deployment: Add migrate_to_latest_hardware field to allow migrating to the latest deployment template values.
-resource/deployment: Add latest_instance_configuration_id and latest_instance_configuration_version read-only fields. ([#755](https://github.com/elastic/terraform-provider-ec/issues/755))
+* resource/deployment: Add support for instance configuration versions
+  * Add instance_configuration_version field to all resources and allow to update the instance_configuration_id to a
+    value not defined in the template.
+  * Add migrate_to_latest_hardware field to allow migrating to the latest deployment template values.
+  * Add latest_instance_configuration_id and latest_instance_configuration_version read-only
+    fields. ([#755](https://github.com/elastic/terraform-provider-ec/issues/755))
 
 BUG FIXES:
 
