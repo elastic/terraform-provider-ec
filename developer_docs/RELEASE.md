@@ -62,4 +62,5 @@ After all the prerequisites have been ticked off, the only thing remaining is to
 
 ## Post release tasks
 
-After the release has been completed, all the `.changelog/*.txt` files need to be deleted in the `master` and the minor branch so that a new changelog can be issued. Additionally, the next version header should be added in the changelog as `# <VERSION> (Unreleased)` at the top of the `CHANGELOG.md` file.
+- After the release has been completed, the next version header should be added in the changelog as `# <VERSION> (Unreleased)` at the top of the `CHANGELOG.md` file.
+- The version in all examples should be updated to the next version to be released. 
