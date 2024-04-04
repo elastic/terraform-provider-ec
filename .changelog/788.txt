@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Persist the snapshot source settings during reads. This fixes a [provider crash](https://github.com/elastic/terraform-provider-ec/issues/787) when creating a deployment from a snapshot.
-```

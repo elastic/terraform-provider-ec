@@ -1,3 +1,0 @@
-```release-note:feature
-resource/deployment: Validate the Kibana is present when attempting to enable other stateless resources.
-```

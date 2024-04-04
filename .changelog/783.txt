@@ -1,3 +1,0 @@
-```release-note:feature
-resource/deployment: Added support for symbols and profiling endpoints.
-```

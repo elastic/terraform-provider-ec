@@ -1,5 +1,0 @@
-```release-note:bug
-resource/deployment: Fix segfaults during Create/Update
-  * When `elasticsearch` attribute contains both `strategy` and `snapshot_source`.
-  * When `elasticsearch` defines `snapshot` with `repository` that doesn't contain `reference`.
-```

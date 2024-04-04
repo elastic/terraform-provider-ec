@@ -1,3 +1,0 @@
-```release-note:bug
-datasource/deployment: Prevent a provider crash when the deployment data source is referencing a deleted deployment
-```
