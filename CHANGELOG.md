@@ -1,4 +1,6 @@
-# 0.10.0 (Unreleased)
+# 0.11.0 (Unreleased)
+
+# 0.10.0 (April 03, 2024)
 
 FEATURES:
 
