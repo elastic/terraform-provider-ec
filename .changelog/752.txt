@@ -1,0 +1,3 @@
+```release-note:bug
+resource/deployment: Update the elasticsearch_username when resetting the password.
+```

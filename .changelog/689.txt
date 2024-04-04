@@ -1,0 +1,3 @@
+```release-note:bug
+resource/deployment: Prevent an endless diff loop after importing deployments with APM or Integrations Server resources.
+```
