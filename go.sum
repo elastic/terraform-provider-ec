@@ -25,8 +25,8 @@ github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUK
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/elastic/cloud-sdk-go v1.16.0 h1:kpULwHy6AiB36n+IA0sq8v+yH7VV0r4YuezbB8AD2bQ=
-github.com/elastic/cloud-sdk-go v1.16.0/go.mod h1:1FJKODMG9oCiBsZZmFC/a6GvAj+8BoFL8ULDI3bI00Q=
+github.com/elastic/cloud-sdk-go v1.17.0 h1:DI75RYG/X37vxFNVRFGlUZtRS+WilvKXpYgFlpLLNzw=
+github.com/elastic/cloud-sdk-go v1.17.0/go.mod h1:8ijASzuND0kK8km08a/FIfedmPVjf0whGIJDVGHpgQ4=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=

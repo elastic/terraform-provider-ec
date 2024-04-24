@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
-	github.com/elastic/cloud-sdk-go v1.16.0
+	github.com/elastic/cloud-sdk-go v1.17.0
 	github.com/go-openapi/runtime v0.28.0
 	github.com/go-openapi/strfmt v0.23.0
 	github.com/hashicorp/terraform-plugin-framework v1.7.0
