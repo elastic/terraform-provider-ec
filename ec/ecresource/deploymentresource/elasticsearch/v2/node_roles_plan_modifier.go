@@ -93,6 +93,12 @@ func (m setUnknownOnTopologyChanges) PlanModifySet(ctx context.Context, req plan
 	}
 
 	for _, tierName := range tierNames {
+		var tierValue attr.Value
+		resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("elasticsearch").AtName(tierName), &tierValue)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
 		for _, attrName := range sizingAttributes {
 			attrPath := path.Root("elasticsearch").AtName(tierName).AtName(attrName)
 			var planValue attr.Value
@@ -110,7 +116,9 @@ func (m setUnknownOnTopologyChanges) PlanModifySet(ctx context.Context, req plan
 
 			// If the plan value is unknown then planmodifiers haven't run for this topology element
 			// Eventually the plan value will be set to the state value and it will be unchanged.
-			if planValue.IsUnknown() && !(stateValue.IsUnknown() || stateValue.IsNull()) {
+			// The tier should be directly checked for unknown, since the planValue will be null in that case (instead of unknown).
+			// See: https://github.com/hashicorp/terraform-plugin-framework/issues/186
+			if (planValue.IsUnknown() || tierValue.IsUnknown()) && !(stateValue.IsUnknown() || stateValue.IsNull()) {
 				continue
 			}
 

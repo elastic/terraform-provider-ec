@@ -29,7 +29,7 @@ import (
 
 func TestAccDeployment_add_dedicated_master(t *testing.T) {
 	resName := "ec_deployment.auto_dedicated_master"
-	randomName := prefix + "TestAccDeployment_add_dedicated_master_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	cfg5nodes := buildConfiguration(t, "testdata/deployment_dedicated_master_5_nodes.tf", randomName, getRegion(), defaultTemplate)
 	cfg6nodes := buildConfiguration(t, "testdata/deployment_dedicated_master_6_nodes.tf", randomName, getRegion(), defaultTemplate)
