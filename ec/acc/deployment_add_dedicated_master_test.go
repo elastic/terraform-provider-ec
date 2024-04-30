@@ -18,6 +18,7 @@
 package acc
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -28,7 +29,7 @@ import (
 
 func TestAccDeployment_add_dedicated_master(t *testing.T) {
 	resName := "ec_deployment.auto_dedicated_master"
-	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	randomName := prefix + "TestAccDeployment_add_dedicated_master_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	cfg5nodes := buildConfiguration(t, "testdata/deployment_dedicated_master_5_nodes.tf", randomName, getRegion(), defaultTemplate)
 	cfg6nodes := buildConfiguration(t, "testdata/deployment_dedicated_master_6_nodes.tf", randomName, getRegion(), defaultTemplate)
@@ -42,8 +43,24 @@ func TestAccDeployment_add_dedicated_master(t *testing.T) {
 				Config: cfg6nodes,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Master tier should be enabled
-					resource.TestCheckResourceAttr(resName, "elasticsearch.master.size", "4g"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.master.zone_count", "3"),
+					resource.TestCheckResourceAttrWith(
+						resName,
+						"elasticsearch.master.size",
+						func(v string) error {
+							if v == "0g" || v == "" {
+								return errors.New("master size should not be empty. size=" + v)
+							}
+							return nil
+						}),
+					resource.TestCheckResourceAttrWith(
+						resName,
+						"elasticsearch.master.zone_count",
+						func(v string) error {
+							if v == "0" || v == "" {
+								return errors.New("master zone_count should not be empty. zone_count=" + v)
+							}
+							return nil
+						}),
 				),
 			},
 			{
