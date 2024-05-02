@@ -140,6 +140,29 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 		},
 		{
+			name: "Should count multiple nodes for a tier in one zone (when size is > max size)",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:      ec.String("8g"), // Max in template is 4g
+						ZoneCount: 3,
+					},
+				},
+				config:             es.Elasticsearch{},
+				deploymentTemplate: deploymentTemplate(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:      ec.String("8g"),
+					ZoneCount: 3,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					Size:      ec.String("4g"),
+					ZoneCount: 3,
+				},
+			},
+		},
+		{
 			name: "Should not override configured values",
 			args: args{
 				plan: es.Elasticsearch{
@@ -235,6 +258,14 @@ func deploymentTemplate() models.DeploymentTemplateInfoV2 {
 						Plan: &models.ElasticsearchClusterPlan{
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
+									ID:                      "hot_content",
+									InstanceConfigurationID: "hot-ic",
+								},
+								{
+									ID:                      "warm",
+									InstanceConfigurationID: "warm-ic",
+								},
+								{
 									ID:                      "master",
 									InstanceConfigurationID: "master-ic",
 								},
@@ -245,6 +276,22 @@ func deploymentTemplate() models.DeploymentTemplateInfoV2 {
 			},
 		},
 		InstanceConfigurations: []*models.InstanceConfigurationInfo{
+			{
+				ID: "hot-ic",
+				DiscreteSizes: &models.DiscreteSizes{
+					DefaultSize: 1024,
+					Sizes:       []int32{1024, 2048, 4096},
+				},
+				MaxZones: 3,
+			},
+			{
+				ID: "warm-ic",
+				DiscreteSizes: &models.DiscreteSizes{
+					DefaultSize: 1024,
+					Sizes:       []int32{1024, 2048, 4096},
+				},
+				MaxZones: 3,
+			},
 			{
 				ID: "master-ic",
 				DiscreteSizes: &models.DiscreteSizes{

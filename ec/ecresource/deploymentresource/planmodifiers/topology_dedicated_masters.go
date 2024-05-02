@@ -62,7 +62,7 @@ func UpdateDedicatedMasterTier(
 		return
 	}
 
-	nodesInCluster := countNodesInCluster(ctx, planElasticsearch)
+	nodesInCluster := countNodesInCluster(ctx, planElasticsearch, template)
 
 	if nodesInCluster < dedicatedMastersThreshold {
 		// Disable master tier
@@ -72,7 +72,7 @@ func UpdateDedicatedMasterTier(
 		)
 	} else {
 		// Enable master tier
-		instanceConfiguration := getInstanceConfiguration(template)
+		instanceConfiguration := getInstanceConfiguration(template, "master")
 		if instanceConfiguration == nil {
 			tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
 			return
@@ -101,7 +101,76 @@ func UpdateDedicatedMasterTier(
 	}
 }
 
-func getInstanceConfiguration(template models.DeploymentTemplateInfoV2) *models.InstanceConfigurationInfo {
+func getDedicatedMastersThreshold(template models.DeploymentTemplateInfoV2) int32 {
+	dedicatedMastersThreshold := int32(0)
+	if template.DeploymentTemplate != nil && template.DeploymentTemplate.Resources != nil {
+		for _, e := range template.DeploymentTemplate.Resources.Elasticsearch {
+			if e.Settings == nil {
+				continue
+			}
+			dedicatedMastersThreshold = e.Settings.DedicatedMastersThreshold
+			break
+		}
+	}
+	return dedicatedMastersThreshold
+}
+
+func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, template models.DeploymentTemplateInfoV2) int32 {
+	nodesInDeployment := int32(0)
+	tiers := []string{"hot_content", "coordinating", "warm", "cold", "frozen"}
+	for _, tier := range tiers {
+		var rawTopology types.Object
+		switch tier {
+		case "hot_content":
+			rawTopology = esPlan.HotContentTier
+		case "coordinating":
+			rawTopology = esPlan.CoordinatingTier
+		case "warm":
+			rawTopology = esPlan.WarmTier
+		case "cold":
+			rawTopology = esPlan.ColdTier
+		case "frozen":
+			rawTopology = esPlan.FrozenTier
+		}
+
+		if rawTopology.IsNull() || rawTopology.IsUnknown() {
+			continue
+		}
+
+		var topology es.ElasticsearchTopologyTF
+		diags := rawTopology.As(ctx, &topology, objectAsOptions)
+		if diags.HasError() {
+			tflog.Debug(ctx, "countNodesInCluster: Failed to read topology.", map[string]interface{}{"error": diags.Errors()})
+			continue
+		}
+
+		size, err := deploymentsize.ParseGb(topology.Size.ValueString())
+		if err != nil {
+			tflog.Debug(ctx, "countNodesInCluster: Failed to parse topology size.", map[string]interface{}{"error": err})
+			continue
+		}
+
+		// Calculate if there are >1 nodes in each zone:
+		// If the size is > the maximum size allowed in the zone, more nodes are added to reach the desired size.
+		instanceConfig := getInstanceConfiguration(template, tier)
+		maxSize := getMaxSize(instanceConfig)
+		var nodesPerZone int32
+		if size < maxSize {
+			nodesPerZone = 1
+		} else {
+			nodesPerZone = size / maxSize
+		}
+
+		zoneCount := int32(topology.ZoneCount.ValueInt64())
+		if size > 0 && zoneCount > 0 {
+			nodesInDeployment += zoneCount * nodesPerZone
+		}
+	}
+
+	return nodesInDeployment
+}
+
+func getInstanceConfiguration(template models.DeploymentTemplateInfoV2, topologyId string) *models.InstanceConfigurationInfo {
 	// Find master tier
 	if template.DeploymentTemplate == nil ||
 		template.DeploymentTemplate.Resources == nil ||
@@ -111,7 +180,7 @@ func getInstanceConfiguration(template models.DeploymentTemplateInfoV2) *models.
 	}
 	var masterTier *models.ElasticsearchClusterTopologyElement
 	for _, topology := range template.DeploymentTemplate.Resources.Elasticsearch[0].Plan.ClusterTopology {
-		if topology.ID == "master" {
+		if topology.ID == topologyId {
 			masterTier = topology
 			break
 		}
@@ -130,55 +199,15 @@ func getInstanceConfiguration(template models.DeploymentTemplateInfoV2) *models.
 	return nil
 }
 
-func getDedicatedMastersThreshold(template models.DeploymentTemplateInfoV2) int64 {
-	dedicatedMastersThreshold := 0
-	if template.DeploymentTemplate != nil && template.DeploymentTemplate.Resources != nil {
-		for _, e := range template.DeploymentTemplate.Resources.Elasticsearch {
-			if e.Settings == nil {
-				continue
-			}
-			dedicatedMastersThreshold = int(e.Settings.DedicatedMastersThreshold)
-			break
+func getMaxSize(ic *models.InstanceConfigurationInfo) int32 {
+	if ic == nil || ic.DiscreteSizes == nil {
+		return 0
+	}
+	maxSize := int32(0)
+	for _, size := range ic.DiscreteSizes.Sizes {
+		if size > maxSize {
+			maxSize = size
 		}
 	}
-	return int64(dedicatedMastersThreshold)
-}
-
-func countNodesInCluster(
-	ctx context.Context,
-	planElasticsearch es.ElasticsearchTF,
-) int64 {
-	nodesInDeployment := int64(0)
-	tiers := []types.Object{
-		planElasticsearch.HotContentTier,
-		planElasticsearch.CoordinatingTier,
-		planElasticsearch.WarmTier,
-		planElasticsearch.ColdTier,
-		planElasticsearch.FrozenTier,
-	}
-	for _, tier := range tiers {
-		if tier.IsNull() || tier.IsUnknown() {
-			continue
-		}
-
-		var topology es.ElasticsearchTopologyTF
-		diags := tier.As(ctx, &topology, objectAsOptions)
-		if diags.HasError() {
-			tflog.Debug(ctx, "countNodesInCluster: Failed to read topology.", map[string]interface{}{"error": diags.Errors()})
-			continue
-		}
-
-		size, err := deploymentsize.ParseGb(topology.Size.ValueString())
-		if err != nil {
-			tflog.Debug(ctx, "countNodesInCluster: Failed to parse topology size.", map[string]interface{}{"error": err})
-			continue
-		}
-
-		zoneCount := topology.ZoneCount.ValueInt64()
-		if size > 0 && zoneCount > 0 {
-			nodesInDeployment += zoneCount
-		}
-	}
-
-	return nodesInDeployment
+	return maxSize
 }
