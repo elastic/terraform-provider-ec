@@ -38,6 +38,18 @@ func UpdateDedicatedMasterTier(
 	resp *resource.ModifyPlanResponse,
 	template models.DeploymentTemplateInfoV2,
 ) {
+	var config es.ElasticsearchTF
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("elasticsearch"), &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !config.MasterTier.IsNull() && !config.MasterTier.IsUnknown() {
+		// Master tier is explicitly configured -> No changes will be made
+		tflog.Debug(ctx, "Skip UpdateDedicatedMasterTier: Master tier has been explicitly configured")
+		return
+	}
+
 	var planElasticsearch es.ElasticsearchTF
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &planElasticsearch)...)
 	if resp.Diagnostics.HasError() {
@@ -51,24 +63,6 @@ func UpdateDedicatedMasterTier(
 	}
 
 	nodesInCluster := countNodesInCluster(ctx, planElasticsearch)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var config es.ElasticsearchTF
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("elasticsearch"), &config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if !config.MasterTier.IsNull() && !config.MasterTier.IsUnknown() {
-		// Master tier is explicitly configured -> No changes will be made
-		tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
-		return
-	}
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	if nodesInCluster < dedicatedMastersThreshold {
 		// Disable master tier
@@ -119,6 +113,7 @@ func getInstanceConfiguration(template models.DeploymentTemplateInfoV2) *models.
 	for _, topology := range template.DeploymentTemplate.Resources.Elasticsearch[0].Plan.ClusterTopology {
 		if topology.ID == "master" {
 			masterTier = topology
+			break
 		}
 	}
 	if masterTier == nil {
