@@ -155,7 +155,7 @@ func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, templat
 		instanceConfig := getInstanceConfiguration(template, tier)
 		maxSize := getMaxSize(instanceConfig)
 		var nodesPerZone int32
-		if size < maxSize {
+		if size < maxSize || maxSize == 0 {
 			nodesPerZone = 1
 		} else {
 			nodesPerZone = size / maxSize
