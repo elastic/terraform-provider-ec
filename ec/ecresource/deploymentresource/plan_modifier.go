@@ -20,6 +20,7 @@ package deploymentresource
 import (
 	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,19 +40,18 @@ func (r Resource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest
 		return
 	}
 
-	template, err := deptemplateapi.Get(deptemplateapi.GetParams{
-		API:                        r.client,
-		TemplateID:                 plan.DeploymentTemplateId.ValueString(),
-		Region:                     plan.Region.ValueString(),
-		HideInstanceConfigurations: false,
-		ShowMaxZones:               true,
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to get deployment-template", err.Error())
-		return
+	loadTemplate := func() (*models.DeploymentTemplateInfoV2, error) {
+		template, err := deptemplateapi.Get(deptemplateapi.GetParams{
+			API:                        r.client,
+			TemplateID:                 plan.DeploymentTemplateId.ValueString(),
+			Region:                     plan.Region.ValueString(),
+			HideInstanceConfigurations: false,
+			ShowMaxZones:               true,
+		})
+		return template, err
 	}
 
-	planmodifiers.UpdateDedicatedMasterTier(ctx, req, resp, *template)
+	planmodifiers.UpdateDedicatedMasterTier(ctx, req, resp, loadTemplate)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -36,7 +36,7 @@ func UpdateDedicatedMasterTier(
 	ctx context.Context,
 	req resource.ModifyPlanRequest,
 	resp *resource.ModifyPlanResponse,
-	template models.DeploymentTemplateInfoV2,
+	loadTemplate func() (*models.DeploymentTemplateInfoV2, error),
 ) {
 	var config es.ElasticsearchTF
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("elasticsearch"), &config)...)
@@ -56,13 +56,19 @@ func UpdateDedicatedMasterTier(
 		return
 	}
 
-	dedicatedMastersThreshold := getDedicatedMastersThreshold(template)
+	template, err := loadTemplate()
+	if err != nil {
+		resp.Diagnostics.AddError("Failed to get deployment-template", "Error: "+err.Error())
+		return
+	}
+
+	dedicatedMastersThreshold := getDedicatedMastersThreshold(*template)
 	if dedicatedMastersThreshold == 0 {
 		// No automatic dedicated masters management
 		return
 	}
 
-	nodesInCluster := countNodesInCluster(ctx, planElasticsearch, template)
+	nodesInCluster := countNodesInCluster(ctx, planElasticsearch, *template)
 
 	if nodesInCluster < dedicatedMastersThreshold {
 		// Disable master tier
@@ -72,7 +78,7 @@ func UpdateDedicatedMasterTier(
 		)
 	} else {
 		// Enable master tier
-		instanceConfiguration := getInstanceConfiguration(template, "master")
+		instanceConfiguration := getInstanceConfiguration(*template, "master")
 		if instanceConfiguration == nil {
 			tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
 			return
@@ -171,27 +177,26 @@ func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, templat
 }
 
 func getInstanceConfiguration(template models.DeploymentTemplateInfoV2, topologyId string) *models.InstanceConfigurationInfo {
-	// Find master tier
 	if template.DeploymentTemplate == nil ||
 		template.DeploymentTemplate.Resources == nil ||
 		len(template.DeploymentTemplate.Resources.Elasticsearch) == 0 ||
 		template.DeploymentTemplate.Resources.Elasticsearch[0].Plan == nil {
 		return nil
 	}
-	var masterTier *models.ElasticsearchClusterTopologyElement
+	var topologyElement *models.ElasticsearchClusterTopologyElement
 	for _, topology := range template.DeploymentTemplate.Resources.Elasticsearch[0].Plan.ClusterTopology {
 		if topology.ID == topologyId {
-			masterTier = topology
+			topologyElement = topology
 			break
 		}
 	}
-	if masterTier == nil {
+	if topologyElement == nil {
 		return nil
 	}
 
-	// Find IC for master tier
+	// Find IC for tier
 	for _, ic := range template.InstanceConfigurations {
-		if ic.ID == masterTier.InstanceConfigurationID {
+		if ic.ID == topologyElement.InstanceConfigurationID {
 			return ic
 		}
 	}

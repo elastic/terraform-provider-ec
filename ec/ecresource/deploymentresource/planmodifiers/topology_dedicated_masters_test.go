@@ -236,7 +236,10 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				Plan: plan,
 			}
 
-			UpdateDedicatedMasterTier(ctx, request, &response, test.args.deploymentTemplate)
+			loadTemplate := func() (*models.DeploymentTemplateInfoV2, error) {
+				return &test.args.deploymentTemplate, nil
+			}
+			UpdateDedicatedMasterTier(ctx, request, &response, loadTemplate)
 
 			assert.Empty(t, response.Diagnostics)
 			var actualPlan es.Elasticsearch
