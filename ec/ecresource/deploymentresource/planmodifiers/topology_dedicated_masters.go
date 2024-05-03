@@ -150,10 +150,17 @@ func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, templat
 			continue
 		}
 
-		size, err := deploymentsize.ParseGb(topology.Size.ValueString())
-		if err != nil {
-			tflog.Debug(ctx, "countNodesInCluster: Failed to parse topology size.", map[string]interface{}{"error": err})
-			continue
+		var size int32
+		if !topology.Size.IsUnknown() && !topology.Size.IsNull() {
+			var err error
+			size, err = deploymentsize.ParseGb(topology.Size.ValueString())
+			if err != nil {
+				tflog.Debug(ctx, "countNodesInCluster: Failed to parse topology size.", map[string]interface{}{"error": err})
+				continue
+			}
+		} else {
+			// Fall back to template value
+			size = getTopologySize(template, tier)
 		}
 
 		// Calculate if there are >1 nodes in each zone:
@@ -167,7 +174,14 @@ func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, templat
 			nodesPerZone = size / maxSize
 		}
 
-		zoneCount := int32(topology.ZoneCount.ValueInt64())
+		var zoneCount int32
+		if !topology.ZoneCount.IsUnknown() && !topology.ZoneCount.IsNull() {
+			zoneCount = int32(topology.ZoneCount.ValueInt64())
+		} else {
+			// Fall back to template value
+			zoneCount = getTopologyZoneCount(template, tier)
+		}
+
 		if size > 0 && zoneCount > 0 {
 			nodesInDeployment += zoneCount * nodesPerZone
 		}
@@ -215,4 +229,32 @@ func getMaxSize(ic *models.InstanceConfigurationInfo) int32 {
 		}
 	}
 	return maxSize
+}
+
+func getTopologySize(template models.DeploymentTemplateInfoV2, tier string) int32 {
+	if len(template.DeploymentTemplate.Resources.Elasticsearch) == 0 {
+		return 0
+	}
+
+	elasticsearch := template.DeploymentTemplate.Resources.Elasticsearch[0]
+	for _, topology := range elasticsearch.Plan.ClusterTopology {
+		if topology.ID == tier {
+			return *topology.Size.Value
+		}
+	}
+	return 0
+}
+
+func getTopologyZoneCount(template models.DeploymentTemplateInfoV2, tier string) int32 {
+	if len(template.DeploymentTemplate.Resources.Elasticsearch) == 0 {
+		return 0
+	}
+
+	elasticsearch := template.DeploymentTemplate.Resources.Elasticsearch[0]
+	for _, topology := range elasticsearch.Plan.ClusterTopology {
+		if topology.ID == tier {
+			return topology.ZoneCount
+		}
+	}
+	return 0
 }
