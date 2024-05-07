@@ -486,7 +486,7 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 
 	var topologyPlanModifiers []planmodifier.Object
 	if options.tierName == "master" {
-		topologyPlanModifiers = append(topologyPlanModifiers, objectplanmodifier.UseStateForUnknown())
+		topologyPlanModifiers = append(topologyPlanModifiers, UseTopologyStateForUnknown("master"))
 	}
 
 	return schema.SingleNestedAttribute{

@@ -63,6 +63,14 @@ func (m useTopologyState) PlanModifyBool(ctx context.Context, req planmodifier.B
 	}
 }
 
+func (m useTopologyState) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	useState, diags := m.UseState(ctx, req.ConfigValue, req.Plan, req.State, resp.PlanValue)
+	resp.Diagnostics.Append(diags...)
+	if useState {
+		resp.PlanValue = req.StateValue
+	}
+}
+
 type PlanModifierResponse interface {
 	planmodifier.StringResponse | planmodifier.Int64Response
 }
