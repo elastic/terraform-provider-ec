@@ -33,9 +33,11 @@ import (
 
 func TestUpdateDedicatedMasterTier(t *testing.T) {
 	type args struct {
-		plan               es.Elasticsearch
-		config             es.Elasticsearch
-		deploymentTemplate models.DeploymentTemplateInfoV2
+		plan                 es.Elasticsearch
+		config               es.Elasticsearch
+		deploymentTemplate   models.DeploymentTemplateInfoV2
+		masterInstanceConfig models.InstanceConfiguration
+		migrateToLatestHw    bool
 	}
 	tests := []struct {
 		name         string
@@ -55,8 +57,9 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 						ZoneCount: 3,
 					},
 				},
-				config:             es.Elasticsearch{},
-				deploymentTemplate: deploymentTemplate(),
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
@@ -68,8 +71,8 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("4g"),
-					ZoneCount: 3,
+					Size:      ec.String("1g"),
+					ZoneCount: 2,
 				},
 			},
 		},
@@ -90,8 +93,9 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 						ZoneCount: 3,
 					},
 				},
-				config:             es.Elasticsearch{},
-				deploymentTemplate: deploymentTemplate(),
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
@@ -101,6 +105,10 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				WarmTier: &es.ElasticsearchTopology{
 					Size:      ec.String("1g"),
 					ZoneCount: 2,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					Size:      ec.String("0g"),
+					ZoneCount: 3,
 				},
 			},
 		},
@@ -116,13 +124,18 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 						Size:      ec.String("1g"),
 						ZoneCount: 2,
 					},
+					MasterTier: &es.ElasticsearchTopology{
+						Size:      ec.String("0g"),
+						ZoneCount: 0,
+					},
 					MlTier: &es.ElasticsearchTopology{
 						Size:      ec.String("1g"),
 						ZoneCount: 3,
 					},
 				},
-				config:             es.Elasticsearch{},
-				deploymentTemplate: deploymentTemplate(),
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
@@ -132,6 +145,10 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				WarmTier: &es.ElasticsearchTopology{
 					Size:      ec.String("1g"),
 					ZoneCount: 2,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					Size:      ec.String("0g"),
+					ZoneCount: 0,
 				},
 				MlTier: &es.ElasticsearchTopology{
 					Size:      ec.String("1g"),
@@ -148,8 +165,9 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 						ZoneCount: 3,
 					},
 				},
-				config:             es.Elasticsearch{},
-				deploymentTemplate: deploymentTemplate(),
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
@@ -157,8 +175,8 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("4g"),
-					ZoneCount: 3,
+					Size:      ec.String("1g"),
+					ZoneCount: 2,
 				},
 			},
 		},
@@ -193,7 +211,8 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 						ZoneCount: 2,
 					},
 				},
-				deploymentTemplate: deploymentTemplate(),
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
@@ -210,19 +229,138 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Should use IC from state when enabling master tier",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:      ec.String("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &es.ElasticsearchTopology{
+						Size:      ec.String("1g"),
+						ZoneCount: 3,
+					},
+					MasterTier: &es.ElasticsearchTopology{
+						InstanceConfigurationId:      ec.String("master-ic"),
+						InstanceConfigurationVersion: ec.Int(1),
+						Size:                         ec.String("0g"),
+						ZoneCount:                    0,
+					},
+				},
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 3,
+				},
+				WarmTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 3,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					InstanceConfigurationId:      ec.String("master-ic"),
+					InstanceConfigurationVersion: ec.Int(1),
+					Size:                         ec.String("4g"),
+					ZoneCount:                    3,
+				},
+			},
+		},
+		{
+			name: "Should not change IC when master is already enabled and stays enabled",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:      ec.String("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &es.ElasticsearchTopology{
+						Size:      ec.String("1g"),
+						ZoneCount: 3,
+					},
+					MasterTier: &es.ElasticsearchTopology{
+						InstanceConfigurationId:      ec.String("master-ic"),
+						InstanceConfigurationVersion: ec.Int(1),
+						Size:                         ec.String("4g"),
+						ZoneCount:                    3,
+					},
+				},
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 3,
+				},
+				WarmTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 3,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					InstanceConfigurationId:      ec.String("master-ic"),
+					InstanceConfigurationVersion: ec.Int(1),
+					Size:                         ec.String("4g"),
+					ZoneCount:                    3,
+				},
+			},
+		},
+		{
+			name: "Should use the latest IC when migrate_to_latest_hardware is set",
+			args: args{
+				migrateToLatestHw: true,
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:      ec.String("1g"),
+						ZoneCount: 3,
+					},
+					WarmTier: &es.ElasticsearchTopology{
+						Size:      ec.String("1g"),
+						ZoneCount: 3,
+					},
+					MasterTier: &es.ElasticsearchTopology{
+						Size:      ec.String("4g"),
+						ZoneCount: 3,
+					},
+				},
+				config:               es.Elasticsearch{},
+				deploymentTemplate:   deploymentTemplate(),
+				masterInstanceConfig: masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 3,
+				},
+				WarmTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 3,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					Size:      ec.String("1g"),
+					ZoneCount: 2,
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := context.Background()
 			deploymentConfig := depl.Deployment{
-				Elasticsearch: &test.args.config,
+				Elasticsearch:           &test.args.config,
+				MigrateToLatestHardware: &test.args.migrateToLatestHw,
 			}
 			config := tfsdk.Config{
 				Raw:    testutil.TfTypesValueFromGoTypeValue(t, deploymentConfig, depl.DeploymentSchema().Type()),
 				Schema: depl.DeploymentSchema(),
 			}
 			deploymentPlan := depl.Deployment{
-				Elasticsearch: &test.args.plan,
+				Elasticsearch:           &test.args.plan,
+				MigrateToLatestHardware: &test.args.migrateToLatestHw,
 			}
 			plan := tfsdk.Plan{
 				Raw:    testutil.TfTypesValueFromGoTypeValue(t, deploymentPlan, depl.DeploymentSchema().Type()),
@@ -235,15 +373,19 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			response := resource.ModifyPlanResponse{
 				Plan: plan,
 			}
-
 			loadTemplate := func() (*models.DeploymentTemplateInfoV2, error) {
 				return &test.args.deploymentTemplate, nil
 			}
-			UpdateDedicatedMasterTier(ctx, request, &response, loadTemplate)
+			loadInstanceConfig := func(id string, version *int64) (*models.InstanceConfiguration, error) {
+				return &test.args.masterInstanceConfig, nil
+			}
+
+			UpdateDedicatedMasterTier(ctx, request, &response, loadTemplate, loadInstanceConfig)
 
 			assert.Empty(t, response.Diagnostics)
 			var actualPlan es.Elasticsearch
-			response.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &actualPlan)
+			diags := response.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &actualPlan)
+			println(diags.Errors())
 			assert.Equal(t, test.expectedPlan, actualPlan)
 		})
 	}
@@ -296,12 +438,26 @@ func deploymentTemplate() models.DeploymentTemplateInfoV2 {
 				MaxZones: 3,
 			},
 			{
-				ID: "master-ic",
+				ID:            "master-ic",
+				ConfigVersion: 2,
 				DiscreteSizes: &models.DiscreteSizes{
-					DefaultSize: 4096,
+					DefaultSize: 1024,
+					Sizes:       []int32{1024},
 				},
-				MaxZones: 3,
+				MaxZones: 2,
 			},
 		},
+	}
+}
+
+func masterInstanceConfig() models.InstanceConfiguration {
+	return models.InstanceConfiguration{
+		ID: "master-ic",
+		DiscreteSizes: &models.DiscreteSizes{
+			DefaultSize: 4096,
+			Resource:    "memory",
+			Sizes:       []int32{4096},
+		},
+		MaxZones: 3,
 	}
 }
