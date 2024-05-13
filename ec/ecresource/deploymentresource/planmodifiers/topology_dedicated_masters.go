@@ -354,23 +354,3 @@ func withError(err error) map[string]interface{} {
 func withDiags(diags diag.Diagnostics) map[string]interface{} {
 	return map[string]interface{}{"error": diags.Errors()}
 }
-
-func mapToInstanceConfigInfo(in *models.InstanceConfiguration) *models.InstanceConfigurationInfo {
-	if in == nil {
-		return nil
-	}
-
-	return &models.InstanceConfigurationInfo{
-		ID:                in.ID,
-		ConfigVersion:     in.ConfigVersion,
-		Name:              in.Name,
-		DiscreteSizes:     in.DiscreteSizes,
-		CPUMultiplier:     in.CPUMultiplier,
-		Description:       in.Description,
-		InstanceType:      in.InstanceType,
-		MaxZones:          in.MaxZones,
-		Metadata:          in.Metadata,
-		NodeTypes:         in.NodeTypes,
-		StorageMultiplier: in.StorageMultiplier,
-	}
-}
