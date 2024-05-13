@@ -84,7 +84,7 @@ func UpdateDedicatedMasterTier(
 		req.Plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
 
 		// Skip update if the master tier is already enabled
-		// Unless migrateToLatestHw is true -> Update size/zone_count to values from latest IC
+		// If migrateToLatestHw is true, update the tier to values from latest IC
 		if masterTierIsEnabled(ctx, planElasticsearch, *template) && !migrateToLatestHw {
 			return
 		}
