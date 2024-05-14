@@ -20,10 +20,8 @@ package deploymentresource
 import (
 	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
-	"github.com/elastic/cloud-sdk-go/pkg/api/platformapi/instanceconfigapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -51,18 +49,7 @@ func (r Resource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest
 		})
 	}
 
-	loadInstanceConfig := func(id string, version *int64) (*models.InstanceConfiguration, error) {
-		return instanceconfigapi.Get(instanceconfigapi.GetParams{
-			API:           r.client,
-			ID:            id,
-			Region:        plan.Region.ValueString(),
-			ShowDeleted:   true,
-			ShowMaxZones:  true,
-			ConfigVersion: version,
-		})
-	}
-
-	planmodifiers.UpdateDedicatedMasterTier(ctx, req, resp, loadTemplate, loadInstanceConfig)
+	UpdateDedicatedMasterTier(ctx, req.Config, req.Plan, req.Private, resp, loadTemplate)
 	if resp.Diagnostics.HasError() {
 		return
 	}

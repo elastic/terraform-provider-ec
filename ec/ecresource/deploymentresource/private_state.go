@@ -33,6 +33,7 @@ type PrivateState interface {
 
 const trafficFilterStateKey = "traffic_filters"
 const migrationUpdateRequestKey = "migration_update_request"
+const instanceConfigurationsKey = "instance_configurations"
 
 func readPrivateStateTrafficFilters(ctx context.Context, state PrivateState) ([]string, diag.Diagnostics) {
 	privateFilterBytes, diags := state.GetKey(ctx, trafficFilterStateKey)
@@ -94,4 +95,45 @@ func UpdatePrivateStateMigrateTemplateRequest(ctx context.Context, state Private
 	}
 
 	return state.SetKey(ctx, migrationUpdateRequestKey, migrationUpdateRequestBytes)
+}
+
+func ReadPrivateStateInstanceConfigurations(
+	ctx context.Context,
+	state PrivateState,
+) ([]models.InstanceConfigurationInfo, diag.Diagnostics) {
+	data, diags := state.GetKey(ctx, instanceConfigurationsKey)
+	if data == nil || diags.HasError() {
+		return nil, diags
+	}
+
+	var instanceConfigurations []models.InstanceConfigurationInfo
+	err := json.Unmarshal(data, &instanceConfigurations)
+	if err != nil {
+		diags.AddError("instance-configurations: failed to parse private state", err.Error())
+		return nil, diags
+	}
+
+	return instanceConfigurations, diags
+}
+
+func UpdatePrivateStateInstanceConfigurations(
+	ctx context.Context,
+	state PrivateState,
+	instanceConfigurations []*models.InstanceConfigurationInfo,
+) diag.Diagnostics {
+	var ics []models.InstanceConfigurationInfo
+	for _, ic := range instanceConfigurations {
+		if ic != nil {
+			ics = append(ics, *ic)
+		}
+	}
+
+	data, err := json.Marshal(ics)
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.AddError("failed to update private state", err.Error())
+		return diags
+	}
+
+	return state.SetKey(ctx, instanceConfigurationsKey, data)
 }

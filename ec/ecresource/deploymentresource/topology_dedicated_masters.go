@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package planmodifiers
+package deploymentresource
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -36,25 +37,26 @@ var objectAsOptions = basetypes.ObjectAsOptions{UnhandledNullAsEmpty: false, Unh
 
 func UpdateDedicatedMasterTier(
 	ctx context.Context,
-	req resource.ModifyPlanRequest,
+	config tfsdk.Config,
+	plan tfsdk.Plan,
+	privateState PrivateState,
 	resp *resource.ModifyPlanResponse,
 	loadTemplate func() (*models.DeploymentTemplateInfoV2, error),
-	loadInstanceConfig func(id string, version *int64) (*models.InstanceConfiguration, error),
 ) {
-	var config es.ElasticsearchTF
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("elasticsearch"), &config)...)
+	var esConfig es.ElasticsearchTF
+	resp.Diagnostics.Append(config.GetAttribute(ctx, path.Root("elasticsearch"), &esConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if !config.MasterTier.IsNull() && !config.MasterTier.IsUnknown() {
+	if !esConfig.MasterTier.IsNull() && !esConfig.MasterTier.IsUnknown() {
 		// Master tier is explicitly configured -> No changes will be made
 		tflog.Debug(ctx, "Skip UpdateDedicatedMasterTier: Master tier has been explicitly configured")
 		return
 	}
 
 	var planElasticsearch es.ElasticsearchTF
-	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &planElasticsearch)...)
+	resp.Diagnostics.Append(plan.GetAttribute(ctx, path.Root("elasticsearch"), &planElasticsearch)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -75,13 +77,21 @@ func UpdateDedicatedMasterTier(
 
 	if nodesInCluster < dedicatedMastersThreshold {
 		// Disable master tier
-		resp.Plan.SetAttribute(ctx,
-			path.Root("elasticsearch").AtName("master").AtName("size"),
-			"0g",
-		)
+		if planElasticsearch.MasterTier.IsUnknown() || planElasticsearch.MasterTier.IsNull() {
+			resp.Plan.SetAttribute(ctx,
+				path.Root("elasticsearch").AtName("master"),
+				types.ObjectNull(es.ElasticsearchTopologyAttrs()),
+			)
+		} else {
+			resp.Plan.SetAttribute(ctx,
+				path.Root("elasticsearch").AtName("master").AtName("size"),
+				"0g",
+			)
+		}
+
 	} else {
 		var migrateToLatestHw bool
-		req.Plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
+		plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
 
 		// Skip update if the master tier is already enabled
 		// If migrateToLatestHw is true, update the tier to values from latest IC
@@ -91,15 +101,28 @@ func UpdateDedicatedMasterTier(
 
 		// Enable master tier
 
-		instanceConfiguration := getInstanceConfiguration(ctx, "master", planElasticsearch.MasterTier, *template, loadInstanceConfig)
-		if instanceConfiguration.DiscreteSizes == nil {
+		instanceConfigurations, diags := ReadPrivateStateInstanceConfigurations(ctx, privateState)
+		if diags.HasError() {
+			tflog.Debug(ctx, "Failed to read instance-configs from private state", withDiags(diags))
 			return
 		}
 
-		// Set zones
+		templateInstanceConfig := getTemplateInstanceConfiguration(*template, "master")
+		instanceConfiguration := getInstanceConfiguration(ctx, planElasticsearch.MasterTier, instanceConfigurations)
+		if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
+			// Fall back to template IC
+			instanceConfiguration = templateInstanceConfig
+		}
+		if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
+			tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
+			return
+		}
+
+		// Zones are
 		zones := instanceConfiguration.MaxZones
 		if zones == 0 {
-			return
+			// Fall back to template if no max-zones is set
+			zones = templateInstanceConfig.MaxZones
 		}
 		resp.Plan.SetAttribute(ctx,
 			path.Root("elasticsearch").AtName("master").AtName("zone_count"),
@@ -223,18 +246,12 @@ func getSizeAndZoneCount(
 // If no instance-config-id is set, uses the IC set in the deployment template
 func getInstanceConfiguration(
 	ctx context.Context,
-	topologyId string,
 	rawTopology types.Object,
-	template models.DeploymentTemplateInfoV2,
-	loadInstanceConfig func(id string, version *int64) (*models.InstanceConfiguration, error),
+	deploymentInstanceConfigs []models.InstanceConfigurationInfo,
 ) *models.InstanceConfigurationInfo {
-	templateInstanceConfig := getTemplateInstanceConfiguration(template, topologyId)
-	if templateInstanceConfig == nil {
-		return nil
-	}
 
 	if rawTopology.IsUnknown() || rawTopology.IsNull() {
-		return templateInstanceConfig
+		return nil
 	}
 
 	var topology es.ElasticsearchTopologyTF
@@ -245,34 +262,27 @@ func getInstanceConfiguration(
 	}
 
 	if topology.InstanceConfigurationId.IsUnknown() || topology.InstanceConfigurationId.IsNull() {
-		return templateInstanceConfig
+		return nil
 	}
 
-	icId, icVersion := topology.InstanceConfigurationId.ValueStringPointer(), topology.InstanceConfigurationVersion.ValueInt64Pointer()
+	icId := topology.InstanceConfigurationId.ValueStringPointer()
 	if icId == nil || *icId == "" {
-		tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config-id.")
 		return nil
 	}
 
-	ic, err := loadInstanceConfig(*icId, icVersion)
-	if err != nil {
-		tflog.Debug(ctx, fmt.Sprintf("UpdateDedicatedMasterTier: Instance-config not found: %v-%v", icId, icVersion), withError(err))
+	var deploymentIc *models.InstanceConfigurationInfo
+	for _, ic := range deploymentInstanceConfigs {
+		if ic.ID == *icId {
+			deploymentIc = &ic
+			break
+		}
+	}
+	if deploymentIc == nil {
+		tflog.Debug(ctx, fmt.Sprintf("UpdateDedicatedMasterTier: Instance-config not found: %s", *icId))
 		return nil
 	}
 
-	return &models.InstanceConfigurationInfo{
-		ID:                ic.ID,
-		ConfigVersion:     ic.ConfigVersion,
-		Name:              ic.Name,
-		DiscreteSizes:     ic.DiscreteSizes,
-		CPUMultiplier:     ic.CPUMultiplier,
-		Description:       ic.Description,
-		InstanceType:      ic.InstanceType,
-		MaxZones:          ic.MaxZones,
-		Metadata:          ic.Metadata,
-		NodeTypes:         ic.NodeTypes,
-		StorageMultiplier: ic.StorageMultiplier,
-	}
+	return deploymentIc
 }
 
 func getTemplateInstanceConfiguration(template models.DeploymentTemplateInfoV2, topologyId string) *models.InstanceConfigurationInfo {
