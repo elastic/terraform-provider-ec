@@ -140,7 +140,7 @@ func TestAccDeployment_dedicated_master(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 
 					resource.TestCheckNoResourceAttr(resName, "elasticsearch.cold"),
-					resource.TestCheckNoResourceAttr(resName, "elasticsearch.master"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.master.size", "0g"),
 					resource.TestCheckNoResourceAttr(resName, "elasticsearch.warm"),
 
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "1g"),

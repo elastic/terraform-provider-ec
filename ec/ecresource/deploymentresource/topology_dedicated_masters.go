@@ -88,7 +88,6 @@ func UpdateDedicatedMasterTier(
 				"0g",
 			)
 		}
-
 	} else {
 		var migrateToLatestHw bool
 		plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)

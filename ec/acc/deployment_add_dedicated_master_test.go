@@ -67,7 +67,7 @@ func TestAccDeployment_add_dedicated_master(t *testing.T) {
 				Config: cfg5nodes,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Master tier should be disabled
-					resource.TestCheckNoResourceAttr(resName, "elasticsearch.master"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.master.size", "0g"),
 				),
 			},
 		},
