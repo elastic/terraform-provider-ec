@@ -76,65 +76,78 @@ func UpdateDedicatedMasterTier(
 	nodesInCluster := countNodesInCluster(ctx, planElasticsearch, *template)
 
 	if nodesInCluster < dedicatedMastersThreshold {
-		// Disable master tier
-		if planElasticsearch.MasterTier.IsUnknown() || planElasticsearch.MasterTier.IsNull() {
-			resp.Plan.SetAttribute(ctx,
-				path.Root("elasticsearch").AtName("master"),
-				types.ObjectNull(es.ElasticsearchTopologyAttrs()),
-			)
-		} else {
-			resp.Plan.SetAttribute(ctx,
-				path.Root("elasticsearch").AtName("master").AtName("size"),
-				"0g",
-			)
-		}
+		disableMasterTier(ctx, planElasticsearch, resp)
 	} else {
-		var migrateToLatestHw bool
-		plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
-
-		// Skip update if the master tier is already enabled
-		// If migrateToLatestHw is true, update the tier to values from latest IC
-		if masterTierIsEnabled(ctx, planElasticsearch, *template) && !migrateToLatestHw {
-			return
-		}
-
-		// Enable master tier
-
-		instanceConfigurations, diags := ReadPrivateStateInstanceConfigurations(ctx, privateState)
-		if diags.HasError() {
-			tflog.Debug(ctx, "Failed to read instance-configs from private state", withDiags(diags))
-			return
-		}
-
-		templateInstanceConfig := getTemplateInstanceConfiguration(*template, "master")
-		instanceConfiguration := getInstanceConfiguration(ctx, planElasticsearch.MasterTier, instanceConfigurations)
-		if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
-			// Fall back to template IC
-			instanceConfiguration = templateInstanceConfig
-		}
-		if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
-			tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
-			return
-		}
-
-		// Zones are
-		zones := instanceConfiguration.MaxZones
-		if zones == 0 {
-			// Fall back to template if no max-zones is set
-			zones = templateInstanceConfig.MaxZones
-		}
-		resp.Plan.SetAttribute(ctx,
-			path.Root("elasticsearch").AtName("master").AtName("zone_count"),
-			zones,
-		)
-
-		// Set Size
-		defaultSize := util.MemoryToState(instanceConfiguration.DiscreteSizes.DefaultSize)
-		resp.Plan.SetAttribute(ctx,
-			path.Root("elasticsearch").AtName("master").AtName("size"),
-			defaultSize,
-		)
+		enableMasterTier(ctx, privateState, template, plan, planElasticsearch, resp)
 	}
+}
+
+func disableMasterTier(ctx context.Context, planElasticsearch es.ElasticsearchTF, resp *resource.ModifyPlanResponse) {
+	if planElasticsearch.MasterTier.IsUnknown() || planElasticsearch.MasterTier.IsNull() {
+		resp.Plan.SetAttribute(ctx,
+			path.Root("elasticsearch").AtName("master"),
+			types.ObjectNull(es.ElasticsearchTopologyAttrs()),
+		)
+		return
+	}
+
+	resp.Plan.SetAttribute(ctx,
+		path.Root("elasticsearch").AtName("master").AtName("size"),
+		"0g",
+	)
+}
+
+func enableMasterTier(
+	ctx context.Context,
+	privateState PrivateState,
+	template *models.DeploymentTemplateInfoV2,
+	plan tfsdk.Plan,
+	planElasticsearch es.ElasticsearchTF,
+	resp *resource.ModifyPlanResponse,
+) {
+	var migrateToLatestHw bool
+	plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)
+
+	// Skip update if the master tier is already enabled
+	// If migrateToLatestHw is true, update the tier to values from latest IC
+	if masterTierIsEnabled(ctx, planElasticsearch, *template) && !migrateToLatestHw {
+		return
+	}
+
+	instanceConfigurations, diags := ReadPrivateStateInstanceConfigurations(ctx, privateState)
+	if diags.HasError() {
+		tflog.Debug(ctx, "Failed to read instance-configs from private state", withDiags(diags))
+		return
+	}
+
+	templateInstanceConfig := getTemplateInstanceConfiguration(*template, "master")
+	instanceConfiguration := getInstanceConfiguration(ctx, planElasticsearch.MasterTier, instanceConfigurations)
+	if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
+		// Fall back to template IC
+		instanceConfiguration = templateInstanceConfig
+	}
+	if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
+		tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
+		return
+	}
+
+	// Zones are
+	zones := instanceConfiguration.MaxZones
+	if zones == 0 {
+		// Fall back to template if no max-zones is set
+		zones = templateInstanceConfig.MaxZones
+	}
+	resp.Plan.SetAttribute(ctx,
+		path.Root("elasticsearch").AtName("master").AtName("zone_count"),
+		zones,
+	)
+
+	// Set Size
+	defaultSize := util.MemoryToState(instanceConfiguration.DiscreteSizes.DefaultSize)
+	resp.Plan.SetAttribute(ctx,
+		path.Root("elasticsearch").AtName("master").AtName("size"),
+		defaultSize,
+	)
 }
 
 func masterTierIsEnabled(ctx context.Context, planElasticsearch es.ElasticsearchTF, template models.DeploymentTemplateInfoV2) bool {
