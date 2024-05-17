@@ -413,7 +413,7 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			assert.Empty(t, response.Diagnostics)
 			var actualPlan es.Elasticsearch
 			diags := response.Plan.GetAttribute(ctx, path.Root("elasticsearch"), &actualPlan)
-			println(diags.Errors())
+			assert.Empty(t, diags)
 			assert.Equal(t, test.expectedPlan, actualPlan)
 		})
 	}
@@ -481,7 +481,8 @@ func deploymentTemplate() models.DeploymentTemplateInfoV2 {
 func masterInstanceConfig() []*models.InstanceConfigurationInfo {
 	return []*models.InstanceConfigurationInfo{
 		{
-			ID: "master-ic",
+			ID:            "master-ic",
+			ConfigVersion: 1,
 			DiscreteSizes: &models.DiscreteSizes{
 				DefaultSize: 4096,
 				Resource:    "memory",

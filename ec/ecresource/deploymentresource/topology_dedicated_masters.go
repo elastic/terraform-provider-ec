@@ -114,35 +114,17 @@ func enableMasterTier(
 		return
 	}
 
-	instanceConfigurations, diags := ReadPrivateStateInstanceConfigurations(ctx, privateState)
-	if diags.HasError() {
-		tflog.Debug(ctx, "Failed to read instance-configs from private state", withDiags(diags))
+	instanceConfiguration := selectInstanceConfigurationToUse(ctx, privateState, template, planElasticsearch, migrateToLatestHw)
+	if instanceConfiguration == nil {
 		return
 	}
 
-	templateInstanceConfig := getTemplateInstanceConfiguration(*template, "master")
-	instanceConfiguration := getInstanceConfiguration(ctx, planElasticsearch.MasterTier, instanceConfigurations)
-	if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
-		// Fall back to template IC
-		instanceConfiguration = templateInstanceConfig
-	}
-	if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
-		tflog.Debug(ctx, "UpdateDedicatedMasterTier: Could not enable master tier, as it has no instance-config.")
-		return
-	}
-
-	// Zones are
 	zones := instanceConfiguration.MaxZones
-	if zones == 0 {
-		// Fall back to template if no max-zones is set
-		zones = templateInstanceConfig.MaxZones
-	}
 	resp.Plan.SetAttribute(ctx,
 		path.Root("elasticsearch").AtName("master").AtName("zone_count"),
 		zones,
 	)
 
-	// Set Size
 	defaultSize := util.MemoryToState(instanceConfiguration.DiscreteSizes.DefaultSize)
 	resp.Plan.SetAttribute(ctx,
 		path.Root("elasticsearch").AtName("master").AtName("size"),
@@ -158,6 +140,44 @@ func masterTierIsEnabled(ctx context.Context, planElasticsearch es.Elasticsearch
 	size, zoneCount := getSizeAndZoneCount(ctx, "master", planElasticsearch.MasterTier, template)
 
 	return size > 0 && zoneCount > 0
+}
+
+func selectInstanceConfigurationToUse(
+	ctx context.Context,
+	privateState PrivateState,
+	template *models.DeploymentTemplateInfoV2,
+	planElasticsearch es.ElasticsearchTF,
+	migrateToLatestHw bool,
+) *models.InstanceConfigurationInfo {
+	templateInstanceConfig := getTemplateInstanceConfiguration(*template, "master")
+
+	if migrateToLatestHw {
+		// Since we will migrate to the latest IC version, use latest IC stored in template
+		return templateInstanceConfig
+	}
+
+	instanceConfigurations, diags := ReadPrivateStateInstanceConfigurations(ctx, privateState)
+	if diags.HasError() {
+		tflog.Debug(ctx, "selectInstanceConfigurationToUse: Failed to read instance-configs from private state", withDiags(diags))
+		return nil
+	}
+
+	instanceConfiguration := getInstanceConfiguration(ctx, planElasticsearch.MasterTier, instanceConfigurations)
+	if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
+		// Fall back to template IC
+		instanceConfiguration = templateInstanceConfig
+	}
+	if instanceConfiguration == nil || instanceConfiguration.DiscreteSizes == nil {
+		tflog.Debug(ctx, "selectInstanceConfigurationToUse: No instance-config for master tier.")
+		return nil
+	}
+
+	if instanceConfiguration.MaxZones == 0 {
+		// In case the max-zones are not set, fall back to template value
+		instanceConfiguration.MaxZones = templateInstanceConfig.MaxZones
+	}
+
+	return instanceConfiguration
 }
 
 func getDedicatedMastersThreshold(template models.DeploymentTemplateInfoV2) int32 {
@@ -261,7 +281,6 @@ func getInstanceConfiguration(
 	rawTopology types.Object,
 	deploymentInstanceConfigs []models.InstanceConfigurationInfo,
 ) *models.InstanceConfigurationInfo {
-
 	if rawTopology.IsUnknown() || rawTopology.IsNull() {
 		return nil
 	}
@@ -278,13 +297,14 @@ func getInstanceConfiguration(
 	}
 
 	icId := topology.InstanceConfigurationId.ValueStringPointer()
+	icConfigVersion := int32(topology.InstanceConfigurationVersion.ValueInt64())
 	if icId == nil || *icId == "" {
 		return nil
 	}
 
 	var deploymentIc *models.InstanceConfigurationInfo
 	for _, ic := range deploymentInstanceConfigs {
-		if ic.ID == *icId {
+		if ic.ID == *icId && ic.ConfigVersion == icConfigVersion {
 			deploymentIc = &ic
 			break
 		}
