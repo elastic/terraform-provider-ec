@@ -19,6 +19,7 @@ package v2
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"strings"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
@@ -483,12 +484,17 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 		nodeRolesPlanModifiers = append(nodeRolesPlanModifiers, SetUnknownOnTopologySizeChange())
 	}
 
+	var topologyPlanModifiers []planmodifier.Object
+	if options.tierName == "master" {
+		topologyPlanModifiers = append(topologyPlanModifiers, UseTopologyStateForUnknown("master"))
+	}
+
 	return schema.SingleNestedAttribute{
-		Optional: !options.required,
-		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
-		// Computed:    true,
-		Required:    options.required,
-		Description: fmt.Sprintf("'%s' topology element", options.tierName),
+		Optional:      !options.required,
+		Computed:      options.tierName == "master",
+		Required:      options.required,
+		Description:   fmt.Sprintf("'%s' topology element", options.tierName),
+		PlanModifiers: topologyPlanModifiers,
 		Attributes: map[string]schema.Attribute{
 			"instance_configuration_id": schema.StringAttribute{
 				Description: `Instance Configuration ID of the topology element`,
@@ -600,4 +606,8 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 			"autoscaling": elasticsearchTopologyAutoscalingSchema(options.tierName),
 		},
 	}
+}
+
+func ElasticsearchTopologyAttrs() map[string]attr.Type {
+	return elasticsearchTopologySchema(topologySchemaOptions{}).GetType().(attr.TypeWithAttributeTypes).AttributeTypes()
 }

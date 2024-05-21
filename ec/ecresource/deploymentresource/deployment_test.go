@@ -86,7 +86,10 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
-				getTemplate(t, templateFileName),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, false),
 				createDeployment(t, readFile(t, "testdata/aws-io-optimized-v2-empty-config-create-expected-payload.json"), createDeploymentResponseJson, requestId),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment2.json")),
@@ -97,9 +100,12 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				readRemoteClusters(t),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-template-migration-response.json")),
+				getTemplate(t, templateFileName, true),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				readRemoteClusters(t),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-template-migration-response.json")),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, true),
 				shutdownDeployment(t),
 			),
 		),
@@ -111,14 +117,20 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 	})
 }
 
-func getTemplate(t *testing.T, filename string) mock.Response {
+func getTemplate(t *testing.T, filename string, withICs bool) mock.Response {
+	var query url.Values
+	if withICs {
+		query = url.Values{"region": {"us-east-1"}, "show_instance_configurations": {"true"}, "show_max_zones": {"true"}}
+	} else {
+		query = url.Values{"region": {"us-east-1"}, "show_instance_configurations": {"false"}, "show_max_zones": {"false"}}
+	}
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
 			Host:   api.DefaultMockHost,
 			Header: api.DefaultReadMockHeaders,
 			Method: "GET",
 			Path:   "/api/v1/deployments/templates/aws-io-optimized-v2",
-			Query:  url.Values{"region": {"us-east-1"}, "show_instance_configurations": {"false"}},
+			Query:  query,
 		},
 		readTestData(t, filename),
 	)

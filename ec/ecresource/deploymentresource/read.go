@@ -100,10 +100,11 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		API:          r.client,
 		DeploymentID: id,
 		QueryParams: deputil.QueryParams{
-			ShowSettings:     true,
-			ShowPlans:        true,
-			ShowMetadata:     true,
-			ShowPlanDefaults: true,
+			ShowSettings:               true,
+			ShowPlans:                  true,
+			ShowMetadata:               true,
+			ShowPlanDefaults:           true,
+			ShowInstanceConfigurations: true,
 		},
 	})
 	if err != nil {
@@ -113,6 +114,10 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		}
 		diags.AddError("Deployment get error", err.Error())
 		return nil, diags
+	}
+
+	if readResponse != nil {
+		UpdatePrivateStateInstanceConfigurations(ctx, readResponse.Private, response.InstanceConfigurations)
 	}
 
 	if !HasRunningResources(response) {

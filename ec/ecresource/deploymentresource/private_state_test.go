@@ -31,6 +31,10 @@ type mockPrivateState struct {
 	data map[string][]byte
 }
 
+func newPrivateState() deploymentresource.PrivateState {
+	return &mockPrivateState{data: make(map[string][]byte)}
+}
+
 func (m *mockPrivateState) GetKey(ctx context.Context, key string) ([]byte, diag.Diagnostics) {
 	value, ok := m.data[key]
 	if !ok {
