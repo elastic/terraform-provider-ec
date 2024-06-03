@@ -45,9 +45,9 @@ type DataSource struct {
 }
 
 func (d *DataSource) Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse) {
-	client, diags := internal.ConvertProviderData(request.ProviderData)
+	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
-	d.client = client
+	d.client = clients.Stateful
 }
 
 func (d *DataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
