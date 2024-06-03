@@ -129,15 +129,3 @@ func useStateForUnknown[T basetypes.ObjectValuable](planValue T, stateValue T) T
 
 	return planValue
 }
-
-func shouldEndpointsBeUnknown(
-	cfgModel *resource_elasticsearch_project.ElasticsearchProjectModel,
-	planModel *resource_elasticsearch_project.ElasticsearchProjectModel,
-	stateModel *resource_elasticsearch_project.ElasticsearchProjectModel,
-) bool {
-	if util.IsKnown(cfgModel.Alias) {
-		return !cfgModel.Alias.Equal(stateModel.Alias)
-	}
-
-	return !planModel.Name.Equal(stateModel.Name)
-}
