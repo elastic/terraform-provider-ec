@@ -23,6 +23,7 @@ import (
 	"strconv"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 // used in tests
@@ -88,4 +89,8 @@ func HashString(str string) string {
 	// Consistent with the old TF SDK HashString
 	resHash := crc32.ChecksumIEEE([]byte(str))
 	return strconv.FormatUint(uint64(resHash), 10)
+}
+
+func IsKnown(val attr.Value) bool {
+	return !(val.IsNull() || val.IsUnknown())
 }
