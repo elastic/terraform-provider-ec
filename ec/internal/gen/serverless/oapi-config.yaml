@@ -1,0 +1,16 @@
+provider:
+  name: ec
+resources:
+  elasticsearch_project:
+    create:
+      path: /api/v1/serverless/projects/elasticsearch
+      method: post
+    read:
+      path: /api/v1/serverless/projects/elasticsearch/{id}
+      method: get
+    update:
+      path: /api/v1/serverless/projects/elasticsearch/{id}
+      method: patch
+    delete:
+      path: /api/v1/serverless/projects/elasticsearch/{id}
+      method: delete
