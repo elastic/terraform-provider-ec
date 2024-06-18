@@ -20,11 +20,11 @@ package v2
 import (
 	"context"
 	"fmt"
-
 	"github.com/blang/semver"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ validator.String = versionSupportsNodeTypes{}
@@ -49,13 +49,13 @@ func (v versionSupportsNodeTypes) ValidateString(ctx context.Context, req valida
 		return
 	}
 
-	var version string
+	var version types.String
 	resp.Diagnostics = req.Config.GetAttribute(ctx, path.Root("version"), &version)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	parsedVersion, err := semver.Parse(version)
+	parsedVersion, err := semver.Parse(version.ValueString())
 	if err != nil {
 		// Ignore this error, it's validated as part of the version schema definition
 		return

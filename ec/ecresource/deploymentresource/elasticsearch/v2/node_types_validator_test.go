@@ -19,10 +19,15 @@ package v2_test
 
 import (
 	"context"
+	entsearch "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
+	obs "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 	"testing"
 
+	apm "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
+	is "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
+	kibana "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -34,32 +39,44 @@ import (
 func TestNodeTypesValidator_ValidateString(t *testing.T) {
 	tests := []struct {
 		name      string
-		version   string
+		version   types.String
 		attrValue types.String
 		isValid   bool
 	}{
 		{
 			name:      "should treat null attribute values as valid",
-			version:   utils.MinVersionWithoutNodeTypes.String(),
+			version:   types.StringValue(utils.MinVersionWithoutNodeTypes.String()),
 			attrValue: types.StringNull(),
 			isValid:   true,
 		},
 		{
 			name:      "should treat unknown attribute values as valid",
-			version:   utils.MinVersionWithoutNodeTypes.String(),
+			version:   types.StringValue(utils.MinVersionWithoutNodeTypes.String()),
 			attrValue: types.StringUnknown(),
 			isValid:   true,
 		},
 		{
 			name:      "should fail if the deployment version is gte the threshold and the attribute is set",
-			version:   utils.MinVersionWithoutNodeTypes.String(),
+			version:   types.StringValue(utils.MinVersionWithoutNodeTypes.String()),
 			attrValue: types.StringValue("false"),
 			isValid:   false,
 		},
 		{
 			name:      "should pass if the deployment version is lt the threshold and the attribute is set",
-			version:   "7.17.9",
+			version:   types.StringValue("7.17.9"),
 			attrValue: types.StringValue("false"),
+			isValid:   true,
+		},
+		{
+			name:      "should treat unknown version as valid",
+			version:   types.StringUnknown(),
+			attrValue: types.StringValue("true"),
+			isValid:   true,
+		},
+		{
+			name:      "should treat null version as valid",
+			version:   types.StringNull(),
+			attrValue: types.StringValue("true"),
 			isValid:   true,
 		},
 	}
@@ -67,9 +84,20 @@ func TestNodeTypesValidator_ValidateString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := v2.VersionSupportsNodeTypes()
-			config := testutil.TfTypesValueFromGoTypeValue(t, &deploymentv2.Deployment{
-				Version: tt.version,
-			}, deploymentv2.DeploymentSchema().Type())
+			config := testutil.TfTypesValueFromGoTypeValue(t,
+				&deploymentv2.DeploymentTF{
+					Version:            tt.version,
+					Elasticsearch:      types.ObjectUnknown(v2.ElasticsearchSchema().GetType().(types.ObjectType).AttrTypes),
+					Kibana:             types.ObjectUnknown(kibana.KibanaSchema().GetType().(types.ObjectType).AttrTypes),
+					Apm:                types.ObjectUnknown(apm.ApmSchema().GetType().(types.ObjectType).AttrTypes),
+					IntegrationsServer: types.ObjectUnknown(is.IntegrationsServerSchema().GetType().(types.ObjectType).AttrTypes),
+					EnterpriseSearch:   types.ObjectUnknown(entsearch.EnterpriseSearchSchema().GetType().(types.ObjectType).AttrTypes),
+					TrafficFilter:      types.SetUnknown(types.StringType),
+					Tags:               types.MapUnknown(types.StringType),
+					Observability:      types.ObjectUnknown(obs.ObservabilitySchema().GetType().(types.ObjectType).AttrTypes),
+				},
+				deploymentv2.DeploymentSchema().Type())
+
 			resp := validator.StringResponse{}
 			v.ValidateString(context.Background(), validator.StringRequest{
 				ConfigValue: tt.attrValue,
