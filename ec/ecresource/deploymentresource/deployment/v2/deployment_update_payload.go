@@ -148,9 +148,20 @@ func (plan DeploymentTF) updateBasePayloadsForMigration(client *api.API, newDtId
 }
 
 func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, state DeploymentTF, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) (*models.DeploymentUpdateRequest, diag.Diagnostics) {
+	// The alias behaves like this:
+	// - Not set in the config (null/unknown) -> Alias is not managed by terraform and left untouched
+	// - Set to empty string -> Alias will be removed
+	// - Set to non-empty string -> Alias will be set to this value
+	var alias *string
+	if plan.Alias.IsNull() || plan.Alias.IsUnknown() {
+		alias = nil
+	} else {
+		alias = ec.String(plan.Alias.ValueString())
+	}
+
 	var result = models.DeploymentUpdateRequest{
 		Name:         plan.Name.ValueString(),
-		Alias:        plan.Alias.ValueString(),
+		Alias:        alias,
 		PruneOrphans: ec.Bool(true),
 		Resources:    &models.DeploymentUpdateResources{},
 		Settings:     &models.DeploymentUpdateSettings{},

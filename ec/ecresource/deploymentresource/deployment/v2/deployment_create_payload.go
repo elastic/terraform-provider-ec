@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -60,9 +61,20 @@ type DeploymentTF struct {
 }
 
 func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*models.DeploymentCreateRequest, diag.Diagnostics) {
+	// The alias behaves like this:
+	// - Not set in the config (null/unknown) -> Default alias is added
+	// - Set to empty string -> No alias is added
+	// - Set to non-empty string -> Alias with that value is added
+	var alias *string
+	if dep.Alias.IsNull() || dep.Alias.IsUnknown() {
+		alias = nil
+	} else {
+		alias = ec.String(dep.Alias.ValueString())
+	}
+
 	var result = models.DeploymentCreateRequest{
 		Name:      dep.Name.ValueString(),
-		Alias:     dep.Alias.ValueString(),
+		Alias:     alias,
 		Resources: &models.DeploymentCreateResources{},
 		Settings:  &models.DeploymentCreateSettings{},
 		Metadata:  &models.DeploymentCreateMetadata{},
