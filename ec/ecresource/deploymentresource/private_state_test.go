@@ -19,6 +19,7 @@ package deploymentresource_test
 
 import (
 	"context"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
@@ -170,7 +171,7 @@ func getSampleMigrationRequest() *deployments.MigrateDeploymentTemplateOK {
 	return &deployments.MigrateDeploymentTemplateOK{
 		Payload: &models.DeploymentUpdateRequest{
 			Name:  "my_deployment_name",
-			Alias: "my-deployment-name",
+			Alias: ec.String("my-deployment-name"),
 		},
 	}
 }
