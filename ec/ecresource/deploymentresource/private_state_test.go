@@ -19,6 +19,7 @@ package deploymentresource_test
 
 import (
 	"context"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
@@ -90,7 +91,7 @@ func TestReadPrivateStateMigrateTemplateRequest(t *testing.T) {
 			got, d := deploymentresource.ReadPrivateStateMigrateTemplateRequest(tt.args.ctx, tt.args.state)
 
 			invalidDiags := d.HasError() != tt.diagHasError
-			invalidReq := got != nil && tt.want != nil && (got.Payload.Name != tt.want.Payload.Name || got.Payload.Alias != tt.want.Payload.Alias)
+			invalidReq := got != nil && tt.want != nil && (got.Payload.Name != tt.want.Payload.Name || *got.Payload.Alias != *tt.want.Payload.Alias)
 
 			if invalidDiags || invalidReq {
 				t.Errorf("ReadPrivateStateMigrateTemplateRequest() = (req = %v, d.HasError = %v), want (req = %v, d.HasError = %v)",
@@ -170,7 +171,7 @@ func getSampleMigrationRequest() *deployments.MigrateDeploymentTemplateOK {
 	return &deployments.MigrateDeploymentTemplateOK{
 		Payload: &models.DeploymentUpdateRequest{
 			Name:  "my_deployment_name",
-			Alias: "my-deployment-name",
+			Alias: ec.String("my-deployment-name"),
 		},
 	}
 }

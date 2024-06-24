@@ -171,7 +171,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
-				Alias:        "my-deployment",
+				Alias:        ec.String("my-deployment"),
 				PruneOrphans: ec.Bool(true),
 				Settings: &models.DeploymentUpdateSettings{
 					Observability: &models.DeploymentObservabilitySettings{
@@ -321,7 +321,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			args: args{
 				plan: Deployment{
 					Id:                   mock.ValidClusterID,
-					Alias:                "my-deployment",
+					Alias:                "",
 					Name:                 "my_deployment_name",
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Region:               "us-east-1",
@@ -336,7 +336,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
-				Alias:        "my-deployment",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -494,7 +494,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
-				Alias:        "my-deployment",
+				Alias:        ec.String("my-deployment"),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -627,6 +627,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -829,7 +830,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
-				Alias:        "my-deployment",
+				Alias:        ec.String("my-deployment"),
 				PruneOrphans: ec.Bool(true),
 				Settings: &models.DeploymentUpdateSettings{
 					Observability: &models.DeploymentObservabilitySettings{},
@@ -961,6 +962,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1094,6 +1096,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1254,6 +1257,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1355,6 +1359,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1460,6 +1465,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1572,6 +1578,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1706,6 +1713,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -1836,6 +1844,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{Tags: []*models.MetadataItem{
@@ -1938,6 +1947,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{
@@ -2025,6 +2035,7 @@ func Test_updateResourceToModel(t *testing.T) {
 			},
 			want: &models.DeploymentUpdateRequest{
 				Name:         "my_deployment_name",
+				Alias:        ec.String(""),
 				PruneOrphans: ec.Bool(true),
 				Settings:     &models.DeploymentUpdateSettings{},
 				Metadata: &models.DeploymentUpdateMetadata{

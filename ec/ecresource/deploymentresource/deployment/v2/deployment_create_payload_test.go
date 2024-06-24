@@ -249,7 +249,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: ec.String("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -448,7 +448,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: ec.String("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -614,7 +614,8 @@ func Test_createRequest(t *testing.T) {
 			// Ref ids are taken from template, not from defaults values in this test.
 			// Defaults are processed by TF during config processing.
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: ec.String(""),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -751,7 +752,8 @@ func Test_createRequest(t *testing.T) {
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: ec.String(""),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -918,7 +920,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: ec.String("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -1074,7 +1076,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: ec.String("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -1210,6 +1212,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -1331,6 +1334,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -1482,6 +1486,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -1630,6 +1635,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -1786,6 +1792,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -1945,6 +1952,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -2123,6 +2131,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -2309,6 +2318,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -2515,6 +2525,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -2708,6 +2719,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -2871,6 +2883,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
@@ -2964,6 +2977,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{Tags: []*models.MetadataItem{
 					{Key: ec.String("aaa"), Value: ec.String("bbb")},
@@ -3048,6 +3062,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    ec.String(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},

@@ -51,7 +51,7 @@ func DeploymentSchema() schema.Schema {
 			"alias": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Deployment alias, affects the format of the resource URLs.",
+				Description: "Deployment alias, affects the format of the resource URLs. Set to an empty value (\"\") to disable the alias.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
