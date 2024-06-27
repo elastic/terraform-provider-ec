@@ -321,7 +321,7 @@ EOF
 
 ### Optional
 
-- `alias` (String) Deployment alias, affects the format of the resource URLs.
+- `alias` (String) Deployment alias, affects the format of the resource URLs. Set to an empty value ("") to disable the alias.
 - `apm` (Attributes) **DEPRECATED** APM cluster definition. This should only be used for deployments running a version lower than 8.0 (see [below for nested schema](#nestedatt--apm))
 - `enterprise_search` (Attributes) Enterprise Search cluster definition. (see [below for nested schema](#nestedatt--enterprise_search))
 - `integrations_server` (Attributes) Integrations Server cluster definition. Integrations Server replaces `apm` in Stack versions > 8.0 (see [below for nested schema](#nestedatt--integrations_server))
