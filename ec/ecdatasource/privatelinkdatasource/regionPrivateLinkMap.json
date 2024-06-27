@@ -223,7 +223,7 @@
         },
         "northamerica-northeast1": {
             "service_attachment_uri": "projects/cloud-production-168820/regions/northamerica-northeast1/serviceAttachments/proxy-psc-production-northamerica-northeast1-v1-attachment",
-            "domain_name": "psc.northamerica-northeast.gcp.elastic-cloud.com"
+            "domain_name": "psc.northamerica-northeast1.gcp.elastic-cloud.com"
         },
         "southamerica-east1": {
             "service_attachment_uri": "projects/cloud-production-168820/regions/southamerica-east1/serviceAttachments/proxy-psc-production-southamerica-east1-v1-attachment",
