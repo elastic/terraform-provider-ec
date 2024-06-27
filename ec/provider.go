@@ -20,8 +20,12 @@ package ec
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymenttemplates"
+	"net/http"
 	"time"
+
+	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymenttemplates"
+	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -41,6 +45,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/projectresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/snapshotrepositoryresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
@@ -83,8 +88,9 @@ func ProviderWithClient(client *api.API, version string) provider.Provider {
 var _ provider.Provider = (*Provider)(nil)
 
 type Provider struct {
-	version string
-	client  *api.API
+	version   string
+	client    *api.API
+	slsClient serverless.ClientWithResponsesInterface
 }
 
 func (p *Provider) Metadata(ctx context.Context, request provider.MetadataRequest, response *provider.MetadataResponse) {
@@ -112,6 +118,9 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 		func() resource.Resource { return &snapshotrepositoryresource.Resource{} },
 		func() resource.Resource { return &trafficfilterresource.Resource{} },
 		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
+		func() resource.Resource { return projectresource.NewElasticsearchProjectResource() },
+		func() resource.Resource { return projectresource.NewObservabilityProjectResource() },
+		func() resource.Resource { return projectresource.NewSecurityProjectResource() },
 	}
 }
 
@@ -179,9 +188,13 @@ type providerConfig struct {
 
 func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	if p.client != nil {
+		data := internal.ProviderClients{
+			Stateful:   p.client,
+			Serverless: p.slsClient,
+		}
 		// Required for unit tests, because a mock client is pre-created there.
-		resp.DataSourceData = p.client
-		resp.ResourceData = p.client
+		resp.DataSourceData = data
+		resp.ResourceData = data
 		return
 	}
 
@@ -309,18 +322,37 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 
 	client, err := api.NewAPI(cfg)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to create api Client config",
+			"Unable to create api Client",
 			err.Error(),
 		)
 		return
 	}
 
+	serverlessClient, err := serverless.NewClientWithResponses(
+		cfg.Host,
+		serverless.WithHTTPClient(cfg.Client),
+		serverless.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+			cfg.AuthWriter.AuthRequest(req)
+			return nil
+		}),
+	)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to create serverless Client",
+			err.Error(),
+		)
+	}
+
 	p.client = client
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	p.slsClient = serverlessClient
+	data := internal.ProviderClients{
+		Stateful:   client,
+		Serverless: serverlessClient,
+	}
+	resp.DataSourceData = data
+	resp.ResourceData = data
 }
 
 func validateEndpoint(ctx context.Context, endpoint string) diag.Diagnostics {

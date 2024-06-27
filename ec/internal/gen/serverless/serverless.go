@@ -15,39 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// This program generates ec/version.go. It can be invoked by running
-// make generate
-//go:build ignore
-// +build ignore
-
-package main
-
-import (
-	"bytes"
-	"log"
-	"os"
-	"text/template"
-)
-
-var templateFormat = `
-package ec
-
-// Version contains the current terraform provider version.
-const Version = "{{ .Version }}"
-`[1:]
-
-type format struct {
-	Version string
-}
-
-func main() {
-	version := os.Getenv("VERSION")
-	t := template.Must(template.New("").Parse(templateFormat))
-
-	var buf = new(bytes.Buffer)
-	if err := t.Execute(buf, format{Version: version}); err != nil {
-		log.Fatalln(err)
-	}
-
-	os.WriteFile("./ec/version.go", buf.Bytes(), 0666)
-}
+//go:generate go run github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi generate --config oapi-config.yaml --output spec.json serverless-project-api-dereferenced.yml
+//go:generate sh modify_spec.sh
+//go:generate go run github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework generate all --input spec-mod.json --output .
+//go:generate go run github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen --config=client-config.yaml serverless-project-api-dereferenced.yml
+package serverless

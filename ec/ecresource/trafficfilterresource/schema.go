@@ -161,9 +161,9 @@ func (r *Resource) ImportState(ctx context.Context, request resource.ImportState
 }
 
 func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
-	client, diags := internal.ConvertProviderData(request.ProviderData)
+	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
-	r.client = client
+	r.client = clients.Stateful
 }
 
 func (r *Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {

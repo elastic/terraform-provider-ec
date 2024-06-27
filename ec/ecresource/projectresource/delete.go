@@ -15,39 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// This program generates ec/version.go. It can be invoked by running
-// make generate
-//go:build ignore
-// +build ignore
-
-package main
+package projectresource
 
 import (
-	"bytes"
-	"log"
-	"os"
-	"text/template"
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var templateFormat = `
-package ec
-
-// Version contains the current terraform provider version.
-const Version = "{{ .Version }}"
-`[1:]
-
-type format struct {
-	Version string
-}
-
-func main() {
-	version := os.Getenv("VERSION")
-	t := template.Must(template.New("").Parse(templateFormat))
-
-	var buf = new(bytes.Buffer)
-	if err := t.Execute(buf, format{Version: version}); err != nil {
-		log.Fatalln(err)
+func (r *Resource[T]) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+	if !resourceReady(r, &response.Diagnostics) {
+		return
 	}
 
-	os.WriteFile("./ec/version.go", buf.Bytes(), 0666)
+	model, diags := r.modelHandler.ReadFrom(ctx, request.State)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	response.Diagnostics.Append(r.api.Delete(ctx, *model)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	response.State.RemoveResource(ctx)
 }
