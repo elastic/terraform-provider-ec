@@ -30,13 +30,13 @@ func (r *Resource[T]) Read(ctx context.Context, request resource.ReadRequest, re
 		return
 	}
 
-	model, diags := r.modelReader.readFrom(ctx, request.State)
+	model, diags := r.modelHandler.ReadFrom(ctx, request.State)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	found, readModel, diags := r.api.read(ctx, r.modelReader.getID(*model), *model)
+	found, readModel, diags := r.api.Read(ctx, r.modelHandler.GetID(*model), *model)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

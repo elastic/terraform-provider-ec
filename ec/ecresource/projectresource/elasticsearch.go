@@ -32,26 +32,26 @@ import (
 
 func NewElasticsearchProjectResource() *Resource[resource_elasticsearch_project.ElasticsearchProjectModel] {
 	return &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
-		modelReader: elasticsearchModelReader{},
-		api:         elasticsearchApi{},
-		name:        "elasticsearch",
+		modelHandler: elasticsearchModelReader{},
+		api:          elasticsearchApi{},
+		name:         "elasticsearch",
 	}
 }
 
 type elasticsearchModelReader struct{}
 
-func (es elasticsearchModelReader) readFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
+func (es elasticsearchModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
 	var model resource_elasticsearch_project.ElasticsearchProjectModel
 	diags := getter.Get(ctx, &model)
 
 	return &model, diags
 }
 
-func (es elasticsearchModelReader) getID(model resource_elasticsearch_project.ElasticsearchProjectModel) string {
+func (es elasticsearchModelReader) GetID(model resource_elasticsearch_project.ElasticsearchProjectModel) string {
 	return model.Id.ValueString()
 }
 
-func (es elasticsearchModelReader) modify(plan resource_elasticsearch_project.ElasticsearchProjectModel, state resource_elasticsearch_project.ElasticsearchProjectModel, cfg resource_elasticsearch_project.ElasticsearchProjectModel) resource_elasticsearch_project.ElasticsearchProjectModel {
+func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.ElasticsearchProjectModel, state resource_elasticsearch_project.ElasticsearchProjectModel, cfg resource_elasticsearch_project.ElasticsearchProjectModel) resource_elasticsearch_project.ElasticsearchProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
@@ -83,16 +83,16 @@ type elasticsearchApi struct {
 	client serverless.ClientWithResponsesInterface
 }
 
-func (es elasticsearchApi) ready() bool {
+func (es elasticsearchApi) Ready() bool {
 	return es.client != nil
 }
 
-func (es elasticsearchApi) withClient(client serverless.ClientWithResponsesInterface) api[resource_elasticsearch_project.ElasticsearchProjectModel] {
+func (es elasticsearchApi) WithClient(client serverless.ClientWithResponsesInterface) api[resource_elasticsearch_project.ElasticsearchProjectModel] {
 	es.client = client
 	return es
 }
 
-func (es elasticsearchApi) create(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) (resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
+func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) (resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
 	createBody := serverless.CreateElasticsearchProjectRequest{
 		Name:     model.Name.ValueString(),
 		RegionId: model.RegionId.ValueString(),
@@ -152,7 +152,7 @@ func (es elasticsearchApi) create(ctx context.Context, model resource_elasticsea
 	return model, diags
 }
 
-func (es elasticsearchApi) patch(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
+func (es elasticsearchApi) Patch(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
 	updateBody := serverless.PatchElasticsearchProjectRequest{
 		Name: model.Name.ValueStringPointer(),
 	}
@@ -197,7 +197,7 @@ func (es elasticsearchApi) patch(ctx context.Context, model resource_elasticsear
 	return nil
 }
 
-func (es elasticsearchApi) ensureInitialised(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
+func (es elasticsearchApi) EnsureInitialised(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
 	id := model.Id.ValueString()
 	for {
 		resp, err := es.client.GetElasticsearchProjectStatusWithResponse(ctx, id)
@@ -225,7 +225,7 @@ func (es elasticsearchApi) ensureInitialised(ctx context.Context, model resource
 	}
 }
 
-func (es elasticsearchApi) read(ctx context.Context, id string, model resource_elasticsearch_project.ElasticsearchProjectModel) (bool, resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
+func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_elasticsearch_project.ElasticsearchProjectModel) (bool, resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
 	resp, err := es.client.GetElasticsearchProjectWithResponse(ctx, id)
 	if err != nil {
 		return false, model, diag.Diagnostics{
@@ -317,7 +317,7 @@ func (es elasticsearchApi) read(ctx context.Context, id string, model resource_e
 	return true, model, nil
 }
 
-func (es elasticsearchApi) delete(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
+func (es elasticsearchApi) Delete(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
 	resp, err := es.client.DeleteElasticsearchProjectWithResponse(ctx, model.Id.ValueString(), nil)
 	if err != nil {
 		return diag.Diagnostics{

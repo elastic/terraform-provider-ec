@@ -28,13 +28,13 @@ func (r *Resource[T]) Delete(ctx context.Context, request resource.DeleteRequest
 		return
 	}
 
-	model, diags := r.modelReader.readFrom(ctx, request.State)
+	model, diags := r.modelHandler.ReadFrom(ctx, request.State)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	response.Diagnostics.Append(r.api.delete(ctx, *model)...)
+	response.Diagnostics.Append(r.api.Delete(ctx, *model)...)
 	if response.Diagnostics.HasError() {
 		return
 	}

@@ -32,26 +32,26 @@ import (
 
 func NewObservabilityProjectResource() *Resource[resource_observability_project.ObservabilityProjectModel] {
 	return &Resource[resource_observability_project.ObservabilityProjectModel]{
-		modelReader: observabilityModelReader{},
-		api:         observabilityApi{},
-		name:        "observability",
+		modelHandler: observabilityModelReader{},
+		api:          observabilityApi{},
+		name:         "observability",
 	}
 }
 
 type observabilityModelReader struct{}
 
-func (es observabilityModelReader) readFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
+func (es observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
 	var model resource_observability_project.ObservabilityProjectModel
 	diags := getter.Get(ctx, &model)
 
 	return &model, diags
 }
 
-func (es observabilityModelReader) getID(model resource_observability_project.ObservabilityProjectModel) string {
+func (es observabilityModelReader) GetID(model resource_observability_project.ObservabilityProjectModel) string {
 	return model.Id.ValueString()
 }
 
-func (es observabilityModelReader) modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
+func (es observabilityModelReader) Modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
@@ -83,16 +83,16 @@ type observabilityApi struct {
 	client serverless.ClientWithResponsesInterface
 }
 
-func (obs observabilityApi) ready() bool {
+func (obs observabilityApi) Ready() bool {
 	return obs.client != nil
 }
 
-func (obs observabilityApi) withClient(client serverless.ClientWithResponsesInterface) api[resource_observability_project.ObservabilityProjectModel] {
+func (obs observabilityApi) WithClient(client serverless.ClientWithResponsesInterface) api[resource_observability_project.ObservabilityProjectModel] {
 	obs.client = client
 	return obs
 }
 
-func (obs observabilityApi) create(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) (resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
+func (obs observabilityApi) Create(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) (resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
 	createBody := serverless.CreateObservabilityProjectRequest{
 		Name:     model.Name.ValueString(),
 		RegionId: model.RegionId.ValueString(),
@@ -134,7 +134,7 @@ func (obs observabilityApi) create(ctx context.Context, model resource_observabi
 	return model, diags
 }
 
-func (obs observabilityApi) patch(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
+func (obs observabilityApi) Patch(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
 	updateBody := serverless.PatchObservabilityProjectRequest{
 		Name: model.Name.ValueStringPointer(),
 	}
@@ -165,7 +165,7 @@ func (obs observabilityApi) patch(ctx context.Context, model resource_observabil
 	return nil
 }
 
-func (obs observabilityApi) ensureInitialised(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
+func (obs observabilityApi) EnsureInitialised(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
 	id := model.Id.ValueString()
 	for {
 		resp, err := obs.client.GetObservabilityProjectStatusWithResponse(ctx, id)
@@ -193,7 +193,7 @@ func (obs observabilityApi) ensureInitialised(ctx context.Context, model resourc
 	}
 }
 
-func (obs observabilityApi) read(ctx context.Context, id string, model resource_observability_project.ObservabilityProjectModel) (bool, resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
+func (obs observabilityApi) Read(ctx context.Context, id string, model resource_observability_project.ObservabilityProjectModel) (bool, resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
 	resp, err := obs.client.GetObservabilityProjectWithResponse(ctx, id)
 	if err != nil {
 		return false, model, diag.Diagnostics{
@@ -262,7 +262,7 @@ func (obs observabilityApi) read(ctx context.Context, id string, model resource_
 	return true, model, nil
 }
 
-func (obs observabilityApi) delete(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
+func (obs observabilityApi) Delete(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
 	resp, err := obs.client.DeleteObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil)
 	if err != nil {
 		return diag.Diagnostics{

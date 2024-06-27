@@ -29,7 +29,7 @@ func (r *Resource[T]) Create(ctx context.Context, request resource.CreateRequest
 		return
 	}
 
-	model, diags := r.modelReader.readFrom(ctx, request.Plan)
+	model, diags := r.modelHandler.ReadFrom(ctx, request.Plan)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -40,7 +40,7 @@ func (r *Resource[T]) Create(ctx context.Context, request resource.CreateRequest
 		return
 	}
 
-	createdModel, diags := r.api.create(ctx, *model)
+	createdModel, diags := r.api.Create(ctx, *model)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
@@ -51,12 +51,12 @@ func (r *Resource[T]) Create(ctx context.Context, request resource.CreateRequest
 		return
 	}
 
-	response.Diagnostics.Append(r.api.ensureInitialised(ctx, createdModel)...)
+	response.Diagnostics.Append(r.api.EnsureInitialised(ctx, createdModel)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	found, createdModel, diags := r.api.read(ctx, r.modelReader.getID(createdModel), createdModel)
+	found, createdModel, diags := r.api.Read(ctx, r.modelHandler.GetID(createdModel), createdModel)
 	response.Diagnostics.Append(diags...)
 
 	if !found {
