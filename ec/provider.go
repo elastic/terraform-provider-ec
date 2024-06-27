@@ -120,6 +120,7 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
 		func() resource.Resource { return projectresource.NewElasticsearchProjectResource() },
 		func() resource.Resource { return projectresource.NewObservabilityProjectResource() },
+		func() resource.Resource { return projectresource.NewSecurityProjectResource() },
 	}
 }
 

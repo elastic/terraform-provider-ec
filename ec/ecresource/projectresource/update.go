@@ -19,6 +19,7 @@ package projectresource
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -40,8 +41,8 @@ func (r *Resource[T]) Update(ctx context.Context, request resource.UpdateRequest
 
 	if !found {
 		response.Diagnostics.AddError(
-			"Failed to read updated Elasticsearch project",
-			"The Elasticsearch project was successfully update, but could then not be read back from the API",
+			fmt.Sprintf("Failed to read updated %s project", r.name),
+			fmt.Sprintf("The %s project was successfully update, but could then not be read back from the API", r.name),
 		)
 	}
 

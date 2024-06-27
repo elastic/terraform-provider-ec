@@ -19,6 +19,7 @@ package projectresource
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -60,8 +61,8 @@ func (r *Resource[T]) Create(ctx context.Context, request resource.CreateRequest
 
 	if !found {
 		response.Diagnostics.AddError(
-			"Failed to read created Elasticsearch project",
-			"The Elasticsearch project was successfully created and initialised, but could then not be read back from the API",
+			fmt.Sprintf("Failed to read created %s project", r.name),
+			fmt.Sprintf("The %s project was successfully created and initialised, but could then not be read back from the API", r.name),
 		)
 		return
 	}

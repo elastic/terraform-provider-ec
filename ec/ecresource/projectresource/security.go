@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
-	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
+	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -30,28 +30,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-func NewObservabilityProjectResource() *Resource[resource_observability_project.ObservabilityProjectModel] {
-	return &Resource[resource_observability_project.ObservabilityProjectModel]{
-		modelReader: observabilityModelReader{},
-		api:         observabilityApi{},
-		name:        "observability",
+func NewSecurityProjectResource() *Resource[resource_security_project.SecurityProjectModel] {
+	return &Resource[resource_security_project.SecurityProjectModel]{
+		modelReader: securityModelReader{},
+		api:         securityApi{},
+		name:        "security",
 	}
 }
 
-type observabilityModelReader struct{}
+type securityModelReader struct{}
 
-func (es observabilityModelReader) readFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
-	var model resource_observability_project.ObservabilityProjectModel
+func (es securityModelReader) readFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+	var model resource_security_project.SecurityProjectModel
 	diags := getter.Get(ctx, &model)
 
 	return &model, diags
 }
 
-func (es observabilityModelReader) getID(model resource_observability_project.ObservabilityProjectModel) string {
+func (es securityModelReader) getID(model resource_security_project.SecurityProjectModel) string {
 	return model.Id.ValueString()
 }
 
-func (es observabilityModelReader) modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
+func (es securityModelReader) modify(plan resource_security_project.SecurityProjectModel, state resource_security_project.SecurityProjectModel, cfg resource_security_project.SecurityProjectModel) resource_security_project.SecurityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
@@ -73,27 +73,27 @@ func (es observabilityModelReader) modify(plan resource_observability_project.Ob
 	}
 
 	if endpointsAreUnknown {
-		plan.Endpoints = resource_observability_project.NewEndpointsValueUnknown()
+		plan.Endpoints = resource_security_project.NewEndpointsValueUnknown()
 	}
 
 	return plan
 }
 
-type observabilityApi struct {
+type securityApi struct {
 	client serverless.ClientWithResponsesInterface
 }
 
-func (obs observabilityApi) ready() bool {
+func (obs securityApi) ready() bool {
 	return obs.client != nil
 }
 
-func (obs observabilityApi) withClient(client serverless.ClientWithResponsesInterface) api[resource_observability_project.ObservabilityProjectModel] {
+func (obs securityApi) withClient(client serverless.ClientWithResponsesInterface) api[resource_security_project.SecurityProjectModel] {
 	obs.client = client
 	return obs
 }
 
-func (obs observabilityApi) create(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) (resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
-	createBody := serverless.CreateObservabilityProjectRequest{
+func (obs securityApi) create(ctx context.Context, model resource_security_project.SecurityProjectModel) (resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+	createBody := serverless.CreateSecurityProjectRequest{
 		Name:     model.Name.ValueString(),
 		RegionId: model.RegionId.ValueString(),
 	}
@@ -102,7 +102,29 @@ func (obs observabilityApi) create(ctx context.Context, model resource_observabi
 		createBody.Alias = model.Alias.ValueStringPointer()
 	}
 
-	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, createBody)
+	if model.AdminFeaturesPackage.ValueString() != "" {
+		createBody.AdminFeaturesPackage = (*serverless.SecurityAdminFeaturesPackage)(model.AdminFeaturesPackage.ValueStringPointer())
+	}
+
+	if util.IsKnown(model.ProductTypes) {
+		var productTypes []resource_security_project.ProductTypesValue
+		diags := model.ProductTypes.ElementsAs(ctx, &productTypes, false)
+		if diags.HasError() {
+			return model, diags
+		}
+
+		createProductTypes := []serverless.SecurityProductType{}
+		for _, productType := range productTypes {
+			createProductTypes = append(createProductTypes, serverless.SecurityProductType{
+				ProductLine: serverless.SecurityProductLine(productType.ProductLine.ValueString()),
+				ProductTier: serverless.SecurityProductTier(productType.ProductTier.ValueString()),
+			})
+		}
+
+		createBody.ProductTypes = &createProductTypes
+	}
+
+	resp, err := obs.client.CreateSecurityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -112,7 +134,7 @@ func (obs observabilityApi) create(ctx context.Context, model resource_observabi
 	if resp.JSON201 == nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Failed to create observability_project",
+				"Failed to create security_project",
 				fmt.Sprintf("The API request failed with: %d %s\n%s",
 					resp.StatusCode(),
 					resp.Status(),
@@ -123,7 +145,7 @@ func (obs observabilityApi) create(ctx context.Context, model resource_observabi
 
 	model.Id = types.StringValue(resp.JSON201.Id)
 
-	creds, diags := resource_observability_project.NewCredentialsValue(
+	creds, diags := resource_security_project.NewCredentialsValue(
 		model.Credentials.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"username": types.StringValue(resp.JSON201.Credentials.Username),
@@ -134,8 +156,8 @@ func (obs observabilityApi) create(ctx context.Context, model resource_observabi
 	return model, diags
 }
 
-func (obs observabilityApi) patch(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
-	updateBody := serverless.PatchObservabilityProjectRequest{
+func (obs securityApi) patch(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
+	updateBody := serverless.PatchSecurityProjectRequest{
 		Name: model.Name.ValueStringPointer(),
 	}
 
@@ -143,7 +165,7 @@ func (obs observabilityApi) patch(ctx context.Context, model resource_observabil
 		updateBody.Alias = model.Alias.ValueStringPointer()
 	}
 
-	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
+	resp, err := obs.client.PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -153,7 +175,7 @@ func (obs observabilityApi) patch(ctx context.Context, model resource_observabil
 	if resp.JSON200 == nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Failed to update observability_project",
+				"Failed to update security_project",
 				fmt.Sprintf("The API request failed with: %d %s\n%s",
 					resp.StatusCode(),
 					resp.Status(),
@@ -165,10 +187,10 @@ func (obs observabilityApi) patch(ctx context.Context, model resource_observabil
 	return nil
 }
 
-func (obs observabilityApi) ensureInitialised(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
+func (obs securityApi) ensureInitialised(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
 	id := model.Id.ValueString()
 	for {
-		resp, err := obs.client.GetObservabilityProjectStatusWithResponse(ctx, id)
+		resp, err := obs.client.GetSecurityProjectStatusWithResponse(ctx, id)
 		if err != nil {
 			return diag.Diagnostics{
 				diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -178,7 +200,7 @@ func (obs observabilityApi) ensureInitialised(ctx context.Context, model resourc
 		if resp.JSON200 == nil {
 			return diag.Diagnostics{
 				diag.NewErrorDiagnostic(
-					"Failed to get observability_project status",
+					"Failed to get security_project status",
 					fmt.Sprintf("The API request failed with: %d %s\n%s",
 						resp.StatusCode(),
 						resp.Status(),
@@ -193,8 +215,8 @@ func (obs observabilityApi) ensureInitialised(ctx context.Context, model resourc
 	}
 }
 
-func (obs observabilityApi) read(ctx context.Context, id string, model resource_observability_project.ObservabilityProjectModel) (bool, resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
-	resp, err := obs.client.GetObservabilityProjectWithResponse(ctx, id)
+func (obs securityApi) read(ctx context.Context, id string, model resource_security_project.SecurityProjectModel) (bool, resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+	resp, err := obs.client.GetSecurityProjectWithResponse(ctx, id)
 	if err != nil {
 		return false, model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -208,7 +230,7 @@ func (obs observabilityApi) read(ctx context.Context, id string, model resource_
 	if resp.JSON200 == nil {
 		return false, model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Failed to create observability_project",
+				"Failed to create security_project",
 				fmt.Sprintf("The API request failed with: %d %s\n%s",
 					resp.StatusCode(),
 					resp.Status(),
@@ -221,12 +243,11 @@ func (obs observabilityApi) read(ctx context.Context, id string, model resource_
 	model.Alias = basetypes.NewStringValue(reformatAlias(resp.JSON200.Alias, id))
 	model.CloudId = basetypes.NewStringValue(resp.JSON200.CloudId)
 
-	endpoints, diags := resource_observability_project.NewEndpointsValue(
+	endpoints, diags := resource_security_project.NewEndpointsValue(
 		model.Endpoints.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"elasticsearch": basetypes.NewStringValue(resp.JSON200.Endpoints.Elasticsearch),
 			"kibana":        basetypes.NewStringValue(resp.JSON200.Endpoints.Kibana),
-			"apm":           basetypes.NewStringValue(resp.JSON200.Endpoints.Apm),
 		},
 	)
 	if diags.HasError() {
@@ -246,7 +267,7 @@ func (obs observabilityApi) read(ctx context.Context, id string, model resource_
 		metadataValues["suspended_at"] = basetypes.NewStringValue(resp.JSON200.Metadata.SuspendedAt.String())
 	}
 
-	metadata, diags := resource_observability_project.NewMetadataValue(
+	metadata, diags := resource_security_project.NewMetadataValue(
 		model.Metadata.AttributeTypes(ctx),
 		metadataValues,
 	)
@@ -262,11 +283,11 @@ func (obs observabilityApi) read(ctx context.Context, id string, model resource_
 	return true, model, nil
 }
 
-func (obs observabilityApi) delete(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
-	resp, err := obs.client.DeleteObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil)
+func (obs securityApi) delete(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
+	resp, err := obs.client.DeleteSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil)
 	if err != nil {
 		return diag.Diagnostics{
-			diag.NewErrorDiagnostic("Failed to delete observability_project", err.Error()),
+			diag.NewErrorDiagnostic("Failed to delete security_project", err.Error()),
 		}
 	}
 
@@ -274,7 +295,7 @@ func (obs observabilityApi) delete(ctx context.Context, model resource_observabi
 	if statusCode != 200 && statusCode != 404 {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Request to delete observability_project failed",
+				"Request to delete security_project failed",
 				fmt.Sprintf("The API request failed with: %d %s\n%s",
 					resp.StatusCode(),
 					resp.Status(),
