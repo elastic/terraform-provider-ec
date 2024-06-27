@@ -35,9 +35,9 @@ var _ resource.ResourceWithConfigure = &Resource[resource_elasticsearch_project.
 var _ resource.ResourceWithModifyPlan = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 
 type Resource[T any] struct {
-	modelReader modelHandler[T]
-	api         api[T]
-	name        string
+	modelHandler modelHandler[T]
+	api          api[T]
+	name         string
 }
 
 type modelGetter interface {
@@ -45,23 +45,23 @@ type modelGetter interface {
 }
 
 type modelHandler[T any] interface {
-	readFrom(context.Context, modelGetter) (*T, diag.Diagnostics)
-	getID(T) string
-	modify(T, T, T) T
+	ReadFrom(context.Context, modelGetter) (*T, diag.Diagnostics)
+	GetID(T) string
+	Modify(T, T, T) T
 }
 
 type api[TModel any] interface {
-	create(context.Context, TModel) (TModel, diag.Diagnostics)
-	patch(context.Context, TModel) diag.Diagnostics
-	ensureInitialised(context.Context, TModel) diag.Diagnostics
-	read(context.Context, string, TModel) (bool, TModel, diag.Diagnostics)
-	delete(context.Context, TModel) diag.Diagnostics
-	withClient(serverless.ClientWithResponsesInterface) api[TModel]
-	ready() bool
+	Create(context.Context, TModel) (TModel, diag.Diagnostics)
+	Patch(context.Context, TModel) diag.Diagnostics
+	EnsureInitialised(context.Context, TModel) diag.Diagnostics
+	Read(context.Context, string, TModel) (bool, TModel, diag.Diagnostics)
+	Delete(context.Context, TModel) diag.Diagnostics
+	WithClient(serverless.ClientWithResponsesInterface) api[TModel]
+	Ready() bool
 }
 
 func resourceReady[T any](r *Resource[T], dg *diag.Diagnostics) bool {
-	if !r.api.ready() {
+	if !r.api.Ready() {
 		dg.AddError(
 			"Unconfigured API Client",
 			"Expected configured API client. Please report this issue to the provider developers.",
@@ -75,7 +75,7 @@ func resourceReady[T any](r *Resource[T], dg *diag.Diagnostics) bool {
 func (r *Resource[T]) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
 	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
-	r.api = r.api.withClient(clients.Serverless)
+	r.api = r.api.WithClient(clients.Serverless)
 }
 
 func (r *Resource[T]) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
@@ -87,19 +87,19 @@ func (r *Resource[T]) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 }
 
 func (r Resource[T]) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	cfgModel, diags := r.modelReader.readFrom(ctx, req.Config)
+	cfgModel, diags := r.modelHandler.ReadFrom(ctx, req.Config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	planModel, diags := r.modelReader.readFrom(ctx, req.Plan)
+	planModel, diags := r.modelHandler.ReadFrom(ctx, req.Plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	stateModel, diags := r.modelReader.readFrom(ctx, req.State)
+	stateModel, diags := r.modelHandler.ReadFrom(ctx, req.State)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -111,7 +111,7 @@ func (r Resource[T]) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequ
 		return
 	}
 
-	modifiedModel := r.modelReader.modify(*planModel, *stateModel, *cfgModel)
+	modifiedModel := r.modelHandler.Modify(*planModel, *stateModel, *cfgModel)
 	resp.Diagnostics.Append(resp.Plan.Set(ctx, modifiedModel)...)
 }
 

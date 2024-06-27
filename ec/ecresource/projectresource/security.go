@@ -32,26 +32,26 @@ import (
 
 func NewSecurityProjectResource() *Resource[resource_security_project.SecurityProjectModel] {
 	return &Resource[resource_security_project.SecurityProjectModel]{
-		modelReader: securityModelReader{},
-		api:         securityApi{},
-		name:        "security",
+		modelHandler: securityModelReader{},
+		api:          securityApi{},
+		name:         "security",
 	}
 }
 
 type securityModelReader struct{}
 
-func (es securityModelReader) readFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+func (sec securityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
 	var model resource_security_project.SecurityProjectModel
 	diags := getter.Get(ctx, &model)
 
 	return &model, diags
 }
 
-func (es securityModelReader) getID(model resource_security_project.SecurityProjectModel) string {
+func (sec securityModelReader) GetID(model resource_security_project.SecurityProjectModel) string {
 	return model.Id.ValueString()
 }
 
-func (es securityModelReader) modify(plan resource_security_project.SecurityProjectModel, state resource_security_project.SecurityProjectModel, cfg resource_security_project.SecurityProjectModel) resource_security_project.SecurityProjectModel {
+func (sec securityModelReader) Modify(plan resource_security_project.SecurityProjectModel, state resource_security_project.SecurityProjectModel, cfg resource_security_project.SecurityProjectModel) resource_security_project.SecurityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
@@ -83,16 +83,16 @@ type securityApi struct {
 	client serverless.ClientWithResponsesInterface
 }
 
-func (obs securityApi) ready() bool {
-	return obs.client != nil
+func (sec securityApi) Ready() bool {
+	return sec.client != nil
 }
 
-func (obs securityApi) withClient(client serverless.ClientWithResponsesInterface) api[resource_security_project.SecurityProjectModel] {
-	obs.client = client
-	return obs
+func (sec securityApi) WithClient(client serverless.ClientWithResponsesInterface) api[resource_security_project.SecurityProjectModel] {
+	sec.client = client
+	return sec
 }
 
-func (obs securityApi) create(ctx context.Context, model resource_security_project.SecurityProjectModel) (resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+func (sec securityApi) Create(ctx context.Context, model resource_security_project.SecurityProjectModel) (resource_security_project.SecurityProjectModel, diag.Diagnostics) {
 	createBody := serverless.CreateSecurityProjectRequest{
 		Name:     model.Name.ValueString(),
 		RegionId: model.RegionId.ValueString(),
@@ -124,7 +124,7 @@ func (obs securityApi) create(ctx context.Context, model resource_security_proje
 		createBody.ProductTypes = &createProductTypes
 	}
 
-	resp, err := obs.client.CreateSecurityProjectWithResponse(ctx, createBody)
+	resp, err := sec.client.CreateSecurityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -156,7 +156,7 @@ func (obs securityApi) create(ctx context.Context, model resource_security_proje
 	return model, diags
 }
 
-func (obs securityApi) patch(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
+func (sec securityApi) Patch(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
 	updateBody := serverless.PatchSecurityProjectRequest{
 		Name: model.Name.ValueStringPointer(),
 	}
@@ -165,7 +165,7 @@ func (obs securityApi) patch(ctx context.Context, model resource_security_projec
 		updateBody.Alias = model.Alias.ValueStringPointer()
 	}
 
-	resp, err := obs.client.PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
+	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -187,10 +187,10 @@ func (obs securityApi) patch(ctx context.Context, model resource_security_projec
 	return nil
 }
 
-func (obs securityApi) ensureInitialised(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
+func (sec securityApi) EnsureInitialised(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
 	id := model.Id.ValueString()
 	for {
-		resp, err := obs.client.GetSecurityProjectStatusWithResponse(ctx, id)
+		resp, err := sec.client.GetSecurityProjectStatusWithResponse(ctx, id)
 		if err != nil {
 			return diag.Diagnostics{
 				diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -215,8 +215,8 @@ func (obs securityApi) ensureInitialised(ctx context.Context, model resource_sec
 	}
 }
 
-func (obs securityApi) read(ctx context.Context, id string, model resource_security_project.SecurityProjectModel) (bool, resource_security_project.SecurityProjectModel, diag.Diagnostics) {
-	resp, err := obs.client.GetSecurityProjectWithResponse(ctx, id)
+func (sec securityApi) Read(ctx context.Context, id string, model resource_security_project.SecurityProjectModel) (bool, resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+	resp, err := sec.client.GetSecurityProjectWithResponse(ctx, id)
 	if err != nil {
 		return false, model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -283,8 +283,8 @@ func (obs securityApi) read(ctx context.Context, id string, model resource_secur
 	return true, model, nil
 }
 
-func (obs securityApi) delete(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
-	resp, err := obs.client.DeleteSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil)
+func (sec securityApi) Delete(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
+	resp, err := sec.client.DeleteSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic("Failed to delete security_project", err.Error()),
