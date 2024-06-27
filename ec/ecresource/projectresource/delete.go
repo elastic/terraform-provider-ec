@@ -15,41 +15,27 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package elasticsearchprojectresource
+package projectresource
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+func (r *Resource[T]) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
 	if !resourceReady(r, &response.Diagnostics) {
 		return
 	}
 
-	var model resource_elasticsearch_project.ElasticsearchProjectModel
-	response.Diagnostics.Append(request.State.Get(ctx, &model)...)
+	model, diags := r.modelReader.readFrom(ctx, request.State)
+	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	resp, err := r.client.DeleteElasticsearchProjectWithResponse(ctx, model.Id.ValueString(), nil)
-	if err != nil {
-		response.Diagnostics.AddError("Failed to delete elasticsearch_project", err.Error())
-	}
-
-	statusCode := resp.StatusCode()
-	if statusCode != 200 && statusCode != 404 {
-		response.Diagnostics.AddError(
-			"Request to delete elasticsearch_project failed",
-			fmt.Sprintf("The API request failed with: %d %s\n%s",
-				resp.StatusCode(),
-				resp.Status(),
-				resp.Body),
-		)
+	response.Diagnostics.Append(r.api.delete(ctx, *model)...)
+	if response.Diagnostics.HasError() {
 		return
 	}
 

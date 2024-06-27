@@ -304,6 +304,189 @@
           }
         ]
       }
+    },
+    {
+      "name": "observability_project",
+      "schema": {
+        "attributes": [
+          {
+            "name": "alias",
+            "string": {
+              "computed_optional_required": "computed_optional",
+              "description": "A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.",
+              "validators": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                      }
+                    ],
+                    "schema_definition": "stringvalidator.LengthBetween(1, 50)"
+                  }
+                },
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "regexp"
+                      },
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                      }
+                    ],
+                    "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$\"), \"\")"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "name",
+            "string": {
+              "computed_optional_required": "required",
+              "description": "Descriptive name for a project.",
+              "validators": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                      }
+                    ],
+                    "schema_definition": "stringvalidator.LengthBetween(1, 255)"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "region_id",
+            "string": {
+              "computed_optional_required": "required",
+              "description": "Unique human-readable identifier for a region in Elastic Cloud."
+            }
+          },
+          {
+            "name": "cloud_id",
+            "string": {
+              "computed_optional_required": "computed",
+              "description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana."
+            }
+          },
+          {
+            "name": "credentials",
+            "single_nested": {
+              "computed_optional_required": "computed",
+              "attributes": [
+                {
+                  "name": "password",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Basic auth password that can be used to access the Elasticsearch API."
+                  }
+                },
+                {
+                  "name": "username",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Basic auth username that can be used to access the Elasticsearch API."
+                  }
+                }
+              ],
+              "description": "Basic auth credentials to access the Elasticsearch API."
+            }
+          },
+          {
+            "name": "endpoints",
+            "single_nested": {
+              "computed_optional_required": "computed",
+              "attributes": [
+                {
+                  "name": "apm",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The endpoint to access apm."
+                  }
+                },
+                {
+                  "name": "elasticsearch",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The endpoint to access elasticsearch."
+                  }
+                },
+                {
+                  "name": "kibana",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The endpoint to access kibana."
+                  }
+                }
+              ],
+              "description": "The endpoints to access the different apps of the project."
+            }
+          },
+          {
+            "name": "id",
+            "string": {
+              "computed_optional_required": "computed",
+              "description": "ID of the project."
+            }
+          },
+          {
+            "name": "metadata",
+            "single_nested": {
+              "computed_optional_required": "computed",
+              "attributes": [
+                {
+                  "name": "created_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was created."
+                  }
+                },
+                {
+                  "name": "created_by",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "ID of the user."
+                  }
+                },
+                {
+                  "name": "organization_id",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The Organization ID who owns the project."
+                  }
+                },
+                {
+                  "name": "suspended_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was suspended."
+                  }
+                },
+                {
+                  "name": "suspended_reason",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Reason why the project was suspended."
+                  }
+                }
+              ],
+              "description": "Additional details about the project."
+            }
+          },
+          {
+            "name": "type",
+            "string": {
+              "computed_optional_required": "computed",
+              "description": "the type of the project"
+            }
+          }
+        ]
+      }
     }
   ],
   "version": "0.1"
