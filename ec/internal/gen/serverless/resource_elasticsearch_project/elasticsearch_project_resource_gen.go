@@ -169,7 +169,7 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 				},
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"search",
+						"general_purpose",
 						"vector",
 					),
 				},

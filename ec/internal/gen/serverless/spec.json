@@ -71,7 +71,7 @@
 												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 											}
 										],
-										"schema_definition": "stringvalidator.OneOf(\n\"search\",\n\"vector\",\n)"
+										"schema_definition": "stringvalidator.OneOf(\n\"general_purpose\",\n\"vector\",\n)"
 									}
 								}
 							]
