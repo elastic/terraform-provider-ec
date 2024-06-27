@@ -1,7 +1,10 @@
 openapi: 3.0.1
 info:
-  title: Elastic Serverless API
-  description: This API allows managing Elastic Cloud Serverless Projects.
+  title: Elastic Cloud Serverless API
+  description: |
+    This API allows managing Elastic Cloud Serverless Projects.
+
+    You can find more information and examples using this API in the [documentation](https://docs.elastic.co/serverless/general/manage-project-with-api).
   version: 0.1.0
 servers:
   - url: https://api.elastic-cloud.com
@@ -939,9 +942,9 @@ components:
       type: string
       description: The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
       enum:
-        - search
+        - general_purpose
         - vector
-      example: search
+      example: general_purpose
     ElasticsearchProject:
       type: object
       description: An Elasticsearch serverless project.
@@ -1311,13 +1314,27 @@ components:
     ProjectRole:
       type: string
       description: A role name for a particular project
+    ProjectRoleDescription:
+      type: string
+      description: A role description for a particular role
+    ProjectRoleDetails:
+      type: object
+      description: Roles of a serverless project.
+      required:
+        - name
+        - description
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectRole'
+        description:
+          $ref: '#/components/schemas/ProjectRoleDescription'
     ProjectRoles:
       type: object
       properties:
         roles:
           type: array
           items:
-            $ref: '#/components/schemas/ProjectRole'
+            $ref: '#/components/schemas/ProjectRoleDetails'
     ProjectRolesByProjectID:
       type: object
       additionalProperties:

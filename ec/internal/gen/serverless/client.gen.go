@@ -47,8 +47,8 @@ const (
 
 // Defines values for ElasticsearchOptimizedFor.
 const (
-	Search ElasticsearchOptimizedFor = "search"
-	Vector ElasticsearchOptimizedFor = "vector"
+	GeneralPurpose ElasticsearchOptimizedFor = "general_purpose"
+	Vector         ElasticsearchOptimizedFor = "vector"
 )
 
 // Defines values for ElasticsearchProjectType.
@@ -452,9 +452,21 @@ type ProjectName = string
 // ProjectRole A role name for a particular project
 type ProjectRole = string
 
+// ProjectRoleDescription A role description for a particular role
+type ProjectRoleDescription = string
+
+// ProjectRoleDetails Roles of a serverless project.
+type ProjectRoleDetails struct {
+	// Description A role description for a particular role
+	Description ProjectRoleDescription `json:"description"`
+
+	// Name A role name for a particular project
+	Name ProjectRole `json:"name"`
+}
+
 // ProjectRoles defines model for ProjectRoles.
 type ProjectRoles struct {
-	Roles *[]ProjectRole `json:"roles,omitempty"`
+	Roles *[]ProjectRoleDetails `json:"roles,omitempty"`
 }
 
 // ProjectRolesByProjectID defines model for ProjectRolesByProjectID.
