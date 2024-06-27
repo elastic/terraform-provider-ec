@@ -14,3 +14,16 @@ resources:
     delete:
       path: /api/v1/serverless/projects/elasticsearch/{id}
       method: delete
+  observability_project:
+    create:
+      path: /api/v1/serverless/projects/observability
+      method: post
+    read:
+      path: /api/v1/serverless/projects/observability/{id}
+      method: get
+    update:
+      path: /api/v1/serverless/projects/observability/{id}
+      method: patch
+    delete:
+      path: /api/v1/serverless/projects/observability/{id}
+      method: delete

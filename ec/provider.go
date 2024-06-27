@@ -43,9 +43,9 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/stackdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/trafficfilterdatasource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
-	elasticsearchprojectresource "github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearch_project_resource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/elasticsearchkeystoreresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/extensionresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/projectresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/snapshotrepositoryresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterassocresource"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/trafficfilterresource"
@@ -118,7 +118,8 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 		func() resource.Resource { return &snapshotrepositoryresource.Resource{} },
 		func() resource.Resource { return &trafficfilterresource.Resource{} },
 		func() resource.Resource { return &trafficfilterassocresource.Resource{} },
-		func() resource.Resource { return &elasticsearchprojectresource.Resource{} },
+		func() resource.Resource { return projectresource.NewElasticsearchProjectResource() },
+		func() resource.Resource { return projectresource.NewObservabilityProjectResource() },
 	}
 }
 
