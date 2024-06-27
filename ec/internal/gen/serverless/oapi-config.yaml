@@ -27,3 +27,16 @@ resources:
     delete:
       path: /api/v1/serverless/projects/observability/{id}
       method: delete
+  security_project:
+    create:
+      path: /api/v1/serverless/projects/security
+      method: post
+    read:
+      path: /api/v1/serverless/projects/security/{id}
+      method: get
+    update:
+      path: /api/v1/serverless/projects/security/{id}
+      method: patch
+    delete:
+      path: /api/v1/serverless/projects/security/{id}
+      method: delete
