@@ -1,0 +1,3 @@
+```release-note:bug
+datasource/gcp_private_service_connect_endpoint: Fixup incorrect reference data for northamerica-northeast1.
+```
