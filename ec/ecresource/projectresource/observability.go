@@ -20,6 +20,7 @@ package projectresource
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
@@ -206,14 +207,14 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 		}
 	}
 
-	if resp.JSON404 != nil {
+	if resp.HTTPResponse != nil && resp.HTTPResponse.StatusCode == http.StatusNotFound {
 		return false, model, nil
 	}
 
 	if resp.JSON200 == nil {
 		return false, model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Failed to create observability_project",
+				"Failed to read observability_project",
 				fmt.Sprintf("The API request failed with: %d %s\n%s",
 					resp.StatusCode(),
 					resp.Status(),

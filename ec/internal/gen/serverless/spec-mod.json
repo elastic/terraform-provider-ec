@@ -338,6 +338,18 @@
                     "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$\"), \"\")"
                   }
                 }
+              ],
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
               ]
             }
           },
@@ -371,7 +383,19 @@
             "name": "cloud_id",
             "string": {
               "computed_optional_required": "computed",
-              "description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana."
+              "description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.",
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
+              ]
             }
           },
           {
@@ -431,7 +455,19 @@
             "name": "id",
             "string": {
               "computed_optional_required": "computed",
-              "description": "ID of the project."
+              "description": "ID of the project.",
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
+              ]
             }
           },
           {
@@ -482,7 +518,19 @@
             "name": "type",
             "string": {
               "computed_optional_required": "computed",
-              "description": "the type of the project"
+              "description": "the type of the project",
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
+              ]
             }
           }
         ]
@@ -538,6 +586,18 @@
                       }
                     ],
                     "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$\"), \"\")"
+                  }
+                }
+              ],
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
                   }
                 }
               ]
@@ -633,7 +693,19 @@
             "name": "cloud_id",
             "string": {
               "computed_optional_required": "computed",
-              "description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana."
+              "description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.",
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
+              ]
             }
           },
           {
@@ -686,7 +758,19 @@
             "name": "id",
             "string": {
               "computed_optional_required": "computed",
-              "description": "ID of the project."
+              "description": "ID of the project.",
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
+              ]
             }
           },
           {
@@ -737,7 +821,19 @@
             "name": "type",
             "string": {
               "computed_optional_required": "computed",
-              "description": "the type of the project"
+              "description": "the type of the project",
+              "plan_modifiers": [
+                {
+                  "custom": {
+                    "imports": [
+                      {
+                        "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                      }
+                    ],
+                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                  }
+                }
+              ]
             }
           }
         ]
