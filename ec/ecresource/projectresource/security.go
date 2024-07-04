@@ -26,6 +26,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -39,6 +40,10 @@ func NewSecurityProjectResource() *Resource[resource_security_project.SecurityPr
 }
 
 type securityModelReader struct{}
+
+func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
+}
 
 func (sec securityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
 	var model *resource_security_project.SecurityProjectModel

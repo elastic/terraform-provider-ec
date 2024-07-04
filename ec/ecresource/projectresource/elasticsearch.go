@@ -26,6 +26,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -39,6 +40,10 @@ func NewElasticsearchProjectResource() *Resource[resource_elasticsearch_project.
 }
 
 type elasticsearchModelReader struct{}
+
+func (es elasticsearchModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
+}
 
 func (es elasticsearchModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
 	var model *resource_elasticsearch_project.ElasticsearchProjectModel

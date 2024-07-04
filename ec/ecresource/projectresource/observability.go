@@ -26,6 +26,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -40,18 +41,22 @@ func NewObservabilityProjectResource() *Resource[resource_observability_project.
 
 type observabilityModelReader struct{}
 
-func (es observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
+func (obs observabilityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = resource_observability_project.ObservabilityProjectResourceSchema(ctx)
+}
+
+func (obs observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
 	var model *resource_observability_project.ObservabilityProjectModel
 	diags := getter.Get(ctx, &model)
 
 	return model, diags
 }
 
-func (es observabilityModelReader) GetID(model resource_observability_project.ObservabilityProjectModel) string {
+func (obs observabilityModelReader) GetID(model resource_observability_project.ObservabilityProjectModel) string {
 	return model.Id.ValueString()
 }
 
-func (es observabilityModelReader) Modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
+func (obs observabilityModelReader) Modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
