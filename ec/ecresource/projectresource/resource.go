@@ -45,6 +45,7 @@ type modelGetter interface {
 }
 
 type modelHandler[T any] interface {
+	Schema(context.Context, resource.SchemaRequest, *resource.SchemaResponse)
 	ReadFrom(context.Context, modelGetter) (*T, diag.Diagnostics)
 	GetID(T) string
 	Modify(T, T, T) T
@@ -82,8 +83,8 @@ func (r *Resource[T]) Metadata(ctx context.Context, request resource.MetadataReq
 	response.TypeName = fmt.Sprintf("%s_%s_project", request.ProviderTypeName, r.name)
 }
 
-func (r *Resource[T]) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
+func (r *Resource[T]) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	r.modelHandler.Schema(ctx, req, resp)
 }
 
 func (r Resource[T]) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
