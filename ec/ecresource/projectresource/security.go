@@ -20,6 +20,7 @@ package projectresource
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
@@ -228,14 +229,14 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		}
 	}
 
-	if resp.JSON404 != nil {
+	if resp.HTTPResponse != nil && resp.HTTPResponse.StatusCode == http.StatusNotFound {
 		return false, model, nil
 	}
 
 	if resp.JSON200 == nil {
 		return false, model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(
-				"Failed to create security_project",
+				"Failed to read security_project",
 				fmt.Sprintf("The API request failed with: %d %s\n%s",
 					resp.StatusCode(),
 					resp.Status(),

@@ -42,8 +42,9 @@ func (r *Resource[T]) Update(ctx context.Context, request resource.UpdateRequest
 	if !found {
 		response.Diagnostics.AddError(
 			fmt.Sprintf("Failed to read updated %s project", r.name),
-			fmt.Sprintf("The %s project was successfully update, but could then not be read back from the API", r.name),
+			fmt.Sprintf("The %s project was successfully updated, but could then not be read back from the API", r.name),
 		)
+		return
 	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, readModel)...)
