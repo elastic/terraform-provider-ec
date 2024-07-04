@@ -41,10 +41,10 @@ func NewSecurityProjectResource() *Resource[resource_security_project.SecurityPr
 type securityModelReader struct{}
 
 func (sec securityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
-	var model resource_security_project.SecurityProjectModel
+	var model *resource_security_project.SecurityProjectModel
 	diags := getter.Get(ctx, &model)
 
-	return &model, diags
+	return model, diags
 }
 
 func (sec securityModelReader) GetID(model resource_security_project.SecurityProjectModel) string {
