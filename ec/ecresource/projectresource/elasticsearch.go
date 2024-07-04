@@ -41,10 +41,10 @@ func NewElasticsearchProjectResource() *Resource[resource_elasticsearch_project.
 type elasticsearchModelReader struct{}
 
 func (es elasticsearchModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
-	var model resource_elasticsearch_project.ElasticsearchProjectModel
+	var model *resource_elasticsearch_project.ElasticsearchProjectModel
 	diags := getter.Get(ctx, &model)
 
-	return &model, diags
+	return model, diags
 }
 
 func (es elasticsearchModelReader) GetID(model resource_elasticsearch_project.ElasticsearchProjectModel) string {

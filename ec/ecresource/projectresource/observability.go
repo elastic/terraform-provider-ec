@@ -41,10 +41,10 @@ func NewObservabilityProjectResource() *Resource[resource_observability_project.
 type observabilityModelReader struct{}
 
 func (es observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
-	var model resource_observability_project.ObservabilityProjectModel
+	var model *resource_observability_project.ObservabilityProjectModel
 	diags := getter.Get(ctx, &model)
 
-	return &model, diags
+	return model, diags
 }
 
 func (es observabilityModelReader) GetID(model resource_observability_project.ObservabilityProjectModel) string {
