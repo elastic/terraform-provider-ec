@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
@@ -35,7 +36,7 @@ import (
 func NewObservabilityProjectResource() *Resource[resource_observability_project.ObservabilityProjectModel] {
 	return &Resource[resource_observability_project.ObservabilityProjectModel]{
 		modelHandler: observabilityModelReader{},
-		api:          observabilityApi{},
+		api:          observabilityApi{sleeper: realSleeper{}},
 		name:         "observability",
 	}
 }
@@ -86,7 +87,8 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 }
 
 type observabilityApi struct {
-	client serverless.ClientWithResponsesInterface
+	client  serverless.ClientWithResponsesInterface
+	sleeper sleeper
 }
 
 func (obs observabilityApi) Ready() bool {
@@ -196,6 +198,8 @@ func (obs observabilityApi) EnsureInitialised(ctx context.Context, model resourc
 		if resp.JSON200.Phase == serverless.Initialized {
 			return nil
 		}
+
+		obs.sleeper.Sleep(200 * time.Millisecond)
 	}
 }
 

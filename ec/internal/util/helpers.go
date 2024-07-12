@@ -94,3 +94,7 @@ func HashString(str string) string {
 func IsKnown(val attr.Value) bool {
 	return !(val.IsNull() || val.IsUnknown())
 }
+
+func Ptr[T any](t T) *T {
+	return &t
+}

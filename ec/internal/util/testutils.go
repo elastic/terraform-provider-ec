@@ -22,9 +22,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,4 +54,18 @@ func StringMapAsType(t *testing.T, in map[string]string) types.Map {
 	res, diags := types.MapValueFrom(context.Background(), types.StringType, in)
 	assert.Nil(t, diags)
 	return res
+}
+
+func attrValueFromGoTypeValue(t *testing.T, goValue any, attributeType attr.Type) attr.Value {
+	var attrValue attr.Value
+	diags := tfsdk.ValueFrom(context.Background(), goValue, attributeType, &attrValue)
+	assert.Nil(t, diags)
+	return attrValue
+}
+
+func TfTypesValueFromGoTypeValue(t *testing.T, goValue any, attributeType attr.Type) tftypes.Value {
+	attrValue := attrValueFromGoTypeValue(t, goValue, attributeType)
+	tftypesValue, err := attrValue.ToTerraformValue(context.Background())
+	assert.Nil(t, err)
+	return tftypesValue
 }

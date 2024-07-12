@@ -42,11 +42,10 @@ func (r *Resource[T]) Create(ctx context.Context, request resource.CreateRequest
 
 	createdModel, diags := r.api.Create(ctx, *model)
 	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
+	if r.modelHandler.GetID(createdModel) != "" {
+		response.Diagnostics.Append(response.State.Set(ctx, createdModel)...)
 	}
 
-	response.Diagnostics.Append(response.State.Set(ctx, createdModel)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -58,6 +57,9 @@ func (r *Resource[T]) Create(ctx context.Context, request resource.CreateRequest
 
 	found, createdModel, diags := r.api.Read(ctx, r.modelHandler.GetID(createdModel), createdModel)
 	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	if !found {
 		response.Diagnostics.AddError(

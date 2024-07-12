@@ -19,4 +19,5 @@
 //go:generate sh modify_spec.sh
 //go:generate go run github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework generate all --input spec-mod.json --output .
 //go:generate go run github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen --config=client-config.yaml serverless-project-api-dereferenced.yml
+//go:generate go run go.uber.org/mock/mockgen -destination=mocks/client.gen.go -package mocks . ClientWithResponsesInterface,ClientInterface
 package serverless

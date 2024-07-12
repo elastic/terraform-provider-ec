@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
@@ -35,8 +36,10 @@ import (
 func NewElasticsearchProjectResource() *Resource[resource_elasticsearch_project.ElasticsearchProjectModel] {
 	return &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
 		modelHandler: elasticsearchModelReader{},
-		api:          elasticsearchApi{},
-		name:         "elasticsearch",
+		api: elasticsearchApi{
+			sleeper: realSleeper{},
+		},
+		name: "elasticsearch",
 	}
 }
 
@@ -85,8 +88,19 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 	return plan
 }
 
+type sleeper interface {
+	Sleep(time.Duration)
+}
+
+type realSleeper struct{}
+
+func (r realSleeper) Sleep(d time.Duration) {
+	time.Sleep(d)
+}
+
 type elasticsearchApi struct {
-	client serverless.ClientWithResponsesInterface
+	client  serverless.ClientWithResponsesInterface
+	sleeper sleeper
 }
 
 func (es elasticsearchApi) Ready() bool {
@@ -228,6 +242,8 @@ func (es elasticsearchApi) EnsureInitialised(ctx context.Context, model resource
 		if resp.JSON200.Phase == serverless.Initialized {
 			return nil
 		}
+
+		es.sleeper.Sleep(200 * time.Millisecond)
 	}
 }
 
