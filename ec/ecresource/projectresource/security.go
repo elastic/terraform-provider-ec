@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
@@ -35,7 +36,7 @@ import (
 func NewSecurityProjectResource() *Resource[resource_security_project.SecurityProjectModel] {
 	return &Resource[resource_security_project.SecurityProjectModel]{
 		modelHandler: securityModelReader{},
-		api:          securityApi{},
+		api:          securityApi{sleeper: realSleeper{}},
 		name:         "security",
 	}
 }
@@ -86,7 +87,8 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 }
 
 type securityApi struct {
-	client serverless.ClientWithResponsesInterface
+	client  serverless.ClientWithResponsesInterface
+	sleeper sleeper
 }
 
 func (sec securityApi) Ready() bool {
@@ -218,6 +220,8 @@ func (sec securityApi) EnsureInitialised(ctx context.Context, model resource_sec
 		if resp.JSON200.Phase == serverless.Initialized {
 			return nil
 		}
+
+		sec.sleeper.Sleep(200 * time.Millisecond)
 	}
 }
 

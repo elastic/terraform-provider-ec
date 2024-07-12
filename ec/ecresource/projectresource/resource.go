@@ -44,6 +44,8 @@ type modelGetter interface {
 	Get(ctx context.Context, target interface{}) diag.Diagnostics
 }
 
+// mockgen doesn't support the recursive generic used within api.WithClient
+// //go:generate go run go.uber.org/mock/mockgen -source=resource.go -destination mocks.gen.go -package projectresource .
 type modelHandler[T any] interface {
 	Schema(context.Context, resource.SchemaRequest, *resource.SchemaResponse)
 	ReadFrom(context.Context, modelGetter) (*T, diag.Diagnostics)
