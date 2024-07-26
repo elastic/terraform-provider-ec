@@ -32,7 +32,7 @@ jobs:
           if ${{github.event_name == 'workflow_dispatch'}}; then
             BRANCH=$(git describe --abbrev=0 --tags)
           fi
-          echo ::set-output name=BRANCH::$(echo ${BRANCH} | cut -d '.' -f1-2 | tr -d 'v')
+          echo "BRANCH=$(echo ${BRANCH} | cut -d '.' -f1-2 | tr -d 'v')" >> $GITHUB_OUTPUT
 
       - name: Create a github branch
         uses: peterjgrainger/action-create-branch@v3.0.0
