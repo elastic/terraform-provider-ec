@@ -20,6 +20,7 @@ package ec
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/organizationresource"
 	"net/http"
 	"time"
 
@@ -121,6 +122,7 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 		func() resource.Resource { return projectresource.NewElasticsearchProjectResource() },
 		func() resource.Resource { return projectresource.NewObservabilityProjectResource() },
 		func() resource.Resource { return projectresource.NewSecurityProjectResource() },
+		func() resource.Resource { return &organizationresource.Resource{} },
 	}
 }
 
