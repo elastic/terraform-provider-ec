@@ -48,10 +48,7 @@ func (obs observabilityModelReader) Schema(ctx context.Context, _ resource.Schem
 }
 
 func (obs observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
-	var model *resource_observability_project.ObservabilityProjectModel
-	diags := getter.Get(ctx, &model)
-
-	return model, diags
+	return readFrom[resource_observability_project.ObservabilityProjectModel](ctx, getter)
 }
 
 func (obs observabilityModelReader) GetID(model resource_observability_project.ObservabilityProjectModel) string {

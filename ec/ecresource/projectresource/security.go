@@ -48,10 +48,7 @@ func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequ
 }
 
 func (sec securityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
-	var model *resource_security_project.SecurityProjectModel
-	diags := getter.Get(ctx, &model)
-
-	return model, diags
+	return readFrom[resource_security_project.SecurityProjectModel](ctx, getter)
 }
 
 func (sec securityModelReader) GetID(model resource_security_project.SecurityProjectModel) string {

@@ -50,10 +50,7 @@ func (es elasticsearchModelReader) Schema(ctx context.Context, _ resource.Schema
 }
 
 func (es elasticsearchModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
-	var model *resource_elasticsearch_project.ElasticsearchProjectModel
-	diags := getter.Get(ctx, &model)
-
-	return model, diags
+	return readFrom[resource_elasticsearch_project.ElasticsearchProjectModel](ctx, getter)
 }
 
 func (es elasticsearchModelReader) GetID(model resource_elasticsearch_project.ElasticsearchProjectModel) string {
