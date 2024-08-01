@@ -27,9 +27,9 @@ resource "ec_security_project" "my_project" {
 
 ### Optional
 
+- `admin_features_package` (String) admin features package (BYOK, BYOIDP, CCS, CCR)
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-- `optimized_for` (String) The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
-- `search_lake` (Attributes) Configuration for entire set of capabilities that make the data searchable in Elasticsearch. (see [below for nested schema](#nestedatt--search_lake))
+- `product_types` (Attributes List) (see [below for nested schema](#nestedatt--product_types))
 
 ### Read-Only
 
@@ -40,13 +40,13 @@ resource "ec_security_project" "my_project" {
 - `metadata` (Attributes) Additional details about the project. (see [below for nested schema](#nestedatt--metadata))
 - `type` (String) the type of the project
 
-<a id="nestedatt--search_lake"></a>
-### Nested Schema for `search_lake`
+<a id="nestedatt--product_types"></a>
+### Nested Schema for `product_types`
 
-Optional:
+Required:
 
-- `boost_window` (Number) Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window.
-- `search_power` (Number) Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.
+- `product_line` (String) The identifier of the Security Solution product line.
+- `product_tier` (String) The identifier of the Security Solution product tier.
 
 
 <a id="nestedatt--credentials"></a>

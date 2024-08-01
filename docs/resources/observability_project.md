@@ -28,8 +28,6 @@ resource "ec_observability_project" "my_project" {
 ### Optional
 
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-- `optimized_for` (String) The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
-- `search_lake` (Attributes) Configuration for entire set of capabilities that make the data searchable in Elasticsearch. (see [below for nested schema](#nestedatt--search_lake))
 
 ### Read-Only
 
@@ -39,15 +37,6 @@ resource "ec_observability_project" "my_project" {
 - `id` (String) ID of the project.
 - `metadata` (Attributes) Additional details about the project. (see [below for nested schema](#nestedatt--metadata))
 - `type` (String) the type of the project
-
-<a id="nestedatt--search_lake"></a>
-### Nested Schema for `search_lake`
-
-Optional:
-
-- `boost_window` (Number) Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window.
-- `search_power` (Number) Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.
-
 
 <a id="nestedatt--credentials"></a>
 ### Nested Schema for `credentials`
@@ -63,6 +52,7 @@ Read-Only:
 
 Read-Only:
 
+- `apm` (String) The endpoint to access apm.
 - `elasticsearch` (String) The endpoint to access elasticsearch.
 - `kibana` (String) The endpoint to access kibana.
 
