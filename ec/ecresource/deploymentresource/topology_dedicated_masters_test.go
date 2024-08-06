@@ -19,17 +19,18 @@ package deploymentresource_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	depl "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	es "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUpdateDedicatedMasterTier(t *testing.T) {
@@ -388,7 +389,7 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				MigrateToLatestHardware: &test.args.migrateToLatestHw,
 			}
 			config := tfsdk.Config{
-				Raw:    testutil.TfTypesValueFromGoTypeValue(t, deploymentConfig, depl.DeploymentSchema().Type()),
+				Raw:    util.TfTypesValueFromGoTypeValue(t, deploymentConfig, depl.DeploymentSchema().Type()),
 				Schema: depl.DeploymentSchema(),
 			}
 			deploymentPlan := depl.Deployment{
@@ -396,7 +397,7 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				MigrateToLatestHardware: &test.args.migrateToLatestHw,
 			}
 			plan := tfsdk.Plan{
-				Raw:    testutil.TfTypesValueFromGoTypeValue(t, deploymentPlan, depl.DeploymentSchema().Type()),
+				Raw:    util.TfTypesValueFromGoTypeValue(t, deploymentPlan, depl.DeploymentSchema().Type()),
 				Schema: depl.DeploymentSchema(),
 			}
 			response := resource.ModifyPlanResponse{

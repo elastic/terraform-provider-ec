@@ -19,16 +19,17 @@ package v2_test
 
 import (
 	"context"
+	"testing"
+
 	entsearch "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	obs "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
-	"testing"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 
 	apm "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	is "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
 	kibana "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -84,7 +85,7 @@ func TestNodeTypesValidator_ValidateString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := v2.VersionSupportsNodeTypes()
-			config := testutil.TfTypesValueFromGoTypeValue(t,
+			config := util.TfTypesValueFromGoTypeValue(t,
 				&deploymentv2.DeploymentTF{
 					Version:            tt.version,
 					Elasticsearch:      types.ObjectUnknown(v2.ElasticsearchSchema().GetType().(types.ObjectType).AttrTypes),

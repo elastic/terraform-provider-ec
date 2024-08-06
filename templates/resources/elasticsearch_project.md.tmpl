@@ -1,0 +1,21 @@
+---
+page_title: "Elastic Cloud: {{ .Name }} {{ .Type }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Type }}: {{ .Name }}
+
+{{ .Description }}
+
+## Example Usage
+
+{{ tffile "examples/resources/ec_elasticsearch_project/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Projects can be imported using the `id`, for example:
+
+{{ codefile "shell" .ImportFile }}

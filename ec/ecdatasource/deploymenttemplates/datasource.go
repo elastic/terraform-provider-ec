@@ -19,6 +19,7 @@ package deploymenttemplates
 
 import (
 	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
@@ -39,9 +40,9 @@ func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRe
 }
 
 func (d *DataSource) Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse) {
-	client, diags := internal.ConvertProviderData(request.ProviderData)
+	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
-	d.client = client
+	d.client = clients.Stateful
 }
 
 func (d *DataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
