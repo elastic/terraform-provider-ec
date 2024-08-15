@@ -136,10 +136,12 @@ func elasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, m
 
 		id := account.AccountId.ValueString()
 		all := account.TrustAll.ValueBool()
+		name := account.Name.ValueString()
 
 		payload := &models.AccountTrustRelationship{
 			AccountID: &id,
 			TrustAll:  &all,
+			Name:      name,
 		}
 
 		ds = account.TrustAllowlist.ElementsAs(ctx, &payload.TrustAllowlist, true)

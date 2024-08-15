@@ -22,6 +22,7 @@ import (
 )
 
 type ElasticsearchTrustAccountTF struct {
+	Name           types.String `tfsdk:"account_id"`
 	AccountId      types.String `tfsdk:"account_id"`
 	TrustAll       types.Bool   `tfsdk:"trust_all"`
 	TrustAllowlist types.Set    `tfsdk:"trust_allowlist"`
@@ -30,6 +31,7 @@ type ElasticsearchTrustAccountTF struct {
 type ElasticsearchTrustAccountsTF types.Set
 
 type ElasticsearchTrustAccount struct {
+	Name           string   `tfsdk:"account_id"`
 	AccountId      *string  `tfsdk:"account_id"`
 	TrustAll       *bool    `tfsdk:"trust_all"`
 	TrustAllowlist []string `tfsdk:"trust_allowlist"`

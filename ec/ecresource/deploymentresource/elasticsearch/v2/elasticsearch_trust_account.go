@@ -48,6 +48,10 @@ func readElasticsearchTrustAccount(in *models.AccountTrustRelationship) (*v1.Ela
 		return &acc, nil
 	}
 
+	if in.Name != "" {
+		acc.Name = in.Name
+	}
+
 	if in.AccountID != nil {
 		acc.AccountId = in.AccountID
 	}
