@@ -1,0 +1,688 @@
+{
+	"provider": {
+		"name": "ec"
+	},
+	"resources": [
+		{
+			"name": "elasticsearch_project",
+			"schema": {
+				"attributes": [
+					{
+						"name": "alias",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 50)"
+									}
+								},
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "regexp"
+											},
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$\"), \"\")"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "name",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Descriptive name for a project.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "optimized_for",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"general_purpose\",\n\"vector\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "region_id",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Unique human-readable identifier for a region in Elastic Cloud."
+						}
+					},
+					{
+						"name": "search_lake",
+						"single_nested": {
+							"computed_optional_required": "computed_optional",
+							"attributes": [
+								{
+									"name": "boost_window",
+									"int64": {
+										"computed_optional_required": "computed_optional",
+										"description": "Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window.",
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+														}
+													],
+													"schema_definition": "int64validator.Between(0, 180)"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "search_power",
+									"int64": {
+										"computed_optional_required": "computed_optional",
+										"description": "Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.",
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+														}
+													],
+													"schema_definition": "int64validator.Between(5, 3000)"
+												}
+											}
+										]
+									}
+								}
+							],
+							"description": "Configuration for entire set of capabilities that make the data searchable in Elasticsearch."
+						}
+					},
+					{
+						"name": "cloud_id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana."
+						}
+					},
+					{
+						"name": "credentials",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "password",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Basic auth password that can be used to access the Elasticsearch API."
+									}
+								},
+								{
+									"name": "username",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Basic auth username that can be used to access the Elasticsearch API."
+									}
+								}
+							],
+							"description": "Basic auth credentials to access the Elasticsearch API."
+						}
+					},
+					{
+						"name": "endpoints",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "elasticsearch",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access elasticsearch."
+									}
+								},
+								{
+									"name": "kibana",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access kibana."
+									}
+								}
+							],
+							"description": "The endpoints to access the different apps of the project."
+						}
+					},
+					{
+						"name": "id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "ID of the project."
+						}
+					},
+					{
+						"name": "metadata",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "created_at",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Date and time when the project was created."
+									}
+								},
+								{
+									"name": "created_by",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "ID of the user."
+									}
+								},
+								{
+									"name": "organization_id",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The Organization ID who owns the project."
+									}
+								},
+								{
+									"name": "suspended_at",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Date and time when the project was suspended."
+									}
+								},
+								{
+									"name": "suspended_reason",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Reason why the project was suspended."
+									}
+								}
+							],
+							"description": "Additional details about the project."
+						}
+					},
+					{
+						"name": "type",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "the type of the project"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "observability_project",
+			"schema": {
+				"attributes": [
+					{
+						"name": "alias",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 50)"
+									}
+								},
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "regexp"
+											},
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$\"), \"\")"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "name",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Descriptive name for a project.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "region_id",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Unique human-readable identifier for a region in Elastic Cloud."
+						}
+					},
+					{
+						"name": "cloud_id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana."
+						}
+					},
+					{
+						"name": "credentials",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "password",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Basic auth password that can be used to access the Elasticsearch API."
+									}
+								},
+								{
+									"name": "username",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Basic auth username that can be used to access the Elasticsearch API."
+									}
+								}
+							],
+							"description": "Basic auth credentials to access the Elasticsearch API."
+						}
+					},
+					{
+						"name": "endpoints",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "apm",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access apm."
+									}
+								},
+								{
+									"name": "elasticsearch",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access elasticsearch."
+									}
+								},
+								{
+									"name": "kibana",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access kibana."
+									}
+								}
+							],
+							"description": "The endpoints to access the different apps of the project."
+						}
+					},
+					{
+						"name": "id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "ID of the project."
+						}
+					},
+					{
+						"name": "metadata",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "created_at",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Date and time when the project was created."
+									}
+								},
+								{
+									"name": "created_by",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "ID of the user."
+									}
+								},
+								{
+									"name": "organization_id",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The Organization ID who owns the project."
+									}
+								},
+								{
+									"name": "suspended_at",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Date and time when the project was suspended."
+									}
+								},
+								{
+									"name": "suspended_reason",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Reason why the project was suspended."
+									}
+								}
+							],
+							"description": "Additional details about the project."
+						}
+					},
+					{
+						"name": "type",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "the type of the project"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "security_project",
+			"schema": {
+				"attributes": [
+					{
+						"name": "admin_features_package",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "admin features package (BYOK, BYOIDP, CCS, CCR)",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"standard\",\n\"enterprise\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "alias",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 50)"
+									}
+								},
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "regexp"
+											},
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$\"), \"\")"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "name",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Descriptive name for a project.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "product_types",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "product_line",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "The identifier of the Security Solution product line.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.OneOf(\n\"security\",\n\"cloud\",\n\"endpoint\",\n)"
+													}
+												}
+											]
+										}
+									},
+									{
+										"name": "product_tier",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "The identifier of the Security Solution product tier.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.OneOf(\n\"complete\",\n\"essentials\",\n)"
+													}
+												}
+											]
+										}
+									}
+								]
+							},
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+											}
+										],
+										"schema_definition": "listvalidator.SizeBetween(2, 3)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "region_id",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Unique human-readable identifier for a region in Elastic Cloud."
+						}
+					},
+					{
+						"name": "cloud_id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana."
+						}
+					},
+					{
+						"name": "credentials",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "password",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Basic auth password that can be used to access the Elasticsearch API."
+									}
+								},
+								{
+									"name": "username",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Basic auth username that can be used to access the Elasticsearch API."
+									}
+								}
+							],
+							"description": "Basic auth credentials to access the Elasticsearch API."
+						}
+					},
+					{
+						"name": "endpoints",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "elasticsearch",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access elasticsearch."
+									}
+								},
+								{
+									"name": "kibana",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access kibana."
+									}
+								}
+							],
+							"description": "The endpoints to access the different apps of the project."
+						}
+					},
+					{
+						"name": "id",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "ID of the project."
+						}
+					},
+					{
+						"name": "metadata",
+						"single_nested": {
+							"computed_optional_required": "computed",
+							"attributes": [
+								{
+									"name": "created_at",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Date and time when the project was created."
+									}
+								},
+								{
+									"name": "created_by",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "ID of the user."
+									}
+								},
+								{
+									"name": "organization_id",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The Organization ID who owns the project."
+									}
+								},
+								{
+									"name": "suspended_at",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Date and time when the project was suspended."
+									}
+								},
+								{
+									"name": "suspended_reason",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "Reason why the project was suspended."
+									}
+								}
+							],
+							"description": "Additional details about the project."
+						}
+					},
+					{
+						"name": "type",
+						"string": {
+							"computed_optional_required": "computed",
+							"description": "the type of the project"
+						}
+					}
+				]
+			}
+		}
+	],
+	"version": "0.1"
+}

@@ -23,8 +23,8 @@ import (
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -68,7 +68,7 @@ func TestNodeRolesValidator_ValidateSet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v := v2.VersionSupportsNodeRoles()
-			config := testutil.TfTypesValueFromGoTypeValue(t, &deploymentv2.Deployment{
+			config := util.TfTypesValueFromGoTypeValue(t, &deploymentv2.Deployment{
 				Version: tt.version,
 			}, deploymentv2.DeploymentSchema().Type())
 			resp := validator.SetResponse{}

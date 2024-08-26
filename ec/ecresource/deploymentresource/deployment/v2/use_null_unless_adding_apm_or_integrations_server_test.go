@@ -24,7 +24,7 @@ import (
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -108,8 +108,8 @@ func TestUseNullUnlessAddingAPMOrIntegrationsServer_PlanModifyString(t *testing.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.state, v2.DeploymentSchema().Type())
-			planValue := testutil.TfTypesValueFromGoTypeValue(t, tt.plan, v2.DeploymentSchema().Type())
+			stateValue := util.TfTypesValueFromGoTypeValue(t, tt.state, v2.DeploymentSchema().Type())
+			planValue := util.TfTypesValueFromGoTypeValue(t, tt.plan, v2.DeploymentSchema().Type())
 			req := planmodifier.StringRequest{
 				PlanValue: tt.planValue,
 				State: tfsdk.State{

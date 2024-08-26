@@ -24,7 +24,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -240,9 +240,9 @@ func Test_topologyPlanModifier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			modifier := v2.UseTopologyStateForUnknown("hot")
 
-			deploymentStateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
+			deploymentStateValue := util.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
-			deploymentPlanValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
+			deploymentPlanValue := util.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
 			plan := tfsdk.Plan{
 				Raw:    deploymentPlanValue,
