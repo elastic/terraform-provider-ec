@@ -2,6 +2,10 @@ openapi: 3.0.1
 info:
   title: Elastic Cloud Serverless API
   description: |
+    **Technical preview**
+    This functionality is in technical preview and may be changed or removed in a future release.
+    Elastic will work to fix any issues, but features in technical preview are not subject to the support SLA of official GA features.
+
     This API allows managing Elastic Cloud Serverless Projects.
 
     You can find more information and examples using this API in the [documentation](https://docs.elastic.co/serverless/general/manage-project-with-api).
