@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Fix issue setting the elasticsearch_username when resetting the elasticsearch_password
-```

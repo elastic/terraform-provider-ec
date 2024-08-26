@@ -1,3 +1,0 @@
-```release-note:feature
-resource/deployment: new "elasticsearch"'s "keystore_contents" attribute to manage deployment keystore items during deployment create and update calls.
-```

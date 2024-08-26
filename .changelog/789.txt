@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Don't rewrite the observability deployment ID to `self` when it's been explicitly configured.
-```

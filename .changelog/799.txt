@@ -1,3 +1,0 @@
-```release-note:feature
-datasource/deploymenttemplates: Adds a new datasource to list all deployment-templates available in a region.
-```
