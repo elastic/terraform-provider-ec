@@ -17,8 +17,6 @@ Releasing a new version implies that there have been changes in the source code 
 
 ### Make sure `VERSION` is up to date
 
-**Since the `VERSION` is now updated via github actions, just double check that it is updated, and if not, manually do so**.
-
 Since the source has changed, we need to update the current committed version to a higher version so that the release is published.
 
 The version is currently defined in the [Makefile](./Makefile) as an exported environment variable called `VERSION` in the [SEMVER](https://semver.org) format: `MAJOR.MINOR.PATCH`
@@ -54,7 +52,7 @@ When releasing patch versions, the changelog will be branched out in the minor b
 
 ### Ensure the NOTICE file is up-to-date
 
-Run `make notice` to update the `NOTICE`.
+Run `make vendor` to update the `NOTICE`.
 
 ## Executing the release
 
@@ -63,4 +61,5 @@ After all the prerequisites have been ticked off, the only thing remaining is to
 ## Post release tasks
 
 - After the release has been completed, the next version header should be added in the changelog as `# <VERSION> (Unreleased)` at the top of the `CHANGELOG.md` file.
+- The VERSION in the [Makefile](../Makefile) should be updated
 - The version in all examples should be updated to the next version to be released. 

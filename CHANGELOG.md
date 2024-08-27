@@ -1,4 +1,4 @@
-# 0.11.0 (Unreleased)
+# 0.12.0 (Unreleased)
 
 FEATURES:
 
