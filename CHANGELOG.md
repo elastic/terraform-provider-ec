@@ -1,5 +1,17 @@
 # 0.11.0 (Unreleased)
 
+FEATURES:
+
+* resource/deployment: Automatically add a dedicated master tier when it is required due to the number of nodes in the cluster. Also removes it again if the number of nodes drops below the threshold for a dedicated master tier.
+This does not affect configurations that have explicitly configured a master tier. ([#814](https://github.com/elastic/terraform-provider-ec/issues/814))
+* resource/project: Adds `elasticsearch_project`, `observability_project`, and `security_project` resources to manage Serverless projects. ([#817](https://github.com/elastic/terraform-provider-ec/issues/817))
+
+BUG FIXES:
+
+* datasource/gcp_private_service_connect_endpoint: Fixup incorrect reference data for northamerica-northeast1. ([#823](https://github.com/elastic/terraform-provider-ec/issues/823))
+* resource/deployment: Correctly handle deployment-alias being set to empty value. Setting an empty value should remove the alias instead of ignoring the change. ([#821](https://github.com/elastic/terraform-provider-ec/issues/821))
+* resource/deployment: Fixes a bug where a validation would fail when using a dynamic stack version (e.g. `data.ec_stack.latest.version`) ([#820](https://github.com/elastic/terraform-provider-ec/issues/820))
+
 # 0.10.0 (April 03, 2024)
 
 FEATURES:
