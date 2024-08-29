@@ -1,5 +1,7 @@
 # 0.12.0 (Unreleased)
 
+# 0.11.0 (August 29, 2024)
+
 FEATURES:
 
 * resource/deployment: Automatically add a dedicated master tier when it is required due to the number of nodes in the cluster. Also removes it again if the number of nodes drops below the threshold for a dedicated master tier.
