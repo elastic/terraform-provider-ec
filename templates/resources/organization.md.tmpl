@@ -1,0 +1,34 @@
+---
+page_title: "Elastic Cloud: {{ .Name }} {{ .Type }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Type }}: {{ .Name }}
+
+{{ .Description }}
+
+## Example Usage
+
+### Import
+
+To import an organization into terraform, first define your organization configuration in your terraform file. For example:
+```terraform
+resource "ec_organization" "myorg" {
+}
+```
+
+Then import the organization using your organization-id (The organization id can be found on [the organization page](https://cloud.elastic.co/account/members))
+```bash
+terraform import ec_organization.myorg <organization-id>
+```
+
+Now you can run `terraform plan` to see if there are any diffs between your config and how your organization is currently configured.
+
+### Basic
+
+{{ tffile "examples/resources/ec_organization/basic.tf" }}
+
+### Use variables to give the same roles to multiple users
+
+{{ tffile "examples/resources/ec_organization/locals.tf" }}
