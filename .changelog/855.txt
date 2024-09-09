@@ -1,0 +1,3 @@
+```release-note:feature
+resource/organization: Allows managing the members of an organization: They can now be invited to the organization (and later removed) and their assigned roles can be updated.
+```
