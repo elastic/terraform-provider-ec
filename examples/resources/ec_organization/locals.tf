@@ -3,7 +3,7 @@ locals {
   deployment_admin = {
     deployment_roles = [
       {
-        role = "admin"
+        role                = "admin"
         for_all_deployments = true
       }
     ]
@@ -12,7 +12,7 @@ locals {
   deployment_viewer = {
     deployment_roles = [
       {
-        role = "viewer"
+        role                = "viewer"
         for_all_deployments = true
       }
     ]
@@ -21,8 +21,8 @@ locals {
 
 resource "ec_organization" "my_org" {
   members = {
-    "admin@example.com" = local.deployment_admin
-    "viewer@example.com" = local.deployment_viewer
+    "admin@example.com"          = local.deployment_admin
+    "viewer@example.com"         = local.deployment_viewer
     "another.viewer@example.com" = local.deployment_viewer
   }
 }

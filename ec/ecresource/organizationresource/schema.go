@@ -217,7 +217,7 @@ func projectRoleAssignmentSchema(roles []string) schema.NestedAttributeObject {
 	return schema.NestedAttributeObject{
 		Attributes: map[string]schema.Attribute{
 			"role": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("Assigned role. (Allowed values: %s)", "`" + strings.Join(roles, "`, `") + "`"),
+				MarkdownDescription: fmt.Sprintf("Assigned role. (Allowed values: %s)", "`"+strings.Join(roles, "`, `")+"`"),
 				Required:            true,
 			},
 			"for_all_projects": schema.BoolAttribute{
