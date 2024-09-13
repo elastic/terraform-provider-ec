@@ -50,14 +50,14 @@ type OrganizationMember struct {
 
 type DeploymentRoleAssignment struct {
 	Role              types.String `tfsdk:"role"`
-	ForAllDeployments types.Bool   `tfsdk:"for_all_deployments"`
+	ForAllDeployments types.Bool   `tfsdk:"all_deployments"`
 	DeploymentIDs     types.Set    `tfsdk:"deployment_ids"`
 	ApplicationRoles  types.Set    `tfsdk:"application_roles"`
 }
 
 type ProjectRoleAssignment struct {
 	Role             types.String `tfsdk:"role"`
-	ForAllProjects   types.Bool   `tfsdk:"for_all_projects"`
+	ForAllProjects   types.Bool   `tfsdk:"all_projects"`
 	ProjectIDs       types.Set    `tfsdk:"project_ids"`
 	ApplicationRoles types.Set    `tfsdk:"application_roles"`
 }
@@ -130,7 +130,7 @@ func deploymentRoleAssignmentsSchema() schema.SetNestedAttribute {
 					MarkdownDescription: "Assigned role. Must be on of `viewer`, `editor` or `admin`.",
 					Required:            true,
 				},
-				"for_all_deployments": schema.BoolAttribute{
+				"all_deployments": schema.BoolAttribute{
 					MarkdownDescription: "Role applies to all deployments in the organization.",
 					Optional:            true,
 					PlanModifiers: []planmodifier.Bool{
@@ -220,15 +220,15 @@ func projectRoleAssignmentSchema(roles []string) schema.NestedAttributeObject {
 				MarkdownDescription: fmt.Sprintf("Assigned role. (Allowed values: %s)", "`"+strings.Join(roles, "`, `")+"`"),
 				Required:            true,
 			},
-			"for_all_projects": schema.BoolAttribute{
-				MarkdownDescription: "Role applies to all deployments in the organization.",
+			"all_projects": schema.BoolAttribute{
+				MarkdownDescription: "Role applies to all projects in the organization.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.BoolDefaultValue(false), // consider unknown as false
 				},
 			},
 			"project_ids": schema.SetAttribute{
-				MarkdownDescription: "Role applies to deployments listed here.",
+				MarkdownDescription: "Role applies to projects listed here.",
 				Optional:            true,
 				ElementType:         types.StringType,
 			},

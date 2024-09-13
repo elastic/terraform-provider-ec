@@ -73,25 +73,25 @@ func TestOrganizationResourceAgainstMockedAPI(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.0.role", "editor"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.0.deployment_ids.0", "abc"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.for_all_deployments", "true"),
+					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.all_deployments", "true"),
 
 					// Elasticsearch roles
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.0.role", "developer"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.0.project_ids.0", "qwe"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.for_all_projects", "true"),
+					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.all_projects", "true"),
 
 					// Observability roles
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.0.role", "editor"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.0.project_ids.0", "rty"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.for_all_projects", "true"),
+					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.all_projects", "true"),
 
 					// Project roles
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.0.role", "editor"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.0.project_ids.0", "uio"),
 					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.for_all_projects", "true"),
+					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.all_projects", "true"),
 				),
 			},
 			// A newly added member should be invited to the organization
@@ -138,7 +138,7 @@ func TestOrganizationResourceAgainstMockedAPI(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.role", "editor"),
 					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.deployment_ids.0", "abc"),
 					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.for_all_deployments", "true"),
+					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.all_deployments", "true"),
 				),
 			},
 			// Removing roles from member
@@ -149,7 +149,7 @@ func TestOrganizationResourceAgainstMockedAPI(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
 					resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com.organization_role"),
 					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.for_all_deployments", "true"),
+					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.all_deployments", "true"),
 				),
 			},
 			// Removing member from organization
@@ -550,7 +550,7 @@ resource "ec_organization" "myorg" {
       deployment_roles = [
         {
           role = "viewer"
-          for_all_deployments = true
+          all_deployments = true
         },
         {
           role = "editor"
@@ -561,7 +561,7 @@ resource "ec_organization" "myorg" {
       project_elasticsearch_roles = [
         {
           role = "viewer"
-          for_all_projects = true
+          all_projects = true
         },
         {
           role = "developer"
@@ -572,7 +572,7 @@ resource "ec_organization" "myorg" {
       project_observability_roles = [
         {
           role = "viewer"
-          for_all_projects = true
+          all_projects = true
         },
         {
           role = "editor"
@@ -583,7 +583,7 @@ resource "ec_organization" "myorg" {
       project_security_roles = [
         {
           role = "viewer"
-          for_all_projects = true
+          all_projects = true
         },
         {
           role = "editor"
@@ -616,7 +616,7 @@ const memberWithNewRoles = `
       deployment_roles = [
         {
           role = "viewer"
-          for_all_deployments = true
+          all_deployments = true
         },
         {
           role = "editor"
@@ -631,7 +631,7 @@ const memberWithRemovedRoles = `
       deployment_roles = [
         {
           role = "viewer"
-          for_all_deployments = true
+          all_deployments = true
         }
       ]
     }

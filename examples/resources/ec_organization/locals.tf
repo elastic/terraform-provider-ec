@@ -3,8 +3,8 @@ locals {
   deployment_admin = {
     deployment_roles = [
       {
-        role                = "admin"
-        for_all_deployments = true
+        role            = "admin"
+        all_deployments = true
       }
     ]
   }
@@ -12,8 +12,8 @@ locals {
   deployment_viewer = {
     deployment_roles = [
       {
-        role                = "viewer"
-        for_all_deployments = true
+        role            = "viewer"
+        all_deployments = true
       }
     ]
   }

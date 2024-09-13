@@ -46,8 +46,8 @@ resource "ec_organization" "my_org" {
       deployment_roles = [
         # A role can be given for all deployments
         {
-          role                = "editor"
-          for_all_deployments = true
+          role            = "editor"
+          all_deployments = true
         },
 
         # Or just for specific deployments
@@ -61,8 +61,8 @@ resource "ec_organization" "my_org" {
       project_elasticsearch_roles = [
         # A role can be given for all projects
         {
-          role             = "admin"
-          for_all_projects = true
+          role         = "admin"
+          all_projects = true
         },
 
         # Or just for specific projects
@@ -94,8 +94,8 @@ locals {
   deployment_admin = {
     deployment_roles = [
       {
-        role                = "admin"
-        for_all_deployments = true
+        role            = "admin"
+        all_deployments = true
       }
     ]
   }
@@ -103,8 +103,8 @@ locals {
   deployment_viewer = {
     deployment_roles = [
       {
-        role                = "viewer"
-        for_all_deployments = true
+        role            = "viewer"
+        all_deployments = true
       }
     ]
   }
