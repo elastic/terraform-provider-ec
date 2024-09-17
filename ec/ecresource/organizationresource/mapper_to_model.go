@@ -70,7 +70,6 @@ func nilToEmpty(id *string) string {
 
 func organizationRoleApiToModel(member models.OrganizationMembership) types.String {
 	if member.RoleAssignments != nil &&
-		member.RoleAssignments.Organization != nil &&
 		len(member.RoleAssignments.Organization) > 0 &&
 		member.RoleAssignments.Organization[0] != nil &&
 		member.RoleAssignments.Organization[0].RoleID != nil {
