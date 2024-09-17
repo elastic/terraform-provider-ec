@@ -107,7 +107,7 @@ func deploymentRolesApiToModel(ctx context.Context, member models.OrganizationMe
 			})
 		}
 	}
-	roleAssignments, diags := types.SetValueFrom(ctx, setElementObjectType(deploymentRoleAssignmentsSchema()), result)
+	roleAssignments, diags := types.SetValueFrom(ctx, deploymentRoleAssignmentsSchema().NestedObject.GetAttributes().Type(), result)
 	if diags.HasError() {
 		diagnostics.Append(diags...)
 		return nil
@@ -177,7 +177,7 @@ func rolesApiToModel(
 		})
 	}
 
-	roleAssignments, diags := types.SetValueFrom(ctx, setElementObjectType(schema), result)
+	roleAssignments, diags := types.SetValueFrom(ctx, schema.NestedObject.GetAttributes().Type(), result)
 	if diags.HasError() {
 		diagnostics.Append(diags...)
 		return nil

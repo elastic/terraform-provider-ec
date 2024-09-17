@@ -240,11 +240,3 @@ func projectRoleAssignmentSchema(roles []string) schema.NestedAttributeObject {
 		},
 	}
 }
-
-func setElementObjectType(schema schema.SetNestedAttribute) types.ObjectType {
-	return types.ObjectType{AttrTypes: schema.GetType().(types.SetType).ElemType.(types.ObjectType).AttrTypes}
-}
-
-func mapElementObjectType(schema schema.MapNestedAttribute) types.ObjectType {
-	return types.ObjectType{AttrTypes: schema.GetType().(types.MapType).ElemType.(types.ObjectType).AttrTypes}
-}

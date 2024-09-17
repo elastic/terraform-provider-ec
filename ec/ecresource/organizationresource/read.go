@@ -85,7 +85,7 @@ func (r *Resource) readFromApi(ctx context.Context, organizationID string, diagn
 		modelMembers[model.Email.ValueString()] = *model
 	}
 
-	membersMapValue, diags := types.MapValueFrom(ctx, mapElementObjectType(organizationMembersSchema()), modelMembers)
+	membersMapValue, diags := types.MapValueFrom(ctx, organizationMembersSchema().NestedObject.GetAttributes().Type(), modelMembers)
 	if diags.HasError() {
 		diagnostics.Append(diags...)
 		return nil
