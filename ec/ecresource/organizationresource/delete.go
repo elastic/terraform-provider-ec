@@ -28,9 +28,9 @@ func (r *Resource) Delete(ctx context.Context, request resource.DeleteRequest, r
 	// It is not possible to delete an organization
 }
 
-func (r *Resource) deleteMember(member OrganizationMember, organizationID string, diags *diag.Diagnostics) {
+func (r *Resource) deleteMember(email string, member OrganizationMember, organizationID string, diags *diag.Diagnostics) {
 	if member.InvitationPending.ValueBool() {
-		r.deleteInvitation(member, organizationID, diags)
+		r.deleteInvitation(email, organizationID, diags)
 	} else {
 		_, err := organizationapi.DeleteMember(organizationapi.DeleteMemberParams{
 			API:            r.client,
@@ -44,7 +44,7 @@ func (r *Resource) deleteMember(member OrganizationMember, organizationID string
 	}
 }
 
-func (r *Resource) deleteInvitation(member OrganizationMember, organizationID string, diags *diag.Diagnostics) {
+func (r *Resource) deleteInvitation(email string, organizationID string, diags *diag.Diagnostics) {
 	invitations, err := organizationapi.ListInvitations(organizationapi.ListInvitationsParams{
 		API:            r.client,
 		OrganizationID: organizationID,
@@ -54,7 +54,7 @@ func (r *Resource) deleteInvitation(member OrganizationMember, organizationID st
 		return
 	}
 	for _, invitation := range invitations.Invitations {
-		if *invitation.Email == member.Email.ValueString() {
+		if *invitation.Email == email {
 			_, err := organizationapi.DeleteInvitation(organizationapi.DeleteInvitationParams{
 				API:              r.client,
 				OrganizationID:   organizationID,

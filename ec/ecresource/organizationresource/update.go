@@ -74,21 +74,21 @@ func (r *Resource) Update(ctx context.Context, request resource.UpdateRequest, r
 				if diagnostics.HasError() {
 					continue
 				}
-				r.updateMember(ctx, stateMemberModel, planMemberModel, organizationID, diagnostics)
+				r.updateMember(ctx, email, stateMemberModel, planMemberModel, organizationID, diagnostics)
 			}
 		}
 	}
 
 	// Delete removed members
-	for key, stateMember := range stateMembers {
-		_, ok := planMembers[key]
+	for email, stateMember := range stateMembers {
+		_, ok := planMembers[email]
 		if !ok {
 			// member is in state, but not in plan
 			stateMemberModel := toModel(ctx, stateMember, diagnostics)
 			if diagnostics.HasError() {
 				continue
 			}
-			r.deleteMember(stateMemberModel, organizationID, diagnostics)
+			r.deleteMember(email, stateMemberModel, organizationID, diagnostics)
 		}
 	}
 
@@ -102,6 +102,7 @@ func (r *Resource) Update(ctx context.Context, request resource.UpdateRequest, r
 
 func (r *Resource) updateMember(
 	ctx context.Context,
+	email string,
 	stateMember OrganizationMember,
 	planMember OrganizationMember,
 	organizationID string,
@@ -110,8 +111,8 @@ func (r *Resource) updateMember(
 	if planMember.InvitationPending.ValueBool() {
 		// Invitations can't be updated, so while the invitation is pending the role assignments can't be changed
 		// The only way to update them is by creating a new invitation with the right role-assignments.
-		r.deleteInvitation(planMember, organizationID, diagnostics)
-		r.createInvitation(ctx, stateMember.Email.ValueString(), planMember, organizationID, diagnostics)
+		r.deleteInvitation(email, organizationID, diagnostics)
+		r.createInvitation(ctx, email, planMember, organizationID, diagnostics)
 	} else {
 		// Add new role assignments
 		planApiMember := modelToApi(ctx, planMember, organizationID, diagnostics)
