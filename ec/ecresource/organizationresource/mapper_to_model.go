@@ -28,9 +28,6 @@ import (
 
 func apiToModel(ctx context.Context, member models.OrganizationMembership, invitationPending bool, diagnostics *diag.Diagnostics) *OrganizationMember {
 	organizationRole := organizationRoleApiToModel(member)
-	if diagnostics.HasError() {
-		return nil
-	}
 
 	deploymentRoles := deploymentRolesApiToModel(ctx, member, diagnostics)
 	if diagnostics.HasError() {
