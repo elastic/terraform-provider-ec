@@ -266,27 +266,3 @@ func diffProjectRoleAssignments(old, new models.ProjectRoleAssignments) (*models
 	}
 	return &add, &remove
 }
-
-func difference[T interface{}](a, b []*T, getKey func(T) string) []*T {
-	var diff []*T
-	m := make(map[string]T)
-	for _, item := range b {
-		if item == nil {
-			continue
-		}
-		key := getKey(*item)
-		m[key] = *item
-	}
-
-	for _, item := range a {
-		if item == nil {
-			continue
-		}
-		key := getKey(*item)
-		if _, ok := m[key]; !ok {
-			diff = append(diff, item)
-		}
-	}
-
-	return diff
-}
