@@ -64,7 +64,7 @@ func modelToApi(ctx context.Context, m OrganizationMember, organizationID string
 
 		apiDeploymentRoleAssignments = append(apiDeploymentRoleAssignments, &models.DeploymentRoleAssignment{
 			OrganizationID:   ec.String(organizationID),
-			RoleID:           roleModelToApi(roleAssignment.Role.ValueString(), Deployment),
+			RoleID:           roleModelToApi(roleAssignment.Role.ValueString(), deployment),
 			All:              roleAssignment.ForAllDeployments.ValueBoolPointer(),
 			DeploymentIds:    deploymentIds,
 			ApplicationRoles: applicationRoles,
@@ -72,19 +72,19 @@ func modelToApi(ctx context.Context, m OrganizationMember, organizationID string
 	}
 
 	// elasticsearch
-	apiElasticsearchRoles := projectRolesModelToApi(ctx, m.ProjectElasticsearchRoles, ProjectElasticsearch, organizationID, diagnostics)
+	apiElasticsearchRoles := projectRolesModelToApi(ctx, m.ProjectElasticsearchRoles, projectElasticsearch, organizationID, diagnostics)
 	if diagnostics.HasError() {
 		return nil
 	}
 
 	// observability
-	apiObservabilityRoles := projectRolesModelToApi(ctx, m.ProjectObservabilityRoles, ProjectObservability, organizationID, diagnostics)
+	apiObservabilityRoles := projectRolesModelToApi(ctx, m.ProjectObservabilityRoles, projectObservability, organizationID, diagnostics)
 	if diagnostics.HasError() {
 		return nil
 	}
 
 	// security
-	apiSecurityRoles := projectRolesModelToApi(ctx, m.ProjectSecurityRoles, ProjectSecurity, organizationID, diagnostics)
+	apiSecurityRoles := projectRolesModelToApi(ctx, m.ProjectSecurityRoles, projectSecurity, organizationID, diagnostics)
 	if diagnostics.HasError() {
 		return nil
 	}

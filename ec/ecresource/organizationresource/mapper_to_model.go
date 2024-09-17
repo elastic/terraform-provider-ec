@@ -100,7 +100,7 @@ func deploymentRolesApiToModel(ctx context.Context, member models.OrganizationMe
 			}
 
 			result = append(result, DeploymentRoleAssignment{
-				Role:              types.StringValue(roleApiToModel(*roleAssignment.RoleID, Deployment)),
+				Role:              types.StringValue(roleApiToModel(*roleAssignment.RoleID, deployment)),
 				ForAllDeployments: forAllApiToModel(roleAssignment.All),
 				DeploymentIDs:     deploymentIds,
 				ApplicationRoles:  applicationRoles,

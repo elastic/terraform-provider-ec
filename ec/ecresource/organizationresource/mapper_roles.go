@@ -22,10 +22,10 @@ import "strings"
 type RoleType string
 
 const (
-	Deployment           = "deployment"
-	ProjectElasticsearch = "elasticsearch"
-	ProjectObservability = "observability"
-	ProjectSecurity      = "security"
+	deployment           = "deployment"
+	projectElasticsearch = "elasticsearch"
+	projectObservability = "observability"
+	projectSecurity      = "security"
 )
 
 // Adds the prefix to a role (e.g. admin -> elasticsearch-admin)
