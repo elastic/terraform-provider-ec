@@ -22,6 +22,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -74,12 +75,12 @@ func Test(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		steps         []resource.TestStep
-		apiMock       []mock.Response
+		name    string
+		steps   []resource.TestStep
+		apiMock []mock.Response
 	}{
 		{
-			name:          "import should correctly set the state",
+			name: "import should correctly set the state",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -140,7 +141,7 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "a newly added member should be invited to the organization",
+			name: "a newly added member should be invited to the organization",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -177,7 +178,7 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "if the invited members roles are changed, the invitation should be cancelled and re-sent (invitations can't be updated)",
+			name: "if the invited members roles are changed, the invitation should be cancelled and re-sent (invitations can't be updated)",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -216,7 +217,7 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "if the invited member accepts, the next apply should just update the state with the user-id and set invitation_pending to false",
+			name: "if the invited member accepts, the next apply should just update the state with the user-id and set invitation_pending to false",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -251,7 +252,7 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "adding roles to member",
+			name: "adding roles to member",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -290,7 +291,7 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "removing roles from member should work",
+			name: "removing roles from member should work",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -327,7 +328,7 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "remove member from organization should work",
+			name: "remove member from organization should work",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
@@ -361,21 +362,14 @@ func Test(t *testing.T) {
 			},
 		},
 		{
-			name:          "un-invite member before the member accepted the invitation should work",
+			name: "un-invite member before the member accepted the invitation should work",
 			steps: []resource.TestStep{
 				{
 					ImportState:        true,
 					ResourceName:       "ec_organization.myorg",
 					ImportStateId:      "123",
-					Config:             configWithUpdatedNewMember,
+					Config:             configWithNewMember,
 					ImportStatePersist: true,
-				},
-				// Invite member
-				{
-					Config: configWithNewMember,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-					),
 				},
 				// Un-invite member (where the member is removed before they have accepted the invitation)
 				{
@@ -388,14 +382,6 @@ func Test(t *testing.T) {
 			},
 			apiMock: []mock.Response{
 				// Import
-				getMembers([]*models.OrganizationMembership{existingMember}),
-				getInvitations(nil),
-				getMembers([]*models.OrganizationMembership{existingMember}),
-				getInvitations(nil),
-				// Invite member
-				getMembers(oneMember),
-				getInvitations(nil),
-				createInvitation(newUserInvitation),
 				getMembers(oneMember),
 				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
 				getMembers(oneMember),
@@ -409,6 +395,175 @@ func Test(t *testing.T) {
 				getInvitations(nil),
 				getMembers(oneMember),
 				getInvitations(nil),
+			},
+		},
+		{
+			name: "show API error if import fails because organization does not exist",
+			steps: []resource.TestStep{
+				{
+					ImportState:   true,
+					ResourceName:  "ec_organization.myorg",
+					ImportStateId: "123",
+					Config:        baseConfig,
+					ExpectError:   regexp.MustCompile("organization-does-not-exist"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembersFails(),
+			},
+		},
+		{
+			name: "show API error if import fails because invitations could not be listed",
+			steps: []resource.TestStep{
+				{
+					ImportState:   true,
+					ResourceName:  "ec_organization.myorg",
+					ImportStateId: "123",
+					Config:        baseConfig,
+					ExpectError:   regexp.MustCompile("organization-does-not-exist"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitationsFails(),
+			},
+		},
+		{
+			name: "show API error if inviting a member fails due to invalid config",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             baseConfig,
+					ImportStatePersist: true,
+				},
+				{
+					Config:      configWithNewMember,
+					ExpectError: regexp.MustCompile("organization.invitation_invalid_email"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitations(nil),
+				getMembers(oneMember),
+				getInvitations(nil),
+				// Apply
+				getMembers(oneMember),
+				getInvitations(nil),
+				createInvitationFails(newUserInvitation),
+			},
+		},
+		{
+			name: "show API error if adding roles fails",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithUpdatedNewMember,
+					ImportStatePersist: true,
+				},
+				{
+					Config:      configWithAddedRoles,
+					ExpectError: regexp.MustCompile("role_assignments.invalid_config"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				addRoleAssignmentsFails(),
+			},
+		},
+		{
+			name: "show API error if removing roles fails due to API error",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithAddedRoles,
+					ImportStatePersist: true,
+				},
+				{
+					Config:      configWithRemovedRoles,
+					ExpectError: regexp.MustCompile("role_assignments.invalid_config"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				removeRoleAssignmentsFails(),
+			},
+		},
+		{
+			name: "show API error if remove member fails",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithRemovedRoles,
+					ImportStatePersist: true,
+				},
+				{
+					Config:      baseConfig,
+					ExpectError: regexp.MustCompile("organization.membership_not_found"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				removeMemberFails(),
+			},
+		},
+		{
+			name: "show API error if invitation delete fails",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithNewMember,
+					ImportStatePersist: true,
+				},
+				{
+					Config:      baseConfig,
+					ExpectError: regexp.MustCompile("organization.invitation_token_invalid"),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				// Remove member before invitation was accepted (cancelling invitation)
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				deleteInvitationFails(newUserInvitation),
 			},
 		},
 	}

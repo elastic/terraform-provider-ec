@@ -41,6 +41,23 @@ func getMembers(memberships []*models.OrganizationMembership) mock.Response {
 	)
 }
 
+func getMembersFails() mock.Response {
+	return mock.New404ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultReadMockHeaders,
+			Method: "GET",
+			Path:   "/api/v1/organizations/123/members",
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("organization-does-not-exist"),
+				},
+			}}),
+	)
+}
+
 func getInvitations(invitations []*models.OrganizationInvitation) mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
@@ -55,8 +72,24 @@ func getInvitations(invitations []*models.OrganizationInvitation) mock.Response 
 	)
 }
 
-func createInvitation(invitation *models.OrganizationInvitation) mock.Response {
+func getInvitationsFails() mock.Response {
+	return mock.New404ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultReadMockHeaders,
+			Method: "GET",
+			Path:   "/api/v1/organizations/123/invitations",
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("organization-does-not-exist"),
+				},
+			}}),
+	)
+}
 
+func createInvitation(invitation *models.OrganizationInvitation) mock.Response {
 	return mock.New201ResponseAssertion(
 		&mock.RequestAssertion{
 			Host:   api.DefaultMockHost,
@@ -77,6 +110,28 @@ func createInvitation(invitation *models.OrganizationInvitation) mock.Response {
 	)
 }
 
+func createInvitationFails(invitation *models.OrganizationInvitation) mock.Response {
+	return mock.New400ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultWriteMockHeaders,
+			Method: "POST",
+			Path:   "/api/v1/organizations/123/invitations",
+			Body: mock.NewStructBody(models.OrganizationInvitationRequest{
+				Emails:          []string{*invitation.Email},
+				ExpiresIn:       "7d",
+				RoleAssignments: invitation.RoleAssignments,
+			}),
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("organization.invitation_invalid_email"),
+				},
+			}}),
+	)
+}
+
 func deleteInvitation(invitation *models.OrganizationInvitation) mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
@@ -86,6 +141,23 @@ func deleteInvitation(invitation *models.OrganizationInvitation) mock.Response {
 			Path:   "/api/v1/organizations/123/invitations/" + *invitation.Token,
 		},
 		mock.NewStringBody("{}"),
+	)
+}
+
+func deleteInvitationFails(invitation *models.OrganizationInvitation) mock.Response {
+	return mock.New400ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultReadMockHeaders,
+			Method: "DELETE",
+			Path:   "/api/v1/organizations/123/invitations/" + *invitation.Token,
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("organization.invitation_token_invalid"),
+				},
+			}}),
 	)
 }
 
@@ -145,6 +217,39 @@ func addRoleAssignments() mock.Response {
 	)
 }
 
+func addRoleAssignmentsFails() mock.Response {
+	return mock.New400ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultWriteMockHeaders,
+			Method: "POST",
+			Path:   "/api/v1/users/userid2/role_assignments",
+			Body: mock.NewStructBody(models.RoleAssignments{
+				Deployment: []*models.DeploymentRoleAssignment{
+					{
+						All:            ec.Bool(false),
+						OrganizationID: orgId,
+						RoleID:         ec.String("deployment-editor"),
+						DeploymentIds:  []string{"abc"},
+					},
+					{
+						OrganizationID: orgId,
+						RoleID:         ec.String("deployment-viewer"),
+						All:            ec.Bool(true),
+					},
+				},
+				Project: &models.ProjectRoleAssignments{},
+			}),
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("role_assignments.invalid_config"),
+				},
+			}}),
+	)
+}
+
 func removeRoleAssignments() mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
@@ -174,6 +279,40 @@ func removeRoleAssignments() mock.Response {
 	)
 }
 
+func removeRoleAssignmentsFails() mock.Response {
+	return mock.New400ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultWriteMockHeaders,
+			Method: "DELETE",
+			Path:   "/api/v1/users/userid2/role_assignments",
+			Body: mock.NewStructBody(models.RoleAssignments{
+				Organization: []*models.OrganizationRoleAssignment{
+					{
+						OrganizationID: orgId,
+						RoleID:         ec.String("organization-admin"),
+					},
+				},
+				Deployment: []*models.DeploymentRoleAssignment{
+					{
+						All:            ec.Bool(false),
+						OrganizationID: orgId,
+						RoleID:         ec.String("deployment-editor"),
+						DeploymentIds:  []string{"abc"},
+					},
+				},
+				Project: &models.ProjectRoleAssignments{},
+			}),
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("role_assignments.invalid_config"),
+				},
+			}}),
+	)
+}
+
 func removeMember() mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
@@ -183,6 +322,23 @@ func removeMember() mock.Response {
 			Path:   "/api/v1/organizations/123/members/userid2",
 		},
 		mock.NewStringBody("{}"),
+	)
+}
+
+func removeMemberFails() mock.Response {
+	return mock.New404ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultReadMockHeaders,
+			Method: "DELETE",
+			Path:   "/api/v1/organizations/123/members/userid2",
+		},
+		mock.NewStructBody(models.BasicFailedReply{
+			Errors: []*models.BasicFailedReplyElement{
+				{
+					Message: ec.String("organization.membership_not_found"),
+				},
+			}}),
 	)
 }
 

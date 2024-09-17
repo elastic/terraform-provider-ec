@@ -84,6 +84,11 @@ func deploymentRolesApiToModel(ctx context.Context, member models.OrganizationMe
 	var result []DeploymentRoleAssignment
 	if member.RoleAssignments != nil {
 		for _, roleAssignment := range member.RoleAssignments.Deployment {
+			if roleAssignment.RoleID == nil {
+				diagnostics.Append(diag.NewErrorDiagnostic("API Error", "API returned role assignment without role"))
+				return nil
+			}
+
 			deploymentIds, diags := types.SetValueFrom(ctx, types.StringType, roleAssignment.DeploymentIds)
 			if diags.HasError() {
 				diagnostics.Append(diags...)
@@ -154,6 +159,11 @@ func rolesApiToModel(
 	var result []ProjectRoleAssignment
 
 	for _, roleAssignment := range apiRoleAssignments {
+		if roleAssignment.RoleID == nil {
+			diagnostics.Append(diag.NewErrorDiagnostic("API Error", "API returned role assignment without role"))
+			return nil
+		}
+
 		projectIds, diags := types.SetValueFrom(ctx, types.StringType, roleAssignment.ProjectIds)
 		if diags.HasError() {
 			diagnostics.Append(diags...)
