@@ -114,7 +114,6 @@ func projectRolesModelToApi(ctx context.Context, roles types.Set, roleType RoleT
 	}
 	var apiRoles []*models.ProjectRoleAssignment
 	for _, roleAssignment := range modelRoles {
-
 		var projectIds []string
 		diags = roleAssignment.ProjectIDs.ElementsAs(ctx, &projectIds, false)
 		if diags.HasError() {

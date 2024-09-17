@@ -19,6 +19,9 @@ package organizationresource_test
 
 import (
 	"fmt"
+	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
+	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -29,8 +32,7 @@ import (
 	provider "github.com/elastic/terraform-provider-ec/ec"
 )
 
-
-func TestOrganizationResourceAgainstMockedAPI(t *testing.T) {
+func Test(t *testing.T) {
 	resourceName := "ec_organization.myorg"
 
 	baseConfig := buildConfig("")
@@ -39,141 +41,387 @@ func TestOrganizationResourceAgainstMockedAPI(t *testing.T) {
 	configWithAddedRoles := buildConfig(memberWithNewRoles)
 	configWithRemovedRoles := buildConfig(memberWithRemovedRoles)
 
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
-			// The mocked calls are very important for the validity of the tests
-			// For each testcase below, the correct API responses have to be mocked in here
-			mockApi(),
-		),
-		Steps: []resource.TestStep{
-			{
-				ImportState:        true,
-				ResourceName:       "ec_organization.myorg",
-				ImportStateId:      "123",
-				Config:             baseConfig,
-				ImportStatePersist: true,
-			},
-			// Ensure the pre-existing member is correctly imported into the state
-			{
-				Config: baseConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "id", "123"),
-					resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.email", "user@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.invitation_pending", "false"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.user_id", "userid"),
+	newUserInvitation := buildInvitationModel("newuser@example.com")
+	updatedUserInvitation := buildInvitationModel("newuser@example.com")
+	updatedUserInvitation.RoleAssignments.Organization[0].RoleID = ec.String("organization-admin")
 
-					// Organization role
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.organization_role", "billing-admin"),
+	existingMember := buildExistingMember()
+	newMember := buildNewMember()
+	oneMember := []*models.OrganizationMembership{existingMember}
 
-					// Deployment roles
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.0.role", "editor"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.0.deployment_ids.0", "abc"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.all_deployments", "true"),
+	newMemberWithAddedRoles := buildNewMember()
+	newMemberWithAddedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
+		{
+			All:            ec.Bool(false),
+			OrganizationID: orgId,
+			RoleID:         ec.String("deployment-editor"),
+			DeploymentIds:  []string{"abc"},
+		},
+		{
+			OrganizationID: orgId,
+			RoleID:         ec.String("deployment-viewer"),
+			All:            ec.Bool(true),
+		},
+	}
+	newMemberWithRemovedRoles := buildNewMember()
+	newMemberWithRemovedRoles.RoleAssignments.Organization = []*models.OrganizationRoleAssignment{}
+	newMemberWithRemovedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
+		{
+			OrganizationID: orgId,
+			RoleID:         ec.String("deployment-viewer"),
+			All:            ec.Bool(true),
+		},
+	}
 
-					// Elasticsearch roles
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.0.role", "developer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.0.project_ids.0", "qwe"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.all_projects", "true"),
+	tests := []struct {
+		name          string
+		steps         []resource.TestStep
+		apiMock       []mock.Response
+	}{
+		{
+			name:          "import should correctly set the state",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             baseConfig,
+					ImportStatePersist: true,
+				},
+				{
+					Config: baseConfig,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "id", "123"),
+						resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.email", "user@example.com"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.invitation_pending", "false"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.user_id", "userid"),
 
-					// Observability roles
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.0.role", "editor"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.0.project_ids.0", "rty"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.all_projects", "true"),
+						// Organization role
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.organization_role", "billing-admin"),
 
-					// Project roles
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.0.role", "editor"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.0.project_ids.0", "uio"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.all_projects", "true"),
-				),
+						// Deployment roles
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.0.role", "editor"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.0.deployment_ids.0", "abc"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.role", "viewer"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.deployment_roles.1.all_deployments", "true"),
+
+						// Elasticsearch roles
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.0.role", "developer"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.0.project_ids.0", "qwe"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.role", "viewer"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_elasticsearch_roles.1.all_projects", "true"),
+
+						// Observability roles
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.0.role", "editor"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.0.project_ids.0", "rty"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.role", "viewer"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_observability_roles.1.all_projects", "true"),
+
+						// Project roles
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.0.role", "editor"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.0.project_ids.0", "uio"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.role", "viewer"),
+						resource.TestCheckResourceAttr(resourceName, "members.user@example.com.project_security_roles.1.all_projects", "true"),
+					),
+				},
 			},
-			// A newly added member should be invited to the organization
-			{
-				Config: configWithNewMember,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "true"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "billing-admin"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", ""),
-				),
-			},
-			// If the invited members roles are changed, the invitation is cancelled and re-sent (invitations can't be updated)
-			{
-				Config: configWithUpdatedNewMember,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "true"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", ""),
-				),
-			},
-			// If the invited member accepts, the next apply will just update the state with the user-id and set invitation_pending to false
-			{
-				Config:   configWithUpdatedNewMember,
-				PlanOnly: true, // Has to be no-op plan
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "false"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", "userid2"),
-				),
-			},
-			// Adding roles to member
-			{
-				Config: configWithAddedRoles,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.role", "editor"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.deployment_ids.0", "abc"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.all_deployments", "true"),
-				),
-			},
-			// Removing roles from member
-			{
-				Config: configWithRemovedRoles,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
-					resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com.organization_role"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.role", "viewer"),
-					resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.all_deployments", "true"),
-				),
-			},
-			// Removing member from organization
-			{
-				Config: baseConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
-					resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com"),
-				),
-			},
-			// Invite member
-			{
-				Config: configWithNewMember,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
-				),
-			},
-			// Un-invite member (where the member is removed before they have accepted the invitation)
-			{
-				Config: baseConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
-					resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com"),
-				),
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitations(nil),
+				getMembers(oneMember),
+				getInvitations(nil),
+				// Apply
+				getMembers(oneMember),
+				getInvitations(nil),
+				getMembers(oneMember),
+				getInvitations(nil),
 			},
 		},
-	})
+		{
+			name:          "a newly added member should be invited to the organization",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             baseConfig,
+					ImportStatePersist: true,
+				},
+				{
+					Config: configWithNewMember,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "true"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "billing-admin"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", ""),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitations(nil),
+				getMembers(oneMember),
+				getInvitations(nil),
+				// Apply
+				getMembers(oneMember),
+				getInvitations(nil),
+				createInvitation(newUserInvitation),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+			},
+		},
+		{
+			name:          "if the invited members roles are changed, the invitation should be cancelled and re-sent (invitations can't be updated)",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithNewMember,
+					ImportStatePersist: true,
+				},
+				{
+					Config: configWithUpdatedNewMember,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "true"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", ""),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				// Update
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				deleteInvitation(newUserInvitation),
+				createInvitation(updatedUserInvitation),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{updatedUserInvitation}),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{updatedUserInvitation}),
+			},
+		},
+		{
+			name:          "if the invited member accepts, the next apply should just update the state with the user-id and set invitation_pending to false",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithUpdatedNewMember,
+					ImportStatePersist: true,
+				},
+				{
+					Config:   configWithUpdatedNewMember,
+					PlanOnly: true, // Has to be no-op plan
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "false"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", "userid2"),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{updatedUserInvitation}),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{updatedUserInvitation}),
+				// Plan
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+			},
+		},
+		{
+			name:          "adding roles to member",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithUpdatedNewMember,
+					ImportStatePersist: true,
+				},
+				{
+					Config: configWithAddedRoles,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.role", "editor"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.deployment_ids.0", "abc"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.role", "viewer"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.1.all_deployments", "true"),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
+				getInvitations(nil),
+				addRoleAssignments(),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+			},
+		},
+		{
+			name:          "removing roles from member should work",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithAddedRoles,
+					ImportStatePersist: true,
+				},
+				{
+					Config: configWithRemovedRoles,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
+						resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com.organization_role"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.role", "viewer"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.deployment_roles.0.all_deployments", "true"),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				removeRoleAssignments(),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+			},
+		},
+		{
+			name:          "remove member from organization should work",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithRemovedRoles,
+					ImportStatePersist: true,
+				},
+				{
+					Config: baseConfig,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
+						resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com"),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				removeMember(),
+				getMembers([]*models.OrganizationMembership{existingMember}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember}),
+				getInvitations(nil),
+			},
+		},
+		{
+			name:          "un-invite member before the member accepted the invitation should work",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithUpdatedNewMember,
+					ImportStatePersist: true,
+				},
+				// Invite member
+				{
+					Config: configWithNewMember,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+					),
+				},
+				// Un-invite member (where the member is removed before they have accepted the invitation)
+				{
+					Config: baseConfig,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
+						resource.TestCheckNoResourceAttr(resourceName, "members.newuser@example.com"),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember}),
+				getInvitations(nil),
+				// Invite member
+				getMembers(oneMember),
+				getInvitations(nil),
+				createInvitation(newUserInvitation),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				// Remove member before invitation was accepted (cancelling invitation)
+				getMembers(oneMember),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
+				deleteInvitation(newUserInvitation),
+				getMembers(oneMember),
+				getInvitations(nil),
+				getMembers(oneMember),
+				getInvitations(nil),
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resource.UnitTest(t, resource.TestCase{
+				ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
+					api.NewMock(test.apiMock...),
+				),
+				Steps: test.steps,
+			})
+		})
+	}
 }
 
 func buildConfig(newUser string) string {

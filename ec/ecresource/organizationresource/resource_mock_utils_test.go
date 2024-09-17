@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package organizationresource_test
 
 import (
@@ -9,126 +26,6 @@ import (
 )
 
 var orgId = ec.String("123")
-
-func mockApi() *api.API {
-	newUserInvitation := buildInvitationModel("newuser@example.com")
-	updatedUserInvitation := buildInvitationModel("newuser@example.com")
-	updatedUserInvitation.RoleAssignments.Organization[0].RoleID = ec.String("organization-admin")
-
-	existingMember := buildExistingMember()
-	newMember := buildNewMember()
-	oneMember := []*models.OrganizationMembership{existingMember}
-
-	newMemberWithAddedRoles := buildNewMember()
-	newMemberWithAddedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
-		{
-			All:            ec.Bool(false),
-			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-editor"),
-			DeploymentIds:  []string{"abc"},
-		},
-		{
-			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-viewer"),
-			All:            ec.Bool(true),
-		},
-	}
-	newMemberWithRemovedRoles := buildNewMember()
-	newMemberWithRemovedRoles.RoleAssignments.Organization = []*models.OrganizationRoleAssignment{}
-	newMemberWithRemovedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
-		{
-			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-viewer"),
-			All:            ec.Bool(true),
-		},
-	}
-
-	return api.NewMock(
-		// Import
-		getMembers(oneMember),
-		getInvitations(nil),
-		getMembers(oneMember),
-		getInvitations(nil),
-
-		// Apply
-		getMembers(oneMember),
-		getInvitations(nil),
-		getMembers(oneMember),
-		getInvitations(nil),
-
-		// Add member
-		getMembers(oneMember),
-		getInvitations(nil),
-		createInvitation(newUserInvitation),
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-
-		// Update invited member (before invitation is accepted)
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-		deleteInvitation(newUserInvitation),
-		createInvitation(updatedUserInvitation),
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{updatedUserInvitation}),
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{updatedUserInvitation}),
-
-		// Apply after invitation has been accepted
-		getMembers([]*models.OrganizationMembership{existingMember, newMember}),
-		getInvitations(nil),
-		getMembers([]*models.OrganizationMembership{existingMember, newMember}),
-		getInvitations(nil),
-
-		// Add roles
-		getMembers([]*models.OrganizationMembership{existingMember, newMember}),
-		getInvitations(nil),
-		addRoleAssignments(),
-		getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
-		getInvitations(nil),
-		getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
-		getInvitations(nil),
-
-		// Removed roles
-		getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
-		getInvitations(nil),
-		removeRoleAssignments(),
-		getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
-		getInvitations(nil),
-		getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
-		getInvitations(nil),
-
-		// Remove member
-		getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
-		getInvitations(nil),
-		removeMember(),
-		getMembers([]*models.OrganizationMembership{existingMember}),
-		getInvitations(nil),
-		getMembers([]*models.OrganizationMembership{existingMember}),
-		getInvitations(nil),
-
-		// Add member
-		getMembers(oneMember),
-		getInvitations(nil),
-		createInvitation(newUserInvitation),
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-
-		// Remove member before invitation was accepted (cancelling invitation)
-		getMembers(oneMember),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-		getInvitations([]*models.OrganizationInvitation{newUserInvitation}),
-		deleteInvitation(newUserInvitation),
-		getMembers(oneMember),
-		getInvitations(nil),
-		getMembers(oneMember),
-		getInvitations(nil),
-	)
-}
 
 func getMembers(memberships []*models.OrganizationMembership) mock.Response {
 	return mock.New200ResponseAssertion(
