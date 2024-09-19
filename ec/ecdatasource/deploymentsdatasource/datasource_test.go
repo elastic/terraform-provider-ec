@@ -38,7 +38,7 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	wantDeployments := modelV0{
-		ID:                   types.StringValue("2705093922"),
+		ID:                   types.StringValue("3192409966"),
 		NamePrefix:           types.StringValue("test"),
 		ReturnCount:          types.Int64Value(1),
 		DeploymentTemplateID: types.StringValue("azure-compute-optimized"),

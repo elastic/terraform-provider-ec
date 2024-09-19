@@ -6,7 +6,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
 	github.com/deepmap/oapi-codegen/v2 v2.1.0
-	github.com/elastic/cloud-sdk-go v1.20.0
+	github.com/elastic/cloud-sdk-go v1.21.0
 	github.com/go-openapi/runtime v0.28.0
 	github.com/go-openapi/strfmt v0.23.0
 	github.com/hashicorp/terraform-plugin-codegen-framework v0.4.0
