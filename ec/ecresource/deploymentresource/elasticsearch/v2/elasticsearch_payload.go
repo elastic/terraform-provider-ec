@@ -65,9 +65,17 @@ func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.O
 		return nil, nil
 	}
 
+	var esState *ElasticsearchTF
+	if state != nil {
+		esState, diags = objectToElasticsearch(ctx, *state)
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
 	templatePayload := EnrichElasticsearchTemplate(payloadFromUpdate(updateResources), dtID, version, useNodeRoles)
 
-	payload, diags := es.payload(ctx, templatePayload, state)
+	payload, diags := es.payload(ctx, templatePayload, esState)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -123,7 +131,7 @@ func CheckAvailableMigration(ctx context.Context, plan types.Object, state types
 	return false, nil
 }
 
-func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *types.Object) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *ElasticsearchTF) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
@@ -160,11 +168,14 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 		res.Plan.AutoscalingEnabled = ec.Bool(es.Autoscale.ValueBool())
 	}
 
-	res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
-	diags.Append(ds...)
+	// Only add trust settings to update payload if trust has changed
+	if state == nil || !es.TrustAccount.Equal(state.TrustAccount) || !es.TrustExternal.Equal(state.TrustExternal) {
+		res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
+		diags.Append(ds...)
 
-	res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
-	diags.Append(ds...)
+		res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
+		diags.Append(ds...)
+	}
 
 	res.Settings, ds = elasticsearchKeystoreContentsPayload(ctx, es.KeystoreContents, res.Settings, state)
 	diags.Append(ds...)
