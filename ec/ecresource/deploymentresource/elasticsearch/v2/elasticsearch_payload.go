@@ -61,13 +61,21 @@ func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.O
 		return nil, diags
 	}
 
+	var esState *ElasticsearchTF
+	if state != nil {
+		esState, diags = objectToElasticsearch(ctx, *state)
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
 	if es == nil {
 		return nil, nil
 	}
 
 	templatePayload := EnrichElasticsearchTemplate(payloadFromUpdate(updateResources), dtID, version, useNodeRoles)
 
-	payload, diags := es.payload(ctx, templatePayload, state)
+	payload, diags := es.payload(ctx, templatePayload, esState)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -123,7 +131,7 @@ func CheckAvailableMigration(ctx context.Context, plan types.Object, state types
 	return false, nil
 }
 
-func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *types.Object) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *ElasticsearchTF) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
@@ -149,7 +157,7 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	res.Plan.Elasticsearch, ds = elasticsearchConfigPayload(ctx, es.Config, res.Plan.Elasticsearch)
 	diags.Append(ds...)
 
-	res.Settings, ds = elasticsearchSnapshotPayload(ctx, es.Snapshot, res.Settings)
+	res.Settings, ds = elasticsearchSnapshotPayload(ctx, es.Snapshot, res.Settings, state)
 	diags.Append(ds...)
 
 	diags.Append(elasticsearchSnapshotSourcePayload(ctx, es.SnapshotSource, res.Plan)...)
