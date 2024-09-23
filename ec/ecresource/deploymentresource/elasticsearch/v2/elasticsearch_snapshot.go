@@ -78,9 +78,15 @@ func readElasticsearchSnapshot(in *models.ElasticsearchClusterSettings) (*Elasti
 	return &snapshot, nil
 }
 
-func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
+func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model *models.ElasticsearchClusterSettings, state *ElasticsearchTF) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var snapshot ElasticsearchSnapshotTF
 	if srcObj.IsNull() || srcObj.IsUnknown() {
+		return model, nil
+	}
+
+	// Only put snapshot updates into the payload, if the plan is making changes to the snapshot settings
+	// (To avoid overwriting changes made outside, i.e. with the elasticstack provider)
+	if state != nil && state.Snapshot.Equal(srcObj) {
 		return model, nil
 	}
 

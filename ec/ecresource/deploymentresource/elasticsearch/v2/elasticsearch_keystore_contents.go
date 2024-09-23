@@ -37,10 +37,10 @@ type ElasticsearchKeystoreContents struct {
 	AsFile *bool  `tfsdk:"as_file"`
 }
 
-func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsTF types.Map, model *models.ElasticsearchClusterSettings, esStateObj *types.Object) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
+func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsTF types.Map, model *models.ElasticsearchClusterSettings, esState *ElasticsearchTF) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	if (keystoreContentsTF.IsNull() || len(keystoreContentsTF.Elements()) == 0) && esStateObj == nil {
+	if (keystoreContentsTF.IsNull() || len(keystoreContentsTF.Elements()) == 0) && esState == nil {
 		return model, nil
 	}
 
@@ -69,13 +69,7 @@ func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsT
 	}
 
 	// remove secrets that were in state but are removed from plan
-	if esStateObj != nil && !esStateObj.IsNull() {
-		var esState ElasticsearchTF
-
-		if diags := tfsdk.ValueAs(ctx, esStateObj, &esState); diags.HasError() {
-			return nil, diags
-		}
-
+	if esState != nil {
 		if !esState.KeystoreContents.IsNull() {
 			for k := range esState.KeystoreContents.Elements() {
 				if _, ok := secrets[k]; !ok {
