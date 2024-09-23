@@ -61,16 +61,16 @@ func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.O
 		return nil, diags
 	}
 
+	if es == nil {
+		return nil, nil
+	}
+
 	var esState *ElasticsearchTF
 	if state != nil {
 		esState, diags = objectToElasticsearch(ctx, *state)
 		if diags.HasError() {
 			return nil, diags
 		}
-	}
-
-	if es == nil {
-		return nil, nil
 	}
 
 	templatePayload := EnrichElasticsearchTemplate(payloadFromUpdate(updateResources), dtID, version, useNodeRoles)
@@ -168,11 +168,14 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 		res.Plan.AutoscalingEnabled = ec.Bool(es.Autoscale.ValueBool())
 	}
 
-	res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
-	diags.Append(ds...)
+	// Only add trust settings to update payload if trust has changed
+	if state == nil || !es.TrustAccount.Equal(state.TrustAccount) || !es.TrustExternal.Equal(state.TrustExternal) {
+		res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
+		diags.Append(ds...)
 
-	res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
-	diags.Append(ds...)
+		res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
+		diags.Append(ds...)
+	}
 
 	res.Settings, ds = elasticsearchKeystoreContentsPayload(ctx, es.KeystoreContents, res.Settings, state)
 	diags.Append(ds...)
