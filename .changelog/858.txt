@@ -1,0 +1,3 @@
+```release-note:bug
+resource/deployment: Avoid overriding snapshot settings with every update. The snapshot settings are now only updated if they are actually set in the terraform config. This allows managing the snapshot lifecycle policy with the elasticstack provider instead of the ec provider.
+```
