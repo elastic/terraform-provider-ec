@@ -197,6 +197,10 @@
             "service_attachment_uri": "projects/cloud-production-168820/regions/asia-southeast1/serviceAttachments/proxy-psc-production-asia-southeast1-v1-attachment",
             "domain_name": "psc.asia-southeast1.gcp.elastic-cloud.com"
         },
+        "asia-southeast2": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/asia-southeast2/serviceAttachments/proxy-psc-production-asia-southeast2-v1-attachment",
+            "domain_name": "psc.asia-southeast2.gcp.elastic-cloud.com"
+        },
         "australia-southeast1": {
             "service_attachment_uri": "projects/cloud-production-168820/regions/australia-southeast1/serviceAttachments/proxy-psc-production-australia-southeast1-v1-attachment",
             "domain_name": "psc.australia-southeast1.gcp.elastic-cloud.com"
@@ -220,6 +224,14 @@
         "europe-west4": {
             "service_attachment_uri": "projects/cloud-production-168820/regions/europe-west4/serviceAttachments/proxy-psc-production-europe-west4-v1-attachment",
             "domain_name": "psc.europe-west4.gcp.elastic-cloud.com"
+        },
+        "europe-west9": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/europe-west9/serviceAttachments/proxy-psc-production-europe-west9-v1-attachment",
+            "domain_name": "psc.europe-west9.gcp.elastic-cloud.com"
+        },
+        "me-west1": {
+            "service_attachment_uri": "projects/cloud-production-168820/regions/me-west1/serviceAttachments/proxy-psc-production-me-west1-v1-attachment",
+            "domain_name": "psc.me-west1.gcp.elastic-cloud.com"
         },
         "northamerica-northeast1": {
             "service_attachment_uri": "projects/cloud-production-168820/regions/northamerica-northeast1/serviceAttachments/proxy-psc-production-northamerica-northeast1-v1-attachment",
