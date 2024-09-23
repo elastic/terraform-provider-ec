@@ -61,14 +61,6 @@ func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.O
 		return nil, diags
 	}
 
-	var esState *ElasticsearchTF
-	if state != nil {
-		esState, diags = objectToElasticsearch(ctx, *state)
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
 	if es == nil {
 		return nil, nil
 	}
