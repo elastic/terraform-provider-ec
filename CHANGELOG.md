@@ -1,4 +1,14 @@
-# 0.12.0 (Unreleased)
+# 0.12.0 (September 26, 2024)
+
+FEATURES:
+
+* resource/organization: Allows managing the members of an organization: They can now be invited to the organization (and later removed) and their assigned roles can be updated. ([#855](https://github.com/elastic/terraform-provider-ec/issues/855))
+
+BUG FIXES:
+
+* datasource/gcp_private_service_connect_endpoint: Add missing regions. ([#860](https://github.com/elastic/terraform-provider-ec/issues/860))
+* resource/deployment: Avoid overriding snapshot settings with every update. The snapshot settings are now only updated if they are actually set in the terraform config. This allows managing the snapshot lifecycle policy with the elasticstack provider instead of the ec provider. ([#858](https://github.com/elastic/terraform-provider-ec/issues/858))
+* resource/deployment: Avoid sending an update for trust settings if they have not changed. ([#859](https://github.com/elastic/terraform-provider-ec/issues/859))
 
 # 0.11.0 (August 29, 2024)
 
