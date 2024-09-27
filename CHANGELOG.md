@@ -1,3 +1,7 @@
+# 0.12.1 (September 27, 2024)
+
+This release adds the schema documentation for the `ec_organization` resource. There are no changes to the provider itself.
+
 # 0.12.0 (September 26, 2024)
 
 FEATURES:
