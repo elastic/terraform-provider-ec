@@ -133,7 +133,6 @@ func (p *Provider) Schema(_ context.Context, req provider.SchemaRequest, resp *p
 				Description: fmt.Sprintf(endpointDesc, api.ESSEndpoint),
 				Optional:    true,
 				Validators: []validator.String{
-					validators.Known(),
 					validators.IsURLWithSchemeValidator(validURLSchemes),
 				},
 			},
