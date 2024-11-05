@@ -1,3 +1,9 @@
+# 0.12.2 (November 5, 2024)
+
+BUG FIXES:
+
+Remove validators.Known() for the provider endpoint. ([#869](https://github.com/elastic/terraform-provider-ec/issues/869))
+
 # 0.12.1 (September 27, 2024)
 
 This release adds the schema documentation for the `ec_organization` resource. There are no changes to the provider itself.
