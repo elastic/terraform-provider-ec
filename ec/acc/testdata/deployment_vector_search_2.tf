@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "compute_optimized" {
+resource "ec_deployment" "vector_search" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
@@ -17,6 +17,4 @@ resource "ec_deployment" "compute_optimized" {
   }
 
   kibana = {}
-
-  apm = {}
 }

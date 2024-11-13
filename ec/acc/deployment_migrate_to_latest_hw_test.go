@@ -25,10 +25,10 @@ import (
 )
 
 func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
-	resName := "ec_deployment.compute_optimized"
+	resName := "ec_deployment.cpu_optimized"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	customHotIc := "testdata/deployment_compute_optimized_with_custom_hot_ic.tf"
-	migrateToLatestHw := "testdata/deployment_compute_optimized_with_migrate_to_latest_hw.tf"
+	customHotIc := "testdata/deployment_cpu_optimized_with_custom_hot_ic.tf"
+	migrateToLatestHw := "testdata/deployment_cpu_optimized_with_migrate_to_latest_hw.tf"
 	region := getRegion()
 	customHotIcCfg := fixtureAccDeploymentResourceBasicDefaults(t, customHotIc, randomName, region, cpuOpTemplate)
 	migrateToLatestHwCfg := fixtureAccDeploymentResourceBasicDefaults(t, migrateToLatestHw, randomName, region, cpuOpTemplate)
@@ -61,7 +61,7 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				Config: migrateToLatestHwCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.c5d"), // it should contain compute opt IC
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.c5d"), // it should contain cpu opt IC
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),

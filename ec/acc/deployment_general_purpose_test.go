@@ -26,16 +26,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// This test case takes that on a hot/warm "ec_deployment", a select number of
-// topology settings can be changed without affecting the underlying Deployment
-// Template.
-func TestAccDeployment_hotwarm(t *testing.T) {
-	resName := "ec_deployment.hotwarm"
+// This test case takes that on a general purpose "ec_deployment", a select number of
+// topology settings can be changed without affecting the underlying Deployment Template.
+func TestAccDeployment_general_purpose(t *testing.T) {
+	resName := "ec_deployment.general_purpose"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_hotwarm_1.tf"
-	secondCfg := "testdata/deployment_hotwarm_2.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
-	secondConfigCfg := fixtureAccDeploymentResourceBasic(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
+	startCfg := "testdata/deployment_general_purpose_1.tf"
+	secondCfg := "testdata/deployment_general_purpose_2.tf"
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), generalPurposeTemplate)
+	secondConfigCfg := fixtureAccDeploymentResourceBasic(t, secondCfg, randomName, getRegion(), generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -43,24 +42,31 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create a Hot / Warm deployment with the default settings.
+				// Create a general purpose deployment with the default settings.
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.instance_configuration_id"),
-					// Hot Warm defaults to 4g.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "4g"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.cold.instance_configuration_id"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.frozen.instance_configuration_id"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.master.instance_configuration_id"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.coordinating.instance_configuration_id"),
+
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size", "4g"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size_resource", "memory"),
 
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.zone_count", "2"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.cold.node_roles.#"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.cold.zone_count", "1"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.master.node_roles.#"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.master.zone_count", "3"),
 					resource.TestCheckNoResourceAttr(resName, "kibana"),
 					resource.TestCheckNoResourceAttr(resName, "apm"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
+					resource.TestCheckNoResourceAttr(resName, "integrations_server"),
 				),
 			},
 			{
@@ -82,6 +88,7 @@ func TestAccDeployment_hotwarm(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resName, "kibana"),
 					resource.TestCheckNoResourceAttr(resName, "apm"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
+					resource.TestCheckNoResourceAttr(resName, "integrations_server"),
 				),
 			},
 		},

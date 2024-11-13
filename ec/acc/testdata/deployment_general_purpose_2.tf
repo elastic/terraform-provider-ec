@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "compute_optimized" {
+resource "ec_deployment" "general_purpose" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
@@ -11,10 +11,16 @@ resource "ec_deployment" "compute_optimized" {
 
   elasticsearch = {
     hot = {
-      instance_configuration_id = "aws.es.datahot.m5d"
-      autoscaling               = {}
+      zone_count  = 1
+      size        = "1g"
+      autoscaling = {}
     }
-  }
 
-  kibana = {}
+    warm = {
+      zone_count  = 1
+      size        = "2g"
+      autoscaling = {}
+    }
+
+  }
 }

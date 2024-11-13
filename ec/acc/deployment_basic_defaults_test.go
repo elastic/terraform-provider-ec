@@ -123,7 +123,7 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 	startCfg := "testdata/deployment_basic_defaults_hw_1.tf"
 	secondCfg := "testdata/deployment_basic_defaults_hw_2.tf"
 	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), defaultTemplate)
-	hotWarmCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), hotWarmTemplate)
+	generalPurposeCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -145,9 +145,8 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch resource deployment template to
-				// hot warm, use defaults.
-				Config: hotWarmCfg,
+				// Change the Elasticsearch resource deployment template to use defaults.
+				Config: generalPurposeCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.instance_configuration_id"),

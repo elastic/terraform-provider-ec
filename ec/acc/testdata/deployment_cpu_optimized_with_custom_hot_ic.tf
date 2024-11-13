@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "ccs" {
+resource "ec_deployment" "cpu_optimized" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
@@ -11,8 +11,8 @@ resource "ec_deployment" "ccs" {
 
   elasticsearch = {
     hot = {
-      size        = "2g"
-      autoscaling = {}
+      instance_configuration_id = "aws.es.datahot.m5d"
+      autoscaling               = {}
     }
   }
 

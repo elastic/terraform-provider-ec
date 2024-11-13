@@ -25,12 +25,12 @@ import (
 )
 
 func TestAccDeployment_template_migration(t *testing.T) {
-	resName := "ec_deployment.compute_optimized"
+	resName := "ec_deployment.cpu_optimized"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	basicCfg := "testdata/deployment_compute_optimized_1.tf"
+	basicCfg := "testdata/deployment_cpu_optimized_1.tf"
 	region := getRegion()
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, computeOpTemplate)
-	memoryOptCfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, memoryOpTemplate)
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, cpuOpTemplate)
+	memoryOptCfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -38,11 +38,11 @@ func TestAccDeployment_template_migration(t *testing.T) {
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create a Compute Optimized deployment with the default settings.
+				// Create a CPU Optimized deployment with the default settings.
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, computeOpTemplate)),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.data.highcpu.m5d"), // compute optimized IC
+					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.c5d"), // cpu optimized IC
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
@@ -56,11 +56,11 @@ func TestAccDeployment_template_migration(t *testing.T) {
 				),
 			},
 			{
-				// Change the deployment to memory optimized
+				// Change the deployment to general purpose
 				Config: memoryOptCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, memoryOpTemplate)),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.data.highmem.r5d"), // memory optimized IC
+					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, generalPurposeTemplate)),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.m5d"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
