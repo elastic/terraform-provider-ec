@@ -15,4 +15,10 @@ resource "ec_deployment" "defaults" {
       autoscaling = {}
     }
   }
+
+  kibana = {}
+
+  apm = {}
+
+  enterprise_search = {}
 }

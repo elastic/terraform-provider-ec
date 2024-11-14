@@ -22,7 +22,7 @@ resource "ec_deployment" "defaults" {
   }
 
   apm = {
-    size = "1g"
+    size = "2g"
   }
 
   enterprise_search = {

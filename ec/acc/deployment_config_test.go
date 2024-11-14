@@ -32,6 +32,7 @@ const (
 	defaultTemplate        = "storage-optimized"
 	generalPurposeTemplate = "general-purpose"
 	cpuOpTemplate          = "cpu-optimized"
+	cpuOpFasterTemplate    = "cpu-optimized-faster-warm"
 	vectorSearchTemplate   = "vector-search-optimized"
 )
 

@@ -60,7 +60,10 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(resName, "apm"),
+					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
 					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
@@ -68,7 +71,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 				),
 			},
 			{
-				// Add an APM resource.
+				// Add an APM resource size.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// changed
@@ -81,7 +84,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "apm.size", "2g"),
 					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
@@ -150,7 +153,7 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.instance_configuration_id"),
-					// Hot Warm defaults to 4g.
+					// general purpose config set to 4g.
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "4g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size", "4g"),
@@ -163,8 +166,14 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(resName, "apm"),
-					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
+					resource.TestCheckResourceAttr(resName, "apm.size", "2g"),
+					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
+					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "enterprise_search.zone_count", "1"),
 				),
 			},
 		},

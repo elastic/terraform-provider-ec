@@ -49,19 +49,14 @@ func TestAccDeployment_vector_search(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Create a vector search deployment with the default settings.
-				Config: cfg,
-				// The legacy vector search DT does not support autoscaling, which leads to autoscaling being 'unknown'.
-				// Ideally we would set autoscaling to null if the deployment template does not support autoscaling,
-				// but that would require's refactoring our schema and this template is no longer part of the public offering.
-				//
-				// We can revisit this if there's demand for clean plans when the template does not support autoscaling.
+				Config:             cfg,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// vector search Checks
 					resource.TestCheckResourceAttrSet(vectorSearchResName, "elasticsearch.hot.instance_configuration_id"),
-					// vector search defaults to 1g.
-					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.size", "1g"),
+					// vector search defaults to 8g.
+					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.size_resource", "memory"),
 
 					// Remote cluster settings
@@ -78,24 +73,28 @@ func TestAccDeployment_vector_search(t *testing.T) {
 					resource.TestCheckNoResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_master"),
 					resource.TestCheckNoResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_ml"),
 					resource.TestCheckResourceAttrSet(vectorSearchResName, "elasticsearch.hot.node_roles.#"),
-					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(sourceResName, "kibana"),
-					resource.TestCheckNoResourceAttr(sourceResName, "apm"),
-					resource.TestCheckNoResourceAttr(sourceResName, "enterprise_search"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.zone_count", "2"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_data", "true"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_ingest", "true"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_master", "true"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_ml", "true"),
 
 					// Source Checks
 					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.size", "1g"),
 					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.size_resource", "memory"),
-					resource.TestCheckNoResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(vectorSearchResName, "elasticsearch.hot.node_type_ml"),
 					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.zone_count", "1"),
 					resource.TestCheckNoResourceAttr(sourceResName, "kibana"),
 					resource.TestCheckNoResourceAttr(sourceResName, "apm"),
 					resource.TestCheckNoResourceAttr(sourceResName, "enterprise_search"),
+					resource.TestCheckResourceAttrSet(sourceResName, "kibana.instance_configuration_id"),
+					resource.TestCheckResourceAttr(sourceResName, "kibana.size", "1g"),
+					resource.TestCheckResourceAttr(sourceResName, "kibana.size_resource", "memory"),
+					resource.TestCheckResourceAttr(sourceResName, "apm.size", "1g"),
+					resource.TestCheckResourceAttr(sourceResName, "apm.size_resource", "memory"),
+					resource.TestCheckResourceAttr(sourceResName, "enterprise_search.size", "1g"),
+					resource.TestCheckResourceAttr(sourceResName, "enterprise_search.size_resource", "memory"),
 				),
 			},
 			{
@@ -121,8 +120,10 @@ func TestAccDeployment_vector_search(t *testing.T) {
 					resource.TestCheckResourceAttrSet(vectorSearchResName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(vectorSearchResName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(vectorSearchResName, "kibana.size_resource", "memory"),
-					resource.TestCheckNoResourceAttr(vectorSearchResName, "apm"),
-					resource.TestCheckNoResourceAttr(vectorSearchResName, "enterprise_search"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "apm.size", "1g"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "apm.size_resource", "memory"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "enterprise_search.size", "1g"),
+					resource.TestCheckResourceAttr(vectorSearchResName, "enterprise_search.size_resource", "memory"),
 				),
 			},
 		},
