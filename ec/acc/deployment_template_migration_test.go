@@ -29,7 +29,7 @@ func TestAccDeployment_template_migration(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	basicCfg := "testdata/deployment_cpu_optimized_1.tf"
 	region := getRegion()
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, cpuOpTemplate)
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, cpuOpFasterTemplate)
 	generalPurposeOptCfg := fixtureAccDeploymentResourceBasicDefaults(t, basicCfg, randomName, region, generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
