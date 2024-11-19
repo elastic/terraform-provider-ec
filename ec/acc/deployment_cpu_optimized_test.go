@@ -25,6 +25,8 @@ import (
 )
 
 func TestAccDeployment_cpuOptimized(t *testing.T) {
+	t.Skip("skip until apm component change is correctly detected https://elasticco.atlassian.net/browse/CP-9334")
+
 	resName := "ec_deployment.cpu_optimized"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_cpu_optimized_1.tf"
@@ -50,12 +52,7 @@ func TestAccDeployment_cpuOptimized(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
-					// TODO: remove the apm component for the inital configuration after fixing https://elasticco.atlassian.net/browse/CP-9334
-					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
-					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
-
+					resource.TestCheckNoResourceAttr(resName, "apm"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
 				),
 			},
