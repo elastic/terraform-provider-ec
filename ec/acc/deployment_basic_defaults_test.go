@@ -29,7 +29,7 @@ import (
 // This test case takes ensures that several features of the "ec_deployment"
 // resource are asserted:
 // * Resource defaults.
-// * Resource declaration in the <kind> {} format. ("apm {}").
+// * Resource declaration in the <kind> {} format. ("integrations_server {}").
 // * Topology field overrides over field defaults.
 func TestAccDeployment_basic_defaults_first(t *testing.T) {
 	resName := "ec_deployment.defaults"
@@ -60,7 +60,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(resName, "apm"),
+					resource.TestCheckNoResourceAttr(resName, "integrations_server"),
 					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
@@ -81,10 +81,10 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "apm.size", "2g"),
-					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size", "2g"),
+					resource.TestCheckResourceAttrSet(resName, "integrations_server.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.zone_count", "1"),
 					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
@@ -109,7 +109,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					// values are used.
 					resource.TestCheckResourceAttr(resName, "kibana.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(resName, "apm"),
+					resource.TestCheckNoResourceAttr(resName, "integrations_server"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
 				),
 			},
@@ -144,10 +144,10 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
-					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
+					resource.TestCheckResourceAttrSet(resName, "integrations_server.instance_configuration_id"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.size_resource", "memory"),
+					resource.TestCheckResourceAttr(resName, "integrations_server.zone_count", "1"),
 					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
@@ -173,7 +173,7 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(resName, "apm"),
+					resource.TestCheckNoResourceAttr(resName, "integrations_server"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
 				),
 			},

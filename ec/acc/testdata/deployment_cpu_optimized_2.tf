@@ -18,5 +18,7 @@ resource "ec_deployment" "cpu_optimized" {
 
   kibana = {}
 
-  apm = {}
+  apm = {
+    size = "2g"
+  }
 }
