@@ -35,10 +35,7 @@ func TestAccDeployment_withExtension(t *testing.T) {
 	resName := "ec_deployment.with_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
-	filePath := filepath.Join(os.TempDir(), "extension.zip")
-
-	// TODO: this seems to cause the test to fail with the invalid file error
-	// enabling for now since this doesn't seem to be the source of the flakiness
+	filePath := filepath.Join(t.TempDir(), "extension.zip")
 	defer os.Remove(filePath)
 
 	cfg := fixtureAccDeploymentWithExtensionBundle(t,
