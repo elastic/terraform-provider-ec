@@ -37,9 +37,9 @@ func TestAccDeployment_withExtension(t *testing.T) {
 
 	filePath := filepath.Join(os.TempDir(), "extension.zip")
 
-	// TODO: this causes the test to fail with the invalid file error
-	// however we need find a way to delete the temp file
-	// defer os.Remove(filePath)
+	// TODO: this seems to cause the test to fail with the invalid file error
+	// enabling for now since this doesn't seem to be the source of the flakiness
+	defer os.Remove(filePath)
 
 	cfg := fixtureAccDeploymentWithExtensionBundle(t,
 		"testdata/deployment_with_extension_bundle_file.tf",
