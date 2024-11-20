@@ -29,15 +29,11 @@ import (
 )
 
 const (
-	defaultTemplate          = "io-optimized"
-	hotWarmTemplate          = "hot-warm"
-	ccsTemplate              = "cross-cluster-search"
-	computeOpTemplate        = "compute-optimized"
-	memoryOpTemplate         = "memory-optimized"
-	enterpriseSearchTemplate = "enterprise-search-dedicated"
-	observabilityTemplate    = "observability"
-	securityTemplate         = "security"
-	cpuOpTemplate            = "cpu-optimized"
+	defaultTemplate        = "storage-optimized"
+	generalPurposeTemplate = "general-purpose"
+	cpuOpTemplate          = "cpu-optimized"
+	cpuOpFasterTemplate    = "cpu-optimized-faster-warm"
+	vectorSearchTemplate   = "vector-search-optimized"
 )
 
 func getRegion() string {
@@ -87,16 +83,13 @@ func setDefaultTemplate(region, template string) string {
 }
 
 func buildAwsTemplate(template string) string {
-	if template == "default" {
-		return template
+	armTemplates := []string{
+		vectorSearchTemplate,
+		cpuOpTemplate,
 	}
 
-	v2Templates := []string{defaultTemplate, hotWarmTemplate, ccsTemplate,
-		computeOpTemplate, memoryOpTemplate, enterpriseSearchTemplate,
-	}
-
-	if slice.HasString(v2Templates, template) {
-		return "aws-" + template + "-v2"
+	if slice.HasString(armTemplates, template) {
+		return "aws-" + template + "-arm"
 	}
 
 	return "aws-" + template

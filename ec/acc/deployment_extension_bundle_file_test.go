@@ -38,7 +38,7 @@ func TestAccDeploymentExtension_bundleFile(t *testing.T) {
 	resName := "ec_deployment_extension.my_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
-	filePath := filepath.Join(os.TempDir(), "extension.zip")
+	filePath := filepath.Join(t.TempDir(), "extension.zip")
 	defer os.Remove(filePath)
 
 	cfg := fixtureAccExtensionBundleWithTF(t, "testdata/extension_bundle_file.tf", filePath, randomName, "desc")

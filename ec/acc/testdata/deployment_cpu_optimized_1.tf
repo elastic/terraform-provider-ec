@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "compute_optimized" {
+resource "ec_deployment" "cpu_optimized" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version

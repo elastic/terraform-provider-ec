@@ -24,13 +24,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccDeployment_observabilityTpl(t *testing.T) {
-	resName := "ec_deployment.observability_tpl"
+func TestAccDeployment_cpuOptimized(t *testing.T) {
+	t.Skip("skip until apm component change is correctly detected https://elasticco.atlassian.net/browse/CP-9334")
+
+	resName := "ec_deployment.cpu_optimized"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_observability_tpl_1.tf"
-	secondCfg := "testdata/deployment_observability_tpl_2.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), observabilityTemplate)
-	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), observabilityTemplate)
+	startCfg := "testdata/deployment_cpu_optimized_1.tf"
+	secondCfg := "testdata/deployment_cpu_optimized_2.tf"
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), cpuOpTemplate)
+	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, randomName, getRegion(), cpuOpTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -38,7 +40,7 @@ func TestAccDeployment_observabilityTpl(t *testing.T) {
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create an Observability deployment with the default settings.
+				// Create a CPU Optimized deployment with the default settings.
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
@@ -50,20 +52,18 @@ func TestAccDeployment_observabilityTpl(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "kibana.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
-					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
+					resource.TestCheckNoResourceAttr(resName, "apm"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
 				),
 			},
 			{
-				// Change the Elasticsearch topology size.
+				// Change the Elasticsearch topology size and add capacity to the APM instance.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
 					resource.TestCheckResourceAttrSet(resName, "kibana.instance_configuration_id"),
@@ -71,7 +71,7 @@ func TestAccDeployment_observabilityTpl(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "apm.zone_count", "1"),
 					resource.TestCheckResourceAttrSet(resName, "apm.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "apm.size", "1g"),
+					resource.TestCheckResourceAttr(resName, "apm.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "apm.size_resource", "memory"),
 					resource.TestCheckNoResourceAttr(resName, "enterprise_search"),
 				),

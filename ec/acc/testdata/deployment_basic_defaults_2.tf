@@ -21,8 +21,8 @@ resource "ec_deployment" "defaults" {
     size = "2g"
   }
 
-  apm = {
-    size = "1g"
+  integrations_server = {
+    size = "2g"
   }
 
   enterprise_search = {
