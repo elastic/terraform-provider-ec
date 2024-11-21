@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "ccs" {
+resource "ec_deployment" "general_purpose" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
@@ -14,16 +14,16 @@ resource "ec_deployment" "ccs" {
       autoscaling = {}
     }
 
-    "remote_cluster" = [for source_css in ec_deployment.source_ccs :
+    "remote_cluster" = [for source_storage_optimized in ec_deployment.source_storage_optimized :
       {
-        deployment_id = source_css.id
-        alias         = source_css.name
+        deployment_id = source_storage_optimized.id
+        alias         = source_storage_optimized.name
       }
     ]
   }
 }
 
-resource "ec_deployment" "source_ccs" {
+resource "ec_deployment" "source_storage_optimized" {
   count                  = 3
   name                   = "%s-${count.index}"
   region                 = "%s"

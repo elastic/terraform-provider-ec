@@ -3,7 +3,7 @@ data "ec_stack" "latest" {
   region        = "%s"
 }
 
-resource "ec_deployment" "compute_optimized" {
+resource "ec_deployment" "general_purpose" {
   name                   = "%s"
   region                 = "%s"
   version                = data.ec_stack.latest.version
@@ -11,12 +11,16 @@ resource "ec_deployment" "compute_optimized" {
 
   elasticsearch = {
     hot = {
+      zone_count  = 1
+      size        = "1g"
+      autoscaling = {}
+    }
+
+    warm = {
+      zone_count  = 1
       size        = "2g"
       autoscaling = {}
     }
+
   }
-
-  kibana = {}
-
-  apm = {}
 }

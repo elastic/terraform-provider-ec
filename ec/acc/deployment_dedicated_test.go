@@ -28,7 +28,7 @@ func TestAccDeployment_dedicated_coordinating(t *testing.T) {
 	resName := "ec_deployment.dedicated_coordinating"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_dedicated_coordinating.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

@@ -34,8 +34,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	secondRandomName := prefix + "-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	randomAlias := "alias" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfgWithAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), computeOpTemplate, "true")
-	cfgWithoutAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), computeOpTemplate, "false")
+	cfgWithAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), cpuOpTemplate, "true")
+	cfgWithoutAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), cpuOpTemplate, "false")
 	var namePrefix = secondRandomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
