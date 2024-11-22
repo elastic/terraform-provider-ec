@@ -25,8 +25,6 @@ import (
 )
 
 func TestAccDeployment_cpuOptimized(t *testing.T) {
-	t.Skip("skip until apm component change is correctly detected https://elasticco.atlassian.net/browse/CP-9334")
-
 	resName := "ec_deployment.cpu_optimized"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_cpu_optimized_1.tf"

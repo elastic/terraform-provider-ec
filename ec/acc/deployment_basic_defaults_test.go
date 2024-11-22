@@ -32,8 +32,6 @@ import (
 // * Resource declaration in the <kind> {} format. ("integrations_server {}").
 // * Topology field overrides over field defaults.
 func TestAccDeployment_basic_defaults_first(t *testing.T) {
-	t.Skip("skip until integrations_server component change is correctly detected https://elasticco.atlassian.net/browse/CP-9334")
-
 	resName := "ec_deployment.defaults"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_basic_defaults_1.tf"
