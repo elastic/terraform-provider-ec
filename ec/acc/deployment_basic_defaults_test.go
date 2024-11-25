@@ -69,8 +69,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 			},
 			{
 				// Add an APM resource size.
-				Config:             secondConfigCfg,
-				ExpectNonEmptyPlan: true,
+				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// changed
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
