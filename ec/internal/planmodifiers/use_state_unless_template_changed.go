@@ -31,6 +31,7 @@ import (
 //  1. The attribute is not nullable (`isNullable = false`) and the topology's state is nil
 //  2. The deployment template attribute has changed
 //  3. `migrate_to_latest_hardware` is set to `true` and there is a migration available to be performed
+//  4. The state of the parent attribute is nil
 func UseStateForUnknownUnlessMigrationIsRequired(resourceKind string, isNullable bool) useStateForUnknownUnlessMigrationIsRequired {
 	return useStateForUnknownUnlessMigrationIsRequired{resourceKind: resourceKind, isNullable: isNullable}
 }
@@ -62,6 +63,17 @@ func (m useStateForUnknownUnlessMigrationIsRequired) PlanModifyInt64(ctx context
 
 func (m useStateForUnknownUnlessMigrationIsRequired) UseState(ctx context.Context, configValue attr.Value, plan tfsdk.Plan, state tfsdk.State, planValue attr.Value, stateValue attr.Value) (bool, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	var parentResState attr.Value
+	if d := state.GetAttribute(ctx, path.Root(m.resourceKind), &parentResState); d.HasError() {
+		return false, d
+	}
+
+	resourceIsBeingCreated := parentResState.IsNull()
+
+	if resourceIsBeingCreated {
+		return false, nil
+	}
 
 	if stateValue.IsNull() && !m.isNullable {
 		return false, nil
