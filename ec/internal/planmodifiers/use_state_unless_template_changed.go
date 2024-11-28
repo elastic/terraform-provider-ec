@@ -65,8 +65,7 @@ func (m useStateForUnknownUnlessMigrationIsRequired) UseState(ctx context.Contex
 	var diags diag.Diagnostics
 
 	var parentResState attr.Value
-	diag := state.GetAttribute(ctx, path.Root(m.resourceKind), &parentResState)
-	diags.Append(diag...)
+	diags.Append(state.GetAttribute(ctx, path.Root(m.resourceKind), &parentResState)...)
 
 	resourceIsBeingCreated := parentResState.IsNull()
 
