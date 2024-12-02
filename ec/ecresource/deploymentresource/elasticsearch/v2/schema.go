@@ -19,8 +19,9 @@ package v2
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -233,7 +234,7 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 				},
 			},
 			"max_size": schema.StringAttribute{
-				Description: "Maximum size value for the maximum autoscaling setting.",
+				Description: `Maximum autoscaling size. Set it to "0g" if tier should not be created when autoscaling is enabled on ES level`,
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
@@ -249,7 +250,7 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 				},
 			},
 			"min_size": schema.StringAttribute{
-				Description: "Minimum size value for the minimum autoscaling setting.",
+				Description: "Minimum autoscaling size.",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
