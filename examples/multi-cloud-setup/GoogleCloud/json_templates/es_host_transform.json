@@ -1,0 +1,51 @@
+{
+  "source": {
+    "index": [
+      "metric*"
+    ]
+  },
+  "pivot": {
+    "group_by": {
+      "host.name": {
+        "terms": {
+          "field": "host.name"
+        }
+      }
+    },
+    "aggregations": {
+      "host.cpu.usage.max": {
+        "max": {
+          "field": "gcp.compute.instance.cpu.usage.pct"
+        }
+      },
+      "host.memory.usage.max": {
+        "max": {
+          "field": "gcp.compute.instance.memory.balloon.ram_used.value"
+        }
+      },
+      "host.disk.write.bytes.sum": {
+        "sum": {
+          "field": "gcp.compute.instance.disk.write.bytes"
+        }
+      },
+      "host.network.egress.bytes.sum": {
+        "sum": {
+          "field": "gcp.compute.instance.network.egress.bytes"
+        }
+      },
+      "last_data": {
+        "max": {
+          "field": "@timestamp"
+        }
+      }
+    }
+  },
+  "dest": {
+    "index": "gcp-host-profile"
+  },
+  "sync": {
+    "time": {
+      "field": "@timestamp"
+    }
+  }
+}
