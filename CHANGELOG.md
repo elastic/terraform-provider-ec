@@ -1,8 +1,9 @@
-# 0.12.2 (November 5, 2024)
+# 0.12.2 (December 5, 2024)
 
 BUG FIXES:
 
 Remove validators.Known() for the provider endpoint. ([#869](https://github.com/elastic/terraform-provider-ec/issues/869))
+Don't use nil state for a computed attribute. ([#878](https://github.com/elastic/terraform-provider-ec/pull/878))
 
 # 0.12.1 (September 27, 2024)
 
