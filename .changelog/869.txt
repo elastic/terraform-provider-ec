@@ -1,0 +1,3 @@
+```release-note:bug
+provider: Remove validators.Known() for the provider endpoint.
+```
