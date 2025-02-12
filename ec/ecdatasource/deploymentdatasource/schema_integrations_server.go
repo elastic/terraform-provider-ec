@@ -65,6 +65,10 @@ func integrationsServerResourceInfoSchema() schema.Attribute {
 					Computed:    true,
 				},
 				"topology": integrationsServerTopologySchema(),
+				"fleet_endpoint": schema.StringAttribute{
+					Description: "HTTPS endpoint for the fleet.",
+					Computed:    true,
+				},
 			},
 		},
 	}
@@ -116,6 +120,7 @@ type integrationsServerResourceInfoModelV0 struct {
 	Status                    types.String `tfsdk:"status"`
 	Version                   types.String `tfsdk:"version"`
 	Topology                  types.List   `tfsdk:"topology"` //< integrationsServerTopologyModelV0
+	FleetEndpoint             types.String `tfsdk:"fleet_endpoint"`
 }
 
 type integrationsServerTopologyModelV0 struct {
