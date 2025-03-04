@@ -1278,6 +1278,7 @@ components:
         password:
           type: string
           description: Basic auth password that can be used to access the Elasticsearch API.
+          format: password
           example: '*****'
     ProjectID:
       type: string
