@@ -156,6 +156,7 @@ Read-Only:
 - `status` (String) Resource kind status (for example, "started", "stopped", etc).
 - `topology` (Attributes List) Node topology element definition. (see [below for nested schema](#nestedatt--integrations_server--topology))
 - `version` (String) Elastic stack version.
+- `fleet_endpoint` (String) The endpoint for the Fleet server
 
 <a id="nestedatt--integrations_server--topology"></a>
 ### Nested Schema for `integrations_server.topology`
