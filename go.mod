@@ -1,6 +1,6 @@
 module github.com/elastic/terraform-provider-ec
 
-go 1.22
+go 1.24
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
