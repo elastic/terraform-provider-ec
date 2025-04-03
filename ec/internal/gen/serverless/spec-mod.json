@@ -183,7 +183,8 @@
                   "name": "password",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Basic auth password that can be used to access the Elasticsearch API."
+                    "description": "Basic auth password that can be used to access the Elasticsearch API.",
+                    "sensitive": true
                   }
                 },
                 {
@@ -407,7 +408,8 @@
                   "name": "password",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Basic auth password that can be used to access the Elasticsearch API."
+                    "description": "Basic auth password that can be used to access the Elasticsearch API.",
+                    "sensitive": true
                   }
                 },
                 {
@@ -717,7 +719,8 @@
                   "name": "password",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Basic auth password that can be used to access the Elasticsearch API."
+                    "description": "Basic auth password that can be used to access the Elasticsearch API.",
+                    "sensitive": true
                   }
                 },
                 {

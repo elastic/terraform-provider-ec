@@ -59,7 +59,7 @@ Required:
 
 Read-Only:
 
-- `password` (String) Basic auth password that can be used to access the Elasticsearch API.
+- `password` (String, Sensitive) Basic auth password that can be used to access the Elasticsearch API.
 - `username` (String) Basic auth username that can be used to access the Elasticsearch API.
 
 

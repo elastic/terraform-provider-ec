@@ -78,6 +78,7 @@ func SecurityProjectResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"password": schema.StringAttribute{
 						Computed:            true,
+						Sensitive:           true,
 						Description:         "Basic auth password that can be used to access the Elasticsearch API.",
 						MarkdownDescription: "Basic auth password that can be used to access the Elasticsearch API.",
 					},
