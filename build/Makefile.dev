@@ -5,7 +5,7 @@ vendor: $(GOBIN)/go-licenser
 	@ echo "-> Downloading project imports..."
 	@ go mod download
 	@ go mod tidy
-	@ $(GOBIN)/go-licenser -license ASL2 -notice
+	@ $(GOBIN)/go-licenser -license ASL2
 
 ## Removes the versioned cloud-sdk-go and uses the local copy (assumed to be in ../cloud-sdk-go).
 .PHONY: fake-sdk
