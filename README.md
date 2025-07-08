@@ -129,7 +129,7 @@ To generate an API key, follow these steps:
   1. Open your browser and navigate to <https://cloud.elastic.co/login>.
   2. Log in with your email and password.
   3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
-  4. Navigate to [Features > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  4. Navigate to [Organization > API Keys](https://cloud.elastic.co/account/keys) and click on **Create API Key**.
   5. Choose a name for your API key.
   6. Save your API key somewhere safe.
 
