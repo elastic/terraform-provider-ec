@@ -73,6 +73,13 @@ func DeploymentSchema() schema.Schema {
 				Description: "Deployment template identifier to create the deployment from. See the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions and deployment templates available in ESS.",
 				Required:    true,
 			},
+			"byok_arn": schema.StringAttribute{
+				Description: "Reference to a customer-managed key for data-at-rest encryption",
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"name": schema.StringAttribute{
 				Description: "Name for the deployment",
 				Optional:    true,
