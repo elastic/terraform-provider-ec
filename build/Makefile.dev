@@ -1,7 +1,8 @@
 ### Development targets
 
 ## Downlaods all the Golang dependencies and generates the NOTICE file.
-vendor: $(GOBIN)/go-licenser
+.PHONY: vendor
+vendor: $(GOBIN)/go-licenser $(GOBIN)/go-licence-detector
 	@ echo "-> Downloading project imports..."
 	@ go mod download
 	@ go mod tidy
