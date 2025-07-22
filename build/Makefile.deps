@@ -4,14 +4,15 @@ ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 ARCH_GORELEASER:=$(shell $(PWD)/scripts/uname_arch_goreleaser.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
-VERSION_GOLICENSER:=v0.3.0
+VERSION_GOLICENSER:=v0.4.2
 VERSION_GOLANGCILINT:=v1.54.2
 VERSION_GORELEASER:=v1.15.2
 VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 VERSION_VERSIONBUMP:=v1.1.0
 VERSION_TFPLUGINDOCS:=v0.14.1
+VERSION_GOLICENCEDETECTOR:=v0.8.0
 
-deps: $(GOBIN)/go-licenser $(GOBIN)/golangci-lint
+deps: $(GOBIN)/go-licenser $(GOBIN)/golangci-lint $(GOBIN)/go-licence-detector 
 
 $(GOBIN):
 	@ mkdir -p $(GOBIN)
@@ -68,3 +69,11 @@ $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS): | $(VERSION_DIR)
 $(GOBIN)/tfplugindocs: $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS) | $(GOBIN)
 	@ echo "-> Installing tfplugindocs..."
 	@ go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(VERSION_TFPLUGINDOCS)
+
+$(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR): | $(VERSION_DIR)
+	@ rm -f $(VERSION_DIR)/.version-go-licence-detector-*
+	@ echo $(VERSION_GOLICENCEDETECTOR) > $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR)
+
+$(GOBIN)/go-licence-detector: $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR) | $(GOBIN)
+	@ echo "-> Installing go-licence-detector..."
+	@ go install go.elastic.co/go-licence-detector@$(VERSION_GOLICENCEDETECTOR)	

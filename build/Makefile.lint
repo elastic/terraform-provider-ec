@@ -20,7 +20,8 @@ check-license: deps
 
 .PHONY: golangci-lint
 golangci-lint: deps
-	@ echo "-> Running golangci-lint..."
+	@ echo "-> Running linters..."
+	@ $(GOBIN)/go-licenser -d .
 	@ $(GOBIN)/golangci-lint run
 
 .PHONY: terrafmt
