@@ -1,6 +1,8 @@
 module github.com/elastic/terraform-provider-ec
 
-go 1.22
+go 1.23
+
+toolchain go1.24.5
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
@@ -19,7 +21,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/stretchr/testify v1.10.0
-	go.uber.org/mock v0.5.1
+	go.uber.org/mock v0.5.2
 )
 
 require (
