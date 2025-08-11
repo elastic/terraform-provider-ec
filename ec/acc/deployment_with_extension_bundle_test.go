@@ -36,7 +36,11 @@ func TestAccDeployment_withExtension(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	filePath := filepath.Join(t.TempDir(), "extension.zip")
-	defer os.Remove(filePath)
+	t.Cleanup(func() {
+		if err := os.Remove(filePath); err != nil {
+			t.Fatalf("failed to remove %s: %v", filePath, err)
+		}
+	})
 
 	cfg := fixtureAccDeploymentWithExtensionBundle(t,
 		"testdata/deployment_with_extension_bundle_file.tf",

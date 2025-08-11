@@ -19,10 +19,10 @@ package v2
 
 import (
 	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
-	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -95,13 +95,13 @@ func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*m
 	return topology
 }
 
-func kibanaTopologyPayload(ctx context.Context, topology v1.TopologyTF, model *models.KibanaClusterTopologyElement) (*models.KibanaClusterTopologyElement, diag.Diagnostics) {
+func kibanaTopologyPayload(ctx context.Context, topology topologyv1.TopologyTF, model *models.KibanaClusterTopologyElement) (*models.KibanaClusterTopologyElement, diag.Diagnostics) {
 
 	if topology.InstanceConfigurationId.ValueString() != "" {
 		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
+	if !topology.InstanceConfigurationVersion.IsUnknown() && !topology.InstanceConfigurationVersion.IsNull() {
 		model.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 

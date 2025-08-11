@@ -37,7 +37,11 @@ func Test_parseDeploymentTemplate(t *testing.T) {
 	if err := os.WriteFile("test.json", []byte(contents), 0660); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove("test.json")
+	defer func() {
+		if err := os.Remove("test.json"); err != nil {
+			t.Fatalf("failed to remove test.json: %v", err)
+		}
+	}()
 	type args struct {
 		name string
 	}

@@ -86,7 +86,7 @@ func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID 
 		topologyElem.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
+	if !topology.InstanceConfigurationVersion.IsUnknown() && !topology.InstanceConfigurationVersion.IsNull() {
 		topologyElem.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
@@ -471,7 +471,7 @@ func SetLatestInstanceConfigInfoToCurrent(topology *ElasticsearchTopology) {
 func GetTopologyFromMigrateRequest(migrateUpdateRequest *deployments.MigrateDeploymentTemplateOK, esTier string) *models.ElasticsearchClusterTopologyElement {
 	var topologyElement *models.ElasticsearchClusterTopologyElement
 
-	if migrateUpdateRequest.Payload.Resources.Elasticsearch == nil || len(migrateUpdateRequest.Payload.Resources.Elasticsearch) == 0 {
+	if len(migrateUpdateRequest.Payload.Resources.Elasticsearch) == 0 {
 		return nil
 	}
 
