@@ -39,8 +39,13 @@ func Test_verboseSettings(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func() {
-		f.Close()
-		os.Remove(f.Name())
+		if err := f.Close(); err != nil {
+			t.Fatalf("failed to close temp file: %v", err)
+		}
+		if err := os.Remove(f.Name()); err != nil {
+			t.Fatalf("failed to remove temp file: %v",
+				err)
+		}
 	}()
 	type args struct {
 		name       string
@@ -108,7 +113,10 @@ func Test_newAPIConfig(t *testing.T) {
 	}
 
 	defer func() {
-		os.Remove("request.log")
+		if err := os.Remove("request.log"); err != nil {
+			t.Fatalf("failed to remove request.log: %v",
+				err)
+		}
 	}()
 
 	customFile, err := os.CreateTemp("", "request-custom-verbose")
@@ -117,8 +125,12 @@ func Test_newAPIConfig(t *testing.T) {
 	}
 
 	defer func() {
-		customFile.Close()
-		os.Remove(customFile.Name())
+		if err := customFile.Close(); err != nil {
+			t.Fatalf("failed to close custom temp file: %v", err)
+		}
+		if err := os.Remove(customFile.Name()); err != nil {
+			t.Fatalf("failed to remove custom temp file: %v", err)
+		}
 	}()
 
 	invalidPath := filepath.Join("a", "b", "c", "d", "e", "f", "g", "h", "invalid!")

@@ -118,7 +118,7 @@ func (m setUnknownOnTopologyChanges) PlanModifySet(ctx context.Context, req plan
 			// Eventually the plan value will be set to the state value and it will be unchanged.
 			// The tier should be directly checked for unknown, since the planValue will be null in that case (instead of unknown).
 			// See: https://github.com/hashicorp/terraform-plugin-framework/issues/186
-			if (planValue.IsUnknown() || tierValue.IsUnknown()) && !(stateValue.IsUnknown() || stateValue.IsNull()) {
+			if (planValue.IsUnknown() || tierValue.IsUnknown()) && !stateValue.IsUnknown() && !stateValue.IsNull() {
 				continue
 			}
 

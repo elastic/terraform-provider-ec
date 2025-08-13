@@ -149,19 +149,19 @@ func (dep *Deployment) SetLatestInstanceConfigInfo(migrateUpdateRequest *deploym
 		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.CoordinatingTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "coordinating"))
 	}
 
-	if migrateUpdateRequest.Payload.Resources.Apm != nil && len(migrateUpdateRequest.Payload.Resources.Apm) > 0 && len(migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology) > 0 {
+	if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 && len(migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology) > 0 {
 		apmv2.SetLatestInstanceConfigInfo(dep.Apm, migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology[0])
 	}
 
-	if migrateUpdateRequest.Payload.Resources.EnterpriseSearch != nil && len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 && len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology) > 0 {
+	if len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 && len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology) > 0 {
 		enterprisesearchv2.SetLatestInstanceConfigInfo(dep.EnterpriseSearch, migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology[0])
 	}
 
-	if migrateUpdateRequest.Payload.Resources.IntegrationsServer != nil && len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 && len(migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology) > 0 {
+	if len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 && len(migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology) > 0 {
 		integrationsserverv2.SetLatestInstanceConfigInfo(dep.IntegrationsServer, migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology[0])
 	}
 
-	if migrateUpdateRequest.Payload.Resources.Kibana != nil && len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 && len(migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology) > 0 {
+	if len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 && len(migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology) > 0 {
 		kibanav2.SetLatestInstanceConfigInfo(dep.Kibana, migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology[0])
 	}
 }
@@ -315,7 +315,7 @@ func (dep *Deployment) ProcessSelfInObservability(ctx context.Context, base Depl
 		return diags
 	}
 
-	deploymentIDIsKnown := !(baseObservability.DeploymentId.IsNull() || baseObservability.DeploymentId.IsUnknown())
+	deploymentIDIsKnown := !baseObservability.DeploymentId.IsNull() && !baseObservability.DeploymentId.IsUnknown()
 	if deploymentIDIsKnown && baseObservability.DeploymentId.ValueString() != "self" {
 		return nil
 	}

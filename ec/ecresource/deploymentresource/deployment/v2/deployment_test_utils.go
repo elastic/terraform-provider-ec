@@ -50,7 +50,11 @@ func deploymentGetResponseFromFile(t *testing.T, filename string) *models.Deploy
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	var res models.DeploymentGetResponse
 	if err := json.NewDecoder(f).Decode(&res); err != nil {
