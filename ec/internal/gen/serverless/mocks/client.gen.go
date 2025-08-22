@@ -40,6 +40,7 @@ import (
 type MockClientWithResponsesInterface struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientWithResponsesInterfaceMockRecorder
+	isgomock struct{}
 }
 
 // MockClientWithResponsesInterfaceMockRecorder is the mock recorder for MockClientWithResponsesInterface.
@@ -60,10 +61,10 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 }
 
 // CreateElasticsearchProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateElasticsearchProjectWithBodyWithResponse", varargs...)
@@ -73,17 +74,17 @@ func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithBodyWit
 }
 
 // CreateElasticsearchProjectWithBodyWithResponse indicates an expected call of CreateElasticsearchProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithBodyWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateElasticsearchProjectWithBodyWithResponse), varargs...)
 }
 
 // CreateElasticsearchProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithResponse(arg0 context.Context, arg1 serverless.CreateElasticsearchProjectRequest, arg2 ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithResponse(ctx context.Context, body serverless.CreateElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateElasticsearchProjectWithResponse", varargs...)
@@ -93,17 +94,17 @@ func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithRespons
 }
 
 // CreateElasticsearchProjectWithResponse indicates an expected call of CreateElasticsearchProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateElasticsearchProjectWithResponse), varargs...)
 }
 
 // CreateObservabilityProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateObservabilityProjectWithBodyWithResponse", varargs...)
@@ -113,17 +114,17 @@ func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithBodyWit
 }
 
 // CreateObservabilityProjectWithBodyWithResponse indicates an expected call of CreateObservabilityProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithBodyWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateObservabilityProjectWithBodyWithResponse), varargs...)
 }
 
 // CreateObservabilityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithResponse(arg0 context.Context, arg1 serverless.CreateObservabilityProjectRequest, arg2 ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithResponse(ctx context.Context, body serverless.CreateObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateObservabilityProjectWithResponse", varargs...)
@@ -133,17 +134,17 @@ func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithRespons
 }
 
 // CreateObservabilityProjectWithResponse indicates an expected call of CreateObservabilityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateObservabilityProjectWithResponse), varargs...)
 }
 
 // CreateSecurityProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateSecurityProjectWithBodyWithResponse", varargs...)
@@ -153,17 +154,17 @@ func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithBodyWithResp
 }
 
 // CreateSecurityProjectWithBodyWithResponse indicates an expected call of CreateSecurityProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithBodyWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateSecurityProjectWithBodyWithResponse), varargs...)
 }
 
 // CreateSecurityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithResponse(arg0 context.Context, arg1 serverless.CreateSecurityProjectRequest, arg2 ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithResponse(ctx context.Context, body serverless.CreateSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateSecurityProjectWithResponse", varargs...)
@@ -173,17 +174,17 @@ func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithResponse(arg
 }
 
 // CreateSecurityProjectWithResponse indicates an expected call of CreateSecurityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateSecurityProjectWithResponse), varargs...)
 }
 
 // DeleteElasticsearchProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) DeleteElasticsearchProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.DeleteElasticsearchProjectParams, arg3 ...serverless.RequestEditorFn) (*serverless.DeleteElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) DeleteElasticsearchProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.DeleteElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeleteElasticsearchProjectWithResponse", varargs...)
@@ -193,17 +194,17 @@ func (m *MockClientWithResponsesInterface) DeleteElasticsearchProjectWithRespons
 }
 
 // DeleteElasticsearchProjectWithResponse indicates an expected call of DeleteElasticsearchProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteElasticsearchProjectWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteElasticsearchProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteElasticsearchProjectWithResponse), varargs...)
 }
 
 // DeleteObservabilityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) DeleteObservabilityProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.DeleteObservabilityProjectParams, arg3 ...serverless.RequestEditorFn) (*serverless.DeleteObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) DeleteObservabilityProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteObservabilityProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.DeleteObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeleteObservabilityProjectWithResponse", varargs...)
@@ -213,17 +214,17 @@ func (m *MockClientWithResponsesInterface) DeleteObservabilityProjectWithRespons
 }
 
 // DeleteObservabilityProjectWithResponse indicates an expected call of DeleteObservabilityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteObservabilityProjectWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteObservabilityProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteObservabilityProjectWithResponse), varargs...)
 }
 
 // DeleteSecurityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) DeleteSecurityProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.DeleteSecurityProjectParams, arg3 ...serverless.RequestEditorFn) (*serverless.DeleteSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) DeleteSecurityProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteSecurityProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.DeleteSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeleteSecurityProjectWithResponse", varargs...)
@@ -233,17 +234,17 @@ func (m *MockClientWithResponsesInterface) DeleteSecurityProjectWithResponse(arg
 }
 
 // DeleteSecurityProjectWithResponse indicates an expected call of DeleteSecurityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteSecurityProjectWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteSecurityProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteSecurityProjectWithResponse), varargs...)
 }
 
 // GetElasticsearchProjectRolesWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetElasticsearchProjectRolesWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectRolesResponse, error) {
+func (m *MockClientWithResponsesInterface) GetElasticsearchProjectRolesWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectRolesResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetElasticsearchProjectRolesWithResponse", varargs...)
@@ -253,17 +254,17 @@ func (m *MockClientWithResponsesInterface) GetElasticsearchProjectRolesWithRespo
 }
 
 // GetElasticsearchProjectRolesWithResponse indicates an expected call of GetElasticsearchProjectRolesWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectRolesWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectRolesWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectRolesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectRolesWithResponse), varargs...)
 }
 
 // GetElasticsearchProjectStatusWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetElasticsearchProjectStatusWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectStatusResponse, error) {
+func (m *MockClientWithResponsesInterface) GetElasticsearchProjectStatusWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectStatusResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetElasticsearchProjectStatusWithResponse", varargs...)
@@ -273,17 +274,17 @@ func (m *MockClientWithResponsesInterface) GetElasticsearchProjectStatusWithResp
 }
 
 // GetElasticsearchProjectStatusWithResponse indicates an expected call of GetElasticsearchProjectStatusWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectStatusWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectStatusWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectStatusWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectStatusWithResponse), varargs...)
 }
 
 // GetElasticsearchProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetElasticsearchProjectWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) GetElasticsearchProjectWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetElasticsearchProjectWithResponse", varargs...)
@@ -293,17 +294,17 @@ func (m *MockClientWithResponsesInterface) GetElasticsearchProjectWithResponse(a
 }
 
 // GetElasticsearchProjectWithResponse indicates an expected call of GetElasticsearchProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectWithResponse), varargs...)
 }
 
 // GetObservabilityProjectRolesWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetObservabilityProjectRolesWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectRolesResponse, error) {
+func (m *MockClientWithResponsesInterface) GetObservabilityProjectRolesWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectRolesResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetObservabilityProjectRolesWithResponse", varargs...)
@@ -313,17 +314,17 @@ func (m *MockClientWithResponsesInterface) GetObservabilityProjectRolesWithRespo
 }
 
 // GetObservabilityProjectRolesWithResponse indicates an expected call of GetObservabilityProjectRolesWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectRolesWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectRolesWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectRolesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetObservabilityProjectRolesWithResponse), varargs...)
 }
 
 // GetObservabilityProjectStatusWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetObservabilityProjectStatusWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectStatusResponse, error) {
+func (m *MockClientWithResponsesInterface) GetObservabilityProjectStatusWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectStatusResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetObservabilityProjectStatusWithResponse", varargs...)
@@ -333,17 +334,17 @@ func (m *MockClientWithResponsesInterface) GetObservabilityProjectStatusWithResp
 }
 
 // GetObservabilityProjectStatusWithResponse indicates an expected call of GetObservabilityProjectStatusWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectStatusWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectStatusWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectStatusWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetObservabilityProjectStatusWithResponse), varargs...)
 }
 
 // GetObservabilityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetObservabilityProjectWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) GetObservabilityProjectWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetObservabilityProjectWithResponse", varargs...)
@@ -353,17 +354,17 @@ func (m *MockClientWithResponsesInterface) GetObservabilityProjectWithResponse(a
 }
 
 // GetObservabilityProjectWithResponse indicates an expected call of GetObservabilityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetObservabilityProjectWithResponse), varargs...)
 }
 
 // GetRegionWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetRegionWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetRegionResponse, error) {
+func (m *MockClientWithResponsesInterface) GetRegionWithResponse(ctx context.Context, id serverless.RegionID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetRegionResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetRegionWithResponse", varargs...)
@@ -373,17 +374,17 @@ func (m *MockClientWithResponsesInterface) GetRegionWithResponse(arg0 context.Co
 }
 
 // GetRegionWithResponse indicates an expected call of GetRegionWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetRegionWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetRegionWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegionWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetRegionWithResponse), varargs...)
 }
 
 // GetSecurityProjectRolesWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetSecurityProjectRolesWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectRolesResponse, error) {
+func (m *MockClientWithResponsesInterface) GetSecurityProjectRolesWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectRolesResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetSecurityProjectRolesWithResponse", varargs...)
@@ -393,17 +394,17 @@ func (m *MockClientWithResponsesInterface) GetSecurityProjectRolesWithResponse(a
 }
 
 // GetSecurityProjectRolesWithResponse indicates an expected call of GetSecurityProjectRolesWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectRolesWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectRolesWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectRolesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetSecurityProjectRolesWithResponse), varargs...)
 }
 
 // GetSecurityProjectStatusWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetSecurityProjectStatusWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectStatusResponse, error) {
+func (m *MockClientWithResponsesInterface) GetSecurityProjectStatusWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectStatusResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetSecurityProjectStatusWithResponse", varargs...)
@@ -413,17 +414,17 @@ func (m *MockClientWithResponsesInterface) GetSecurityProjectStatusWithResponse(
 }
 
 // GetSecurityProjectStatusWithResponse indicates an expected call of GetSecurityProjectStatusWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectStatusWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectStatusWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectStatusWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetSecurityProjectStatusWithResponse), varargs...)
 }
 
 // GetSecurityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetSecurityProjectWithResponse(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) GetSecurityProjectWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetSecurityProjectWithResponse", varargs...)
@@ -433,17 +434,17 @@ func (m *MockClientWithResponsesInterface) GetSecurityProjectWithResponse(arg0 c
 }
 
 // GetSecurityProjectWithResponse indicates an expected call of GetSecurityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetSecurityProjectWithResponse), varargs...)
 }
 
 // ListElasticsearchProjectsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ListElasticsearchProjectsWithResponse(arg0 context.Context, arg1 *serverless.ListElasticsearchProjectsParams, arg2 ...serverless.RequestEditorFn) (*serverless.ListElasticsearchProjectsResponse, error) {
+func (m *MockClientWithResponsesInterface) ListElasticsearchProjectsWithResponse(ctx context.Context, params *serverless.ListElasticsearchProjectsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListElasticsearchProjectsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListElasticsearchProjectsWithResponse", varargs...)
@@ -453,17 +454,17 @@ func (m *MockClientWithResponsesInterface) ListElasticsearchProjectsWithResponse
 }
 
 // ListElasticsearchProjectsWithResponse indicates an expected call of ListElasticsearchProjectsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ListElasticsearchProjectsWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListElasticsearchProjectsWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListElasticsearchProjectsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListElasticsearchProjectsWithResponse), varargs...)
 }
 
 // ListObservabilityProjectsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ListObservabilityProjectsWithResponse(arg0 context.Context, arg1 *serverless.ListObservabilityProjectsParams, arg2 ...serverless.RequestEditorFn) (*serverless.ListObservabilityProjectsResponse, error) {
+func (m *MockClientWithResponsesInterface) ListObservabilityProjectsWithResponse(ctx context.Context, params *serverless.ListObservabilityProjectsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListObservabilityProjectsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListObservabilityProjectsWithResponse", varargs...)
@@ -473,17 +474,17 @@ func (m *MockClientWithResponsesInterface) ListObservabilityProjectsWithResponse
 }
 
 // ListObservabilityProjectsWithResponse indicates an expected call of ListObservabilityProjectsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ListObservabilityProjectsWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListObservabilityProjectsWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListObservabilityProjectsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListObservabilityProjectsWithResponse), varargs...)
 }
 
 // ListRegionsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ListRegionsWithResponse(arg0 context.Context, arg1 ...serverless.RequestEditorFn) (*serverless.ListRegionsResponse, error) {
+func (m *MockClientWithResponsesInterface) ListRegionsWithResponse(ctx context.Context, reqEditors ...serverless.RequestEditorFn) (*serverless.ListRegionsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0}
-	for _, a := range arg1 {
+	varargs := []any{ctx}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListRegionsWithResponse", varargs...)
@@ -493,17 +494,17 @@ func (m *MockClientWithResponsesInterface) ListRegionsWithResponse(arg0 context.
 }
 
 // ListRegionsWithResponse indicates an expected call of ListRegionsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ListRegionsWithResponse(arg0 any, arg1 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListRegionsWithResponse(ctx any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0}, arg1...)
+	varargs := append([]any{ctx}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRegionsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListRegionsWithResponse), varargs...)
 }
 
 // ListSecurityProjectsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ListSecurityProjectsWithResponse(arg0 context.Context, arg1 *serverless.ListSecurityProjectsParams, arg2 ...serverless.RequestEditorFn) (*serverless.ListSecurityProjectsResponse, error) {
+func (m *MockClientWithResponsesInterface) ListSecurityProjectsWithResponse(ctx context.Context, params *serverless.ListSecurityProjectsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListSecurityProjectsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListSecurityProjectsWithResponse", varargs...)
@@ -513,17 +514,17 @@ func (m *MockClientWithResponsesInterface) ListSecurityProjectsWithResponse(arg0
 }
 
 // ListSecurityProjectsWithResponse indicates an expected call of ListSecurityProjectsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ListSecurityProjectsWithResponse(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListSecurityProjectsWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecurityProjectsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListSecurityProjectsWithResponse), varargs...)
 }
 
 // PatchElasticsearchProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PatchElasticsearchProjectWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.PatchElasticsearchProjectParams, arg3 string, arg4 io.Reader, arg5 ...serverless.RequestEditorFn) (*serverless.PatchElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) PatchElasticsearchProjectWithBodyWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchElasticsearchProjectWithBodyWithResponse", varargs...)
@@ -533,17 +534,17 @@ func (m *MockClientWithResponsesInterface) PatchElasticsearchProjectWithBodyWith
 }
 
 // PatchElasticsearchProjectWithBodyWithResponse indicates an expected call of PatchElasticsearchProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchElasticsearchProjectWithBodyWithResponse(arg0, arg1, arg2, arg3, arg4 any, arg5 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchElasticsearchProjectWithBodyWithResponse(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3, arg4}, arg5...)
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchElasticsearchProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchElasticsearchProjectWithBodyWithResponse), varargs...)
 }
 
 // PatchElasticsearchProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PatchElasticsearchProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.PatchElasticsearchProjectParams, arg3 serverless.PatchElasticsearchProjectRequest, arg4 ...serverless.RequestEditorFn) (*serverless.PatchElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) PatchElasticsearchProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchElasticsearchProjectParams, body serverless.PatchElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchElasticsearchProjectWithResponse", varargs...)
@@ -553,17 +554,17 @@ func (m *MockClientWithResponsesInterface) PatchElasticsearchProjectWithResponse
 }
 
 // PatchElasticsearchProjectWithResponse indicates an expected call of PatchElasticsearchProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchElasticsearchProjectWithResponse(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchElasticsearchProjectWithResponse(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchElasticsearchProjectWithResponse), varargs...)
 }
 
 // PatchObservabilityProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PatchObservabilityProjectWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.PatchObservabilityProjectParams, arg3 string, arg4 io.Reader, arg5 ...serverless.RequestEditorFn) (*serverless.PatchObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) PatchObservabilityProjectWithBodyWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchObservabilityProjectWithBodyWithResponse", varargs...)
@@ -573,17 +574,17 @@ func (m *MockClientWithResponsesInterface) PatchObservabilityProjectWithBodyWith
 }
 
 // PatchObservabilityProjectWithBodyWithResponse indicates an expected call of PatchObservabilityProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchObservabilityProjectWithBodyWithResponse(arg0, arg1, arg2, arg3, arg4 any, arg5 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchObservabilityProjectWithBodyWithResponse(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3, arg4}, arg5...)
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchObservabilityProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchObservabilityProjectWithBodyWithResponse), varargs...)
 }
 
 // PatchObservabilityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PatchObservabilityProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.PatchObservabilityProjectParams, arg3 serverless.PatchObservabilityProjectRequest, arg4 ...serverless.RequestEditorFn) (*serverless.PatchObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) PatchObservabilityProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchObservabilityProjectParams, body serverless.PatchObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchObservabilityProjectWithResponse", varargs...)
@@ -593,17 +594,17 @@ func (m *MockClientWithResponsesInterface) PatchObservabilityProjectWithResponse
 }
 
 // PatchObservabilityProjectWithResponse indicates an expected call of PatchObservabilityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchObservabilityProjectWithResponse(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchObservabilityProjectWithResponse(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchObservabilityProjectWithResponse), varargs...)
 }
 
 // PatchSecurityProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PatchSecurityProjectWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.PatchSecurityProjectParams, arg3 string, arg4 io.Reader, arg5 ...serverless.RequestEditorFn) (*serverless.PatchSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) PatchSecurityProjectWithBodyWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchSecurityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchSecurityProjectWithBodyWithResponse", varargs...)
@@ -613,17 +614,17 @@ func (m *MockClientWithResponsesInterface) PatchSecurityProjectWithBodyWithRespo
 }
 
 // PatchSecurityProjectWithBodyWithResponse indicates an expected call of PatchSecurityProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchSecurityProjectWithBodyWithResponse(arg0, arg1, arg2, arg3, arg4 any, arg5 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchSecurityProjectWithBodyWithResponse(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3, arg4}, arg5...)
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchSecurityProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchSecurityProjectWithBodyWithResponse), varargs...)
 }
 
 // PatchSecurityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PatchSecurityProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.PatchSecurityProjectParams, arg3 serverless.PatchSecurityProjectRequest, arg4 ...serverless.RequestEditorFn) (*serverless.PatchSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) PatchSecurityProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchSecurityProjectParams, body serverless.PatchSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchSecurityProjectWithResponse", varargs...)
@@ -633,17 +634,17 @@ func (m *MockClientWithResponsesInterface) PatchSecurityProjectWithResponse(arg0
 }
 
 // PatchSecurityProjectWithResponse indicates an expected call of PatchSecurityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchSecurityProjectWithResponse(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchSecurityProjectWithResponse(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchSecurityProjectWithResponse), varargs...)
 }
 
 // ResetElasticsearchProjectCredentialsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ResetElasticsearchProjectCredentialsWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.ResetElasticsearchProjectCredentialsParams, arg3 ...serverless.RequestEditorFn) (*serverless.ResetElasticsearchProjectCredentialsResponse, error) {
+func (m *MockClientWithResponsesInterface) ResetElasticsearchProjectCredentialsWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResetElasticsearchProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResetElasticsearchProjectCredentialsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResetElasticsearchProjectCredentialsWithResponse", varargs...)
@@ -653,17 +654,17 @@ func (m *MockClientWithResponsesInterface) ResetElasticsearchProjectCredentialsW
 }
 
 // ResetElasticsearchProjectCredentialsWithResponse indicates an expected call of ResetElasticsearchProjectCredentialsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetElasticsearchProjectCredentialsWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetElasticsearchProjectCredentialsWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetElasticsearchProjectCredentialsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResetElasticsearchProjectCredentialsWithResponse), varargs...)
 }
 
 // ResetObservabilityProjectCredentialsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ResetObservabilityProjectCredentialsWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.ResetObservabilityProjectCredentialsParams, arg3 ...serverless.RequestEditorFn) (*serverless.ResetObservabilityProjectCredentialsResponse, error) {
+func (m *MockClientWithResponsesInterface) ResetObservabilityProjectCredentialsWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResetObservabilityProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResetObservabilityProjectCredentialsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResetObservabilityProjectCredentialsWithResponse", varargs...)
@@ -673,17 +674,17 @@ func (m *MockClientWithResponsesInterface) ResetObservabilityProjectCredentialsW
 }
 
 // ResetObservabilityProjectCredentialsWithResponse indicates an expected call of ResetObservabilityProjectCredentialsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetObservabilityProjectCredentialsWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetObservabilityProjectCredentialsWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetObservabilityProjectCredentialsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResetObservabilityProjectCredentialsWithResponse), varargs...)
 }
 
 // ResetSecurityProjectCredentialsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ResetSecurityProjectCredentialsWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.ResetSecurityProjectCredentialsParams, arg3 ...serverless.RequestEditorFn) (*serverless.ResetSecurityProjectCredentialsResponse, error) {
+func (m *MockClientWithResponsesInterface) ResetSecurityProjectCredentialsWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResetSecurityProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResetSecurityProjectCredentialsResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResetSecurityProjectCredentialsWithResponse", varargs...)
@@ -693,17 +694,17 @@ func (m *MockClientWithResponsesInterface) ResetSecurityProjectCredentialsWithRe
 }
 
 // ResetSecurityProjectCredentialsWithResponse indicates an expected call of ResetSecurityProjectCredentialsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetSecurityProjectCredentialsWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetSecurityProjectCredentialsWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetSecurityProjectCredentialsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResetSecurityProjectCredentialsWithResponse), varargs...)
 }
 
 // ResumeElasticsearchProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ResumeElasticsearchProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.ResumeElasticsearchProjectParams, arg3 ...serverless.RequestEditorFn) (*serverless.ResumeElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) ResumeElasticsearchProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResumeElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResumeElasticsearchProjectWithResponse", varargs...)
@@ -713,17 +714,17 @@ func (m *MockClientWithResponsesInterface) ResumeElasticsearchProjectWithRespons
 }
 
 // ResumeElasticsearchProjectWithResponse indicates an expected call of ResumeElasticsearchProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeElasticsearchProjectWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeElasticsearchProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResumeElasticsearchProjectWithResponse), varargs...)
 }
 
 // ResumeObservabilityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ResumeObservabilityProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.ResumeObservabilityProjectParams, arg3 ...serverless.RequestEditorFn) (*serverless.ResumeObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) ResumeObservabilityProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeObservabilityProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResumeObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResumeObservabilityProjectWithResponse", varargs...)
@@ -733,17 +734,17 @@ func (m *MockClientWithResponsesInterface) ResumeObservabilityProjectWithRespons
 }
 
 // ResumeObservabilityProjectWithResponse indicates an expected call of ResumeObservabilityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeObservabilityProjectWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeObservabilityProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResumeObservabilityProjectWithResponse), varargs...)
 }
 
 // ResumeSecurityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ResumeSecurityProjectWithResponse(arg0 context.Context, arg1 string, arg2 *serverless.ResumeSecurityProjectParams, arg3 ...serverless.RequestEditorFn) (*serverless.ResumeSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) ResumeSecurityProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeSecurityProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResumeSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResumeSecurityProjectWithResponse", varargs...)
@@ -753,9 +754,9 @@ func (m *MockClientWithResponsesInterface) ResumeSecurityProjectWithResponse(arg
 }
 
 // ResumeSecurityProjectWithResponse indicates an expected call of ResumeSecurityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeSecurityProjectWithResponse(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeSecurityProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResumeSecurityProjectWithResponse), varargs...)
 }
 
@@ -763,6 +764,7 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeSecurityProjectWit
 type MockClientInterface struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientInterfaceMockRecorder
+	isgomock struct{}
 }
 
 // MockClientInterfaceMockRecorder is the mock recorder for MockClientInterface.
@@ -783,10 +785,10 @@ func (m *MockClientInterface) EXPECT() *MockClientInterfaceMockRecorder {
 }
 
 // CreateElasticsearchProject mocks base method.
-func (m *MockClientInterface) CreateElasticsearchProject(arg0 context.Context, arg1 serverless.CreateElasticsearchProjectRequest, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateElasticsearchProject(ctx context.Context, body serverless.CreateElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateElasticsearchProject", varargs...)
@@ -796,17 +798,17 @@ func (m *MockClientInterface) CreateElasticsearchProject(arg0 context.Context, a
 }
 
 // CreateElasticsearchProject indicates an expected call of CreateElasticsearchProject.
-func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProject(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProject(ctx, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).CreateElasticsearchProject), varargs...)
 }
 
 // CreateElasticsearchProjectWithBody mocks base method.
-func (m *MockClientInterface) CreateElasticsearchProjectWithBody(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateElasticsearchProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateElasticsearchProjectWithBody", varargs...)
@@ -816,17 +818,17 @@ func (m *MockClientInterface) CreateElasticsearchProjectWithBody(arg0 context.Co
 }
 
 // CreateElasticsearchProjectWithBody indicates an expected call of CreateElasticsearchProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProjectWithBody(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProjectWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateElasticsearchProjectWithBody), varargs...)
 }
 
 // CreateObservabilityProject mocks base method.
-func (m *MockClientInterface) CreateObservabilityProject(arg0 context.Context, arg1 serverless.CreateObservabilityProjectRequest, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateObservabilityProject(ctx context.Context, body serverless.CreateObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateObservabilityProject", varargs...)
@@ -836,17 +838,17 @@ func (m *MockClientInterface) CreateObservabilityProject(arg0 context.Context, a
 }
 
 // CreateObservabilityProject indicates an expected call of CreateObservabilityProject.
-func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProject(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProject(ctx, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).CreateObservabilityProject), varargs...)
 }
 
 // CreateObservabilityProjectWithBody mocks base method.
-func (m *MockClientInterface) CreateObservabilityProjectWithBody(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateObservabilityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateObservabilityProjectWithBody", varargs...)
@@ -856,17 +858,17 @@ func (m *MockClientInterface) CreateObservabilityProjectWithBody(arg0 context.Co
 }
 
 // CreateObservabilityProjectWithBody indicates an expected call of CreateObservabilityProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProjectWithBody(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProjectWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateObservabilityProjectWithBody), varargs...)
 }
 
 // CreateSecurityProject mocks base method.
-func (m *MockClientInterface) CreateSecurityProject(arg0 context.Context, arg1 serverless.CreateSecurityProjectRequest, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateSecurityProject(ctx context.Context, body serverless.CreateSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateSecurityProject", varargs...)
@@ -876,17 +878,17 @@ func (m *MockClientInterface) CreateSecurityProject(arg0 context.Context, arg1 s
 }
 
 // CreateSecurityProject indicates an expected call of CreateSecurityProject.
-func (mr *MockClientInterfaceMockRecorder) CreateSecurityProject(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateSecurityProject(ctx, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).CreateSecurityProject), varargs...)
 }
 
 // CreateSecurityProjectWithBody mocks base method.
-func (m *MockClientInterface) CreateSecurityProjectWithBody(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateSecurityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "CreateSecurityProjectWithBody", varargs...)
@@ -896,17 +898,17 @@ func (m *MockClientInterface) CreateSecurityProjectWithBody(arg0 context.Context
 }
 
 // CreateSecurityProjectWithBody indicates an expected call of CreateSecurityProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) CreateSecurityProjectWithBody(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateSecurityProjectWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateSecurityProjectWithBody), varargs...)
 }
 
 // DeleteElasticsearchProject mocks base method.
-func (m *MockClientInterface) DeleteElasticsearchProject(arg0 context.Context, arg1 string, arg2 *serverless.DeleteElasticsearchProjectParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) DeleteElasticsearchProject(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeleteElasticsearchProject", varargs...)
@@ -916,17 +918,17 @@ func (m *MockClientInterface) DeleteElasticsearchProject(arg0 context.Context, a
 }
 
 // DeleteElasticsearchProject indicates an expected call of DeleteElasticsearchProject.
-func (mr *MockClientInterfaceMockRecorder) DeleteElasticsearchProject(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) DeleteElasticsearchProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).DeleteElasticsearchProject), varargs...)
 }
 
 // DeleteObservabilityProject mocks base method.
-func (m *MockClientInterface) DeleteObservabilityProject(arg0 context.Context, arg1 string, arg2 *serverless.DeleteObservabilityProjectParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) DeleteObservabilityProject(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteObservabilityProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeleteObservabilityProject", varargs...)
@@ -936,17 +938,17 @@ func (m *MockClientInterface) DeleteObservabilityProject(arg0 context.Context, a
 }
 
 // DeleteObservabilityProject indicates an expected call of DeleteObservabilityProject.
-func (mr *MockClientInterfaceMockRecorder) DeleteObservabilityProject(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) DeleteObservabilityProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).DeleteObservabilityProject), varargs...)
 }
 
 // DeleteSecurityProject mocks base method.
-func (m *MockClientInterface) DeleteSecurityProject(arg0 context.Context, arg1 string, arg2 *serverless.DeleteSecurityProjectParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) DeleteSecurityProject(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteSecurityProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DeleteSecurityProject", varargs...)
@@ -956,17 +958,17 @@ func (m *MockClientInterface) DeleteSecurityProject(arg0 context.Context, arg1 s
 }
 
 // DeleteSecurityProject indicates an expected call of DeleteSecurityProject.
-func (mr *MockClientInterfaceMockRecorder) DeleteSecurityProject(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) DeleteSecurityProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).DeleteSecurityProject), varargs...)
 }
 
 // GetElasticsearchProject mocks base method.
-func (m *MockClientInterface) GetElasticsearchProject(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetElasticsearchProject(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetElasticsearchProject", varargs...)
@@ -976,17 +978,17 @@ func (m *MockClientInterface) GetElasticsearchProject(arg0 context.Context, arg1
 }
 
 // GetElasticsearchProject indicates an expected call of GetElasticsearchProject.
-func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProject(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProject(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProject), varargs...)
 }
 
 // GetElasticsearchProjectRoles mocks base method.
-func (m *MockClientInterface) GetElasticsearchProjectRoles(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetElasticsearchProjectRoles(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetElasticsearchProjectRoles", varargs...)
@@ -996,17 +998,17 @@ func (m *MockClientInterface) GetElasticsearchProjectRoles(arg0 context.Context,
 }
 
 // GetElasticsearchProjectRoles indicates an expected call of GetElasticsearchProjectRoles.
-func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectRoles(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectRoles(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectRoles", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProjectRoles), varargs...)
 }
 
 // GetElasticsearchProjectStatus mocks base method.
-func (m *MockClientInterface) GetElasticsearchProjectStatus(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetElasticsearchProjectStatus(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetElasticsearchProjectStatus", varargs...)
@@ -1016,17 +1018,17 @@ func (m *MockClientInterface) GetElasticsearchProjectStatus(arg0 context.Context
 }
 
 // GetElasticsearchProjectStatus indicates an expected call of GetElasticsearchProjectStatus.
-func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectStatus(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectStatus(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProjectStatus), varargs...)
 }
 
 // GetObservabilityProject mocks base method.
-func (m *MockClientInterface) GetObservabilityProject(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetObservabilityProject(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetObservabilityProject", varargs...)
@@ -1036,17 +1038,17 @@ func (m *MockClientInterface) GetObservabilityProject(arg0 context.Context, arg1
 }
 
 // GetObservabilityProject indicates an expected call of GetObservabilityProject.
-func (mr *MockClientInterfaceMockRecorder) GetObservabilityProject(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetObservabilityProject(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProject), varargs...)
 }
 
 // GetObservabilityProjectRoles mocks base method.
-func (m *MockClientInterface) GetObservabilityProjectRoles(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetObservabilityProjectRoles(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetObservabilityProjectRoles", varargs...)
@@ -1056,17 +1058,17 @@ func (m *MockClientInterface) GetObservabilityProjectRoles(arg0 context.Context,
 }
 
 // GetObservabilityProjectRoles indicates an expected call of GetObservabilityProjectRoles.
-func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectRoles(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectRoles(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectRoles", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProjectRoles), varargs...)
 }
 
 // GetObservabilityProjectStatus mocks base method.
-func (m *MockClientInterface) GetObservabilityProjectStatus(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetObservabilityProjectStatus(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetObservabilityProjectStatus", varargs...)
@@ -1076,17 +1078,17 @@ func (m *MockClientInterface) GetObservabilityProjectStatus(arg0 context.Context
 }
 
 // GetObservabilityProjectStatus indicates an expected call of GetObservabilityProjectStatus.
-func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectStatus(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectStatus(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProjectStatus), varargs...)
 }
 
 // GetRegion mocks base method.
-func (m *MockClientInterface) GetRegion(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetRegion(ctx context.Context, id serverless.RegionID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetRegion", varargs...)
@@ -1096,17 +1098,17 @@ func (m *MockClientInterface) GetRegion(arg0 context.Context, arg1 string, arg2 
 }
 
 // GetRegion indicates an expected call of GetRegion.
-func (mr *MockClientInterfaceMockRecorder) GetRegion(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetRegion(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegion", reflect.TypeOf((*MockClientInterface)(nil).GetRegion), varargs...)
 }
 
 // GetSecurityProject mocks base method.
-func (m *MockClientInterface) GetSecurityProject(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetSecurityProject(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetSecurityProject", varargs...)
@@ -1116,17 +1118,17 @@ func (m *MockClientInterface) GetSecurityProject(arg0 context.Context, arg1 stri
 }
 
 // GetSecurityProject indicates an expected call of GetSecurityProject.
-func (mr *MockClientInterfaceMockRecorder) GetSecurityProject(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetSecurityProject(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProject), varargs...)
 }
 
 // GetSecurityProjectRoles mocks base method.
-func (m *MockClientInterface) GetSecurityProjectRoles(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetSecurityProjectRoles(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetSecurityProjectRoles", varargs...)
@@ -1136,17 +1138,17 @@ func (m *MockClientInterface) GetSecurityProjectRoles(arg0 context.Context, arg1
 }
 
 // GetSecurityProjectRoles indicates an expected call of GetSecurityProjectRoles.
-func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectRoles(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectRoles(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectRoles", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProjectRoles), varargs...)
 }
 
 // GetSecurityProjectStatus mocks base method.
-func (m *MockClientInterface) GetSecurityProjectStatus(arg0 context.Context, arg1 string, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) GetSecurityProjectStatus(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetSecurityProjectStatus", varargs...)
@@ -1156,17 +1158,17 @@ func (m *MockClientInterface) GetSecurityProjectStatus(arg0 context.Context, arg
 }
 
 // GetSecurityProjectStatus indicates an expected call of GetSecurityProjectStatus.
-func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectStatus(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectStatus(ctx, id any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProjectStatus), varargs...)
 }
 
 // ListElasticsearchProjects mocks base method.
-func (m *MockClientInterface) ListElasticsearchProjects(arg0 context.Context, arg1 *serverless.ListElasticsearchProjectsParams, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ListElasticsearchProjects(ctx context.Context, params *serverless.ListElasticsearchProjectsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListElasticsearchProjects", varargs...)
@@ -1176,17 +1178,17 @@ func (m *MockClientInterface) ListElasticsearchProjects(arg0 context.Context, ar
 }
 
 // ListElasticsearchProjects indicates an expected call of ListElasticsearchProjects.
-func (mr *MockClientInterfaceMockRecorder) ListElasticsearchProjects(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ListElasticsearchProjects(ctx, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListElasticsearchProjects", reflect.TypeOf((*MockClientInterface)(nil).ListElasticsearchProjects), varargs...)
 }
 
 // ListObservabilityProjects mocks base method.
-func (m *MockClientInterface) ListObservabilityProjects(arg0 context.Context, arg1 *serverless.ListObservabilityProjectsParams, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ListObservabilityProjects(ctx context.Context, params *serverless.ListObservabilityProjectsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListObservabilityProjects", varargs...)
@@ -1196,17 +1198,17 @@ func (m *MockClientInterface) ListObservabilityProjects(arg0 context.Context, ar
 }
 
 // ListObservabilityProjects indicates an expected call of ListObservabilityProjects.
-func (mr *MockClientInterfaceMockRecorder) ListObservabilityProjects(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ListObservabilityProjects(ctx, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListObservabilityProjects", reflect.TypeOf((*MockClientInterface)(nil).ListObservabilityProjects), varargs...)
 }
 
 // ListRegions mocks base method.
-func (m *MockClientInterface) ListRegions(arg0 context.Context, arg1 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ListRegions(ctx context.Context, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0}
-	for _, a := range arg1 {
+	varargs := []any{ctx}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListRegions", varargs...)
@@ -1216,17 +1218,17 @@ func (m *MockClientInterface) ListRegions(arg0 context.Context, arg1 ...serverle
 }
 
 // ListRegions indicates an expected call of ListRegions.
-func (mr *MockClientInterfaceMockRecorder) ListRegions(arg0 any, arg1 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ListRegions(ctx any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0}, arg1...)
+	varargs := append([]any{ctx}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRegions", reflect.TypeOf((*MockClientInterface)(nil).ListRegions), varargs...)
 }
 
 // ListSecurityProjects mocks base method.
-func (m *MockClientInterface) ListSecurityProjects(arg0 context.Context, arg1 *serverless.ListSecurityProjectsParams, arg2 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ListSecurityProjects(ctx context.Context, params *serverless.ListSecurityProjectsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListSecurityProjects", varargs...)
@@ -1236,17 +1238,17 @@ func (m *MockClientInterface) ListSecurityProjects(arg0 context.Context, arg1 *s
 }
 
 // ListSecurityProjects indicates an expected call of ListSecurityProjects.
-func (mr *MockClientInterfaceMockRecorder) ListSecurityProjects(arg0, arg1 any, arg2 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ListSecurityProjects(ctx, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1}, arg2...)
+	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecurityProjects", reflect.TypeOf((*MockClientInterface)(nil).ListSecurityProjects), varargs...)
 }
 
 // PatchElasticsearchProject mocks base method.
-func (m *MockClientInterface) PatchElasticsearchProject(arg0 context.Context, arg1 string, arg2 *serverless.PatchElasticsearchProjectParams, arg3 serverless.PatchElasticsearchProjectRequest, arg4 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) PatchElasticsearchProject(ctx context.Context, id serverless.ProjectID, params *serverless.PatchElasticsearchProjectParams, body serverless.PatchElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchElasticsearchProject", varargs...)
@@ -1256,17 +1258,17 @@ func (m *MockClientInterface) PatchElasticsearchProject(arg0 context.Context, ar
 }
 
 // PatchElasticsearchProject indicates an expected call of PatchElasticsearchProject.
-func (mr *MockClientInterfaceMockRecorder) PatchElasticsearchProject(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) PatchElasticsearchProject(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).PatchElasticsearchProject), varargs...)
 }
 
 // PatchElasticsearchProjectWithBody mocks base method.
-func (m *MockClientInterface) PatchElasticsearchProjectWithBody(arg0 context.Context, arg1 string, arg2 *serverless.PatchElasticsearchProjectParams, arg3 string, arg4 io.Reader, arg5 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) PatchElasticsearchProjectWithBody(ctx context.Context, id serverless.ProjectID, params *serverless.PatchElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchElasticsearchProjectWithBody", varargs...)
@@ -1276,17 +1278,17 @@ func (m *MockClientInterface) PatchElasticsearchProjectWithBody(arg0 context.Con
 }
 
 // PatchElasticsearchProjectWithBody indicates an expected call of PatchElasticsearchProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) PatchElasticsearchProjectWithBody(arg0, arg1, arg2, arg3, arg4 any, arg5 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) PatchElasticsearchProjectWithBody(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3, arg4}, arg5...)
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchElasticsearchProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchElasticsearchProjectWithBody), varargs...)
 }
 
 // PatchObservabilityProject mocks base method.
-func (m *MockClientInterface) PatchObservabilityProject(arg0 context.Context, arg1 string, arg2 *serverless.PatchObservabilityProjectParams, arg3 serverless.PatchObservabilityProjectRequest, arg4 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) PatchObservabilityProject(ctx context.Context, id serverless.ProjectID, params *serverless.PatchObservabilityProjectParams, body serverless.PatchObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchObservabilityProject", varargs...)
@@ -1296,17 +1298,17 @@ func (m *MockClientInterface) PatchObservabilityProject(arg0 context.Context, ar
 }
 
 // PatchObservabilityProject indicates an expected call of PatchObservabilityProject.
-func (mr *MockClientInterfaceMockRecorder) PatchObservabilityProject(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) PatchObservabilityProject(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).PatchObservabilityProject), varargs...)
 }
 
 // PatchObservabilityProjectWithBody mocks base method.
-func (m *MockClientInterface) PatchObservabilityProjectWithBody(arg0 context.Context, arg1 string, arg2 *serverless.PatchObservabilityProjectParams, arg3 string, arg4 io.Reader, arg5 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) PatchObservabilityProjectWithBody(ctx context.Context, id serverless.ProjectID, params *serverless.PatchObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchObservabilityProjectWithBody", varargs...)
@@ -1316,17 +1318,17 @@ func (m *MockClientInterface) PatchObservabilityProjectWithBody(arg0 context.Con
 }
 
 // PatchObservabilityProjectWithBody indicates an expected call of PatchObservabilityProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) PatchObservabilityProjectWithBody(arg0, arg1, arg2, arg3, arg4 any, arg5 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) PatchObservabilityProjectWithBody(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3, arg4}, arg5...)
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchObservabilityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchObservabilityProjectWithBody), varargs...)
 }
 
 // PatchSecurityProject mocks base method.
-func (m *MockClientInterface) PatchSecurityProject(arg0 context.Context, arg1 string, arg2 *serverless.PatchSecurityProjectParams, arg3 serverless.PatchSecurityProjectRequest, arg4 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) PatchSecurityProject(ctx context.Context, id serverless.ProjectID, params *serverless.PatchSecurityProjectParams, body serverless.PatchSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchSecurityProject", varargs...)
@@ -1336,17 +1338,17 @@ func (m *MockClientInterface) PatchSecurityProject(arg0 context.Context, arg1 st
 }
 
 // PatchSecurityProject indicates an expected call of PatchSecurityProject.
-func (mr *MockClientInterfaceMockRecorder) PatchSecurityProject(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) PatchSecurityProject(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).PatchSecurityProject), varargs...)
 }
 
 // PatchSecurityProjectWithBody mocks base method.
-func (m *MockClientInterface) PatchSecurityProjectWithBody(arg0 context.Context, arg1 string, arg2 *serverless.PatchSecurityProjectParams, arg3 string, arg4 io.Reader, arg5 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) PatchSecurityProjectWithBody(ctx context.Context, id serverless.ProjectID, params *serverless.PatchSecurityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PatchSecurityProjectWithBody", varargs...)
@@ -1356,17 +1358,17 @@ func (m *MockClientInterface) PatchSecurityProjectWithBody(arg0 context.Context,
 }
 
 // PatchSecurityProjectWithBody indicates an expected call of PatchSecurityProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) PatchSecurityProjectWithBody(arg0, arg1, arg2, arg3, arg4 any, arg5 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) PatchSecurityProjectWithBody(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2, arg3, arg4}, arg5...)
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchSecurityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchSecurityProjectWithBody), varargs...)
 }
 
 // ResetElasticsearchProjectCredentials mocks base method.
-func (m *MockClientInterface) ResetElasticsearchProjectCredentials(arg0 context.Context, arg1 string, arg2 *serverless.ResetElasticsearchProjectCredentialsParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ResetElasticsearchProjectCredentials(ctx context.Context, id serverless.ProjectID, params *serverless.ResetElasticsearchProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResetElasticsearchProjectCredentials", varargs...)
@@ -1376,17 +1378,17 @@ func (m *MockClientInterface) ResetElasticsearchProjectCredentials(arg0 context.
 }
 
 // ResetElasticsearchProjectCredentials indicates an expected call of ResetElasticsearchProjectCredentials.
-func (mr *MockClientInterfaceMockRecorder) ResetElasticsearchProjectCredentials(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ResetElasticsearchProjectCredentials(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetElasticsearchProjectCredentials", reflect.TypeOf((*MockClientInterface)(nil).ResetElasticsearchProjectCredentials), varargs...)
 }
 
 // ResetObservabilityProjectCredentials mocks base method.
-func (m *MockClientInterface) ResetObservabilityProjectCredentials(arg0 context.Context, arg1 string, arg2 *serverless.ResetObservabilityProjectCredentialsParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ResetObservabilityProjectCredentials(ctx context.Context, id serverless.ProjectID, params *serverless.ResetObservabilityProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResetObservabilityProjectCredentials", varargs...)
@@ -1396,17 +1398,17 @@ func (m *MockClientInterface) ResetObservabilityProjectCredentials(arg0 context.
 }
 
 // ResetObservabilityProjectCredentials indicates an expected call of ResetObservabilityProjectCredentials.
-func (mr *MockClientInterfaceMockRecorder) ResetObservabilityProjectCredentials(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ResetObservabilityProjectCredentials(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetObservabilityProjectCredentials", reflect.TypeOf((*MockClientInterface)(nil).ResetObservabilityProjectCredentials), varargs...)
 }
 
 // ResetSecurityProjectCredentials mocks base method.
-func (m *MockClientInterface) ResetSecurityProjectCredentials(arg0 context.Context, arg1 string, arg2 *serverless.ResetSecurityProjectCredentialsParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ResetSecurityProjectCredentials(ctx context.Context, id serverless.ProjectID, params *serverless.ResetSecurityProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResetSecurityProjectCredentials", varargs...)
@@ -1416,17 +1418,17 @@ func (m *MockClientInterface) ResetSecurityProjectCredentials(arg0 context.Conte
 }
 
 // ResetSecurityProjectCredentials indicates an expected call of ResetSecurityProjectCredentials.
-func (mr *MockClientInterfaceMockRecorder) ResetSecurityProjectCredentials(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ResetSecurityProjectCredentials(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetSecurityProjectCredentials", reflect.TypeOf((*MockClientInterface)(nil).ResetSecurityProjectCredentials), varargs...)
 }
 
 // ResumeElasticsearchProject mocks base method.
-func (m *MockClientInterface) ResumeElasticsearchProject(arg0 context.Context, arg1 string, arg2 *serverless.ResumeElasticsearchProjectParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ResumeElasticsearchProject(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResumeElasticsearchProject", varargs...)
@@ -1436,17 +1438,17 @@ func (m *MockClientInterface) ResumeElasticsearchProject(arg0 context.Context, a
 }
 
 // ResumeElasticsearchProject indicates an expected call of ResumeElasticsearchProject.
-func (mr *MockClientInterfaceMockRecorder) ResumeElasticsearchProject(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ResumeElasticsearchProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).ResumeElasticsearchProject), varargs...)
 }
 
 // ResumeObservabilityProject mocks base method.
-func (m *MockClientInterface) ResumeObservabilityProject(arg0 context.Context, arg1 string, arg2 *serverless.ResumeObservabilityProjectParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ResumeObservabilityProject(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeObservabilityProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResumeObservabilityProject", varargs...)
@@ -1456,17 +1458,17 @@ func (m *MockClientInterface) ResumeObservabilityProject(arg0 context.Context, a
 }
 
 // ResumeObservabilityProject indicates an expected call of ResumeObservabilityProject.
-func (mr *MockClientInterfaceMockRecorder) ResumeObservabilityProject(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ResumeObservabilityProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).ResumeObservabilityProject), varargs...)
 }
 
 // ResumeSecurityProject mocks base method.
-func (m *MockClientInterface) ResumeSecurityProject(arg0 context.Context, arg1 string, arg2 *serverless.ResumeSecurityProjectParams, arg3 ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) ResumeSecurityProject(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeSecurityProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ResumeSecurityProject", varargs...)
@@ -1476,8 +1478,8 @@ func (m *MockClientInterface) ResumeSecurityProject(arg0 context.Context, arg1 s
 }
 
 // ResumeSecurityProject indicates an expected call of ResumeSecurityProject.
-func (mr *MockClientInterfaceMockRecorder) ResumeSecurityProject(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) ResumeSecurityProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).ResumeSecurityProject), varargs...)
 }
