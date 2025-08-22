@@ -17,7 +17,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0
-	github.com/oapi-codegen/runtime v1.1.1
+	github.com/oapi-codegen/runtime v1.1.2
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.6.0
 )
