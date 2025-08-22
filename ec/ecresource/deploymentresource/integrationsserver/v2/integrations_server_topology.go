@@ -38,7 +38,7 @@ func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.
 		model.InstanceConfigurationID = topology.InstanceConfigurationId.ValueString()
 	}
 
-	if !(topology.InstanceConfigurationVersion.IsUnknown() || topology.InstanceConfigurationVersion.IsNull()) {
+	if !topology.InstanceConfigurationVersion.IsUnknown() && !topology.InstanceConfigurationVersion.IsNull() {
 		model.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 

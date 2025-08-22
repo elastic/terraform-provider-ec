@@ -46,7 +46,11 @@ func ParseDeploymentTemplate(t *testing.T, name string) *models.DeploymentTempla
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	var res models.DeploymentTemplateInfoV2
 	if err := json.NewDecoder(f).Decode(&res); err != nil {

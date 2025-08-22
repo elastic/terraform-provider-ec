@@ -39,7 +39,11 @@ func TestAccDeploymentExtension_bundleFile(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	filePath := filepath.Join(t.TempDir(), "extension.zip")
-	defer os.Remove(filePath)
+	t.Cleanup(func() {
+		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+			t.Errorf("failed to remove file %s: %v", filePath, err)
+		}
+	})
 
 	cfg := fixtureAccExtensionBundleWithTF(t, "testdata/extension_bundle_file.tf", filePath, randomName, "desc")
 
@@ -153,9 +157,14 @@ func downloadAndReadExtension(filename string, url string, size int64) (string, 
 	if err != nil {
 		return "", err
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
-	b, _ := io.ReadAll(resp.Body)
-	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
 
 	r, err := zip.NewReader(bytes.NewReader(b), size)
 	if err != nil {
@@ -167,9 +176,18 @@ func downloadAndReadExtension(filename string, url string, size int64) (string, 
 	}
 
 	for _, f := range r.File {
-		reader, _ := f.Open()
-		b, _ := io.ReadAll(reader)
-		func() { defer reader.Close() }()
+		reader, err := f.Open()
+		if err != nil {
+			return "", fmt.Errorf("failed to open zip entry %s: %w", f.Name, err)
+		}
+		b, err := io.ReadAll(reader)
+		closeErr := reader.Close()
+		if err != nil {
+			return "", fmt.Errorf("failed to read zip entry %s: %w", f.Name, err)
+		}
+		if closeErr != nil {
+			return "", fmt.Errorf("failed to close zip entry %s: %w", f.Name, closeErr)
+		}
 		if filename == f.Name {
 			return string(b), nil
 		}

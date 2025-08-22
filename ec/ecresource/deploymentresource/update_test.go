@@ -54,18 +54,15 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
 				err := "GetRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return nil, fmt.Errorf(err)
+				return nil, fmt.Errorf("%v", err)
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 
@@ -84,8 +81,7 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 
@@ -107,13 +103,11 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 
@@ -135,8 +129,7 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				assert.Equal(t, "rule2", params.ID)
@@ -155,13 +148,11 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 	}

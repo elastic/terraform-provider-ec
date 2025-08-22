@@ -140,7 +140,7 @@ func readFile(t *testing.T, fileName string) []byte {
 	t.Helper()
 	res, err := os.ReadFile(fileName)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to read file %s: %v", fileName, err)
 	}
 	return res
 }
@@ -149,7 +149,7 @@ func readTestData(t *testing.T, filename string) io.ReadCloser {
 	t.Helper()
 	f, err := os.Open(filename)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to open file %s: %v", filename, err)
 	}
 	return f
 }
@@ -159,13 +159,13 @@ func createDeployment(t *testing.T, expectedRequestJson, responseJson []byte, re
 	var expectedRequest *models.DeploymentCreateRequest
 	err := json.Unmarshal(expectedRequestJson, &expectedRequest)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to unmarshal request json %s: %v", string(expectedRequestJson), err)
 	}
 
 	var response *models.DeploymentCreateResponse
 	err = json.Unmarshal(responseJson, &response)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to unmarshal response json %s: %v", string(responseJson), err)
 	}
 
 	return mock.New201ResponseAssertion(
