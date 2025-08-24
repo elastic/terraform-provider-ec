@@ -20,11 +20,11 @@ package organizationresource
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -90,14 +90,14 @@ func organizationMembersSchema() schema.MapNestedAttribute {
 					MarkdownDescription: "Email address of the user.",
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
+						planmodifiers.UseStateIfNotNullForUnknown(),
 					},
 				},
 				"invitation_pending": schema.BoolAttribute{
 					MarkdownDescription: "Set to true while the user has not yet accepted their invitation to the organization.",
 					Computed:            true,
 					PlanModifiers: []planmodifier.Bool{
-						boolplanmodifier.UseStateForUnknown(),
+						planmodifiers.UseStateIfNotNullForUnknown(),
 					},
 				},
 				"user_id": schema.StringAttribute{

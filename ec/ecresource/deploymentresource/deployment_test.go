@@ -88,7 +88,6 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 			api.NewMock(
 				getTemplate(t, templateFileName, true),
 				getTemplate(t, templateFileName, true),
-				getTemplate(t, templateFileName, true),
 				getTemplate(t, templateFileName, false),
 				createDeployment(t, readFile(t, "testdata/aws-io-optimized-v2-empty-config-create-expected-payload.json"), createDeploymentResponseJson, requestId),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
