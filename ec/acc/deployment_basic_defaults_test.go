@@ -61,10 +61,6 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "kibana.zone_count", "1"),
 					resource.TestCheckNoResourceAttr(resName, "integrations_server"),
-					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.zone_count", "1"),
 				),
 			},
 			{
@@ -85,10 +81,6 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "integrations_server.instance_configuration_id"),
 					resource.TestCheckResourceAttr(resName, "integrations_server.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "integrations_server.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.zone_count", "1"),
 				),
 			},
 			{
@@ -148,10 +140,6 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "integrations_server.size", "1g"),
 					resource.TestCheckResourceAttr(resName, "integrations_server.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "integrations_server.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(resName, "enterprise_search.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.zone_count", "1"),
 				),
 			},
 			{

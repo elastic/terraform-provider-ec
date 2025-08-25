@@ -78,12 +78,12 @@ func TestUseNullUnlessAddingAPMOrIntegrationsServer_PlanModifyString(t *testing.
 			planValue:         types.StringValue("sekret"),
 		},
 		{
-			name:  "should do nothing if the plan value is null",
+			name:  "should set the plan value to unknown if the plan value is null",
 			state: &v2.Deployment{},
 			plan: v2.Deployment{
 				IntegrationsServer: &integrationsserverv2.IntegrationsServer{},
 			},
-			expectedPlanValue: types.StringNull(),
+			expectedPlanValue: types.StringUnknown(),
 			planValue:         types.StringNull(),
 		},
 		{
@@ -102,7 +102,7 @@ func TestUseNullUnlessAddingAPMOrIntegrationsServer_PlanModifyString(t *testing.
 				IntegrationsServer: &integrationsserverv2.IntegrationsServer{},
 			},
 			expectedPlanValue: types.StringUnknown(),
-			planValue:         types.StringUnknown(),
+			planValue:         types.StringNull(),
 		},
 	}
 

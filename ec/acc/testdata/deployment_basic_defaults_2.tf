@@ -24,8 +24,4 @@ resource "ec_deployment" "defaults" {
   integrations_server = {
     size = "2g"
   }
-
-  enterprise_search = {
-    zone_count = 1
-  }
 }

@@ -147,7 +147,6 @@ func TestAccDeployment_basic_config(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.config.debug_enabled", "true"),
 					resource.TestCheckResourceAttr(resName, "apm.config.user_settings_json", `{"apm-server.rum.enabled":true}`),
 					resource.TestCheckResourceAttr(resName, "kibana.config.user_settings_yaml", "csp.warnLegacyBrowsers: true"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.config.user_settings_yaml", "# comment"),
 				),
 			},
 			{
@@ -156,7 +155,6 @@ func TestAccDeployment_basic_config(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "apm.config.%", "0"),
 					resource.TestCheckNoResourceAttr(resName, "elasticsearch.config.user_settings_yaml"),
 					resource.TestCheckResourceAttr(resName, "kibana.config.%", "0"),
-					resource.TestCheckResourceAttr(resName, "enterprise_search.config.%", "0"),
 				),
 			},
 			// Import resource without complex ID
@@ -176,7 +174,7 @@ func fixtureAccDeploymentResourceBasicWithApps(t *testing.T, fileName, name, reg
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 	// esIC is no longer needed
-	_, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
+	_, kibanaIC, apmIC, err := setInstanceConfigurations(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +184,7 @@ func fixtureAccDeploymentResourceBasicWithApps(t *testing.T, fileName, name, reg
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, name, region, deploymentTpl, kibanaIC, apmIC, essIC,
+		region, name, region, deploymentTpl, kibanaIC, apmIC,
 	)
 }
 
@@ -196,7 +194,7 @@ func fixtureAccDeploymentResourceBasicWithAppsAlias(t *testing.T, fileName, alia
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 	// esIC is no longer needed
-	_, kibanaIC, apmIC, essIC, err := setInstanceConfigurations(deploymentTpl)
+	_, kibanaIC, apmIC, err := setInstanceConfigurations(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +204,7 @@ func fixtureAccDeploymentResourceBasicWithAppsAlias(t *testing.T, fileName, alia
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, alias, name, region, deploymentTpl, kibanaIC, apmIC, essIC,
+		region, alias, name, region, deploymentTpl, kibanaIC, apmIC,
 	)
 }
 
@@ -246,10 +244,5 @@ func checkBasicDeploymentResource(resName, randomDeploymentName, deploymentVersi
 		resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.http_endpoint"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.https_endpoint"),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.size", "2g"),
-		resource.TestCheckResourceAttr(resName, "enterprise_search.size_resource", "memory"),
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.http_endpoint"),
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.https_endpoint"),
 	}, checks...)...)
 }
