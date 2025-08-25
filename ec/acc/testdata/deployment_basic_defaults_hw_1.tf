@@ -19,6 +19,4 @@ resource "ec_deployment" "defaults" {
   kibana = {}
 
   integrations_server = {}
-
-  enterprise_search = {}
 }
