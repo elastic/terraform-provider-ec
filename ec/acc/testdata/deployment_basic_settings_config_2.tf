@@ -35,12 +35,4 @@ resource "ec_deployment" "basic" {
 
     instance_configuration_id = "%s"
   }
-
-  enterprise_search = {
-    config = {
-      user_settings_yaml = "# comment"
-    }
-
-    instance_configuration_id = "%s"
-  }
 }
