@@ -16,6 +16,4 @@ resource "ec_deployment" "enterprise_search" {
   }
 
   kibana = {}
-
-  enterprise_search = {}
 }
