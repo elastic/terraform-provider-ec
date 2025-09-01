@@ -197,7 +197,7 @@ func elasticsearchConfigSchema() schema.Attribute {
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"user_settings_json": schema.StringAttribute{

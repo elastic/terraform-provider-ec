@@ -78,6 +78,15 @@ func (m useStateIfNotNullForKnown) PlanModifyObject(_ context.Context, req planm
 	resp.PlanValue = req.StateValue
 }
 
+// PlanModifySet implements the plan modification logic.
+func (m useStateIfNotNullForKnown) PlanModifySet(_ context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if !m.shouldUseState(req.State, req.PlanValue, req.ConfigValue, req.StateValue) {
+		return
+	}
+
+	resp.PlanValue = req.StateValue
+}
+
 func (m useStateIfNotNullForKnown) shouldUseState(state tfsdk.State, planValue, configValue, stateValue attr.Value) bool {
 	// Do nothing if there is no state (resource is being created).
 	if state.Raw.IsNull() {
