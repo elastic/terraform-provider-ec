@@ -19,6 +19,7 @@ package organizationresource
 
 import (
 	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -52,20 +53,13 @@ func apiToModel(ctx context.Context, member models.OrganizationMembership, invit
 	return &OrganizationMember{
 		Email:                     types.StringValue(member.Email),
 		InvitationPending:         types.BoolValue(invitationPending),
-		UserID:                    types.StringValue(nilToEmpty(member.UserID)),
+		UserID:                    types.StringPointerValue(member.UserID),
 		OrganizationRole:          organizationRole,
 		DeploymentRoles:           *deploymentRoles,
 		ProjectElasticsearchRoles: *projectElasticsearchRoles,
 		ProjectObservabilityRoles: *projectObservabilityRoles,
 		ProjectSecurityRoles:      *projectSecurityRoles,
 	}
-}
-
-func nilToEmpty(id *string) string {
-	if id == nil {
-		return ""
-	}
-	return *id
 }
 
 func organizationRoleApiToModel(member models.OrganizationMembership) types.String {

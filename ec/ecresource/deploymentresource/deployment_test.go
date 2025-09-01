@@ -88,9 +88,9 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 			api.NewMock(
 				getTemplate(t, templateFileName, true),
 				getTemplate(t, templateFileName, true),
-				getTemplate(t, templateFileName, true),
 				getTemplate(t, templateFileName, false),
 				createDeployment(t, readFile(t, "testdata/aws-io-optimized-v2-empty-config-create-expected-payload.json"), createDeploymentResponseJson, requestId),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment2.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
@@ -107,6 +107,12 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 				getTemplate(t, templateFileName, true),
 				getTemplate(t, templateFileName, true),
 				shutdownDeployment(t),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment2.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 			),
 		),
 		Steps: []r.TestStep{

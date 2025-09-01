@@ -43,7 +43,6 @@ func TestResourceTrafficFilter(t *testing.T) {
 				readResponse("false", "true"),
 				readResponse("false", "true"),
 				readResponse("false", "true"),
-				readResponse("false", "true"),
 				updateResponse("false"),
 				readResponse("false", "false"),
 				readResponse("false", "false"),
@@ -79,7 +78,6 @@ func TestResourceTrafficFilterWithoutIncludeByDefault(t *testing.T) {
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse("false"),
-				readResponse("false", "false"),
 				readResponse("false", "false"),
 				readResponse("false", "false"),
 				readResponse("false", "false"),
@@ -210,6 +208,7 @@ func TestResourceTrafficFilterAssoc_gracefulDeletionOnRead(t *testing.T) {
 				readResponse("false", "true"),
 				readResponse("false", "true"),
 				notFoundReadResponse("false"),
+				notFoundReadResponse("true"), // required for cleanup
 			),
 		),
 		Steps: []r.TestStep{

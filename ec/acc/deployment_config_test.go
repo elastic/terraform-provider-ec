@@ -113,10 +113,10 @@ func getResources(deploymentTemplate string) (*models.DeploymentCreateResources,
 	return res.DeploymentTemplate.Resources, nil
 }
 
-func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC, essIC string, err error) {
+func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC string, err error) {
 	resources, err := getResources(deploymentTemplate)
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", "", err
 	}
 
 	esRes := resources.Elasticsearch[0].Plan.ClusterTopology
@@ -128,7 +128,7 @@ func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC
 	}
 
 	if esIC == "" {
-		return "", "", "", "",
+		return "", "", "",
 			fmt.Errorf(
 				"could not find default instance configuration for Elasticsearch, verify  details for: %v",
 				deploymentTemplate)
@@ -140,8 +140,5 @@ func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC
 	apmIC = resources.Apm[0].
 		Plan.ClusterTopology[0].InstanceConfigurationID
 
-	essIC = resources.EnterpriseSearch[0].
-		Plan.ClusterTopology[0].InstanceConfigurationID
-
-	return esIC, kibanaIC, apmIC, essIC, nil
+	return esIC, kibanaIC, apmIC, nil
 }

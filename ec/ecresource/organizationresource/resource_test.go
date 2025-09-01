@@ -19,11 +19,12 @@ package organizationresource_test
 
 import (
 	"fmt"
+	"regexp"
+	"testing"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
-	"regexp"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -149,6 +150,9 @@ func Test(t *testing.T) {
 					ImportStateId:      "123",
 					Config:             baseConfig,
 					ImportStatePersist: true,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "1"),
+					),
 				},
 				{
 					Config: configWithNewMember,
@@ -157,7 +161,6 @@ func Test(t *testing.T) {
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "true"),
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "billing-admin"),
-						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", ""),
 					),
 				},
 			},
@@ -194,7 +197,6 @@ func Test(t *testing.T) {
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.invitation_pending", "true"),
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
-						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.user_id", ""),
 					),
 				},
 			},
@@ -227,8 +229,7 @@ func Test(t *testing.T) {
 					ImportStatePersist: true,
 				},
 				{
-					Config:   configWithUpdatedNewMember,
-					PlanOnly: true, // Has to be no-op plan
+					Config: configWithUpdatedNewMember,
 					Check: resource.ComposeAggregateTestCheckFunc(
 						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
 						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),

@@ -95,6 +95,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					useUnknownIfOtherChanges{},
 				},
 			},
 			"last_modified": schema.StringAttribute{
