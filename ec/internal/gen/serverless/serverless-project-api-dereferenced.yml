@@ -1171,6 +1171,7 @@ components:
         - elasticsearch
         - kibana
         - apm
+        - ingest
       properties:
         elasticsearch:
           description: The endpoint to access elasticsearch.
@@ -1180,6 +1181,9 @@ components:
           type: string
         apm:
           description: The endpoint to access apm.
+          type: string
+        ingest:
+          description: The endpoint to access ingest.
           type: string
     ObservabilityProjectList:
       type: object

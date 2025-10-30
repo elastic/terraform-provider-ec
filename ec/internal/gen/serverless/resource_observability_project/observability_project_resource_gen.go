@@ -22,19 +22,19 @@ package resource_observability_project
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"regexp"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
@@ -786,24 +786,6 @@ func NewEndpointsValue(attributeTypes map[string]attr.Type, attributes map[strin
 			fmt.Sprintf(`elasticsearch expected to be basetypes.StringValue, was: %T`, elasticsearchAttribute))
 	}
 
-	kibanaAttribute, ok := attributes["kibana"]
-
-	if !ok {
-		diags.AddError(
-			"Attribute Missing",
-			`kibana is missing from object`)
-
-		return NewEndpointsValueUnknown(), diags
-	}
-
-	kibanaVal, ok := kibanaAttribute.(basetypes.StringValue)
-
-	if !ok {
-		diags.AddError(
-			"Attribute Wrong Type",
-			fmt.Sprintf(`kibana expected to be basetypes.StringValue, was: %T`, kibanaAttribute))
-	}
-
 	ingestAttribute, ok := attributes["ingest"]
 
 	if !ok {
@@ -820,6 +802,24 @@ func NewEndpointsValue(attributeTypes map[string]attr.Type, attributes map[strin
 		diags.AddError(
 			"Attribute Wrong Type",
 			fmt.Sprintf(`ingest expected to be basetypes.StringValue, was: %T`, ingestAttribute))
+	}
+
+	kibanaAttribute, ok := attributes["kibana"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kibana is missing from object`)
+
+		return NewEndpointsValueUnknown(), diags
+	}
+
+	kibanaVal, ok := kibanaAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kibana expected to be basetypes.StringValue, was: %T`, kibanaAttribute))
 	}
 
 	if diags.HasError() {

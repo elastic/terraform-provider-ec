@@ -443,6 +443,13 @@
                   }
                 },
                 {
+                  "name": "ingest",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The endpoint to access ingest."
+                  }
+                },
+                {
                   "name": "kibana",
                   "string": {
                     "computed_optional_required": "computed",
