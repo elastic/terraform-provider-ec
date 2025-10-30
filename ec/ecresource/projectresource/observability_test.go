@@ -156,6 +156,7 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 						"elasticsearch": basetypes.NewStringValue("es"),
 						"kibana":        basetypes.NewStringValue("kibana"),
 						"apm":           basetypes.NewStringValue("apm"),
+						"ingest":        basetypes.NewStringValue("ingest"),
 					},
 				)
 
@@ -888,6 +889,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 							"apm":           basetypes.NewStringValue(readModel.Endpoints.Apm),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 						},
 					),
 					Metadata: resource_observability_project.NewMetadataValueMust(
@@ -961,6 +963,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 							"apm":           basetypes.NewStringValue(readModel.Endpoints.Apm),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 						},
 					),
 					Metadata: resource_observability_project.NewMetadataValueMust(

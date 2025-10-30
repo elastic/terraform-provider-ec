@@ -354,6 +354,9 @@ type ObservabilityProjectEndpoints struct {
 	// Elasticsearch The endpoint to access elasticsearch.
 	Elasticsearch string `json:"elasticsearch"`
 
+	// Ingest The endpoint to access ingest.
+	Ingest string `json:"ingest"`
+
 	// Kibana The endpoint to access kibana.
 	Kibana string `json:"kibana"`
 }

@@ -28,14 +28,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
@@ -96,6 +95,11 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 						Computed:            true,
 						Description:         "The endpoint to access elasticsearch.",
 						MarkdownDescription: "The endpoint to access elasticsearch.",
+					},
+					"ingest": schema.StringAttribute{
+						Computed:            true,
+						Description:         "The endpoint to access ingest.",
+						MarkdownDescription: "The endpoint to access ingest.",
 					},
 					"kibana": schema.StringAttribute{
 						Computed:            true,
@@ -634,6 +638,24 @@ func (t EndpointsType) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 			fmt.Sprintf(`elasticsearch expected to be basetypes.StringValue, was: %T`, elasticsearchAttribute))
 	}
 
+	ingestAttribute, ok := attributes["ingest"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`ingest is missing from object`)
+
+		return nil, diags
+	}
+
+	ingestVal, ok := ingestAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`ingest expected to be basetypes.StringValue, was: %T`, ingestAttribute))
+	}
+
 	kibanaAttribute, ok := attributes["kibana"]
 
 	if !ok {
@@ -659,6 +681,7 @@ func (t EndpointsType) ValueFromObject(ctx context.Context, in basetypes.ObjectV
 	return EndpointsValue{
 		Apm:           apmVal,
 		Elasticsearch: elasticsearchVal,
+		Ingest:        ingestVal,
 		Kibana:        kibanaVal,
 		state:         attr.ValueStateKnown,
 	}, diags
@@ -781,6 +804,24 @@ func NewEndpointsValue(attributeTypes map[string]attr.Type, attributes map[strin
 			fmt.Sprintf(`kibana expected to be basetypes.StringValue, was: %T`, kibanaAttribute))
 	}
 
+	ingestAttribute, ok := attributes["ingest"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`ingest is missing from object`)
+
+		return NewEndpointsValueUnknown(), diags
+	}
+
+	ingestVal, ok := ingestAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`ingest expected to be basetypes.StringValue, was: %T`, ingestAttribute))
+	}
+
 	if diags.HasError() {
 		return NewEndpointsValueUnknown(), diags
 	}
@@ -788,6 +829,7 @@ func NewEndpointsValue(attributeTypes map[string]attr.Type, attributes map[strin
 	return EndpointsValue{
 		Apm:           apmVal,
 		Elasticsearch: elasticsearchVal,
+		Ingest:        ingestVal,
 		Kibana:        kibanaVal,
 		state:         attr.ValueStateKnown,
 	}, diags
@@ -863,25 +905,27 @@ var _ basetypes.ObjectValuable = EndpointsValue{}
 type EndpointsValue struct {
 	Apm           basetypes.StringValue `tfsdk:"apm"`
 	Elasticsearch basetypes.StringValue `tfsdk:"elasticsearch"`
+	Ingest        basetypes.StringValue `tfsdk:"ingest"`
 	Kibana        basetypes.StringValue `tfsdk:"kibana"`
 	state         attr.ValueState
 }
 
 func (v EndpointsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 3)
+	attrTypes := make(map[string]tftypes.Type, 4)
 
 	var val tftypes.Value
 	var err error
 
 	attrTypes["apm"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["elasticsearch"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["ingest"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["kibana"] = basetypes.StringType{}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 3)
+		vals := make(map[string]tftypes.Value, 4)
 
 		val, err = v.Apm.ToTerraformValue(ctx)
 
@@ -898,6 +942,14 @@ func (v EndpointsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, er
 		}
 
 		vals["elasticsearch"] = val
+
+		val, err = v.Ingest.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["ingest"] = val
 
 		val, err = v.Kibana.ToTerraformValue(ctx)
 
@@ -939,6 +991,7 @@ func (v EndpointsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 	attributeTypes := map[string]attr.Type{
 		"apm":           basetypes.StringType{},
 		"elasticsearch": basetypes.StringType{},
+		"ingest":        basetypes.StringType{},
 		"kibana":        basetypes.StringType{},
 	}
 
@@ -955,6 +1008,7 @@ func (v EndpointsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValu
 		map[string]attr.Value{
 			"apm":           v.Apm,
 			"elasticsearch": v.Elasticsearch,
+			"ingest":        v.Ingest,
 			"kibana":        v.Kibana,
 		})
 
@@ -984,6 +1038,10 @@ func (v EndpointsValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.Ingest.Equal(other.Ingest) {
+		return false
+	}
+
 	if !v.Kibana.Equal(other.Kibana) {
 		return false
 	}
@@ -1003,6 +1061,7 @@ func (v EndpointsValue) AttributeTypes(ctx context.Context) map[string]attr.Type
 	return map[string]attr.Type{
 		"apm":           basetypes.StringType{},
 		"elasticsearch": basetypes.StringType{},
+		"ingest":        basetypes.StringType{},
 		"kibana":        basetypes.StringType{},
 	}
 }

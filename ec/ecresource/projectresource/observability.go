@@ -234,6 +234,7 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 			"elasticsearch": basetypes.NewStringValue(resp.JSON200.Endpoints.Elasticsearch),
 			"kibana":        basetypes.NewStringValue(resp.JSON200.Endpoints.Kibana),
 			"apm":           basetypes.NewStringValue(resp.JSON200.Endpoints.Apm),
+			"ingest":        basetypes.NewStringValue(resp.JSON200.Endpoints.Ingest),
 		},
 	)
 	if diags.HasError() {
