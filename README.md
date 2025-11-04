@@ -3,11 +3,12 @@
 ![Go](https://github.com/elastic/terraform-provider-ec/workflows/Go/badge.svg?branch=master)
 [![Acceptance Status](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/badge/icon?subject=acceptance&style=plastic)](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/)
 
-Terraform provider for the Elastic Cloud API, including:
+The Elastic Cloud Terraform provider can be used to configure and manage resources on Elastic Cloud, such as Elastic Hosted Deployments or Elastic Serverless Projects, using the Elastic Cloud APIs. 
 
-* Elasticsearch Service (ESS).
-* Elastic Cloud Enterprise (ECE).
-* Elasticsearch Service Private (ESSP).
+* Elastic Cloud Hosted (ECH)
+* Elastic Cloud Serverless
+* Elastic Cloud Enterprise (ECE)
+* Elastic GovCloud offerings
 
 _Model changes might be introduced between minors until version 1.0.0 is released. Such changes and the expected impact will be detailed in the change log and the individual release notes._
 
@@ -122,7 +123,7 @@ $ cd terraform-provider-ec
 $ make install
 ```
 
-### Generating an Elasticsearch Service (ESS) API Key
+### Generating an Elastic Cloud Hosted (ECH) API Key
 
 To generate an API key, follow these steps:
 
@@ -132,6 +133,8 @@ To generate an API key, follow these steps:
   4. Navigate to [Organization > API Keys](https://cloud.elastic.co/account/keys) and click on **Create API Key**.
   5. Choose a name for your API key.
   6. Save your API key somewhere safe.
+
+**Note: If you use GovCloud, you need to generate API via https://console.us-gov-east-1.aws.elastic-cloud.com. If you use Elastic Cloud Enterprise (ECE), follow https://www.elastic.co/docs/deploy-manage/api-keys/elastic-cloud-enterprise-api-keys about how generate API key**
 
 ### Using your API Key on the Elastic Cloud terraform provider
 
