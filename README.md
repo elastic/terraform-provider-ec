@@ -3,7 +3,7 @@
 ![Go](https://github.com/elastic/terraform-provider-ec/workflows/Go/badge.svg?branch=master)
 [![Acceptance Status](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/badge/icon?subject=acceptance&style=plastic)](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/)
 
-The Elastic Cloud Terraform provider can be used to configure and manage resources on Elastic Cloud, such as Elastic Hosted Deployments or Elastic Serverless Projects, using the Elastic Cloud APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider.
+The Elastic Cloud Terraform provider can be used to configure and manage resources on Elastic Cloud, such as Elastic Hosted Deployments or Elastic Serverless Projects, using the Elastic Cloud APIs. 
 
 * Elastic Cloud Hosted (ECH)
 * Elastic Cloud Serverless
