@@ -4,12 +4,14 @@ page_title: "Provider: Elastic Cloud"
 
 # Elastic Cloud Provider
 
-The Elastic Cloud Terraform provider can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
-APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider. Elastic Cloud APIs are available for:
+The Elastic Cloud Terraform provider can be used to configure and manage resources on Elastic Cloud, such as Elastic Hosted Deployments or Elastic Serverless Projects, using the Elastic Cloud APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider.
 
-* Elasticsearch Service (ESS).
-* Elastic Cloud Enterprise (ECE).
-* Elasticsearch Service Private (ESSP).
+This provider works with:
+
+* Elastic Cloud Hosted
+* Elastic Cloud Serverless
+* Elastic Cloud Enterprise (Self managed offering)
+* Elastic GovCloud offerings
 
 ## Version guidance
 
