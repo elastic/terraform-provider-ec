@@ -446,7 +446,7 @@
                   "name": "ingest",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "The endpoint to access ingest."
+                    "description": "The endpoint to access the Managed OTLP Endpoint."
                   }
                 },
                 {
@@ -751,6 +751,13 @@
                   "string": {
                     "computed_optional_required": "computed",
                     "description": "The endpoint to access elasticsearch."
+                  }
+                },
+                {
+                  "name": "ingest",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The endpoint to access the Managed OTLP Endpoint."
                   }
                 },
                 {

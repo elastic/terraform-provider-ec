@@ -98,8 +98,8 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"ingest": schema.StringAttribute{
 						Computed:            true,
-						Description:         "The endpoint to access ingest.",
-						MarkdownDescription: "The endpoint to access ingest.",
+						Description:         "The endpoint to access the Managed OTLP Endpoint.",
+						MarkdownDescription: "The endpoint to access the Managed OTLP Endpoint.",
 					},
 					"kibana": schema.StringAttribute{
 						Computed:            true,
