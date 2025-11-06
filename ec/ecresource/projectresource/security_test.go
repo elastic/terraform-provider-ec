@@ -159,6 +159,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 					map[string]attr.Value{
 						"elasticsearch": basetypes.NewStringValue("es"),
 						"kibana":        basetypes.NewStringValue("kibana"),
+						"ingest":        basetypes.NewStringValue("ingest"),
 					},
 				)
 
@@ -869,6 +870,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					Endpoints: serverless.SecurityProjectEndpoints{
 						Elasticsearch: "es-endpoint",
 						Kibana:        "kib-endpoint",
+						Ingest:        "ingest-endpoint",
 					},
 					Metadata: serverless.ProjectMetadata{
 						CreatedAt:      time.Now(),
@@ -889,6 +891,7 @@ func TestSecurityApi_Read(t *testing.T) {
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 						},
 					),
 					Metadata: resource_security_project.NewMetadataValueMust(
@@ -938,6 +941,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					Endpoints: serverless.SecurityProjectEndpoints{
 						Elasticsearch: "es-endpoint",
 						Kibana:        "kib-endpoint",
+						Ingest:        "ingest-endpoint",
 					},
 					Metadata: serverless.ProjectMetadata{
 						CreatedAt:       now,
@@ -960,6 +964,7 @@ func TestSecurityApi_Read(t *testing.T) {
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 						},
 					),
 					Metadata: resource_security_project.NewMetadataValueMust(
@@ -1003,9 +1008,9 @@ func TestSecurityApi_Read(t *testing.T) {
 			api := securityApi{}.WithClient(td.client)
 			found, model, diags := api.Read(ctx, td.id, td.initialModel)
 
-			require.Equal(t, td.expectedFound, found)
-			require.Equal(t, td.expectedModel, model)
-			require.Equal(t, td.expectedDiags, diags)
+			assert.Equal(t, td.expectedFound, found)
+			assert.Equal(t, td.expectedModel, model)
+			assert.Equal(t, td.expectedDiags, diags)
 		})
 	}
 }
