@@ -255,6 +255,7 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		map[string]attr.Value{
 			"elasticsearch": basetypes.NewStringValue(resp.JSON200.Endpoints.Elasticsearch),
 			"kibana":        basetypes.NewStringValue(resp.JSON200.Endpoints.Kibana),
+			"ingest":        basetypes.NewStringValue(resp.JSON200.Endpoints.Ingest),
 		},
 	)
 	if diags.HasError() {

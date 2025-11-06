@@ -359,6 +359,13 @@
 									}
 								},
 								{
+									"name": "ingest",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access the Managed OTLP Endpoint."
+									}
+								},
+								{
 									"name": "kibana",
 									"string": {
 										"computed_optional_required": "computed",
@@ -612,6 +619,13 @@
 									"string": {
 										"computed_optional_required": "computed",
 										"description": "The endpoint to access elasticsearch."
+									}
+								},
+								{
+									"name": "ingest",
+									"string": {
+										"computed_optional_required": "computed",
+										"description": "The endpoint to access the Managed OTLP Endpoint."
 									}
 								},
 								{

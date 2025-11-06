@@ -354,6 +354,9 @@ type ObservabilityProjectEndpoints struct {
 	// Elasticsearch The endpoint to access elasticsearch.
 	Elasticsearch string `json:"elasticsearch"`
 
+	// Ingest The endpoint to access the Managed OTLP Endpoint.
+	Ingest string `json:"ingest"`
+
 	// Kibana The endpoint to access kibana.
 	Kibana string `json:"kibana"`
 }
@@ -596,6 +599,9 @@ type SecurityProjectCreatedType string
 type SecurityProjectEndpoints struct {
 	// Elasticsearch The endpoint to access elasticsearch.
 	Elasticsearch string `json:"elasticsearch"`
+
+	// Ingest The endpoint to access the Managed OTLP Endpoint.
+	Ingest string `json:"ingest"`
 
 	// Kibana The endpoint to access kibana.
 	Kibana string `json:"kibana"`
