@@ -1502,12 +1502,16 @@ components:
       required:
         - elasticsearch
         - kibana
+        - ingest
       properties:
         elasticsearch:
           description: The endpoint to access elasticsearch.
           type: string
         kibana:
           description: The endpoint to access kibana.
+          type: string
+        ingest:
+          description: The endpoint to access the Managed OTLP Input.
           type: string
     SecurityProjectList:
       type: object
