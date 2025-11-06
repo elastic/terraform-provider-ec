@@ -288,6 +288,43 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)
 	model.Type = basetypes.NewStringValue(string(resp.JSON200.Type))
 
+	// Populate admin_features_package from API response (matching pattern used for suspended_reason)
+	var adminFeaturesPkg *string
+	if resp.JSON200.AdminFeaturesPackage != nil {
+		pkgStr := string(*resp.JSON200.AdminFeaturesPackage)
+		adminFeaturesPkg = &pkgStr
+	}
+	model.AdminFeaturesPackage = basetypes.NewStringPointerValue(adminFeaturesPkg)
+
+	// Populate product_types from API response
+	if resp.JSON200.ProductTypes != nil {
+		productTypeValues := []attr.Value{}
+		for _, pt := range *resp.JSON200.ProductTypes {
+			productTypeValue, diags := resource_security_project.NewProductTypesValue(
+				resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+				map[string]attr.Value{
+					"product_line": basetypes.NewStringValue(string(pt.ProductLine)),
+					"product_tier": basetypes.NewStringValue(string(pt.ProductTier)),
+				},
+			)
+			if diags.HasError() {
+				return false, model, diags
+			}
+			productTypeValues = append(productTypeValues, productTypeValue)
+		}
+
+		productTypesList, diags := types.ListValue(
+			resource_security_project.ProductTypesValue{}.Type(ctx),
+			productTypeValues,
+		)
+		if diags.HasError() {
+			return false, model, diags
+		}
+		model.ProductTypes = productTypesList
+	} else {
+		model.ProductTypes = types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx))
+	}
+
 	return true, model, nil
 }
 
