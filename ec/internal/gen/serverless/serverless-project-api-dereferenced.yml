@@ -1183,7 +1183,7 @@ components:
           description: The endpoint to access apm.
           type: string
         ingest:
-          description: The endpoint to access the Managed OTLP Input.
+          description: The endpoint to access the Managed OTLP Endpoint.
           type: string
     ObservabilityProjectList:
       type: object
@@ -1511,7 +1511,7 @@ components:
           description: The endpoint to access kibana.
           type: string
         ingest:
-          description: The endpoint to access the Managed OTLP Input.
+          description: The endpoint to access the Managed OTLP Endpoint.
           type: string
     SecurityProjectList:
       type: object
