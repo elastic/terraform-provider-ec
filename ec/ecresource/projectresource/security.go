@@ -254,6 +254,7 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		model.Endpoints.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"elasticsearch": basetypes.NewStringValue(resp.JSON200.Endpoints.Elasticsearch),
+			"ingest":        basetypes.NewStringValue(resp.JSON200.Endpoints.Ingest),
 			"kibana":        basetypes.NewStringValue(resp.JSON200.Endpoints.Kibana),
 			"ingest":        basetypes.NewStringValue(resp.JSON200.Endpoints.Ingest),
 		},
