@@ -29,6 +29,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -43,8 +47,77 @@ func NewSecurityProjectResource() *Resource[resource_security_project.SecurityPr
 
 type securityModelReader struct{}
 
+// productTypesOrderInsensitivePlanModifier ignores order differences in product_types list
+type productTypesOrderInsensitivePlanModifier struct{}
+
+func (m productTypesOrderInsensitivePlanModifier) Description(ctx context.Context) string {
+	return "Ignores order differences in product_types list when semantically equivalent"
+}
+
+func (m productTypesOrderInsensitivePlanModifier) MarkdownDescription(ctx context.Context) string {
+	return "Ignores order differences in product_types list when semantically equivalent"
+}
+
+func (m productTypesOrderInsensitivePlanModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	// If either value is null or unknown, don't modify
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() || req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+
+	// Get both lists
+	var planItems, stateItems []resource_security_project.ProductTypesValue
+	req.PlanValue.ElementsAs(ctx, &planItems, false)
+	req.StateValue.ElementsAs(ctx, &stateItems, false)
+
+	// If different lengths, they're actually different
+	if len(planItems) != len(stateItems) {
+		return
+	}
+
+	// Create maps of product_line -> product_tier for comparison
+	planMap := make(map[string]string)
+	for _, item := range planItems {
+		planMap[item.ProductLine.ValueString()] = item.ProductTier.ValueString()
+	}
+
+	stateMap := make(map[string]string)
+	for _, item := range stateItems {
+		stateMap[item.ProductLine.ValueString()] = item.ProductTier.ValueString()
+	}
+
+	// If maps are equal, use state value (same content, different order)
+	mapsEqual := len(planMap) == len(stateMap)
+	if mapsEqual {
+		for k, v := range planMap {
+			if stateMap[k] != v {
+				mapsEqual = false
+				break
+			}
+		}
+	}
+
+	if mapsEqual {
+		resp.PlanValue = req.StateValue
+	}
+}
+
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
+
+	// Add plan modifiers to admin_features_package and product_types to preserve state values
+	// when these fields are not configured. The API returns these values, and they may change
+	// over time (e.g., tier upgrades), but if not explicitly configured we should keep the
+	// current state value rather than forcing a recomputation.
+	adminFeaturesAttr := resp.Schema.Attributes["admin_features_package"].(schema.StringAttribute)
+	adminFeaturesAttr.PlanModifiers = append(adminFeaturesAttr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
+	resp.Schema.Attributes["admin_features_package"] = adminFeaturesAttr
+
+	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
+	productTypesAttr.PlanModifiers = append(productTypesAttr.PlanModifiers,
+		listplanmodifier.UseStateForUnknown(),
+		productTypesOrderInsensitivePlanModifier{},
+	)
+	resp.Schema.Attributes["product_types"] = productTypesAttr
 }
 
 func (sec securityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
@@ -288,29 +361,83 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)
 	model.Type = basetypes.NewStringValue(string(resp.JSON200.Type))
 
-	// Populate admin_features_package from API response (matching pattern used for suspended_reason)
-	var adminFeaturesPkg *string
+	// Populate admin_features_package from API response when available
+	// If API doesn't return it, preserve the configured/state value
 	if resp.JSON200.AdminFeaturesPackage != nil {
 		pkgStr := string(*resp.JSON200.AdminFeaturesPackage)
-		adminFeaturesPkg = &pkgStr
+		model.AdminFeaturesPackage = basetypes.NewStringValue(pkgStr)
+	} else if model.AdminFeaturesPackage.IsNull() || model.AdminFeaturesPackage.IsUnknown() {
+		// Only set to null if it wasn't already configured
+		model.AdminFeaturesPackage = basetypes.NewStringNull()
 	}
-	model.AdminFeaturesPackage = basetypes.NewStringPointerValue(adminFeaturesPkg)
+	// Otherwise, preserve the existing configured value
 
-	// Populate product_types from API response
+	// Populate product_types from API response when available
 	if resp.JSON200.ProductTypes != nil {
+		// If we have product_types in the state/config, we want to preserve that ordering
+		// to avoid inconsistent results. Otherwise, use API ordering.
+		var sourceProductTypes []resource_security_project.ProductTypesValue
+		if !model.ProductTypes.IsNull() && !model.ProductTypes.IsUnknown() {
+			model.ProductTypes.ElementsAs(ctx, &sourceProductTypes, false)
+		}
+
 		productTypeValues := []attr.Value{}
-		for _, pt := range *resp.JSON200.ProductTypes {
-			productTypeValue, diags := resource_security_project.NewProductTypesValue(
-				resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
-				map[string]attr.Value{
-					"product_line": basetypes.NewStringValue(string(pt.ProductLine)),
-					"product_tier": basetypes.NewStringValue(string(pt.ProductTier)),
-				},
-			)
-			if diags.HasError() {
-				return false, model, diags
+
+		if len(sourceProductTypes) > 0 {
+			// Use the ordering from state/config, but with values from API
+			apiProductTypesMap := make(map[string]serverless.SecurityProductType)
+			for _, pt := range *resp.JSON200.ProductTypes {
+				apiProductTypesMap[string(pt.ProductLine)] = pt
 			}
-			productTypeValues = append(productTypeValues, productTypeValue)
+
+			// Build result in the same order as source
+			for _, sourcePt := range sourceProductTypes {
+				productLine := sourcePt.ProductLine.ValueString()
+				if apiPt, exists := apiProductTypesMap[productLine]; exists {
+					productTypeValue, diags := resource_security_project.NewProductTypesValue(
+						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"product_line": basetypes.NewStringValue(string(apiPt.ProductLine)),
+							"product_tier": basetypes.NewStringValue(string(apiPt.ProductTier)),
+						},
+					)
+					if diags.HasError() {
+						return false, model, diags
+					}
+					productTypeValues = append(productTypeValues, productTypeValue)
+					delete(apiProductTypesMap, productLine)
+				}
+			}
+
+			// Add any new product types from API that weren't in source
+			for _, apiPt := range apiProductTypesMap {
+				productTypeValue, diags := resource_security_project.NewProductTypesValue(
+					resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"product_line": basetypes.NewStringValue(string(apiPt.ProductLine)),
+						"product_tier": basetypes.NewStringValue(string(apiPt.ProductTier)),
+					},
+				)
+				if diags.HasError() {
+					return false, model, diags
+				}
+				productTypeValues = append(productTypeValues, productTypeValue)
+			}
+		} else {
+			// No source ordering, use API ordering
+			for _, pt := range *resp.JSON200.ProductTypes {
+				productTypeValue, diags := resource_security_project.NewProductTypesValue(
+					resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"product_line": basetypes.NewStringValue(string(pt.ProductLine)),
+						"product_tier": basetypes.NewStringValue(string(pt.ProductTier)),
+					},
+				)
+				if diags.HasError() {
+					return false, model, diags
+				}
+				productTypeValues = append(productTypeValues, productTypeValue)
+			}
 		}
 
 		productTypesList, diags := types.ListValue(
@@ -322,7 +449,12 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		}
 		model.ProductTypes = productTypesList
 	} else {
-		model.ProductTypes = types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx))
+		// If API doesn't return product_types, preserve the configured/state value
+		if model.ProductTypes.IsNull() || model.ProductTypes.IsUnknown() {
+			// Only set to null if it wasn't already configured
+			model.ProductTypes = types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx))
+		}
+		// Otherwise, preserve the existing configured value
 	}
 
 	return true, model, nil

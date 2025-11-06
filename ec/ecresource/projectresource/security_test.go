@@ -32,6 +32,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -47,7 +50,17 @@ func TestSecurityModelReader_Schema(t *testing.T) {
 	mr.Schema(context.Background(), resource.SchemaRequest{}, &resp)
 
 	require.False(t, resp.Diagnostics.HasError())
-	require.Equal(t, resource_security_project.SecurityProjectResourceSchema(context.Background()), resp.Schema)
+
+	// Verify that plan modifiers are added to admin_features_package
+	adminFeaturesAttr := resp.Schema.Attributes["admin_features_package"].(schema.StringAttribute)
+	require.Len(t, adminFeaturesAttr.PlanModifiers, 1)
+	require.IsType(t, stringplanmodifier.UseStateForUnknown(), adminFeaturesAttr.PlanModifiers[0])
+
+	// Verify that plan modifiers are added to product_types
+	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
+	require.Len(t, productTypesAttr.PlanModifiers, 2)
+	require.IsType(t, listplanmodifier.UseStateForUnknown(), productTypesAttr.PlanModifiers[0])
+	require.IsType(t, productTypesOrderInsensitivePlanModifier{}, productTypesAttr.PlanModifiers[1])
 }
 
 func TestSecurityModelReader_ReadFrom(t *testing.T) {
@@ -1087,6 +1100,103 @@ func TestSecurityApi_Read(t *testing.T) {
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringValue("enterprise"),
 					ProductTypes:         types.ListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), expectedProductTypes),
+				}
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().
+					GetSecurityProjectWithResponse(ctx, id).
+					Return(&serverless.GetSecurityProjectResponse{
+						JSON200: readModel,
+					}, nil)
+
+				return testData{
+					client:        mockApiClient,
+					id:            id,
+					initialModel:  initialModel,
+					expectedModel: expectedModel,
+					expectedFound: true,
+				}
+			},
+		},
+		{
+			name: "should preserve configured admin_features_package and product_types when API doesn't return them",
+			testData: func(ctx context.Context) testData {
+				id := "project id"
+
+				// Initial model has configured values (simulating what comes from the plan/config)
+				configuredProductTypes := []attr.Value{
+					resource_security_project.NewProductTypesValueMust(
+						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"product_line": basetypes.NewStringValue("security"),
+							"product_tier": basetypes.NewStringValue("essentials"),
+						},
+					),
+					resource_security_project.NewProductTypesValueMust(
+						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"product_line": basetypes.NewStringValue("cloud"),
+							"product_tier": basetypes.NewStringValue("essentials"),
+						},
+					),
+				}
+
+				initialModel := resource_security_project.SecurityProjectModel{
+					Id:                   types.StringValue(id),
+					AdminFeaturesPackage: basetypes.NewStringValue("standard"),
+					ProductTypes:         types.ListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), configuredProductTypes),
+				}
+
+				// API response doesn't include admin_features_package or product_types
+				readModel := &serverless.SecurityProject{
+					Id:      id,
+					Alias:   "expected-alias-" + id[0:6],
+					CloudId: "cloud-id",
+					Endpoints: serverless.SecurityProjectEndpoints{
+						Elasticsearch: "es-endpoint",
+						Kibana:        "kib-endpoint",
+						Ingest:        "ingest-endpoint",
+					},
+					Metadata: serverless.ProjectMetadata{
+						CreatedAt:      time.Now(),
+						CreatedBy:      "me",
+						OrganizationId: "1",
+					},
+					Name:                 "project-name",
+					RegionId:             "nether",
+					Type:                 "security",
+					AdminFeaturesPackage: nil, // API doesn't return this
+					ProductTypes:         nil, // API doesn't return this
+				}
+
+				// Expected model should preserve the configured values
+				expectedModel := resource_security_project.SecurityProjectModel{
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
+					Endpoints: resource_security_project.NewEndpointsValueMust(
+						initialModel.Endpoints.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
+						},
+					),
+					Metadata: resource_security_project.NewMetadataValueMust(
+						initialModel.Metadata.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"created_at":       basetypes.NewStringValue(readModel.Metadata.CreatedAt.String()),
+							"created_by":       basetypes.NewStringValue(readModel.Metadata.CreatedBy),
+							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
+							"suspended_at":     basetypes.NewStringNull(),
+							"suspended_reason": basetypes.NewStringNull(),
+						},
+					),
+					Name:                 types.StringValue(readModel.Name),
+					RegionId:             types.StringValue(readModel.RegionId),
+					Type:                 types.StringValue(string(readModel.Type)),
+					AdminFeaturesPackage: basetypes.NewStringValue("standard"),
+					ProductTypes:         types.ListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), configuredProductTypes),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
