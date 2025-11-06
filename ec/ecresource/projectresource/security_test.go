@@ -158,7 +158,6 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 					state.Endpoints.AttributeTypes(context.Background()),
 					map[string]attr.Value{
 						"elasticsearch": basetypes.NewStringValue("es"),
-						"ingest":        basetypes.NewStringValue("ingest"),
 						"kibana":        basetypes.NewStringValue("kibana"),
 						"ingest":        basetypes.NewStringValue("ingest"),
 					},
@@ -870,7 +869,6 @@ func TestSecurityApi_Read(t *testing.T) {
 					CloudId: "cloud-id",
 					Endpoints: serverless.SecurityProjectEndpoints{
 						Elasticsearch: "es-endpoint",
-						Ingest:        "ingest-endpoint",
 						Kibana:        "kib-endpoint",
 						Ingest:        "ingest-endpoint",
 					},
@@ -892,7 +890,6 @@ func TestSecurityApi_Read(t *testing.T) {
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
-							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 						},
@@ -943,7 +940,6 @@ func TestSecurityApi_Read(t *testing.T) {
 					CloudId: "cloud-id",
 					Endpoints: serverless.SecurityProjectEndpoints{
 						Elasticsearch: "es-endpoint",
-						Ingest:        "ingest-endpoint",
 						Kibana:        "kib-endpoint",
 						Ingest:        "ingest-endpoint",
 					},
@@ -967,7 +963,6 @@ func TestSecurityApi_Read(t *testing.T) {
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
-							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 						},
