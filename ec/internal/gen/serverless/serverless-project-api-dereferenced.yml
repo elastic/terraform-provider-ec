@@ -1183,7 +1183,7 @@ components:
           description: The endpoint to access apm.
           type: string
         ingest:
-          description: The endpoint to access ingest.
+          description: The endpoint to access the Managed OTLP Input.
           type: string
     ObservabilityProjectList:
       type: object
