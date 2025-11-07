@@ -44,6 +44,7 @@ paths:
           in: query
           description: Token to the next page containing the list of projects.
           required: false
+
           schema:
             type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
@@ -302,6 +303,7 @@ paths:
           in: query
           description: Token to the next page containing the list of projects.
           required: false
+
           schema:
             type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
@@ -562,6 +564,7 @@ paths:
           in: query
           description: Token to the next page containing the list of projects.
           required: false
+
           schema:
             type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
@@ -912,6 +915,13 @@ components:
           $ref: '#/components/schemas/ProjectAlias'
         region_id:
           $ref: '#/components/schemas/RegionID'
+        product_tier:
+          type: string
+          description: the tier of the observability project
+          enum:
+            - complete
+            - logs_essentials
+          default: complete
       additionalProperties: false
     CreateSecurityProjectRequest:
       type: object
@@ -1127,6 +1137,13 @@ components:
           description: the type of the project
           enum:
             - observability
+        product_tier:
+          type: string
+          description: the tier of the observability project
+          enum:
+            - complete
+            - logs_essentials
+          default: complete
         endpoints:
           $ref: '#/components/schemas/ObservabilityProjectEndpoints'
     ObservabilityProjectCreated:
@@ -1242,6 +1259,13 @@ components:
           $ref: '#/components/schemas/ProjectName'
         alias:
           $ref: '#/components/schemas/ProjectAlias'
+        product_tier:
+          type: string
+          description: the tier of the observability project
+          enum:
+            - complete
+            - logs_essentials
+          default: complete
       additionalProperties: false
     PatchSecurityProjectRequest:
       type: object

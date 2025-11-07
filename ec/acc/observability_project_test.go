@@ -89,6 +89,38 @@ func TestAccObservabilityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
 				),
 			},
+			{
+				// Create a project with logs_essentials product_tier.
+				Config: testAccObservabilityProjectWithProductTier(resId, newName, region, "logs_essentials"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", newName),
+					resource.TestCheckResourceAttr(resourceName, "product_tier", "logs_essentials"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.apm"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.ingest"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
+			{
+				// Update product_tier to complete.
+				Config: testAccObservabilityProjectWithProductTier(resId, newName, region, "complete"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", newName),
+					resource.TestCheckResourceAttr(resourceName, "product_tier", "complete"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.apm"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.ingest"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
 		},
 	})
 }
@@ -110,6 +142,16 @@ resource ec_observability_project "%s" {
 	alias = "%s"
 }
 `, id, name, region, alias)
+}
+
+func testAccObservabilityProjectWithProductTier(id string, name string, region string, productTier string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name = "%s"
+	region_id = "%s"
+	product_tier = "%s"
+}
+`, id, name, region, productTier)
 }
 
 func testAccObservabilityProjectDestroy(s *terraform.State) error {

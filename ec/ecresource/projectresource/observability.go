@@ -107,6 +107,11 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 		createBody.Alias = model.Alias.ValueStringPointer()
 	}
 
+	if !model.ProductTier.IsNull() && !model.ProductTier.IsUnknown() {
+		productTier := serverless.CreateObservabilityProjectRequestProductTier(model.ProductTier.ValueString())
+		createBody.ProductTier = &productTier
+	}
+
 	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -146,6 +151,11 @@ func (obs observabilityApi) Patch(ctx context.Context, model resource_observabil
 
 	if model.Alias.ValueString() != "" {
 		updateBody.Alias = model.Alias.ValueStringPointer()
+	}
+
+	if !model.ProductTier.IsNull() && !model.ProductTier.IsUnknown() {
+		productTier := serverless.PatchObservabilityProjectRequestProductTier(model.ProductTier.ValueString())
+		updateBody.ProductTier = &productTier
 	}
 
 	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)

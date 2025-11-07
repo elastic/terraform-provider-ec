@@ -45,6 +45,12 @@ const (
 	Gcp   CSP = "gcp"
 )
 
+// Defines values for CreateObservabilityProjectRequestProductTier.
+const (
+	CreateObservabilityProjectRequestProductTierComplete       CreateObservabilityProjectRequestProductTier = "complete"
+	CreateObservabilityProjectRequestProductTierLogsEssentials CreateObservabilityProjectRequestProductTier = "logs_essentials"
+)
+
 // Defines values for ElasticsearchOptimizedFor.
 const (
 	GeneralPurpose ElasticsearchOptimizedFor = "general_purpose"
@@ -61,6 +67,12 @@ const (
 	ElasticsearchProjectCreatedTypeElasticsearch ElasticsearchProjectCreatedType = "elasticsearch"
 )
 
+// Defines values for ObservabilityProjectProductTier.
+const (
+	ObservabilityProjectProductTierComplete       ObservabilityProjectProductTier = "complete"
+	ObservabilityProjectProductTierLogsEssentials ObservabilityProjectProductTier = "logs_essentials"
+)
+
 // Defines values for ObservabilityProjectType.
 const (
 	ObservabilityProjectTypeObservability ObservabilityProjectType = "observability"
@@ -75,6 +87,12 @@ const (
 const (
 	OptionalSecurityAdminFeaturesPackageEnterprise OptionalSecurityAdminFeaturesPackage = "enterprise"
 	OptionalSecurityAdminFeaturesPackageStandard   OptionalSecurityAdminFeaturesPackage = "standard"
+)
+
+// Defines values for PatchObservabilityProjectRequestProductTier.
+const (
+	PatchObservabilityProjectRequestProductTierComplete       PatchObservabilityProjectRequestProductTier = "complete"
+	PatchObservabilityProjectRequestProductTierLogsEssentials PatchObservabilityProjectRequestProductTier = "logs_essentials"
 )
 
 // Defines values for ProjectStatusPhase.
@@ -98,8 +116,8 @@ const (
 
 // Defines values for SecurityProductTier.
 const (
-	Complete   SecurityProductTier = "complete"
-	Essentials SecurityProductTier = "essentials"
+	SecurityProductTierComplete   SecurityProductTier = "complete"
+	SecurityProductTierEssentials SecurityProductTier = "essentials"
 )
 
 // Defines values for SecurityProjectType.
@@ -144,9 +162,15 @@ type CreateObservabilityProjectRequest struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
+	// ProductTier the tier of the observability project
+	ProductTier *CreateObservabilityProjectRequestProductTier `json:"product_tier,omitempty"`
+
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
 }
+
+// CreateObservabilityProjectRequestProductTier the tier of the observability project
+type CreateObservabilityProjectRequestProductTier string
 
 // CreateSecurityProjectRequest A request to create a Security project.
 type CreateSecurityProjectRequest struct {
@@ -303,12 +327,18 @@ type ObservabilityProject struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
+	// ProductTier the tier of the observability project
+	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
+
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
 
 	// Type the type of the project
 	Type ObservabilityProjectType `json:"type"`
 }
+
+// ObservabilityProjectProductTier the tier of the observability project
+type ObservabilityProjectProductTier string
 
 // ObservabilityProjectType the type of the project
 type ObservabilityProjectType string
@@ -401,7 +431,13 @@ type PatchObservabilityProjectRequest struct {
 
 	// Name Descriptive name for a project.
 	Name *ProjectName `json:"name,omitempty"`
+
+	// ProductTier the tier of the observability project
+	ProductTier *PatchObservabilityProjectRequestProductTier `json:"product_tier,omitempty"`
 }
+
+// PatchObservabilityProjectRequestProductTier the tier of the observability project
+type PatchObservabilityProjectRequestProductTier string
 
 // PatchSecurityProjectRequest A request to patch an existing Security project.
 type PatchSecurityProjectRequest struct {
