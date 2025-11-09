@@ -92,17 +92,6 @@ func testAccBasicSecurityProject(id string, name string, region string) string {
 resource ec_security_project "%s" {
 	name = "%s"
 	region_id = "%s"
-	admin_features_package = "standard"
-	product_types = [{
-	  product_line = "security"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "cloud"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "endpoint"
-	  product_tier = "essentials"
-	}]
 }
 `, id, name, region)
 }
@@ -113,17 +102,6 @@ resource ec_security_project "%s" {
 	name = "%s"
 	region_id = "%s"
 	alias = "%s"
-	admin_features_package = "standard"
-	product_types = [{
-	  product_line = "security"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "cloud"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "endpoint"
-	  product_tier = "essentials"
-	}]
 }
 `, id, name, region, alias)
 }
