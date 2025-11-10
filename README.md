@@ -107,6 +107,14 @@ resource "ec_deployment" "example_minimal" {
 }
 ```
 
+```hcl
+# Delete an Elastic Cloud deployment
+# To target a specific deployment for destruction, Terraform provides the --target option. This option allows you to specify a particular resource that you want to destroy, leaving the rest of your infrastructure intact.
+# The command syntax is as follows: terraform destroy --target <resourceType.resourceName>
+# Let's assume we want to delete the previously created deployment
+terraform destroy --target ec_deployment.example_minimal
+```
+
 ## Developer Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.13+
