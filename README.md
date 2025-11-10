@@ -267,3 +267,13 @@ State upgrade doesn't have this limitation.
   It should not be a problem. You can eigher execute the plan (the only result should be updated Terraform state while the deployment should stay the same) or add empty `cold` tier and `confg` to the configuration.
 
 - The migration is based on 0.4.1, so all changes from 0.5.0 are omitted.
+
+
+
+
+
+
+
+
+
+
