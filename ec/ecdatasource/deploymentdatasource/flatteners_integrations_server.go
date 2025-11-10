@@ -76,6 +76,15 @@ func flattenIntegrationsServerResources(ctx context.Context, in []*models.Integr
 			if res.Info.Metadata != nil {
 				model.HttpEndpoint, model.HttpsEndpoint = converters.ExtractEndpointsToTypes(res.Info.Metadata)
 			}
+
+			// Set the fleet endpoint if available
+			if res.Info.Metadata.ServicesUrls != nil {
+				for _, service := range res.Info.Metadata.ServicesUrls {
+					if service.Service != nil && *service.Service == "fleet" {
+						model.FleetEndpoint = types.StringValue(*service.URL)
+					}
+				}
+			}
 		}
 
 		result = append(result, model)
