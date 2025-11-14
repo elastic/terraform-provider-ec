@@ -163,7 +163,7 @@ func TestAccObservabilityProjectTier(t *testing.T) {
 			{
 				// Ensure product_tier downgrade back to logs_essentials is forbidden
 				Config:      testAccObservabilityProjectWithProductTier(resId, newName, region, "logs_essentials"),
-				ExpectError: regexp.MustCompile("cannot change product_tier from 'complete' to 'logs_essentials'"),
+				ExpectError: regexp.MustCompile(`(?s).*cannot\s*change\s*product_tier\s*from\s*'complete'\s*to\s*'logs_essentials'.*`),
 			},
 		},
 	})
