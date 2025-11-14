@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -169,6 +170,19 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 					stringvalidator.LengthBetween(1, 255),
 				},
 			},
+			"product_tier": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Description:         "the tier of the observability project",
+				MarkdownDescription: "the tier of the observability project",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"complete",
+						"logs_essentials",
+					),
+				},
+				Default: stringdefault.StaticString("complete"),
+			},
 			"region_id": schema.StringAttribute{
 				Required:            true,
 				Description:         "Unique human-readable identifier for a region in Elastic Cloud.",
@@ -194,6 +208,7 @@ type ObservabilityProjectModel struct {
 	Id          types.String     `tfsdk:"id"`
 	Metadata    MetadataValue    `tfsdk:"metadata"`
 	Name        types.String     `tfsdk:"name"`
+	ProductTier types.String     `tfsdk:"product_tier"`
 	RegionId    types.String     `tfsdk:"region_id"`
 	Type        types.String     `tfsdk:"type"`
 }

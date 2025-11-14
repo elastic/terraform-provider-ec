@@ -20,6 +20,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -57,6 +58,7 @@ func TestAccObservabilityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+					resource.TestCheckResourceAttr(resourceName, "product_tier", "complete"),
 				),
 			},
 			{
@@ -110,6 +112,71 @@ resource ec_observability_project "%s" {
 	alias = "%s"
 }
 `, id, name, region, alias)
+}
+
+func TestAccObservabilityProjectTier(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_observability_project.%s", resId)
+	newName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix("aws-", region) {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccObservabilityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create a project with logs_essentials product_tier.
+				Config: testAccObservabilityProjectWithProductTier(resId, newName, region, "logs_essentials"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", newName),
+					resource.TestCheckResourceAttr(resourceName, "product_tier", "logs_essentials"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.apm"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.ingest"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
+			{
+				// Update product_tier to complete.
+				Config: testAccObservabilityProjectWithProductTier(resId, newName, region, "complete"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", newName),
+					resource.TestCheckResourceAttr(resourceName, "product_tier", "complete"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.apm"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.ingest"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
+			{
+				// Ensure product_tier downgrade back to logs_essentials is forbidden
+				Config:      testAccObservabilityProjectWithProductTier(resId, newName, region, "logs_essentials"),
+				ExpectError: regexp.MustCompile(`(?s).*cannot\s*change\s*product_tier\s*from\s*'complete'\s*to\s*'logs_essentials'.*`),
+			},
+		},
+	})
+}
+
+func testAccObservabilityProjectWithProductTier(id string, name string, region string, productTier string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name = "%s"
+	region_id = "%s"
+	product_tier = "%s"
+}
+`, id, name, region, productTier)
 }
 
 func testAccObservabilityProjectDestroy(s *terraform.State) error {

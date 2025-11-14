@@ -302,6 +302,28 @@
 						}
 					},
 					{
+						"name": "product_tier",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "complete"
+							},
+							"description": "the tier of the observability project",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"complete\",\n\"logs_essentials\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
 						"name": "region_id",
 						"string": {
 							"computed_optional_required": "required",
