@@ -57,6 +57,7 @@ func TestAccObservabilityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+					resource.TestCheckResourceAttr(resourceName, "product_tier", "complete"),
 				),
 			},
 			{
@@ -89,6 +90,43 @@ func TestAccObservabilityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
 				),
 			},
+		},
+	})
+}
+
+func testAccBasicObservabilityProject(id string, name string, region string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name = "%s"
+	region_id = "%s"
+}
+`, id, name, region)
+}
+
+func testAccObservabilityProjectWithAlias(id string, name string, region string, alias string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name = "%s"
+	region_id = "%s"
+	alias = "%s"
+}
+`, id, name, region, alias)
+}
+
+func TestAccObservabilityProjectTier(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_observability_project.%s", resId)
+	newName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix("aws-", region) {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccObservabilityProjectDestroy,
+		Steps: []resource.TestStep{
 			{
 				// Create a project with logs_essentials product_tier.
 				Config: testAccObservabilityProjectWithProductTier(resId, newName, region, "logs_essentials"),
@@ -123,25 +161,6 @@ func TestAccObservabilityProject(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccBasicObservabilityProject(id string, name string, region string) string {
-	return fmt.Sprintf(`
-resource ec_observability_project "%s" {
-	name = "%s"
-	region_id = "%s"
-}
-`, id, name, region)
-}
-
-func testAccObservabilityProjectWithAlias(id string, name string, region string, alias string) string {
-	return fmt.Sprintf(`
-resource ec_observability_project "%s" {
-	name = "%s"
-	region_id = "%s"
-	alias = "%s"
-}
-`, id, name, region, alias)
 }
 
 func testAccObservabilityProjectWithProductTier(id string, name string, region string, productTier string) string {
