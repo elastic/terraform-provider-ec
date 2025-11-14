@@ -20,6 +20,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -158,6 +159,11 @@ func TestAccObservabilityProjectTier(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
 				),
+			},
+			{
+				// Ensure product_tier downgrade back to logs_essentials is forbidden
+				Config:      testAccObservabilityProjectWithProductTier(resId, newName, region, "logs_essentials"),
+				ExpectError: regexp.MustCompile("cannot change product_tier from 'complete' to 'logs_essentials'"),
 			},
 		},
 	})
