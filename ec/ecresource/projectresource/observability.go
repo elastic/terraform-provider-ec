@@ -108,7 +108,7 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 	}
 
 	if !model.ProductTier.IsNull() && !model.ProductTier.IsUnknown() {
-		productTier := serverless.CreateObservabilityProjectRequestProductTier(model.ProductTier.ValueString())
+		productTier := serverless.ObservabilityProjectProductTier(model.ProductTier.ValueString())
 		createBody.ProductTier = &productTier
 	}
 
@@ -154,7 +154,7 @@ func (obs observabilityApi) Patch(ctx context.Context, model resource_observabil
 	}
 
 	if !model.ProductTier.IsNull() && !model.ProductTier.IsUnknown() {
-		productTier := serverless.PatchObservabilityProjectRequestProductTier(model.ProductTier.ValueString())
+		productTier := serverless.ObservabilityProjectProductTier(model.ProductTier.ValueString())
 		updateBody.ProductTier = &productTier
 	}
 

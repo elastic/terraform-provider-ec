@@ -45,12 +45,6 @@ const (
 	Gcp   CSP = "gcp"
 )
 
-// Defines values for CreateObservabilityProjectRequestProductTier.
-const (
-	CreateObservabilityProjectRequestProductTierComplete       CreateObservabilityProjectRequestProductTier = "complete"
-	CreateObservabilityProjectRequestProductTierLogsEssentials CreateObservabilityProjectRequestProductTier = "logs_essentials"
-)
-
 // Defines values for ElasticsearchOptimizedFor.
 const (
 	GeneralPurpose ElasticsearchOptimizedFor = "general_purpose"
@@ -67,12 +61,6 @@ const (
 	ElasticsearchProjectCreatedTypeElasticsearch ElasticsearchProjectCreatedType = "elasticsearch"
 )
 
-// Defines values for ObservabilityProjectProductTier.
-const (
-	ObservabilityProjectProductTierComplete       ObservabilityProjectProductTier = "complete"
-	ObservabilityProjectProductTierLogsEssentials ObservabilityProjectProductTier = "logs_essentials"
-)
-
 // Defines values for ObservabilityProjectType.
 const (
 	ObservabilityProjectTypeObservability ObservabilityProjectType = "observability"
@@ -83,16 +71,16 @@ const (
 	ObservabilityProjectCreatedTypeObservability ObservabilityProjectCreatedType = "observability"
 )
 
+// Defines values for ObservabilityProjectProductTier.
+const (
+	ObservabilityProjectProductTierComplete       ObservabilityProjectProductTier = "complete"
+	ObservabilityProjectProductTierLogsEssentials ObservabilityProjectProductTier = "logs_essentials"
+)
+
 // Defines values for OptionalSecurityAdminFeaturesPackage.
 const (
 	OptionalSecurityAdminFeaturesPackageEnterprise OptionalSecurityAdminFeaturesPackage = "enterprise"
 	OptionalSecurityAdminFeaturesPackageStandard   OptionalSecurityAdminFeaturesPackage = "standard"
-)
-
-// Defines values for PatchObservabilityProjectRequestProductTier.
-const (
-	PatchObservabilityProjectRequestProductTierComplete       PatchObservabilityProjectRequestProductTier = "complete"
-	PatchObservabilityProjectRequestProductTierLogsEssentials PatchObservabilityProjectRequestProductTier = "logs_essentials"
 )
 
 // Defines values for ProjectStatusPhase.
@@ -163,14 +151,11 @@ type CreateObservabilityProjectRequest struct {
 	Name ProjectName `json:"name"`
 
 	// ProductTier the tier of the observability project
-	ProductTier *CreateObservabilityProjectRequestProductTier `json:"product_tier,omitempty"`
+	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
 }
-
-// CreateObservabilityProjectRequestProductTier the tier of the observability project
-type CreateObservabilityProjectRequestProductTier string
 
 // CreateSecurityProjectRequest A request to create a Security project.
 type CreateSecurityProjectRequest struct {
@@ -337,9 +322,6 @@ type ObservabilityProject struct {
 	Type ObservabilityProjectType `json:"type"`
 }
 
-// ObservabilityProjectProductTier the tier of the observability project
-type ObservabilityProjectProductTier string
-
 // ObservabilityProjectType the type of the project
 type ObservabilityProjectType string
 
@@ -400,6 +382,9 @@ type ObservabilityProjectList struct {
 	NextPage *string `json:"next_page,omitempty"`
 }
 
+// ObservabilityProjectProductTier the tier of the observability project
+type ObservabilityProjectProductTier string
+
 // OptionalElasticsearchSearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
 type OptionalElasticsearchSearchLake struct {
 	// BoostWindow Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. It can be passed as `null` to reset the Search Boost Window to the default value.
@@ -433,11 +418,8 @@ type PatchObservabilityProjectRequest struct {
 	Name *ProjectName `json:"name,omitempty"`
 
 	// ProductTier the tier of the observability project
-	ProductTier *PatchObservabilityProjectRequestProductTier `json:"product_tier,omitempty"`
+	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 }
-
-// PatchObservabilityProjectRequestProductTier the tier of the observability project
-type PatchObservabilityProjectRequestProductTier string
 
 // PatchSecurityProjectRequest A request to patch an existing Security project.
 type PatchSecurityProjectRequest struct {
