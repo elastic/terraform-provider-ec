@@ -55,6 +55,7 @@ type Deployment struct {
 	DeploymentTemplateId       string                                   `tfsdk:"deployment_template_id"`
 	Name                       string                                   `tfsdk:"name"`
 	RequestId                  string                                   `tfsdk:"request_id"`
+	ByokArn                    *string                                  `tfsdk:"byok_arn"`
 	ElasticsearchUsername      string                                   `tfsdk:"elasticsearch_username"`
 	ElasticsearchPassword      string                                   `tfsdk:"elasticsearch_password"`
 	ApmSecretToken             *string                                  `tfsdk:"apm_secret_token"`
@@ -202,6 +203,10 @@ func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteRes
 
 	if res.Metadata != nil {
 		dep.Tags = converters.ModelsTagsToMap(res.Metadata.Tags)
+	}
+
+	if res.Metadata != nil && *res.Metadata.ByokEnabled {
+		dep.ByokArn = res.Settings.Byok.KeyResourcePath
 	}
 
 	if res.Resources == nil {
