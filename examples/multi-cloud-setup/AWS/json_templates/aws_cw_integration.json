@@ -1,0 +1,1823 @@
+{
+    "name": "aws-${name_suffix}",
+    "description": "Cloudwatch log group: $${log_group_name}",
+    "namespace": "default",
+    "policy_id": "${policy_id}",
+    "enabled": true,
+    "output_id": "",
+    "package": {
+        "name": "aws",
+        "title": "AWS",
+        "version": "1.23.4"
+      },
+      "vars": {
+        "shared_credential_file": {
+          "type": "text"
+        },
+        "credential_profile_name": {
+          "type": "text"
+        },
+        "access_key_id": {
+          "type": "text",
+          "value": "${access_key}"
+        },
+        "secret_access_key": {
+          "type": "text",
+          "value": "${access_secret}"
+        },
+        "session_token": {
+          "type": "text"
+        },
+        "role_arn": {
+          "type": "text"
+        },
+        "endpoint": {
+          "value": "",
+          "type": "text"
+        },
+        "proxy_url": {
+          "type": "text"
+        }
+      },
+    "inputs": [
+        {
+            "type": "aws-cloudwatch",
+            "policy_template": "cloudwatch",
+            "enabled": true,
+            "streams": [
+              {
+                "enabled": true,
+                "data_stream": {
+                  "type": "logs",
+                  "dataset": "aws.cloudwatch_logs"
+                },
+                "vars": {
+                  "log_group_arn": {
+                    "type": "text",
+                    "value": "${log_group_arn}"
+                  },
+                  "log_group_name": {
+                    "type": "text"
+                  },
+                  "log_group_name_prefix": {
+                    "type": "text"
+                  },
+                  "region_name": {
+                    "type": "text"
+                  },
+                  "log_streams": {
+                    "value": [],
+                    "type": "text"
+                  },
+                  "log_stream_prefix": {
+                    "type": "text"
+                  },
+                  "start_position": {
+                    "value": "beginning",
+                    "type": "text"
+                  },
+                  "scan_frequency": {
+                    "value": "1m",
+                    "type": "text"
+                  },
+                  "api_timeput": {
+                    "value": "120s",
+                    "type": "text"
+                  },
+                  "api_sleep": {
+                    "value": "200ms",
+                    "type": "text"
+                  },
+                  "tags": {
+                    "value": [
+                      "forwarded",
+                      "aws-cloudwatch-logs"
+                    ],
+                    "type": "text"
+                  },
+                  "processors": {
+                    "type": "yaml"
+                  },
+                  "preserve_original_event": {
+                    "value": false,
+                    "type": "bool"
+                  },
+                  "data_stream.dataset": {
+                    "value": "generic",
+                    "type": "text"
+                  }
+                }
+              }
+            ]
+          },
+        {
+        "type": "aws/metrics",
+        "policy_template": "billing",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.billing"
+            },
+            "vars": {
+              "period": {
+                "value": "12h",
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "cost_explorer_config.group_by_dimension_keys": {
+                "value": [
+                  "AZ",
+                  "INSTANCE_TYPE",
+                  "SERVICE",
+                  "LINKED_ACCOUNT"
+                ],
+                "type": "text"
+              },
+              "cost_explorer_config.group_by_tag_keys": {
+                "value": [
+                  "aws:createdBy"
+                ],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "cloudtrail",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.cloudtrail"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-cloudtrail"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "cloudtrail_regex": {
+                "value": "/CloudTrail/",
+                "type": "text"
+              },
+              "cloudtrail_digest_regex": {
+                "value": "/CloudTrail-Digest/",
+                "type": "text"
+              },
+              "cloudtrail_insight_regex": {
+                "value": "/CloudTrail-Insight/",
+                "type": "text"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "cloudtrail",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.cloudtrail"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "log_streams": {
+                "value": [],
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeput": {
+                "value": "120s",
+                "type": "text"
+              },
+              "api_sleep": {
+                "value": "200ms",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-cloudtrail"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "httpjson",
+        "policy_template": "cloudtrail",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.cloudtrail"
+            },
+            "vars": {
+              "url": {
+                "value": "https://server.example.com:8089",
+                "type": "text"
+              },
+              "username": {
+                "type": "text"
+              },
+              "password": {
+                "type": "password"
+              },
+              "token": {
+                "type": "password"
+              },
+              "ssl": {
+                "value": "#certificate_authorities:\n#  - |\n#    -----BEGIN CERTIFICATE-----\n#    MIIDCjCCAfKgAwIBAgITJ706Mu2wJlKckpIvkWxEHvEyijANBgkqhkiG9w0BAQsF\n#    ADAUMRIwEAYDVQQDDAlsb2NhbGhvc3QwIBcNMTkwNzIyMTkyOTA0WhgPMjExOTA2\n#    MjgxOTI5MDRaMBQxEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEB\n#    BQADggEPADCCAQoCggEBANce58Y/JykI58iyOXpxGfw0/gMvF0hUQAcUrSMxEO6n\n#    fZRA49b4OV4SwWmA3395uL2eB2NB8y8qdQ9muXUdPBWE4l9rMZ6gmfu90N5B5uEl\n#    94NcfBfYOKi1fJQ9i7WKhTjlRkMCgBkWPkUokvBZFRt8RtF7zI77BSEorHGQCk9t\n#    /D7BS0GJyfVEhftbWcFEAG3VRcoMhF7kUzYwp+qESoriFRYLeDWv68ZOvG7eoWnP\n#    PsvZStEVEimjvK5NSESEQa9xWyJOmlOKXhkdymtcUd/nXnx6UTCFgnkgzSdTWV41\n#    CI6B6aJ9svCTI2QuoIq2HxX/ix7OvW1huVmcyHVxyUECAwEAAaNTMFEwHQYDVR0O\n#    BBYEFPwN1OceFGm9v6ux8G+DZ3TUDYxqMB8GA1UdIwQYMBaAFPwN1OceFGm9v6ux\n#    8G+DZ3TUDYxqMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAG5D\n#    874A4YI7YUwOVsVAdbWtgp1d0zKcPRR+r2OdSbTAV5/gcS3jgBJ3i1BN34JuDVFw\n#    3DeJSYT3nxy2Y56lLnxDeF8CUTUtVQx3CuGkRg1ouGAHpO/6OqOhwLLorEmxi7tA\n#    H2O8mtT0poX5AnOAhzVy7QW0D/k4WaoLyckM5hUa6RtvgvLxOwA0U+VGurCDoctu\n#    8F4QOgTAWyh8EZIwaKCliFRSynDpv3JTUwtfZkxo6K6nce1RhCWFAsMvDZL8Dgc0\n#    yvgJ38BRsFOtkRuAGSf6ZUwTO8JJRRIFnpUzXflAnGivK9M13D5GEQMmIl6U9Pvk\n#    sxSmbIUfc2SGJGCJD4I=\n#    -----END CERTIFICATE-----\n",
+                "type": "yaml"
+              },
+              "interval": {
+                "value": "10s",
+                "type": "text"
+              },
+              "search": {
+                "value": "search sourcetype=aws:cloudtrail",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-cloudtrail"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "cloudwatch",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.cloudwatch_logs"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-cloudwatch-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "cloudwatch",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.cloudwatch_metrics"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "metrics": {
+                "value": "- namespace: AWS/EC2\n  resource_type: ec2:instance\n  name:\n    - CPUUtilization\n    - DiskWriteOps\n  statistic:\n    - Average\n    - Maximum\n  # dimensions:\n   # - name: InstanceId\n      # value: i-123456\n  # tags:\n    # - key: created-by\n      # value: foo\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "dynamodb",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.dynamodb"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "ebs",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.ebs"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "ec2",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.ec2_logs"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-ec2-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "ec2",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.ec2_logs"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "log_streams": {
+                "value": [],
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeput": {
+                "value": "120s",
+                "type": "text"
+              },
+              "api_sleep": {
+                "value": "200ms",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-ec2-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "ec2",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.ec2_metrics"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "ecs",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.ecs_metrics"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "elb",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.elb_logs"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-elb-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "elb",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.elb_logs"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "log_streams": {
+                "value": [],
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeput": {
+                "value": "120s",
+                "type": "text"
+              },
+              "api_sleep": {
+                "value": "200ms",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-elb-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "elb",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.elb_metrics"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "lambda",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.lambda"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "natgateway",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.natgateway"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "firewall",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.firewall_logs"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-firewall-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "firewall",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.firewall_logs"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "log_streams": {
+                "value": [],
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeput": {
+                "value": "120s",
+                "type": "text"
+              },
+              "api_sleep": {
+                "value": "200ms",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-firewall-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "firewall",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.firewall_metrics"
+            },
+            "vars": {
+              "period": {
+                "value": "60s",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "metrics": {
+                "value": "- namespace: AWS/NetworkFirewall\n  name:\n    - DroppedPackets\n    - PassedPackets\n    - ReceivedPackets\n    - Packets\n  statistic:\n    - Sum\n  # dimensions:\n   # - name: FirewallName\n      # value: SampleFirewall\n  # tags:\n    # - key: created-by\n      # value: sample\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "rds",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.rds"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "s3",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.s3access"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-s3access"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "s3",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.s3_daily_storage"
+            },
+            "vars": {
+              "period": {
+                "value": "24h",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.s3_request"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "s3_storage_lens",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.s3_storage_lens"
+            },
+            "vars": {
+              "period": {
+                "value": "24h",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "sns",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.sns"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "sqs",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.sqs"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "transitgateway",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.transitgateway"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "usage",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.usage"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "vpcflow",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.vpcflow"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-vpcflow"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "vpcflow",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.vpcflow"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "log_streams": {
+                "value": [],
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeput": {
+                "value": "120s",
+                "type": "text"
+              },
+              "api_sleep": {
+                "value": "200ms",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-vpcflow"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "vpn",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.vpn"
+            },
+            "vars": {
+              "period": {
+                "value": "1m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "waf",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.waf"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-waf"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "waf",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.waf"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "log_streams": {
+                "value": [],
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeput": {
+                "value": "120s",
+                "type": "text"
+              },
+              "api_sleep": {
+                "value": "200ms",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-waf"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-cloudwatch",
+        "policy_template": "route53",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.route53_public_logs"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "log_streams": {
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "api_sleep": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-route53_public-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.route53_resolver_logs"
+            },
+            "vars": {
+              "log_group_arn": {
+                "type": "text"
+              },
+              "log_group_name": {
+                "type": "text"
+              },
+              "log_group_name_prefix": {
+                "type": "text"
+              },
+              "log_streams": {
+                "type": "text"
+              },
+              "log_stream_prefix": {
+                "type": "text"
+              },
+              "region_name": {
+                "type": "text"
+              },
+              "start_position": {
+                "value": "beginning",
+                "type": "text"
+              },
+              "scan_frequency": {
+                "value": "1m",
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "api_sleep": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-route53_resolver-logs"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws-s3",
+        "policy_template": "cloudfront",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.cloudfront_logs"
+            },
+            "vars": {
+              "visibility_timeout": {
+                "type": "text"
+              },
+              "api_timeout": {
+                "type": "text"
+              },
+              "queue_url": {
+                "type": "text"
+              },
+              "fips_enabled": {
+                "value": false,
+                "type": "bool"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws-cloudfront"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "max_number_of_messages": {
+                "value": 5,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "redshift",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.redshift"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "aws/metrics",
+        "policy_template": "kinesis",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "aws.kinesis"
+            },
+            "vars": {
+              "period": {
+                "value": "5m",
+                "type": "text"
+              },
+              "regions": {
+                "value": [],
+                "type": "text"
+              },
+              "latency": {
+                "type": "text"
+              },
+              "tags_filter": {
+                "value": "# - key: \"created-by\"\n  # value: \"foo\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "httpjson",
+        "policy_template": "securityhub",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.securityhub_findings"
+            },
+            "vars": {
+              "interval": {
+                "value": "1h",
+                "type": "text"
+              },
+              "initial_interval": {
+                "value": "24h",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws_securityhub_findings"
+                ],
+                "type": "text"
+              },
+              "aws_region": {
+                "type": "text"
+              },
+              "proxy_url": {
+                "type": "text"
+              },
+              "ssl": {
+                "value": "#certificate_authorities:\n#  - |\n#    -----BEGIN CERTIFICATE-----\n#    MIIDCjCCAfKgAwIBAgITJ706Mu2wJlKckpIvkWxEHvEyijANBgkqhkiG9w0BAQsF\n#    ADAUMRIwEAYDVQQDDAlsb2NhbGhvc3QwIBcNMTkwNzIyMTkyOTA0WhgPMjExOTA2\n#    MjgxOTI5MDRaMBQxEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEB\n#    BQADggEPADCCAQoCggEBANce58Y/JykI58iyOXpxGfw0/gMvF0hUQAcUrSMxEO6n\n#    fZRA49b4OV4SwWmA3395uL2eB2NB8y8qdQ9muXUdPBWE4l9rMZ6gmfu90N5B5uEl\n#    94NcfBfYOKi1fJQ9i7WKhTjlRkMCgBkWPkUokvBZFRt8RtF7zI77BSEorHGQCk9t\n#    /D7BS0GJyfVEhftbWcFEAG3VRcoMhF7kUzYwp+qESoriFRYLeDWv68ZOvG7eoWnP\n#    PsvZStEVEimjvK5NSESEQa9xWyJOmlOKXhkdymtcUd/nXnx6UTCFgnkgzSdTWV41\n#    CI6B6aJ9svCTI2QuoIq2HxX/ix7OvW1huVmcyHVxyUECAwEAAaNTMFEwHQYDVR0O\n#    BBYEFPwN1OceFGm9v6ux8G+DZ3TUDYxqMB8GA1UdIwQYMBaAFPwN1OceFGm9v6ux\n#    8G+DZ3TUDYxqMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAG5D\n#    874A4YI7YUwOVsVAdbWtgp1d0zKcPRR+r2OdSbTAV5/gcS3jgBJ3i1BN34JuDVFw\n#    3DeJSYT3nxy2Y56lLnxDeF8CUTUtVQx3CuGkRg1ouGAHpO/6OqOhwLLorEmxi7tA\n#    H2O8mtT0poX5AnOAhzVy7QW0D/k4WaoLyckM5hUa6RtvgvLxOwA0U+VGurCDoctu\n#    8F4QOgTAWyh8EZIwaKCliFRSynDpv3JTUwtfZkxo6K6nce1RhCWFAsMvDZL8Dgc0\n#    yvgJ38BRsFOtkRuAGSf6ZUwTO8JJRRIFnpUzXflAnGivK9M13D5GEQMmIl6U9Pvk\n#    sxSmbIUfc2SGJGCJD4I=\n#    -----END CERTIFICATE-----\n",
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "preserve_duplicate_custom_fields": {
+                "value": false,
+                "type": "bool"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "aws.securityhub_insights"
+            },
+            "vars": {
+              "interval": {
+                "value": "1m",
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "forwarded",
+                  "aws_securityhub_insights"
+                ],
+                "type": "text"
+              },
+              "aws_region": {
+                "type": "text"
+              },
+              "proxy_url": {
+                "type": "text"
+              },
+              "ssl": {
+                "value": "#certificate_authorities:\n#  - |\n#    -----BEGIN CERTIFICATE-----\n#    MIIDCjCCAfKgAwIBAgITJ706Mu2wJlKckpIvkWxEHvEyijANBgkqhkiG9w0BAQsF\n#    ADAUMRIwEAYDVQQDDAlsb2NhbGhvc3QwIBcNMTkwNzIyMTkyOTA0WhgPMjExOTA2\n#    MjgxOTI5MDRaMBQxEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEB\n#    BQADggEPADCCAQoCggEBANce58Y/JykI58iyOXpxGfw0/gMvF0hUQAcUrSMxEO6n\n#    fZRA49b4OV4SwWmA3395uL2eB2NB8y8qdQ9muXUdPBWE4l9rMZ6gmfu90N5B5uEl\n#    94NcfBfYOKi1fJQ9i7WKhTjlRkMCgBkWPkUokvBZFRt8RtF7zI77BSEorHGQCk9t\n#    /D7BS0GJyfVEhftbWcFEAG3VRcoMhF7kUzYwp+qESoriFRYLeDWv68ZOvG7eoWnP\n#    PsvZStEVEimjvK5NSESEQa9xWyJOmlOKXhkdymtcUd/nXnx6UTCFgnkgzSdTWV41\n#    CI6B6aJ9svCTI2QuoIq2HxX/ix7OvW1huVmcyHVxyUECAwEAAaNTMFEwHQYDVR0O\n#    BBYEFPwN1OceFGm9v6ux8G+DZ3TUDYxqMB8GA1UdIwQYMBaAFPwN1OceFGm9v6ux\n#    8G+DZ3TUDYxqMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAG5D\n#    874A4YI7YUwOVsVAdbWtgp1d0zKcPRR+r2OdSbTAV5/gcS3jgBJ3i1BN34JuDVFw\n#    3DeJSYT3nxy2Y56lLnxDeF8CUTUtVQx3CuGkRg1ouGAHpO/6OqOhwLLorEmxi7tA\n#    H2O8mtT0poX5AnOAhzVy7QW0D/k4WaoLyckM5hUa6RtvgvLxOwA0U+VGurCDoctu\n#    8F4QOgTAWyh8EZIwaKCliFRSynDpv3JTUwtfZkxo6K6nce1RhCWFAsMvDZL8Dgc0\n#    yvgJ38BRsFOtkRuAGSf6ZUwTO8JJRRIFnpUzXflAnGivK9M13D5GEQMmIl6U9Pvk\n#    sxSmbIUfc2SGJGCJD4I=\n#    -----END CERTIFICATE-----\n",
+                "type": "yaml"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "preserve_duplicate_custom_fields": {
+                "value": false,
+                "type": "bool"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
