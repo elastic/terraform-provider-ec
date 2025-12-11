@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
@@ -80,20 +81,20 @@ func (m productTypesSemanticEqualityModifier) PlanModifyList(ctx context.Context
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
 
-	// Add plan modifiers to admin_features_package and product_types to preserve state values
-	// when these fields are not configured. The API returns these values, and they may change
-	// over time (e.g., tier upgrades), but if not explicitly configured we should keep the
-	// current state value rather than forcing a recomputation.
+	// Add plan modifiers to admin_features_package and product_types
+	// UseStateForUnknown prevents Terraform from showing a diff when the API doesn't return
+	// these optional computed fields (they remain as the configured/state value)
 	adminFeaturesAttr := resp.Schema.Attributes["admin_features_package"].(schema.StringAttribute)
-	adminFeaturesAttr.PlanModifiers = append(adminFeaturesAttr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
+	adminFeaturesAttr.PlanModifiers = []planmodifier.String{stringplanmodifier.UseStateForUnknown()}
 	resp.Schema.Attributes["admin_features_package"] = adminFeaturesAttr
 
 	// Add plan modifiers for product_types including order-insensitive semantic equality
+	// The semantic equality modifier prevents spurious diffs when the API returns items in a different order
 	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
-	productTypesAttr.PlanModifiers = append(productTypesAttr.PlanModifiers,
+	productTypesAttr.PlanModifiers = []planmodifier.List{
 		listplanmodifier.UseStateForUnknown(),
 		productTypesSemanticEqualityModifier{},
-	)
+	}
 	resp.Schema.Attributes["product_types"] = productTypesAttr
 }
 
@@ -338,24 +339,45 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)
 	model.Type = basetypes.NewStringValue(string(resp.JSON200.Type))
 
-	// Populate admin_features_package from API response when available
-	// If API doesn't return it, preserve the configured/state value
+	// Populate admin_features_package from API response
+	// The UseStateForUnknown plan modifier handles preserving the value when the API doesn't
+	// return it, preventing Terraform from treating it as a configuration drift
 	if resp.JSON200.AdminFeaturesPackage != nil {
-		pkgStr := string(*resp.JSON200.AdminFeaturesPackage)
-		model.AdminFeaturesPackage = basetypes.NewStringValue(pkgStr)
-	} else if model.AdminFeaturesPackage.IsNull() || model.AdminFeaturesPackage.IsUnknown() {
-		// Only set to null if it wasn't already configured
+		model.AdminFeaturesPackage = basetypes.NewStringValue(string(*resp.JSON200.AdminFeaturesPackage))
+	} else {
 		model.AdminFeaturesPackage = basetypes.NewStringNull()
 	}
-	// Otherwise, preserve the existing configured value
 
-	// Populate product_types from API response when available
-	// The custom ProductTypesListType handles semantic equality (order-insensitive),
-	// so we can just convert the API response directly without worrying about ordering
+	// Populate product_types from API response
+	// Sort the product_types to ensure consistent ordering, as the API may return them
+	// in different orders. This prevents Terraform from detecting false differences.
+	// The custom ProductTypesListType handles semantic equality (order-insensitive) during
+	// planning, and the UseStateForUnknown plan modifier preserves the value when the API
+	// doesn't return it, preventing configuration drift.
 	if resp.JSON200.ProductTypes != nil {
-		productTypeValues := []attr.Value{}
+		// Create a copy and sort by product_line, then product_tier for deterministic ordering
+		productTypes := make([]serverless.SecurityProductType, len(*resp.JSON200.ProductTypes))
+		copy(productTypes, *resp.JSON200.ProductTypes)
 
-		for _, pt := range *resp.JSON200.ProductTypes {
+		sort.Slice(productTypes, func(i, j int) bool {
+			if productTypes[i].ProductLine != productTypes[j].ProductLine {
+				return productTypes[i].ProductLine < productTypes[j].ProductLine
+			}
+			return productTypes[i].ProductTier < productTypes[j].ProductTier
+		})
+
+		productTypeValues := []attr.Value{}
+		for _, pt := range productTypes {
+			// Validate that product line and tier are not empty
+			if pt.ProductLine == "" || pt.ProductTier == "" {
+				return false, model, diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid product type from API",
+						fmt.Sprintf("API returned product type with empty product_line or product_tier"),
+					),
+				}
+			}
+
 			productTypeValue, diags := resource_security_project.NewProductTypesValue(
 				resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
 				map[string]attr.Value{
@@ -377,11 +399,9 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 			return false, model, diags
 		}
 		model.ProductTypes = productTypesList
-	} else if model.ProductTypes.IsNull() || model.ProductTypes.IsUnknown() {
-		// If API doesn't return product_types and we don't have a configured value, set to null
+	} else {
 		model.ProductTypes = types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx))
 	}
-	// Otherwise, preserve the existing configured value
 
 	return true, model, nil
 }

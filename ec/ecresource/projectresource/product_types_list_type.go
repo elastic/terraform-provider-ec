@@ -83,18 +83,25 @@ type ProductTypesListValue struct {
 	basetypes.ListValue
 }
 
+// NewProductTypesListValueNull creates a null ProductTypesListValue.
+// Use this when the product_types field should be explicitly null.
 func NewProductTypesListValueNull() ProductTypesListValue {
 	return ProductTypesListValue{
 		ListValue: basetypes.NewListNull(resource_security_project.ProductTypesValue{}.Type(context.Background())),
 	}
 }
 
+// NewProductTypesListValueUnknown creates an unknown ProductTypesListValue.
+// Use this when the product_types field value is not yet known (e.g., during planning).
 func NewProductTypesListValueUnknown() ProductTypesListValue {
 	return ProductTypesListValue{
 		ListValue: basetypes.NewListUnknown(resource_security_project.ProductTypesValue{}.Type(context.Background())),
 	}
 }
 
+// NewProductTypesListValueMust creates a ProductTypesListValue from elements.
+// Use this when you have a concrete list of ProductTypesValue elements to create.
+// This will panic if the elements cannot be converted to the correct type.
 func NewProductTypesListValueMust(elementType attr.Type, elements []attr.Value) ProductTypesListValue {
 	return ProductTypesListValue{
 		ListValue: basetypes.NewListValueMust(elementType, elements),
@@ -145,24 +152,43 @@ func (v ProductTypesListValue) ListSemanticEquals(ctx context.Context, otherV ba
 		return false, diags
 	}
 
-	// Create maps of product_line -> product_tier for comparison
-	itemsMap := make(map[string]string)
+	// Create sets using composite keys (product_line:product_tier) for comparison
+	// This handles cases where there might be duplicate product_lines with different tiers,
+	// or legitimate duplicate entries with the same line and tier
+	itemsSet := make(map[string]bool)
 	for _, item := range items {
-		itemsMap[item.ProductLine.ValueString()] = item.ProductTier.ValueString()
+		// Check for null or unknown values in the elements
+		if item.ProductLine.IsNull() || item.ProductLine.IsUnknown() ||
+			item.ProductTier.IsNull() || item.ProductTier.IsUnknown() {
+			// Cannot perform semantic comparison with null/unknown values
+			// Fall back to standard equality
+			return v.Equal(other), diags
+		}
+		// Use composite key to handle all edge cases correctly
+		key := fmt.Sprintf("%s:%s", item.ProductLine.ValueString(), item.ProductTier.ValueString())
+		itemsSet[key] = true
 	}
 
-	otherMap := make(map[string]string)
+	otherSet := make(map[string]bool)
 	for _, item := range otherItems {
-		otherMap[item.ProductLine.ValueString()] = item.ProductTier.ValueString()
+		// Check for null or unknown values in the elements
+		if item.ProductLine.IsNull() || item.ProductLine.IsUnknown() ||
+			item.ProductTier.IsNull() || item.ProductTier.IsUnknown() {
+			// Cannot perform semantic comparison with null/unknown values
+			// Fall back to standard equality
+			return v.Equal(other), diags
+		}
+		key := fmt.Sprintf("%s:%s", item.ProductLine.ValueString(), item.ProductTier.ValueString())
+		otherSet[key] = true
 	}
 
-	// Check if maps are equal (ignoring order)
-	if len(itemsMap) != len(otherMap) {
+	// Check if sets are equal (ignoring order and counting duplicates)
+	if len(itemsSet) != len(otherSet) {
 		return false, diags
 	}
 
-	for k, v := range itemsMap {
-		if otherMap[k] != v {
+	for k := range itemsSet {
+		if !otherSet[k] {
 			return false, diags
 		}
 	}

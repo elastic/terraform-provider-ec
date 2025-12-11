@@ -1056,18 +1056,20 @@ func TestSecurityApi_Read(t *testing.T) {
 					ProductTypes:         &productTypes,
 				}
 
+				// Expected product types in sorted order (alphabetically by product_line, then product_tier)
+				// API returns [security, cloud] but Read() sorts them to [cloud, security]
 				expectedProductTypes := []attr.Value{
 					resource_security_project.NewProductTypesValueMust(
 						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"product_line": basetypes.NewStringValue("security"),
+							"product_line": basetypes.NewStringValue("cloud"),
 							"product_tier": basetypes.NewStringValue("complete"),
 						},
 					),
 					resource_security_project.NewProductTypesValueMust(
 						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"product_line": basetypes.NewStringValue("cloud"),
+							"product_line": basetypes.NewStringValue("security"),
 							"product_tier": basetypes.NewStringValue("complete"),
 						},
 					),
@@ -1119,11 +1121,12 @@ func TestSecurityApi_Read(t *testing.T) {
 			},
 		},
 		{
-			name: "should preserve configured admin_features_package and product_types when API doesn't return them",
+			name: "should set admin_features_package and product_types to null when API doesn't return them",
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 
-				// Initial model has configured values (simulating what comes from the plan/config)
+				// Initial model has configured values (simulating prior state)
+				// These values were configured previously but the API no longer returns them
 				configuredProductTypes := []attr.Value{
 					resource_security_project.NewProductTypesValueMust(
 						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
@@ -1169,7 +1172,8 @@ func TestSecurityApi_Read(t *testing.T) {
 					ProductTypes:         nil, // API doesn't return this
 				}
 
-				// Expected model should preserve the configured values
+				// Expected model should reflect what the API returned (null for missing fields)
+				// The plan modifiers will handle preventing spurious diffs during planning
 				expectedModel := resource_security_project.SecurityProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -1195,8 +1199,8 @@ func TestSecurityApi_Read(t *testing.T) {
 					Name:                 types.StringValue(readModel.Name),
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
-					AdminFeaturesPackage: basetypes.NewStringValue("standard"),
-					ProductTypes:         types.ListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), configuredProductTypes),
+					AdminFeaturesPackage: basetypes.NewStringNull(),
+					ProductTypes:         types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx)),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)

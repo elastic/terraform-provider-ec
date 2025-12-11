@@ -144,11 +144,11 @@ resource ec_security_project "%s" {
 	admin_features_package = "%s"
 	product_types = [
 		{
-			product_line = "security"
+			product_line = "endpoint"
 			product_tier = "essentials"
 		},
 		{
-			product_line = "endpoint"
+			product_line = "security"
 			product_tier = "essentials"
 		}
 	]
