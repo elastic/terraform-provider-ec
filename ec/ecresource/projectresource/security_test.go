@@ -60,7 +60,7 @@ func TestSecurityModelReader_Schema(t *testing.T) {
 	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
 	require.Len(t, productTypesAttr.PlanModifiers, 2)
 	require.IsType(t, listplanmodifier.UseStateForUnknown(), productTypesAttr.PlanModifiers[0])
-	require.IsType(t, productTypesOrderInsensitivePlanModifier{}, productTypesAttr.PlanModifiers[1])
+	require.IsType(t, productTypesSemanticEqualityModifier{}, productTypesAttr.PlanModifiers[1])
 }
 
 func TestSecurityModelReader_ReadFrom(t *testing.T) {
