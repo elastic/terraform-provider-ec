@@ -328,7 +328,7 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 				return false, model, diag.Diagnostics{
 					diag.NewErrorDiagnostic(
 						"Invalid product type from API",
-						fmt.Sprintf("API returned product type with empty product_line or product_tier"),
+						"API returned product type with empty product_line or product_tier",
 					),
 				}
 			}
