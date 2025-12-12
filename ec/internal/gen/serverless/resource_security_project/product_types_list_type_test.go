@@ -236,7 +236,7 @@ func TestProductTypesListValue_ListSemanticEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "null list compared with non-null list",
+			name:  "null list compared with non-null list",
 			value: NewProductTypesListValueNull(),
 			other: createListValue([]ProductTypesValue{
 				createProductTypesValue("security", "essentials"),
@@ -250,7 +250,7 @@ func TestProductTypesListValue_ListSemanticEquals(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "unknown list compared with non-unknown list",
+			name:  "unknown list compared with non-unknown list",
 			value: NewProductTypesListValueUnknown(),
 			other: createListValue([]ProductTypesValue{
 				createProductTypesValue("security", "essentials"),
