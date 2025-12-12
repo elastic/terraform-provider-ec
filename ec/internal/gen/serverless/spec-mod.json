@@ -710,7 +710,11 @@
                     "schema_definition": "listvalidator.SizeBetween(2, 3)"
                   }
                 }
-              ]
+              ],
+              "custom_type": {
+                "type": "ProductTypesListType{ListType: types.ListType{ElemType: ProductTypesType{ObjectType: types.ObjectType{AttrTypes: ProductTypesValue{}.AttributeTypes(ctx)}}}}",
+                "value_type": "ProductTypesListValue"
+              }
             }
           },
           {

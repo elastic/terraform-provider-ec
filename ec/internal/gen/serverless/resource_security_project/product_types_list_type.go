@@ -15,13 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package projectresource
+package resource_security_project
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -87,7 +86,7 @@ type ProductTypesListValue struct {
 // Use this when the product_types field should be explicitly null.
 func NewProductTypesListValueNull() ProductTypesListValue {
 	return ProductTypesListValue{
-		ListValue: basetypes.NewListNull(resource_security_project.ProductTypesValue{}.Type(context.Background())),
+		ListValue: basetypes.NewListNull(ProductTypesValue{}.Type(context.Background())),
 	}
 }
 
@@ -95,7 +94,7 @@ func NewProductTypesListValueNull() ProductTypesListValue {
 // Use this when the product_types field value is not yet known (e.g., during planning).
 func NewProductTypesListValueUnknown() ProductTypesListValue {
 	return ProductTypesListValue{
-		ListValue: basetypes.NewListUnknown(resource_security_project.ProductTypesValue{}.Type(context.Background())),
+		ListValue: basetypes.NewListUnknown(ProductTypesValue{}.Type(context.Background())),
 	}
 }
 
@@ -106,6 +105,19 @@ func NewProductTypesListValueMust(elementType attr.Type, elements []attr.Value) 
 	return ProductTypesListValue{
 		ListValue: basetypes.NewListValueMust(elementType, elements),
 	}
+}
+
+// NewProductTypesListValueFrom creates a ProductTypesListValue from elements.
+// Use this when you have a concrete list of ProductTypesValue elements to create.
+func NewProductTypesListValueFrom(ctx context.Context, elementType attr.Type, elements []attr.Value) (ProductTypesListValue, diag.Diagnostics) {
+	listVal, diags := basetypes.NewListValueFrom(ctx, elementType, elements)
+	if diags.HasError() {
+		return ProductTypesListValue{}, diags
+	}
+
+	return ProductTypesListValue{
+		ListValue: listVal,
+	}, diags
 }
 
 func (v ProductTypesListValue) Equal(o attr.Value) bool {
@@ -139,7 +151,7 @@ func (v ProductTypesListValue) ListSemanticEquals(ctx context.Context, otherV ba
 	}
 
 	// Get both lists
-	var items, otherItems []resource_security_project.ProductTypesValue
+	var items, otherItems []ProductTypesValue
 	diags.Append(v.ElementsAs(ctx, &items, false)...)
 	diags.Append(other.ElementsAs(ctx, &otherItems, false)...)
 

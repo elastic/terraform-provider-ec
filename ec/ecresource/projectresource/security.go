@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sort"
 	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
@@ -48,36 +47,6 @@ func NewSecurityProjectResource() *Resource[resource_security_project.SecurityPr
 
 type securityModelReader struct{}
 
-// productTypesSemanticEqualityModifier uses the custom ProductTypesListValue semantic equality
-type productTypesSemanticEqualityModifier struct{}
-
-func (m productTypesSemanticEqualityModifier) Description(ctx context.Context) string {
-	return "Ignores order differences in product_types list when semantically equivalent"
-}
-
-func (m productTypesSemanticEqualityModifier) MarkdownDescription(ctx context.Context) string {
-	return "Ignores order differences in product_types list when semantically equivalent"
-}
-
-func (m productTypesSemanticEqualityModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	// If either value is null or unknown, don't modify
-	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() || req.StateValue.IsNull() || req.StateValue.IsUnknown() {
-		return
-	}
-
-	// Use the ProductTypesListValue semantic equality check
-	planValue := ProductTypesListValue{ListValue: req.PlanValue}
-	stateValue := ProductTypesListValue{ListValue: req.StateValue}
-
-	equal, diags := planValue.ListSemanticEquals(ctx, stateValue)
-	resp.Diagnostics.Append(diags...)
-
-	if equal {
-		// Values are semantically equal, use state value to avoid false diffs
-		resp.PlanValue = req.StateValue
-	}
-}
-
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
 
@@ -93,7 +62,6 @@ func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequ
 	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
 	productTypesAttr.PlanModifiers = []planmodifier.List{
 		listplanmodifier.UseStateForUnknown(),
-		productTypesSemanticEqualityModifier{},
 	}
 	resp.Schema.Attributes["product_types"] = productTypesAttr
 }
@@ -349,25 +317,12 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	}
 
 	// Populate product_types from API response
-	// Sort the product_types to ensure consistent ordering, as the API may return them
-	// in different orders. This prevents Terraform from detecting false differences.
 	// The custom ProductTypesListType handles semantic equality (order-insensitive) during
 	// planning, and the UseStateForUnknown plan modifier preserves the value when the API
 	// doesn't return it, preventing configuration drift.
 	if resp.JSON200.ProductTypes != nil {
-		// Create a copy and sort by product_line, then product_tier for deterministic ordering
-		productTypes := make([]serverless.SecurityProductType, len(*resp.JSON200.ProductTypes))
-		copy(productTypes, *resp.JSON200.ProductTypes)
-
-		sort.Slice(productTypes, func(i, j int) bool {
-			if productTypes[i].ProductLine != productTypes[j].ProductLine {
-				return productTypes[i].ProductLine < productTypes[j].ProductLine
-			}
-			return productTypes[i].ProductTier < productTypes[j].ProductTier
-		})
-
 		productTypeValues := []attr.Value{}
-		for _, pt := range productTypes {
+		for _, pt := range *resp.JSON200.ProductTypes {
 			// Validate that product line and tier are not empty
 			if pt.ProductLine == "" || pt.ProductTier == "" {
 				return false, model, diag.Diagnostics{
@@ -391,7 +346,8 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 			productTypeValues = append(productTypeValues, productTypeValue)
 		}
 
-		productTypesList, diags := types.ListValueFrom(ctx,
+		productTypesList, diags := resource_security_project.NewProductTypesListValueFrom(
+			ctx,
 			resource_security_project.ProductTypesValue{}.Type(ctx),
 			productTypeValues,
 		)
@@ -400,7 +356,7 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		}
 		model.ProductTypes = productTypesList
 	} else {
-		model.ProductTypes = types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx))
+		model.ProductTypes = resource_security_project.NewProductTypesListValueNull()
 	}
 
 	return true, model, nil

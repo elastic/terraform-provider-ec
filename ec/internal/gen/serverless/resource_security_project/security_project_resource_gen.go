@@ -210,8 +210,9 @@ func SecurityProjectResourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 				},
-				Optional: true,
-				Computed: true,
+				CustomType: ProductTypesListType{ListType: types.ListType{ElemType: ProductTypesType{ObjectType: types.ObjectType{AttrTypes: ProductTypesValue{}.AttributeTypes(ctx)}}}},
+				Optional:   true,
+				Computed:   true,
 				Validators: []validator.List{
 					listvalidator.SizeBetween(2, 3),
 				},
@@ -234,17 +235,17 @@ func SecurityProjectResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type SecurityProjectModel struct {
-	AdminFeaturesPackage types.String     `tfsdk:"admin_features_package"`
-	Alias                types.String     `tfsdk:"alias"`
-	CloudId              types.String     `tfsdk:"cloud_id"`
-	Credentials          CredentialsValue `tfsdk:"credentials"`
-	Endpoints            EndpointsValue   `tfsdk:"endpoints"`
-	Id                   types.String     `tfsdk:"id"`
-	Metadata             MetadataValue    `tfsdk:"metadata"`
-	Name                 types.String     `tfsdk:"name"`
-	ProductTypes         types.List       `tfsdk:"product_types"`
-	RegionId             types.String     `tfsdk:"region_id"`
-	Type                 types.String     `tfsdk:"type"`
+	AdminFeaturesPackage types.String          `tfsdk:"admin_features_package"`
+	Alias                types.String          `tfsdk:"alias"`
+	CloudId              types.String          `tfsdk:"cloud_id"`
+	Credentials          CredentialsValue      `tfsdk:"credentials"`
+	Endpoints            EndpointsValue        `tfsdk:"endpoints"`
+	Id                   types.String          `tfsdk:"id"`
+	Metadata             MetadataValue         `tfsdk:"metadata"`
+	Name                 types.String          `tfsdk:"name"`
+	ProductTypes         ProductTypesListValue `tfsdk:"product_types"`
+	RegionId             types.String          `tfsdk:"region_id"`
+	Type                 types.String          `tfsdk:"type"`
 }
 
 var _ basetypes.ObjectTypable = CredentialsType{}

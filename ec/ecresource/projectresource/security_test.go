@@ -56,11 +56,10 @@ func TestSecurityModelReader_Schema(t *testing.T) {
 	require.Len(t, adminFeaturesAttr.PlanModifiers, 1)
 	require.IsType(t, stringplanmodifier.UseStateForUnknown(), adminFeaturesAttr.PlanModifiers[0])
 
-	// Verify that plan modifiers are added to product_types
+	// Verify that plan modifier and custom type are added to product_types
 	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
-	require.Len(t, productTypesAttr.PlanModifiers, 2)
+	require.Len(t, productTypesAttr.PlanModifiers, 1)
 	require.IsType(t, listplanmodifier.UseStateForUnknown(), productTypesAttr.PlanModifiers[0])
-	require.IsType(t, productTypesSemanticEqualityModifier{}, productTypesAttr.PlanModifiers[1])
 }
 
 func TestSecurityModelReader_ReadFrom(t *testing.T) {
@@ -75,12 +74,15 @@ func TestSecurityModelReader_ReadFrom(t *testing.T) {
 		{
 			name: "should read a basic model back",
 			testData: func() testData {
+				productTypesList, diags := resource_security_project.NewProductTypesListValueFrom(
+					t.Context(),
+					resource_security_project.ProductTypesValue{}.Type(t.Context()),
+					[]attr.Value{},
+				)
+				require.Empty(t, diags)
 				model := resource_security_project.SecurityProjectModel{
-					Id: basetypes.NewStringValue("id"),
-					ProductTypes: basetypes.NewListValueMust(
-						resource_security_project.SecurityProjectResourceSchema(context.Background()).Attributes["product_types"].GetType().(attr.TypeWithElementType).ElementType(),
-						[]attr.Value{},
-					),
+					Id:           basetypes.NewStringValue("id"),
+					ProductTypes: productTypesList,
 				}
 
 				return testData{
@@ -921,7 +923,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringNull(),
-					ProductTypes:         types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx)),
+					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -996,7 +998,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringNull(),
-					ProductTypes:         types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx)),
+					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1101,7 +1103,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringValue("enterprise"),
-					ProductTypes:         types.ListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), expectedProductTypes),
+					ProductTypes:         resource_security_project.NewProductTypesListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), expectedProductTypes),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1147,7 +1149,7 @@ func TestSecurityApi_Read(t *testing.T) {
 				initialModel := resource_security_project.SecurityProjectModel{
 					Id:                   types.StringValue(id),
 					AdminFeaturesPackage: basetypes.NewStringValue("standard"),
-					ProductTypes:         types.ListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), configuredProductTypes),
+					ProductTypes:         resource_security_project.NewProductTypesListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), configuredProductTypes),
 				}
 
 				// API response doesn't include admin_features_package or product_types
@@ -1200,7 +1202,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringNull(),
-					ProductTypes:         types.ListNull(resource_security_project.ProductTypesValue{}.Type(ctx)),
+					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
