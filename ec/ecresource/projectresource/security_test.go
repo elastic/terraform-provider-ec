@@ -1058,20 +1058,18 @@ func TestSecurityApi_Read(t *testing.T) {
 					ProductTypes:         &productTypes,
 				}
 
-				// Expected product types in sorted order (alphabetically by product_line, then product_tier)
-				// API returns [security, cloud] but Read() sorts them to [cloud, security]
 				expectedProductTypes := []attr.Value{
 					resource_security_project.NewProductTypesValueMust(
 						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"product_line": basetypes.NewStringValue("cloud"),
+							"product_line": basetypes.NewStringValue("security"),
 							"product_tier": basetypes.NewStringValue("complete"),
 						},
 					),
 					resource_security_project.NewProductTypesValueMust(
 						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"product_line": basetypes.NewStringValue("security"),
+							"product_line": basetypes.NewStringValue("cloud"),
 							"product_tier": basetypes.NewStringValue("complete"),
 						},
 					),
