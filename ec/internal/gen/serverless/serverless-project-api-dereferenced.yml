@@ -44,6 +44,7 @@ paths:
           in: query
           description: Token to the next page containing the list of projects.
           required: false
+
           schema:
             type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
@@ -302,6 +303,7 @@ paths:
           in: query
           description: Token to the next page containing the list of projects.
           required: false
+
           schema:
             type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
@@ -562,6 +564,7 @@ paths:
           in: query
           description: Token to the next page containing the list of projects.
           required: false
+
           schema:
             type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
@@ -912,6 +915,8 @@ components:
           $ref: '#/components/schemas/ProjectAlias'
         region_id:
           $ref: '#/components/schemas/RegionID'
+        product_tier:
+          $ref: "#/components/schemas/ObservabilityProjectProductTier"
       additionalProperties: false
     CreateSecurityProjectRequest:
       type: object
@@ -1127,6 +1132,8 @@ components:
           description: the type of the project
           enum:
             - observability
+        product_tier:
+          $ref: "#/components/schemas/ObservabilityProjectProductTier"
         endpoints:
           $ref: '#/components/schemas/ObservabilityProjectEndpoints'
     ObservabilityProjectCreated:
@@ -1199,6 +1206,11 @@ components:
           description: The actual projects.
           items:
             $ref: '#/components/schemas/ObservabilityProject'
+    ObservabilityProjectProductTier:
+      description: the tier of the observability project
+      type: string
+      enum: [complete, logs_essentials]
+      default: complete
     OptionalElasticsearchSearchLake:
       type: object
       description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
@@ -1242,6 +1254,8 @@ components:
           $ref: '#/components/schemas/ProjectName'
         alias:
           $ref: '#/components/schemas/ProjectAlias'
+        product_tier:
+          $ref: "#/components/schemas/ObservabilityProjectProductTier"
       additionalProperties: false
     PatchSecurityProjectRequest:
       type: object
