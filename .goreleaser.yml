@@ -42,14 +42,14 @@ signs:
       # need to pass the batch flag to indicate its not interactive.
       - "--batch"
       - "--local-user"
-      - "{{ .Env.GPG_FINGERPRINT_SECRET }}" # set this environment variable for your signing key
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
       - "--output"
       - "${signature}"
       - "--detach-sign"
       - "${artifact}"
 release:
   github:
-    owner: elastic
+    owner: nutshelllabs
     name: terraform-provider-ec
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
