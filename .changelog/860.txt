@@ -1,3 +1,0 @@
-```release-note:bug
-datasource/gcp_private_service_connect_endpoint: Add missing regions.
-```

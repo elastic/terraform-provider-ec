@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Fixes a bug where a validation would fail when using a dynamic stack version (e.g. `data.ec_stack.latest.version`)
-```
