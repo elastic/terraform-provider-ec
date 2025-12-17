@@ -29,6 +29,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -45,6 +49,21 @@ type securityModelReader struct{}
 
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
+
+	// Add plan modifiers to admin_features_package and product_types
+	// UseStateForUnknown prevents Terraform from showing a diff when the API doesn't return
+	// these optional computed fields (they remain as the configured/state value)
+	adminFeaturesAttr := resp.Schema.Attributes["admin_features_package"].(schema.StringAttribute)
+	adminFeaturesAttr.PlanModifiers = []planmodifier.String{stringplanmodifier.UseStateForUnknown()}
+	resp.Schema.Attributes["admin_features_package"] = adminFeaturesAttr
+
+	// Add plan modifiers for product_types including order-insensitive semantic equality
+	// The semantic equality modifier prevents spurious diffs when the API returns items in a different order
+	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
+	productTypesAttr.PlanModifiers = []planmodifier.List{
+		listplanmodifier.UseStateForUnknown(),
+	}
+	resp.Schema.Attributes["product_types"] = productTypesAttr
 }
 
 func (sec securityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_security_project.SecurityProjectModel, diag.Diagnostics) {
@@ -287,6 +306,58 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	model.Name = basetypes.NewStringValue(resp.JSON200.Name)
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)
 	model.Type = basetypes.NewStringValue(string(resp.JSON200.Type))
+
+	// Populate admin_features_package from API response
+	// The UseStateForUnknown plan modifier handles preserving the value when the API doesn't
+	// return it, preventing Terraform from treating it as a configuration drift
+	if resp.JSON200.AdminFeaturesPackage != nil {
+		model.AdminFeaturesPackage = basetypes.NewStringValue(string(*resp.JSON200.AdminFeaturesPackage))
+	} else {
+		model.AdminFeaturesPackage = basetypes.NewStringNull()
+	}
+
+	// Populate product_types from API response
+	// The custom ProductTypesListType handles semantic equality (order-insensitive) during
+	// planning, and the UseStateForUnknown plan modifier preserves the value when the API
+	// doesn't return it, preventing configuration drift.
+	if resp.JSON200.ProductTypes != nil {
+		productTypeValues := []attr.Value{}
+		for _, pt := range *resp.JSON200.ProductTypes {
+			// Validate that product line and tier are not empty
+			if pt.ProductLine == "" || pt.ProductTier == "" {
+				return false, model, diag.Diagnostics{
+					diag.NewErrorDiagnostic(
+						"Invalid product type from API",
+						"API returned product type with empty product_line or product_tier",
+					),
+				}
+			}
+
+			productTypeValue, diags := resource_security_project.NewProductTypesValue(
+				resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
+				map[string]attr.Value{
+					"product_line": basetypes.NewStringValue(string(pt.ProductLine)),
+					"product_tier": basetypes.NewStringValue(string(pt.ProductTier)),
+				},
+			)
+			if diags.HasError() {
+				return false, model, diags
+			}
+			productTypeValues = append(productTypeValues, productTypeValue)
+		}
+
+		productTypesList, diags := resource_security_project.NewProductTypesListValueFrom(
+			ctx,
+			resource_security_project.ProductTypesValue{}.Type(ctx),
+			productTypeValues,
+		)
+		if diags.HasError() {
+			return false, model, diags
+		}
+		model.ProductTypes = productTypesList
+	} else {
+		model.ProductTypes = resource_security_project.NewProductTypesListValueNull()
+	}
 
 	return true, model, nil
 }

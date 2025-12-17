@@ -87,22 +87,41 @@ func TestAccSecurityProject(t *testing.T) {
 	})
 }
 
+func TestAccSecurityProjectWithAdminFeaturesAndProductTypes(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create project with admin_features_package and product_types
+				// Verify these fields are correctly populated from API response
+				Config: testAccSecurityProjectWithAdminFeaturesAndProductTypes(resId, randomName, region, "standard"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "admin_features_package"),
+					resource.TestCheckResourceAttrSet(resourceName, "product_types.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "product_types.0.product_line"),
+					resource.TestCheckResourceAttrSet(resourceName, "product_types.0.product_tier"),
+				),
+			},
+		},
+	})
+}
+
 func testAccBasicSecurityProject(id string, name string, region string) string {
 	return fmt.Sprintf(`
 resource ec_security_project "%s" {
 	name = "%s"
 	region_id = "%s"
-	admin_features_package = "standard"
-	product_types = [{
-	  product_line = "security"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "cloud"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "endpoint"
-	  product_tier = "essentials"
-	}]
 }
 `, id, name, region)
 }
@@ -113,19 +132,28 @@ resource ec_security_project "%s" {
 	name = "%s"
 	region_id = "%s"
 	alias = "%s"
-	admin_features_package = "standard"
-	product_types = [{
-	  product_line = "security"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "cloud"
-	  product_tier = "essentials"
-	}, {
-	  product_line = "endpoint"
-	  product_tier = "essentials"
-	}]
 }
 `, id, name, region, alias)
+}
+
+func testAccSecurityProjectWithAdminFeaturesAndProductTypes(id string, name string, region string, adminPackage string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name = "%s"
+	region_id = "%s"
+	admin_features_package = "%s"
+	product_types = [
+		{
+			product_line = "endpoint"
+			product_tier = "essentials"
+		},
+		{
+			product_line = "security"
+			product_tier = "essentials"
+		}
+	]
+}
+`, id, name, region, adminPackage)
 }
 
 func testAccSecurityProjectDestroy(s *terraform.State) error {
