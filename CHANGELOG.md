@@ -1,3 +1,13 @@
+# 0.12.3 (December 5, 2024)
+
+FEATURES:
+
+* resource/observability_project: Support `product_tier` attribute in ec_security_project, allowing the creation of log essential project types. ([#940](https://github.com/elastic/terraform-provider-ec/issues/940))
+
+BUG FIXES:
+
+* resource/security_project: Populate admin_features_package and product_types in ec_security_project ([#938](https://github.com/elastic/terraform-provider-ec/issues/938))
+
 # 0.12.2 (December 5, 2024)
 
 BUG FIXES:

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 export GO111MODULE ?= on
-export VERSION := 0.12.2-dev
+export VERSION := 0.12.3-dev
 export BINARY := terraform-provider-ec
 export GOBIN = $(shell pwd)/bin
 

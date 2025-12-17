@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Correctly handle deployment-alias being set to empty value. Setting an empty value should remove the alias instead of ignoring the change.
-```

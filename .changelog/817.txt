@@ -1,3 +1,0 @@
-```release-note:feature
-resource/project: Adds `elasticsearch_project`, `observability_project`, and `security_project` resources to manage Serverless projects.
-```

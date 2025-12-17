@@ -1,0 +1,3 @@
+```release-note:feature
+resource/observability_project: Support `product_tier` attribute in ec_security_project, allowing the creation of log essential project types.
+```

@@ -1,3 +1,0 @@
-```release-note:bug
-resource/deployment: Don't use nil state for a computed attribute.
-```
