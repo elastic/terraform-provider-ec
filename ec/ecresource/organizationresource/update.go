@@ -20,14 +20,15 @@ package organizationresource
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api/organizationapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"sort"
-	"strings"
 )
 
 func (r *Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
@@ -127,11 +128,19 @@ func (r *Resource) updateMember(
 
 		add, remove := diffRoleAssignments(stateApiMember.RoleAssignments, planApiMember.RoleAssignments)
 
-		if hasChanges(add) {
-			_, err := organizationapi.AddRoleAssignments(organizationapi.AddRoleAssignmentsParams{
+		// Remove role assignments first.
+		// Some new roles may partially overlap with old roles,
+		// if we add the new roles first, then any old, partial overlaps will be removed
+		// causing the provider to error.
+		// For example:
+		// - User is admin currently for deployment abc123
+		// - User is planned to be admin for deployments abc123 and def456
+		// If we add the new role first, we will remove the admin role from abc123 afterwards, creating an error
+		if hasChanges(remove) {
+			_, err := organizationapi.RemoveRoleAssignments(organizationapi.RemoveRoleAssignmentsParams{
 				API:             r.client,
 				UserID:          planMember.UserID.ValueString(),
-				RoleAssignments: add,
+				RoleAssignments: remove,
 			})
 			if err != nil {
 				diagnostics.Append(diag.NewErrorDiagnostic("Updating member roles failed.", err.Error()))
@@ -139,11 +148,11 @@ func (r *Resource) updateMember(
 			}
 		}
 
-		if hasChanges(remove) {
-			_, err := organizationapi.RemoveRoleAssignments(organizationapi.RemoveRoleAssignmentsParams{
+		if hasChanges(add) {
+			_, err := organizationapi.AddRoleAssignments(organizationapi.AddRoleAssignmentsParams{
 				API:             r.client,
 				UserID:          planMember.UserID.ValueString(),
-				RoleAssignments: remove,
+				RoleAssignments: add,
 			})
 			if err != nil {
 				diagnostics.Append(diag.NewErrorDiagnostic("Updating member roles failed.", err.Error()))
