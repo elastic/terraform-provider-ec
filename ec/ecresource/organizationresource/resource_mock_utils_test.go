@@ -189,7 +189,7 @@ func buildInvitationModel(email string) *models.OrganizationInvitation {
 	}
 }
 
-func addRoleAssignments() mock.Response {
+func addRoleAssignments(deploymentAssignments []*models.DeploymentRoleAssignment) mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
 			Host:   api.DefaultMockHost,
@@ -197,20 +197,8 @@ func addRoleAssignments() mock.Response {
 			Method: "POST",
 			Path:   "/api/v1/users/userid2/role_assignments",
 			Body: mock.NewStructBody(models.RoleAssignments{
-				Deployment: []*models.DeploymentRoleAssignment{
-					{
-						All:            ec.Bool(false),
-						OrganizationID: orgId,
-						RoleID:         ec.String("deployment-editor"),
-						DeploymentIds:  []string{"abc"},
-					},
-					{
-						OrganizationID: orgId,
-						RoleID:         ec.String("deployment-viewer"),
-						All:            ec.Bool(true),
-					},
-				},
-				Project: &models.ProjectRoleAssignments{},
+				Deployment: deploymentAssignments,
+				Project:    &models.ProjectRoleAssignments{},
 			}),
 		},
 		mock.NewStringBody("{}"),
@@ -250,7 +238,7 @@ func addRoleAssignmentsFails() mock.Response {
 	)
 }
 
-func removeRoleAssignments() mock.Response {
+func removeRoleAssignments(deploymentAssignments []*models.DeploymentRoleAssignment, orgAssignments []*models.OrganizationRoleAssignment) mock.Response {
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
 			Host:   api.DefaultMockHost,
@@ -258,21 +246,9 @@ func removeRoleAssignments() mock.Response {
 			Method: "DELETE",
 			Path:   "/api/v1/users/userid2/role_assignments",
 			Body: mock.NewStructBody(models.RoleAssignments{
-				Organization: []*models.OrganizationRoleAssignment{
-					{
-						OrganizationID: orgId,
-						RoleID:         ec.String("organization-admin"),
-					},
-				},
-				Deployment: []*models.DeploymentRoleAssignment{
-					{
-						All:            ec.Bool(false),
-						OrganizationID: orgId,
-						RoleID:         ec.String("deployment-editor"),
-						DeploymentIds:  []string{"abc"},
-					},
-				},
-				Project: &models.ProjectRoleAssignments{},
+				Organization: orgAssignments,
+				Deployment:   deploymentAssignments,
+				Project:      &models.ProjectRoleAssignments{},
 			}),
 		},
 		mock.NewStringBody("{}"),
