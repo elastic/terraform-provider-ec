@@ -1,3 +1,11 @@
+# 0.12.4 (December 19, 2024)
+
+BUG FIXES:
+
+* resource/organization: Fix a bug where adding deployments or projects to an existing user would:
+  * Remove the existing resource permissions
+  * Cause the provider to fail with an inconsistent state error ([#957](https://github.com/elastic/terraform-provider-ec/issues/957))
+
 # 0.12.3 (December 5, 2024)
 
 FEATURES:
