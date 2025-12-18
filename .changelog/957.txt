@@ -1,0 +1,5 @@
+```release-note:bug
+resource/organization: Fix a bug where adding deployments or projects to an existing user would:
+* Remove the existing resource permissions
+* Cause the provider to fail with an inconsistent state error
+```

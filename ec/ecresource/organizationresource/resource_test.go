@@ -42,6 +42,7 @@ func Test(t *testing.T) {
 	configWithUpdatedNewMember := buildConfig(addedMemberWithUpdate)
 	configWithAddedRoles := buildConfig(memberWithNewRoles)
 	configWithRemovedRoles := buildConfig(memberWithRemovedRoles)
+	configWithOverlappingRoles := buildConfig(memberWithOverlappingRoles)
 
 	newUserInvitation := buildInvitationModel("newuser@example.com")
 	updatedUserInvitation := buildInvitationModel("newuser@example.com")
@@ -68,6 +69,20 @@ func Test(t *testing.T) {
 	newMemberWithRemovedRoles := buildNewMember()
 	newMemberWithRemovedRoles.RoleAssignments.Organization = []*models.OrganizationRoleAssignment{}
 	newMemberWithRemovedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
+		{
+			OrganizationID: orgId,
+			RoleID:         ec.String("deployment-viewer"),
+			All:            ec.Bool(true),
+		},
+	}
+	newMemberWithOverlappingRoles := buildNewMember()
+	newMemberWithOverlappingRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
+		{
+			All:            ec.Bool(false),
+			OrganizationID: orgId,
+			RoleID:         ec.String("deployment-editor"),
+			DeploymentIds:  []string{"abc", "def"},
+		},
 		{
 			OrganizationID: orgId,
 			RoleID:         ec.String("deployment-viewer"),
@@ -284,7 +299,7 @@ func Test(t *testing.T) {
 				// Apply
 				getMembers([]*models.OrganizationMembership{existingMember, newMember}),
 				getInvitations(nil),
-				addRoleAssignments(),
+				addRoleAssignments(newMemberWithAddedRoles.RoleAssignments.Deployment),
 				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
 				getInvitations(nil),
 				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
@@ -321,10 +336,67 @@ func Test(t *testing.T) {
 				// Apply
 				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
 				getInvitations(nil),
-				removeRoleAssignments(),
+				removeRoleAssignments([]*models.DeploymentRoleAssignment{
+					newMemberWithAddedRoles.RoleAssignments.Deployment[0],
+				}, []*models.OrganizationRoleAssignment{
+					{
+						OrganizationID: orgId,
+						RoleID:         ec.String("organization-admin"),
+					},
+				}),
 				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
 				getInvitations(nil),
 				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
+				getInvitations(nil),
+			},
+		},
+		{
+			name: "overlapping roles should first remove the existing assignments before adding the new ones",
+			steps: []resource.TestStep{
+				{
+					ImportState:        true,
+					ResourceName:       "ec_organization.myorg",
+					ImportStateId:      "123",
+					Config:             configWithAddedRoles,
+					ImportStatePersist: true,
+				},
+				{
+					Config: configWithOverlappingRoles,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr(resourceName, "members.%", "2"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.email", "newuser@example.com"),
+						resource.TestCheckResourceAttr(resourceName, "members.newuser@example.com.organization_role", "organization-admin"),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.newuser@example.com.deployment_roles.*", map[string]string{
+							"role":            "viewer",
+							"all_deployments": "true",
+						}),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.newuser@example.com.deployment_roles.*", map[string]string{
+							"role":             "editor",
+							"all_deployments":  "false",
+							"deployment_ids.0": "abc",
+							"deployment_ids.1": "def",
+						}),
+					),
+				},
+			},
+			apiMock: []mock.Response{
+				// Import
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				// Apply
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithAddedRoles}),
+				getInvitations(nil),
+				removeRoleAssignments([]*models.DeploymentRoleAssignment{
+					newMemberWithAddedRoles.RoleAssignments.Deployment[0],
+				}, nil),
+				addRoleAssignments([]*models.DeploymentRoleAssignment{
+					newMemberWithOverlappingRoles.RoleAssignments.Deployment[0],
+				}),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithOverlappingRoles}),
+				getInvitations(nil),
+				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithOverlappingRoles}),
 				getInvitations(nil),
 			},
 		},
@@ -672,6 +744,23 @@ const memberWithRemovedRoles = `
         {
           role = "viewer"
           all_deployments = true
+        }
+      ]
+    }
+`
+
+const memberWithOverlappingRoles = `
+    "newuser@example.com" = {
+      organization_role = "organization-admin"
+
+      deployment_roles = [
+        {
+          role = "viewer"
+          all_deployments = true
+        },
+        {
+          role = "editor"
+          deployment_ids = ["abc", "def"]
         }
       ]
     }
