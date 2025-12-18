@@ -1,3 +1,0 @@
-```release-note:bug
-resource/security_project: Populate admin_features_package and product_types in ec_security_project
-```
