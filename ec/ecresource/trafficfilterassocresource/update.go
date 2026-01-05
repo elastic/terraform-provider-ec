@@ -24,5 +24,8 @@ import (
 )
 
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
-	panic("ec_deployment_traffic_filter_association resources can not be updated!")
+	response.Diagnostics.AddError(
+		"Update not supported",
+		"ec_deployment_traffic_filter_association resources can not be updated!",
+	)
 }

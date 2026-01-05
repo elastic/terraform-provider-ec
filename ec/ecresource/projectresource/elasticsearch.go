@@ -92,6 +92,7 @@ type sleeper interface {
 type realSleeper struct{}
 
 func (r realSleeper) Sleep(d time.Duration) {
+	//lintignore:R018 // Intentionally wrapped for testability
 	time.Sleep(d)
 }
 

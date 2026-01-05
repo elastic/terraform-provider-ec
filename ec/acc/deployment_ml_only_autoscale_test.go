@@ -28,7 +28,7 @@ import (
 // Machine Learning nodes can be auto-scaled exclusively, while the data tier remains being managed manually.
 //
 // This feature leverages `autoscaling_tier_override` parameter within the ML topology element of the API payload.
-func TestAccDeploymentWithMLOnlyAutoscale(t *testing.T) {
+func TestAcc_DeploymentWithMLOnlyAutoscale(t *testing.T) {
 
 	resourceName := "ec_deployment.autoscale_ml"
 	initialTfConfigWithMlAutoscale := "testdata/deployment_autoscale_ml.tf"
