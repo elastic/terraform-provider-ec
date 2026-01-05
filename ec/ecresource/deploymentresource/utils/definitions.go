@@ -17,7 +17,7 @@
 
 package utils
 
-import "github.com/blang/semver"
+import "github.com/blang/semver/v4"
 
 const (
 	MinimumZoneCount = 1

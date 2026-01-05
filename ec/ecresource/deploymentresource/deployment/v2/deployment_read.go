@@ -26,7 +26,7 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 

@@ -21,7 +21,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
