@@ -81,10 +81,17 @@ func TestAccSecurityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
-				),
-			},
+			),
 		},
-	})
+		{
+			// Test import.
+			ResourceName:            resourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"credentials"},
+		},
+	},
+})
 }
 
 func TestAccSecurityProjectWithAdminFeaturesAndProductTypes(t *testing.T) {
@@ -154,6 +161,52 @@ resource ec_security_project "%s" {
 	]
 }
 `, id, name, region, adminPackage)
+}
+
+func TestAccSecurityProjectImport(t *testing.T) {
+	resId := "import_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix("aws-", region) {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create a project to import.
+				Config: testAccBasicSecurityProject(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				// Import the project and verify all attributes.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "region_id", region),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_at"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_by"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.organization_id"),
+					resource.TestCheckResourceAttr(resourceName, "type", "security"),
+				),
+			},
+		},
+	})
 }
 
 func testAccSecurityProjectDestroy(s *terraform.State) error {

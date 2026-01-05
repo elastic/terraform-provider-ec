@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/mocks"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -180,5 +181,140 @@ func TestModifyPlan(t *testing.T) {
 		var id string
 		res.Plan.GetAttribute(ctx, path.Root("id"), &id)
 		require.Equal(t, planModel.Id.ValueString(), id)
+	})
+}
+
+func TestImportState(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	t.Run("should error when api is not ready", func(t *testing.T) {
+		ctx := context.Background()
+		req := resource.ImportStateRequest{
+			ID: "project-id",
+		}
+		res := resource.ImportStateResponse{
+			State: tfsdk.State{
+				Schema: resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx),
+			},
+		}
+
+		mockApi := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockApi.EXPECT().Ready().Return(false)
+
+		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
+			api: mockApi,
+		}
+		r.ImportState(ctx, req, &res)
+
+		require.True(t, res.Diagnostics.HasError())
+		require.Contains(t, res.Diagnostics.Errors()[0].Summary(), "Unconfigured API Client")
+	})
+
+	t.Run("should error when project is not found", func(t *testing.T) {
+		ctx := context.Background()
+		projectID := "non-existent-project-id"
+		req := resource.ImportStateRequest{
+			ID: projectID,
+		}
+		res := resource.ImportStateResponse{
+			State: tfsdk.State{
+				Schema: resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx),
+			},
+		}
+
+		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{}
+
+		mockApi := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockApi.EXPECT().Ready().Return(true)
+		mockApi.EXPECT().Read(ctx, projectID, emptyModel).Return(false, emptyModel, nil)
+
+		mockHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockHandler.EXPECT().NewEmptyModel().Return(emptyModel)
+
+		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
+			api:          mockApi,
+			modelHandler: mockHandler,
+		}
+		r.ImportState(ctx, req, &res)
+
+		require.True(t, res.Diagnostics.HasError())
+		require.Contains(t, res.Diagnostics.Errors()[0].Summary(), "Resource not found")
+	})
+
+	t.Run("should error when api read fails", func(t *testing.T) {
+		ctx := context.Background()
+		projectID := "project-id"
+		req := resource.ImportStateRequest{
+			ID: projectID,
+		}
+		res := resource.ImportStateResponse{
+			State: tfsdk.State{
+				Schema: resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx),
+			},
+		}
+
+		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{}
+
+		mockApi := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockApi.EXPECT().Ready().Return(true)
+		mockApi.EXPECT().Read(ctx, projectID, emptyModel).Return(false, emptyModel, diag.Diagnostics{
+			diag.NewErrorDiagnostic("API Error", "Failed to read project"),
+		})
+
+		mockHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockHandler.EXPECT().NewEmptyModel().Return(emptyModel)
+
+		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
+			api:          mockApi,
+			modelHandler: mockHandler,
+		}
+		r.ImportState(ctx, req, &res)
+
+		require.True(t, res.Diagnostics.HasError())
+		require.Contains(t, res.Diagnostics.Errors()[0].Summary(), "API Error")
+	})
+
+	t.Run("should successfully import project", func(t *testing.T) {
+		ctx := context.Background()
+		projectID := "project-id"
+		req := resource.ImportStateRequest{
+			ID: projectID,
+		}
+		res := resource.ImportStateResponse{
+			State: tfsdk.State{
+				Schema: resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx),
+			},
+		}
+
+		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{}
+		readModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+			Id:       types.StringValue(projectID),
+			Name:     types.StringValue("imported-project"),
+			RegionId: types.StringValue("us-east-1"),
+		}
+
+		mockApi := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockApi.EXPECT().Ready().Return(true)
+		mockApi.EXPECT().Read(ctx, projectID, emptyModel).Return(true, readModel, nil)
+
+		mockHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+		mockHandler.EXPECT().NewEmptyModel().Return(emptyModel)
+
+		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
+			api:          mockApi,
+			modelHandler: mockHandler,
+		}
+		r.ImportState(ctx, req, &res)
+
+		require.False(t, res.Diagnostics.HasError())
+
+		// Validate that the imported values were set in the state
+		var id string
+		res.State.GetAttribute(ctx, path.Root("id"), &id)
+		require.Equal(t, projectID, id)
+
+		var name string
+		res.State.GetAttribute(ctx, path.Root("name"), &name)
+		require.Equal(t, "imported-project", name)
 	})
 }

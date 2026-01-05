@@ -57,6 +57,10 @@ func (es elasticsearchModelReader) GetID(model resource_elasticsearch_project.El
 	return model.Id.ValueString()
 }
 
+func (es elasticsearchModelReader) NewEmptyModel() resource_elasticsearch_project.ElasticsearchProjectModel {
+	return resource_elasticsearch_project.ElasticsearchProjectModel{}
+}
+
 func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.ElasticsearchProjectModel, state resource_elasticsearch_project.ElasticsearchProjectModel, cfg resource_elasticsearch_project.ElasticsearchProjectModel) resource_elasticsearch_project.ElasticsearchProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)

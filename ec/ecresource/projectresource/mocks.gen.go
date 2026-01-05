@@ -151,6 +151,20 @@ func (mr *MockmodelHandlerMockRecorder[T]) Schema(arg0, arg1, arg2 any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Schema", reflect.TypeOf((*MockmodelHandler[T])(nil).Schema), arg0, arg1, arg2)
 }
 
+// NewEmptyModel mocks base method.
+func (m *MockmodelHandler[T]) NewEmptyModel() T {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewEmptyModel")
+	ret0, _ := ret[0].(T)
+	return ret0
+}
+
+// NewEmptyModel indicates an expected call of NewEmptyModel.
+func (mr *MockmodelHandlerMockRecorder[T]) NewEmptyModel() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmptyModel", reflect.TypeOf((*MockmodelHandler[T])(nil).NewEmptyModel))
+}
+
 // Mockapi is a mock of api interface.
 type Mockapi[TModel any] struct {
 	ctrl     *gomock.Controller

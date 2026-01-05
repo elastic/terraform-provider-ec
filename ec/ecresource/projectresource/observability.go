@@ -55,6 +55,10 @@ func (obs observabilityModelReader) GetID(model resource_observability_project.O
 	return model.Id.ValueString()
 }
 
+func (obs observabilityModelReader) NewEmptyModel() resource_observability_project.ObservabilityProjectModel {
+	return resource_observability_project.ObservabilityProjectModel{}
+}
+
 func (obs observabilityModelReader) Modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)

@@ -33,6 +33,7 @@ import (
 var _ resource.Resource = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 var _ resource.ResourceWithConfigure = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 var _ resource.ResourceWithModifyPlan = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
+var _ resource.ResourceWithImportState = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 
 type Resource[T any] struct {
 	modelHandler modelHandler[T]
@@ -52,6 +53,7 @@ type modelHandler[T any] interface {
 	ReadFrom(context.Context, modelGetter) (*T, diag.Diagnostics)
 	GetID(T) string
 	Modify(T, T, T) T
+	NewEmptyModel() T
 }
 
 type api[TModel any] interface {
