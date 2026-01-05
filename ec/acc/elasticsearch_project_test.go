@@ -81,17 +81,17 @@ func TestAccElasticsearchProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
-			),
+				),
+			},
+			{
+				// Test import.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+			},
 		},
-		{
-			// Test import.
-			ResourceName:            resourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"credentials"},
-		},
-	},
-})
+	})
 }
 
 func testAccBasicElasticsearchProject(id string, name string, region string) string {
