@@ -53,7 +53,6 @@ type modelHandler[T any] interface {
 	ReadFrom(context.Context, modelGetter) (*T, diag.Diagnostics)
 	GetID(T) string
 	Modify(T, T, T) T
-	NewEmptyModel() T
 }
 
 type api[TModel any] interface {

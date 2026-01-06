@@ -20,32 +20,10 @@ package projectresource
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *Resource[T]) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
-	if !resourceReady(r, &response.Diagnostics) {
-		return
-	}
-
-	projectID := request.ID
-
-	// Create an empty model to populate with data from the API
-	emptyModel := r.modelHandler.NewEmptyModel()
-
-	found, model, diags := r.api.Read(ctx, projectID, emptyModel)
-	response.Diagnostics.Append(diags...)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
-	if !found {
-		response.Diagnostics.AddError(
-			"Resource not found",
-			"No project was found with the specified ID: "+projectID,
-		)
-		return
-	}
-
-	response.Diagnostics.Append(response.State.Set(ctx, model)...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
 }

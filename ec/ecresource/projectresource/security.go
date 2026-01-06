@@ -74,10 +74,6 @@ func (sec securityModelReader) GetID(model resource_security_project.SecurityPro
 	return model.Id.ValueString()
 }
 
-func (sec securityModelReader) NewEmptyModel() resource_security_project.SecurityProjectModel {
-	return resource_security_project.SecurityProjectModel{}
-}
-
 func (sec securityModelReader) Modify(plan resource_security_project.SecurityProjectModel, state resource_security_project.SecurityProjectModel, cfg resource_security_project.SecurityProjectModel) resource_security_project.SecurityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
