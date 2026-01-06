@@ -3,7 +3,6 @@ module github.com/elastic/terraform-provider-ec
 go 1.24.3
 
 require (
-	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
 	github.com/elastic/cloud-sdk-go v1.24.2
 	github.com/go-openapi/runtime v0.29.2
