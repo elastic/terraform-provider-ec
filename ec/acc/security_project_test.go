@@ -163,7 +163,7 @@ resource ec_security_project "%s" {
 `, id, name, region, adminPackage)
 }
 
-func TestAccSecurityProjectImport(t *testing.T) {
+func TestAcc_SecurityProjectImport(t *testing.T) {
 	resId := "import_project"
 	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)

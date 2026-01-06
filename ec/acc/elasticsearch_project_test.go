@@ -113,7 +113,7 @@ resource ec_elasticsearch_project "%s" {
 `, id, name, region, alias)
 }
 
-func TestAccElasticsearchProjectImport(t *testing.T) {
+func TestAcc_ElasticsearchProjectImport(t *testing.T) {
 	resId := "import_project"
 	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", resId)
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)

@@ -186,7 +186,7 @@ resource ec_observability_project "%s" {
 `, id, name, region, productTier)
 }
 
-func TestAccObservabilityProjectImport(t *testing.T) {
+func TestAcc_ObservabilityProjectImport(t *testing.T) {
 	resId := "import_project"
 	resourceName := fmt.Sprintf("ec_observability_project.%s", resId)
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
