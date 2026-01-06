@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccObservabilityProject(t *testing.T) {
+func TestAcc_ObservabilityProject(t *testing.T) {
 	resId := "my_project"
 	resourceName := fmt.Sprintf("ec_observability_project.%s", resId)
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
@@ -121,7 +121,7 @@ resource ec_observability_project "%s" {
 `, id, name, region, alias)
 }
 
-func TestAccObservabilityProjectTier(t *testing.T) {
+func TestAcc_ObservabilityProjectTier(t *testing.T) {
 	resId := "my_project"
 	resourceName := fmt.Sprintf("ec_observability_project.%s", resId)
 	newName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)

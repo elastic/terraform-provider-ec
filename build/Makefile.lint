@@ -4,9 +4,8 @@ lint: golangci-lint check-license tfproviderlint tfproviderdocs terrafmt fmt
 
 .PHONY: tfproviderlint
 tfproviderlint: tools
-	@ echo '-> Ignoring tfproviderlint until https://github.com/bflad/tfproviderlint/issues/255 is fixed...'
-	#@ echo "-> Checking source code against terraform provider linters..."
-	#@ $(GOBIN)/tfproviderlint ./...
+	@ echo "-> Checking source code against terraform provider linters..."
+	@ $(GOBIN)/tfproviderlint -v $$(go list ./... | grep -v '/gen/')
 
 .PHONY: tfproviderdocs
 tfproviderdocs: tools

@@ -21,7 +21,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"

@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccElasticsearchProject(t *testing.T) {
+func TestAcc_ElasticsearchProject(t *testing.T) {
 	resId := "my_project"
 	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", resId)
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
