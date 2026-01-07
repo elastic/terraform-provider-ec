@@ -25,6 +25,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -88,8 +89,17 @@ func TestAcc_SecurityProject(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				// TODO(gr): reenable after checking the order of product_types is not important
+				// product_types are verified by ImportPlanChecks, so can be ignored here.
 				ImportStateVerifyIgnore: []string{"credentials", "product_types"},
+				// Use ImportPlanChecks to verify semantic equality of product_types.
+				// ExpectEmptyPlan confirms that the plan after import shows no changes,
+				// which indicates semantic equality is working correctly even if product_types
+				// are returned in a different order by the API.
+				ImportPlanChecks: resource.ImportPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})
