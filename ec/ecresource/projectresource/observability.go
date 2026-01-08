@@ -277,6 +277,14 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)
 	model.Type = basetypes.NewStringValue(string(resp.JSON200.Type))
 
+	// Set product_tier from API response, defaulting to "complete" if not present
+	if resp.JSON200.ProductTier != nil {
+		model.ProductTier = basetypes.NewStringValue(string(*resp.JSON200.ProductTier))
+	} else {
+		// Default value as per schema
+		model.ProductTier = basetypes.NewStringValue(string(serverless.ObservabilityProjectProductTierComplete))
+	}
+
 	return true, model, nil
 }
 

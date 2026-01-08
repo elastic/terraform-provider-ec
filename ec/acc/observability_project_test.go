@@ -91,6 +91,13 @@ func TestAcc_ObservabilityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
 				),
 			},
+			{
+				// Test import.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+			},
 		},
 	})
 }
@@ -177,6 +184,53 @@ resource ec_observability_project "%s" {
 	product_tier = "%s"
 }
 `, id, name, region, productTier)
+}
+
+func TestAcc_ObservabilityProjectImport(t *testing.T) {
+	resId := "import_project"
+	resourceName := fmt.Sprintf("ec_observability_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix("aws-", region) {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccObservabilityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create a project to import.
+				Config: testAccBasicObservabilityProject(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				// Import the project and verify all attributes.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "region_id", region),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.apm"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_at"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_by"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.organization_id"),
+					resource.TestCheckResourceAttr(resourceName, "type", "observability"),
+				),
+			},
+		},
+	})
 }
 
 func testAccObservabilityProjectDestroy(s *terraform.State) error {

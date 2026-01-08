@@ -33,6 +33,7 @@ import (
 var _ resource.Resource = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 var _ resource.ResourceWithConfigure = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 var _ resource.ResourceWithModifyPlan = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
+var _ resource.ResourceWithImportState = &Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
 
 type Resource[T any] struct {
 	modelHandler modelHandler[T]

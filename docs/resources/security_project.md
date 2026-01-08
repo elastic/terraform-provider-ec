@@ -90,3 +90,5 @@ Projects can be imported using the `id`, for example:
 ```shell
 terraform import ec_security_project.id 320b7b540dfc967a7a649c18e2fce4ed
 ```
+
+~> **Note on Credentials** The `credentials` attribute (containing `username` and `password`) is only available when the project is first created. When importing an existing project, these credentials will not be available in the Terraform state as the API does not return them on read operations.

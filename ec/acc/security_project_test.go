@@ -25,6 +25,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -82,6 +83,23 @@ func TestAcc_SecurityProject(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
 					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
 				),
+			},
+			{
+				// Test import.
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// product_types are verified by ImportPlanChecks, so can be ignored here.
+				ImportStateVerifyIgnore: []string{"credentials", "product_types"},
+				// Use ImportPlanChecks to verify semantic equality of product_types.
+				// ExpectEmptyPlan confirms that the plan after import shows no changes,
+				// which indicates semantic equality is working correctly even if product_types
+				// are returned in a different order by the API.
+				ImportPlanChecks: resource.ImportPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	})
@@ -154,6 +172,52 @@ resource ec_security_project "%s" {
 	]
 }
 `, id, name, region, adminPackage)
+}
+
+func TestAcc_SecurityProjectImport(t *testing.T) {
+	resId := "import_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix("aws-", region) {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create a project to import.
+				Config: testAccBasicSecurityProject(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				// Import the project and verify all attributes.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "region_id", region),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_at"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_by"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.organization_id"),
+					resource.TestCheckResourceAttr(resourceName, "type", "security"),
+				),
+			},
+		},
+	})
 }
 
 func testAccSecurityProjectDestroy(s *terraform.State) error {

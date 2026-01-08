@@ -902,9 +902,10 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"suspended_reason": basetypes.NewStringNull(),
 						},
 					),
-					Name:     types.StringValue(readModel.Name),
-					RegionId: types.StringValue(readModel.RegionId),
-					Type:     types.StringValue(string(readModel.Type)),
+					Name:        types.StringValue(readModel.Name),
+					RegionId:    types.StringValue(readModel.RegionId),
+					Type:        types.StringValue(string(readModel.Type)),
+					ProductTier: types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -976,9 +977,10 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
 						},
 					),
-					Name:     types.StringValue(readModel.Name),
-					RegionId: types.StringValue(readModel.RegionId),
-					Type:     types.StringValue(string(readModel.Type)),
+					Name:        types.StringValue(readModel.Name),
+					RegionId:    types.StringValue(readModel.RegionId),
+					Type:        types.StringValue(string(readModel.Type)),
+					ProductTier: types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)

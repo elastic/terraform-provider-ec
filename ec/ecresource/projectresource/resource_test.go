@@ -25,6 +25,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/mocks"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -180,5 +181,35 @@ func TestModifyPlan(t *testing.T) {
 		var id string
 		res.Plan.GetAttribute(ctx, path.Root("id"), &id)
 		require.Equal(t, planModel.Id.ValueString(), id)
+	})
+}
+
+func TestImportState(t *testing.T) {
+	t.Run("should successfully import project", func(t *testing.T) {
+		ctx := context.Background()
+		projectID := "project-id"
+		req := resource.ImportStateRequest{
+			ID: projectID,
+		}
+		schema := resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
+		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{}
+		emptyValue := util.TfTypesValueFromGoTypeValue(t, emptyModel, schema.Type())
+
+		res := resource.ImportStateResponse{
+			State: tfsdk.State{
+				Schema: schema,
+				Raw:    emptyValue,
+			},
+		}
+
+		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{}
+		r.ImportState(ctx, req, &res)
+
+		require.False(t, res.Diagnostics.HasError())
+
+		// Validate that the imported ID was set in the state
+		var id string
+		res.State.GetAttribute(ctx, path.Root("id"), &id)
+		require.Equal(t, projectID, id)
 	})
 }

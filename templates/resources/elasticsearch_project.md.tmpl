@@ -24,3 +24,5 @@ Elastic will work to fix any issues, but features in technical preview are not s
 Projects can be imported using the `id`, for example:
 
 {{ codefile "shell" .ImportFile }}
+
+~> **Note on Credentials** The `credentials` attribute (containing `username` and `password`) is only available when the project is first created. When importing an existing project, these credentials will not be available in the Terraform state as the API does not return them on read operations.
