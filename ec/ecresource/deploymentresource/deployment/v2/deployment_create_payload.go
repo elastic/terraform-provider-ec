@@ -19,6 +19,7 @@ package v2
 
 import (
 	"context"
+
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
@@ -43,6 +44,7 @@ type DeploymentTF struct {
 	Version                    types.String `tfsdk:"version"`
 	Region                     types.String `tfsdk:"region"`
 	DeploymentTemplateId       types.String `tfsdk:"deployment_template_id"`
+	ByokArn                    types.String `tfsdk:"byok_arn"`
 	Name                       types.String `tfsdk:"name"`
 	RequestId                  types.String `tfsdk:"request_id"`
 	ElasticsearchUsername      types.String `tfsdk:"elasticsearch_username"`
@@ -172,6 +174,14 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 	}
 
 	result.Settings.Observability = observabilityPayload
+
+	if !dep.ByokArn.IsNull() && !dep.ByokArn.IsUnknown() {
+		if result.Settings.Byok == nil {
+			result.Settings.Byok = &models.ByokSettings{KeyResourcePath: ec.String(dep.ByokArn.ValueString())}
+		} else {
+			result.Settings.Byok.KeyResourcePath = ec.String(dep.ByokArn.ValueString())
+		}
+	}
 
 	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, dep.Tags)
 
