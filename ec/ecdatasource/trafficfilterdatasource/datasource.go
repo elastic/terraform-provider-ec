@@ -113,6 +113,14 @@ func ruleSchema() schema.Attribute {
 					Description: "The description of the rule.",
 					Computed:    true,
 				},
+				"remote_cluster_id": schema.StringAttribute{
+					Description: "The remote cluster ID.",
+					Computed:    true,
+				},
+				"remote_cluster_org_id": schema.StringAttribute{
+					Description: "The remote cluster organization ID.",
+					Computed:    true,
+				},
 			},
 		},
 	}
@@ -183,9 +191,11 @@ type rulesetModelV0 struct {
 }
 
 type ruleModelV0 struct {
-	Id          types.String `tfsdk:"id"`
-	Source      types.String `tfsdk:"source"`
-	Description types.String `tfsdk:"description"`
+	Id                 types.String `tfsdk:"id"`
+	Source             types.String `tfsdk:"source"`
+	Description        types.String `tfsdk:"description"`
+	RemoteClusterId    types.String `tfsdk:"remote_cluster_id"`
+	RemoteClusterOrgId types.String `tfsdk:"remote_cluster_org_id"`
 }
 
 func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state *modelV0) diag.Diagnostics {
@@ -208,9 +218,11 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 		var ruleArray = make([]ruleModelV0, 0, len(ruleset.Rules))
 		for _, rule := range ruleset.Rules {
 			t := ruleModelV0{
-				Id:          types.StringValue(rule.ID),
-				Source:      types.StringValue(rule.Source),
-				Description: types.StringValue(rule.Description),
+				Id:                 types.StringValue(rule.ID),
+				Source:             types.StringValue(rule.Source),
+				Description:        types.StringValue(rule.Description),
+				RemoteClusterId:    types.StringValue(rule.RemoteClusterID),
+				RemoteClusterOrgId: types.StringValue(rule.RemoteClusterOrgID),
 			}
 			ruleArray = append(ruleArray, t)
 		}

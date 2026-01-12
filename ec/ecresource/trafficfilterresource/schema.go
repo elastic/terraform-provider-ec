@@ -61,7 +61,7 @@ func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *res
 				Required:    true,
 			},
 			"type": schema.StringAttribute{
-				Description: "Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, or `gcp_private_service_connect_endpoint`",
+				Description: "Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, `gcp_private_service_connect_endpoint`, or `remote_cluster`",
 				Required:    true,
 			},
 			"region": schema.StringAttribute{
@@ -116,6 +116,14 @@ func trafficFilterRuleSchema() schema.Block {
 						StringIsUnknownIfRulesChange(),
 					},
 					// NOTE: The ID will change on update, so we intentionally do not use plan modifier resource.UseStateForUnknown() here!
+				},
+				"remote_cluster_id": schema.StringAttribute{
+					Description: "The remote cluster ID. Only applicable when the ruleset type is set to `remote_cluster`",
+					Optional:    true,
+				},
+				"remote_cluster_org_id": schema.StringAttribute{
+					Description: "The remote cluster organization ID. Only applicable when the ruleset type is set to `remote_cluster`",
+					Optional:    true,
 				},
 			},
 		},
@@ -181,11 +189,13 @@ type modelV0 struct {
 }
 
 type trafficFilterRuleModelV0 struct {
-	ID                types.String `tfsdk:"id"`
-	Source            types.String `tfsdk:"source"`
-	Description       types.String `tfsdk:"description"`
-	AzureEndpointName types.String `tfsdk:"azure_endpoint_name"`
-	AzureEndpointGUID types.String `tfsdk:"azure_endpoint_guid"`
+	ID                 types.String `tfsdk:"id"`
+	Source             types.String `tfsdk:"source"`
+	Description        types.String `tfsdk:"description"`
+	AzureEndpointName  types.String `tfsdk:"azure_endpoint_name"`
+	AzureEndpointGUID  types.String `tfsdk:"azure_endpoint_guid"`
+	RemoteClusterId    types.String `tfsdk:"remote_cluster_id"`
+	RemoteClusterOrgId types.String `tfsdk:"remote_cluster_org_id"`
 }
 
 type stringIsUnknownIfRulesChange struct{}
