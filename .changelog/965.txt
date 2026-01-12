@@ -1,0 +1,3 @@
+```release-note:feature
+resource/traffic_filter: Add support for `remote_cluster` traffic filter type with `remote_cluster_id` and `remote_cluster_org_id` attributes
+```
