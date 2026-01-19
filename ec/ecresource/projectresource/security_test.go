@@ -81,8 +81,9 @@ func TestSecurityModelReader_ReadFrom(t *testing.T) {
 				)
 				require.Empty(t, diags)
 				model := resource_security_project.SecurityProjectModel{
-					Id:           basetypes.NewStringValue("id"),
-					ProductTypes: productTypesList,
+					Id:               basetypes.NewStringValue("id"),
+					ProductTypes:     productTypesList,
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				return testData{

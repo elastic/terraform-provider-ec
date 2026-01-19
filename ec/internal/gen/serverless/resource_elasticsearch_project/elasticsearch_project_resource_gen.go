@@ -211,6 +211,12 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Configuration for entire set of capabilities that make the data searchable in Elasticsearch.",
 				MarkdownDescription: "Configuration for entire set of capabilities that make the data searchable in Elasticsearch.",
 			},
+			"traffic_filter_ids": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "Set of traffic filter IDs to associate with this project",
+				MarkdownDescription: "Set of traffic filter IDs to associate with this project",
+			},
 			"type": schema.StringAttribute{
 				Computed:            true,
 				Description:         "the type of the project",
@@ -224,17 +230,18 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type ElasticsearchProjectModel struct {
-	Alias        types.String     `tfsdk:"alias"`
-	CloudId      types.String     `tfsdk:"cloud_id"`
-	Credentials  CredentialsValue `tfsdk:"credentials"`
-	Endpoints    EndpointsValue   `tfsdk:"endpoints"`
-	Id           types.String     `tfsdk:"id"`
-	Metadata     MetadataValue    `tfsdk:"metadata"`
-	Name         types.String     `tfsdk:"name"`
-	OptimizedFor types.String     `tfsdk:"optimized_for"`
-	RegionId     types.String     `tfsdk:"region_id"`
-	SearchLake   SearchLakeValue  `tfsdk:"search_lake"`
-	Type         types.String     `tfsdk:"type"`
+	Alias            types.String     `tfsdk:"alias"`
+	CloudId          types.String     `tfsdk:"cloud_id"`
+	Credentials      CredentialsValue `tfsdk:"credentials"`
+	Endpoints        EndpointsValue   `tfsdk:"endpoints"`
+	Id               types.String     `tfsdk:"id"`
+	Metadata         MetadataValue    `tfsdk:"metadata"`
+	Name             types.String     `tfsdk:"name"`
+	OptimizedFor     types.String     `tfsdk:"optimized_for"`
+	RegionId         types.String     `tfsdk:"region_id"`
+	SearchLake       SearchLakeValue  `tfsdk:"search_lake"`
+	TrafficFilterIds types.Set        `tfsdk:"traffic_filter_ids"`
+	Type             types.String     `tfsdk:"type"`
 }
 
 var _ basetypes.ObjectTypable = CredentialsType{}

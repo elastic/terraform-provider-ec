@@ -148,6 +148,8 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 		createBody.ProductTypes = &createProductTypes
 	}
 
+	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
+
 	resp, err := sec.client.CreateSecurityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -188,6 +190,8 @@ func (sec securityApi) Patch(ctx context.Context, model resource_security_projec
 	if model.Alias.ValueString() != "" {
 		updateBody.Alias = model.Alias.ValueStringPointer()
 	}
+
+	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, model.TrafficFilterIds)
 
 	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
 	if err != nil {
