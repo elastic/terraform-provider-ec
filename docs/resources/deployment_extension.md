@@ -22,7 +22,7 @@ description: |-
 
 ## Example Usage
 
-### With extension file
+### With extension file (not usable for ECE)
 
 ```terraform
 locals {
