@@ -40,7 +40,8 @@ func Test_modelToState(t *testing.T) {
 				Region:           ec.String("us-east-1"),
 				Description:      *ec.String("description"),
 				Rules: []*models.TrafficFilterRule{
-					{ID: "matching-id", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
+					{ID: "matching-id", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
+					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
 				},
 			},
 		},
@@ -55,7 +56,8 @@ func Test_modelToState(t *testing.T) {
 				Region:           ec.String("us-east-1"),
 				Description:      *ec.String("description"),
 				Rules: []*models.TrafficFilterRule{
-					{ID: "matching-name", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
+					{ID: "matching-name", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
+					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
 				},
 			},
 		},
@@ -70,7 +72,8 @@ func Test_modelToState(t *testing.T) {
 				Region:           ec.String("us-east-1"),
 				Description:      *ec.String("description"),
 				Rules: []*models.TrafficFilterRule{
-					{ID: "matching-region", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
+					{ID: "matching-region", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
+					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
 				},
 			},
 			{
@@ -80,7 +83,8 @@ func Test_modelToState(t *testing.T) {
 				Region:           ec.String("us-east-1"),
 				Description:      *ec.String("description"),
 				Rules: []*models.TrafficFilterRule{
-					{ID: "matching-region", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
+					{ID: "matching-region", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
+					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
 				},
 			},
 		},
@@ -206,6 +210,13 @@ func newSampleTrafficFilterRule(id string) types.List {
 		types.ObjectValueMust(ruleAttrTypes(), map[string]attr.Value{
 			"id":                    types.StringValue(id),
 			"source":                types.StringValue("1.1.1.1"),
+			"description":           types.StringValue("desc"),
+			"remote_cluster_id":     types.StringNull(),
+			"remote_cluster_org_id": types.StringNull(),
+		}),
+		types.ObjectValueMust(ruleAttrTypes(), map[string]attr.Value{
+			"id":                    types.StringValue("remote-traffic-filter-id"),
+			"source":                types.StringNull(),
 			"description":           types.StringValue("desc"),
 			"remote_cluster_id":     types.StringValue("remote-cluster-id-123"),
 			"remote_cluster_org_id": types.StringValue("123123123"),

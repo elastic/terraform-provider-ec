@@ -219,11 +219,28 @@ func modelToState(ctx context.Context, res *models.TrafficFilterRulesets, state 
 		for _, rule := range ruleset.Rules {
 			t := ruleModelV0{
 				Id:                 types.StringValue(rule.ID),
-				Source:             types.StringValue(rule.Source),
-				Description:        types.StringValue(rule.Description),
-				RemoteClusterId:    types.StringValue(rule.RemoteClusterID),
-				RemoteClusterOrgId: types.StringValue(rule.RemoteClusterOrgID),
+				Source:             types.StringNull(),
+				Description:        types.StringNull(),
+				RemoteClusterId:    types.StringNull(),
+				RemoteClusterOrgId: types.StringNull(),
 			}
+
+			if rule.Source != "" {
+				t.Source = types.StringValue(rule.Source)
+			}
+
+			if rule.Description != "" {
+				t.Description = types.StringValue(rule.Description)
+			}
+
+			if rule.RemoteClusterID != "" {
+				t.RemoteClusterId = types.StringValue(rule.RemoteClusterID)
+			}
+
+			if rule.RemoteClusterOrgID != "" {
+				t.RemoteClusterOrgId = types.StringValue(rule.RemoteClusterOrgID)
+			}
+
 			ruleArray = append(ruleArray, t)
 		}
 		if len(ruleArray) > 0 {
