@@ -18,11 +18,11 @@
 package acc
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -30,12 +30,12 @@ import (
 func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 	resName := "ec_deployment_traffic_filter.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_traffic_filter_basic.tf"
-	updateCfg := "testdata/deployment_traffic_filter_basic_update.tf"
-	updateLargeCfg := "testdata/deployment_traffic_filter_basic_update_large.tf"
-	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
-	updateConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateCfg, randomName, getRegion())
-	updateLargeConfigCfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, updateLargeCfg, randomName, getRegion())
+	region := getRegion()
+
+	configVariables := config.Variables{
+		"name":   config.StringVariable(randomName),
+		"region": config.StringVariable(region),
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -43,8 +43,9 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
-				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+				ConfigDirectory: config.StaticDirectory("testdata/deployment_traffic_filter_basic"),
+				ConfigVariables: configVariables,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName, region,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
@@ -52,8 +53,9 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: updateConfigCfg,
-				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+				ConfigDirectory: config.StaticDirectory("testdata/deployment_traffic_filter_basic_update"),
+				ConfigVariables: configVariables,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName, region,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "2"),
@@ -66,8 +68,9 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: updateLargeConfigCfg,
-				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+				ConfigDirectory: config.StaticDirectory("testdata/deployment_traffic_filter_basic_update_large"),
+				ConfigVariables: configVariables,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName, region,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "16"),
@@ -80,6 +83,8 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 				),
 			},
 			{
+				ConfigDirectory:         config.StaticDirectory("testdata/deployment_traffic_filter_basic_update_large"),
+				ConfigVariables:         configVariables,
 				ResourceName:            resName,
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -92,8 +97,12 @@ func TestAccDeploymentTrafficFilter_basic(t *testing.T) {
 func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 	resName := "ec_deployment_traffic_filter.azure"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_traffic_filter_azure.tf"
-	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, "azure-australiaeast")
+	region := "azure-australiaeast"
+
+	configVariables := config.Variables{
+		"name":   config.StringVariable(randomName),
+		"region": config.StringVariable(region),
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -101,8 +110,9 @@ func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cfg,
-				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+				ConfigDirectory: config.StaticDirectory("testdata/deployment_traffic_filter_azure"),
+				ConfigVariables: configVariables,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName, region,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "azure_private_endpoint"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
@@ -113,13 +123,73 @@ func TestAccDeploymentTrafficFilter_azure(t *testing.T) {
 	})
 }
 
+func TestAccDeploymentTrafficFilter_remoteCluster(t *testing.T) {
+	resName := "ec_deployment_traffic_filter.remote_cluster"
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+
+	// Use test values for remote cluster - these would need to be valid for a real test
+	remoteClusterID := os.Getenv("EC_TEST_REMOTE_CLUSTER_ID")
+	remoteClusterOrgID := os.Getenv("EC_TEST_REMOTE_CLUSTER_ORG_ID")
+
+	if remoteClusterID == "" {
+		remoteClusterID = "test-remote-cluster-id"
+	}
+	if remoteClusterOrgID == "" {
+		remoteClusterOrgID = "test-org-id"
+	}
+
+	configVariables := config.Variables{
+		"name":                  config.StringVariable(randomName),
+		"region":                config.StringVariable(region),
+		"remote_cluster_id":     config.StringVariable(remoteClusterID),
+		"remote_cluster_org_id": config.StringVariable(remoteClusterOrgID),
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentTrafficFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ConfigDirectory: config.StaticDirectory("testdata/deployment_traffic_filter_remote_cluster"),
+				ConfigVariables: configVariables,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDeploymentTrafficFilterExists(resName),
+					resource.TestCheckResourceAttr(resName, "name", randomName),
+					resource.TestCheckResourceAttr(resName, "region", region),
+					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
+					resource.TestCheckResourceAttr(resName, "type", "remote_cluster"),
+					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
+						"remote_cluster_id":     remoteClusterID,
+						"remote_cluster_org_id": remoteClusterOrgID,
+					}),
+				),
+			},
+			{
+				ConfigDirectory:         config.StaticDirectory("testdata/deployment_traffic_filter_remote_cluster"),
+				ConfigVariables:         configVariables,
+				ResourceName:            resName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
 func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
 	t.Skip("skip until `ec_deployment` state upgrade is implemented")
 
 	resName := "ec_deployment_traffic_filter.basic"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	startCfg := "testdata/deployment_traffic_filter_basic.tf"
-	cfg := fixtureAccDeploymentTrafficFilterResourceBasic(t, startCfg, randomName, getRegion())
+	region := getRegion()
+
+	configVariables := config.Variables{
+		"name":   config.StringVariable(randomName),
+		"region": config.StringVariable(region),
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -132,8 +202,9 @@ func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
 						Source:            "elastic/ec",
 					},
 				},
-				Config: cfg,
-				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+				ConfigDirectory: config.StaticDirectory("testdata/deployment_traffic_filter_basic"),
+				ConfigVariables: configVariables,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName, region,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
@@ -143,8 +214,9 @@ func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
 			{
 				PlanOnly:                 true,
 				ProtoV6ProviderFactories: testAccProviderFactory,
-				Config:                   cfg,
-				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName,
+				ConfigDirectory:          config.StaticDirectory("testdata/deployment_traffic_filter_basic"),
+				ConfigVariables:          configVariables,
+				Check: checkBasicDeploymentTrafficFilterResource(resName, randomName, region,
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
@@ -155,21 +227,10 @@ func TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1(t *testing.T) {
 	})
 }
 
-func fixtureAccDeploymentTrafficFilterResourceBasic(t *testing.T, fileName, name, region string) string {
-	t.Helper()
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return fmt.Sprintf(string(b),
-		name, region,
-	)
-}
-
-func checkBasicDeploymentTrafficFilterResource(resName, randomDeploymentName string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
+func checkBasicDeploymentTrafficFilterResource(resName, randomDeploymentName, region string, checks ...resource.TestCheckFunc) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
 		testAccCheckDeploymentTrafficFilterExists(resName),
 		resource.TestCheckResourceAttr(resName, "name", randomDeploymentName),
-		resource.TestCheckResourceAttr(resName, "region", getRegion())}, checks...)...,
+		resource.TestCheckResourceAttr(resName, "region", region)}, checks...)...,
 	)
 }

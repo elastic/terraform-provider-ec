@@ -410,6 +410,81 @@ func TestResourceTrafficFilter_importState(t *testing.T) {
 	})
 }
 
+func TestResourceTrafficFilter_validation_remoteClusterFieldsWithWrongType(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
+			api.NewMock(),
+		),
+		Steps: []r.TestStep{
+			{
+				Config: `
+					resource "ec_deployment_traffic_filter" "test1" {
+						name   = "my traffic filter"
+						region = "us-east-1"
+						type   = "ip"
+
+						rule {
+							source              = "1.1.1.1"
+							remote_cluster_id   = "some-cluster-id"
+							remote_cluster_org_id = "some-org-id"
+						}
+					}
+				`,
+				ExpectError: regexp.MustCompile(`(?s)Invalid Rule Configuration.*remote_cluster_id.*remote_cluster_org_id.*remote_cluster`),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_validation_missingRemoteClusterFields(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
+			api.NewMock(),
+		),
+		Steps: []r.TestStep{
+			{
+				Config: `
+					resource "ec_deployment_traffic_filter" "test1" {
+						name   = "my traffic filter"
+						region = "us-east-1"
+						type   = "remote_cluster"
+
+						rule {
+							remote_cluster_id = "some-cluster-id"
+						}
+					}
+				`,
+				ExpectError: regexp.MustCompile(`(?s)Missing Required Attributes.*remote_cluster_id.*remote_cluster_org_id.*required`),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_validation_azureFieldsWithWrongType(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
+			api.NewMock(),
+		),
+		Steps: []r.TestStep{
+			{
+				Config: `
+					resource "ec_deployment_traffic_filter" "test1" {
+						name   = "my traffic filter"
+						region = "us-east-1"
+						type   = "ip"
+
+						rule {
+							azure_endpoint_name = "my-azure-pl"
+							azure_endpoint_guid = "78c64959-fd88-41cc-81ac-1cfcdb1ac32e"
+						}
+					}
+				`,
+				ExpectError: regexp.MustCompile(`(?s)Invalid Rule Configuration.*azure_endpoint_name.*azure_endpoint_guid.*azure_private_endpoint`),
+			},
+		},
+	})
+}
+
 const trafficFilter = `
 	resource "ec_deployment_traffic_filter" "test1" {
 	  name   = "my traffic filter"

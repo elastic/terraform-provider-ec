@@ -1,3 +1,11 @@
+variable "name" {
+  type = string
+}
+
+variable "region" {
+  type = string
+}
+
 variable "google_dns_rules" {
   type = list(string)
   default = [
@@ -7,8 +15,8 @@ variable "google_dns_rules" {
 }
 
 resource "ec_deployment_traffic_filter" "basic" {
-  name   = "%s"
-  region = "%s"
+  name   = var.name
+  region = var.region
   type   = "ip"
 
   dynamic "rule" {
