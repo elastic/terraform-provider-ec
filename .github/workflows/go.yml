@@ -40,6 +40,16 @@ jobs:
       run: make lint
       id: lint
 
+    - name: Check docs are up-to-date
+      run: |
+        make docs-generate
+        git diff --exit-code docs/ || (echo "::error::Docs are out of date. Run 'make docs-generate' and commit the changes." && exit 1)
+
+    - name: Check NOTICE is up-to-date
+      run: |
+        make notice
+        git diff --exit-code NOTICE || (echo "::error::NOTICE is out of date. Run 'make notice' and commit the changes." && exit 1)
+
     - name: Run unit tests
       run: make unit
       id: unit
