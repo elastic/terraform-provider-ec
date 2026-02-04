@@ -176,8 +176,8 @@ func (r *Resource) ValidateConfig(ctx context.Context, request resource.Validate
 		return
 	}
 
-	// Skip validation if type is unknown (e.g., during plan with variables)
-	if config.Type.IsUnknown() {
+	// Skip validation if type or rules are unknown (e.g., during plan with variables)
+	if config.Type.IsUnknown() || config.Rule.IsUnknown() {
 		return
 	}
 
@@ -204,12 +204,16 @@ func (r *Resource) ValidateConfig(ctx context.Context, request resource.Validate
 			)
 		}
 
-		if filterType == "remote_cluster" && (!hasRemoteClusterID || !hasRemoteClusterOrgID) {
-			response.Diagnostics.AddAttributeError(
-				rulePath,
-				"Missing Required Attributes",
-				"Both 'remote_cluster_id' and 'remote_cluster_org_id' are required when 'type' is set to 'remote_cluster'.",
-			)
+		// Only validate required fields if values are known (not unknown due to variables)
+		// Unknown values will be validated at apply time when they become known
+		if filterType == "remote_cluster" && !rule.RemoteClusterId.IsUnknown() && !rule.RemoteClusterOrgId.IsUnknown() {
+			if rule.RemoteClusterId.IsNull() || rule.RemoteClusterOrgId.IsNull() {
+				response.Diagnostics.AddAttributeError(
+					rulePath,
+					"Missing Required Attributes",
+					"Both 'remote_cluster_id' and 'remote_cluster_org_id' are required when 'type' is set to 'remote_cluster'.",
+				)
+			}
 		}
 
 		// Validate azure fields
