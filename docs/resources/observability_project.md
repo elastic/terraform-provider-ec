@@ -33,6 +33,7 @@ resource "ec_observability_project" "my_project" {
 ### Optional
 
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+- `product_tier` (String) the tier of the observability project
 
 ### Read-Only
 
@@ -59,6 +60,7 @@ Read-Only:
 
 - `apm` (String) The endpoint to access apm.
 - `elasticsearch` (String) The endpoint to access elasticsearch.
+- `ingest` (String) The endpoint to access the Managed OTLP Endpoint.
 - `kibana` (String) The endpoint to access kibana.
 
 
