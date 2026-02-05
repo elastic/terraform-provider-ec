@@ -42,6 +42,7 @@ import (
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
+var _ resource.ResourceWithValidateConfig = &Resource{}
 
 func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -166,6 +167,67 @@ func resourceReady(r Resource, dg *diag.Diagnostics) bool {
 
 func (r *Resource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
 	response.Diagnostics.Append(response.State.SetAttribute(ctx, path.Root("id"), request.ID)...)
+}
+
+func (r *Resource) ValidateConfig(ctx context.Context, request resource.ValidateConfigRequest, response *resource.ValidateConfigResponse) {
+	var config modelV0
+	response.Diagnostics.Append(request.Config.Get(ctx, &config)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	// Skip validation if type or rules are unknown (e.g., during plan with variables)
+	if config.Type.IsUnknown() || config.Rule.IsUnknown() {
+		return
+	}
+
+	filterType := config.Type.ValueString()
+
+	var rules []trafficFilterRuleModelV0
+	response.Diagnostics.Append(config.Rule.ElementsAs(ctx, &rules, false)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	for i, rule := range rules {
+		rulePath := path.Root("rule").AtSetValue(config.Rule.Elements()[i])
+
+		// Validate remote_cluster fields
+		hasRemoteClusterID := !rule.RemoteClusterId.IsNull() && !rule.RemoteClusterId.IsUnknown()
+		hasRemoteClusterOrgID := !rule.RemoteClusterOrgId.IsNull() && !rule.RemoteClusterOrgId.IsUnknown()
+
+		if filterType != "remote_cluster" && (hasRemoteClusterID || hasRemoteClusterOrgID) {
+			response.Diagnostics.AddAttributeError(
+				rulePath,
+				"Invalid Rule Configuration",
+				"The 'remote_cluster_id' and 'remote_cluster_org_id' attributes can only be specified when 'type' is set to 'remote_cluster'.",
+			)
+		}
+
+		// Only validate required fields if values are known (not unknown due to variables)
+		// Unknown values will be validated at apply time when they become known
+		if filterType == "remote_cluster" && !rule.RemoteClusterId.IsUnknown() && !rule.RemoteClusterOrgId.IsUnknown() {
+			if rule.RemoteClusterId.IsNull() || rule.RemoteClusterOrgId.IsNull() {
+				response.Diagnostics.AddAttributeError(
+					rulePath,
+					"Missing Required Attributes",
+					"Both 'remote_cluster_id' and 'remote_cluster_org_id' are required when 'type' is set to 'remote_cluster'.",
+				)
+			}
+		}
+
+		// Validate azure fields
+		hasAzureEndpointName := !rule.AzureEndpointName.IsNull() && !rule.AzureEndpointName.IsUnknown()
+		hasAzureEndpointGUID := !rule.AzureEndpointGUID.IsNull() && !rule.AzureEndpointGUID.IsUnknown()
+
+		if filterType != "azure_private_endpoint" && (hasAzureEndpointName || hasAzureEndpointGUID) {
+			response.Diagnostics.AddAttributeError(
+				rulePath,
+				"Invalid Rule Configuration",
+				"The 'azure_endpoint_name' and 'azure_endpoint_guid' attributes can only be specified when 'type' is set to 'azure_private_endpoint'.",
+			)
+		}
+	}
 }
 
 func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
