@@ -48,11 +48,13 @@ func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule) (types
 	var result = make([]trafficFilterRuleModelV0, 0, len(rules))
 	for _, rule := range rules {
 		model := trafficFilterRuleModelV0{
-			ID:                types.StringValue(rule.ID),
-			Source:            types.StringNull(),
-			Description:       types.StringNull(),
-			AzureEndpointGUID: types.StringNull(),
-			AzureEndpointName: types.StringNull(),
+			ID:                 types.StringValue(rule.ID),
+			Source:             types.StringNull(),
+			Description:        types.StringNull(),
+			AzureEndpointGUID:  types.StringNull(),
+			AzureEndpointName:  types.StringNull(),
+			RemoteClusterId:    types.StringNull(),
+			RemoteClusterOrgId: types.StringNull(),
 		}
 
 		if rule.Source != "" {
@@ -69,6 +71,14 @@ func flattenRules(ctx context.Context, rules []*models.TrafficFilterRule) (types
 
 		if rule.AzureEndpointName != "" {
 			model.AzureEndpointName = types.StringValue(rule.AzureEndpointName)
+		}
+
+		if rule.RemoteClusterID != "" {
+			model.RemoteClusterId = types.StringValue(rule.RemoteClusterID)
+		}
+
+		if rule.RemoteClusterOrgID != "" {
+			model.RemoteClusterOrgId = types.StringValue(rule.RemoteClusterOrgID)
 		}
 
 		result = append(result, model)

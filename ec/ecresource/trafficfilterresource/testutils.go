@@ -37,8 +37,8 @@ func newSampleTrafficFilter(t *testing.T, id string) modelV0 {
 			res, diags := types.SetValue(
 				trafficFilterRuleElemType(),
 				[]attr.Value{
-					newSampleTrafficFilterRule(t, "1.1.1.1", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "0.0.0.0/0", "", "", "", ""),
+					newSampleTrafficFilterRule(t, "1.1.1.1", "", "", "", "", "", ""),
+					newSampleTrafficFilterRule(t, "0.0.0.0/0", "", "", "", "", "", ""),
 				},
 			)
 			assert.Nil(t, diags)
@@ -47,7 +47,7 @@ func newSampleTrafficFilter(t *testing.T, id string) modelV0 {
 	}
 }
 
-func newSampleTrafficFilterRule(t *testing.T, source string, description string, azureEndpointName string, azureEndpointGUID string, id string) types.Object {
+func newSampleTrafficFilterRule(t *testing.T, source string, description string, azureEndpointName string, azureEndpointGUID string, remoteClusterID string, remoteClusterOrgID string, id string) types.Object {
 	res, diags := types.ObjectValue(
 		trafficFilterRuleAttrTypes(),
 		map[string]attr.Value{
@@ -74,6 +74,18 @@ func newSampleTrafficFilterRule(t *testing.T, source string, description string,
 					return types.StringNull()
 				}
 				return types.StringValue(azureEndpointGUID)
+			}(),
+			"remote_cluster_id": func() attr.Value {
+				if remoteClusterID == "" {
+					return types.StringNull()
+				}
+				return types.StringValue(remoteClusterID)
+			}(),
+			"remote_cluster_org_id": func() attr.Value {
+				if remoteClusterOrgID == "" {
+					return types.StringNull()
+				}
+				return types.StringValue(remoteClusterOrgID)
 			}(),
 			"id": types.StringValue(id),
 		},

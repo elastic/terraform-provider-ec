@@ -43,10 +43,10 @@ func Test_expandModel(t *testing.T) {
 			res, diags := types.SetValue(
 				trafficFilterRuleElemType(),
 				[]attr.Value{
-					newSampleTrafficFilterRule(t, "1.1.1.1/24", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "1.1.1.0/16", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "0.0.0.0/0", "", "", "", ""),
-					newSampleTrafficFilterRule(t, "1.1.1.1", "", "", "", ""),
+					newSampleTrafficFilterRule(t, "1.1.1.1/24", "", "", "", "", "", ""),
+					newSampleTrafficFilterRule(t, "1.1.1.0/16", "", "", "", "", "", ""),
+					newSampleTrafficFilterRule(t, "0.0.0.0/0", "", "", "", "", "", ""),
+					newSampleTrafficFilterRule(t, "1.1.1.1", "", "", "", "", "", ""),
 				},
 			)
 			assert.Nil(t, diags)
@@ -104,7 +104,7 @@ func Test_expandModel(t *testing.T) {
 						res, diags := types.SetValue(
 							trafficFilterRuleElemType(),
 							[]attr.Value{
-								newSampleTrafficFilterRule(t, "", "", "my-azure-pl", "1231312-1231-1231-1231-1231312", ""),
+								newSampleTrafficFilterRule(t, "", "", "my-azure-pl", "1231312-1231-1231-1231-1231312", "", "", ""),
 							},
 						)
 						assert.Nil(t, diags)
@@ -121,6 +121,40 @@ func Test_expandModel(t *testing.T) {
 					{
 						AzureEndpointGUID: "1231312-1231-1231-1231-1231312",
 						AzureEndpointName: "my-azure-pl",
+					},
+				},
+			},
+		},
+		{
+			name: "parses a remote cluster resource",
+			args: args{
+				state: modelV0{
+					ID:               types.StringValue("some-random-id"),
+					Name:             types.StringValue("my traffic filter"),
+					Type:             types.StringValue("remote_cluster"),
+					IncludeByDefault: types.BoolValue(false),
+					Region:           types.StringValue("us-east-1"),
+					Rule: func() types.Set {
+						res, diags := types.SetValue(
+							trafficFilterRuleElemType(),
+							[]attr.Value{
+								newSampleTrafficFilterRule(t, "", "", "", "", "remote-cluster-id-123", "123123123", ""),
+							},
+						)
+						assert.Nil(t, diags)
+						return res
+					}(),
+				},
+			},
+			want: &models.TrafficFilterRulesetRequest{
+				Name:             ec.String("my traffic filter"),
+				Type:             ec.String("remote_cluster"),
+				IncludeByDefault: ec.Bool(false),
+				Region:           ec.String("us-east-1"),
+				Rules: []*models.TrafficFilterRule{
+					{
+						RemoteClusterID:    "remote-cluster-id-123",
+						RemoteClusterOrgID: "123123123",
 					},
 				},
 			},

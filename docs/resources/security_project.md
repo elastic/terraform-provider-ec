@@ -69,6 +69,7 @@ Read-Only:
 Read-Only:
 
 - `elasticsearch` (String) The endpoint to access elasticsearch.
+- `ingest` (String) The endpoint to access the Managed OTLP Endpoint.
 - `kibana` (String) The endpoint to access kibana.
 
 

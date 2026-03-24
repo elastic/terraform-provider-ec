@@ -2,6 +2,6 @@ steps:
   - label: ":rocket: Release"
     command: .buildkite/release.sh
     agents:
-      image: "docker.io/library/golang:1.25"
+      image: "docker.io/library/golang:1.26"
       cpu: "8"
       memory: "4G"

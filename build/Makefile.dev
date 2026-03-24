@@ -9,6 +9,7 @@ vendor: $(GOBIN)/go-licenser $(GOBIN)/go-licence-detector
 	@ $(GOBIN)/go-licenser -license ASL2
 	@ $(MAKE) notice
 
+## Updates the NOTICE file with license information for all dependencies.
 .PHONY: notice
 notice:
 	@ go list -m -json all | $(GOBIN)/go-licence-detector -noticeOut=NOTICE -noticeTemplate build/NOTICE.tmpl -includeIndirect -rules build/notice_rules.json -overrides build/notice_overrides.json

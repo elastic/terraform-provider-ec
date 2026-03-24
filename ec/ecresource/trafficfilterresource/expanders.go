@@ -64,6 +64,13 @@ func expandModel(ctx context.Context, state modelV0) (*models.TrafficFilterRules
 			rule.AzureEndpointGUID = r.AzureEndpointGUID.ValueString()
 		}
 
+		if !r.RemoteClusterId.IsNull() && !r.RemoteClusterId.IsUnknown() {
+			rule.RemoteClusterID = r.RemoteClusterId.ValueString()
+		}
+		if !r.RemoteClusterOrgId.IsNull() && !r.RemoteClusterOrgId.IsUnknown() {
+			rule.RemoteClusterOrgID = r.RemoteClusterOrgId.ValueString()
+		}
+
 		request.Rules = append(request.Rules, &rule)
 	}
 
