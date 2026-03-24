@@ -34,6 +34,7 @@ resource "ec_observability_project" "my_project" {
 
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 - `product_tier` (String) the tier of the observability project
+- `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
 ### Read-Only
 

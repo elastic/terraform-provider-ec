@@ -35,6 +35,7 @@ resource "ec_security_project" "my_project" {
 - `admin_features_package` (String) admin features package (BYOK, BYOIDP, CCS, CCR)
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 - `product_types` (Attributes List) (see [below for nested schema](#nestedatt--product_types))
+- `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
 ### Read-Only
 
