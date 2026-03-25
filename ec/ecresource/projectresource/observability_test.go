@@ -63,7 +63,8 @@ func TestObservabilityModelReader_ReadFrom(t *testing.T) {
 			name: "should read a basic model back",
 			testData: func() testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: basetypes.NewStringValue("id"),
+					Id:               basetypes.NewStringValue("id"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				return testData{

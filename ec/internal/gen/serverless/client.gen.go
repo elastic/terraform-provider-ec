@@ -118,6 +118,12 @@ const (
 	Security SecurityProjectCreatedType = "security"
 )
 
+// Defines values for TrafficFilterType.
+const (
+	Ip   TrafficFilterType = "ip"
+	Vpce TrafficFilterType = "vpce"
+)
+
 // CSP The identifier of the cloud service provider hosting this region.
 type CSP string
 
@@ -140,6 +146,9 @@ type CreateElasticsearchProjectRequest struct {
 
 	// SearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch.
 	SearchLake *ElasticsearchSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 }
 
 // CreateObservabilityProjectRequest A request to create an Observability project.
@@ -155,6 +164,9 @@ type CreateObservabilityProjectRequest struct {
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 }
 
 // CreateSecurityProjectRequest A request to create a Security project.
@@ -171,6 +183,30 @@ type CreateSecurityProjectRequest struct {
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
+}
+
+// CreateTrafficFilterRequest The specification for traffic filter.
+type CreateTrafficFilterRequest struct {
+	// Description Description of the traffic filter
+	Description *string `json:"description,omitempty"`
+
+	// IncludeByDefault Should the traffic filter be automatically included in the new projects
+	IncludeByDefault *bool `json:"include_by_default,omitempty"`
+
+	// Name Name of the traffic filter
+	Name string `json:"name"`
+
+	// Region The traffic filter can be attached only to projects in the specific region
+	Region string `json:"region"`
+
+	// Rules List of rules
+	Rules *[]TrafficFilterRule `json:"rules,omitempty"`
+
+	// Type Type of the traffic filter
+	Type TrafficFilterType `json:"type"`
 }
 
 // ElasticsearchOptimizedFor The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
@@ -277,6 +313,9 @@ type ElasticsearchSearchLake struct {
 	// SearchPower Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.
 	SearchPower *int `json:"search_power,omitempty"`
 }
+
+// EmptyResponse defines model for EmptyResponse.
+type EmptyResponse = map[string]interface{}
 
 // ErrorResponse An error response returned by the API.
 type ErrorResponse struct {
@@ -397,6 +436,9 @@ type OptionalElasticsearchSearchLake struct {
 // OptionalSecurityAdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
 type OptionalSecurityAdminFeaturesPackage string
 
+// OptionalTrafficFilters traffic filters IDs
+type OptionalTrafficFilters = []TrafficFilter
+
 // PatchElasticsearchProjectRequest A request to patch an existing Elasticsearch serverless project.
 type PatchElasticsearchProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
@@ -407,6 +449,9 @@ type PatchElasticsearchProjectRequest struct {
 
 	// SearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
 	SearchLake *OptionalElasticsearchSearchLake `json:"search_lake"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *OptionalTrafficFilters `json:"traffic_filters"`
 }
 
 // PatchObservabilityProjectRequest A request to update an existing Observability project.
@@ -419,6 +464,9 @@ type PatchObservabilityProjectRequest struct {
 
 	// ProductTier the tier of the observability project
 	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *OptionalTrafficFilters `json:"traffic_filters"`
 }
 
 // PatchSecurityProjectRequest A request to patch an existing Security project.
@@ -432,6 +480,24 @@ type PatchSecurityProjectRequest struct {
 	// Name Descriptive name for a project.
 	Name         *ProjectName           `json:"name,omitempty"`
 	ProductTypes *[]SecurityProductType `json:"product_types"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *OptionalTrafficFilters `json:"traffic_filters"`
+}
+
+// PatchTrafficFilterRequest The specification for traffic filter.
+type PatchTrafficFilterRequest struct {
+	// Description Description of the traffic filter
+	Description *string `json:"description,omitempty"`
+
+	// IncludeByDefault Should the traffic filter be automatically included in the new projects
+	IncludeByDefault *bool `json:"include_by_default,omitempty"`
+
+	// Name Name of the traffic filter
+	Name *string `json:"name,omitempty"`
+
+	// Rules List of rules
+	Rules *[]TrafficFilterRule `json:"rules,omitempty"`
 }
 
 // ProjectAlias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
@@ -634,11 +700,90 @@ type SecurityProjectList struct {
 	NextPage *string `json:"next_page,omitempty"`
 }
 
+// TrafficFilter traffic filters association info
+type TrafficFilter struct {
+	// Id traffic filter ID
+	Id string `json:"id"`
+}
+
+// TrafficFilterAvailabilityZone defines model for TrafficFilterAvailabilityZone.
+type TrafficFilterAvailabilityZone struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// TrafficFilterInfo The container for a set of traffic filter rules.
+type TrafficFilterInfo struct {
+	// Description Description of the traffic filter
+	Description *string `json:"description,omitempty"`
+
+	// Id The traffic filter ID
+	Id string `json:"id"`
+
+	// IncludeByDefault Should the traffic filter be automatically included in the new projects
+	IncludeByDefault bool `json:"include_by_default"`
+
+	// Name Name of the traffic filter
+	Name string `json:"name"`
+
+	// Region The traffic filter can be attached only to projects in the specific region
+	Region string `json:"region"`
+
+	// Rules List of rules
+	Rules []TrafficFilterRule `json:"rules"`
+
+	// Type Type of the traffic filter
+	Type TrafficFilterType `json:"type"`
+}
+
+// TrafficFilterList The container for a set of traffic filter.
+type TrafficFilterList struct {
+	// Items List of traffic filters
+	Items []TrafficFilterInfo `json:"items"`
+
+	// NextPage A token to fetch the next page.
+	NextPage *string `json:"next_page"`
+}
+
+// TrafficFilterMetadata Region-scoped PrivateLink metadata.
+type TrafficFilterMetadata struct {
+	Regions *[]TrafficFilterRegionMetadata `json:"regions,omitempty"`
+}
+
+// TrafficFilterRegionMetadata defines model for TrafficFilterRegionMetadata.
+type TrafficFilterRegionMetadata struct {
+	AvailabilityZones           []TrafficFilterAvailabilityZone `json:"availability_zones"`
+	PrivateHostedZoneDomainName string                          `json:"private_hosted_zone_domain_name"`
+	Region                      string                          `json:"region"`
+	VpcServiceName              string                          `json:"vpc_service_name"`
+}
+
+// TrafficFilterRule The container for a traffic filter rule.
+type TrafficFilterRule struct {
+	// Description Description of the rule.
+	Description *string `json:"description,omitempty"`
+
+	// Source Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID
+	Source string `json:"source"`
+}
+
+// TrafficFilterType Type of the traffic filter
+type TrafficFilterType string
+
+// TrafficFilters traffic filters IDs
+type TrafficFilters = []TrafficFilter
+
 // UserID ID of the user.
 type UserID = string
 
 // BadRequest A non-empty list of errors.
 type BadRequest = MultiErrorResponse
+
+// Conflict A non-empty list of errors.
+type Conflict = MultiErrorResponse
+
+// InternalServerError A non-empty list of errors.
+type InternalServerError = MultiErrorResponse
 
 // NotFound A non-empty list of errors.
 type NotFound = MultiErrorResponse
@@ -648,6 +793,12 @@ type Unauthorized = MultiErrorResponse
 
 // UnprocessableEntity A non-empty list of errors.
 type UnprocessableEntity = MultiErrorResponse
+
+// CreateTrafficFilterRequestBody The specification for traffic filter.
+type CreateTrafficFilterRequestBody = CreateTrafficFilterRequest
+
+// PatchTrafficFilterBody The specification for traffic filter.
+type PatchTrafficFilterBody = PatchTrafficFilterRequest
 
 // ListElasticsearchProjectsParams defines parameters for ListElasticsearchProjects.
 type ListElasticsearchProjectsParams struct {
@@ -748,6 +899,21 @@ type ResumeSecurityProjectParams struct {
 	IfMatch *string `json:"If-Match,omitempty"`
 }
 
+// ListTrafficFiltersParams defines parameters for ListTrafficFilters.
+type ListTrafficFiltersParams struct {
+	// IncludeByDefault Retrieves a list of resources that have include_by_default set or not set
+	IncludeByDefault *bool `form:"include_by_default,omitempty" json:"include_by_default,omitempty"`
+
+	// Region If provided limits the traffic filters to that region only.
+	Region *string `form:"region,omitempty" json:"region,omitempty"`
+}
+
+// GetTrafficFilterMetadataParams defines parameters for GetTrafficFilterMetadata.
+type GetTrafficFilterMetadataParams struct {
+	// Region Filter metadata to a specific AWS region.
+	Region *string `form:"region,omitempty" json:"region,omitempty"`
+}
+
 // CreateElasticsearchProjectJSONRequestBody defines body for CreateElasticsearchProject for application/json ContentType.
 type CreateElasticsearchProjectJSONRequestBody = CreateElasticsearchProjectRequest
 
@@ -765,6 +931,12 @@ type CreateSecurityProjectJSONRequestBody = CreateSecurityProjectRequest
 
 // PatchSecurityProjectJSONRequestBody defines body for PatchSecurityProject for application/json ContentType.
 type PatchSecurityProjectJSONRequestBody = PatchSecurityProjectRequest
+
+// CreateTrafficFilterJSONRequestBody defines body for CreateTrafficFilter for application/json ContentType.
+type CreateTrafficFilterJSONRequestBody = CreateTrafficFilterRequest
+
+// PatchTrafficFilterJSONRequestBody defines body for PatchTrafficFilter for application/json ContentType.
+type PatchTrafficFilterJSONRequestBody = PatchTrafficFilterRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -937,6 +1109,28 @@ type ClientInterface interface {
 
 	// GetRegion request
 	GetRegion(ctx context.Context, id RegionID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTrafficFilters request
+	ListTrafficFilters(ctx context.Context, params *ListTrafficFiltersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateTrafficFilterWithBody request with any body
+	CreateTrafficFilterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateTrafficFilter(ctx context.Context, body CreateTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTrafficFilterMetadata request
+	GetTrafficFilterMetadata(ctx context.Context, params *GetTrafficFilterMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteTrafficFilter request
+	DeleteTrafficFilter(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTrafficFilter request
+	GetTrafficFilter(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchTrafficFilterWithBody request with any body
+	PatchTrafficFilterWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchTrafficFilter(ctx context.Context, id string, body PatchTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListElasticsearchProjects(ctx context.Context, params *ListElasticsearchProjectsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1349,6 +1543,102 @@ func (c *Client) ListRegions(ctx context.Context, reqEditors ...RequestEditorFn)
 
 func (c *Client) GetRegion(ctx context.Context, id RegionID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetRegionRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTrafficFilters(ctx context.Context, params *ListTrafficFiltersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTrafficFiltersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTrafficFilterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTrafficFilterRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateTrafficFilter(ctx context.Context, body CreateTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateTrafficFilterRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTrafficFilterMetadata(ctx context.Context, params *GetTrafficFilterMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTrafficFilterMetadataRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteTrafficFilter(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteTrafficFilterRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTrafficFilter(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTrafficFilterRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchTrafficFilterWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchTrafficFilterRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchTrafficFilter(ctx context.Context, id string, body PatchTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchTrafficFilterRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2668,6 +2958,275 @@ func NewGetRegionRequest(server string, id RegionID) (*http.Request, error) {
 	return req, nil
 }
 
+// NewListTrafficFiltersRequest generates requests for ListTrafficFilters
+func NewListTrafficFiltersRequest(server string, params *ListTrafficFiltersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/traffic-filters")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IncludeByDefault != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "include_by_default", runtime.ParamLocationQuery, *params.IncludeByDefault); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Region != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "region", runtime.ParamLocationQuery, *params.Region); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateTrafficFilterRequest calls the generic CreateTrafficFilter builder with application/json body
+func NewCreateTrafficFilterRequest(server string, body CreateTrafficFilterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateTrafficFilterRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateTrafficFilterRequestWithBody generates requests for CreateTrafficFilter with any type of body
+func NewCreateTrafficFilterRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/traffic-filters")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetTrafficFilterMetadataRequest generates requests for GetTrafficFilterMetadata
+func NewGetTrafficFilterMetadataRequest(server string, params *GetTrafficFilterMetadataParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/traffic-filters/metadata")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Region != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "region", runtime.ParamLocationQuery, *params.Region); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteTrafficFilterRequest generates requests for DeleteTrafficFilter
+func NewDeleteTrafficFilterRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/traffic-filters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTrafficFilterRequest generates requests for GetTrafficFilter
+func NewGetTrafficFilterRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/traffic-filters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPatchTrafficFilterRequest calls the generic PatchTrafficFilter builder with application/json body
+func NewPatchTrafficFilterRequest(server string, id string, body PatchTrafficFilterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchTrafficFilterRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchTrafficFilterRequestWithBody generates requests for PatchTrafficFilter with any type of body
+func NewPatchTrafficFilterRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/traffic-filters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -2809,6 +3368,28 @@ type ClientWithResponsesInterface interface {
 
 	// GetRegionWithResponse request
 	GetRegionWithResponse(ctx context.Context, id RegionID, reqEditors ...RequestEditorFn) (*GetRegionResponse, error)
+
+	// ListTrafficFiltersWithResponse request
+	ListTrafficFiltersWithResponse(ctx context.Context, params *ListTrafficFiltersParams, reqEditors ...RequestEditorFn) (*ListTrafficFiltersResponse, error)
+
+	// CreateTrafficFilterWithBodyWithResponse request with any body
+	CreateTrafficFilterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTrafficFilterResponse, error)
+
+	CreateTrafficFilterWithResponse(ctx context.Context, body CreateTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTrafficFilterResponse, error)
+
+	// GetTrafficFilterMetadataWithResponse request
+	GetTrafficFilterMetadataWithResponse(ctx context.Context, params *GetTrafficFilterMetadataParams, reqEditors ...RequestEditorFn) (*GetTrafficFilterMetadataResponse, error)
+
+	// DeleteTrafficFilterWithResponse request
+	DeleteTrafficFilterWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteTrafficFilterResponse, error)
+
+	// GetTrafficFilterWithResponse request
+	GetTrafficFilterWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetTrafficFilterResponse, error)
+
+	// PatchTrafficFilterWithBodyWithResponse request with any body
+	PatchTrafficFilterWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchTrafficFilterResponse, error)
+
+	PatchTrafficFilterWithResponse(ctx context.Context, id string, body PatchTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchTrafficFilterResponse, error)
 }
 
 type ListElasticsearchProjectsResponse struct {
@@ -3475,6 +4056,160 @@ func (r GetRegionResponse) StatusCode() int {
 	return 0
 }
 
+type ListTrafficFiltersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TrafficFilterList
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTrafficFiltersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTrafficFiltersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateTrafficFilterResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *TrafficFilterInfo
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateTrafficFilterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateTrafficFilterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTrafficFilterMetadataResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TrafficFilterMetadata
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTrafficFilterMetadataResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTrafficFilterMetadataResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteTrafficFilterResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EmptyResponse
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteTrafficFilterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteTrafficFilterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTrafficFilterResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TrafficFilterInfo
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTrafficFilterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTrafficFilterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PatchTrafficFilterResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TrafficFilterInfo
+	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchTrafficFilterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchTrafficFilterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // ListElasticsearchProjectsWithResponse request returning *ListElasticsearchProjectsResponse
 func (c *ClientWithResponses) ListElasticsearchProjectsWithResponse(ctx context.Context, params *ListElasticsearchProjectsParams, reqEditors ...RequestEditorFn) (*ListElasticsearchProjectsResponse, error) {
 	rsp, err := c.ListElasticsearchProjects(ctx, params, reqEditors...)
@@ -3782,6 +4517,76 @@ func (c *ClientWithResponses) GetRegionWithResponse(ctx context.Context, id Regi
 		return nil, err
 	}
 	return ParseGetRegionResponse(rsp)
+}
+
+// ListTrafficFiltersWithResponse request returning *ListTrafficFiltersResponse
+func (c *ClientWithResponses) ListTrafficFiltersWithResponse(ctx context.Context, params *ListTrafficFiltersParams, reqEditors ...RequestEditorFn) (*ListTrafficFiltersResponse, error) {
+	rsp, err := c.ListTrafficFilters(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTrafficFiltersResponse(rsp)
+}
+
+// CreateTrafficFilterWithBodyWithResponse request with arbitrary body returning *CreateTrafficFilterResponse
+func (c *ClientWithResponses) CreateTrafficFilterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTrafficFilterResponse, error) {
+	rsp, err := c.CreateTrafficFilterWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTrafficFilterResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateTrafficFilterWithResponse(ctx context.Context, body CreateTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTrafficFilterResponse, error) {
+	rsp, err := c.CreateTrafficFilter(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateTrafficFilterResponse(rsp)
+}
+
+// GetTrafficFilterMetadataWithResponse request returning *GetTrafficFilterMetadataResponse
+func (c *ClientWithResponses) GetTrafficFilterMetadataWithResponse(ctx context.Context, params *GetTrafficFilterMetadataParams, reqEditors ...RequestEditorFn) (*GetTrafficFilterMetadataResponse, error) {
+	rsp, err := c.GetTrafficFilterMetadata(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTrafficFilterMetadataResponse(rsp)
+}
+
+// DeleteTrafficFilterWithResponse request returning *DeleteTrafficFilterResponse
+func (c *ClientWithResponses) DeleteTrafficFilterWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteTrafficFilterResponse, error) {
+	rsp, err := c.DeleteTrafficFilter(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteTrafficFilterResponse(rsp)
+}
+
+// GetTrafficFilterWithResponse request returning *GetTrafficFilterResponse
+func (c *ClientWithResponses) GetTrafficFilterWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetTrafficFilterResponse, error) {
+	rsp, err := c.GetTrafficFilter(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTrafficFilterResponse(rsp)
+}
+
+// PatchTrafficFilterWithBodyWithResponse request with arbitrary body returning *PatchTrafficFilterResponse
+func (c *ClientWithResponses) PatchTrafficFilterWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchTrafficFilterResponse, error) {
+	rsp, err := c.PatchTrafficFilterWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchTrafficFilterResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchTrafficFilterWithResponse(ctx context.Context, id string, body PatchTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchTrafficFilterResponse, error) {
+	rsp, err := c.PatchTrafficFilter(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchTrafficFilterResponse(rsp)
 }
 
 // ParseListElasticsearchProjectsResponse parses an HTTP response from a ListElasticsearchProjectsWithResponse call
@@ -4714,6 +5519,316 @@ func ParseGetRegionResponse(rsp *http.Response) (*GetRegionResponse, error) {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTrafficFiltersResponse parses an HTTP response from a ListTrafficFiltersWithResponse call
+func ParseListTrafficFiltersResponse(rsp *http.Response) (*ListTrafficFiltersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTrafficFiltersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TrafficFilterList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateTrafficFilterResponse parses an HTTP response from a CreateTrafficFilterWithResponse call
+func ParseCreateTrafficFilterResponse(rsp *http.Response) (*CreateTrafficFilterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateTrafficFilterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest TrafficFilterInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTrafficFilterMetadataResponse parses an HTTP response from a GetTrafficFilterMetadataWithResponse call
+func ParseGetTrafficFilterMetadataResponse(rsp *http.Response) (*GetTrafficFilterMetadataResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTrafficFilterMetadataResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TrafficFilterMetadata
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteTrafficFilterResponse parses an HTTP response from a DeleteTrafficFilterWithResponse call
+func ParseDeleteTrafficFilterResponse(rsp *http.Response) (*DeleteTrafficFilterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteTrafficFilterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EmptyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTrafficFilterResponse parses an HTTP response from a GetTrafficFilterWithResponse call
+func ParseGetTrafficFilterResponse(rsp *http.Response) (*GetTrafficFilterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTrafficFilterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TrafficFilterInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchTrafficFilterResponse parses an HTTP response from a PatchTrafficFilterWithResponse call
+func ParsePatchTrafficFilterResponse(rsp *http.Response) (*PatchTrafficFilterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchTrafficFilterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TrafficFilterInfo
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 

@@ -188,6 +188,12 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Unique human-readable identifier for a region in Elastic Cloud.",
 				MarkdownDescription: "Unique human-readable identifier for a region in Elastic Cloud.",
 			},
+			"traffic_filter_ids": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "Set of traffic filter IDs to associate with this project",
+				MarkdownDescription: "Set of traffic filter IDs to associate with this project",
+			},
 			"type": schema.StringAttribute{
 				Computed:            true,
 				Description:         "the type of the project",
@@ -201,16 +207,17 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type ObservabilityProjectModel struct {
-	Alias       types.String     `tfsdk:"alias"`
-	CloudId     types.String     `tfsdk:"cloud_id"`
-	Credentials CredentialsValue `tfsdk:"credentials"`
-	Endpoints   EndpointsValue   `tfsdk:"endpoints"`
-	Id          types.String     `tfsdk:"id"`
-	Metadata    MetadataValue    `tfsdk:"metadata"`
-	Name        types.String     `tfsdk:"name"`
-	ProductTier types.String     `tfsdk:"product_tier"`
-	RegionId    types.String     `tfsdk:"region_id"`
-	Type        types.String     `tfsdk:"type"`
+	Alias            types.String     `tfsdk:"alias"`
+	CloudId          types.String     `tfsdk:"cloud_id"`
+	Credentials      CredentialsValue `tfsdk:"credentials"`
+	Endpoints        EndpointsValue   `tfsdk:"endpoints"`
+	Id               types.String     `tfsdk:"id"`
+	Metadata         MetadataValue    `tfsdk:"metadata"`
+	Name             types.String     `tfsdk:"name"`
+	ProductTier      types.String     `tfsdk:"product_tier"`
+	RegionId         types.String     `tfsdk:"region_id"`
+	TrafficFilterIds types.Set        `tfsdk:"traffic_filter_ids"`
+	Type             types.String     `tfsdk:"type"`
 }
 
 var _ basetypes.ObjectTypable = CredentialsType{}

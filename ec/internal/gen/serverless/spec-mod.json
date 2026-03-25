@@ -302,6 +302,16 @@
                 }
               ]
             }
+          },
+          {
+            "name": "traffic_filter_ids",
+            "set": {
+              "computed_optional_required": "optional",
+              "element_type": {
+                "string": {}
+              },
+              "description": "Set of traffic filter IDs to associate with this project"
+            }
           }
         ]
       }
@@ -562,6 +572,16 @@
                   }
                 }
               ]
+            }
+          },
+          {
+            "name": "traffic_filter_ids",
+            "set": {
+              "computed_optional_required": "optional",
+              "element_type": {
+                "string": {}
+              },
+              "description": "Set of traffic filter IDs to associate with this project"
             }
           }
         ]
@@ -877,6 +897,16 @@
                   }
                 }
               ]
+            }
+          },
+          {
+            "name": "traffic_filter_ids",
+            "set": {
+              "computed_optional_required": "optional",
+              "element_type": {
+                "string": {}
+              },
+              "description": "Set of traffic filter IDs to associate with this project"
             }
           }
         ]

@@ -157,13 +157,16 @@ func TestModifyPlan(t *testing.T) {
 		}
 
 		planModel := &resource_elasticsearch_project.ElasticsearchProjectModel{
-			Id: types.StringValue("plan"),
+			Id:               types.StringValue("plan"),
+			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 		stateModel := &resource_elasticsearch_project.ElasticsearchProjectModel{
-			Id: types.StringValue("state"),
+			Id:               types.StringValue("state"),
+			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 		cfgModel := &resource_elasticsearch_project.ElasticsearchProjectModel{
-			Id: types.StringValue("config"),
+			Id:               types.StringValue("config"),
+			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 
 		mockHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
@@ -192,7 +195,9 @@ func TestImportState(t *testing.T) {
 			ID: projectID,
 		}
 		schema := resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
-		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{}
+		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+			TrafficFilterIds: types.SetNull(types.StringType),
+		}
 		emptyValue := util.TfTypesValueFromGoTypeValue(t, emptyModel, schema.Type())
 
 		res := resource.ImportStateResponse{

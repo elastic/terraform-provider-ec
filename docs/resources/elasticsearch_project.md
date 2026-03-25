@@ -35,6 +35,7 @@ resource "ec_elasticsearch_project" "my_project" {
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 - `optimized_for` (String) The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
 - `search_lake` (Attributes) Configuration for entire set of capabilities that make the data searchable in Elasticsearch. (see [below for nested schema](#nestedatt--search_lake))
+- `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
 ### Read-Only
 

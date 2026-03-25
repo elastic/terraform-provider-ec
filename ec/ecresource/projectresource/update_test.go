@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
@@ -83,7 +84,8 @@ func TestUpdate(t *testing.T) {
 				}
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id: basetypes.NewStringValue("project id"),
+					Id:               basetypes.NewStringValue("project id"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				modelHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
@@ -118,7 +120,8 @@ func TestUpdate(t *testing.T) {
 				}
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id: basetypes.NewStringValue("project id"),
+					Id:               basetypes.NewStringValue("project id"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 				readModel := model
 				readModel.Id = basetypes.NewStringValue("updated project id")

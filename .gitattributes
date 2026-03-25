@@ -1,0 +1,2 @@
+ec/internal/gen/serverless/client.gen.go diff=patience
+ec/internal/gen/serverless/mocks/client.gen.go diff=patience

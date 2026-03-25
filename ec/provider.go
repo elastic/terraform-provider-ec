@@ -20,9 +20,11 @@ package ec
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/organizationresource"
 	"net/http"
 	"time"
+
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/organizationresource"
+	"github.com/elastic/terraform-provider-ec/ec/ecresource/serverlesstrafficfilterresource"
 
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymenttemplates"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
@@ -122,6 +124,7 @@ func (p *Provider) Resources(ctx context.Context) []func() resource.Resource {
 		func() resource.Resource { return projectresource.NewElasticsearchProjectResource() },
 		func() resource.Resource { return projectresource.NewObservabilityProjectResource() },
 		func() resource.Resource { return projectresource.NewSecurityProjectResource() },
+		func() resource.Resource { return serverlesstrafficfilterresource.New() },
 		func() resource.Resource { return &organizationresource.Resource{} },
 	}
 }

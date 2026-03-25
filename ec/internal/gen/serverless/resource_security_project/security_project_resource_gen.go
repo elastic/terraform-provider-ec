@@ -222,6 +222,12 @@ func SecurityProjectResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Unique human-readable identifier for a region in Elastic Cloud.",
 				MarkdownDescription: "Unique human-readable identifier for a region in Elastic Cloud.",
 			},
+			"traffic_filter_ids": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "Set of traffic filter IDs to associate with this project",
+				MarkdownDescription: "Set of traffic filter IDs to associate with this project",
+			},
 			"type": schema.StringAttribute{
 				Computed:            true,
 				Description:         "the type of the project",
@@ -245,6 +251,7 @@ type SecurityProjectModel struct {
 	Name                 types.String          `tfsdk:"name"`
 	ProductTypes         ProductTypesListValue `tfsdk:"product_types"`
 	RegionId             types.String          `tfsdk:"region_id"`
+	TrafficFilterIds     types.Set             `tfsdk:"traffic_filter_ids"`
 	Type                 types.String          `tfsdk:"type"`
 }
 

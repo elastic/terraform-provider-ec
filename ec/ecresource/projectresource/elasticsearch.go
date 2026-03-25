@@ -138,6 +138,8 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 		}
 	}
 
+	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
+
 	resp, err := es.client.CreateElasticsearchProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -192,6 +194,8 @@ func (es elasticsearchApi) Patch(ctx context.Context, model resource_elasticsear
 			updateBody.SearchLake.SearchPower = &searchPower
 		}
 	}
+
+	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, model.TrafficFilterIds)
 
 	resp, err := es.client.PatchElasticsearchProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
 	if err != nil {

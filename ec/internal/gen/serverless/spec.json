@@ -132,6 +132,24 @@
 						}
 					},
 					{
+						"name": "traffic_filters",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "id",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "traffic filter ID"
+										}
+									}
+								]
+							},
+							"description": "traffic filters IDs"
+						}
+					},
+					{
 						"name": "cloud_id",
 						"string": {
 							"computed_optional_required": "computed",
@@ -328,6 +346,24 @@
 						"string": {
 							"computed_optional_required": "required",
 							"description": "Unique human-readable identifier for a region in Elastic Cloud."
+						}
+					},
+					{
+						"name": "traffic_filters",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "id",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "traffic filter ID"
+										}
+									}
+								]
+							},
+							"description": "traffic filters IDs"
 						}
 					},
 					{
@@ -598,6 +634,24 @@
 						"string": {
 							"computed_optional_required": "required",
 							"description": "Unique human-readable identifier for a region in Elastic Cloud."
+						}
+					},
+					{
+						"name": "traffic_filters",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "id",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "traffic filter ID"
+										}
+									}
+								]
+							},
+							"description": "traffic filters IDs"
 						}
 					},
 					{
