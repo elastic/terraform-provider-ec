@@ -40,10 +40,8 @@ func TestAccServerlessTrafficFilter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "region", getRegion()),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
-					resource.TestCheckResourceAttr(resName, "rule.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
-						"source": "0.0.0.0/0",
-					}),
+					resource.TestCheckResourceAttr(resName, "rules.#", "1"),
+					resource.TestCheckResourceAttr(resName, "rules.0.source", "0.0.0.0/0"),
 					resource.TestCheckResourceAttrSet(resName, "id"),
 				),
 			},
@@ -54,13 +52,9 @@ func TestAccServerlessTrafficFilter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "region", getRegion()),
 					resource.TestCheckResourceAttr(resName, "type", "ip"),
 					resource.TestCheckResourceAttr(resName, "include_by_default", "false"),
-					resource.TestCheckResourceAttr(resName, "rule.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
-						"source": "0.0.0.0/0",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs(resName, "rule.*", map[string]string{
-						"source": "192.168.1.0/24",
-					}),
+					resource.TestCheckResourceAttr(resName, "rules.#", "2"),
+					resource.TestCheckResourceAttr(resName, "rules.0.source", "0.0.0.0/0"),
+					resource.TestCheckResourceAttr(resName, "rules.1.source", "192.168.1.0/24"),
 				),
 			},
 			{
@@ -79,10 +73,10 @@ resource "ec_serverless_traffic_filter" "test" {
   region             = "%s"
   type               = "ip"
   include_by_default = false
-  
-  rule {
-    source = "0.0.0.0/0"
-  }
+
+  rules = [
+    { source = "0.0.0.0/0" },
+  ]
 }
 `, name, region)
 }
@@ -94,14 +88,11 @@ resource "ec_serverless_traffic_filter" "test" {
   region             = "%s"
   type               = "ip"
   include_by_default = false
-  
-  rule {
-    source = "0.0.0.0/0"
-  }
-  
-  rule {
-    source = "192.168.1.0/24"
-  }
+
+  rules = [
+    { source = "0.0.0.0/0" },
+    { source = "192.168.1.0/24" },
+  ]
 }
 `, name, region)
 }

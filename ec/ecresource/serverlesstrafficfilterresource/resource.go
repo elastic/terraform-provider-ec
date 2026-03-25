@@ -187,7 +187,7 @@ func (r *Resource) Delete(ctx context.Context, request resource.DeleteRequest, r
 		return
 	}
 
-	if resp.StatusCode() != 200 && resp.StatusCode() != 404 {
+	if resp.StatusCode() != 200 && resp.StatusCode() != 204 && resp.StatusCode() != 404 {
 		response.Diagnostics.AddError(
 			"Failed to delete traffic filter",
 			fmt.Sprintf("Unexpected status code: %d, body: %s", resp.StatusCode(), string(resp.Body)),

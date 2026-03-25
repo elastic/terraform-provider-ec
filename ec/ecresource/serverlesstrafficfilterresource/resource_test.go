@@ -140,6 +140,27 @@ func TestResourceDelete(t *testing.T) {
 		require.False(t, deleteResp.Diagnostics.HasError())
 	})
 
+	t.Run("successful deletion with 204 No Content", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+		mockClient.EXPECT().
+			DeleteTrafficFilterWithResponse(ctx, "filter-456").
+			Return(&serverless.DeleteTrafficFilterResponse{
+				HTTPResponse: &http.Response{StatusCode: 204},
+			}, nil)
+
+		r := &Resource{client: mockClient}
+		state := newTestState(ctx, t, "filter-456", "test", "aws-us-east-1", "ip")
+		deleteReq := resource.DeleteRequest{State: state}
+		deleteResp := resource.DeleteResponse{State: state, Diagnostics: diag.Diagnostics{}}
+
+		r.Delete(ctx, deleteReq, &deleteResp)
+
+		require.False(t, deleteResp.Diagnostics.HasError())
+	})
+
 	t.Run("404 on delete is not an error", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
