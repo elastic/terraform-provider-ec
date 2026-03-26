@@ -113,25 +113,28 @@ func getResources(deploymentTemplate string) (*models.DeploymentCreateResources,
 	return res.DeploymentTemplate.Resources, nil
 }
 
-func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC string, err error) {
+func getElasticsearchHotInstanceConfiguration(resources *models.DeploymentCreateResources, deploymentTemplate string) (string, error) {
+	for _, topology := range resources.Elasticsearch[0].Plan.ClusterTopology {
+		if topology.ID == "hot_content" && topology.InstanceConfigurationID != "" {
+			return topology.InstanceConfigurationID, nil
+		}
+	}
+
+	return "", fmt.Errorf(
+		"could not find default hot tier instance configuration for Elasticsearch, verify details for: %v",
+		deploymentTemplate,
+	)
+}
+
+func getInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC string, err error) {
 	resources, err := getResources(deploymentTemplate)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	esRes := resources.Elasticsearch[0].Plan.ClusterTopology
-
-	for _, t := range esRes {
-		if *t.Size.Value > 0 {
-			esIC = t.InstanceConfigurationID
-		}
-	}
-
-	if esIC == "" {
-		return "", "", "",
-			fmt.Errorf(
-				"could not find default instance configuration for Elasticsearch, verify  details for: %v",
-				deploymentTemplate)
+	esIC, err = getElasticsearchHotInstanceConfiguration(resources, deploymentTemplate)
+	if err != nil {
+		return "", "", "", err
 	}
 
 	kibanaIC = resources.Kibana[0].
