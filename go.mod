@@ -210,6 +210,7 @@ require (
 	github.com/google/go-github/v84 v84.0.0 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/ko v0.18.1 // indirect
+	github.com/google/licenseclassifier v0.0.0-20250213175939-b5d1a3369749 // indirect
 	github.com/google/rpmpack v0.7.1 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -375,6 +376,7 @@ require (
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	gitlab.com/gitlab-org/api/client-go v1.46.0 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
+	go.elastic.co/go-licence-detector v0.10.0 // indirect
 	go.mongodb.org/mongo-driver v1.17.6 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.39.0 // indirect
@@ -429,4 +431,5 @@ tool (
 	github.com/goreleaser/goreleaser/v2
 	github.com/hashicorp/go-changelog/cmd/changelog-build
 	github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+	go.elastic.co/go-licence-detector
 )

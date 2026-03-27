@@ -4,9 +4,8 @@ ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLANGCILINT:=v2.11.4
-VERSION_GOLICENCEDETECTOR:=v0.8.0
 
-deps: $(GOBIN)/golangci-lint $(GOBIN)/go-licence-detector
+deps: $(GOBIN)/golangci-lint
 
 $(GOBIN):
 	@ mkdir -p $(GOBIN)
@@ -21,11 +20,3 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
-
-$(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-go-licence-detector-*
-	@ echo $(VERSION_GOLICENCEDETECTOR) > $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR)
-
-$(GOBIN)/go-licence-detector: $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR) | $(GOBIN)
-	@ echo "-> Installing go-licence-detector..."
-	@ go install go.elastic.co/go-licence-detector@$(VERSION_GOLICENCEDETECTOR)	
