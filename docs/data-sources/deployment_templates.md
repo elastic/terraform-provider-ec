@@ -103,7 +103,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--cold--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.cold.size_resource`
+### Nested Schema for `templates.elasticsearch.cold.autoscaling`
 
 Read-Only:
 
@@ -128,7 +128,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--coordinating--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.coordinating.size_resource`
+### Nested Schema for `templates.elasticsearch.coordinating.autoscaling`
 
 Read-Only:
 
@@ -153,7 +153,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--frozen--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.frozen.size_resource`
+### Nested Schema for `templates.elasticsearch.frozen.autoscaling`
 
 Read-Only:
 
@@ -178,7 +178,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--hot--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.hot.size_resource`
+### Nested Schema for `templates.elasticsearch.hot.autoscaling`
 
 Read-Only:
 
@@ -203,7 +203,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--master--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.master.size_resource`
+### Nested Schema for `templates.elasticsearch.master.autoscaling`
 
 Read-Only:
 
@@ -228,7 +228,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--ml--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.ml.size_resource`
+### Nested Schema for `templates.elasticsearch.ml.autoscaling`
 
 Read-Only:
 
@@ -253,7 +253,7 @@ Read-Only:
 - `size_resource` (String)
 
 <a id="nestedatt--templates--elasticsearch--warm--autoscaling"></a>
-### Nested Schema for `templates.elasticsearch.warm.size_resource`
+### Nested Schema for `templates.elasticsearch.warm.autoscaling`
 
 Read-Only:
 

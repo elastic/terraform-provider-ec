@@ -4,7 +4,6 @@ ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLANGCILINT:=v2.11.4
-VERSION_TFPLUGINDOCS:=v0.14.1
 VERSION_GOLICENCEDETECTOR:=v0.8.0
 
 deps: $(GOBIN)/golangci-lint $(GOBIN)/go-licence-detector
@@ -22,14 +21,6 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
-
-$(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-tfplugindocs-*
-	@ echo $(VERSION_TFPLUGINDOCS) > $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS)
-
-$(GOBIN)/tfplugindocs: $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS) | $(GOBIN)
-	@ echo "-> Installing tfplugindocs..."
-	@ go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(VERSION_TFPLUGINDOCS)
 
 $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-go-licence-detector-*
