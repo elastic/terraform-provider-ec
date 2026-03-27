@@ -7,6 +7,20 @@
   ],
   "automerge": true,
   "automergeType": "pr",
+  "packageRules": [
+    {
+      "groupName": "github.com/oapi-codegen dependencies",
+      "matchPackageNames": [
+        "github.com/oapi-codegen/*"
+      ]
+    },
+    {
+      "groupName": "github.com/hashicorp dependencies",
+      "matchPackageNames": [
+        "github.com/hashicorp/*"
+      ]
+    }
+  ],
   "major": {
     "automerge": false
   }
