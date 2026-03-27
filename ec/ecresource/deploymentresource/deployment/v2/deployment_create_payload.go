@@ -23,7 +23,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -69,7 +68,7 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 	if dep.Alias.IsNull() || dep.Alias.IsUnknown() {
 		alias = nil
 	} else {
-		alias = ec.String(dep.Alias.ValueString())
+		alias = new(dep.Alias.ValueString())
 	}
 
 	var result = models.DeploymentCreateRequest{

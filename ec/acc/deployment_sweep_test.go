@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/elastic/cloud-sdk-go/pkg/plan"
 	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func init() {
@@ -54,7 +53,7 @@ func testSweepDeployment(_ string) error {
 		API: client,
 		Request: &models.SearchRequest{Query: &models.QueryContainer{
 			Prefix: map[string]models.PrefixQuery{
-				"name": {Value: ec.String(prefix)},
+				"name": {Value: new(prefix)},
 			},
 		}},
 	})

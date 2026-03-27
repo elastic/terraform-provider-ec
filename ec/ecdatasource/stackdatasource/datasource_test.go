@@ -57,8 +57,8 @@ func Test_modelToState(t *testing.T) {
 				state: state,
 				res: &models.StackVersionConfig{
 					Version:           "7.9.1",
-					Accessible:        ec.Bool(true),
-					Whitelisted:       ec.Bool(true),
+					Accessible:        new(true),
+					Whitelisted:       new(true),
 					MinUpgradableFrom: "6.8.0",
 					Apm: &models.StackVersionApmConfig{
 						Blacklist: []string{"some"},
@@ -66,7 +66,7 @@ func Test_modelToState(t *testing.T) {
 							Max: ec.Int32(8192),
 							Min: ec.Int32(512),
 						},
-						DockerImage: ec.String("docker.elastic.co/cloud-assets/apm:7.9.1-0"),
+						DockerImage: new("docker.elastic.co/cloud-assets/apm:7.9.1-0"),
 					},
 					Kibana: &models.StackVersionKibanaConfig{
 						Blacklist: []string{"some"},
@@ -74,7 +74,7 @@ func Test_modelToState(t *testing.T) {
 							Max: ec.Int32(8192),
 							Min: ec.Int32(512),
 						},
-						DockerImage: ec.String("docker.elastic.co/cloud-assets/kibana:7.9.1-0"),
+						DockerImage: new("docker.elastic.co/cloud-assets/kibana:7.9.1-0"),
 					},
 					Elasticsearch: &models.StackVersionElasticsearchConfig{
 						Blacklist: []string{"some"},
@@ -82,7 +82,7 @@ func Test_modelToState(t *testing.T) {
 							Max: ec.Int32(8192),
 							Min: ec.Int32(512),
 						},
-						DockerImage:    ec.String("docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0"),
+						DockerImage:    new("docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0"),
 						DefaultPlugins: []string{"repository-s3"},
 						Plugins: []string{
 							"analysis-icu",
@@ -106,7 +106,7 @@ func Test_modelToState(t *testing.T) {
 							Max: ec.Int32(8192),
 							Min: ec.Int32(512),
 						},
-						DockerImage: ec.String("docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0"),
+						DockerImage: new("docker.elastic.co/cloud-assets/enterprise_search:7.9.1-0"),
 					},
 				},
 			},

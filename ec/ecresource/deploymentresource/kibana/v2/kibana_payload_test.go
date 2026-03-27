@@ -59,19 +59,19 @@ func Test_KibanaPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				kibana: &Kibana{
-					RefId:                     ec.String("main-kibana"),
+					RefId:                     new("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					InstanceConfigurationId:   ec.String("aws.kibana.r5d"),
-					Size:                      ec.String("2g"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
+					InstanceConfigurationId:   new("aws.kibana.r5d"),
+					Size:                      new("2g"),
 					ZoneCount:                 1,
 				},
 			},
 			want: &models.KibanaPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-kibana"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-kibana"),
 				Plan: &models.KibanaClusterPlan{
 					Kibana: &models.KibanaConfiguration{},
 					ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -79,7 +79,7 @@ func Test_KibanaPayload(t *testing.T) {
 							ZoneCount:               1,
 							InstanceConfigurationID: "aws.kibana.r5d",
 							Size: &models.TopologySize{
-								Resource: ec.String("memory"),
+								Resource: new("memory"),
 								Value:    ec.Int32(2048),
 							},
 						},
@@ -92,16 +92,16 @@ func Test_KibanaPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				kibana: &Kibana{
-					RefId:                     ec.String("main-kibana"),
+					RefId:                     new("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
 				},
 			},
 			want: &models.KibanaPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-kibana"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-kibana"),
 				Plan: &models.KibanaClusterPlan{
 					Kibana: &models.KibanaConfiguration{},
 					ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -109,7 +109,7 @@ func Test_KibanaPayload(t *testing.T) {
 							ZoneCount:               1,
 							InstanceConfigurationID: "aws.kibana.r5d",
 							Size: &models.TopologySize{
-								Resource: ec.String("memory"),
+								Resource: new("memory"),
 								Value:    ec.Int32(1024),
 							},
 						},
@@ -122,18 +122,18 @@ func Test_KibanaPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResourcesWithIcVersion(),
 				kibana: &Kibana{
-					RefId:                     ec.String("main-kibana"),
+					RefId:                     new("main-kibana"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					Size:                      ec.String("4g"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
+					Size:                      new("4g"),
 				},
 			},
 			want: &models.KibanaPayload{
 
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-kibana"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-kibana"),
 				Plan: &models.KibanaClusterPlan{
 					Kibana: &models.KibanaConfiguration{},
 					ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -142,7 +142,7 @@ func Test_KibanaPayload(t *testing.T) {
 							InstanceConfigurationID:      "aws.kibana.r5d",
 							InstanceConfigurationVersion: ec.Int32(3),
 							Size: &models.TopologySize{
-								Resource: ec.String("memory"),
+								Resource: new("memory"),
 								Value:    ec.Int32(4096),
 							},
 						},
@@ -155,20 +155,20 @@ func Test_KibanaPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				kibana: &Kibana{
-					RefId:                        ec.String("main-kibana"),
+					RefId:                        new("main-kibana"),
 					ResourceId:                   &mock.ValidClusterID,
-					Region:                       ec.String("some-region"),
-					ElasticsearchClusterRefId:    ec.String("somerefid"),
-					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: ec.Int(4),
-					Size:                         ec.String("4g"),
+					Region:                       new("some-region"),
+					ElasticsearchClusterRefId:    new("somerefid"),
+					InstanceConfigurationId:      new("testing.ic"),
+					InstanceConfigurationVersion: new(4),
+					Size:                         new("4g"),
 				},
 			},
 			want: &models.KibanaPayload{
 
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-kibana"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-kibana"),
 				Plan: &models.KibanaClusterPlan{
 					Kibana: &models.KibanaConfiguration{},
 					ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -177,7 +177,7 @@ func Test_KibanaPayload(t *testing.T) {
 							InstanceConfigurationID:      "testing.ic",
 							InstanceConfigurationVersion: ec.Int32(4),
 							Size: &models.TopologySize{
-								Resource: ec.String("memory"),
+								Resource: new("memory"),
 								Value:    ec.Int32(4096),
 							},
 						},
@@ -190,33 +190,33 @@ func Test_KibanaPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				kibana: &Kibana{
-					RefId:                     ec.String("secondary-kibana"),
+					RefId:                     new("secondary-kibana"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
 					Config: &KibanaConfig{
-						UserSettingsYaml:         ec.String("some.setting: value"),
-						UserSettingsOverrideYaml: ec.String("some.setting: override"),
-						UserSettingsJson:         ec.String(`{"some.setting":"value"}`),
-						UserSettingsOverrideJson: ec.String(`{"some.setting":"override"}`),
+						UserSettingsYaml:         new("some.setting: value"),
+						UserSettingsOverrideYaml: new("some.setting: override"),
+						UserSettingsJson:         new(`{"some.setting":"value"}`),
+						UserSettingsOverrideJson: new(`{"some.setting":"override"}`),
 					},
-					InstanceConfigurationId: ec.String("aws.kibana.r5d"),
-					Size:                    ec.String("4g"),
+					InstanceConfigurationId: new("aws.kibana.r5d"),
+					Size:                    new("4g"),
 					ZoneCount:               1,
 				},
 			},
 			want: &models.KibanaPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("secondary-kibana"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("secondary-kibana"),
 				Plan: &models.KibanaClusterPlan{
 					Kibana: &models.KibanaConfiguration{
 						UserSettingsYaml:         "some.setting: value",
 						UserSettingsOverrideYaml: "some.setting: override",
-						UserSettingsJSON: map[string]interface{}{
+						UserSettingsJSON: map[string]any{
 							"some.setting": "value",
 						},
-						UserSettingsOverrideJSON: map[string]interface{}{
+						UserSettingsOverrideJSON: map[string]any{
 							"some.setting": "override",
 						},
 					},
@@ -224,7 +224,7 @@ func Test_KibanaPayload(t *testing.T) {
 						ZoneCount:               1,
 						InstanceConfigurationID: "aws.kibana.r5d",
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(4096),
 						},
 					}},
@@ -236,13 +236,13 @@ func Test_KibanaPayload(t *testing.T) {
 			args: args{
 				updateResources: nil,
 				kibana: &Kibana{
-					RefId:                     ec.String("tertiary-kibana"),
+					RefId:                     new("tertiary-kibana"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					InstanceConfigurationId:   ec.String("aws.kibana.r5d"),
-					Size:                      ec.String("1g"),
-					SizeResource:              ec.String("memory"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
+					InstanceConfigurationId:   new("aws.kibana.r5d"),
+					Size:                      new("1g"),
+					SizeResource:              new("memory"),
 					ZoneCount:                 1,
 				},
 			},

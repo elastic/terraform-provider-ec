@@ -70,13 +70,13 @@ func Test_readElasticsearchTrustExternals(t *testing.T) {
 				Trust: &models.ElasticsearchClusterTrustSettings{
 					External: []*models.ExternalTrustRelationship{
 						{
-							TrustRelationshipID: ptr("complicated"),
-							TrustAll:            ptr(false),
+							TrustRelationshipID: new("complicated"),
+							TrustAll:            new(false),
 							TrustAllowlist:      []string{"abc123", "def456"},
 						},
 						{
-							TrustRelationshipID: ptr("blessed"),
-							TrustAll:            ptr(true),
+							TrustRelationshipID: new("blessed"),
+							TrustAll:            new(true),
 						},
 						{
 							TrustAllowlist: []string{"abc123", "def456"},
@@ -87,13 +87,13 @@ func Test_readElasticsearchTrustExternals(t *testing.T) {
 			},
 			expectedAccounts: ElasticsearchTrustExternals{
 				{
-					RelationshipId: ptr("complicated"),
-					TrustAll:       ptr(false),
+					RelationshipId: new("complicated"),
+					TrustAll:       new(false),
 					TrustAllowlist: []string{"abc123", "def456"},
 				},
 				{
-					RelationshipId: ptr("blessed"),
-					TrustAll:       ptr(true),
+					RelationshipId: new("blessed"),
+					TrustAll:       new(true),
 				},
 				{
 					TrustAllowlist: []string{"abc123", "def456"},

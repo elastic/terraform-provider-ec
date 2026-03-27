@@ -24,8 +24,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//go:fix inline
 func ptr[T any](t T) *T {
-	return &t
+	return new(t)
 }
 
 func Test_readElasticsearchTrustAccounts(t *testing.T) {
@@ -74,13 +75,13 @@ func Test_readElasticsearchTrustAccounts(t *testing.T) {
 				Trust: &models.ElasticsearchClusterTrustSettings{
 					Accounts: []*models.AccountTrustRelationship{
 						{
-							AccountID:      ptr("account-id"),
-							TrustAll:       ptr(false),
+							AccountID:      new("account-id"),
+							TrustAll:       new(false),
 							TrustAllowlist: []string{"abc123", "def456"},
 						},
 						{
-							AccountID: ptr("account-id"),
-							TrustAll:  ptr(true),
+							AccountID: new("account-id"),
+							TrustAll:  new(true),
 						},
 						{
 							TrustAllowlist: []string{"abc123", "def456"},
@@ -91,13 +92,13 @@ func Test_readElasticsearchTrustAccounts(t *testing.T) {
 			},
 			expectedAccounts: ElasticsearchTrustAccounts{
 				{
-					AccountId:      ptr("account-id"),
-					TrustAll:       ptr(false),
+					AccountId:      new("account-id"),
+					TrustAll:       new(false),
 					TrustAllowlist: []string{"abc123", "def456"},
 				},
 				{
-					AccountId: ptr("account-id"),
-					TrustAll:  ptr(true),
+					AccountId: new("account-id"),
+					TrustAll:  new(true),
 				},
 				{
 					TrustAllowlist: []string{"abc123", "def456"},

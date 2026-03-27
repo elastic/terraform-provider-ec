@@ -57,7 +57,7 @@ func Test_flattenApmResource(t *testing.T) {
 					Max: ec.Int32(8192),
 					Min: ec.Int32(512),
 				},
-				DockerImage: ec.String("docker.elastic.co/cloud-assets/apm:7.9.1-0"),
+				DockerImage: new("docker.elastic.co/cloud-assets/apm:7.9.1-0"),
 			}},
 			want: []resourceKindConfigModelV0{{
 				DenyList:               util.StringListAsType(t, []string{"some"}),

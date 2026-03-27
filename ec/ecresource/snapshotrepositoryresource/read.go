@@ -81,10 +81,10 @@ func modelToState(model *models.RepositoryConfig, state *modelV0) diag.Diagnosti
 
 	state.Name = types.StringPointerValue(model.RepositoryName)
 
-	config, _ := model.Config.(map[string]interface{})
+	config, _ := model.Config.(map[string]any)
 	if repositoryType, ok := config["type"]; ok && repositoryType != nil {
 		if settingsInterface, ok := config["settings"]; ok && settingsInterface != nil {
-			settings := settingsInterface.(map[string]interface{})
+			settings := settingsInterface.(map[string]any)
 			// Parse into S3 schema if possible, but fall back to Generic when custom settings have been used.
 			if repositoryType.(string) == "s3" && containsOnlyKnownS3Settings(settings) {
 				if state.S3 == nil {
@@ -131,7 +131,7 @@ func modelToState(model *models.RepositoryConfig, state *modelV0) diag.Diagnosti
 	return diags
 }
 
-func containsOnlyKnownS3Settings(settings map[string]interface{}) bool {
+func containsOnlyKnownS3Settings(settings map[string]any) bool {
 	attributes := s3Schema().GetType().(types.ObjectType).AttributeTypes()
 	for key := range settings {
 		if _, ok := attributes[key]; !ok {

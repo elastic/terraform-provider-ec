@@ -28,7 +28,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deploymentsize"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -87,7 +86,7 @@ func (topology ElasticsearchTopologyTF) payload(ctx context.Context, topologyID 
 	}
 
 	if !topology.InstanceConfigurationVersion.IsUnknown() && !topology.InstanceConfigurationVersion.IsNull() {
-		topologyElem.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
+		topologyElem.InstanceConfigurationVersion = new(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
 	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
@@ -151,11 +150,11 @@ func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 	}
 
 	if model.InstanceConfigurationVersion != nil {
-		topology.InstanceConfigurationVersion = ec.Int(int(*model.InstanceConfigurationVersion))
+		topology.InstanceConfigurationVersion = new(int(*model.InstanceConfigurationVersion))
 	}
 
 	if model.Size != nil {
-		topology.Size = ec.String(util.MemoryToState(*model.Size.Value))
+		topology.Size = new(util.MemoryToState(*model.Size.Value))
 		topology.SizeResource = model.Size.Resource
 	}
 
@@ -163,19 +162,19 @@ func readElasticsearchTopology(model *models.ElasticsearchClusterTopologyElement
 
 	if nt := model.NodeType; nt != nil {
 		if nt.Data != nil {
-			topology.NodeTypeData = ec.String(strconv.FormatBool(*nt.Data))
+			topology.NodeTypeData = new(strconv.FormatBool(*nt.Data))
 		}
 
 		if nt.Ingest != nil {
-			topology.NodeTypeIngest = ec.String(strconv.FormatBool(*nt.Ingest))
+			topology.NodeTypeIngest = new(strconv.FormatBool(*nt.Ingest))
 		}
 
 		if nt.Master != nil {
-			topology.NodeTypeMaster = ec.String(strconv.FormatBool(*nt.Master))
+			topology.NodeTypeMaster = new(strconv.FormatBool(*nt.Master))
 		}
 
 		if nt.Ml != nil {
-			topology.NodeTypeMl = ec.String(strconv.FormatBool(*nt.Ml))
+			topology.NodeTypeMl = new(strconv.FormatBool(*nt.Ml))
 		}
 	}
 
@@ -195,12 +194,12 @@ func readElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterT
 
 	if max := topology.AutoscalingMax; max != nil {
 		a.MaxSizeResource = max.Resource
-		a.MaxSize = ec.String(util.MemoryToState(*max.Value))
+		a.MaxSize = new(util.MemoryToState(*max.Value))
 	}
 
 	if min := topology.AutoscalingMin; min != nil {
 		a.MinSizeResource = min.Resource
-		a.MinSize = ec.String(util.MemoryToState(*min.Value))
+		a.MinSize = new(util.MemoryToState(*min.Value))
 	}
 
 	if topology.AutoscalingPolicyOverrideJSON != nil {
@@ -208,7 +207,7 @@ func readElasticsearchTopologyAutoscaling(topology *models.ElasticsearchClusterT
 		if err != nil {
 			return nil, fmt.Errorf("elasticsearch topology %s: unable to persist policy_override_json - %w", topology.ID, err)
 		}
-		a.PolicyOverrideJson = ec.String(string(b))
+		a.PolicyOverrideJson = new(string(b))
 	}
 
 	if topology.AutoscalingTierOverride != nil {
@@ -441,12 +440,12 @@ func expandAutoscalingDimension(autoscale v1.ElasticsearchTopologyAutoscalingTF,
 		model.Value = &val
 
 		if model.Resource == nil {
-			model.Resource = ec.String("memory")
+			model.Resource = new("memory")
 		}
 	}
 
 	if sizeResource.ValueString() != "" {
-		model.Resource = ec.String(sizeResource.ValueString())
+		model.Resource = new(sizeResource.ValueString())
 	}
 
 	return nil
@@ -456,7 +455,7 @@ func SetLatestInstanceConfigInfo(currentTopology *ElasticsearchTopology, latestT
 	if currentTopology != nil && latestTopology != nil {
 		currentTopology.LatestInstanceConfigurationId = &latestTopology.InstanceConfigurationID
 		if latestTopology.InstanceConfigurationVersion != nil {
-			currentTopology.LatestInstanceConfigurationVersion = ec.Int(int(*latestTopology.InstanceConfigurationVersion))
+			currentTopology.LatestInstanceConfigurationVersion = new(int(*latestTopology.InstanceConfigurationVersion))
 		}
 	}
 }

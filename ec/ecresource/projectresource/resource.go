@@ -42,7 +42,7 @@ type Resource[T any] struct {
 }
 
 type modelGetter interface {
-	Get(ctx context.Context, target interface{}) diag.Diagnostics
+	Get(ctx context.Context, target any) diag.Diagnostics
 }
 
 // mockgen doesn't support the recursive generic used within api.WithClient

@@ -21,7 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -70,7 +69,7 @@ func Test_topologyPlanModifier(t *testing.T) {
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MinSize: ec.String("1g"),
+								MinSize: new("1g"),
 							},
 						}),
 					},
@@ -95,17 +94,17 @@ func Test_topologyPlanModifier(t *testing.T) {
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationVersion:       ec.Int(0),
-							LatestInstanceConfigurationVersion: ec.Int(1),
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(1),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MinSize: ec.String("1g"),
+								MinSize: new("1g"),
 							},
 						}),
 					},
 				},
 				deploymentPlan: deploymentv2.Deployment{
 					DeploymentTemplateId:    "aws-io-optimized-v2",
-					MigrateToLatestHardware: ec.Bool(true),
+					MigrateToLatestHardware: new(true),
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
@@ -124,19 +123,19 @@ func Test_topologyPlanModifier(t *testing.T) {
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationId:            ec.String("aws.data.highio.i3"),
-							LatestInstanceConfigurationId:      ec.String("aws.data.highio.i3"),
-							InstanceConfigurationVersion:       ec.Int(0),
-							LatestInstanceConfigurationVersion: ec.Int(0),
+							InstanceConfigurationId:            new("aws.data.highio.i3"),
+							LatestInstanceConfigurationId:      new("aws.data.highio.i3"),
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(0),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MinSize: ec.String("1g"),
+								MinSize: new("1g"),
 							},
 						}),
 					},
 				},
 				deploymentPlan: deploymentv2.Deployment{
 					DeploymentTemplateId:    "aws-io-optimized-v2",
-					MigrateToLatestHardware: ec.Bool(true),
+					MigrateToLatestHardware: new(true),
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
@@ -155,20 +154,20 @@ func Test_topologyPlanModifier(t *testing.T) {
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationVersion:       ec.Int(0),
-							LatestInstanceConfigurationVersion: ec.Int(1),
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(1),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MinSize: ec.String("1g"),
+								MinSize: new("1g"),
 							},
 						}),
 					},
 				},
 				deploymentPlan: deploymentv2.Deployment{
 					DeploymentTemplateId:    "aws-io-optimized-v2",
-					MigrateToLatestHardware: ec.Bool(true),
+					MigrateToLatestHardware: new(true),
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationVersion: ec.Int(1),
+							InstanceConfigurationVersion: new(1),
 							Autoscaling:                  &v2.ElasticsearchTopologyAutoscaling{},
 						}),
 					},
@@ -185,20 +184,20 @@ func Test_topologyPlanModifier(t *testing.T) {
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationVersion:       ec.Int(0),
-							LatestInstanceConfigurationVersion: ec.Int(1),
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(1),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MinSize: ec.String("1g"),
+								MinSize: new("1g"),
 							},
 						}),
 					},
 				},
 				deploymentPlan: deploymentv2.Deployment{
 					DeploymentTemplateId:    "aws-io-optimized-v2",
-					MigrateToLatestHardware: ec.Bool(true),
+					MigrateToLatestHardware: new(true),
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationId: ec.String("aws.data.highio.c5d"),
+							InstanceConfigurationId: new("aws.data.highio.c5d"),
 							Autoscaling:             &v2.ElasticsearchTopologyAutoscaling{},
 						}),
 					},
@@ -215,10 +214,10 @@ func Test_topologyPlanModifier(t *testing.T) {
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
-							InstanceConfigurationId:       ec.String("aws.data.highio.i3"),
-							LatestInstanceConfigurationId: ec.String("aws.data.highio.c5d"),
+							InstanceConfigurationId:       new("aws.data.highio.i3"),
+							LatestInstanceConfigurationId: new("aws.data.highio.c5d"),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MaxSize: ec.String("1g"),
+								MaxSize: new("1g"),
 							},
 						}),
 					},

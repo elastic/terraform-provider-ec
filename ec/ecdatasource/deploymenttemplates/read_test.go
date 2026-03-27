@@ -36,25 +36,25 @@ func Test_mapResponseToModel(t *testing.T) {
 			showDeprecated: false,
 			apiResponse: []*models.DeploymentTemplateInfoV2{
 				{
-					ID:          ec.String("id-nonhidden"),
-					Name:        ec.String("name-nonhidden"),
+					ID:          new("id-nonhidden"),
+					Name:        new("name-nonhidden"),
 					Description: "description nonhidden",
 					MinVersion:  "",
 					Metadata:    []*models.MetadataItem{},
 				},
 				{
-					ID:          ec.String("id-hidden"),
-					Name:        ec.String("name-hidden"),
+					ID:          new("id-hidden"),
+					Name:        new("name-hidden"),
 					Description: "description hidden",
 					MinVersion:  "7.17.0",
 					Metadata: []*models.MetadataItem{
 						{
-							Key:   ec.String("anotherkey"),
-							Value: ec.String("false"),
+							Key:   new("anotherkey"),
+							Value: new("false"),
 						},
 						{
-							Key:   ec.String("hidden"),
-							Value: ec.String("true"),
+							Key:   new("hidden"),
+							Value: new("true"),
 						},
 					},
 				},
@@ -74,25 +74,25 @@ func Test_mapResponseToModel(t *testing.T) {
 			showDeprecated: true,
 			apiResponse: []*models.DeploymentTemplateInfoV2{
 				{
-					ID:          ec.String("id-nonhidden"),
-					Name:        ec.String("name-nonhidden"),
+					ID:          new("id-nonhidden"),
+					Name:        new("name-nonhidden"),
 					Description: "description nonhidden",
 					MinVersion:  "",
 					Metadata:    []*models.MetadataItem{},
 				},
 				{
-					ID:          ec.String("id-hidden"),
-					Name:        ec.String("name-hidden"),
+					ID:          new("id-hidden"),
+					Name:        new("name-hidden"),
 					Description: "description hidden",
 					MinVersion:  "7.17.0",
 					Metadata: []*models.MetadataItem{
 						{
-							Key:   ec.String("anotherkey"),
-							Value: ec.String("false"),
+							Key:   new("anotherkey"),
+							Value: new("false"),
 						},
 						{
-							Key:   ec.String("hidden"),
-							Value: ec.String("true"),
+							Key:   new("hidden"),
+							Value: new("true"),
 						},
 					},
 				},
@@ -119,14 +119,14 @@ func Test_mapResponseToModel(t *testing.T) {
 			showDeprecated: true,
 			apiResponse: []*models.DeploymentTemplateInfoV2{
 				{
-					ID:   ec.String("id"),
-					Name: ec.String("name"),
+					ID:   new("id"),
+					Name: new("name"),
 					DeploymentTemplate: &models.DeploymentCreateRequest{
 						Resources: &models.DeploymentCreateResources{
 							Elasticsearch: []*models.ElasticsearchPayload{
 								{
 									Plan: &models.ElasticsearchClusterPlan{
-										AutoscalingEnabled: ec.Bool(true),
+										AutoscalingEnabled: new(true),
 										ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 											buildRequestTopology("hot_content", "es-hot"),
 											buildRequestTopology("coordinating", "es-coord"),
@@ -147,7 +147,7 @@ func Test_mapResponseToModel(t *testing.T) {
 												InstanceConfigurationID:      "kibana-id",
 												InstanceConfigurationVersion: ec.Int32(1),
 												Size: &models.TopologySize{
-													Resource: ec.String("memory"),
+													Resource: new("memory"),
 													Value:    ec.Int32(1024),
 												},
 											},
@@ -163,7 +163,7 @@ func Test_mapResponseToModel(t *testing.T) {
 												InstanceConfigurationID:      "enterprise-search-id",
 												InstanceConfigurationVersion: ec.Int32(1),
 												Size: &models.TopologySize{
-													Resource: ec.String("memory"),
+													Resource: new("memory"),
 													Value:    ec.Int32(1024),
 												},
 											},
@@ -179,7 +179,7 @@ func Test_mapResponseToModel(t *testing.T) {
 												InstanceConfigurationID:      "apm-id",
 												InstanceConfigurationVersion: ec.Int32(1),
 												Size: &models.TopologySize{
-													Resource: ec.String("memory"),
+													Resource: new("memory"),
 													Value:    ec.Int32(1024),
 												},
 											},
@@ -195,7 +195,7 @@ func Test_mapResponseToModel(t *testing.T) {
 												InstanceConfigurationID:      "integrations-server-id",
 												InstanceConfigurationVersion: ec.Int32(1),
 												Size: &models.TopologySize{
-													Resource: ec.String("memory"),
+													Resource: new("memory"),
 													Value:    ec.Int32(1024),
 												},
 											},
@@ -225,7 +225,7 @@ func Test_mapResponseToModel(t *testing.T) {
 					ID:   "id",
 					Name: "name",
 					Elasticsearch: &elasticsearchModel{
-						Autoscale:        ec.Bool(true),
+						Autoscale:        new(true),
 						HotTier:          buildTopologyModel("es-hot"),
 						CoordinatingTier: buildTopologyModel("es-coord"),
 						MasterTier:       buildTopologyModel("es-master"),
@@ -256,16 +256,16 @@ func buildRequestTopology(id string, instanceConfigurationId string) *models.Ela
 		InstanceConfigurationID:      instanceConfigurationId,
 		InstanceConfigurationVersion: ec.Int32(1),
 		Size: &models.TopologySize{
-			Resource: ec.String("memory"),
+			Resource: new("memory"),
 			Value:    ec.Int32(2048),
 		},
-		AutoscalingTierOverride: ec.Bool(true),
+		AutoscalingTierOverride: new(true),
 		AutoscalingMin: &models.TopologySize{
-			Resource: ec.String("memory"),
+			Resource: new("memory"),
 			Value:    ec.Int32(0),
 		},
 		AutoscalingMax: &models.TopologySize{
-			Resource: ec.String("memory"),
+			Resource: new("memory"),
 			Value:    ec.Int32(65536),
 		},
 	}
@@ -285,15 +285,15 @@ func buildTopologyModel(instanceConfigurationId string) *topologyModel {
 	return &topologyModel{
 		InstanceConfigurationId:      instanceConfigurationId,
 		InstanceConfigurationVersion: ec.Int32(1),
-		DefaultSize:                  ec.String("2g"),
+		DefaultSize:                  new("2g"),
 		AvailableSizes:               []string{"1g", "2g", "4g"},
-		SizeResource:                 ec.String("memory"),
+		SizeResource:                 new("memory"),
 		Autoscaling: autoscalingModel{
-			Autoscale:       ec.Bool(true),
-			MaxSizeResource: ec.String("memory"),
-			MaxSize:         ec.String("64g"),
-			MinSizeResource: ec.String("memory"),
-			MinSize:         ec.String("0g"),
+			Autoscale:       new(true),
+			MaxSizeResource: new("memory"),
+			MaxSize:         new("64g"),
+			MinSizeResource: new("memory"),
+			MinSize:         new("0g"),
 		},
 	}
 }
@@ -302,8 +302,8 @@ func buildStatelessModel(instanceConfigurationId string) *statelessModel {
 	return &statelessModel{
 		InstanceConfigurationId:      instanceConfigurationId,
 		InstanceConfigurationVersion: ec.Int32(1),
-		DefaultSize:                  ec.String("1g"),
+		DefaultSize:                  new("1g"),
 		AvailableSizes:               []string{"1g", "2g", "4g"},
-		SizeResource:                 ec.String("memory"),
+		SizeResource:                 new("memory"),
 	}
 }

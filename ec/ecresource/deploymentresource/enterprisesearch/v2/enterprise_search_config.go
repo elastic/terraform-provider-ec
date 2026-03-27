@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
@@ -47,13 +46,13 @@ func readEnterpriseSearchConfig(in *models.EnterpriseSearchConfiguration) (*Ente
 
 	if o := in.UserSettingsJSON; o != nil {
 		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
-			cfg.UserSettingsJson = ec.String(string(b))
+			cfg.UserSettingsJson = new(string(b))
 		}
 	}
 
 	if o := in.UserSettingsOverrideJSON; o != nil {
 		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
-			cfg.UserSettingsOverrideJson = ec.String(string(b))
+			cfg.UserSettingsOverrideJson = new(string(b))
 		}
 	}
 

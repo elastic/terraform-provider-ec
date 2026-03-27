@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,8 +40,8 @@ func Test_parseCredentials(t *testing.T) {
 				dep: Deployment{},
 				resources: []*models.DeploymentResource{{
 					Credentials: &models.ClusterCredentials{
-						Username: ec.String("my-username"),
-						Password: ec.String("my-password"),
+						Username: new("my-username"),
+						Password: new("my-password"),
 					},
 					SecretToken: "some-secret-token",
 				}},
@@ -50,7 +49,7 @@ func Test_parseCredentials(t *testing.T) {
 			want: Deployment{
 				ElasticsearchUsername: "my-username",
 				ElasticsearchPassword: "my-password",
-				ApmSecretToken:        ec.String("some-secret-token"),
+				ApmSecretToken:        new("some-secret-token"),
 			},
 		},
 		{
@@ -59,7 +58,7 @@ func Test_parseCredentials(t *testing.T) {
 				dep: Deployment{
 					ElasticsearchUsername: "my-username",
 					ElasticsearchPassword: "my-password",
-					ApmSecretToken:        ec.String("some-secret-token"),
+					ApmSecretToken:        new("some-secret-token"),
 				},
 				resources: []*models.DeploymentResource{
 					{},
@@ -68,7 +67,7 @@ func Test_parseCredentials(t *testing.T) {
 			want: Deployment{
 				ElasticsearchUsername: "my-username",
 				ElasticsearchPassword: "my-password",
-				ApmSecretToken:        ec.String("some-secret-token"),
+				ApmSecretToken:        new("some-secret-token"),
 			},
 		},
 	}

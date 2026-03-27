@@ -27,6 +27,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"slices"
 )
 
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -169,12 +170,7 @@ func HandleTrafficFilterChange(ctx context.Context, client *api.API, plan v2.Dep
 type ruleSet []string
 
 func (rs ruleSet) exist(rule string) bool {
-	for _, r := range rs {
-		if r == rule {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(rs, rule)
 }
 
 var (

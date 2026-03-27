@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	depl "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	es "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
@@ -51,11 +50,11 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -65,15 +64,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 2,
 				},
 			},
@@ -83,15 +82,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 2,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						Size:      ec.String("4g"),
+						Size:      new("4g"),
 						ZoneCount: 3,
 					},
 				},
@@ -101,15 +100,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 2,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("0g"),
+					Size:      new("0g"),
 					ZoneCount: 3,
 				},
 			},
@@ -119,19 +118,19 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 2,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						Size:      ec.String("0g"),
+						Size:      new("0g"),
 						ZoneCount: 0,
 					},
 					MlTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -141,19 +140,19 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 2,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("0g"),
+					Size:      new("0g"),
 					ZoneCount: 0,
 				},
 				MlTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 			},
@@ -163,7 +162,7 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("8g"), // Max in template is 4g
+						Size:      new("8g"), // Max in template is 4g
 						ZoneCount: 3,
 					},
 				},
@@ -173,11 +172,11 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("8g"),
+					Size:      new("8g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 2,
 				},
 			},
@@ -187,29 +186,29 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						Size:      ec.String("2g"),
+						Size:      new("2g"),
 						ZoneCount: 2,
 					},
 				},
 				config: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						Size:      ec.String("2g"),
+						Size:      new("2g"),
 						ZoneCount: 2,
 					},
 				},
@@ -218,15 +217,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("2g"),
+					Size:      new("2g"),
 					ZoneCount: 2,
 				},
 			},
@@ -236,17 +235,17 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						InstanceConfigurationId:      ec.String("master-ic"),
-						InstanceConfigurationVersion: ec.Int(1),
-						Size:                         ec.String("0g"),
+						InstanceConfigurationId:      new("master-ic"),
+						InstanceConfigurationVersion: new(1),
+						Size:                         new("0g"),
 						ZoneCount:                    0,
 					},
 				},
@@ -256,17 +255,17 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					InstanceConfigurationId:      ec.String("master-ic"),
-					InstanceConfigurationVersion: ec.Int(1),
-					Size:                         ec.String("4g"),
+					InstanceConfigurationId:      new("master-ic"),
+					InstanceConfigurationVersion: new(1),
+					Size:                         new("4g"),
 					ZoneCount:                    3,
 				},
 			},
@@ -276,17 +275,17 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						InstanceConfigurationId:      ec.String("master-ic"),
-						InstanceConfigurationVersion: ec.Int(1),
-						Size:                         ec.String("4g"),
+						InstanceConfigurationId:      new("master-ic"),
+						InstanceConfigurationVersion: new(1),
+						Size:                         new("4g"),
 						ZoneCount:                    3,
 					},
 				},
@@ -296,17 +295,17 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					InstanceConfigurationId:      ec.String("master-ic"),
-					InstanceConfigurationVersion: ec.Int(1),
-					Size:                         ec.String("4g"),
+					InstanceConfigurationId:      new("master-ic"),
+					InstanceConfigurationVersion: new(1),
+					Size:                         new("4g"),
 					ZoneCount:                    3,
 				},
 			},
@@ -317,15 +316,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 				migrateToLatestHw: true,
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					MasterTier: &es.ElasticsearchTopology{
-						Size:      ec.String("4g"),
+						Size:      new("4g"),
 						ZoneCount: 3,
 					},
 				},
@@ -335,15 +334,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 2,
 				},
 			},
@@ -353,11 +352,11 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			args: args{
 				plan: es.Elasticsearch{
 					HotTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &es.ElasticsearchTopology{
-						Size:      ec.String("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -367,15 +366,15 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 			expectedPlan: es.Elasticsearch{
 				HotTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				WarmTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 3,
 				},
 				MasterTier: &es.ElasticsearchTopology{
-					Size:      ec.String("1g"),
+					Size:      new("1g"),
 					ZoneCount: 2,
 				},
 			},

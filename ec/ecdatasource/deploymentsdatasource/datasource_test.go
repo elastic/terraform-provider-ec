@@ -75,22 +75,22 @@ func Test_modelToState(t *testing.T) {
 		ReturnCount: ec.Int32(1),
 		Deployments: []*models.DeploymentSearchResponse{
 			{
-				Healthy: ec.Bool(true),
-				ID:      ec.String("a8f22a9b9e684a7f94a89df74aa14331"),
-				Name:    ec.String("test-hello"),
+				Healthy: new(true),
+				ID:      new("a8f22a9b9e684a7f94a89df74aa14331"),
+				Name:    new("test-hello"),
 				Alias:   "dev",
 				Resources: &models.DeploymentResources{
 					Elasticsearch: []*models.ElasticsearchResourceInfo{
 						{
-							RefID: ec.String("elasticsearch"),
-							ID:    ec.String("a98dd0dac15a48d5b3953384c7e571b9"),
+							RefID: new("elasticsearch"),
+							ID:    new("a98dd0dac15a48d5b3953384c7e571b9"),
 							Info: &models.ElasticsearchClusterInfo{
-								Healthy: ec.Bool(true),
+								Healthy: new(true),
 								PlanInfo: &models.ElasticsearchClusterPlansInfo{
 									Current: &models.ElasticsearchClusterPlanInfo{
 										Plan: &models.ElasticsearchClusterPlan{
 											DeploymentTemplate: &models.DeploymentTemplateReference{
-												ID: ec.String("azure-compute-optimized"),
+												ID: new("azure-compute-optimized"),
 											},
 										},
 									},
@@ -100,26 +100,26 @@ func Test_modelToState(t *testing.T) {
 					},
 					Kibana: []*models.KibanaResourceInfo{
 						{
-							ID:    ec.String("c75297d672b54da68faecededf372f87"),
-							RefID: ec.String("kibana"),
+							ID:    new("c75297d672b54da68faecededf372f87"),
+							RefID: new("kibana"),
 						},
 					},
 					Apm: []*models.ApmResourceInfo{
 						{
-							ID:    ec.String("9884c76ae1cd4521a0d9918a454a700d"),
-							RefID: ec.String("apm"),
+							ID:    new("9884c76ae1cd4521a0d9918a454a700d"),
+							RefID: new("apm"),
 						},
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
 						{
-							ID:    ec.String("f17e4d8a61b14c12b020d85b723357ba"),
-							RefID: ec.String("enterprise_search"),
+							ID:    new("f17e4d8a61b14c12b020d85b723357ba"),
+							RefID: new("enterprise_search"),
 						},
 					},
 					IntegrationsServer: []*models.IntegrationsServerResourceInfo{
 						{
-							ID:    ec.String("3b3025a012fd3dd5c9dcae2a1ac89c6f"),
-							RefID: ec.String("integrations_server"),
+							ID:    new("3b3025a012fd3dd5c9dcae2a1ac89c6f"),
+							RefID: new("integrations_server"),
 						},
 					},
 				},

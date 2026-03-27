@@ -18,7 +18,7 @@
 package organizationresource
 
 // Returns all the elements from array a that are not in array b
-func difference[T interface{}](a, b []*T, getKey func(T) string) []*T {
+func difference[T any](a, b []*T, getKey func(T) string) []*T {
 	var diff []*T
 	m := make(map[string]T)
 	for _, item := range b {

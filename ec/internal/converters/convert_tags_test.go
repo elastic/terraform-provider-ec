@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func TestFlattenTags(t *testing.T) {
@@ -46,8 +45,8 @@ func TestFlattenTags(t *testing.T) {
 			args: args{metadata: &models.DeploymentMetadata{
 				Tags: []*models.MetadataItem{
 					{
-						Key:   ec.String("foo"),
-						Value: ec.String("bar"),
+						Key:   new("foo"),
+						Value: new("bar"),
 					},
 				},
 			}},
@@ -58,12 +57,12 @@ func TestFlattenTags(t *testing.T) {
 			args: args{metadata: &models.DeploymentMetadata{
 				Tags: []*models.MetadataItem{
 					{
-						Key:   ec.String("foo"),
-						Value: ec.String("bar"),
+						Key:   new("foo"),
+						Value: new("bar"),
 					},
 					{
-						Key:   ec.String("bar"),
-						Value: ec.String("baz"),
+						Key:   new("bar"),
+						Value: new("baz"),
 					},
 				},
 			}},

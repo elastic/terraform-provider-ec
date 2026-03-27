@@ -20,7 +20,6 @@ package organizationresource
 import (
 	"context"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"sort"
@@ -31,7 +30,7 @@ func modelToApi(ctx context.Context, m OrganizationMember, organizationID string
 	var apiOrgRoleAssignments []*models.OrganizationRoleAssignment
 	if !m.OrganizationRole.IsNull() && !m.OrganizationRole.IsUnknown() {
 		apiOrgRoleAssignments = append(apiOrgRoleAssignments, &models.OrganizationRoleAssignment{
-			OrganizationID: ec.String(organizationID),
+			OrganizationID: new(organizationID),
 			RoleID:         m.OrganizationRole.ValueStringPointer(),
 		})
 	}
@@ -63,7 +62,7 @@ func modelToApi(ctx context.Context, m OrganizationMember, organizationID string
 		sort.Strings(applicationRoles)
 
 		apiDeploymentRoleAssignments = append(apiDeploymentRoleAssignments, &models.DeploymentRoleAssignment{
-			OrganizationID:   ec.String(organizationID),
+			OrganizationID:   new(organizationID),
 			RoleID:           roleModelToApi(roleAssignment.Role.ValueString(), deployment),
 			All:              roleAssignment.ForAllDeployments.ValueBoolPointer(),
 			DeploymentIds:    deploymentIds,
@@ -131,7 +130,7 @@ func projectRolesModelToApi(ctx context.Context, roles types.Set, roleType RoleT
 		sort.Strings(applicationRoles)
 
 		apiRoles = append(apiRoles, &models.ProjectRoleAssignment{
-			OrganizationID:   ec.String(organizationID),
+			OrganizationID:   new(organizationID),
 			RoleID:           roleModelToApi(roleAssignment.Role.ValueString(), roleType),
 			All:              roleAssignment.ForAllProjects.ValueBoolPointer(),
 			ProjectIds:       projectIds,

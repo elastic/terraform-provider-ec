@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -63,18 +62,18 @@ func readElasticsearchConfig(in *models.ElasticsearchConfiguration) (*Elasticsea
 
 	if o := in.UserSettingsJSON; o != nil {
 		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
-			config.UserSettingsJson = ec.String(string(b))
+			config.UserSettingsJson = new(string(b))
 		}
 	}
 
 	if o := in.UserSettingsOverrideJSON; o != nil {
 		if b, _ := json.Marshal(o); len(b) > 0 && !bytes.Equal([]byte("{}"), b) {
-			config.UserSettingsOverrideJson = ec.String(string(b))
+			config.UserSettingsOverrideJson = new(string(b))
 		}
 	}
 
 	if in.DockerImage != "" {
-		config.DockerImage = ec.String(in.DockerImage)
+		config.DockerImage = new(in.DockerImage)
 	}
 
 	return &config, nil

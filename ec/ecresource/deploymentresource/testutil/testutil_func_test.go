@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_parseDeploymentTemplate(t *testing.T) {
@@ -53,10 +52,10 @@ func Test_parseDeploymentTemplate(t *testing.T) {
 		{
 			name: "Enrich DT",
 			args: args{name: "test.json"},
-			want: &models.DeploymentTemplateInfoV2{ID: ec.String("deployment-template-name"), DeploymentTemplate: &models.DeploymentCreateRequest{
+			want: &models.DeploymentTemplateInfoV2{ID: new("deployment-template-name"), DeploymentTemplate: &models.DeploymentCreateRequest{
 				Resources: &models.DeploymentCreateResources{Elasticsearch: []*models.ElasticsearchPayload{
 					{Plan: &models.ElasticsearchClusterPlan{DeploymentTemplate: &models.DeploymentTemplateReference{
-						ID: ec.String("deployment-template-name"),
+						ID: new("deployment-template-name"),
 					}}},
 				}},
 			}},

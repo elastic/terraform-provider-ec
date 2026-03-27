@@ -57,7 +57,7 @@ func Test_flattenElasticsearchResource(t *testing.T) {
 					Max: ec.Int32(8192),
 					Min: ec.Int32(512),
 				},
-				DockerImage:    ec.String("docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0"),
+				DockerImage:    new("docker.elastic.co/cloud-assets/elasticsearch:7.9.1-0"),
 				DefaultPlugins: []string{"repository-s3"},
 				Plugins: []string{
 					"analysis-icu",

@@ -31,8 +31,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//go:fix inline
 func strPtr(s string) *string {
-	return &s
+	return new(s)
 }
 
 func TestFromTrafficFilterInfo(t *testing.T) {
@@ -50,12 +51,12 @@ func TestFromTrafficFilterInfo(t *testing.T) {
 				Name:             "test-filter",
 				Region:           "aws-us-east-1",
 				Type:             serverless.Ip,
-				Description:      strPtr("Test description"),
+				Description:      new("Test description"),
 				IncludeByDefault: false,
 				Rules: []serverless.TrafficFilterRule{
 					{
 						Source:      "192.168.1.0/24",
-						Description: strPtr("Office network"),
+						Description: new("Office network"),
 					},
 				},
 			},
@@ -96,7 +97,7 @@ func TestFromTrafficFilterInfo(t *testing.T) {
 				Type:             serverless.Ip,
 				IncludeByDefault: false,
 				Rules: []serverless.TrafficFilterRule{
-					{Source: "10.0.0.0/8", Description: strPtr("Internal")},
+					{Source: "10.0.0.0/8", Description: new("Internal")},
 					{Source: "172.16.0.0/12"},
 				},
 			},
@@ -122,7 +123,7 @@ func TestToCreateRequest(t *testing.T) {
 
 	t.Run("full model", func(t *testing.T) {
 		rules := buildRulesList(ctx, t, []serverless.TrafficFilterRule{
-			{Source: "10.0.0.0/8", Description: strPtr("Internal")},
+			{Source: "10.0.0.0/8", Description: new("Internal")},
 		})
 
 		model := resource_serverless_traffic_filter.ServerlessTrafficFilterModel{
@@ -208,7 +209,7 @@ func TestExpandRules(t *testing.T) {
 
 	t.Run("converts rules with description", func(t *testing.T) {
 		rules := buildRulesList(ctx, t, []serverless.TrafficFilterRule{
-			{Source: "10.0.0.0/8", Description: strPtr("Internal")},
+			{Source: "10.0.0.0/8", Description: new("Internal")},
 			{Source: "172.16.0.0/12"},
 		})
 
@@ -245,7 +246,7 @@ func TestFlattenRules(t *testing.T) {
 	t.Run("converts rules with and without description", func(t *testing.T) {
 		var diags diag.Diagnostics
 		result := flattenRules(ctx, []serverless.TrafficFilterRule{
-			{Source: "10.0.0.0/8", Description: strPtr("Internal")},
+			{Source: "10.0.0.0/8", Description: new("Internal")},
 			{Source: "172.16.0.0/12"},
 		}, &diags)
 		require.False(t, diags.HasError())

@@ -18,7 +18,6 @@
 package organizationresource
 
 import (
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"reflect"
 	"testing"
 )
@@ -37,10 +36,10 @@ func Test_difference(t *testing.T) {
 		{
 			name: "returns elements that are only in a",
 			args: args{
-				a: []*string{ec.String("a"), ec.String("b")},
-				b: []*string{ec.String("b"), ec.String("c")},
+				a: []*string{new("a"), new("b")},
+				b: []*string{new("b"), new("c")},
 			},
-			want: []*string{ec.String("a")},
+			want: []*string{new("a")},
 		},
 		{
 			name: "both lists empty, returns empty list",
@@ -53,24 +52,24 @@ func Test_difference(t *testing.T) {
 		{
 			name: "if b empty, returns a",
 			args: args{
-				a: []*string{ec.String("a")},
+				a: []*string{new("a")},
 				b: nil,
 			},
-			want: []*string{ec.String("a")},
+			want: []*string{new("a")},
 		},
 		{
 			name: "if b has no elements in a, return a",
 			args: args{
-				a: []*string{ec.String("a")},
-				b: []*string{ec.String("b")},
+				a: []*string{new("a")},
+				b: []*string{new("b")},
 			},
-			want: []*string{ec.String("a")},
+			want: []*string{new("a")},
 		},
 		{
 			name: "if b has all elements of a, return empty list",
 			args: args{
-				a: []*string{ec.String("a")},
-				b: []*string{ec.String("a"), ec.String("b")},
+				a: []*string{new("a")},
+				b: []*string{new("a"), new("b")},
 			},
 			want: nil,
 		},

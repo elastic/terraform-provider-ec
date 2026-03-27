@@ -448,8 +448,8 @@ func TestElasticsearchApi_Create(t *testing.T) {
 					Alias:        initialModel.Alias.ValueStringPointer(),
 					OptimizedFor: (*serverless.ElasticsearchOptimizedFor)(initialModel.OptimizedFor.ValueStringPointer()),
 					SearchLake: &serverless.ElasticsearchSearchLake{
-						BoostWindow: util.Ptr(int(initialModel.SearchLake.BoostWindow.ValueInt64())),
-						SearchPower: util.Ptr(int(initialModel.SearchLake.SearchPower.ValueInt64())),
+						BoostWindow: new(int(initialModel.SearchLake.BoostWindow.ValueInt64())),
+						SearchPower: new(int(initialModel.SearchLake.SearchPower.ValueInt64())),
 					},
 				}).Return(
 					&serverless.CreateElasticsearchProjectResponse{
@@ -606,8 +606,8 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 					Name:  model.Name.ValueStringPointer(),
 					Alias: model.Alias.ValueStringPointer(),
 					SearchLake: &serverless.OptionalElasticsearchSearchLake{
-						BoostWindow: util.Ptr(int(model.SearchLake.BoostWindow.ValueInt64())),
-						SearchPower: util.Ptr(int(model.SearchLake.SearchPower.ValueInt64())),
+						BoostWindow: new(int(model.SearchLake.BoostWindow.ValueInt64())),
+						SearchPower: new(int(model.SearchLake.SearchPower.ValueInt64())),
 					},
 				}).Return(
 					&serverless.PatchElasticsearchProjectResponse{
@@ -978,12 +978,12 @@ func TestElasticsearchApi_Read(t *testing.T) {
 						CreatedAt:       now,
 						CreatedBy:       "me",
 						OrganizationId:  "1",
-						SuspendedAt:     util.Ptr(now),
-						SuspendedReason: util.Ptr("meh"),
+						SuspendedAt:     new(now),
+						SuspendedReason: new("meh"),
 					},
 					SearchLake: &serverless.ElasticsearchSearchLake{
-						BoostWindow: util.Ptr(20),
-						SearchPower: util.Ptr(30),
+						BoostWindow: new(20),
+						SearchPower: new(30),
 					},
 					Name:         "project-name",
 					OptimizedFor: "general_purpose",

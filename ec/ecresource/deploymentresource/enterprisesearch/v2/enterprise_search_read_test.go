@@ -61,14 +61,14 @@ func Test_readEnterpriseSearch(t *testing.T) {
 			name: "parses the enterprisesearch resource",
 			args: args{in: []*models.EnterpriseSearchResourceInfo{
 				{
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-enterprise_search"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Region:                    new("some-region"),
+					RefID:                     new("main-enterprise_search"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.EnterpriseSearchInfo{
 						ID:     &mock.ValidClusterID,
-						Name:   ec.String("some-enterprisesearch-name"),
+						Name:   new("some-enterprisesearch-name"),
 						Region: "some-region",
-						Status: ec.String("started"),
+						Status: new("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "enterprisesearchresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -83,10 +83,10 @@ func Test_readEnterpriseSearch(t *testing.T) {
 										Version:                  "7.7.0",
 										UserSettingsYaml:         "some.setting: some value",
 										UserSettingsOverrideYaml: "some.setting: some override",
-										UserSettingsJSON: map[string]interface{}{
+										UserSettingsJSON: map[string]any{
 											"some.setting": "some other value",
 										},
-										UserSettingsOverrideJSON: map[string]interface{}{
+										UserSettingsOverrideJSON: map[string]any{
 											"some.setting": "some other override",
 										},
 									},
@@ -96,12 +96,12 @@ func Test_readEnterpriseSearch(t *testing.T) {
 										InstanceConfigurationID:      "aws.enterprisesearch.r4",
 										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Worker:    ec.Bool(false),
+											Appserver: new(true),
+											Worker:    new(false),
 										},
 									}},
 								},
@@ -110,14 +110,14 @@ func Test_readEnterpriseSearch(t *testing.T) {
 					},
 				},
 				{
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-enterprise_search"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Region:                    new("some-region"),
+					RefID:                     new("main-enterprise_search"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.EnterpriseSearchInfo{
 						ID:     &mock.ValidClusterID,
-						Name:   ec.String("some-enterprisesearch-name"),
+						Name:   new("some-enterprisesearch-name"),
 						Region: "some-region",
-						Status: ec.String("stopped"),
+						Status: new("stopped"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "enterprisesearchresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -132,10 +132,10 @@ func Test_readEnterpriseSearch(t *testing.T) {
 										Version:                  "7.7.0",
 										UserSettingsYaml:         "some.setting: some value",
 										UserSettingsOverrideYaml: "some.setting: some override",
-										UserSettingsJSON: map[string]interface{}{
+										UserSettingsJSON: map[string]any{
 											"some.setting": "some other value",
 										},
-										UserSettingsOverrideJSON: map[string]interface{}{
+										UserSettingsOverrideJSON: map[string]any{
 											"some.setting": "some other override",
 										},
 									},
@@ -145,12 +145,12 @@ func Test_readEnterpriseSearch(t *testing.T) {
 										InstanceConfigurationID:      "aws.enterprisesearch.r4",
 										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Worker:    ec.Bool(false),
+											Appserver: new(true),
+											Worker:    new(false),
 										},
 									}},
 								},
@@ -160,25 +160,25 @@ func Test_readEnterpriseSearch(t *testing.T) {
 				},
 			}},
 			want: &EnterpriseSearch{
-				ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-				RefId:                     ec.String("main-enterprise_search"),
-				ResourceId:                ec.String(mock.ValidClusterID),
-				Region:                    ec.String("some-region"),
-				HttpEndpoint:              ec.String("http://enterprisesearchresource.cloud.elastic.co:9200"),
-				HttpsEndpoint:             ec.String("https://enterprisesearchresource.cloud.elastic.co:9243"),
+				ElasticsearchClusterRefId: new("main-elasticsearch"),
+				RefId:                     new("main-enterprise_search"),
+				ResourceId:                new(mock.ValidClusterID),
+				Region:                    new("some-region"),
+				HttpEndpoint:              new("http://enterprisesearchresource.cloud.elastic.co:9200"),
+				HttpsEndpoint:             new("https://enterprisesearchresource.cloud.elastic.co:9243"),
 				Config: &EnterpriseSearchConfig{
-					UserSettingsJson:         ec.String("{\"some.setting\":\"some other value\"}"),
-					UserSettingsOverrideJson: ec.String("{\"some.setting\":\"some other override\"}"),
-					UserSettingsOverrideYaml: ec.String("some.setting: some override"),
-					UserSettingsYaml:         ec.String("some.setting: some value"),
+					UserSettingsJson:         new("{\"some.setting\":\"some other value\"}"),
+					UserSettingsOverrideJson: new("{\"some.setting\":\"some other override\"}"),
+					UserSettingsOverrideYaml: new("some.setting: some override"),
+					UserSettingsYaml:         new("some.setting: some value"),
 				},
-				InstanceConfigurationId:      ec.String("aws.enterprisesearch.r4"),
-				InstanceConfigurationVersion: ec.Int(5),
-				Size:                         ec.String("1g"),
-				SizeResource:                 ec.String("memory"),
+				InstanceConfigurationId:      new("aws.enterprisesearch.r4"),
+				InstanceConfigurationVersion: new(5),
+				Size:                         new("1g"),
+				SizeResource:                 new("memory"),
 				ZoneCount:                    1,
-				NodeTypeAppserver:            ec.Bool(true),
-				NodeTypeWorker:               ec.Bool(false),
+				NodeTypeAppserver:            new(true),
+				NodeTypeWorker:               new(false),
 			},
 		},
 	}
@@ -207,14 +207,14 @@ func Test_IsEnterpriseSearchStopped(t *testing.T) {
 		{
 			name: "started resource returns false",
 			args: args{res: &models.EnterpriseSearchResourceInfo{Info: &models.EnterpriseSearchInfo{
-				Status: ec.String("started"),
+				Status: new("started"),
 			}}},
 			want: false,
 		},
 		{
 			name: "stopped resource returns true",
 			args: args{res: &models.EnterpriseSearchResourceInfo{Info: &models.EnterpriseSearchInfo{
-				Status: ec.String("stopped"),
+				Status: new("stopped"),
 			}}},
 			want: true,
 		},

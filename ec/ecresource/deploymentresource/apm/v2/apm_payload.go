@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v1"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -50,15 +49,15 @@ func (apm ApmTF) payload(ctx context.Context, payload models.ApmPayload) (*model
 	var diags diag.Diagnostics
 
 	if !apm.ElasticsearchClusterRefId.IsNull() {
-		payload.ElasticsearchClusterRefID = ec.String(apm.ElasticsearchClusterRefId.ValueString())
+		payload.ElasticsearchClusterRefID = new(apm.ElasticsearchClusterRefId.ValueString())
 	}
 
 	if !apm.RefId.IsNull() {
-		payload.RefID = ec.String(apm.RefId.ValueString())
+		payload.RefID = new(apm.RefId.ValueString())
 	}
 
 	if apm.Region.ValueString() != "" {
-		payload.Region = ec.String(apm.Region.ValueString())
+		payload.Region = new(apm.Region.ValueString())
 	}
 
 	if !apm.Config.IsNull() && !apm.Config.IsUnknown() {

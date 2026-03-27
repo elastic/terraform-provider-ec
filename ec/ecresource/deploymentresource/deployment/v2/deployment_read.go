@@ -28,7 +28,6 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
@@ -370,7 +369,7 @@ func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
 	}
 
 	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.ValueString() != "" {
-		dep.ApmSecretToken = ec.String(state.ApmSecretToken.ValueString())
+		dep.ApmSecretToken = new(state.ApmSecretToken.ValueString())
 	}
 }
 

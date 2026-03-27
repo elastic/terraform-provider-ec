@@ -27,7 +27,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_expandModel(t *testing.T) {
@@ -52,7 +51,7 @@ func Test_expandModel(t *testing.T) {
 			want: &models.KeystoreContents{
 				Secrets: map[string]models.KeystoreSecret{
 					"my_secret": {
-						AsFile: ec.Bool(false),
+						AsFile: new(false),
 						Value:  "supersecret",
 					},
 				},
@@ -83,8 +82,8 @@ func Test_expandModel(t *testing.T) {
 			want: &models.KeystoreContents{
 				Secrets: map[string]models.KeystoreSecret{
 					"my_secret": {
-						AsFile: ec.Bool(true),
-						Value: map[string]interface{}{
+						AsFile: new(true),
+						Value: map[string]any{
 							"type":                        "service_account",
 							"project_id":                  "project-id",
 							"private_key_id":              "key-id",

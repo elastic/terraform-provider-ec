@@ -24,7 +24,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -46,7 +45,7 @@ func Test(t *testing.T) {
 
 	newUserInvitation := buildInvitationModel("newuser@example.com")
 	updatedUserInvitation := buildInvitationModel("newuser@example.com")
-	updatedUserInvitation.RoleAssignments.Organization[0].RoleID = ec.String("organization-admin")
+	updatedUserInvitation.RoleAssignments.Organization[0].RoleID = new("organization-admin")
 
 	existingMember := buildExistingMember()
 	newMember := buildNewMember()
@@ -55,15 +54,15 @@ func Test(t *testing.T) {
 	newMemberWithAddedRoles := buildNewMember()
 	newMemberWithAddedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
 		{
-			All:            ec.Bool(false),
+			All:            new(false),
 			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-editor"),
+			RoleID:         new("deployment-editor"),
 			DeploymentIds:  []string{"abc"},
 		},
 		{
 			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-viewer"),
-			All:            ec.Bool(true),
+			RoleID:         new("deployment-viewer"),
+			All:            new(true),
 		},
 	}
 	newMemberWithRemovedRoles := buildNewMember()
@@ -71,22 +70,22 @@ func Test(t *testing.T) {
 	newMemberWithRemovedRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
 		{
 			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-viewer"),
-			All:            ec.Bool(true),
+			RoleID:         new("deployment-viewer"),
+			All:            new(true),
 		},
 	}
 	newMemberWithOverlappingRoles := buildNewMember()
 	newMemberWithOverlappingRoles.RoleAssignments.Deployment = []*models.DeploymentRoleAssignment{
 		{
-			All:            ec.Bool(false),
+			All:            new(false),
 			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-editor"),
+			RoleID:         new("deployment-editor"),
 			DeploymentIds:  []string{"abc", "def"},
 		},
 		{
 			OrganizationID: orgId,
-			RoleID:         ec.String("deployment-viewer"),
-			All:            ec.Bool(true),
+			RoleID:         new("deployment-viewer"),
+			All:            new(true),
 		},
 	}
 
@@ -341,7 +340,7 @@ func Test(t *testing.T) {
 				}, []*models.OrganizationRoleAssignment{
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("organization-admin"),
+						RoleID:         new("organization-admin"),
 					},
 				}),
 				getMembers([]*models.OrganizationMembership{existingMember, newMemberWithRemovedRoles}),
