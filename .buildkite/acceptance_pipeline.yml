@@ -3,6 +3,6 @@ steps:
     key: "acceptance-tests"
     command: .buildkite/acceptance.sh
     agents:
-      image: "docker.io/library/golang:1.25"
+      image: "docker.io/library/golang:1.26"
       cpu: "8"
       memory: "4G"

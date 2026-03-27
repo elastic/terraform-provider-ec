@@ -12,7 +12,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.24
+        go-version: 1.24.12
       id: go
 
     - name: Check out code into the Go module directory
@@ -39,6 +39,16 @@ jobs:
     - name: Linters
       run: make lint
       id: lint
+
+    - name: Check docs are up-to-date
+      run: |
+        make docs-generate
+        git diff --exit-code docs/ || (echo "::error::Docs are out of date. Run 'make docs-generate' and commit the changes." && exit 1)
+
+    - name: Check NOTICE is up-to-date
+      run: |
+        make notice
+        git diff --exit-code NOTICE || (echo "::error::NOTICE is out of date. Run 'make notice' and commit the changes." && exit 1)
 
     - name: Run unit tests
       run: make unit

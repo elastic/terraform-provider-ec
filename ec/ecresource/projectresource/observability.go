@@ -112,6 +112,8 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 		createBody.ProductTier = &productTier
 	}
 
+	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
+
 	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -157,6 +159,8 @@ func (obs observabilityApi) Patch(ctx context.Context, model resource_observabil
 		productTier := serverless.ObservabilityProjectProductTier(model.ProductTier.ValueString())
 		updateBody.ProductTier = &productTier
 	}
+
+	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, model.TrafficFilterIds)
 
 	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
 	if err != nil {

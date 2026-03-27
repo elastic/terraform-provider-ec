@@ -56,4 +56,6 @@ Read-Only:
 
 - `description` (String) The description of the rule.
 - `id` (String) The ID of the rule
+- `remote_cluster_id` (String) The remote cluster ID.
+- `remote_cluster_org_id` (String) The remote cluster organization ID.
 - `source` (String) Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID.

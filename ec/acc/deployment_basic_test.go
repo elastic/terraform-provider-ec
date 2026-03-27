@@ -174,7 +174,7 @@ func fixtureAccDeploymentResourceBasicWithApps(t *testing.T, fileName, name, reg
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 	// esIC is no longer needed
-	_, kibanaIC, apmIC, err := setInstanceConfigurations(deploymentTpl)
+	_, kibanaIC, apmIC, err := getInstanceConfigurations(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,7 +194,7 @@ func fixtureAccDeploymentResourceBasicWithAppsAlias(t *testing.T, fileName, alia
 
 	deploymentTpl := setDefaultTemplate(region, depTpl)
 	// esIC is no longer needed
-	_, kibanaIC, apmIC, err := setInstanceConfigurations(deploymentTpl)
+	_, kibanaIC, apmIC, err := getInstanceConfigurations(deploymentTpl)
 	if err != nil {
 		t.Fatal(err)
 	}

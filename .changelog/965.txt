@@ -1,3 +1,7 @@
 ```release-note:feature
 resource/traffic_filter: Add support for `remote_cluster` traffic filter type with `remote_cluster_id` and `remote_cluster_org_id` attributes
 ```
+
+```release-note:note
+data-source/traffic_filter: The `source` and `description` fields in traffic filter rules now return `null` instead of an empty string when not set. Users who check for empty strings (e.g., `source == ""`) should update their configurations to check for `null` instead (e.g., `source == null`).
+```

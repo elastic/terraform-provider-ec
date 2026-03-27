@@ -18,6 +18,8 @@
 package acc
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -31,7 +33,7 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 	migrateToLatestHw := "testdata/deployment_cpu_optimized_with_migrate_to_latest_hw.tf"
 	region := getRegion()
 	customHotIcCfg := fixtureAccDeploymentResourceBasicDefaults(t, customHotIc, randomName, region, cpuOpTemplate)
-	migrateToLatestHwCfg := fixtureAccDeploymentResourceBasicDefaults(t, migrateToLatestHw, randomName, region, cpuOpTemplate)
+	migrateToLatestHwCfg, expectedHotIC := fixtureAccDeploymentResourceBasicDefaultsWithExpectedHotIC(t, migrateToLatestHw, randomName, region, cpuOpTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -61,7 +63,7 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				Config: migrateToLatestHwCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.c6gd"), // it should contain cpu opt IC
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", expectedHotIC), // it should contain the latest cpu opt IC
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
@@ -76,4 +78,22 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 			},
 		},
 	})
+}
+
+func fixtureAccDeploymentResourceBasicDefaultsWithExpectedHotIC(t *testing.T, fileName, name, region, depTpl string) (string, string) {
+	t.Helper()
+	requiresAPIConn(t)
+
+	deploymentTpl := setDefaultTemplate(region, depTpl)
+	esIC, _, _, err := getInstanceConfigurations(deploymentTpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return fmt.Sprintf(string(b), region, name, region, deploymentTpl), esIC
 }

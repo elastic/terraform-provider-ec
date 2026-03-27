@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
@@ -110,8 +111,9 @@ func TestCreate(t *testing.T) {
 					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id:   basetypes.NewStringValue("id"),
-					Name: basetypes.NewStringValue("name"),
+					Id:               basetypes.NewStringValue("id"),
+					Name:             basetypes.NewStringValue("name"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
@@ -148,8 +150,9 @@ func TestCreate(t *testing.T) {
 					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id:   basetypes.NewStringValue("id"),
-					Name: basetypes.NewStringValue("name"),
+					Id:               basetypes.NewStringValue("id"),
+					Name:             basetypes.NewStringValue("name"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
@@ -187,8 +190,9 @@ func TestCreate(t *testing.T) {
 					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id:   basetypes.NewStringValue("id"),
-					Name: basetypes.NewStringValue("name"),
+					Id:               basetypes.NewStringValue("id"),
+					Name:             basetypes.NewStringValue("name"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
@@ -223,8 +227,9 @@ func TestCreate(t *testing.T) {
 					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id:   basetypes.NewStringValue("id"),
-					Name: basetypes.NewStringValue("name"),
+					Id:               basetypes.NewStringValue("id"),
+					Name:             basetypes.NewStringValue("name"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
 				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
@@ -264,8 +269,9 @@ func TestCreate(t *testing.T) {
 					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Id:   basetypes.NewStringValue("id"),
-					Name: basetypes.NewStringValue("name"),
+					Id:               basetypes.NewStringValue("id"),
+					Name:             basetypes.NewStringValue("name"),
+					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 				finalModel := createdModel
 				finalModel.Id = basetypes.NewStringValue("final id")

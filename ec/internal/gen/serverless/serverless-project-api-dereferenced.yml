@@ -23,6 +23,8 @@ tags:
     description: Management of Security projects
   - name: regions
     description: Cloud service provider regions
+  - name: traffic filters
+    description: Management of Elastic Cloud traffic filters
 paths:
   /api/v1/serverless/projects/elasticsearch:
     get:
@@ -846,6 +848,171 @@ paths:
                 $ref: '#/components/schemas/Region'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/traffic-filters:
+    get:
+      summary: List traffic filters
+      description: List all of the traffic filters.
+      operationId: listTrafficFilters
+      tags:
+        - traffic filters
+      parameters:
+        - name: include_by_default
+          in: query
+          description: Retrieves a list of resources that have include_by_default set or not set
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: region
+          in: query
+          description: If provided limits the traffic filters to that region only.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The collection of traffic filters were successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a traffic filter
+      description: Creates a traffic filter that consists of a set of rules.
+      operationId: createTrafficFilter
+      tags:
+        - traffic filters
+      requestBody:
+        $ref: '#/components/requestBodies/CreateTrafficFilterRequestBody'
+      responses:
+        '201':
+          description: The traffic filter definition is valid and the creation has started.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/serverless/traffic-filters/metadata:
+    get:
+      summary: List PrivateLink region metadata
+      description: |
+        Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+      operationId: getTrafficFilterMetadata
+      tags:
+        - traffic filters
+      parameters:
+        - name: region
+          in: query
+          description: Filter metadata to a specific AWS region.
+          required: false
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Metadata returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/serverless/traffic-filters/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: The traffic filter ID.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Retrieves the traffic filter by ID.
+      description: Retrieves a list of resources that are associated to the specified traffic filter.
+      operationId: getTrafficFilter
+      tags:
+        - traffic filters
+      responses:
+        '200':
+          description: The container for a set of traffic filter rules.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      summary: Updates a traffic filter
+      description: Updates the traffic filter with the definition.
+      operationId: patchTrafficFilter
+      tags:
+        - traffic filters
+      requestBody:
+        $ref: '#/components/requestBodies/PatchTrafficFilterBody'
+      responses:
+        '200':
+          description: The traffic filter definition was valid and the update has started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-doc:
+        tag: traffic filters
+    delete:
+      summary: Delete a traffic filter
+      description: Deletes the traffic filter by ID.
+      operationId: deleteTrafficFilter
+      tags:
+        - traffic filters
+      responses:
+        '200':
+          description: The traffic filter was successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   securitySchemes:
     apiKey:
@@ -879,6 +1046,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MultiErrorResponse'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
   schemas:
     CloudID:
       type: string
@@ -901,6 +1080,8 @@ components:
           $ref: '#/components/schemas/ElasticsearchOptimizedFor'
         search_lake:
           $ref: '#/components/schemas/ElasticsearchSearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
       additionalProperties: false
     CreateObservabilityProjectRequest:
       type: object
@@ -917,6 +1098,8 @@ components:
           $ref: '#/components/schemas/RegionID'
         product_tier:
           $ref: "#/components/schemas/ObservabilityProjectProductTier"
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
       additionalProperties: false
     CreateSecurityProjectRequest:
       type: object
@@ -946,6 +1129,8 @@ components:
               product_tier: complete
           minItems: 2
           maxItems: 3
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
       additionalProperties: false
     ElasticsearchOptimizedFor:
       type: string
@@ -1245,6 +1430,8 @@ components:
           $ref: '#/components/schemas/ProjectAlias'
         search_lake:
           $ref: '#/components/schemas/OptionalElasticsearchSearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
       additionalProperties: false
     PatchObservabilityProjectRequest:
       type: object
@@ -1256,6 +1443,8 @@ components:
           $ref: '#/components/schemas/ProjectAlias'
         product_tier:
           $ref: "#/components/schemas/ObservabilityProjectProductTier"
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
       additionalProperties: false
     PatchSecurityProjectRequest:
       type: object
@@ -1274,6 +1463,8 @@ components:
             $ref: '#/components/schemas/SecurityProductType'
           minItems: 1
           maxItems: 3
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
       additionalProperties: false
     ProjectAlias:
       type: string
@@ -1573,3 +1764,205 @@ components:
           example: us-east-1
           description: The unique identifier of the underlying cloud service provider region.
           type: string
+    TrafficFilterInfo:
+      type: object
+      description: The container for a set of traffic filter rules.
+      required:
+        - id
+        - include_by_default
+        - name
+        - region
+        - rules
+        - type
+      properties:
+        id:
+          type: string
+          description: The traffic filter ID
+          minLength: 32
+          maxLength: 32
+        name:
+          type: string
+          description: Name of the traffic filter
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          description: Description of the traffic filter
+          minLength: 0
+          maxLength: 512
+        type:
+          $ref: '#/components/schemas/TrafficFilterType'
+        include_by_default:
+          type: boolean
+          description: Should the traffic filter be automatically included in the new projects
+        region:
+          type: string
+          description: The traffic filter can be attached only to projects in the specific region
+          minLength: 1
+          maxLength: 32
+        rules:
+          type: array
+          description: List of rules
+          items:
+            $ref: '#/components/schemas/TrafficFilterRule'
+    TrafficFilterList:
+      type: object
+      description: The container for a set of traffic filter.
+      required:
+        - items
+      properties:
+        next_page:
+          description: A token to fetch the next page.
+          type: string
+          example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
+          nullable: true
+        items:
+          type: array
+          description: List of traffic filters
+          items:
+            $ref: '#/components/schemas/TrafficFilterInfo'
+    TrafficFilterType:
+      type: string
+      description: Type of the traffic filter
+      enum:
+        - ip
+        - vpce
+      maxLength: 32
+      minLength: 1
+    TrafficFilterRule:
+      type: object
+      description: The container for a traffic filter rule.
+      required:
+        - source
+      properties:
+        description:
+          type: string
+          description: Description of the rule.
+        source:
+          type: string
+          description: 'Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID'
+    CreateTrafficFilterRequest:
+      type: object
+      description: The specification for traffic filter.
+      required:
+        - name
+        - region
+        - type
+      properties:
+        name:
+          type: string
+          description: Name of the traffic filter
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          description: Description of the traffic filter
+          minLength: 0
+          maxLength: 512
+        type:
+          $ref: '#/components/schemas/TrafficFilterType'
+        include_by_default:
+          type: boolean
+          description: Should the traffic filter be automatically included in the new projects
+        region:
+          type: string
+          description: The traffic filter can be attached only to projects in the specific region
+          minLength: 1
+          maxLength: 32
+        rules:
+          type: array
+          description: List of rules
+          items:
+            $ref: '#/components/schemas/TrafficFilterRule'
+    PatchTrafficFilterRequest:
+      type: object
+      description: The specification for traffic filter.
+      properties:
+        name:
+          type: string
+          description: Name of the traffic filter
+        description:
+          type: string
+          description: Description of the traffic filter
+        include_by_default:
+          type: boolean
+          description: Should the traffic filter be automatically included in the new projects
+        rules:
+          type: array
+          description: List of rules
+          items:
+            $ref: '#/components/schemas/TrafficFilterRule'
+    EmptyResponse:
+      type: object
+    TrafficFilterMetadata:
+      type: object
+      description: Region-scoped PrivateLink metadata.
+      properties:
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrafficFilterRegionMetadata'
+    TrafficFilterRegionMetadata:
+      type: object
+      required:
+        - region
+        - vpc_service_name
+        - private_hosted_zone_domain_name
+        - availability_zones
+      properties:
+        region:
+          type: string
+        vpc_service_name:
+          type: string
+        private_hosted_zone_domain_name:
+          type: string
+        availability_zones:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrafficFilterAvailabilityZone'
+    TrafficFilterAvailabilityZone:
+      type: object
+      required:
+        - name
+        - id
+      properties:
+        name:
+          type: string
+        id:
+          type: string
+    TrafficFilter:
+      type: object
+      description: traffic filters association info
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: traffic filter ID
+          example: traffic-filter-1
+    TrafficFilters:
+      type: array
+      description: traffic filters IDs
+      items:
+        $ref: '#/components/schemas/TrafficFilter'
+    OptionalTrafficFilters:
+      type: array
+      description: traffic filters IDs
+      items:
+        $ref: '#/components/schemas/TrafficFilter'
+      nullable: true
+  requestBodies:
+    CreateTrafficFilterRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateTrafficFilterRequest'
+      description: The specification for traffic filter.
+      required: true
+    PatchTrafficFilterBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PatchTrafficFilterRequest'
+      description: The specification for traffic filter.
+      required: true

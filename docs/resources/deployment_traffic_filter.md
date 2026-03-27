@@ -159,7 +159,7 @@ resource "ec_deployment_traffic_filter" "gcp_psc" {
 
 - `name` (String) Name of the ruleset
 - `region` (String) Filter region, the ruleset can only be attached to deployments in the specific region
-- `type` (String) Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, or `gcp_private_service_connect_endpoint`
+- `type` (String) Type of the ruleset. It can be `ip`, `vpce`, `azure_private_endpoint`, `gcp_private_service_connect_endpoint`, or `remote_cluster`
 
 ### Optional
 
@@ -179,6 +179,8 @@ Optional:
 - `azure_endpoint_guid` (String) Azure endpoint GUID. Only applicable when the ruleset type is set to `azure_private_endpoint`
 - `azure_endpoint_name` (String) Azure endpoint name. Only applicable when the ruleset type is set to `azure_private_endpoint`
 - `description` (String) Description of this individual rule
+- `remote_cluster_id` (String) The remote cluster ID. Only applicable when the ruleset type is set to `remote_cluster`
+- `remote_cluster_org_id` (String) The remote cluster organization ID. Only applicable when the ruleset type is set to `remote_cluster`
 - `source` (String) Traffic filter source: IP address, CIDR mask, or VPC endpoint ID, **only required** when the type is not `azure_private_endpoint`
 
 Read-Only:

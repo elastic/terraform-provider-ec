@@ -180,6 +180,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWit
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateSecurityProjectWithResponse), varargs...)
 }
 
+// CreateTrafficFilterWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) CreateTrafficFilterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateTrafficFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateTrafficFilterWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.CreateTrafficFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTrafficFilterWithBodyWithResponse indicates an expected call of CreateTrafficFilterWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateTrafficFilterWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficFilterWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateTrafficFilterWithBodyWithResponse), varargs...)
+}
+
+// CreateTrafficFilterWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) CreateTrafficFilterWithResponse(ctx context.Context, body serverless.CreateTrafficFilterJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateTrafficFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateTrafficFilterWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.CreateTrafficFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTrafficFilterWithResponse indicates an expected call of CreateTrafficFilterWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateTrafficFilterWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateTrafficFilterWithResponse), varargs...)
+}
+
 // DeleteElasticsearchProjectWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) DeleteElasticsearchProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.DeleteElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
@@ -238,6 +278,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteSecurityProjectWit
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteSecurityProjectWithResponse), varargs...)
+}
+
+// DeleteTrafficFilterWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) DeleteTrafficFilterWithResponse(ctx context.Context, id string, reqEditors ...serverless.RequestEditorFn) (*serverless.DeleteTrafficFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteTrafficFilterWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.DeleteTrafficFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteTrafficFilterWithResponse indicates an expected call of DeleteTrafficFilterWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteTrafficFilterWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteTrafficFilterWithResponse), varargs...)
 }
 
 // GetElasticsearchProjectRolesWithResponse mocks base method.
@@ -440,6 +500,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectWithRe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetSecurityProjectWithResponse), varargs...)
 }
 
+// GetTrafficFilterMetadataWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetTrafficFilterMetadataWithResponse(ctx context.Context, params *serverless.GetTrafficFilterMetadataParams, reqEditors ...serverless.RequestEditorFn) (*serverless.GetTrafficFilterMetadataResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetTrafficFilterMetadataWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetTrafficFilterMetadataResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTrafficFilterMetadataWithResponse indicates an expected call of GetTrafficFilterMetadataWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetTrafficFilterMetadataWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficFilterMetadataWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetTrafficFilterMetadataWithResponse), varargs...)
+}
+
+// GetTrafficFilterWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetTrafficFilterWithResponse(ctx context.Context, id string, reqEditors ...serverless.RequestEditorFn) (*serverless.GetTrafficFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetTrafficFilterWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetTrafficFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTrafficFilterWithResponse indicates an expected call of GetTrafficFilterWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetTrafficFilterWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetTrafficFilterWithResponse), varargs...)
+}
+
 // ListElasticsearchProjectsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) ListElasticsearchProjectsWithResponse(ctx context.Context, params *serverless.ListElasticsearchProjectsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListElasticsearchProjectsResponse, error) {
 	m.ctrl.T.Helper()
@@ -518,6 +618,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListSecurityProjectsWith
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecurityProjectsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListSecurityProjectsWithResponse), varargs...)
+}
+
+// ListTrafficFiltersWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ListTrafficFiltersWithResponse(ctx context.Context, params *serverless.ListTrafficFiltersParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListTrafficFiltersResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListTrafficFiltersWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.ListTrafficFiltersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTrafficFiltersWithResponse indicates an expected call of ListTrafficFiltersWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListTrafficFiltersWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTrafficFiltersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListTrafficFiltersWithResponse), varargs...)
 }
 
 // PatchElasticsearchProjectWithBodyWithResponse mocks base method.
@@ -638,6 +758,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchSecurityProjectWith
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchSecurityProjectWithResponse), varargs...)
+}
+
+// PatchTrafficFilterWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) PatchTrafficFilterWithBodyWithResponse(ctx context.Context, id, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchTrafficFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchTrafficFilterWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.PatchTrafficFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchTrafficFilterWithBodyWithResponse indicates an expected call of PatchTrafficFilterWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchTrafficFilterWithBodyWithResponse(ctx, id, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTrafficFilterWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchTrafficFilterWithBodyWithResponse), varargs...)
+}
+
+// PatchTrafficFilterWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) PatchTrafficFilterWithResponse(ctx context.Context, id string, body serverless.PatchTrafficFilterJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchTrafficFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchTrafficFilterWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.PatchTrafficFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchTrafficFilterWithResponse indicates an expected call of PatchTrafficFilterWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchTrafficFilterWithResponse(ctx, id, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchTrafficFilterWithResponse), varargs...)
 }
 
 // ResetElasticsearchProjectCredentialsWithResponse mocks base method.
@@ -904,6 +1064,46 @@ func (mr *MockClientInterfaceMockRecorder) CreateSecurityProjectWithBody(ctx, co
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateSecurityProjectWithBody), varargs...)
 }
 
+// CreateTrafficFilter mocks base method.
+func (m *MockClientInterface) CreateTrafficFilter(ctx context.Context, body serverless.CreateTrafficFilterJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateTrafficFilter", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTrafficFilter indicates an expected call of CreateTrafficFilter.
+func (mr *MockClientInterfaceMockRecorder) CreateTrafficFilter(ctx, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficFilter", reflect.TypeOf((*MockClientInterface)(nil).CreateTrafficFilter), varargs...)
+}
+
+// CreateTrafficFilterWithBody mocks base method.
+func (m *MockClientInterface) CreateTrafficFilterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateTrafficFilterWithBody", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTrafficFilterWithBody indicates an expected call of CreateTrafficFilterWithBody.
+func (mr *MockClientInterfaceMockRecorder) CreateTrafficFilterWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficFilterWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateTrafficFilterWithBody), varargs...)
+}
+
 // DeleteElasticsearchProject mocks base method.
 func (m *MockClientInterface) DeleteElasticsearchProject(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -962,6 +1162,26 @@ func (mr *MockClientInterfaceMockRecorder) DeleteSecurityProject(ctx, id, params
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).DeleteSecurityProject), varargs...)
+}
+
+// DeleteTrafficFilter mocks base method.
+func (m *MockClientInterface) DeleteTrafficFilter(ctx context.Context, id string, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteTrafficFilter", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteTrafficFilter indicates an expected call of DeleteTrafficFilter.
+func (mr *MockClientInterfaceMockRecorder) DeleteTrafficFilter(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrafficFilter", reflect.TypeOf((*MockClientInterface)(nil).DeleteTrafficFilter), varargs...)
 }
 
 // GetElasticsearchProject mocks base method.
@@ -1164,6 +1384,46 @@ func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectStatus(ctx, id any,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProjectStatus), varargs...)
 }
 
+// GetTrafficFilter mocks base method.
+func (m *MockClientInterface) GetTrafficFilter(ctx context.Context, id string, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetTrafficFilter", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTrafficFilter indicates an expected call of GetTrafficFilter.
+func (mr *MockClientInterfaceMockRecorder) GetTrafficFilter(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficFilter", reflect.TypeOf((*MockClientInterface)(nil).GetTrafficFilter), varargs...)
+}
+
+// GetTrafficFilterMetadata mocks base method.
+func (m *MockClientInterface) GetTrafficFilterMetadata(ctx context.Context, params *serverless.GetTrafficFilterMetadataParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetTrafficFilterMetadata", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTrafficFilterMetadata indicates an expected call of GetTrafficFilterMetadata.
+func (mr *MockClientInterfaceMockRecorder) GetTrafficFilterMetadata(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficFilterMetadata", reflect.TypeOf((*MockClientInterface)(nil).GetTrafficFilterMetadata), varargs...)
+}
+
 // ListElasticsearchProjects mocks base method.
 func (m *MockClientInterface) ListElasticsearchProjects(ctx context.Context, params *serverless.ListElasticsearchProjectsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -1242,6 +1502,26 @@ func (mr *MockClientInterfaceMockRecorder) ListSecurityProjects(ctx, params any,
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSecurityProjects", reflect.TypeOf((*MockClientInterface)(nil).ListSecurityProjects), varargs...)
+}
+
+// ListTrafficFilters mocks base method.
+func (m *MockClientInterface) ListTrafficFilters(ctx context.Context, params *serverless.ListTrafficFiltersParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListTrafficFilters", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTrafficFilters indicates an expected call of ListTrafficFilters.
+func (mr *MockClientInterfaceMockRecorder) ListTrafficFilters(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTrafficFilters", reflect.TypeOf((*MockClientInterface)(nil).ListTrafficFilters), varargs...)
 }
 
 // PatchElasticsearchProject mocks base method.
@@ -1362,6 +1642,46 @@ func (mr *MockClientInterfaceMockRecorder) PatchSecurityProjectWithBody(ctx, id,
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchSecurityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchSecurityProjectWithBody), varargs...)
+}
+
+// PatchTrafficFilter mocks base method.
+func (m *MockClientInterface) PatchTrafficFilter(ctx context.Context, id string, body serverless.PatchTrafficFilterJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchTrafficFilter", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchTrafficFilter indicates an expected call of PatchTrafficFilter.
+func (mr *MockClientInterfaceMockRecorder) PatchTrafficFilter(ctx, id, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTrafficFilter", reflect.TypeOf((*MockClientInterface)(nil).PatchTrafficFilter), varargs...)
+}
+
+// PatchTrafficFilterWithBody mocks base method.
+func (m *MockClientInterface) PatchTrafficFilterWithBody(ctx context.Context, id, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchTrafficFilterWithBody", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchTrafficFilterWithBody indicates an expected call of PatchTrafficFilterWithBody.
+func (mr *MockClientInterfaceMockRecorder) PatchTrafficFilterWithBody(ctx, id, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTrafficFilterWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchTrafficFilterWithBody), varargs...)
 }
 
 // ResetElasticsearchProjectCredentials mocks base method.
