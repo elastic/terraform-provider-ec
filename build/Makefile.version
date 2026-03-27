@@ -1,18 +1,18 @@
 ### Manage repository versions
 
-CURRENT_VERSION=$$($(GOBIN)/versionbump list Makefile)
+CURRENT_VERSION=$$(go tool versionbump list Makefile)
 
 ## Bump the major version for the Terraform Provider for Elastic Cloud.
-major: $(GOBIN)/versionbump
-	@ $(GOBIN)/versionbump -c major Makefile
+major:
+	@ go tool versionbump -c major Makefile
 	@ ./scripts/update-provider-version.sh $(CURRENT_VERSION)
 
 ## Bump the minor o feature version for the Terraform Provider for Elastic Cloud.
-minor: $(GOBIN)/versionbump
-	@ $(GOBIN)/versionbump -c minor Makefile
+minor:
+	@ go tool versionbump -c minor Makefile
 	@ ./scripts/update-provider-version.sh $(CURRENT_VERSION)
 
 ## Bump the patch o bugfix version for the Terraform Provider for Elastic Cloud.
-patch: $(GOBIN)/versionbump
-	@ $(GOBIN)/versionbump -c patch Makefile
+patch:
+	@ go tool versionbump -c patch Makefile
 	@ ./scripts/update-provider-version.sh $(CURRENT_VERSION)

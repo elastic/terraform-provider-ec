@@ -4,7 +4,6 @@ ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLANGCILINT:=v2.11.4
-VERSION_VERSIONBUMP:=v1.1.0
 VERSION_TFPLUGINDOCS:=v0.14.1
 VERSION_GOLICENCEDETECTOR:=v0.8.0
 
@@ -23,14 +22,6 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
-
-$(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-versionbump-*
-	@ echo $(VERSION_VERSIONBUMP) > $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP)
-
-$(GOBIN)/versionbump: $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP) | $(GOBIN)
-	@ echo "-> Installing versionbump..."
-	@ go install github.com/crosseyed/versionbump/cmd/versionbump@$(VERSION_VERSIONBUMP)
 
 $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-tfplugindocs-*
