@@ -35,6 +35,6 @@ release-no-publish:
 	@ go tool goreleaser release --clean --skip=publish,validate --parallelism=4
 
 .PHONY: changelog
-changelog: $(GOBIN)/changelog-build
+changelog:
 	@ echo "-> Generating changelog..."
 	@ ./scripts/generate-changelog.sh

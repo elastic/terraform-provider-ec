@@ -4,7 +4,6 @@ ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLANGCILINT:=v2.11.4
-VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 VERSION_VERSIONBUMP:=v1.1.0
 VERSION_TFPLUGINDOCS:=v0.14.1
 VERSION_GOLICENCEDETECTOR:=v0.8.0
@@ -24,14 +23,6 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
-
-$(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-changelog-build-*
-	@ echo $(VERSION_GOCHANGELOG) > $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG)
-
-$(GOBIN)/changelog-build: $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG) | $(GOBIN)
-	@ echo "-> Installing changelog-build..."
-	@ go install github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
 
 $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-versionbump-*
