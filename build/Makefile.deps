@@ -1,6 +1,3 @@
-
-OS:=$(shell uname -s | tr '[:upper:]' '[:lower:]')
-ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLANGCILINT:=v2.11.4
