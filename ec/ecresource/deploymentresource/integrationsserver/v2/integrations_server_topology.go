@@ -39,7 +39,7 @@ func integrationsServerTopologyPayload(ctx context.Context, topology topologyv1.
 	}
 
 	if !topology.InstanceConfigurationVersion.IsUnknown() && !topology.InstanceConfigurationVersion.IsNull() {
-		model.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
+		model.InstanceConfigurationVersion = new(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
 	var diags diag.Diagnostics
@@ -107,12 +107,12 @@ func readIntegrationsServerTopology(in *models.IntegrationsServerTopologyElement
 	}
 
 	if in.InstanceConfigurationVersion != nil {
-		top.InstanceConfigurationVersion = ec.Int(int(*in.InstanceConfigurationVersion))
+		top.InstanceConfigurationVersion = new(int(*in.InstanceConfigurationVersion))
 	}
 
 	if in.Size != nil {
-		top.Size = ec.String(util.MemoryToState(*in.Size.Value))
-		top.SizeResource = ec.String(*in.Size.Resource)
+		top.Size = new(util.MemoryToState(*in.Size.Value))
+		top.SizeResource = new(*in.Size.Resource)
 	}
 
 	top.ZoneCount = int(in.ZoneCount)

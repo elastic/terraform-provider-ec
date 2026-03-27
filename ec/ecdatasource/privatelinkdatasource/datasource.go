@@ -82,11 +82,11 @@ func (d privateLinkDataSource[T]) readRegionData(state T) (T, error) {
 	return state, err
 }
 
-type configMap = map[string]interface{}
+type configMap = map[string]any
 type regionToConfigMap = map[string]configMap
 type providerToRegionMap = map[string]regionToConfigMap
 
-func getRegionData(providerName string, regionName string) (map[string]interface{}, error) {
+func getRegionData(providerName string, regionName string) (map[string]any, error) {
 	var providerMap providerToRegionMap
 	if err := json.Unmarshal([]byte(privateLinkDataJson), &providerMap); err != nil {
 		return nil, err

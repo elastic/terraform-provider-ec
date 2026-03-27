@@ -95,6 +95,7 @@ func IsKnown(val attr.Value) bool {
 	return !val.IsNull() && !val.IsUnknown()
 }
 
+//go:fix inline
 func Ptr[T any](t T) *T {
-	return &t
+	return new(t)
 }

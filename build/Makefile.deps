@@ -1,32 +1,14 @@
-
-OS:=$(shell uname -s | tr '[:upper:]' '[:lower:]')
-ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
-ARCH_GORELEASER:=$(shell $(PWD)/scripts/uname_arch_goreleaser.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
-VERSION_GOLICENSER:=v0.4.2
-VERSION_GOLANGCILINT:=v2.3.1
-VERSION_GORELEASER:=v1.15.2
-VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
-VERSION_VERSIONBUMP:=v1.1.0
-VERSION_TFPLUGINDOCS:=v0.14.1
-VERSION_GOLICENCEDETECTOR:=v0.8.0
+VERSION_GOLANGCILINT:=v2.11.4
 
-deps: $(GOBIN)/go-licenser $(GOBIN)/golangci-lint $(GOBIN)/go-licence-detector 
+deps: $(GOBIN)/golangci-lint
 
 $(GOBIN):
 	@ mkdir -p $(GOBIN)
 
 $(VERSION_DIR): | $(GOBIN)
 	@ mkdir -p $(GOBIN)/versions
-
-$(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-go-licenser-*
-	@ echo $(VERSION_GOLICENSER) > $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER)
-
-$(GOBIN)/go-licenser: $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER) | $(GOBIN)
-	@ echo "-> Installing go-licenser..."
-	@ go install github.com/elastic/go-licenser@$(VERSION_GOLICENSER)
 
 $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-golangci-lint-*
@@ -35,45 +17,3 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
-
-$(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-goreleaser-*
-	@ echo $(VERSION_GORELEASER) > $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER)
-
-$(GOBIN)/goreleaser: $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER) | $(GOBIN)
-	@ echo "-> Installing goreleaser..."
-	@ curl -L https://github.com/goreleaser/goreleaser/releases/download/$(VERSION_GORELEASER)/goreleaser_$(OS)_$(ARCH_GORELEASER).tar.gz \
-	    --output $(GOBIN)/goreleaser.tar.gz
-	@ tar -xf $(GOBIN)/goreleaser.tar.gz -C $(GOBIN)
-
-$(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-changelog-build-*
-	@ echo $(VERSION_GOCHANGELOG) > $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG)
-
-$(GOBIN)/changelog-build: $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG) | $(GOBIN)
-	@ echo "-> Installing changelog-build..."
-	@ go install github.com/hashicorp/go-changelog/cmd/changelog-build@$(VERSION_GOCHANGELOG)
-
-$(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-versionbump-*
-	@ echo $(VERSION_VERSIONBUMP) > $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP)
-
-$(GOBIN)/versionbump: $(VERSION_DIR)/.version-versionbump-$(VERSION_VERSIONBUMP) | $(GOBIN)
-	@ echo "-> Installing versionbump..."
-	@ go install github.com/crosseyed/versionbump/cmd/versionbump@$(VERSION_VERSIONBUMP)
-
-$(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-tfplugindocs-*
-	@ echo $(VERSION_TFPLUGINDOCS) > $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS)
-
-$(GOBIN)/tfplugindocs: $(VERSION_DIR)/.version-tfplugindocs-$(VERSION_TFPLUGINDOCS) | $(GOBIN)
-	@ echo "-> Installing tfplugindocs..."
-	@ go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(VERSION_TFPLUGINDOCS)
-
-$(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-go-licence-detector-*
-	@ echo $(VERSION_GOLICENCEDETECTOR) > $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR)
-
-$(GOBIN)/go-licence-detector: $(VERSION_DIR)/.version-go-licence-detector-$(VERSION_GOLICENCEDETECTOR) | $(GOBIN)
-	@ echo "-> Installing go-licence-detector..."
-	@ go install go.elastic.co/go-licence-detector@$(VERSION_GOLICENCEDETECTOR)	

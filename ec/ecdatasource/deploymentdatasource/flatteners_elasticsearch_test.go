@@ -49,11 +49,11 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 			name: "parses elasticsearch resource",
 			args: args{in: []*models.ElasticsearchResourceInfo{
 				{
-					Region: ec.String("some-region"),
-					RefID:  ec.String("main-elasticsearch"),
+					Region: new("some-region"),
+					RefID:  new("main-elasticsearch"),
 					Info: &models.ElasticsearchClusterInfo{
-						Healthy:   ec.Bool(true),
-						Status:    ec.String("started"),
+						Healthy:   new(true),
+						Status:    new("started"),
 						ClusterID: &mock.ValidClusterID,
 						Metadata: &models.ClusterMetadataInfo{
 							CloudID:  "some CLOUD ID",
@@ -66,7 +66,7 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 						PlanInfo: &models.ElasticsearchClusterPlansInfo{
 							Current: &models.ElasticsearchClusterPlanInfo{
 								Plan: &models.ElasticsearchClusterPlan{
-									AutoscalingEnabled: ec.Bool(true),
+									AutoscalingEnabled: new(true),
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										Version: "7.7.0",
 									},
@@ -76,28 +76,28 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.data.highio.i3",
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(2048),
 											},
 											NodeType: &models.ElasticsearchNodeType{
-												Data:   ec.Bool(true),
-												Ingest: ec.Bool(true),
-												Master: ec.Bool(true),
-												Ml:     ec.Bool(false),
+												Data:   new(true),
+												Ingest: new(true),
+												Master: new(true),
+												Ml:     new(false),
 											},
 											// NodeRoles cannot be used simultaneously with NodeType
 											// but let's have it here for testing purposes
 											NodeRoles: []string{"data_content", "data_hot"},
 											AutoscalingMax: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(15360),
 											},
 											AutoscalingMin: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(1024),
 											},
-											AutoscalingPolicyOverrideJSON: map[string]interface{}{
-												"proactive_storage": map[string]interface{}{
+											AutoscalingPolicyOverrideJSON: map[string]any{
+												"proactive_storage": map[string]any{
 													"forecast_window": "3 h",
 												},
 											},
@@ -107,14 +107,14 @@ func Test_flattenElasticsearchResources(t *testing.T) {
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.coordinating.m5d",
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(0),
 											},
 											NodeType: &models.ElasticsearchNodeType{
-												Data:   ec.Bool(true),
-												Ingest: ec.Bool(true),
-												Master: ec.Bool(true),
-												Ml:     ec.Bool(false),
+												Data:   new(true),
+												Ingest: new(true),
+												Master: new(true),
+												Ml:     new(false),
 											},
 										},
 									},

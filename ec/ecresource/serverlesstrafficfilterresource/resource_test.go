@@ -33,10 +33,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func ptr(s string) *string {
-	return &s
-}
-
 // newTestState creates a tfsdk.State from raw attribute values for the traffic filter resource.
 func newTestState(ctx context.Context, t *testing.T, id, name, region, typ string) tfsdk.State {
 	t.Helper()
@@ -74,10 +70,10 @@ func TestResourceRead(t *testing.T) {
 					Name:             "test-filter",
 					Region:           "aws-us-east-1",
 					Type:             serverless.Ip,
-					Description:      ptr("Test filter"),
+					Description:      new("Test filter"),
 					IncludeByDefault: false,
 					Rules: []serverless.TrafficFilterRule{
-						{Source: "192.168.1.0/24", Description: ptr("Office")},
+						{Source: "192.168.1.0/24", Description: new("Office")},
 					},
 				},
 			}, nil)

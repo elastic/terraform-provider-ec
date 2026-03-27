@@ -33,5 +33,5 @@ install: build
 
 ## Generate Terraform docs
 .PHONY: docs-generate
-docs-generate: tools ## Generate documentation for the provider
-	@ $(GOBIN)/tfplugindocs
+docs-generate: ## Generate documentation for the provider
+	@ go tool tfplugindocs

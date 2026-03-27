@@ -27,18 +27,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_modelToState(t *testing.T) {
 	remoteStateForMatchingId := models.TrafficFilterRulesets{
 		Rulesets: []*models.TrafficFilterRulesetInfo{
 			{
-				ID:               ec.String("matching-id"),
-				Name:             ec.String("my traffic filter"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
-				Description:      *ec.String("description"),
+				ID:               new("matching-id"),
+				Name:             new("my traffic filter"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
+				Description:      *new("description"),
 				Rules: []*models.TrafficFilterRule{
 					{ID: "matching-id", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
 					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
@@ -50,11 +49,11 @@ func Test_modelToState(t *testing.T) {
 	remoteStateForMatchingName := models.TrafficFilterRulesets{
 		Rulesets: []*models.TrafficFilterRulesetInfo{
 			{
-				ID:               ec.String("matching-name"),
-				Name:             ec.String("my traffic filter"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
-				Description:      *ec.String("description"),
+				ID:               new("matching-name"),
+				Name:             new("my traffic filter"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
+				Description:      *new("description"),
 				Rules: []*models.TrafficFilterRule{
 					{ID: "matching-name", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
 					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
@@ -66,22 +65,22 @@ func Test_modelToState(t *testing.T) {
 	remoteStateForMatchingRegion := models.TrafficFilterRulesets{
 		Rulesets: []*models.TrafficFilterRulesetInfo{
 			{
-				ID:               ec.String("matching-region"),
-				Name:             ec.String("my traffic filter"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
-				Description:      *ec.String("description"),
+				ID:               new("matching-region"),
+				Name:             new("my traffic filter"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
+				Description:      *new("description"),
 				Rules: []*models.TrafficFilterRule{
 					{ID: "matching-region", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
 					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},
 				},
 			},
 			{
-				ID:               ec.String("matching-region"),
-				Name:             ec.String("my traffic filter"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
-				Description:      *ec.String("description"),
+				ID:               new("matching-region"),
+				Name:             new("my traffic filter"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
+				Description:      *new("description"),
 				Rules: []*models.TrafficFilterRule{
 					{ID: "matching-region", Source: "1.1.1.1", Description: "desc", RemoteClusterID: "", RemoteClusterOrgID: ""},
 					{ID: "remote-traffic-filter-id", Source: "", Description: "desc", RemoteClusterID: "remote-cluster-id-123", RemoteClusterOrgID: "123123123"},

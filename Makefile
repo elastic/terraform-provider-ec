@@ -11,7 +11,6 @@ include build/Makefile.build
 include build/Makefile.test
 include build/Makefile.dev
 include build/Makefile.deps
-include build/Makefile.tools
 include build/Makefile.lint
 include build/Makefile.format
 include build/Makefile.release

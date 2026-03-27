@@ -61,14 +61,14 @@ func Test_ReadKibana(t *testing.T) {
 			name: "parses the kibana resource",
 			args: args{in: []*models.KibanaResourceInfo{
 				{
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-kibana"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Region:                    new("some-region"),
+					RefID:                     new("main-kibana"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.KibanaClusterInfo{
 						ClusterID:   &mock.ValidClusterID,
-						ClusterName: ec.String("some-kibana-name"),
+						ClusterName: new("some-kibana-name"),
 						Region:      "some-region",
-						Status:      ec.String("stopped"),
+						Status:      new("stopped"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "kibanaresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -88,7 +88,7 @@ func Test_ReadKibana(t *testing.T) {
 											InstanceConfigurationID:      "aws.kibana.r4",
 											InstanceConfigurationVersion: ec.Int32(5),
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(1024),
 											},
 										},
@@ -99,14 +99,14 @@ func Test_ReadKibana(t *testing.T) {
 					},
 				},
 				{
-					Region:                    ec.String("some-region"),
-					RefID:                     ec.String("main-kibana"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					Region:                    new("some-region"),
+					RefID:                     new("main-kibana"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.KibanaClusterInfo{
 						ClusterID:   &mock.ValidClusterID,
-						ClusterName: ec.String("some-kibana-name"),
+						ClusterName: new("some-kibana-name"),
 						Region:      "some-region",
-						Status:      ec.String("started"),
+						Status:      new("started"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "kibanaresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -121,10 +121,10 @@ func Test_ReadKibana(t *testing.T) {
 										Version:                  "7.7.0",
 										UserSettingsYaml:         "some.setting: value",
 										UserSettingsOverrideYaml: "some.setting: override",
-										UserSettingsJSON: map[string]interface{}{
+										UserSettingsJSON: map[string]any{
 											"some.setting": "value",
 										},
-										UserSettingsOverrideJSON: map[string]interface{}{
+										UserSettingsOverrideJSON: map[string]any{
 											"some.setting": "override",
 										},
 									},
@@ -133,7 +133,7 @@ func Test_ReadKibana(t *testing.T) {
 										InstanceConfigurationID:      "aws.kibana.r4",
 										InstanceConfigurationVersion: ec.Int32(5),
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									}},
@@ -144,22 +144,22 @@ func Test_ReadKibana(t *testing.T) {
 				},
 			}},
 			want: &Kibana{
-				ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-				RefId:                     ec.String("main-kibana"),
+				ElasticsearchClusterRefId: new("main-elasticsearch"),
+				RefId:                     new("main-kibana"),
 				ResourceId:                &mock.ValidClusterID,
-				Region:                    ec.String("some-region"),
-				HttpEndpoint:              ec.String("http://kibanaresource.cloud.elastic.co:9200"),
-				HttpsEndpoint:             ec.String("https://kibanaresource.cloud.elastic.co:9243"),
+				Region:                    new("some-region"),
+				HttpEndpoint:              new("http://kibanaresource.cloud.elastic.co:9200"),
+				HttpsEndpoint:             new("https://kibanaresource.cloud.elastic.co:9243"),
 				Config: &KibanaConfig{
-					UserSettingsYaml:         ec.String("some.setting: value"),
-					UserSettingsOverrideYaml: ec.String("some.setting: override"),
-					UserSettingsJson:         ec.String(`{"some.setting":"value"}`),
-					UserSettingsOverrideJson: ec.String(`{"some.setting":"override"}`),
+					UserSettingsYaml:         new("some.setting: value"),
+					UserSettingsOverrideYaml: new("some.setting: override"),
+					UserSettingsJson:         new(`{"some.setting":"value"}`),
+					UserSettingsOverrideJson: new(`{"some.setting":"override"}`),
 				},
-				InstanceConfigurationId:      ec.String("aws.kibana.r4"),
-				InstanceConfigurationVersion: ec.Int(5),
-				Size:                         ec.String("1g"),
-				SizeResource:                 ec.String("memory"),
+				InstanceConfigurationId:      new("aws.kibana.r4"),
+				InstanceConfigurationVersion: new(5),
+				Size:                         new("1g"),
+				SizeResource:                 new("memory"),
 				ZoneCount:                    1,
 			},
 		},
@@ -189,14 +189,14 @@ func Test_IsKibanaResourceStopped(t *testing.T) {
 		{
 			name: "started resource returns false",
 			args: args{res: &models.KibanaResourceInfo{Info: &models.KibanaClusterInfo{
-				Status: ec.String("started"),
+				Status: new("started"),
 			}}},
 			want: false,
 		},
 		{
 			name: "stopped resource returns true",
 			args: args{res: &models.KibanaResourceInfo{Info: &models.KibanaClusterInfo{
-				Status: ec.String("stopped"),
+				Status: new("stopped"),
 			}}},
 			want: true,
 		},

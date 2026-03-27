@@ -37,14 +37,14 @@ type enterpriseSearchTopologies v1.EnterpriseSearchTopologies
 func readEnterpriseSearchTopology(in *models.EnterpriseSearchTopologyElement) (*v1.EnterpriseSearchTopology, error) {
 	var topology v1.EnterpriseSearchTopology
 
-	topology.InstanceConfigurationId = ec.String(in.InstanceConfigurationID)
+	topology.InstanceConfigurationId = new(in.InstanceConfigurationID)
 
 	if in.InstanceConfigurationVersion != nil {
-		topology.InstanceConfigurationVersion = ec.Int(int(*in.InstanceConfigurationVersion))
+		topology.InstanceConfigurationVersion = new(int(*in.InstanceConfigurationVersion))
 	}
 
 	if in.Size != nil {
-		topology.Size = ec.String(util.MemoryToState(*in.Size.Value))
+		topology.Size = new(util.MemoryToState(*in.Size.Value))
 		topology.SizeResource = in.Size.Resource
 	}
 
@@ -97,7 +97,7 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 	}
 
 	if !topology.InstanceConfigurationVersion.IsUnknown() && !topology.InstanceConfigurationVersion.IsNull() {
-		model.InstanceConfigurationVersion = ec.Int32(int32(topology.InstanceConfigurationVersion.ValueInt64()))
+		model.InstanceConfigurationVersion = new(int32(topology.InstanceConfigurationVersion.ValueInt64()))
 	}
 
 	size, err := converters.ParseTopologySizeTypes(topology.Size, topology.SizeResource)
@@ -112,7 +112,7 @@ func enterpriseSearchTopologyPayload(ctx context.Context, topology v1.Enterprise
 	// the definition.
 	if size == nil {
 		size = &models.TopologySize{
-			Resource: ec.String("memory"),
+			Resource: new("memory"),
 			Value:    ec.Int32(minimumEnterpriseSearchSize),
 		}
 	}

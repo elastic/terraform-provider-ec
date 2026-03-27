@@ -19,7 +19,6 @@ package v2
 
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -149,7 +148,7 @@ func SetLatestInstanceConfigInfo(currentTopology *IntegrationsServer, latestTopo
 	if currentTopology != nil && latestTopology != nil {
 		currentTopology.LatestInstanceConfigurationId = &latestTopology.InstanceConfigurationID
 		if latestTopology.InstanceConfigurationVersion != nil {
-			currentTopology.LatestInstanceConfigurationVersion = ec.Int(int(*latestTopology.InstanceConfigurationVersion))
+			currentTopology.LatestInstanceConfigurationVersion = new(int(*latestTopology.InstanceConfigurationVersion))
 		}
 	}
 }

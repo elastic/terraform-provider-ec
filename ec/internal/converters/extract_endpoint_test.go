@@ -53,8 +53,8 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 				},
 			}},
 			want: want{
-				httpEndpoint:  ec.String("http://xyz.us-east-1.aws.found.io:9200"),
-				httpsEndpoint: ec.String("https://xyz.us-east-1.aws.found.io:9243"),
+				httpEndpoint:  new("http://xyz.us-east-1.aws.found.io:9200"),
+				httpsEndpoint: new("https://xyz.us-east-1.aws.found.io:9243"),
 			},
 		},
 		{
@@ -67,8 +67,8 @@ func TestFlattenClusterEndpoint(t *testing.T) {
 				},
 			}},
 			want: want{
-				httpEndpoint:  ec.String("http://rst.us-east-1.aws.found.io:10000"),
-				httpsEndpoint: ec.String("https://rst.us-east-1.aws.found.io:20000"),
+				httpEndpoint:  new("http://rst.us-east-1.aws.found.io:10000"),
+				httpsEndpoint: new("https://rst.us-east-1.aws.found.io:20000"),
 			},
 		},
 	}

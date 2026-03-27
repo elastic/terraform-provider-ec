@@ -21,7 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -131,10 +130,10 @@ func Test_UseNodeRoles(t *testing.T) {
 				elasticsearch: Elasticsearch{
 					HotTier: &ElasticsearchTopology{
 						id:             "hot_content",
-						NodeTypeData:   ec.String("true"),
-						NodeTypeMaster: ec.String("true"),
-						NodeTypeIngest: ec.String("true"),
-						NodeTypeMl:     ec.String("false"),
+						NodeTypeData:   new("true"),
+						NodeTypeMaster: new("true"),
+						NodeTypeIngest: new("true"),
+						NodeTypeMl:     new("false"),
 					},
 				},
 			},

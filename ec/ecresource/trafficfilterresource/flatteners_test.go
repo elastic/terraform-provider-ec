@@ -27,16 +27,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_modelToState(t *testing.T) {
 	remoteState := models.TrafficFilterRulesetInfo{
-		ID:               ec.String("some-random-id"),
-		Name:             ec.String("my traffic filter"),
-		Type:             ec.String("ip"),
-		IncludeByDefault: ec.Bool(false),
-		Region:           ec.String("us-east-1"),
+		ID:               new("some-random-id"),
+		Name:             new("my traffic filter"),
+		Type:             new("ip"),
+		IncludeByDefault: new(false),
+		Region:           new("us-east-1"),
 		Rules: []*models.TrafficFilterRule{
 			{Source: "1.1.1.1"},
 			{Source: "0.0.0.0/0"},
@@ -44,11 +43,11 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	remoteStateMultipleRules := models.TrafficFilterRulesetInfo{
-		ID:               ec.String("some-random-id"),
-		Name:             ec.String("my traffic filter"),
-		Type:             ec.String("ip"),
-		IncludeByDefault: ec.Bool(false),
-		Region:           ec.String("us-east-1"),
+		ID:               new("some-random-id"),
+		Name:             new("my traffic filter"),
+		Type:             new("ip"),
+		IncludeByDefault: new(false),
+		Region:           new("us-east-1"),
 		Rules: []*models.TrafficFilterRule{
 			{Source: "1.1.1.0/16"},
 			{Source: "1.1.1.1/24"},
@@ -58,12 +57,12 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	remoteStateMultipleRulesWithDesc := models.TrafficFilterRulesetInfo{
-		ID:               ec.String("some-random-id"),
-		Name:             ec.String("my traffic filter"),
-		Type:             ec.String("ip"),
-		IncludeByDefault: ec.Bool(false),
-		Region:           ec.String("us-east-1"),
-		Description:      *ec.String("Allows access to some network, a specific IP and all internet traffic"),
+		ID:               new("some-random-id"),
+		Name:             new("my traffic filter"),
+		Type:             new("ip"),
+		IncludeByDefault: new(false),
+		Region:           new("us-east-1"),
+		Description:      *new("Allows access to some network, a specific IP and all internet traffic"),
 		Rules: []*models.TrafficFilterRule{
 			{Source: "1.1.1.0/16", Description: "some network"},
 			{Source: "1.1.1.1/24", Description: "a specific IP"},
@@ -115,11 +114,11 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	remoteStateAzurePL := models.TrafficFilterRulesetInfo{
-		ID:               ec.String("some-random-id"),
-		Name:             ec.String("my traffic filter"),
-		Type:             ec.String("azure_private_endpoint"),
-		IncludeByDefault: ec.Bool(false),
-		Region:           ec.String("azure-australiaeast"),
+		ID:               new("some-random-id"),
+		Name:             new("my traffic filter"),
+		Type:             new("azure_private_endpoint"),
+		IncludeByDefault: new(false),
+		Region:           new("azure-australiaeast"),
 		Rules: []*models.TrafficFilterRule{
 			{
 				AzureEndpointGUID: "1231312-1231-1231-1231-1231312",
@@ -148,11 +147,11 @@ func Test_modelToState(t *testing.T) {
 	}
 
 	remoteStateRemoteCluster := models.TrafficFilterRulesetInfo{
-		ID:               ec.String("some-random-id"),
-		Name:             ec.String("my traffic filter"),
-		Type:             ec.String("remote_cluster"),
-		IncludeByDefault: ec.Bool(false),
-		Region:           ec.String("us-east-1"),
+		ID:               new("some-random-id"),
+		Name:             new("my traffic filter"),
+		Type:             new("remote_cluster"),
+		IncludeByDefault: new(false),
+		Region:           new("us-east-1"),
 		Rules: []*models.TrafficFilterRule{
 			{
 				RemoteClusterID:    "remote-cluster-id-123",

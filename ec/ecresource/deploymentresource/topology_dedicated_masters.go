@@ -389,10 +389,10 @@ func getTopologyZoneCount(template models.DeploymentTemplateInfoV2, tier string)
 	return 0
 }
 
-func withError(err error) map[string]interface{} {
-	return map[string]interface{}{"error": err}
+func withError(err error) map[string]any {
+	return map[string]any{"error": err}
 }
 
-func withDiags(diags diag.Diagnostics) map[string]interface{} {
-	return map[string]interface{}{"error": diags.Errors()}
+func withDiags(diags diag.Diagnostics) map[string]any {
+	return map[string]any{"error": diags.Errors()}
 }

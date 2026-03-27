@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -58,10 +57,10 @@ func elasticsearchKeystoreContentsPayload(ctx context.Context, keystoreContentsT
 
 		var secret models.KeystoreSecret
 
-		secret.AsFile = ec.Bool(false)
+		secret.AsFile = new(false)
 
 		if !secretTF.AsFile.IsUnknown() && !secretTF.AsFile.IsNull() {
-			secret.AsFile = ec.Bool(secretTF.AsFile.ValueBool())
+			secret.AsFile = new(secretTF.AsFile.ValueBool())
 		}
 		secret.Value = secretTF.Value.ValueString()
 

@@ -21,11 +21,10 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/go-openapi/strfmt"
 )
 
-var orgId = ec.String("123")
+var orgId = new("123")
 
 func getMembers(memberships []*models.OrganizationMembership) mock.Response {
 	return mock.New200ResponseAssertion(
@@ -52,7 +51,7 @@ func getMembersFails() mock.Response {
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("organization-does-not-exist"),
+					Message: new("organization-does-not-exist"),
 				},
 			}}),
 	)
@@ -83,7 +82,7 @@ func getInvitationsFails() mock.Response {
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("organization-does-not-exist"),
+					Message: new("organization-does-not-exist"),
 				},
 			}}),
 	)
@@ -126,7 +125,7 @@ func createInvitationFails(invitation *models.OrganizationInvitation) mock.Respo
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("organization.invitation_invalid_email"),
+					Message: new("organization.invitation_invalid_email"),
 				},
 			}}),
 	)
@@ -155,7 +154,7 @@ func deleteInvitationFails(invitation *models.OrganizationInvitation) mock.Respo
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("organization.invitation_token_invalid"),
+					Message: new("organization.invitation_token_invalid"),
 				},
 			}}),
 	)
@@ -168,22 +167,22 @@ func buildInvitationModel(email string) *models.OrganizationInvitation {
 		Deployment: nil,
 		Organization: []*models.OrganizationRoleAssignment{
 			{
-				OrganizationID: ec.String("123"),
-				RoleID:         ec.String("billing-admin"),
+				OrganizationID: new("123"),
+				RoleID:         new("billing-admin"),
 			},
 		},
 		Platform: nil,
 		Project:  &models.ProjectRoleAssignments{},
 	}
 	return &models.OrganizationInvitation{
-		Token:      ec.String("invitation-token"),
+		Token:      new("invitation-token"),
 		AcceptedAt: strfmt.DateTime{},
 		CreatedAt:  &timestamp,
-		Email:      ec.String(email),
-		Expired:    ec.Bool(false),
+		Email:      new(email),
+		Expired:    new(false),
 		ExpiresAt:  &expiration,
 		Organization: &models.Organization{
-			ID: ec.String("123"),
+			ID: new("123"),
 		},
 		RoleAssignments: assignments,
 	}
@@ -215,15 +214,15 @@ func addRoleAssignmentsFails() mock.Response {
 			Body: mock.NewStructBody(models.RoleAssignments{
 				Deployment: []*models.DeploymentRoleAssignment{
 					{
-						All:            ec.Bool(false),
+						All:            new(false),
 						OrganizationID: orgId,
-						RoleID:         ec.String("deployment-editor"),
+						RoleID:         new("deployment-editor"),
 						DeploymentIds:  []string{"abc"},
 					},
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("deployment-viewer"),
-						All:            ec.Bool(true),
+						RoleID:         new("deployment-viewer"),
+						All:            new(true),
 					},
 				},
 				Project: &models.ProjectRoleAssignments{},
@@ -232,7 +231,7 @@ func addRoleAssignmentsFails() mock.Response {
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("role_assignments.invalid_config"),
+					Message: new("role_assignments.invalid_config"),
 				},
 			}}),
 	)
@@ -266,14 +265,14 @@ func removeRoleAssignmentsFails() mock.Response {
 				Organization: []*models.OrganizationRoleAssignment{
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("organization-admin"),
+						RoleID:         new("organization-admin"),
 					},
 				},
 				Deployment: []*models.DeploymentRoleAssignment{
 					{
-						All:            ec.Bool(false),
+						All:            new(false),
 						OrganizationID: orgId,
-						RoleID:         ec.String("deployment-editor"),
+						RoleID:         new("deployment-editor"),
 						DeploymentIds:  []string{"abc"},
 					},
 				},
@@ -283,7 +282,7 @@ func removeRoleAssignmentsFails() mock.Response {
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("role_assignments.invalid_config"),
+					Message: new("role_assignments.invalid_config"),
 				},
 			}}),
 	)
@@ -312,7 +311,7 @@ func removeMemberFails() mock.Response {
 		mock.NewStructBody(models.BasicFailedReply{
 			Errors: []*models.BasicFailedReplyElement{
 				{
-					Message: ec.String("organization.membership_not_found"),
+					Message: new("organization.membership_not_found"),
 				},
 			}}),
 	)
@@ -320,25 +319,25 @@ func removeMemberFails() mock.Response {
 
 func buildExistingMember() *models.OrganizationMembership {
 	return &models.OrganizationMembership{
-		UserID:         ec.String("userid"),
+		UserID:         new("userid"),
 		Email:          "user@example.com",
 		OrganizationID: orgId,
 		RoleAssignments: &models.RoleAssignments{
 			Organization: []*models.OrganizationRoleAssignment{
 				{
 					OrganizationID: orgId,
-					RoleID:         ec.String("billing-admin"),
+					RoleID:         new("billing-admin"),
 				},
 			},
 			Deployment: []*models.DeploymentRoleAssignment{
 				{
 					OrganizationID: orgId,
-					RoleID:         ec.String("deployment-viewer"),
-					All:            ec.Bool(true),
+					RoleID:         new("deployment-viewer"),
+					All:            new(true),
 				},
 				{
 					OrganizationID: orgId,
-					RoleID:         ec.String("deployment-editor"),
+					RoleID:         new("deployment-editor"),
 					DeploymentIds:  []string{"abc"},
 				},
 			},
@@ -346,36 +345,36 @@ func buildExistingMember() *models.OrganizationMembership {
 				Elasticsearch: []*models.ProjectRoleAssignment{
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("elasticsearch-viewer"),
-						All:            ec.Bool(true),
+						RoleID:         new("elasticsearch-viewer"),
+						All:            new(true),
 					},
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("elasticsearch-developer"),
+						RoleID:         new("elasticsearch-developer"),
 						ProjectIds:     []string{"qwe"},
 					},
 				},
 				Observability: []*models.ProjectRoleAssignment{
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("observability-viewer"),
-						All:            ec.Bool(true),
+						RoleID:         new("observability-viewer"),
+						All:            new(true),
 					},
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("observability-editor"),
+						RoleID:         new("observability-editor"),
 						ProjectIds:     []string{"rty"},
 					},
 				},
 				Security: []*models.ProjectRoleAssignment{
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("security-viewer"),
-						All:            ec.Bool(true),
+						RoleID:         new("security-viewer"),
+						All:            new(true),
 					},
 					{
 						OrganizationID: orgId,
-						RoleID:         ec.String("security-editor"),
+						RoleID:         new("security-editor"),
 						ProjectIds:     []string{"uio"},
 					},
 				},
@@ -386,14 +385,14 @@ func buildExistingMember() *models.OrganizationMembership {
 
 func buildNewMember() *models.OrganizationMembership {
 	return &models.OrganizationMembership{
-		UserID:         ec.String("userid2"),
+		UserID:         new("userid2"),
 		Email:          "newuser@example.com",
 		OrganizationID: orgId,
 		RoleAssignments: &models.RoleAssignments{
 			Organization: []*models.OrganizationRoleAssignment{
 				{
 					OrganizationID: orgId,
-					RoleID:         ec.String("organization-admin"),
+					RoleID:         new("organization-admin"),
 				},
 			},
 		},

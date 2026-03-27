@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -49,7 +48,7 @@ func Test_expandFilters(t *testing.T) {
 			args: args{state: newSampleFilters(t)},
 			want: &models.SearchRequest{
 				Size: 100,
-				Sort: []interface{}{"id"},
+				Sort: []any{"id"},
 				Query: &models.QueryContainer{
 					Bool: &models.BoolQuery{
 						Filter: []*models.QueryContainer{
@@ -139,7 +138,7 @@ func Test_expandFilters(t *testing.T) {
 			},
 			want: &models.SearchRequest{
 				Size: 200,
-				Sort: []interface{}{"id"},
+				Sort: []any{"id"},
 				Query: &models.QueryContainer{
 					Bool: &models.BoolQuery{
 						Filter: []*models.QueryContainer{
@@ -167,7 +166,7 @@ func Test_expandFilters(t *testing.T) {
 				},
 			},
 			want: &models.SearchRequest{
-				Sort: []interface{}{"id"},
+				Sort: []any{"id"},
 				Query: &models.QueryContainer{
 					Bool: &models.BoolQuery{
 						Filter: []*models.QueryContainer{
@@ -176,7 +175,7 @@ func Test_expandFilters(t *testing.T) {
 									Must: []*models.QueryContainer{
 										{
 											Term: map[string]models.TermQuery{
-												"name.keyword": {Value: ec.String("test")},
+												"name.keyword": {Value: new("test")},
 											},
 										},
 									},
@@ -318,12 +317,12 @@ func newTestQuery() []*models.QueryContainer {
 	return []*models.QueryContainer{
 		{
 			Prefix: map[string]models.PrefixQuery{
-				"name.keyword": {Value: ec.String("test")},
+				"name.keyword": {Value: new("test")},
 			},
 		},
 		{
 			Term: map[string]models.TermQuery{
-				"healthy": {Value: ec.String("true")},
+				"healthy": {Value: new("true")},
 			},
 		},
 		{
@@ -332,21 +331,21 @@ func newTestQuery() []*models.QueryContainer {
 				Should: []*models.QueryContainer{
 					{
 						Nested: &models.NestedQuery{
-							Path: ec.String("metadata.tags"),
+							Path: new("metadata.tags"),
 							Query: &models.QueryContainer{
 								Bool: &models.BoolQuery{
 									Filter: []*models.QueryContainer{
 										{
 											Term: map[string]models.TermQuery{
 												"metadata.tags.key": {
-													Value: ec.String("foo"),
+													Value: new("foo"),
 												},
 											},
 										},
 										{
 											Term: map[string]models.TermQuery{
 												"metadata.tags.value": {
-													Value: ec.String("bar"),
+													Value: new("bar"),
 												},
 											},
 										},
@@ -360,11 +359,11 @@ func newTestQuery() []*models.QueryContainer {
 		},
 		{
 			Nested: &models.NestedQuery{
-				Path: ec.String("resources.elasticsearch"),
+				Path: new("resources.elasticsearch"),
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.elasticsearch.info.plan_info.current.plan.elasticsearch.version": {
-							Value: ec.String("7.9.1"),
+							Value: new("7.9.1"),
 						},
 					},
 				},
@@ -372,11 +371,11 @@ func newTestQuery() []*models.QueryContainer {
 		},
 		{
 			Nested: &models.NestedQuery{
-				Path: ec.String("resources.kibana"),
+				Path: new("resources.kibana"),
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.kibana.info.status": {
-							Value: ec.String("started"),
+							Value: new("started"),
 						},
 					},
 				},
@@ -384,11 +383,11 @@ func newTestQuery() []*models.QueryContainer {
 		},
 		{
 			Nested: &models.NestedQuery{
-				Path: ec.String("resources.apm"),
+				Path: new("resources.apm"),
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.apm.info.healthy": {
-							Value: ec.String("true"),
+							Value: new("true"),
 						},
 					},
 				},
@@ -396,11 +395,11 @@ func newTestQuery() []*models.QueryContainer {
 		},
 		{
 			Nested: &models.NestedQuery{
-				Path: ec.String("resources.enterprise_search"),
+				Path: new("resources.enterprise_search"),
 				Query: &models.QueryContainer{
 					Term: map[string]models.TermQuery{
 						"resources.enterprise_search.info.healthy": {
-							Value: ec.String("false"),
+							Value: new("false"),
 						},
 					},
 				},

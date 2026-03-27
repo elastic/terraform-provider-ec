@@ -145,7 +145,6 @@ func (es *Elasticsearch) setTopology(topologies ElasticsearchTopologies) {
 	set := topologies.AsSet()
 
 	for id, topology := range set {
-		topology := topology
 		switch id {
 		case "hot_content":
 			es.HotTier = &topology

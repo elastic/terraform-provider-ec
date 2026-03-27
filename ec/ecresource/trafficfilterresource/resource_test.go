@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	provider "github.com/elastic/terraform-provider-ec/ec"
 )
@@ -337,7 +336,7 @@ func TestResourceTrafficFilter_deletionWithUnknownAssociationError(t *testing.T)
 				readResponse("false", "true"),
 				mock.New200StructResponse(models.TrafficFilterRulesetInfo{
 					Associations: []*models.FilterAssociation{
-						{ID: ec.String("some id"), EntityType: ec.String("deployment")},
+						{ID: new("some id"), EntityType: new("deployment")},
 					},
 				}),
 				mock.NewErrorResponse(500, mock.APIError{
@@ -370,7 +369,7 @@ func TestResourceTrafficFilter_deletionWithAssociationNotFound(t *testing.T) {
 				readResponse("false", "true"),
 				mock.New200StructResponse(models.TrafficFilterRulesetInfo{
 					Associations: []*models.FilterAssociation{
-						{ID: ec.String("some id"), EntityType: ec.String("deployment")},
+						{ID: new("some id"), EntityType: new("deployment")},
 					},
 				}),
 				mock.NewErrorResponse(404, mock.APIError{

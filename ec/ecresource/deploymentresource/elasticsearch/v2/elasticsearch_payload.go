@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -135,11 +134,11 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
-		res.RefID = ec.String(es.RefId.ValueString())
+		res.RefID = new(es.RefId.ValueString())
 	}
 
 	if es.Region.ValueString() != "" {
-		res.Region = ec.String(es.Region.ValueString())
+		res.Region = new(es.Region.ValueString())
 	}
 
 	// Unsetting the curation properties is since they're deprecated since
@@ -165,7 +164,7 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	diags.Append(elasticsearchExtensionPayload(ctx, es.Extension, res.Plan.Elasticsearch)...)
 
 	if !es.Autoscale.IsNull() && !es.Autoscale.IsUnknown() {
-		res.Plan.AutoscalingEnabled = ec.Bool(es.Autoscale.ValueBool())
+		res.Plan.AutoscalingEnabled = new(es.Autoscale.ValueBool())
 	}
 
 	// Only add trust settings to update payload if trust has changed
@@ -316,13 +315,13 @@ func elasticsearchStrategyPayload(strategy types.String, payload *models.Elastic
 	switch strategy.ValueString() {
 	case strategyAutodetect:
 		createModelIfNeeded()
-		payload.Transient.Strategy.Autodetect = models.AutodetectStrategyConfig(map[string]interface{}{})
+		payload.Transient.Strategy.Autodetect = models.AutodetectStrategyConfig(map[string]any{})
 	case strategyGrowAndShrink:
 		createModelIfNeeded()
-		payload.Transient.Strategy.GrowAndShrink = models.GrowShrinkStrategyConfig(map[string]interface{}{})
+		payload.Transient.Strategy.GrowAndShrink = models.GrowShrinkStrategyConfig(map[string]any{})
 	case strategyRollingGrowAndShrink:
 		createModelIfNeeded()
-		payload.Transient.Strategy.RollingGrowAndShrink = models.RollingGrowShrinkStrategyConfig(map[string]interface{}{})
+		payload.Transient.Strategy.RollingGrowAndShrink = models.RollingGrowShrinkStrategyConfig(map[string]any{})
 	case strategyRollingAll:
 		createModelIfNeeded()
 		payload.Transient.Strategy.Rolling = &models.RollingStrategyConfig{
@@ -349,7 +348,7 @@ func EnrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, templateId, v
 	}
 
 	if tpl.Plan.DeploymentTemplate.ID == nil || *tpl.Plan.DeploymentTemplate.ID == "" {
-		tpl.Plan.DeploymentTemplate.ID = ec.String(templateId)
+		tpl.Plan.DeploymentTemplate.ID = new(templateId)
 	}
 
 	if tpl.Plan.Elasticsearch.Version == "" {

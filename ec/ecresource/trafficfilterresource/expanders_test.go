@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_expandModel(t *testing.T) {
@@ -65,10 +64,10 @@ func Test_expandModel(t *testing.T) {
 			name: "parses the resource",
 			args: args{state: trafficFilterRD},
 			want: &models.TrafficFilterRulesetRequest{
-				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("ip"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
+				Name:             new("my traffic filter"),
+				Type:             new("ip"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
 					{Source: "1.1.1.1"},
 					{Source: "0.0.0.0/0"},
@@ -79,10 +78,10 @@ func Test_expandModel(t *testing.T) {
 			name: "parses the resource with a lot of traffic rules",
 			args: args{state: trafficFilterMultipleRD},
 			want: &models.TrafficFilterRulesetRequest{
-				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("ip"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
+				Name:             new("my traffic filter"),
+				Type:             new("ip"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
 					{Source: "1.1.1.1/24"},
 					{Source: "1.1.1.0/16"},
@@ -113,10 +112,10 @@ func Test_expandModel(t *testing.T) {
 				},
 			},
 			want: &models.TrafficFilterRulesetRequest{
-				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("azure_private_endpoint"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("azure-australiaeast"),
+				Name:             new("my traffic filter"),
+				Type:             new("azure_private_endpoint"),
+				IncludeByDefault: new(false),
+				Region:           new("azure-australiaeast"),
 				Rules: []*models.TrafficFilterRule{
 					{
 						AzureEndpointGUID: "1231312-1231-1231-1231-1231312",
@@ -147,10 +146,10 @@ func Test_expandModel(t *testing.T) {
 				},
 			},
 			want: &models.TrafficFilterRulesetRequest{
-				Name:             ec.String("my traffic filter"),
-				Type:             ec.String("remote_cluster"),
-				IncludeByDefault: ec.Bool(false),
-				Region:           ec.String("us-east-1"),
+				Name:             new("my traffic filter"),
+				Type:             new("remote_cluster"),
+				IncludeByDefault: new(false),
+				Region:           new("us-east-1"),
 				Rules: []*models.TrafficFilterRule{
 					{
 						RemoteClusterID:    "remote-cluster-id-123",

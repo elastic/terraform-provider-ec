@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -45,11 +44,11 @@ func ExtractEndpoints(metadata *models.ClusterMetadataInfo) (httpEndpoint, https
 	}
 
 	if metadata.Ports.HTTP != nil {
-		httpEndpoint = ec.String(fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP))
+		httpEndpoint = new(fmt.Sprintf("http://%s:%d", metadata.Endpoint, *metadata.Ports.HTTP))
 	}
 
 	if metadata.Ports.HTTPS != nil {
-		httpsEndpoint = ec.String(fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS))
+		httpsEndpoint = new(fmt.Sprintf("https://%s:%d", metadata.Endpoint, *metadata.Ports.HTTPS))
 	}
 
 	return

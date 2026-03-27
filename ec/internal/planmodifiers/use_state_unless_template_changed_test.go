@@ -21,7 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
@@ -87,7 +86,7 @@ func TestUseStateForUnknownUnlessMigrationIsRequired_Apm_PlanModifyInt64(t *test
 			state:        &v2.Deployment{},
 			plan: v2.Deployment{
 				Apm: &apmv2.Apm{
-					Size: ec.String("2g"),
+					Size: new("2g"),
 				},
 			},
 			expectedPlanValue: types.Int64Unknown(),
@@ -136,7 +135,7 @@ func TestUseStateForUnknownUnlessMigrationIsRequired_Apm_PlanModifyInt64(t *test
 			state:        &v2.Deployment{},
 			plan: v2.Deployment{
 				IntegrationsServer: &integrationsserverv2.IntegrationsServer{
-					Size: ec.String("2g"),
+					Size: new("2g"),
 				},
 			},
 			expectedPlanValue: types.Int64Unknown(),

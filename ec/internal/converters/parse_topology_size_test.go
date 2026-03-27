@@ -44,46 +44,46 @@ func TestParseTopologySize(t *testing.T) {
 		{
 			name: "has empty size returns nil",
 			args: args{
-				size: ec.String(""),
+				size: new(""),
 			},
 		},
 		{
 			name: "has badly formatted size returns error",
 			args: args{
-				size: ec.String("asdasd"),
+				size: new("asdasd"),
 			},
 			err: errors.New(`failed to convert "asdasd" to <size><g>`),
 		},
 		{
 			name: "has size but no size_resource",
 			args: args{
-				size: ec.String("15g"),
+				size: new("15g"),
 			},
 			want: &models.TopologySize{
 				Value:    ec.Int32(15360),
-				Resource: ec.String("memory"),
+				Resource: new("memory"),
 			},
 		},
 		{
 			name: "has size and explicit size_resource (memory)",
 			args: args{
-				size:     ec.String("8g"),
-				resource: ec.String("memory"),
+				size:     new("8g"),
+				resource: new("memory"),
 			},
 			want: &models.TopologySize{
 				Value:    ec.Int32(8192),
-				Resource: ec.String("memory"),
+				Resource: new("memory"),
 			},
 		},
 		{
 			name: "has size and explicit size_resource (storage)",
 			args: args{
-				size:     ec.String("4g"),
-				resource: ec.String("storage"),
+				size:     new("4g"),
+				resource: new("storage"),
 			},
 			want: &models.TopologySize{
 				Value:    ec.Int32(4096),
-				Resource: ec.String("storage"),
+				Resource: new("storage"),
 			},
 		},
 	}

@@ -59,27 +59,27 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
-					RefId:                     ec.String("main-integrations_server"),
+					RefId:                     new("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					InstanceConfigurationId:   ec.String("integrations.server"),
-					Size:                      ec.String("2g"),
-					SizeResource:              ec.String("memory"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
+					InstanceConfigurationId:   new("integrations.server"),
+					Size:                      new("2g"),
+					SizeResource:              new("memory"),
 					ZoneCount:                 1,
 				},
 			},
 			want: &models.IntegrationsServerPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-integrations_server"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-integrations_server"),
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
 						ZoneCount:               1,
 						InstanceConfigurationID: "integrations.server",
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(2048),
 						},
 					}},
@@ -91,23 +91,23 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
-					RefId:                     ec.String("main-integrations_server"),
+					RefId:                     new("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
 				},
 			},
 			want: &models.IntegrationsServerPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-integrations_server"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-integrations_server"),
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
 						ZoneCount:               1,
 						InstanceConfigurationID: "integrations.server",
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(1024),
 						},
 					}},
@@ -119,18 +119,18 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResourcesWithIcVersion(),
 				srv: &IntegrationsServer{
-					RefId:                     ec.String("main-integrations_server"),
+					RefId:                     new("main-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
-					Size:                      ec.String("2g"),
-					SizeResource:              ec.String("memory"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
+					Size:                      new("2g"),
+					SizeResource:              new("memory"),
 				},
 			},
 			want: &models.IntegrationsServerPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-integrations_server"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-integrations_server"),
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
@@ -138,7 +138,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 						InstanceConfigurationID:      "aws.integrationsserver.r5",
 						InstanceConfigurationVersion: ec.Int32(3),
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(2048),
 						},
 					}},
@@ -150,20 +150,20 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResourcesWithIcVersion(),
 				srv: &IntegrationsServer{
-					RefId:                        ec.String("main-integrations_server"),
+					RefId:                        new("main-integrations_server"),
 					ResourceId:                   &mock.ValidClusterID,
-					Region:                       ec.String("some-region"),
-					ElasticsearchClusterRefId:    ec.String("somerefid"),
-					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: ec.Int(4),
-					Size:                         ec.String("2g"),
-					SizeResource:                 ec.String("memory"),
+					Region:                       new("some-region"),
+					ElasticsearchClusterRefId:    new("somerefid"),
+					InstanceConfigurationId:      new("testing.ic"),
+					InstanceConfigurationVersion: new(4),
+					Size:                         new("2g"),
+					SizeResource:                 new("memory"),
 				},
 			},
 			want: &models.IntegrationsServerPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-integrations_server"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-integrations_server"),
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
@@ -171,7 +171,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 						InstanceConfigurationID:      "testing.ic",
 						InstanceConfigurationVersion: ec.Int32(4),
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(2048),
 						},
 					}},
@@ -183,20 +183,20 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResourcesWithIcVersion(),
 				srv: &IntegrationsServer{
-					RefId:                        ec.String("main-integrations_server"),
+					RefId:                        new("main-integrations_server"),
 					ResourceId:                   &mock.ValidClusterID,
-					Region:                       ec.String("some-region"),
-					ElasticsearchClusterRefId:    ec.String("somerefid"),
-					InstanceConfigurationId:      ec.String("testing.ic"),
-					InstanceConfigurationVersion: ec.Int(0),
-					Size:                         ec.String("2g"),
-					SizeResource:                 ec.String("memory"),
+					Region:                       new("some-region"),
+					ElasticsearchClusterRefId:    new("somerefid"),
+					InstanceConfigurationId:      new("testing.ic"),
+					InstanceConfigurationVersion: new(0),
+					Size:                         new("2g"),
+					SizeResource:                 new("memory"),
 				},
 			},
 			want: &models.IntegrationsServerPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("main-integrations_server"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-integrations_server"),
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
@@ -204,7 +204,7 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 						InstanceConfigurationID:      "testing.ic",
 						InstanceConfigurationVersion: ec.Int32(0),
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(2048),
 						},
 					}},
@@ -216,46 +216,46 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: getUpdateResources(),
 				srv: &IntegrationsServer{
-					RefId:                     ec.String("tertiary-integrations_server"),
+					RefId:                     new("tertiary-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
 					Config: &IntegrationsServerConfig{
-						UserSettingsYaml:         ec.String("some.setting: value"),
-						UserSettingsOverrideYaml: ec.String("some.setting: value2"),
-						UserSettingsJson:         ec.String("{\"some.setting\": \"value\"}"),
-						UserSettingsOverrideJson: ec.String("{\"some.setting\": \"value2\"}"),
-						DebugEnabled:             ec.Bool(true),
+						UserSettingsYaml:         new("some.setting: value"),
+						UserSettingsOverrideYaml: new("some.setting: value2"),
+						UserSettingsJson:         new("{\"some.setting\": \"value\"}"),
+						UserSettingsOverrideJson: new("{\"some.setting\": \"value2\"}"),
+						DebugEnabled:             new(true),
 					},
-					InstanceConfigurationId: ec.String("integrations.server"),
-					Size:                    ec.String("4g"),
-					SizeResource:            ec.String("memory"),
+					InstanceConfigurationId: new("integrations.server"),
+					Size:                    new("4g"),
+					SizeResource:            new("memory"),
 					ZoneCount:               1,
 				},
 			},
 			want: &models.IntegrationsServerPayload{
-				ElasticsearchClusterRefID: ec.String("somerefid"),
-				Region:                    ec.String("some-region"),
-				RefID:                     ec.String("tertiary-integrations_server"),
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("tertiary-integrations_server"),
 				Plan: &models.IntegrationsServerPlan{
 					IntegrationsServer: &models.IntegrationsServerConfiguration{
 						UserSettingsYaml:         `some.setting: value`,
 						UserSettingsOverrideYaml: `some.setting: value2`,
-						UserSettingsJSON: map[string]interface{}{
+						UserSettingsJSON: map[string]any{
 							"some.setting": "value",
 						},
-						UserSettingsOverrideJSON: map[string]interface{}{
+						UserSettingsOverrideJSON: map[string]any{
 							"some.setting": "value2",
 						},
 						SystemSettings: &models.IntegrationsServerSystemSettings{
-							DebugEnabled: ec.Bool(true),
+							DebugEnabled: new(true),
 						},
 					},
 					ClusterTopology: []*models.IntegrationsServerTopologyElement{{
 						ZoneCount:               1,
 						InstanceConfigurationID: "integrations.server",
 						Size: &models.TopologySize{
-							Resource: ec.String("memory"),
+							Resource: new("memory"),
 							Value:    ec.Int32(4096),
 						},
 					}},
@@ -267,16 +267,16 @@ func Test_IntegrationsServerPayload(t *testing.T) {
 			args: args{
 				updateResources: nil,
 				srv: &IntegrationsServer{
-					RefId:                     ec.String("tertiary-integrations_server"),
+					RefId:                     new("tertiary-integrations_server"),
 					ResourceId:                &mock.ValidClusterID,
-					Region:                    ec.String("some-region"),
-					ElasticsearchClusterRefId: ec.String("somerefid"),
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
 					Config: &IntegrationsServerConfig{
-						DebugEnabled: ec.Bool(true),
+						DebugEnabled: new(true),
 					},
-					InstanceConfigurationId: ec.String("integrations.server"),
-					Size:                    ec.String("4g"),
-					SizeResource:            ec.String("memory"),
+					InstanceConfigurationId: new("integrations.server"),
+					Size:                    new("4g"),
+					SizeResource:            new("memory"),
 					ZoneCount:               1,
 				},
 			},

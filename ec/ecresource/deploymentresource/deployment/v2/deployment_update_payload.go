@@ -23,7 +23,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
@@ -156,13 +155,13 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 	if plan.Alias.IsNull() || plan.Alias.IsUnknown() {
 		alias = nil
 	} else {
-		alias = ec.String(plan.Alias.ValueString())
+		alias = new(plan.Alias.ValueString())
 	}
 
 	var result = models.DeploymentUpdateRequest{
 		Name:         plan.Name.ValueString(),
 		Alias:        alias,
-		PruneOrphans: ec.Bool(true),
+		PruneOrphans: new(true),
 		Resources:    &models.DeploymentUpdateResources{},
 		Settings:     &models.DeploymentUpdateSettings{},
 		Metadata:     &models.DeploymentUpdateMetadata{},

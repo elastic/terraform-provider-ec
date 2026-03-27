@@ -28,7 +28,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
@@ -51,8 +50,8 @@ func Test_modelToState(t *testing.T) {
 				res: &models.DeploymentGetResponse{
 					Alias:   "some-alias",
 					ID:      &mock.ValidClusterID,
-					Healthy: ec.Bool(true),
-					Name:    ec.String("my_deployment_name"),
+					Healthy: new(true),
+					Name:    new("my_deployment_name"),
 					Settings: &models.DeploymentSettings{
 						TrafficFilterSettings: &models.TrafficFilterSettings{
 							Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -75,14 +74,14 @@ func Test_modelToState(t *testing.T) {
 					Resources: &models.DeploymentResources{
 						Elasticsearch: []*models.ElasticsearchResourceInfo{
 							{
-								Region: ec.String("us-east-1"),
+								Region: new("us-east-1"),
 								Info: &models.ElasticsearchClusterInfo{
-									Healthy: ec.Bool(true),
+									Healthy: new(true),
 									PlanInfo: &models.ElasticsearchClusterPlansInfo{
 										Current: &models.ElasticsearchClusterPlanInfo{
 											Plan: &models.ElasticsearchClusterPlan{
 												DeploymentTemplate: &models.DeploymentTemplateReference{
-													ID: ec.String("aws-io-optimized"),
+													ID: new("aws-io-optimized"),
 												},
 											},
 										},
@@ -93,24 +92,24 @@ func Test_modelToState(t *testing.T) {
 						Kibana: []*models.KibanaResourceInfo{
 							{
 								Info: &models.KibanaClusterInfo{
-									Healthy: ec.Bool(true),
+									Healthy: new(true),
 								},
 							},
 						},
 						Apm: []*models.ApmResourceInfo{{
 							Info: &models.ApmInfo{
-								Healthy: ec.Bool(true),
+								Healthy: new(true),
 							},
 						}},
 						IntegrationsServer: []*models.IntegrationsServerResourceInfo{{
 							Info: &models.IntegrationsServerInfo{
-								Healthy: ec.Bool(true),
+								Healthy: new(true),
 							},
 						}},
 						EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
 							{
 								Info: &models.EnterpriseSearchInfo{
-									Healthy: ec.Bool(true),
+									Healthy: new(true),
 								},
 							},
 						},
@@ -118,8 +117,8 @@ func Test_modelToState(t *testing.T) {
 					Metadata: &models.DeploymentMetadata{
 						Tags: []*models.MetadataItem{
 							{
-								Key:   ec.String("foo"),
-								Value: ec.String("bar"),
+								Key:   new("foo"),
+								Value: new("bar"),
 							},
 						},
 					},

@@ -20,12 +20,11 @@ package converters
 import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deploymentsize"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func ParseTopologySizeTypes(size, sizeResource types.String) (*models.TopologySize, error) {
-	return ParseTopologySize(ec.String(size.ValueString()), ec.String(sizeResource.ValueString()))
+	return ParseTopologySize(new(size.ValueString()), new(sizeResource.ValueString()))
 }
 
 func ParseTopologySize(size, sizeResource *string) (*models.TopologySize, error) {
@@ -45,7 +44,7 @@ func ParseTopologySize(size, sizeResource *string) (*models.TopologySize, error)
 	}
 
 	return &models.TopologySize{
-		Value:    ec.Int32(val),
-		Resource: ec.String(resource),
+		Value:    new(val),
+		Resource: new(resource),
 	}, nil
 }
