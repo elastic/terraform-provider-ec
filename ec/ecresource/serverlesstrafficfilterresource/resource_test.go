@@ -33,11 +33,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-//go:fix inline
-func ptr(s string) *string {
-	return new(s)
-}
-
 // newTestState creates a tfsdk.State from raw attribute values for the traffic filter resource.
 func newTestState(ctx context.Context, t *testing.T, id, name, region, typ string) tfsdk.State {
 	t.Helper()

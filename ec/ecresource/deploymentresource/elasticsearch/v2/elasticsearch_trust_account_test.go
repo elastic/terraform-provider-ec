@@ -24,11 +24,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:fix inline
-func ptr[T any](t T) *T {
-	return new(t)
-}
-
 func Test_readElasticsearchTrustAccounts(t *testing.T) {
 	tests := []struct {
 		name             string

@@ -225,11 +225,6 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 	}
 }
 
-//go:fix inline
-func ptr[T any](t T) *T {
-	return new(t)
-}
-
 func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 	tests := []struct {
 		name              string
