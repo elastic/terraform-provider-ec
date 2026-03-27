@@ -1,3 +1,5 @@
+version: 2
+
 # Visit https://goreleaser.com for documentation on how to customize this
 # behavior.
 before:
@@ -30,7 +32,8 @@ builds:
       goarch: '386'
   binary: '{{ .ProjectName }}_v{{ .Version }}'
 archives:
-- format: zip
+- formats:
+    - zip
   name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
@@ -54,7 +57,7 @@ release:
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
 changelog:
-  skip: true
+  disable: true
 snapshot:
   # Allows you to change the name of the generated snapshot
   #
@@ -62,4 +65,4 @@ snapshot:
   # for example).
   #
   # Default is `{{ .Tag }}-SNAPSHOT-{{.ShortCommit}}`.
-  name_template: '{{ replace .Tag "v" ""}}-SNAPSHOT-{{.ShortCommit}}'
+  version_template: '{{ replace .Tag "v" ""}}-SNAPSHOT-{{.ShortCommit}}'

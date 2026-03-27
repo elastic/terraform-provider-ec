@@ -1,11 +1,9 @@
 
 OS:=$(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
-ARCH_GORELEASER:=$(shell $(PWD)/scripts/uname_arch_goreleaser.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
 VERSION_GOLANGCILINT:=v2.11.4
-VERSION_GORELEASER:=v1.15.2
 VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 VERSION_VERSIONBUMP:=v1.1.0
 VERSION_TFPLUGINDOCS:=v0.14.1
@@ -26,16 +24,6 @@ $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 $(GOBIN)/golangci-lint: $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT) | $(GOBIN)
 	@ echo "-> Installing golangci-lint..."
 	@ curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(GOBIN) $(VERSION_GOLANGCILINT)
-
-$(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-goreleaser-*
-	@ echo $(VERSION_GORELEASER) > $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER)
-
-$(GOBIN)/goreleaser: $(VERSION_DIR)/.version-goreleaser-$(VERSION_GORELEASER) | $(GOBIN)
-	@ echo "-> Installing goreleaser..."
-	@ curl -L https://github.com/goreleaser/goreleaser/releases/download/$(VERSION_GORELEASER)/goreleaser_$(OS)_$(ARCH_GORELEASER).tar.gz \
-	    --output $(GOBIN)/goreleaser.tar.gz
-	@ tar -xf $(GOBIN)/goreleaser.tar.gz -C $(GOBIN)
 
 $(VERSION_DIR)/.version-changelog-build-$(VERSION_GOCHANGELOG): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-changelog-build-*

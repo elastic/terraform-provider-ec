@@ -21,18 +21,18 @@ endif
 	@ git push -u $(REMOTE) $(PREFIXED_V)
 
 ## Creates a snapshot build of the terraform provider.
-snapshot: $(GOBIN)/goreleaser
-	@ $(GOBIN)/goreleaser --clean --snapshot --skip-validate
+snapshot:
+	@ go tool goreleaser release --clean --snapshot
 
 ## Releases a new version of the terraform provider with a matching tag.
-release: $(GOBIN)/goreleaser
+release:
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ $(GOBIN)/goreleaser --clean --skip-validate --parallelism=4
+	@ go tool goreleaser release --clean --skip=validate --parallelism=4
 
 ## Builds a new version of the terraform provider with a matching tag without publishing it.
-release-no-publish: $(GOBIN)/goreleaser
+release-no-publish:
 	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ $(GOBIN)/goreleaser --clean --skip-validate --skip-publish --parallelism=4
+	@ go tool goreleaser release --clean --skip=publish,validate --parallelism=4
 
 .PHONY: changelog
 changelog: $(GOBIN)/changelog-build
