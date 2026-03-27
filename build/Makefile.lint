@@ -15,12 +15,12 @@ tfproviderdocs: tools
 .PHONY: check-license
 check-license: deps
 	@ echo "-> Running license check..."
-	@ $(GOBIN)/go-licenser -license ASL2 -d .
+	@ go tool go-licenser -license ASL2 -d .
 
 .PHONY: golangci-lint
 golangci-lint: deps
 	@ echo "-> Running linters..."
-	@ $(GOBIN)/go-licenser -d .
+	@ go tool go-licenser -d .
 	@ $(GOBIN)/golangci-lint run
 
 .PHONY: terrafmt

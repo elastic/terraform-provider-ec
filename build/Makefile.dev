@@ -2,11 +2,11 @@
 
 ## Downlaods all the Golang dependencies and generates the NOTICE file.
 .PHONY: vendor
-vendor: $(GOBIN)/go-licenser $(GOBIN)/go-licence-detector
+vendor: $(GOBIN)/go-licence-detector
 	@ echo "-> Downloading project imports..."
 	@ go mod download
 	@ go mod tidy
-	@ $(GOBIN)/go-licenser -license ASL2
+	@ go tool go-licenser -license ASL2
 	@ $(MAKE) notice
 
 ## Updates the NOTICE file with license information for all dependencies.

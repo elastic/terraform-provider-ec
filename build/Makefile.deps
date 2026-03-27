@@ -4,29 +4,20 @@ ARCH:=$(shell $(PWD)/scripts/uname_arch.sh)
 ARCH_GORELEASER:=$(shell $(PWD)/scripts/uname_arch_goreleaser.sh)
 VERSION_DIR:=$(GOBIN)/versions
 
-VERSION_GOLICENSER:=v0.4.2
-VERSION_GOLANGCILINT:=v2.3.1
+VERSION_GOLANGCILINT:=v2.11.4
 VERSION_GORELEASER:=v1.15.2
 VERSION_GOCHANGELOG:=v0.0.0-20201005170154-56335215ce3a
 VERSION_VERSIONBUMP:=v1.1.0
 VERSION_TFPLUGINDOCS:=v0.14.1
 VERSION_GOLICENCEDETECTOR:=v0.8.0
 
-deps: $(GOBIN)/go-licenser $(GOBIN)/golangci-lint $(GOBIN)/go-licence-detector 
+deps: $(GOBIN)/golangci-lint $(GOBIN)/go-licence-detector
 
 $(GOBIN):
 	@ mkdir -p $(GOBIN)
 
 $(VERSION_DIR): | $(GOBIN)
 	@ mkdir -p $(GOBIN)/versions
-
-$(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER): | $(VERSION_DIR)
-	@ rm -f $(VERSION_DIR)/.version-go-licenser-*
-	@ echo $(VERSION_GOLICENSER) > $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER)
-
-$(GOBIN)/go-licenser: $(VERSION_DIR)/.version-go-licenser-$(VERSION_GOLICENSER) | $(GOBIN)
-	@ echo "-> Installing go-licenser..."
-	@ go install github.com/elastic/go-licenser@$(VERSION_GOLICENSER)
 
 $(VERSION_DIR)/.version-golangci-lint-$(VERSION_GOLANGCILINT): | $(VERSION_DIR)
 	@ rm -f $(VERSION_DIR)/.version-golangci-lint-*
