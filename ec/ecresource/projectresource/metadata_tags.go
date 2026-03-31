@@ -82,7 +82,7 @@ func metadataTagsFromAPI(ctx context.Context, tags *serverless.ProjectTags) (bas
 	}
 	elems := make(map[string]attr.Value, len(*tags))
 	for k, v := range *tags {
-		elems[k] = basetypes.NewStringValue(string(v))
+		elems[k] = basetypes.NewStringValue(v)
 	}
 	return types.MapValue(types.StringType, elems)
 }
@@ -101,7 +101,7 @@ func projectMetadataRequestFromTFMetadata(ctx context.Context, tags basetypes.Ma
 	}
 	out := make(serverless.ProjectTags, len(tagMap))
 	for k, v := range tagMap {
-		out[k] = serverless.ProjectTagValue(v)
+		out[k] = v
 	}
 	return &serverless.ProjectMetadataRequest{Tags: out}, diags
 }

@@ -939,28 +939,17 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 }
 
 func testSecuritySearchLakeEmptyKnown(ctx context.Context) resource_security_project.SearchLakeValue {
-	drVal, diags := resource_security_project.NewDataRetentionValue(
+	drObj := types.ObjectValueMust(
 		resource_security_project.DataRetentionValue{}.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"default_retention_days": basetypes.NewInt64Null(),
 			"max_retention_days":     basetypes.NewInt64Null(),
 		},
 	)
-	if diags.HasError() {
-		panic(diags)
-	}
-	drObj, d2 := drVal.ToObjectValue(ctx)
-	if d2.HasError() {
-		panic(d2)
-	}
-	sl, d3 := resource_security_project.NewSearchLakeValue(
+	return resource_security_project.NewSearchLakeValueMust(
 		resource_security_project.SearchLakeValue{}.AttributeTypes(ctx),
 		map[string]attr.Value{"data_retention": drObj},
 	)
-	if d3.HasError() {
-		panic(d3)
-	}
-	return sl
 }
 
 func TestSecurityApi_Read(t *testing.T) {
