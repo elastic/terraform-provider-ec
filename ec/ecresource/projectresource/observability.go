@@ -80,6 +80,7 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_observability_project.NewEndpointsValueUnknown()
+		plan.PrivateEndpoints = resource_observability_project.NewPrivateEndpointsValueUnknown()
 	}
 
 	return plan

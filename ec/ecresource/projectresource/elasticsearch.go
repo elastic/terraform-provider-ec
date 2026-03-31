@@ -82,6 +82,7 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_elasticsearch_project.NewEndpointsValueUnknown()
+		plan.PrivateEndpoints = resource_elasticsearch_project.NewPrivateEndpointsValueUnknown()
 	}
 
 	return plan

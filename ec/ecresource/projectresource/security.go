@@ -100,6 +100,7 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_security_project.NewEndpointsValueUnknown()
+		plan.PrivateEndpoints = resource_security_project.NewPrivateEndpointsValueUnknown()
 	}
 
 	return plan

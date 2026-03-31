@@ -291,7 +291,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			},
 		},
 		{
-			name: "cloud id and endpoints should be unknown if alias has changed",
+			name: "cloud id, endpoints, and private_endpoints should be unknown if alias has changed",
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
@@ -305,17 +305,18 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 						Alias: types.StringValue("state alias"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Id:        types.StringValue("plan"),
-						Name:      types.StringValue("name"),
-						Alias:     types.StringValue("planned alias"),
-						CloudId:   types.StringUnknown(),
-						Endpoints: resource_security_project.NewEndpointsValueUnknown(),
+						Id:               types.StringValue("plan"),
+						Name:             types.StringValue("name"),
+						Alias:            types.StringValue("planned alias"),
+						CloudId:          types.StringUnknown(),
+						Endpoints:        resource_security_project.NewEndpointsValueUnknown(),
+						PrivateEndpoints: resource_security_project.NewPrivateEndpointsValueUnknown(),
 					},
 				}
 			},
 		},
 		{
-			name: "cloud id, alias, and endpoints should be unknown if name has changed but alias is not configured",
+			name: "cloud id, alias, endpoints, and private_endpoints should be unknown if name has changed but alias is not configured",
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
@@ -327,11 +328,12 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 						Name: types.StringValue("state name"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Id:        types.StringValue("plan"),
-						Name:      types.StringValue("planned name"),
-						CloudId:   types.StringUnknown(),
-						Alias:     types.StringUnknown(),
-						Endpoints: resource_security_project.NewEndpointsValueUnknown(),
+						Id:               types.StringValue("plan"),
+						Name:             types.StringValue("planned name"),
+						CloudId:          types.StringUnknown(),
+						Alias:            types.StringUnknown(),
+						Endpoints:        resource_security_project.NewEndpointsValueUnknown(),
+						PrivateEndpoints: resource_security_project.NewPrivateEndpointsValueUnknown(),
 					},
 				}
 			},
