@@ -49,6 +49,7 @@ type securityModelReader struct{}
 
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
+	patchMetadataSchema(resp)
 
 	// Add plan modifiers to admin_features_package and product_types
 	// UseStateForUnknown prevents Terraform from showing a diff when the API doesn't return
@@ -78,6 +79,8 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
+	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
+	plan.SearchLake = useStateForUnknown(plan.SearchLake, state.SearchLake)
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
 	aliasIsConfigured := util.IsKnown(cfg.Alias)
@@ -148,6 +151,16 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 		createBody.ProductTypes = &createProductTypes
 	}
 
+	if util.IsKnown(model.Metadata) && !model.Metadata.IsNull() {
+		metaReq, metaDiags := projectMetadataRequestFromTFMetadata(ctx, model.Metadata.Tags)
+		if metaDiags.HasError() {
+			return model, metaDiags
+		}
+		if metaReq != nil {
+			createBody.Metadata = metaReq
+		}
+	}
+
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
 
 	resp, err := sec.client.CreateSecurityProjectWithResponse(ctx, createBody)
@@ -182,18 +195,32 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 	return model, diags
 }
 
-func (sec securityApi) Patch(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
+func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_project.SecurityProjectModel) diag.Diagnostics {
 	updateBody := serverless.PatchSecurityProjectRequest{
-		Name: model.Name.ValueStringPointer(),
+		Name: plan.Name.ValueStringPointer(),
 	}
 
-	if model.Alias.ValueString() != "" {
-		updateBody.Alias = model.Alias.ValueStringPointer()
+	if plan.Alias.ValueString() != "" {
+		updateBody.Alias = plan.Alias.ValueStringPointer()
 	}
 
-	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, model.TrafficFilterIds)
+	stateTags := types.MapNull(types.StringType)
+	if util.IsKnown(state.Metadata) && !state.Metadata.IsNull() {
+		stateTags = state.Metadata.Tags
+	}
+	if util.IsKnown(plan.Metadata) && !plan.Metadata.IsNull() {
+		om, metaDiags := optionalMetadataForTagPatch(ctx, plan.Metadata.Tags, stateTags)
+		if metaDiags.HasError() {
+			return metaDiags
+		}
+		if om != nil {
+			updateBody.Metadata = om
+		}
+	}
 
-	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
+	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
+
+	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -298,6 +325,12 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		metadataValues["suspended_at"] = basetypes.NewStringValue(resp.JSON200.Metadata.SuspendedAt.String())
 	}
 
+	tagsVal, tagsDiags := metadataTagsFromAPI(ctx, resp.JSON200.Metadata.Tags)
+	if tagsDiags.HasError() {
+		return false, model, tagsDiags
+	}
+	metadataValues["tags"] = tagsVal
+
 	metadata, diags := resource_security_project.NewMetadataValue(
 		model.Metadata.AttributeTypes(ctx),
 		metadataValues,
@@ -306,6 +339,23 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		return false, model, diags
 	}
 	model.Metadata = metadata
+
+	if resp.JSON200.PrivateEndpoints != nil {
+		privateEP, peDiags := resource_security_project.NewPrivateEndpointsValue(
+			model.PrivateEndpoints.AttributeTypes(ctx),
+			map[string]attr.Value{
+				"elasticsearch": basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Elasticsearch),
+				"ingest":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Ingest),
+				"kibana":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Kibana),
+			},
+		)
+		if peDiags.HasError() {
+			return false, model, peDiags
+		}
+		model.PrivateEndpoints = privateEP
+	} else {
+		model.PrivateEndpoints = resource_security_project.NewPrivateEndpointsValueNull()
+	}
 
 	model.Name = basetypes.NewStringValue(resp.JSON200.Name)
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)
@@ -363,7 +413,45 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		model.ProductTypes = resource_security_project.NewProductTypesListValueNull()
 	}
 
+	searchLake, slDiags := securitySearchLakeValueFromAPI(ctx, model, resp.JSON200.SearchLake)
+	if slDiags.HasError() {
+		return false, model, slDiags
+	}
+	model.SearchLake = searchLake
+
 	return true, model, nil
+}
+
+func securitySearchLakeValueFromAPI(ctx context.Context, model resource_security_project.SecurityProjectModel, apiSL *serverless.SecuritySearchLake) (resource_security_project.SearchLakeValue, diag.Diagnostics) {
+	drAttrs := map[string]attr.Value{
+		"default_retention_days": basetypes.NewInt64Null(),
+		"max_retention_days":     basetypes.NewInt64Null(),
+	}
+	if apiSL != nil && apiSL.DataRetention != nil {
+		if apiSL.DataRetention.DefaultRetentionDays != nil {
+			drAttrs["default_retention_days"] = basetypes.NewInt64Value(int64(*apiSL.DataRetention.DefaultRetentionDays))
+		}
+		if apiSL.DataRetention.MaxRetentionDays != nil {
+			drAttrs["max_retention_days"] = basetypes.NewInt64Value(int64(*apiSL.DataRetention.MaxRetentionDays))
+		}
+	}
+	drVal, diags := resource_security_project.NewDataRetentionValue(
+		resource_security_project.DataRetentionValue{}.AttributeTypes(ctx),
+		drAttrs,
+	)
+	if diags.HasError() {
+		return resource_security_project.NewSearchLakeValueUnknown(), diags
+	}
+	drObj, objDiags := drVal.ToObjectValue(ctx)
+	if objDiags.HasError() {
+		return resource_security_project.NewSearchLakeValueUnknown(), objDiags
+	}
+	return resource_security_project.NewSearchLakeValue(
+		model.SearchLake.AttributeTypes(ctx),
+		map[string]attr.Value{
+			"data_retention": drObj,
+		},
+	)
 }
 
 func (sec securityApi) Delete(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {

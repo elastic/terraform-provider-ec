@@ -42,12 +42,15 @@ import (
 )
 
 func TestElasticsearchModelReader_Schema(t *testing.T) {
+	ctx := context.Background()
 	mr := elasticsearchModelReader{}
 	resp := resource.SchemaResponse{}
-	mr.Schema(context.Background(), resource.SchemaRequest{}, &resp)
+	mr.Schema(ctx, resource.SchemaRequest{}, &resp)
 
 	require.False(t, resp.Diagnostics.HasError())
-	require.Equal(t, resource_elasticsearch_project.ElasticsearchProjectResourceSchema(context.Background()), resp.Schema)
+	expected := resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
+	patchMetadataSchema(&resource.SchemaResponse{Schema: expected})
+	require.Equal(t, expected, resp.Schema)
 }
 
 func TestElasticsearchModelReader_ReadFrom(t *testing.T) {
@@ -178,6 +181,7 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 				state := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id: types.StringValue("state"),
 				}
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				state.Metadata = resource_elasticsearch_project.NewMetadataValueMust(
 					state.Metadata.AttributeTypes(context.Background()),
 					map[string]attr.Value{
@@ -186,6 +190,7 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 						"organization_id":  basetypes.NewStringValue("org_id"),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringValue("suspension_reason"),
+						"tags":             tagsEmpty,
 					},
 				)
 
@@ -198,6 +203,33 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 					expected: resource_elasticsearch_project.ElasticsearchProjectModel{
 						Id:       types.StringValue("plan"),
 						Metadata: state.Metadata,
+					},
+				}
+			},
+		},
+		{
+			name: "should use state for unknown private_endpoints",
+			testData: func() testData {
+				state := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id: types.StringValue("state"),
+				}
+				state.PrivateEndpoints = resource_elasticsearch_project.NewPrivateEndpointsValueMust(
+					state.PrivateEndpoints.AttributeTypes(context.Background()),
+					map[string]attr.Value{
+						"elasticsearch": basetypes.NewStringValue("private-es"),
+						"kibana":        basetypes.NewStringValue("private-kib"),
+					},
+				)
+
+				return testData{
+					plan: resource_elasticsearch_project.ElasticsearchProjectModel{
+						Id:               types.StringValue("plan"),
+						PrivateEndpoints: resource_elasticsearch_project.NewPrivateEndpointsValueUnknown(),
+					},
+					state: state,
+					expected: resource_elasticsearch_project.ElasticsearchProjectModel{
+						Id:               types.StringValue("plan"),
+						PrivateEndpoints: state.PrivateEndpoints,
 					},
 				}
 			},
@@ -465,6 +497,66 @@ func TestElasticsearchApi_Create(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send metadata tags on create when configured",
+			testData: func(ctx context.Context) testData {
+				tagMap, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"owner": basetypes.NewStringValue("team-a"),
+				})
+				initialModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Name:     types.StringValue("project name"),
+					RegionId: types.StringValue("nether region"),
+				}
+				initialModel.Metadata = resource_elasticsearch_project.NewMetadataValueMust(
+					initialModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagMap,
+					},
+				)
+
+				createdProject := serverless.ElasticsearchProjectCreated{
+					Id: "created id",
+					Credentials: serverless.ProjectCredentials{
+						Username: "project username",
+						Password: "sekret",
+					},
+				}
+				expectedProject := initialModel
+				expectedProject.Id = types.StringValue(createdProject.Id)
+				expectedProject.Credentials = resource_elasticsearch_project.NewCredentialsValueMust(
+					initialModel.Credentials.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"username": types.StringValue(createdProject.Credentials.Username),
+						"password": types.StringValue(createdProject.Credentials.Password),
+					},
+				)
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, serverless.CreateElasticsearchProjectRequest{
+					Name:     initialModel.Name.ValueString(),
+					RegionId: initialModel.RegionId.ValueString(),
+					Metadata: &serverless.ProjectMetadataRequest{
+						Tags: serverless.ProjectTags{"owner": "team-a"},
+					},
+				}).Return(
+					&serverless.CreateElasticsearchProjectResponse{
+						JSON201: &createdProject,
+					},
+					nil,
+				)
+
+				return testData{
+					client:        mockApiClient,
+					initialModel:  initialModel,
+					expectedModel: expectedProject,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -492,6 +584,7 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 	type testData struct {
 		client        serverless.ClientWithResponsesInterface
 		model         resource_elasticsearch_project.ElasticsearchProjectModel
+		patchState    *resource_elasticsearch_project.ElasticsearchProjectModel
 		expectedDiags diag.Diagnostics
 	}
 	tests := []struct {
@@ -622,6 +715,65 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send metadata tags on patch when configured",
+			testData: func(ctx context.Context) testData {
+				tagMap, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"cost_center": basetypes.NewStringValue("eng"),
+				})
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
+				planModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id:       types.StringValue("project id"),
+					Name:     types.StringValue("project name"),
+					RegionId: types.StringValue("nether region"),
+				}
+				planModel.Metadata = resource_elasticsearch_project.NewMetadataValueMust(
+					planModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagMap,
+					},
+				)
+				stateModel := planModel
+				stateModel.Metadata = resource_elasticsearch_project.NewMetadataValueMust(
+					stateModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagsEmpty,
+					},
+				)
+
+				meta := serverless.OptionalMetadata{
+					"tags": map[string]interface{}{
+						"cost_center": "eng",
+					},
+				}
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().PatchElasticsearchProjectWithResponse(ctx, planModel.Id.ValueString(), nil, serverless.PatchElasticsearchProjectRequest{
+					Name:     planModel.Name.ValueStringPointer(),
+					Metadata: &meta,
+				}).Return(
+					&serverless.PatchElasticsearchProjectResponse{
+						JSON200: &serverless.ElasticsearchProject{},
+					},
+					nil,
+				)
+
+				return testData{
+					client:     mockApiClient,
+					model:      planModel,
+					patchState: &stateModel,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -630,7 +782,11 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 			td := tt.testData(ctx)
 
 			api := elasticsearchApi{}.WithClient(td.client)
-			diags := api.Patch(ctx, td.model)
+			state := td.model
+			if td.patchState != nil {
+				state = *td.patchState
+			}
+			diags := api.Patch(ctx, td.model, state)
 
 			if td.expectedDiags != nil {
 				require.Equal(t, td.expectedDiags, diags)
@@ -907,6 +1063,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 					Type:         "elasticsearch",
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -926,8 +1083,10 @@ func TestElasticsearchApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsEmpty,
 						},
 					),
+					PrivateEndpoints: resource_elasticsearch_project.NewPrivateEndpointsValueNull(),
 					SearchLake: resource_elasticsearch_project.NewSearchLakeValueMust(
 						initialModel.SearchLake.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -991,6 +1150,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 					Type:         "elasticsearch",
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -1010,13 +1170,99 @@ func TestElasticsearchApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringValue(now.String()),
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
+							"tags":             tagsEmpty,
 						},
 					),
+					PrivateEndpoints: resource_elasticsearch_project.NewPrivateEndpointsValueNull(),
 					SearchLake: resource_elasticsearch_project.NewSearchLakeValueMust(
 						initialModel.SearchLake.AttributeTypes(ctx),
 						map[string]attr.Value{
 							"boost_window": basetypes.NewInt64Value(int64(*readModel.SearchLake.BoostWindow)),
 							"search_power": basetypes.NewInt64Value(int64(*readModel.SearchLake.SearchPower)),
+						},
+					),
+					Name:         types.StringValue(readModel.Name),
+					OptimizedFor: types.StringValue(string(readModel.OptimizedFor)),
+					RegionId:     types.StringValue(readModel.RegionId),
+					Type:         types.StringValue(string(readModel.Type)),
+				}
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().
+					GetElasticsearchProjectWithResponse(ctx, id).
+					Return(&serverless.GetElasticsearchProjectResponse{
+						JSON200: readModel,
+					}, nil)
+
+				return testData{
+					client:        mockApiClient,
+					id:            id,
+					initialModel:  initialModel,
+					expectedModel: expectedModel,
+					expectedFound: true,
+				}
+			},
+		},
+		{
+			name: "should populate metadata tags from API on read",
+			testData: func(ctx context.Context) testData {
+				id := "project id"
+				initialModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id: types.StringValue(id),
+				}
+
+				pt := serverless.ProjectTags{"environment": "staging"}
+				readModel := &serverless.ElasticsearchProject{
+					Id:      id,
+					Alias:   "expected-alias-" + id[0:6],
+					CloudId: "cloud-id",
+					Endpoints: serverless.ElasticsearchProjectEndpoints{
+						Elasticsearch: "es-endpoint",
+						Kibana:        "kib-endpoint",
+					},
+					Metadata: serverless.ProjectMetadata{
+						CreatedAt:      time.Now(),
+						CreatedBy:      "me",
+						OrganizationId: "1",
+						Tags:           &pt,
+					},
+					Name:         "project-name",
+					OptimizedFor: "general_purpose",
+					RegionId:     "nether",
+					Type:         "elasticsearch",
+				}
+
+				tagsFromAPI, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"environment": basetypes.NewStringValue("staging"),
+				})
+				expectedModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
+					Endpoints: resource_elasticsearch_project.NewEndpointsValueMust(
+						initialModel.Endpoints.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
+						},
+					),
+					Metadata: resource_elasticsearch_project.NewMetadataValueMust(
+						initialModel.Metadata.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"created_at":       basetypes.NewStringValue(readModel.Metadata.CreatedAt.String()),
+							"created_by":       basetypes.NewStringValue(readModel.Metadata.CreatedBy),
+							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
+							"suspended_at":     basetypes.NewStringNull(),
+							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsFromAPI,
+						},
+					),
+					PrivateEndpoints: resource_elasticsearch_project.NewPrivateEndpointsValueNull(),
+					SearchLake: resource_elasticsearch_project.NewSearchLakeValueMust(
+						initialModel.SearchLake.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"boost_window": basetypes.NewInt64Null(),
+							"search_power": basetypes.NewInt64Null(),
 						},
 					),
 					Name:         types.StringValue(readModel.Name),

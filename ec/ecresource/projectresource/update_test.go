@@ -81,6 +81,9 @@ func TestUpdate(t *testing.T) {
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Bool, true),
 					},
+					State: tfsdk.State{
+						Raw: tftypes.NewValue(tftypes.Bool, true),
+					},
 				}
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
@@ -90,11 +93,12 @@ func TestUpdate(t *testing.T) {
 
 				modelHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
 				modelHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(&model, nil)
+				modelHandler.EXPECT().ReadFrom(ctx, req.State).Return(&model, nil)
 				modelHandler.EXPECT().GetID(model).Return(model.Id.ValueString())
 
 				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
 				api.EXPECT().Ready().Return(true)
-				api.EXPECT().Patch(ctx, model).Return(nil)
+				api.EXPECT().Patch(ctx, model, model).Return(nil)
 				api.EXPECT().Read(ctx, model.Id.ValueString(), model).Return(false, model, nil)
 
 				return testData{
@@ -117,6 +121,9 @@ func TestUpdate(t *testing.T) {
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Bool, true),
 					},
+					State: tfsdk.State{
+						Raw: tftypes.NewValue(tftypes.Bool, true),
+					},
 				}
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
@@ -128,11 +135,12 @@ func TestUpdate(t *testing.T) {
 
 				modelHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
 				modelHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(&model, nil)
+				modelHandler.EXPECT().ReadFrom(ctx, req.State).Return(&model, nil)
 				modelHandler.EXPECT().GetID(model).Return(model.Id.ValueString())
 
 				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
 				api.EXPECT().Ready().Return(true)
-				api.EXPECT().Patch(ctx, model).Return(nil)
+				api.EXPECT().Patch(ctx, model, model).Return(nil)
 				api.EXPECT().Read(ctx, model.Id.ValueString(), model).Return(true, readModel, nil)
 
 				return testData{

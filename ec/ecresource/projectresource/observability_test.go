@@ -42,12 +42,15 @@ import (
 )
 
 func TestObservabilityModelReader_Schema(t *testing.T) {
+	ctx := context.Background()
 	mr := observabilityModelReader{}
 	resp := resource.SchemaResponse{}
-	mr.Schema(context.Background(), resource.SchemaRequest{}, &resp)
+	mr.Schema(ctx, resource.SchemaRequest{}, &resp)
 
 	require.False(t, resp.Diagnostics.HasError())
-	require.Equal(t, resource_observability_project.ObservabilityProjectResourceSchema(context.Background()), resp.Schema)
+	expected := resource_observability_project.ObservabilityProjectResourceSchema(ctx)
+	patchMetadataSchema(&resource.SchemaResponse{Schema: expected})
+	require.Equal(t, expected, resp.Schema)
 }
 
 func TestObservabilityModelReader_ReadFrom(t *testing.T) {
@@ -180,6 +183,7 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 				state := resource_observability_project.ObservabilityProjectModel{
 					Id: types.StringValue("state"),
 				}
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				state.Metadata = resource_observability_project.NewMetadataValueMust(
 					state.Metadata.AttributeTypes(context.Background()),
 					map[string]attr.Value{
@@ -188,6 +192,7 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 						"organization_id":  basetypes.NewStringValue("org_id"),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringValue("suspension_reason"),
+						"tags":             tagsEmpty,
 					},
 				)
 
@@ -200,6 +205,35 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 					expected: resource_observability_project.ObservabilityProjectModel{
 						Id:       types.StringValue("plan"),
 						Metadata: state.Metadata,
+					},
+				}
+			},
+		},
+		{
+			name: "should use state for unknown private_endpoints",
+			testData: func() testData {
+				state := resource_observability_project.ObservabilityProjectModel{
+					Id: types.StringValue("state"),
+				}
+				state.PrivateEndpoints = resource_observability_project.NewPrivateEndpointsValueMust(
+					state.PrivateEndpoints.AttributeTypes(context.Background()),
+					map[string]attr.Value{
+						"apm":           basetypes.NewStringValue("private-apm"),
+						"elasticsearch": basetypes.NewStringValue("private-es"),
+						"ingest":        basetypes.NewStringValue("private-ingest"),
+						"kibana":        basetypes.NewStringValue("private-kib"),
+					},
+				)
+
+				return testData{
+					plan: resource_observability_project.ObservabilityProjectModel{
+						Id:               types.StringValue("plan"),
+						PrivateEndpoints: resource_observability_project.NewPrivateEndpointsValueUnknown(),
+					},
+					state: state,
+					expected: resource_observability_project.ObservabilityProjectModel{
+						Id:               types.StringValue("plan"),
+						PrivateEndpoints: state.PrivateEndpoints,
 					},
 				}
 			},
@@ -454,6 +488,66 @@ func TestObservabilityApi_Create(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send metadata tags on create when configured",
+			testData: func(ctx context.Context) testData {
+				tagMap, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"owner": basetypes.NewStringValue("team-b"),
+				})
+				initialModel := resource_observability_project.ObservabilityProjectModel{
+					Name:     types.StringValue("project name"),
+					RegionId: types.StringValue("nether region"),
+				}
+				initialModel.Metadata = resource_observability_project.NewMetadataValueMust(
+					initialModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagMap,
+					},
+				)
+
+				createdProject := serverless.ObservabilityProjectCreated{
+					Id: "created id",
+					Credentials: serverless.ProjectCredentials{
+						Username: "project username",
+						Password: "sekret",
+					},
+				}
+				expectedProject := initialModel
+				expectedProject.Id = types.StringValue(createdProject.Id)
+				expectedProject.Credentials = resource_observability_project.NewCredentialsValueMust(
+					initialModel.Credentials.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"username": types.StringValue(createdProject.Credentials.Username),
+						"password": types.StringValue(createdProject.Credentials.Password),
+					},
+				)
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, serverless.CreateObservabilityProjectRequest{
+					Name:     initialModel.Name.ValueString(),
+					RegionId: initialModel.RegionId.ValueString(),
+					Metadata: &serverless.ProjectMetadataRequest{
+						Tags: serverless.ProjectTags{"owner": "team-b"},
+					},
+				}).Return(
+					&serverless.CreateObservabilityProjectResponse{
+						JSON201: &createdProject,
+					},
+					nil,
+				)
+
+				return testData{
+					client:        mockApiClient,
+					initialModel:  initialModel,
+					expectedModel: expectedProject,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -481,6 +575,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 	type testData struct {
 		client        serverless.ClientWithResponsesInterface
 		model         resource_observability_project.ObservabilityProjectModel
+		patchState    *resource_observability_project.ObservabilityProjectModel
 		expectedDiags diag.Diagnostics
 	}
 	tests := []struct {
@@ -599,6 +694,65 @@ func TestObservabilityApi_Patch(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send metadata tags on patch when configured",
+			testData: func(ctx context.Context) testData {
+				tagMap, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"cost_center": basetypes.NewStringValue("obs"),
+				})
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
+				planModel := resource_observability_project.ObservabilityProjectModel{
+					Id:       types.StringValue("project id"),
+					Name:     types.StringValue("project name"),
+					RegionId: types.StringValue("nether region"),
+				}
+				planModel.Metadata = resource_observability_project.NewMetadataValueMust(
+					planModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagMap,
+					},
+				)
+				stateModel := planModel
+				stateModel.Metadata = resource_observability_project.NewMetadataValueMust(
+					stateModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagsEmpty,
+					},
+				)
+
+				meta := serverless.OptionalMetadata{
+					"tags": map[string]interface{}{
+						"cost_center": "obs",
+					},
+				}
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().PatchObservabilityProjectWithResponse(ctx, planModel.Id.ValueString(), nil, serverless.PatchObservabilityProjectRequest{
+					Name:     planModel.Name.ValueStringPointer(),
+					Metadata: &meta,
+				}).Return(
+					&serverless.PatchObservabilityProjectResponse{
+						JSON200: &serverless.ObservabilityProject{},
+					},
+					nil,
+				)
+
+				return testData{
+					client:     mockApiClient,
+					model:      planModel,
+					patchState: &stateModel,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -607,7 +761,11 @@ func TestObservabilityApi_Patch(t *testing.T) {
 			td := tt.testData(ctx)
 
 			api := observabilityApi{}.WithClient(td.client)
-			diags := api.Patch(ctx, td.model)
+			state := td.model
+			if td.patchState != nil {
+				state = *td.patchState
+			}
+			diags := api.Patch(ctx, td.model, state)
 
 			if td.expectedDiags != nil {
 				require.Equal(t, td.expectedDiags, diags)
@@ -880,6 +1038,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 					Type:     "observability",
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_observability_project.ObservabilityProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -901,12 +1060,14 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsEmpty,
 						},
 					),
-					Name:        types.StringValue(readModel.Name),
-					RegionId:    types.StringValue(readModel.RegionId),
-					Type:        types.StringValue(string(readModel.Type)),
-					ProductTier: types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
+					PrivateEndpoints: resource_observability_project.NewPrivateEndpointsValueNull(),
+					Name:             types.StringValue(readModel.Name),
+					RegionId:         types.StringValue(readModel.RegionId),
+					Type:             types.StringValue(string(readModel.Type)),
+					ProductTier:      types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -955,6 +1116,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 					Type:     "observability",
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_observability_project.ObservabilityProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -976,12 +1138,94 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringValue(now.String()),
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
+							"tags":             tagsEmpty,
 						},
 					),
-					Name:        types.StringValue(readModel.Name),
-					RegionId:    types.StringValue(readModel.RegionId),
-					Type:        types.StringValue(string(readModel.Type)),
-					ProductTier: types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
+					PrivateEndpoints: resource_observability_project.NewPrivateEndpointsValueNull(),
+					Name:             types.StringValue(readModel.Name),
+					RegionId:         types.StringValue(readModel.RegionId),
+					Type:             types.StringValue(string(readModel.Type)),
+					ProductTier:      types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
+				}
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().
+					GetObservabilityProjectWithResponse(ctx, id).
+					Return(&serverless.GetObservabilityProjectResponse{
+						JSON200: readModel,
+					}, nil)
+
+				return testData{
+					client:        mockApiClient,
+					id:            id,
+					initialModel:  initialModel,
+					expectedModel: expectedModel,
+					expectedFound: true,
+				}
+			},
+		},
+		{
+			name: "should populate metadata tags from API on read",
+			testData: func(ctx context.Context) testData {
+				id := "project id"
+				initialModel := resource_observability_project.ObservabilityProjectModel{
+					Id: types.StringValue(id),
+				}
+
+				pt := serverless.ProjectTags{"environment": "staging"}
+				readModel := &serverless.ObservabilityProject{
+					Id:      id,
+					Alias:   "expected-alias-" + id[0:6],
+					CloudId: "cloud-id",
+					Endpoints: serverless.ObservabilityProjectEndpoints{
+						Elasticsearch: "es-endpoint",
+						Kibana:        "kib-endpoint",
+						Apm:           "apm-endpoint",
+						Ingest:        "ingest-endpoint",
+					},
+					Metadata: serverless.ProjectMetadata{
+						CreatedAt:      time.Now(),
+						CreatedBy:      "me",
+						OrganizationId: "1",
+						Tags:           &pt,
+					},
+					Name:     "project-name",
+					RegionId: "nether",
+					Type:     "observability",
+				}
+
+				tagsFromAPI, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"environment": basetypes.NewStringValue("staging"),
+				})
+				expectedModel := resource_observability_project.ObservabilityProjectModel{
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
+					Endpoints: resource_observability_project.NewEndpointsValueMust(
+						initialModel.Endpoints.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
+							"apm":           basetypes.NewStringValue(readModel.Endpoints.Apm),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
+						},
+					),
+					Metadata: resource_observability_project.NewMetadataValueMust(
+						initialModel.Metadata.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"created_at":       basetypes.NewStringValue(readModel.Metadata.CreatedAt.String()),
+							"created_by":       basetypes.NewStringValue(readModel.Metadata.CreatedBy),
+							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
+							"suspended_at":     basetypes.NewStringNull(),
+							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsFromAPI,
+						},
+					),
+					PrivateEndpoints: resource_observability_project.NewPrivateEndpointsValueNull(),
+					Name:             types.StringValue(readModel.Name),
+					RegionId:         types.StringValue(readModel.RegionId),
+					Type:             types.StringValue(string(readModel.Type)),
+					ProductTier:      types.StringValue(string(serverless.ObservabilityProjectProductTierComplete)),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)

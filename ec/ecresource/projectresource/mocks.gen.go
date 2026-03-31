@@ -218,17 +218,17 @@ func (mr *MockapiMockRecorder[TModel]) EnsureInitialised(arg0, arg1 any) *gomock
 }
 
 // Patch mocks base method.
-func (m *Mockapi[TModel]) Patch(arg0 context.Context, arg1 TModel) diag.Diagnostics {
+func (m *Mockapi[TModel]) Patch(arg0 context.Context, arg1, arg2 TModel) diag.Diagnostics {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Patch", arg0, arg1)
+	ret := m.ctrl.Call(m, "Patch", arg0, arg1, arg2)
 	ret0, _ := ret[0].(diag.Diagnostics)
 	return ret0
 }
 
 // Patch indicates an expected call of Patch.
-func (mr *MockapiMockRecorder[TModel]) Patch(arg0, arg1 any) *gomock.Call {
+func (mr *MockapiMockRecorder[TModel]) Patch(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Patch", reflect.TypeOf((*Mockapi[TModel])(nil).Patch), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Patch", reflect.TypeOf((*Mockapi[TModel])(nil).Patch), arg0, arg1, arg2)
 }
 
 // Read mocks base method.
