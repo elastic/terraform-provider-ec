@@ -33,7 +33,11 @@ resource "ec_elasticsearch_project" "my_project" {
 ### Optional
 
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-- `optimized_for` (String) The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
+- `metadata` (Attributes) Metadata request for a project with tags. (see [below for nested schema](#nestedatt--metadata))
+- `optimized_for` (String) The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
+
+- The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+- The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
 - `search_lake` (Attributes) Configuration for entire set of capabilities that make the data searchable in Elasticsearch. (see [below for nested schema](#nestedatt--search_lake))
 - `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
@@ -43,8 +47,24 @@ resource "ec_elasticsearch_project" "my_project" {
 - `credentials` (Attributes) Basic auth credentials to access the Elasticsearch API. (see [below for nested schema](#nestedatt--credentials))
 - `endpoints` (Attributes) The endpoints to access the different apps of the project. (see [below for nested schema](#nestedatt--endpoints))
 - `id` (String) ID of the project.
-- `metadata` (Attributes) Additional details about the project. (see [below for nested schema](#nestedatt--metadata))
+- `private_endpoints` (Attributes) Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled. (see [below for nested schema](#nestedatt--private_endpoints))
 - `type` (String) the type of the project
+
+<a id="nestedatt--metadata"></a>
+### Nested Schema for `metadata`
+
+Optional:
+
+- `tags` (Map of String) Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+
+Read-Only:
+
+- `created_at` (String) Date and time when the project was created.
+- `created_by` (String) ID of the user.
+- `organization_id` (String) The Organization ID who owns the project.
+- `suspended_at` (String) Date and time when the project was suspended.
+- `suspended_reason` (String) Reason why the project was suspended.
+
 
 <a id="nestedatt--search_lake"></a>
 ### Nested Schema for `search_lake`
@@ -73,16 +93,13 @@ Read-Only:
 - `kibana` (String) The endpoint to access kibana.
 
 
-<a id="nestedatt--metadata"></a>
-### Nested Schema for `metadata`
+<a id="nestedatt--private_endpoints"></a>
+### Nested Schema for `private_endpoints`
 
 Read-Only:
 
-- `created_at` (String) Date and time when the project was created.
-- `created_by` (String) ID of the user.
-- `organization_id` (String) The Organization ID who owns the project.
-- `suspended_at` (String) Date and time when the project was suspended.
-- `suspended_reason` (String) Reason why the project was suspended.
+- `elasticsearch` (String) The PrivateLink endpoint URL to access elasticsearch.
+- `kibana` (String) The PrivateLink endpoint URL to access kibana.
 
 ## Import
 
