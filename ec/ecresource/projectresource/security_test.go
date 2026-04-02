@@ -60,6 +60,18 @@ func TestSecurityModelReader_Schema(t *testing.T) {
 	productTypesAttr := resp.Schema.Attributes["product_types"].(schema.ListNestedAttribute)
 	require.Len(t, productTypesAttr.PlanModifiers, 1)
 	require.IsType(t, listplanmodifier.UseStateForUnknown(), productTypesAttr.PlanModifiers[0])
+
+	metaAttr := resp.Schema.Attributes["metadata"].(schema.SingleNestedAttribute)
+	tagsAttr := metaAttr.Attributes["tags"].(schema.MapAttribute)
+	require.True(t, tagsAttr.Optional)
+	require.True(t, tagsAttr.Computed)
+	require.False(t, tagsAttr.Required)
+
+	for _, key := range []string{"created_at", "created_by", "organization_id", "suspended_at", "suspended_reason"} {
+		sa := metaAttr.Attributes[key].(schema.StringAttribute)
+		require.Len(t, sa.PlanModifiers, 1)
+		require.IsType(t, stringplanmodifier.UseStateForUnknown(), sa.PlanModifiers[0])
+	}
 }
 
 func TestSecurityModelReader_ReadFrom(t *testing.T) {
@@ -198,6 +210,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 				state := resource_security_project.SecurityProjectModel{
 					Id: types.StringValue("state"),
 				}
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				state.Metadata = resource_security_project.NewMetadataValueMust(
 					state.Metadata.AttributeTypes(context.Background()),
 					map[string]attr.Value{
@@ -206,6 +219,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 						"organization_id":  basetypes.NewStringValue("org_id"),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringValue("suspension_reason"),
+						"tags":             tagsEmpty,
 					},
 				)
 
@@ -218,6 +232,34 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 					expected: resource_security_project.SecurityProjectModel{
 						Id:       types.StringValue("plan"),
 						Metadata: state.Metadata,
+					},
+				}
+			},
+		},
+		{
+			name: "should use state for unknown private_endpoints",
+			testData: func() testData {
+				state := resource_security_project.SecurityProjectModel{
+					Id: types.StringValue("state"),
+				}
+				state.PrivateEndpoints = resource_security_project.NewPrivateEndpointsValueMust(
+					state.PrivateEndpoints.AttributeTypes(context.Background()),
+					map[string]attr.Value{
+						"elasticsearch": basetypes.NewStringValue("private-es"),
+						"ingest":        basetypes.NewStringValue("private-ingest"),
+						"kibana":        basetypes.NewStringValue("private-kib"),
+					},
+				)
+
+				return testData{
+					plan: resource_security_project.SecurityProjectModel{
+						Id:               types.StringValue("plan"),
+						PrivateEndpoints: resource_security_project.NewPrivateEndpointsValueUnknown(),
+					},
+					state: state,
+					expected: resource_security_project.SecurityProjectModel{
+						Id:               types.StringValue("plan"),
+						PrivateEndpoints: state.PrivateEndpoints,
 					},
 				}
 			},
@@ -249,7 +291,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			},
 		},
 		{
-			name: "cloud id and endpoints should be unknown if alias has changed",
+			name: "cloud id, endpoints, and private_endpoints should be unknown if alias has changed",
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
@@ -263,17 +305,18 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 						Alias: types.StringValue("state alias"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Id:        types.StringValue("plan"),
-						Name:      types.StringValue("name"),
-						Alias:     types.StringValue("planned alias"),
-						CloudId:   types.StringUnknown(),
-						Endpoints: resource_security_project.NewEndpointsValueUnknown(),
+						Id:               types.StringValue("plan"),
+						Name:             types.StringValue("name"),
+						Alias:            types.StringValue("planned alias"),
+						CloudId:          types.StringUnknown(),
+						Endpoints:        resource_security_project.NewEndpointsValueUnknown(),
+						PrivateEndpoints: resource_security_project.NewPrivateEndpointsValueUnknown(),
 					},
 				}
 			},
 		},
 		{
-			name: "cloud id, alias, and endpoints should be unknown if name has changed but alias is not configured",
+			name: "cloud id, alias, endpoints, and private_endpoints should be unknown if name has changed but alias is not configured",
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
@@ -285,11 +328,12 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 						Name: types.StringValue("state name"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Id:        types.StringValue("plan"),
-						Name:      types.StringValue("planned name"),
-						CloudId:   types.StringUnknown(),
-						Alias:     types.StringUnknown(),
-						Endpoints: resource_security_project.NewEndpointsValueUnknown(),
+						Id:               types.StringValue("plan"),
+						Name:             types.StringValue("planned name"),
+						CloudId:          types.StringUnknown(),
+						Alias:            types.StringUnknown(),
+						Endpoints:        resource_security_project.NewEndpointsValueUnknown(),
+						PrivateEndpoints: resource_security_project.NewPrivateEndpointsValueUnknown(),
 					},
 				}
 			},
@@ -472,6 +516,66 @@ func TestSecurityApi_Create(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send metadata tags on create when configured",
+			testData: func(ctx context.Context) testData {
+				tagMap, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"owner": basetypes.NewStringValue("sec-team"),
+				})
+				initialModel := resource_security_project.SecurityProjectModel{
+					Name:     types.StringValue("project name"),
+					RegionId: types.StringValue("nether region"),
+				}
+				initialModel.Metadata = resource_security_project.NewMetadataValueMust(
+					initialModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagMap,
+					},
+				)
+
+				createdProject := serverless.SecurityProjectCreated{
+					Id: "created id",
+					Credentials: serverless.ProjectCredentials{
+						Username: "project username",
+						Password: "sekret",
+					},
+				}
+				expectedProject := initialModel
+				expectedProject.Id = types.StringValue(createdProject.Id)
+				expectedProject.Credentials = resource_security_project.NewCredentialsValueMust(
+					initialModel.Credentials.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"username": types.StringValue(createdProject.Credentials.Username),
+						"password": types.StringValue(createdProject.Credentials.Password),
+					},
+				)
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().CreateSecurityProjectWithResponse(ctx, serverless.CreateSecurityProjectRequest{
+					Name:     initialModel.Name.ValueString(),
+					RegionId: initialModel.RegionId.ValueString(),
+					Metadata: &serverless.ProjectMetadataRequest{
+						Tags: serverless.ProjectTags{"owner": "sec-team"},
+					},
+				}).Return(
+					&serverless.CreateSecurityProjectResponse{
+						JSON201: &createdProject,
+					},
+					nil,
+				)
+
+				return testData{
+					client:        mockApiClient,
+					initialModel:  initialModel,
+					expectedModel: expectedProject,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -499,6 +603,7 @@ func TestSecurityApi_Patch(t *testing.T) {
 	type testData struct {
 		client        serverless.ClientWithResponsesInterface
 		model         resource_security_project.SecurityProjectModel
+		patchState    *resource_security_project.SecurityProjectModel
 		expectedDiags diag.Diagnostics
 	}
 	tests := []struct {
@@ -617,6 +722,65 @@ func TestSecurityApi_Patch(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send metadata tags on patch when configured",
+			testData: func(ctx context.Context) testData {
+				tagMap, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"cost_center": basetypes.NewStringValue("security"),
+				})
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
+				planModel := resource_security_project.SecurityProjectModel{
+					Id:       types.StringValue("project id"),
+					Name:     types.StringValue("project name"),
+					RegionId: types.StringValue("nether region"),
+				}
+				planModel.Metadata = resource_security_project.NewMetadataValueMust(
+					planModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagMap,
+					},
+				)
+				stateModel := planModel
+				stateModel.Metadata = resource_security_project.NewMetadataValueMust(
+					stateModel.Metadata.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"created_at":       basetypes.NewStringNull(),
+						"created_by":       basetypes.NewStringNull(),
+						"organization_id":  basetypes.NewStringNull(),
+						"suspended_at":     basetypes.NewStringNull(),
+						"suspended_reason": basetypes.NewStringNull(),
+						"tags":             tagsEmpty,
+					},
+				)
+
+				meta := serverless.OptionalMetadata{
+					"tags": map[string]interface{}{
+						"cost_center": "security",
+					},
+				}
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().PatchSecurityProjectWithResponse(ctx, planModel.Id.ValueString(), nil, serverless.PatchSecurityProjectRequest{
+					Name:     planModel.Name.ValueStringPointer(),
+					Metadata: &meta,
+				}).Return(
+					&serverless.PatchSecurityProjectResponse{
+						JSON200: &serverless.SecurityProject{},
+					},
+					nil,
+				)
+
+				return testData{
+					client:     mockApiClient,
+					model:      planModel,
+					patchState: &stateModel,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -625,7 +789,11 @@ func TestSecurityApi_Patch(t *testing.T) {
 			td := tt.testData(ctx)
 
 			api := securityApi{}.WithClient(td.client)
-			diags := api.Patch(ctx, td.model)
+			state := td.model
+			if td.patchState != nil {
+				state = *td.patchState
+			}
+			diags := api.Patch(ctx, td.model, state)
 
 			if td.expectedDiags != nil {
 				require.Equal(t, td.expectedDiags, diags)
@@ -772,6 +940,20 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 	}
 }
 
+func testSecuritySearchLakeEmptyKnown(ctx context.Context) resource_security_project.SearchLakeValue {
+	drObj := types.ObjectValueMust(
+		resource_security_project.DataRetentionValue{}.AttributeTypes(ctx),
+		map[string]attr.Value{
+			"default_retention_days": basetypes.NewInt64Null(),
+			"max_retention_days":     basetypes.NewInt64Null(),
+		},
+	)
+	return resource_security_project.NewSearchLakeValueMust(
+		resource_security_project.SearchLakeValue{}.AttributeTypes(ctx),
+		map[string]attr.Value{"data_retention": drObj},
+	)
+}
+
 func TestSecurityApi_Read(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
@@ -898,6 +1080,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					Type:     "security",
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_security_project.SecurityProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -918,13 +1101,16 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsEmpty,
 						},
 					),
+					PrivateEndpoints:     resource_security_project.NewPrivateEndpointsValueNull(),
 					Name:                 types.StringValue(readModel.Name),
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringNull(),
 					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
+					SearchLake:           testSecuritySearchLakeEmptyKnown(ctx),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -973,6 +1159,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					Type:     "security",
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_security_project.SecurityProjectModel{
 					Id:      types.StringValue(id),
 					Alias:   types.StringValue("expected-alias"),
@@ -993,13 +1180,16 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringValue(now.String()),
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
+							"tags":             tagsEmpty,
 						},
 					),
+					PrivateEndpoints:     resource_security_project.NewPrivateEndpointsValueNull(),
 					Name:                 types.StringValue(readModel.Name),
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringNull(),
 					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
+					SearchLake:           testSecuritySearchLakeEmptyKnown(ctx),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1059,6 +1249,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					ProductTypes:         &productTypes,
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedProductTypes := []attr.Value{
 					resource_security_project.NewProductTypesValueMust(
 						resource_security_project.ProductTypesValue{}.AttributeTypes(ctx),
@@ -1096,13 +1287,16 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsEmpty,
 						},
 					),
+					PrivateEndpoints:     resource_security_project.NewPrivateEndpointsValueNull(),
 					Name:                 types.StringValue(readModel.Name),
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringValue("enterprise"),
 					ProductTypes:         resource_security_project.NewProductTypesListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), expectedProductTypes),
+					SearchLake:           testSecuritySearchLakeEmptyKnown(ctx),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1173,6 +1367,7 @@ func TestSecurityApi_Read(t *testing.T) {
 					ProductTypes:         nil, // API doesn't return this
 				}
 
+				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				// Expected model should reflect what the API returned (null for missing fields)
 				// The plan modifiers will handle preventing spurious diffs during planning
 				expectedModel := resource_security_project.SecurityProjectModel{
@@ -1195,13 +1390,98 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsEmpty,
 						},
 					),
+					PrivateEndpoints:     resource_security_project.NewPrivateEndpointsValueNull(),
 					Name:                 types.StringValue(readModel.Name),
 					RegionId:             types.StringValue(readModel.RegionId),
 					Type:                 types.StringValue(string(readModel.Type)),
 					AdminFeaturesPackage: basetypes.NewStringNull(),
 					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
+					SearchLake:           testSecuritySearchLakeEmptyKnown(ctx),
+				}
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().
+					GetSecurityProjectWithResponse(ctx, id).
+					Return(&serverless.GetSecurityProjectResponse{
+						JSON200: readModel,
+					}, nil)
+
+				return testData{
+					client:        mockApiClient,
+					id:            id,
+					initialModel:  initialModel,
+					expectedModel: expectedModel,
+					expectedFound: true,
+				}
+			},
+		},
+		{
+			name: "should populate metadata tags from API on read",
+			testData: func(ctx context.Context) testData {
+				id := "project id"
+				initialModel := resource_security_project.SecurityProjectModel{
+					Id: types.StringValue(id),
+				}
+
+				pt := serverless.ProjectTags{"environment": "production"}
+				readModel := &serverless.SecurityProject{
+					Id:      id,
+					Alias:   "expected-alias-" + id[0:6],
+					CloudId: "cloud-id",
+					Endpoints: serverless.SecurityProjectEndpoints{
+						Elasticsearch: "es-endpoint",
+						Kibana:        "kib-endpoint",
+						Ingest:        "ingest-endpoint",
+					},
+					Metadata: serverless.ProjectMetadata{
+						CreatedAt:      time.Now(),
+						CreatedBy:      "me",
+						OrganizationId: "1",
+						Tags:           &pt,
+					},
+					Name:                 "project-name",
+					RegionId:             "nether",
+					Type:                 "security",
+					AdminFeaturesPackage: nil,
+					ProductTypes:         nil,
+				}
+
+				tagsFromAPI, _ := types.MapValue(types.StringType, map[string]attr.Value{
+					"environment": basetypes.NewStringValue("production"),
+				})
+				expectedModel := resource_security_project.SecurityProjectModel{
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
+					Endpoints: resource_security_project.NewEndpointsValueMust(
+						initialModel.Endpoints.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
+						},
+					),
+					Metadata: resource_security_project.NewMetadataValueMust(
+						initialModel.Metadata.AttributeTypes(ctx),
+						map[string]attr.Value{
+							"created_at":       basetypes.NewStringValue(readModel.Metadata.CreatedAt.String()),
+							"created_by":       basetypes.NewStringValue(readModel.Metadata.CreatedBy),
+							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
+							"suspended_at":     basetypes.NewStringNull(),
+							"suspended_reason": basetypes.NewStringNull(),
+							"tags":             tagsFromAPI,
+						},
+					),
+					PrivateEndpoints:     resource_security_project.NewPrivateEndpointsValueNull(),
+					Name:                 types.StringValue(readModel.Name),
+					RegionId:             types.StringValue(readModel.RegionId),
+					Type:                 types.StringValue(string(readModel.Type)),
+					AdminFeaturesPackage: basetypes.NewStringNull(),
+					ProductTypes:         resource_security_project.NewProductTypesListValueNull(),
+					SearchLake:           testSecuritySearchLakeEmptyKnown(ctx),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)

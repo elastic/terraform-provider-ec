@@ -35,7 +35,7 @@ func TestAcc_ElasticsearchProject(t *testing.T) {
 	alias := "alias-for-acc-test-project"
 	newName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	region := getRegion()
-	if !strings.HasPrefix("aws-", region) {
+	if !strings.HasPrefix(region, "aws-") {
 		region = fmt.Sprintf("aws-%s", region)
 	}
 
@@ -113,12 +113,80 @@ resource ec_elasticsearch_project "%s" {
 `, id, name, region, alias)
 }
 
+func TestAcc_ElasticsearchProject_MetadataTags(t *testing.T) {
+	resId := "tags_project"
+	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccElasticsearchProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccElasticsearchProjectWithMetadataTag(resId, randomName, region, "v1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_test", "v1"),
+				),
+			},
+			{
+				Config: testAccElasticsearchProjectWithMetadataTag(resId, randomName, region, "v2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_test", "v2"),
+				),
+			},
+			{
+				Config: testAccElasticsearchProjectWithMetadataTagTeam(resId, randomName, region, "platform"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_team", "platform"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
+				),
+			},
+		},
+	})
+}
+
+func testAccElasticsearchProjectWithMetadataTag(id, name, region, tagValue string) string {
+	return fmt.Sprintf(`
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {
+			acc_test = "%s"
+		}
+	}
+}
+`, id, name, region, tagValue)
+}
+
+func testAccElasticsearchProjectWithMetadataTagTeam(id, name, region, team string) string {
+	return fmt.Sprintf(`
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {
+			acc_team = "%s"
+		}
+	}
+}
+`, id, name, region, team)
+}
+
 func TestAcc_ElasticsearchProjectImport(t *testing.T) {
 	resId := "import_project"
 	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", resId)
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	region := getRegion()
-	if !strings.HasPrefix("aws-", region) {
+	if !strings.HasPrefix(region, "aws-") {
 		region = fmt.Sprintf("aws-%s", region)
 	}
 

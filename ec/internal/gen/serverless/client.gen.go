@@ -175,16 +175,49 @@ func (e OptionalSecurityAdminFeaturesPackage) Valid() bool {
 
 // Defines values for ProjectStatusPhase.
 const (
+	Deleting     ProjectStatusPhase = "deleting"
 	Initialized  ProjectStatusPhase = "initialized"
 	Initializing ProjectStatusPhase = "initializing"
+	Suspended    ProjectStatusPhase = "suspended"
+	Suspending   ProjectStatusPhase = "suspending"
 )
 
 // Valid indicates whether the value is a known member of the ProjectStatusPhase enum.
 func (e ProjectStatusPhase) Valid() bool {
 	switch e {
+	case Deleting:
+		return true
 	case Initialized:
 		return true
 	case Initializing:
+		return true
+	case Suspended:
+		return true
+	case Suspending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProjectType.
+const (
+	ProjectTypeElasticsearch ProjectType = "elasticsearch"
+	ProjectTypeObservability ProjectType = "observability"
+	ProjectTypeSecurity      ProjectType = "security"
+	ProjectTypeWorkplaceAI   ProjectType = "workplaceai"
+)
+
+// Valid indicates whether the value is a known member of the ProjectType enum.
+func (e ProjectType) Valid() bool {
+	switch e {
+	case ProjectTypeElasticsearch:
+		return true
+	case ProjectTypeObservability:
+		return true
+	case ProjectTypeSecurity:
+		return true
+	case ProjectTypeWorkplaceAI:
 		return true
 	default:
 		return false
@@ -299,18 +332,36 @@ func (e TrafficFilterType) Valid() bool {
 // CSP The identifier of the cloud service provider hosting this region.
 type CSP string
 
+// CanDeleteResponse Container for deletion eligibility details.
+type CanDeleteResponse struct {
+	// CanBeDeleted Indicates whether the project can be deleted.
+	CanBeDeleted bool `json:"can_be_deleted"`
+
+	// LinkedProjects Details about linked origins that affect deletion.
+	LinkedProjects []DependentProjectSummary `json:"linked_projects"`
+}
+
 // CloudID The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 type CloudID = string
+
+// CountryCode ISO 3166-1 alpha-2 country code which this region is associated with
+type CountryCode = string
 
 // CreateElasticsearchProjectRequest A request to create an Elasticsearch serverless project.
 type CreateElasticsearchProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
 
+	// Metadata Metadata request for a project with tags.
+	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
+
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
-	// OptimizedFor The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
+	// OptimizedFor The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
+	//
+	// - The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+	// - The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
 	OptimizedFor *ElasticsearchOptimizedFor `json:"optimized_for,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
@@ -327,6 +378,9 @@ type CreateElasticsearchProjectRequest struct {
 type CreateObservabilityProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Metadata Metadata request for a project with tags.
+	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
@@ -349,12 +403,18 @@ type CreateSecurityProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
 
+	// Metadata Metadata request for a project with tags.
+	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
+
 	// Name Descriptive name for a project.
 	Name         ProjectName            `json:"name"`
 	ProductTypes *[]SecurityProductType `json:"product_types,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// SearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
+	SearchLake *SecuritySearchLake `json:"search_lake,omitempty"`
 
 	// TrafficFilters traffic filters IDs
 	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
@@ -381,13 +441,40 @@ type CreateTrafficFilterRequest struct {
 	Type TrafficFilterType `json:"type"`
 }
 
-// ElasticsearchOptimizedFor The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
+// DataRetention Configuration to control the data retention in Elasticsearch data streams.
+type DataRetention struct {
+	// DefaultRetentionDays Default number of days during which data remains available in Elasticsearch data streams. Can be set to "null" for unlimited. A default of 396 will be applied if no value is specified on project creation.
+	DefaultRetentionDays *int `json:"default_retention_days,omitempty"`
+
+	// MaxRetentionDays Maximum number of days allowed for retaining data in Elasticsearch data streams. Can be set to "null" for unlimited. A default of 396 will be applied if no value is specified on project creation.
+	MaxRetentionDays *int `json:"max_retention_days,omitempty"`
+}
+
+// DependentProjectSummary Summary details of a project.
+type DependentProjectSummary struct {
+	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Id ID of the project.
+	Id ProjectID `json:"id"`
+
+	// Name Descriptive name for a project.
+	Name *ProjectName `json:"name,omitempty"`
+
+	// Type The type of the linked project
+	Type ProjectType `json:"type"`
+}
+
+// ElasticsearchOptimizedFor The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
+//
+// - The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+// - The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
 type ElasticsearchOptimizedFor string
 
 // ElasticsearchProject An Elasticsearch serverless project.
 type ElasticsearchProject struct {
-	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-	Alias ProjectAlias `json:"alias"`
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	Alias ProjectAliasWithSuffix `json:"alias"`
 
 	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 	CloudId CloudID `json:"cloud_id"`
@@ -404,14 +491,23 @@ type ElasticsearchProject struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
-	// OptimizedFor The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
+	// OptimizedFor The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
+	//
+	// - The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+	// - The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
 	OptimizedFor ElasticsearchOptimizedFor `json:"optimized_for"`
+
+	// PrivateEndpoints Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled.
+	PrivateEndpoints *ElasticsearchProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
 
 	// SearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch.
 	SearchLake *ElasticsearchSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 
 	// Type the type of the project
 	Type ElasticsearchProjectType `json:"type"`
@@ -422,8 +518,8 @@ type ElasticsearchProjectType string
 
 // ElasticsearchProjectCreated The created Elasticsearch project along with credentials to access Elasticsearch.
 type ElasticsearchProjectCreated struct {
-	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-	Alias ProjectAlias `json:"alias"`
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	Alias ProjectAliasWithSuffix `json:"alias"`
 
 	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 	CloudId CloudID `json:"cloud_id"`
@@ -443,14 +539,23 @@ type ElasticsearchProjectCreated struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
-	// OptimizedFor The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.
+	// OptimizedFor The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
+	//
+	// - The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+	// - The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
 	OptimizedFor ElasticsearchOptimizedFor `json:"optimized_for"`
+
+	// PrivateEndpoints Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled.
+	PrivateEndpoints *ElasticsearchProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
 
 	// SearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch.
 	SearchLake *ElasticsearchSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 
 	// Type the type of the project
 	Type ElasticsearchProjectCreatedType `json:"type"`
@@ -474,7 +579,17 @@ type ElasticsearchProjectList struct {
 	Items []ElasticsearchProject `json:"items"`
 
 	// NextPage A token to fetch the next page.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	NextPage *string `json:"next_page,omitempty"`
+}
+
+// ElasticsearchProjectPrivateEndpoints Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled.
+type ElasticsearchProjectPrivateEndpoints struct {
+	// Elasticsearch The PrivateLink endpoint URL to access elasticsearch.
+	Elasticsearch string `json:"elasticsearch"`
+
+	// Kibana The PrivateLink endpoint URL to access kibana.
+	Kibana string `json:"kibana"`
 }
 
 // ElasticsearchSearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch.
@@ -486,9 +601,6 @@ type ElasticsearchSearchLake struct {
 	SearchPower *int `json:"search_power,omitempty"`
 }
 
-// EmptyResponse defines model for EmptyResponse.
-type EmptyResponse = map[string]interface{}
-
 // ErrorResponse An error response returned by the API.
 type ErrorResponse struct {
 	// Code An identifier for this type of error.
@@ -498,6 +610,37 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+// LinkedCandidateProject defines model for LinkedCandidateProject.
+type LinkedCandidateProject struct {
+	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+	Alias ProjectAlias `json:"alias"`
+	Csp   string       `json:"csp"`
+
+	// Id ID of the project.
+	Id ProjectID `json:"id"`
+
+	// Linked Indicates whether the project is already linked to the requesting project.
+	Linked bool `json:"linked"`
+
+	// Name Descriptive name for a project.
+	Name ProjectName `json:"name"`
+
+	// Region Unique human-readable identifier for a region in Elastic Cloud.
+	Region RegionID `json:"region"`
+
+	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+	Tags ProjectTags `json:"tags"`
+
+	// Type The type of the linked project
+	Type ProjectType `json:"type"`
+}
+
+// LinkedCandidatesList A list of all projects that can be linked for a project.
+type LinkedCandidatesList struct {
+	// Items The linked candidates.
+	Items []LinkedCandidateProject `json:"items"`
+}
+
 // MultiErrorResponse A non-empty list of errors.
 type MultiErrorResponse struct {
 	Errors []ErrorResponse `json:"errors"`
@@ -505,8 +648,8 @@ type MultiErrorResponse struct {
 
 // ObservabilityProject An Observability project.
 type ObservabilityProject struct {
-	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-	Alias ProjectAlias `json:"alias"`
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	Alias ProjectAliasWithSuffix `json:"alias"`
 
 	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 	CloudId CloudID `json:"cloud_id"`
@@ -523,11 +666,17 @@ type ObservabilityProject struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
+	// PrivateEndpoints Private endpoints (URLs) for Observability projects when PrivateLink is enabled.
+	PrivateEndpoints *ObservabilityProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
+
 	// ProductTier the tier of the observability project
 	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 
 	// Type the type of the project
 	Type ObservabilityProjectType `json:"type"`
@@ -538,8 +687,8 @@ type ObservabilityProjectType string
 
 // ObservabilityProjectCreated The created Observability project along with credentials to access Elasticsearch.
 type ObservabilityProjectCreated struct {
-	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-	Alias ProjectAlias `json:"alias"`
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	Alias ProjectAliasWithSuffix `json:"alias"`
 
 	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 	CloudId CloudID `json:"cloud_id"`
@@ -559,8 +708,17 @@ type ObservabilityProjectCreated struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
+	// PrivateEndpoints Private endpoints (URLs) for Observability projects when PrivateLink is enabled.
+	PrivateEndpoints *ObservabilityProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
+
+	// ProductTier the tier of the observability project
+	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
+
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 
 	// Type the type of the project
 	Type ObservabilityProjectCreatedType `json:"type"`
@@ -590,7 +748,23 @@ type ObservabilityProjectList struct {
 	Items []ObservabilityProject `json:"items"`
 
 	// NextPage A token to fetch the next page.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	NextPage *string `json:"next_page,omitempty"`
+}
+
+// ObservabilityProjectPrivateEndpoints Private endpoints (URLs) for Observability projects when PrivateLink is enabled.
+type ObservabilityProjectPrivateEndpoints struct {
+	// Apm The PrivateLink endpoint URL to access APM.
+	Apm string `json:"apm"`
+
+	// Elasticsearch The PrivateLink endpoint URL to access elasticsearch.
+	Elasticsearch string `json:"elasticsearch"`
+
+	// Ingest The PrivateLink endpoint URL to access the Managed OTLP Endpoint.
+	Ingest string `json:"ingest"`
+
+	// Kibana The PrivateLink endpoint URL to access kibana.
+	Kibana string `json:"kibana"`
 }
 
 // ObservabilityProjectProductTier the tier of the observability project
@@ -605,8 +779,17 @@ type OptionalElasticsearchSearchLake struct {
 	SearchPower *int `json:"search_power,omitempty"`
 }
 
+// OptionalMetadata Metadata about the project
+type OptionalMetadata = map[string]interface{}
+
 // OptionalSecurityAdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
 type OptionalSecurityAdminFeaturesPackage string
+
+// OptionalSecuritySearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
+type OptionalSecuritySearchLake struct {
+	// DataRetention Configuration to control the data retention in Elasticsearch data streams.
+	DataRetention *DataRetention `json:"data_retention,omitempty"`
+}
 
 // OptionalTrafficFilters traffic filters IDs
 type OptionalTrafficFilters = []TrafficFilter
@@ -615,6 +798,9 @@ type OptionalTrafficFilters = []TrafficFilter
 type PatchElasticsearchProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Metadata Metadata about the project
+	Metadata *OptionalMetadata `json:"metadata,omitempty"`
 
 	// Name Descriptive name for a project.
 	Name *ProjectName `json:"name,omitempty"`
@@ -630,6 +816,9 @@ type PatchElasticsearchProjectRequest struct {
 type PatchObservabilityProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Metadata Metadata about the project
+	Metadata *OptionalMetadata `json:"metadata,omitempty"`
 
 	// Name Descriptive name for a project.
 	Name *ProjectName `json:"name,omitempty"`
@@ -649,9 +838,15 @@ type PatchSecurityProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
 
+	// Metadata Metadata about the project
+	Metadata *OptionalMetadata `json:"metadata,omitempty"`
+
 	// Name Descriptive name for a project.
 	Name         *ProjectName           `json:"name,omitempty"`
 	ProductTypes *[]SecurityProductType `json:"product_types,omitempty"`
+
+	// SearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
+	SearchLake *OptionalSecuritySearchLake `json:"search_lake,omitempty"`
 
 	// TrafficFilters traffic filters IDs
 	TrafficFilters *OptionalTrafficFilters `json:"traffic_filters,omitempty"`
@@ -674,6 +869,9 @@ type PatchTrafficFilterRequest struct {
 
 // ProjectAlias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 type ProjectAlias = string
+
+// ProjectAliasWithSuffix A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+type ProjectAliasWithSuffix = string
 
 // ProjectCredentials Basic auth credentials to access the Elasticsearch API.
 type ProjectCredentials struct {
@@ -703,6 +901,15 @@ type ProjectMetadata struct {
 
 	// SuspendedReason Reason why the project was suspended.
 	SuspendedReason *string `json:"suspended_reason,omitempty"`
+
+	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+	Tags *ProjectTags `json:"tags,omitempty"`
+}
+
+// ProjectMetadataRequest Metadata request for a project with tags.
+type ProjectMetadataRequest struct {
+	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+	Tags ProjectTags `json:"tags"`
 }
 
 // ProjectName Descriptive name for a project.
@@ -734,18 +941,41 @@ type ProjectRolesByProjectID map[string]ProjectRoles
 // ProjectStatus Status of a serverless project.
 type ProjectStatus struct {
 	// Phase Current phase of the project:
-	// - initializing: the project is still being created and is not ready for use yet
+	// - initializing: the project is still being created and is not ready for use yet. Projects being resumed or restored transition back to this phase.
 	// - initialized: the project has been created successfully and is ready for use
+	// - deleting: the project is being deleted but the process has not completed yet. The project is not usable in this phase.
+	// - deleted: the project has been deleted. This is a terminal phase, after which the project will be removed from the system after a certain retention period.
+	// - suspending: the project is being suspended but the process has not completed yet. The project is not usable in this phase.
+	// - suspended: the project has been suspended. The project is not usable in this phase.
 	Phase ProjectStatusPhase `json:"phase"`
+
+	// PhaseChangeTimestamp Date and time when the project changed to the current phase.
+	PhaseChangeTimestamp *time.Time `json:"phase_change_timestamp,omitempty"`
 }
 
 // ProjectStatusPhase Current phase of the project:
-// - initializing: the project is still being created and is not ready for use yet
+// - initializing: the project is still being created and is not ready for use yet. Projects being resumed or restored transition back to this phase.
 // - initialized: the project has been created successfully and is ready for use
+// - deleting: the project is being deleted but the process has not completed yet. The project is not usable in this phase.
+// - deleted: the project has been deleted. This is a terminal phase, after which the project will be removed from the system after a certain retention period.
+// - suspending: the project is being suspended but the process has not completed yet. The project is not usable in this phase.
+// - suspended: the project has been suspended. The project is not usable in this phase.
 type ProjectStatusPhase string
+
+// ProjectTagValue defines model for ProjectTagValue.
+type ProjectTagValue = string
+
+// ProjectTags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+type ProjectTags map[string]ProjectTagValue
+
+// ProjectType The type of the linked project
+type ProjectType string
 
 // Region A Cloud Service Provider region.
 type Region struct {
+	// CountryCode ISO 3166-1 alpha-2 country code which this region is associated with
+	CountryCode CountryCode `json:"country_code"`
+
 	// Csp The identifier of the cloud service provider hosting this region.
 	Csp CSP `json:"csp"`
 
@@ -757,6 +987,9 @@ type Region struct {
 
 	// Name The human readable name for the region
 	Name string `json:"name"`
+
+	// ProjectCreationEnabled Specifies whether the region is available for project creation
+	ProjectCreationEnabled bool `json:"project_creation_enabled"`
 }
 
 // RegionID Unique human-readable identifier for a region in Elastic Cloud.
@@ -785,8 +1018,8 @@ type SecurityProject struct {
 	// AdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR)
 	AdminFeaturesPackage *SecurityAdminFeaturesPackage `json:"admin_features_package,omitempty"`
 
-	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-	Alias ProjectAlias `json:"alias"`
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	Alias ProjectAliasWithSuffix `json:"alias"`
 
 	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 	CloudId CloudID `json:"cloud_id"`
@@ -801,11 +1034,20 @@ type SecurityProject struct {
 	Metadata ProjectMetadata `json:"metadata"`
 
 	// Name Descriptive name for a project.
-	Name         ProjectName            `json:"name"`
-	ProductTypes *[]SecurityProductType `json:"product_types,omitempty"`
+	Name ProjectName `json:"name"`
+
+	// PrivateEndpoints Private endpoints (URLs) for Security projects when PrivateLink is enabled.
+	PrivateEndpoints *SecurityProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
+	ProductTypes     *[]SecurityProductType           `json:"product_types,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// SearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
+	SearchLake *SecuritySearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 
 	// Type the type of the project
 	Type SecurityProjectType `json:"type"`
@@ -819,8 +1061,8 @@ type SecurityProjectCreated struct {
 	// AdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR)
 	AdminFeaturesPackage *SecurityAdminFeaturesPackage `json:"admin_features_package,omitempty"`
 
-	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
-	Alias ProjectAlias `json:"alias"`
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	Alias ProjectAliasWithSuffix `json:"alias"`
 
 	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
 	CloudId CloudID `json:"cloud_id"`
@@ -838,11 +1080,20 @@ type SecurityProjectCreated struct {
 	Metadata ProjectMetadata `json:"metadata"`
 
 	// Name Descriptive name for a project.
-	Name         ProjectName            `json:"name"`
-	ProductTypes *[]SecurityProductType `json:"product_types,omitempty"`
+	Name ProjectName `json:"name"`
+
+	// PrivateEndpoints Private endpoints (URLs) for Security projects when PrivateLink is enabled.
+	PrivateEndpoints *SecurityProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
+	ProductTypes     *[]SecurityProductType           `json:"product_types,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
 	RegionId RegionID `json:"region_id"`
+
+	// SearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
+	SearchLake *SecuritySearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 
 	// Type the type of the project
 	Type SecurityProjectCreatedType `json:"type"`
@@ -869,7 +1120,26 @@ type SecurityProjectList struct {
 	Items []SecurityProject `json:"items"`
 
 	// NextPage A token to fetch the next page.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	NextPage *string `json:"next_page,omitempty"`
+}
+
+// SecurityProjectPrivateEndpoints Private endpoints (URLs) for Security projects when PrivateLink is enabled.
+type SecurityProjectPrivateEndpoints struct {
+	// Elasticsearch The PrivateLink endpoint URL to access elasticsearch.
+	Elasticsearch string `json:"elasticsearch"`
+
+	// Ingest The PrivateLink endpoint URL to access the Managed OTLP Endpoint.
+	Ingest string `json:"ingest"`
+
+	// Kibana The PrivateLink endpoint URL to access kibana.
+	Kibana string `json:"kibana"`
+}
+
+// SecuritySearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
+type SecuritySearchLake struct {
+	// DataRetention Configuration to control the data retention in Elasticsearch data streams.
+	DataRetention *DataRetention `json:"data_retention,omitempty"`
 }
 
 // TrafficFilter traffic filters association info
@@ -960,6 +1230,9 @@ type InternalServerError = MultiErrorResponse
 // NotFound A non-empty list of errors.
 type NotFound = MultiErrorResponse
 
+// PreconditionFailed A non-empty list of errors.
+type PreconditionFailed = MultiErrorResponse
+
 // Unauthorized A non-empty list of errors.
 type Unauthorized = MultiErrorResponse
 
@@ -974,11 +1247,11 @@ type PatchTrafficFilterBody = PatchTrafficFilterRequest
 
 // ListElasticsearchProjectsParams defines parameters for ListElasticsearchProjects.
 type ListElasticsearchProjectsParams struct {
-	// PageSize Maximum number of projects returned in the response.
-	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+	// TrafficFilter Filters the returned list of projects. Only projects associated with the provided traffic_filter will be returned.
+	TrafficFilter *string `form:"traffic_filter,omitempty" json:"traffic_filter,omitempty"`
 
-	// NextPage Token to the next page containing the list of projects.
-	NextPage *string `form:"next_page,omitempty" json:"next_page,omitempty"`
+	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
 }
 
 // DeleteElasticsearchProjectParams defines parameters for DeleteElasticsearchProject.
@@ -1005,13 +1278,31 @@ type ResumeElasticsearchProjectParams struct {
 	IfMatch *string `json:"If-Match,omitempty"`
 }
 
+// GetElasticsearchProjectLinkCandidatesParams defines parameters for GetElasticsearchProjectLinkCandidates.
+type GetElasticsearchProjectLinkCandidatesParams struct {
+	// Type The type of projects to return as link candidates.
+	Type *string `form:"type,omitempty" json:"type,omitempty"`
+
+	// Csp The Cloud Service Provider to filter the link candidate projects by.
+	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
+
+	// Region The region to filter the link candidate projects by.
+	Region *string `form:"region,omitempty" json:"region,omitempty"`
+
+	// Name The project name to filter the link candidates by.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
+	// Alias The project alias to filter the link candidates by.
+	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
+}
+
 // ListObservabilityProjectsParams defines parameters for ListObservabilityProjects.
 type ListObservabilityProjectsParams struct {
-	// PageSize Maximum number of projects returned in the response.
-	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+	// TrafficFilter traffic filters associated with this project
+	TrafficFilter *string `form:"traffic_filter,omitempty" json:"traffic_filter,omitempty"`
 
-	// NextPage Token to the next page containing the list of projects.
-	NextPage *string `form:"next_page,omitempty" json:"next_page,omitempty"`
+	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
 }
 
 // DeleteObservabilityProjectParams defines parameters for DeleteObservabilityProject.
@@ -1038,13 +1329,31 @@ type ResumeObservabilityProjectParams struct {
 	IfMatch *string `json:"If-Match,omitempty"`
 }
 
+// GetObservabilityProjectLinkCandidatesParams defines parameters for GetObservabilityProjectLinkCandidates.
+type GetObservabilityProjectLinkCandidatesParams struct {
+	// Type The type of projects to return as link candidates.
+	Type *string `form:"type,omitempty" json:"type,omitempty"`
+
+	// Csp The Cloud Service Provider to filter the link candidate projects by.
+	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
+
+	// Region The region to filter the link candidate projects by.
+	Region *string `form:"region,omitempty" json:"region,omitempty"`
+
+	// Name The project name to filter the link candidates by.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
+	// Alias The project alias to filter the link candidates by.
+	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
+}
+
 // ListSecurityProjectsParams defines parameters for ListSecurityProjects.
 type ListSecurityProjectsParams struct {
-	// PageSize Maximum number of projects returned in the response.
-	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+	// TrafficFilter traffic filters associated with this project
+	TrafficFilter *string `form:"traffic_filter,omitempty" json:"traffic_filter,omitempty"`
 
-	// NextPage Token to the next page containing the list of projects.
-	NextPage *string `form:"next_page,omitempty" json:"next_page,omitempty"`
+	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
 }
 
 // DeleteSecurityProjectParams defines parameters for DeleteSecurityProject.
@@ -1069,6 +1378,24 @@ type ResetSecurityProjectCredentialsParams struct {
 type ResumeSecurityProjectParams struct {
 	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates.
 	IfMatch *string `json:"If-Match,omitempty"`
+}
+
+// GetSecurityProjectLinkCandidatesParams defines parameters for GetSecurityProjectLinkCandidates.
+type GetSecurityProjectLinkCandidatesParams struct {
+	// Type The type of projects to return as link candidates.
+	Type *string `form:"type,omitempty" json:"type,omitempty"`
+
+	// Csp The Cloud Service Provider to filter the link candidate projects by.
+	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
+
+	// Region The region to filter the link candidate projects by.
+	Region *string `form:"region,omitempty" json:"region,omitempty"`
+
+	// Name The project name to filter the link candidates by.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
+	// Alias The project alias to filter the link candidates by.
+	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
 }
 
 // ListTrafficFiltersParams defines parameters for ListTrafficFilters.
@@ -1202,11 +1529,17 @@ type ClientInterface interface {
 
 	PatchElasticsearchProject(ctx context.Context, id ProjectID, params *PatchElasticsearchProjectParams, body PatchElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetElasticsearchProjectCanDelete request
+	GetElasticsearchProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ResetElasticsearchProjectCredentials request
 	ResetElasticsearchProjectCredentials(ctx context.Context, id ProjectID, params *ResetElasticsearchProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeElasticsearchProject request
 	ResumeElasticsearchProject(ctx context.Context, id ProjectID, params *ResumeElasticsearchProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetElasticsearchProjectLinkCandidates request
+	GetElasticsearchProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetElasticsearchProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetElasticsearchProjectRoles request
 	GetElasticsearchProjectRoles(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1233,11 +1566,17 @@ type ClientInterface interface {
 
 	PatchObservabilityProject(ctx context.Context, id ProjectID, params *PatchObservabilityProjectParams, body PatchObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetObservabilityProjectCanDelete request
+	GetObservabilityProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ResetObservabilityProjectCredentials request
 	ResetObservabilityProjectCredentials(ctx context.Context, id ProjectID, params *ResetObservabilityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeObservabilityProject request
 	ResumeObservabilityProject(ctx context.Context, id ProjectID, params *ResumeObservabilityProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetObservabilityProjectLinkCandidates request
+	GetObservabilityProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetObservabilityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetObservabilityProjectRoles request
 	GetObservabilityProjectRoles(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1264,11 +1603,17 @@ type ClientInterface interface {
 
 	PatchSecurityProject(ctx context.Context, id ProjectID, params *PatchSecurityProjectParams, body PatchSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetSecurityProjectCanDelete request
+	GetSecurityProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ResetSecurityProjectCredentials request
 	ResetSecurityProjectCredentials(ctx context.Context, id ProjectID, params *ResetSecurityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResumeSecurityProject request
 	ResumeSecurityProject(ctx context.Context, id ProjectID, params *ResumeSecurityProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSecurityProjectLinkCandidates request
+	GetSecurityProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetSecurityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSecurityProjectRoles request
 	GetSecurityProjectRoles(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1389,6 +1734,18 @@ func (c *Client) PatchElasticsearchProject(ctx context.Context, id ProjectID, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetElasticsearchProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticsearchProjectCanDeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ResetElasticsearchProjectCredentials(ctx context.Context, id ProjectID, params *ResetElasticsearchProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetElasticsearchProjectCredentialsRequest(c.Server, id, params)
 	if err != nil {
@@ -1403,6 +1760,18 @@ func (c *Client) ResetElasticsearchProjectCredentials(ctx context.Context, id Pr
 
 func (c *Client) ResumeElasticsearchProject(ctx context.Context, id ProjectID, params *ResumeElasticsearchProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeElasticsearchProjectRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetElasticsearchProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetElasticsearchProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElasticsearchProjectLinkCandidatesRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1521,6 +1890,18 @@ func (c *Client) PatchObservabilityProject(ctx context.Context, id ProjectID, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetObservabilityProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetObservabilityProjectCanDeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ResetObservabilityProjectCredentials(ctx context.Context, id ProjectID, params *ResetObservabilityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetObservabilityProjectCredentialsRequest(c.Server, id, params)
 	if err != nil {
@@ -1535,6 +1916,18 @@ func (c *Client) ResetObservabilityProjectCredentials(ctx context.Context, id Pr
 
 func (c *Client) ResumeObservabilityProject(ctx context.Context, id ProjectID, params *ResumeObservabilityProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeObservabilityProjectRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetObservabilityProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetObservabilityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetObservabilityProjectLinkCandidatesRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1653,6 +2046,18 @@ func (c *Client) PatchSecurityProject(ctx context.Context, id ProjectID, params 
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetSecurityProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSecurityProjectCanDeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ResetSecurityProjectCredentials(ctx context.Context, id ProjectID, params *ResetSecurityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetSecurityProjectCredentialsRequest(c.Server, id, params)
 	if err != nil {
@@ -1667,6 +2072,18 @@ func (c *Client) ResetSecurityProjectCredentials(ctx context.Context, id Project
 
 func (c *Client) ResumeSecurityProject(ctx context.Context, id ProjectID, params *ResumeSecurityProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResumeSecurityProjectRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSecurityProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetSecurityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSecurityProjectLinkCandidatesRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1843,9 +2260,9 @@ func NewListElasticsearchProjectsRequest(server string, params *ListElasticsearc
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.PageSize != nil {
+		if params.TrafficFilter != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page_size", *params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "traffic_filter", *params.TrafficFilter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1859,9 +2276,9 @@ func NewListElasticsearchProjectsRequest(server string, params *ListElasticsearc
 
 		}
 
-		if params.NextPage != nil {
+		if params.Linked != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "next_page", *params.NextPage, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "linked", *params.Linked, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2071,6 +2488,40 @@ func NewPatchElasticsearchProjectRequestWithBody(server string, id ProjectID, pa
 	return req, nil
 }
 
+// NewGetElasticsearchProjectCanDeleteRequest generates requests for GetElasticsearchProjectCanDelete
+func NewGetElasticsearchProjectCanDeleteRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/elasticsearch/%s/_can-delete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewResetElasticsearchProjectCredentialsRequest generates requests for ResetElasticsearchProjectCredentials
 func NewResetElasticsearchProjectCredentialsRequest(server string, id ProjectID, params *ResetElasticsearchProjectCredentialsParams) (*http.Request, error) {
 	var err error
@@ -2169,6 +2620,126 @@ func NewResumeElasticsearchProjectRequest(server string, id ProjectID, params *R
 	return req, nil
 }
 
+// NewGetElasticsearchProjectLinkCandidatesRequest generates requests for GetElasticsearchProjectLinkCandidates
+func NewGetElasticsearchProjectLinkCandidatesRequest(server string, id ProjectID, params *GetElasticsearchProjectLinkCandidatesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/elasticsearch/%s/link-candidates", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Type != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Csp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "csp", *params.Csp, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Region != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region", *params.Region, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "name", *params.Name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Alias != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetElasticsearchProjectRolesRequest generates requests for GetElasticsearchProjectRoles
 func NewGetElasticsearchProjectRolesRequest(server string, id ProjectID) (*http.Request, error) {
 	var err error
@@ -2259,9 +2830,9 @@ func NewListObservabilityProjectsRequest(server string, params *ListObservabilit
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.PageSize != nil {
+		if params.TrafficFilter != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page_size", *params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "traffic_filter", *params.TrafficFilter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2275,9 +2846,9 @@ func NewListObservabilityProjectsRequest(server string, params *ListObservabilit
 
 		}
 
-		if params.NextPage != nil {
+		if params.Linked != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "next_page", *params.NextPage, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "linked", *params.Linked, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2487,6 +3058,40 @@ func NewPatchObservabilityProjectRequestWithBody(server string, id ProjectID, pa
 	return req, nil
 }
 
+// NewGetObservabilityProjectCanDeleteRequest generates requests for GetObservabilityProjectCanDelete
+func NewGetObservabilityProjectCanDeleteRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/observability/%s/_can-delete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewResetObservabilityProjectCredentialsRequest generates requests for ResetObservabilityProjectCredentials
 func NewResetObservabilityProjectCredentialsRequest(server string, id ProjectID, params *ResetObservabilityProjectCredentialsParams) (*http.Request, error) {
 	var err error
@@ -2585,6 +3190,126 @@ func NewResumeObservabilityProjectRequest(server string, id ProjectID, params *R
 	return req, nil
 }
 
+// NewGetObservabilityProjectLinkCandidatesRequest generates requests for GetObservabilityProjectLinkCandidates
+func NewGetObservabilityProjectLinkCandidatesRequest(server string, id ProjectID, params *GetObservabilityProjectLinkCandidatesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/observability/%s/link-candidates", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Type != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Csp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "csp", *params.Csp, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Region != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region", *params.Region, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "name", *params.Name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Alias != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetObservabilityProjectRolesRequest generates requests for GetObservabilityProjectRoles
 func NewGetObservabilityProjectRolesRequest(server string, id ProjectID) (*http.Request, error) {
 	var err error
@@ -2675,9 +3400,9 @@ func NewListSecurityProjectsRequest(server string, params *ListSecurityProjectsP
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.PageSize != nil {
+		if params.TrafficFilter != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page_size", *params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "traffic_filter", *params.TrafficFilter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2691,9 +3416,9 @@ func NewListSecurityProjectsRequest(server string, params *ListSecurityProjectsP
 
 		}
 
-		if params.NextPage != nil {
+		if params.Linked != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "next_page", *params.NextPage, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "linked", *params.Linked, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2903,6 +3628,40 @@ func NewPatchSecurityProjectRequestWithBody(server string, id ProjectID, params 
 	return req, nil
 }
 
+// NewGetSecurityProjectCanDeleteRequest generates requests for GetSecurityProjectCanDelete
+func NewGetSecurityProjectCanDeleteRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/security/%s/_can-delete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewResetSecurityProjectCredentialsRequest generates requests for ResetSecurityProjectCredentials
 func NewResetSecurityProjectCredentialsRequest(server string, id ProjectID, params *ResetSecurityProjectCredentialsParams) (*http.Request, error) {
 	var err error
@@ -2996,6 +3755,126 @@ func NewResumeSecurityProjectRequest(server string, id ProjectID, params *Resume
 			req.Header.Set("If-Match", headerParam0)
 		}
 
+	}
+
+	return req, nil
+}
+
+// NewGetSecurityProjectLinkCandidatesRequest generates requests for GetSecurityProjectLinkCandidates
+func NewGetSecurityProjectLinkCandidatesRequest(server string, id ProjectID, params *GetSecurityProjectLinkCandidatesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/security/%s/link-candidates", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Type != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Csp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "csp", *params.Csp, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Region != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region", *params.Region, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "name", *params.Name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Alias != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
 	}
 
 	return req, nil
@@ -3461,11 +4340,17 @@ type ClientWithResponsesInterface interface {
 
 	PatchElasticsearchProjectWithResponse(ctx context.Context, id ProjectID, params *PatchElasticsearchProjectParams, body PatchElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchElasticsearchProjectResponse, error)
 
+	// GetElasticsearchProjectCanDeleteWithResponse request
+	GetElasticsearchProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetElasticsearchProjectCanDeleteResponse, error)
+
 	// ResetElasticsearchProjectCredentialsWithResponse request
 	ResetElasticsearchProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetElasticsearchProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetElasticsearchProjectCredentialsResponse, error)
 
 	// ResumeElasticsearchProjectWithResponse request
 	ResumeElasticsearchProjectWithResponse(ctx context.Context, id ProjectID, params *ResumeElasticsearchProjectParams, reqEditors ...RequestEditorFn) (*ResumeElasticsearchProjectResponse, error)
+
+	// GetElasticsearchProjectLinkCandidatesWithResponse request
+	GetElasticsearchProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetElasticsearchProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetElasticsearchProjectLinkCandidatesResponse, error)
 
 	// GetElasticsearchProjectRolesWithResponse request
 	GetElasticsearchProjectRolesWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetElasticsearchProjectRolesResponse, error)
@@ -3492,11 +4377,17 @@ type ClientWithResponsesInterface interface {
 
 	PatchObservabilityProjectWithResponse(ctx context.Context, id ProjectID, params *PatchObservabilityProjectParams, body PatchObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchObservabilityProjectResponse, error)
 
+	// GetObservabilityProjectCanDeleteWithResponse request
+	GetObservabilityProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetObservabilityProjectCanDeleteResponse, error)
+
 	// ResetObservabilityProjectCredentialsWithResponse request
 	ResetObservabilityProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetObservabilityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetObservabilityProjectCredentialsResponse, error)
 
 	// ResumeObservabilityProjectWithResponse request
 	ResumeObservabilityProjectWithResponse(ctx context.Context, id ProjectID, params *ResumeObservabilityProjectParams, reqEditors ...RequestEditorFn) (*ResumeObservabilityProjectResponse, error)
+
+	// GetObservabilityProjectLinkCandidatesWithResponse request
+	GetObservabilityProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetObservabilityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetObservabilityProjectLinkCandidatesResponse, error)
 
 	// GetObservabilityProjectRolesWithResponse request
 	GetObservabilityProjectRolesWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetObservabilityProjectRolesResponse, error)
@@ -3523,11 +4414,17 @@ type ClientWithResponsesInterface interface {
 
 	PatchSecurityProjectWithResponse(ctx context.Context, id ProjectID, params *PatchSecurityProjectParams, body PatchSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchSecurityProjectResponse, error)
 
+	// GetSecurityProjectCanDeleteWithResponse request
+	GetSecurityProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetSecurityProjectCanDeleteResponse, error)
+
 	// ResetSecurityProjectCredentialsWithResponse request
 	ResetSecurityProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetSecurityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetSecurityProjectCredentialsResponse, error)
 
 	// ResumeSecurityProjectWithResponse request
 	ResumeSecurityProjectWithResponse(ctx context.Context, id ProjectID, params *ResumeSecurityProjectParams, reqEditors ...RequestEditorFn) (*ResumeSecurityProjectResponse, error)
+
+	// GetSecurityProjectLinkCandidatesWithResponse request
+	GetSecurityProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetSecurityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetSecurityProjectLinkCandidatesResponse, error)
 
 	// GetSecurityProjectRolesWithResponse request
 	GetSecurityProjectRolesWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetSecurityProjectRolesResponse, error)
@@ -3614,7 +4511,10 @@ func (r CreateElasticsearchProjectResponse) StatusCode() int {
 type DeleteElasticsearchProjectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON400      *BadRequest
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -3661,6 +4561,8 @@ type PatchElasticsearchProjectResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *ElasticsearchProject
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -3679,11 +4581,35 @@ func (r PatchElasticsearchProjectResponse) StatusCode() int {
 	return 0
 }
 
+type GetElasticsearchProjectCanDeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CanDeleteResponse
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElasticsearchProjectCanDeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElasticsearchProjectCanDeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ResetElasticsearchProjectCredentialsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ProjectCredentials
 	JSON404      *NotFound
+	JSON409      *Conflict
 }
 
 // Status returns HTTPResponse.Status
@@ -3706,6 +4632,8 @@ type ResumeElasticsearchProjectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -3718,6 +4646,29 @@ func (r ResumeElasticsearchProjectResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResumeElasticsearchProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetElasticsearchProjectLinkCandidatesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LinkedCandidatesList
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElasticsearchProjectLinkCandidatesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElasticsearchProjectLinkCandidatesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3820,7 +4771,10 @@ func (r CreateObservabilityProjectResponse) StatusCode() int {
 type DeleteObservabilityProjectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON400      *BadRequest
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -3867,6 +4821,8 @@ type PatchObservabilityProjectResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *ObservabilityProject
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -3885,11 +4841,35 @@ func (r PatchObservabilityProjectResponse) StatusCode() int {
 	return 0
 }
 
+type GetObservabilityProjectCanDeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CanDeleteResponse
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetObservabilityProjectCanDeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetObservabilityProjectCanDeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ResetObservabilityProjectCredentialsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ProjectCredentials
 	JSON404      *NotFound
+	JSON409      *Conflict
 }
 
 // Status returns HTTPResponse.Status
@@ -3912,6 +4892,8 @@ type ResumeObservabilityProjectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -3930,10 +4912,33 @@ func (r ResumeObservabilityProjectResponse) StatusCode() int {
 	return 0
 }
 
+type GetObservabilityProjectLinkCandidatesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LinkedCandidatesList
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetObservabilityProjectLinkCandidatesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetObservabilityProjectLinkCandidatesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetObservabilityProjectRolesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]ProjectRolesByProjectID
+	JSON200      *ProjectRolesByProjectID
 	JSON404      *NotFound
 }
 
@@ -4026,7 +5031,10 @@ func (r CreateSecurityProjectResponse) StatusCode() int {
 type DeleteSecurityProjectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON400      *BadRequest
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -4073,6 +5081,8 @@ type PatchSecurityProjectResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *SecurityProject
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -4091,11 +5101,35 @@ func (r PatchSecurityProjectResponse) StatusCode() int {
 	return 0
 }
 
+type GetSecurityProjectCanDeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CanDeleteResponse
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSecurityProjectCanDeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSecurityProjectCanDeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ResetSecurityProjectCredentialsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ProjectCredentials
 	JSON404      *NotFound
+	JSON409      *Conflict
 }
 
 // Status returns HTTPResponse.Status
@@ -4118,6 +5152,8 @@ type ResumeSecurityProjectResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON404      *NotFound
+	JSON409      *Conflict
+	JSON412      *PreconditionFailed
 }
 
 // Status returns HTTPResponse.Status
@@ -4136,10 +5172,33 @@ func (r ResumeSecurityProjectResponse) StatusCode() int {
 	return 0
 }
 
+type GetSecurityProjectLinkCandidatesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LinkedCandidatesList
+	JSON404      *NotFound
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSecurityProjectLinkCandidatesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSecurityProjectLinkCandidatesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSecurityProjectRolesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]ProjectRolesByProjectID
+	JSON200      *ProjectRolesByProjectID
 	JSON404      *NotFound
 }
 
@@ -4259,6 +5318,7 @@ type CreateTrafficFilterResponse struct {
 	JSON201      *TrafficFilterInfo
 	JSON400      *BadRequest
 	JSON401      *Unauthorized
+	JSON409      *Conflict
 	JSON500      *InternalServerError
 }
 
@@ -4306,7 +5366,6 @@ func (r GetTrafficFilterMetadataResponse) StatusCode() int {
 type DeleteTrafficFilterResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *EmptyResponse
 	JSON400      *BadRequest
 	JSON401      *Unauthorized
 	JSON404      *NotFound
@@ -4363,6 +5422,7 @@ type PatchTrafficFilterResponse struct {
 	JSON400      *BadRequest
 	JSON401      *Unauthorized
 	JSON404      *NotFound
+	JSON409      *Conflict
 	JSON500      *InternalServerError
 }
 
@@ -4443,6 +5503,15 @@ func (c *ClientWithResponses) PatchElasticsearchProjectWithResponse(ctx context.
 	return ParsePatchElasticsearchProjectResponse(rsp)
 }
 
+// GetElasticsearchProjectCanDeleteWithResponse request returning *GetElasticsearchProjectCanDeleteResponse
+func (c *ClientWithResponses) GetElasticsearchProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetElasticsearchProjectCanDeleteResponse, error) {
+	rsp, err := c.GetElasticsearchProjectCanDelete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetElasticsearchProjectCanDeleteResponse(rsp)
+}
+
 // ResetElasticsearchProjectCredentialsWithResponse request returning *ResetElasticsearchProjectCredentialsResponse
 func (c *ClientWithResponses) ResetElasticsearchProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetElasticsearchProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetElasticsearchProjectCredentialsResponse, error) {
 	rsp, err := c.ResetElasticsearchProjectCredentials(ctx, id, params, reqEditors...)
@@ -4459,6 +5528,15 @@ func (c *ClientWithResponses) ResumeElasticsearchProjectWithResponse(ctx context
 		return nil, err
 	}
 	return ParseResumeElasticsearchProjectResponse(rsp)
+}
+
+// GetElasticsearchProjectLinkCandidatesWithResponse request returning *GetElasticsearchProjectLinkCandidatesResponse
+func (c *ClientWithResponses) GetElasticsearchProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetElasticsearchProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetElasticsearchProjectLinkCandidatesResponse, error) {
+	rsp, err := c.GetElasticsearchProjectLinkCandidates(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetElasticsearchProjectLinkCandidatesResponse(rsp)
 }
 
 // GetElasticsearchProjectRolesWithResponse request returning *GetElasticsearchProjectRolesResponse
@@ -4540,6 +5618,15 @@ func (c *ClientWithResponses) PatchObservabilityProjectWithResponse(ctx context.
 	return ParsePatchObservabilityProjectResponse(rsp)
 }
 
+// GetObservabilityProjectCanDeleteWithResponse request returning *GetObservabilityProjectCanDeleteResponse
+func (c *ClientWithResponses) GetObservabilityProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetObservabilityProjectCanDeleteResponse, error) {
+	rsp, err := c.GetObservabilityProjectCanDelete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetObservabilityProjectCanDeleteResponse(rsp)
+}
+
 // ResetObservabilityProjectCredentialsWithResponse request returning *ResetObservabilityProjectCredentialsResponse
 func (c *ClientWithResponses) ResetObservabilityProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetObservabilityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetObservabilityProjectCredentialsResponse, error) {
 	rsp, err := c.ResetObservabilityProjectCredentials(ctx, id, params, reqEditors...)
@@ -4556,6 +5643,15 @@ func (c *ClientWithResponses) ResumeObservabilityProjectWithResponse(ctx context
 		return nil, err
 	}
 	return ParseResumeObservabilityProjectResponse(rsp)
+}
+
+// GetObservabilityProjectLinkCandidatesWithResponse request returning *GetObservabilityProjectLinkCandidatesResponse
+func (c *ClientWithResponses) GetObservabilityProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetObservabilityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetObservabilityProjectLinkCandidatesResponse, error) {
+	rsp, err := c.GetObservabilityProjectLinkCandidates(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetObservabilityProjectLinkCandidatesResponse(rsp)
 }
 
 // GetObservabilityProjectRolesWithResponse request returning *GetObservabilityProjectRolesResponse
@@ -4637,6 +5733,15 @@ func (c *ClientWithResponses) PatchSecurityProjectWithResponse(ctx context.Conte
 	return ParsePatchSecurityProjectResponse(rsp)
 }
 
+// GetSecurityProjectCanDeleteWithResponse request returning *GetSecurityProjectCanDeleteResponse
+func (c *ClientWithResponses) GetSecurityProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetSecurityProjectCanDeleteResponse, error) {
+	rsp, err := c.GetSecurityProjectCanDelete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSecurityProjectCanDeleteResponse(rsp)
+}
+
 // ResetSecurityProjectCredentialsWithResponse request returning *ResetSecurityProjectCredentialsResponse
 func (c *ClientWithResponses) ResetSecurityProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetSecurityProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetSecurityProjectCredentialsResponse, error) {
 	rsp, err := c.ResetSecurityProjectCredentials(ctx, id, params, reqEditors...)
@@ -4653,6 +5758,15 @@ func (c *ClientWithResponses) ResumeSecurityProjectWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseResumeSecurityProjectResponse(rsp)
+}
+
+// GetSecurityProjectLinkCandidatesWithResponse request returning *GetSecurityProjectLinkCandidatesResponse
+func (c *ClientWithResponses) GetSecurityProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetSecurityProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetSecurityProjectLinkCandidatesResponse, error) {
+	rsp, err := c.GetSecurityProjectLinkCandidates(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSecurityProjectLinkCandidatesResponse(rsp)
 }
 
 // GetSecurityProjectRolesWithResponse request returning *GetSecurityProjectRolesResponse
@@ -4848,12 +5962,33 @@ func ParseDeleteElasticsearchProjectResponse(rsp *http.Response) (*DeleteElastic
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
 
 	}
 
@@ -4921,6 +6056,53 @@ func ParsePatchElasticsearchProjectResponse(rsp *http.Response) (*PatchElasticse
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetElasticsearchProjectCanDeleteResponse parses an HTTP response from a GetElasticsearchProjectCanDeleteWithResponse call
+func ParseGetElasticsearchProjectCanDeleteResponse(rsp *http.Response) (*GetElasticsearchProjectCanDeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetElasticsearchProjectCanDeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CanDeleteResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -4954,6 +6136,13 @@ func ParseResetElasticsearchProjectCredentialsResponse(rsp *http.Response) (*Res
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	}
 
 	return response, nil
@@ -4973,6 +6162,53 @@ func ParseResumeElasticsearchProjectResponse(rsp *http.Response) (*ResumeElastic
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetElasticsearchProjectLinkCandidatesResponse parses an HTTP response from a GetElasticsearchProjectLinkCandidatesWithResponse call
+func ParseGetElasticsearchProjectLinkCandidatesResponse(rsp *http.Response) (*GetElasticsearchProjectLinkCandidatesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetElasticsearchProjectLinkCandidatesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LinkedCandidatesList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -5138,12 +6374,33 @@ func ParseDeleteObservabilityProjectResponse(rsp *http.Response) (*DeleteObserva
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
 
 	}
 
@@ -5211,6 +6468,53 @@ func ParsePatchObservabilityProjectResponse(rsp *http.Response) (*PatchObservabi
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetObservabilityProjectCanDeleteResponse parses an HTTP response from a GetObservabilityProjectCanDeleteWithResponse call
+func ParseGetObservabilityProjectCanDeleteResponse(rsp *http.Response) (*GetObservabilityProjectCanDeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetObservabilityProjectCanDeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CanDeleteResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -5244,6 +6548,13 @@ func ParseResetObservabilityProjectCredentialsResponse(rsp *http.Response) (*Res
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	}
 
 	return response, nil
@@ -5263,6 +6574,53 @@ func ParseResumeObservabilityProjectResponse(rsp *http.Response) (*ResumeObserva
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetObservabilityProjectLinkCandidatesResponse parses an HTTP response from a GetObservabilityProjectLinkCandidatesWithResponse call
+func ParseGetObservabilityProjectLinkCandidatesResponse(rsp *http.Response) (*GetObservabilityProjectLinkCandidatesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetObservabilityProjectLinkCandidatesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LinkedCandidatesList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -5290,7 +6648,7 @@ func ParseGetObservabilityProjectRolesResponse(rsp *http.Response) (*GetObservab
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]ProjectRolesByProjectID
+		var dest ProjectRolesByProjectID
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -5428,12 +6786,33 @@ func ParseDeleteSecurityProjectResponse(rsp *http.Response) (*DeleteSecurityProj
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
 
 	}
 
@@ -5501,6 +6880,53 @@ func ParsePatchSecurityProjectResponse(rsp *http.Response) (*PatchSecurityProjec
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSecurityProjectCanDeleteResponse parses an HTTP response from a GetSecurityProjectCanDeleteWithResponse call
+func ParseGetSecurityProjectCanDeleteResponse(rsp *http.Response) (*GetSecurityProjectCanDeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSecurityProjectCanDeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CanDeleteResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -5534,6 +6960,13 @@ func ParseResetSecurityProjectCredentialsResponse(rsp *http.Response) (*ResetSec
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	}
 
 	return response, nil
@@ -5553,6 +6986,53 @@ func ParseResumeSecurityProjectResponse(rsp *http.Response) (*ResumeSecurityProj
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSecurityProjectLinkCandidatesResponse parses an HTTP response from a GetSecurityProjectLinkCandidatesWithResponse call
+func ParseGetSecurityProjectLinkCandidatesResponse(rsp *http.Response) (*GetSecurityProjectLinkCandidatesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSecurityProjectLinkCandidatesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LinkedCandidatesList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -5580,7 +7060,7 @@ func ParseGetSecurityProjectRolesResponse(rsp *http.Response) (*GetSecurityProje
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]ProjectRolesByProjectID
+		var dest ProjectRolesByProjectID
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -5779,6 +7259,13 @@ func ParseCreateTrafficFilterResponse(rsp *http.Response) (*CreateTrafficFilterR
 		}
 		response.JSON401 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -5852,13 +7339,6 @@ func ParseDeleteTrafficFilterResponse(rsp *http.Response) (*DeleteTrafficFilterR
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest BadRequest
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -5994,6 +7474,13 @@ func ParsePatchTrafficFilterResponse(rsp *http.Response) (*PatchTrafficFilterRes
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError

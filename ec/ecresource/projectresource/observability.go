@@ -45,6 +45,7 @@ type observabilityModelReader struct{}
 
 func (obs observabilityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_observability_project.ObservabilityProjectResourceSchema(ctx)
+	patchMetadataSchema(resp)
 }
 
 func (obs observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
@@ -59,6 +60,7 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
+	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
 	aliasIsConfigured := util.IsKnown(cfg.Alias)
@@ -78,6 +80,7 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_observability_project.NewEndpointsValueUnknown()
+		plan.PrivateEndpoints = resource_observability_project.NewPrivateEndpointsValueUnknown()
 	}
 
 	return plan
@@ -114,6 +117,16 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
 
+	if util.IsKnown(model.Metadata) && !model.Metadata.IsNull() {
+		metaReq, metaDiags := projectMetadataRequestFromTFMetadata(ctx, model.Metadata.Tags)
+		if metaDiags.HasError() {
+			return model, metaDiags
+		}
+		if metaReq != nil {
+			createBody.Metadata = metaReq
+		}
+	}
+
 	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -146,23 +159,37 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 	return model, diags
 }
 
-func (obs observabilityApi) Patch(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
+func (obs observabilityApi) Patch(ctx context.Context, plan, state resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
 	updateBody := serverless.PatchObservabilityProjectRequest{
-		Name: model.Name.ValueStringPointer(),
+		Name: plan.Name.ValueStringPointer(),
 	}
 
-	if model.Alias.ValueString() != "" {
-		updateBody.Alias = model.Alias.ValueStringPointer()
+	if plan.Alias.ValueString() != "" {
+		updateBody.Alias = plan.Alias.ValueStringPointer()
 	}
 
-	if !model.ProductTier.IsNull() && !model.ProductTier.IsUnknown() {
-		productTier := serverless.ObservabilityProjectProductTier(model.ProductTier.ValueString())
+	if !plan.ProductTier.IsNull() && !plan.ProductTier.IsUnknown() {
+		productTier := serverless.ObservabilityProjectProductTier(plan.ProductTier.ValueString())
 		updateBody.ProductTier = &productTier
 	}
 
-	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, model.TrafficFilterIds)
+	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
 
-	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
+	stateTags := types.MapNull(types.StringType)
+	if util.IsKnown(state.Metadata) && !state.Metadata.IsNull() {
+		stateTags = state.Metadata.Tags
+	}
+	if util.IsKnown(plan.Metadata) && !plan.Metadata.IsNull() {
+		om, metaDiags := optionalMetadataForTagPatch(ctx, plan.Metadata.Tags, stateTags)
+		if metaDiags.HasError() {
+			return metaDiags
+		}
+		if om != nil {
+			updateBody.Metadata = om
+		}
+	}
+
+	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -268,6 +295,12 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 		metadataValues["suspended_at"] = basetypes.NewStringValue(resp.JSON200.Metadata.SuspendedAt.String())
 	}
 
+	tagsVal, tagsDiags := metadataTagsFromAPI(ctx, resp.JSON200.Metadata.Tags)
+	if tagsDiags.HasError() {
+		return false, model, tagsDiags
+	}
+	metadataValues["tags"] = tagsVal
+
 	metadata, diags := resource_observability_project.NewMetadataValue(
 		model.Metadata.AttributeTypes(ctx),
 		metadataValues,
@@ -276,6 +309,24 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 		return false, model, diags
 	}
 	model.Metadata = metadata
+
+	if resp.JSON200.PrivateEndpoints != nil {
+		privateEP, peDiags := resource_observability_project.NewPrivateEndpointsValue(
+			model.PrivateEndpoints.AttributeTypes(ctx),
+			map[string]attr.Value{
+				"apm":           basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Apm),
+				"elasticsearch": basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Elasticsearch),
+				"ingest":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Ingest),
+				"kibana":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Kibana),
+			},
+		)
+		if peDiags.HasError() {
+			return false, model, peDiags
+		}
+		model.PrivateEndpoints = privateEP
+	} else {
+		model.PrivateEndpoints = resource_observability_project.NewPrivateEndpointsValueNull()
+	}
 
 	model.Name = basetypes.NewStringValue(resp.JSON200.Name)
 	model.RegionId = basetypes.NewStringValue(resp.JSON200.RegionId)

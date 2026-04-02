@@ -33,6 +33,7 @@ resource "ec_observability_project" "my_project" {
 ### Optional
 
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+- `metadata` (Attributes) Metadata request for a project with tags. (see [below for nested schema](#nestedatt--metadata))
 - `product_tier` (String) the tier of the observability project
 - `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
@@ -42,8 +43,24 @@ resource "ec_observability_project" "my_project" {
 - `credentials` (Attributes) Basic auth credentials to access the Elasticsearch API. (see [below for nested schema](#nestedatt--credentials))
 - `endpoints` (Attributes) The endpoints to access the different apps of the project. (see [below for nested schema](#nestedatt--endpoints))
 - `id` (String) ID of the project.
-- `metadata` (Attributes) Additional details about the project. (see [below for nested schema](#nestedatt--metadata))
+- `private_endpoints` (Attributes) Private endpoints (URLs) for Observability projects when PrivateLink is enabled. (see [below for nested schema](#nestedatt--private_endpoints))
 - `type` (String) the type of the project
+
+<a id="nestedatt--metadata"></a>
+### Nested Schema for `metadata`
+
+Optional:
+
+- `tags` (Map of String) Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+
+Read-Only:
+
+- `created_at` (String) Date and time when the project was created.
+- `created_by` (String) ID of the user.
+- `organization_id` (String) The Organization ID who owns the project.
+- `suspended_at` (String) Date and time when the project was suspended.
+- `suspended_reason` (String) Reason why the project was suspended.
+
 
 <a id="nestedatt--credentials"></a>
 ### Nested Schema for `credentials`
@@ -65,16 +82,15 @@ Read-Only:
 - `kibana` (String) The endpoint to access kibana.
 
 
-<a id="nestedatt--metadata"></a>
-### Nested Schema for `metadata`
+<a id="nestedatt--private_endpoints"></a>
+### Nested Schema for `private_endpoints`
 
 Read-Only:
 
-- `created_at` (String) Date and time when the project was created.
-- `created_by` (String) ID of the user.
-- `organization_id` (String) The Organization ID who owns the project.
-- `suspended_at` (String) Date and time when the project was suspended.
-- `suspended_reason` (String) Reason why the project was suspended.
+- `apm` (String) The PrivateLink endpoint URL to access APM.
+- `elasticsearch` (String) The PrivateLink endpoint URL to access elasticsearch.
+- `ingest` (String) The PrivateLink endpoint URL to access the Managed OTLP Endpoint.
+- `kibana` (String) The PrivateLink endpoint URL to access kibana.
 
 ## Import
 

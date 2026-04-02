@@ -23,6 +23,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -142,15 +143,25 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 						Description:         "Reason why the project was suspended.",
 						MarkdownDescription: "Reason why the project was suspended.",
 					},
+					"tags": schema.MapAttribute{
+						ElementType:         types.StringType,
+						Required:            true,
+						Description:         "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+						MarkdownDescription: "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+						Validators: []validator.Map{
+							mapvalidator.SizeBetween(1, 64),
+						},
+					},
 				},
 				CustomType: MetadataType{
 					ObjectType: types.ObjectType{
 						AttrTypes: MetadataValue{}.AttributeTypes(ctx),
 					},
 				},
+				Optional:            true,
 				Computed:            true,
-				Description:         "Additional details about the project.",
-				MarkdownDescription: "Additional details about the project.",
+				Description:         "Metadata request for a project with tags.",
+				MarkdownDescription: "Metadata request for a project with tags.",
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -163,8 +174,8 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 			"optimized_for": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Description:         "The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.",
-				MarkdownDescription: "The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.",
+				Description:         "The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.\n\n- The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.\n- The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.\n",
+				MarkdownDescription: "The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.\n\n- The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.\n- The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.\n",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -174,6 +185,28 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 						"vector",
 					),
 				},
+			},
+			"private_endpoints": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"elasticsearch": schema.StringAttribute{
+						Computed:            true,
+						Description:         "The PrivateLink endpoint URL to access elasticsearch.",
+						MarkdownDescription: "The PrivateLink endpoint URL to access elasticsearch.",
+					},
+					"kibana": schema.StringAttribute{
+						Computed:            true,
+						Description:         "The PrivateLink endpoint URL to access kibana.",
+						MarkdownDescription: "The PrivateLink endpoint URL to access kibana.",
+					},
+				},
+				CustomType: PrivateEndpointsType{
+					ObjectType: types.ObjectType{
+						AttrTypes: PrivateEndpointsValue{}.AttributeTypes(ctx),
+					},
+				},
+				Computed:            true,
+				Description:         "Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled.",
+				MarkdownDescription: "Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled.",
 			},
 			"region_id": schema.StringAttribute{
 				Required:            true,
@@ -188,7 +221,7 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 						Description:         "Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window.",
 						MarkdownDescription: "Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window.",
 						Validators: []validator.Int64{
-							int64validator.Between(0, 180),
+							int64validator.Between(1, 180),
 						},
 					},
 					"search_power": schema.Int64Attribute{
@@ -197,7 +230,7 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 						Description:         "Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.",
 						MarkdownDescription: "Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.",
 						Validators: []validator.Int64{
-							int64validator.Between(5, 3000),
+							int64validator.Between(28, 3000),
 						},
 					},
 				},
@@ -230,18 +263,19 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type ElasticsearchProjectModel struct {
-	Alias            types.String     `tfsdk:"alias"`
-	CloudId          types.String     `tfsdk:"cloud_id"`
-	Credentials      CredentialsValue `tfsdk:"credentials"`
-	Endpoints        EndpointsValue   `tfsdk:"endpoints"`
-	Id               types.String     `tfsdk:"id"`
-	Metadata         MetadataValue    `tfsdk:"metadata"`
-	Name             types.String     `tfsdk:"name"`
-	OptimizedFor     types.String     `tfsdk:"optimized_for"`
-	RegionId         types.String     `tfsdk:"region_id"`
-	SearchLake       SearchLakeValue  `tfsdk:"search_lake"`
-	TrafficFilterIds types.Set        `tfsdk:"traffic_filter_ids"`
-	Type             types.String     `tfsdk:"type"`
+	Alias            types.String          `tfsdk:"alias"`
+	CloudId          types.String          `tfsdk:"cloud_id"`
+	Credentials      CredentialsValue      `tfsdk:"credentials"`
+	Endpoints        EndpointsValue        `tfsdk:"endpoints"`
+	Id               types.String          `tfsdk:"id"`
+	Metadata         MetadataValue         `tfsdk:"metadata"`
+	Name             types.String          `tfsdk:"name"`
+	OptimizedFor     types.String          `tfsdk:"optimized_for"`
+	PrivateEndpoints PrivateEndpointsValue `tfsdk:"private_endpoints"`
+	RegionId         types.String          `tfsdk:"region_id"`
+	SearchLake       SearchLakeValue       `tfsdk:"search_lake"`
+	TrafficFilterIds types.Set             `tfsdk:"traffic_filter_ids"`
+	Type             types.String          `tfsdk:"type"`
 }
 
 var _ basetypes.ObjectTypable = CredentialsType{}
@@ -1117,6 +1151,24 @@ func (t MetadataType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 			fmt.Sprintf(`suspended_reason expected to be basetypes.StringValue, was: %T`, suspendedReasonAttribute))
 	}
 
+	tagsAttribute, ok := attributes["tags"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`tags is missing from object`)
+
+		return nil, diags
+	}
+
+	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -1127,6 +1179,7 @@ func (t MetadataType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 		OrganizationId:  organizationIdVal,
 		SuspendedAt:     suspendedAtVal,
 		SuspendedReason: suspendedReasonVal,
+		Tags:            tagsVal,
 		state:           attr.ValueStateKnown,
 	}, diags
 }
@@ -1284,6 +1337,24 @@ func NewMetadataValue(attributeTypes map[string]attr.Type, attributes map[string
 			fmt.Sprintf(`suspended_reason expected to be basetypes.StringValue, was: %T`, suspendedReasonAttribute))
 	}
 
+	tagsAttribute, ok := attributes["tags"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`tags is missing from object`)
+
+		return NewMetadataValueUnknown(), diags
+	}
+
+	tagsVal, ok := tagsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`tags expected to be basetypes.MapValue, was: %T`, tagsAttribute))
+	}
+
 	if diags.HasError() {
 		return NewMetadataValueUnknown(), diags
 	}
@@ -1294,6 +1365,7 @@ func NewMetadataValue(attributeTypes map[string]attr.Type, attributes map[string
 		OrganizationId:  organizationIdVal,
 		SuspendedAt:     suspendedAtVal,
 		SuspendedReason: suspendedReasonVal,
+		Tags:            tagsVal,
 		state:           attr.ValueStateKnown,
 	}, diags
 }
@@ -1371,11 +1443,12 @@ type MetadataValue struct {
 	OrganizationId  basetypes.StringValue `tfsdk:"organization_id"`
 	SuspendedAt     basetypes.StringValue `tfsdk:"suspended_at"`
 	SuspendedReason basetypes.StringValue `tfsdk:"suspended_reason"`
+	Tags            basetypes.MapValue    `tfsdk:"tags"`
 	state           attr.ValueState
 }
 
 func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 5)
+	attrTypes := make(map[string]tftypes.Type, 6)
 
 	var val tftypes.Value
 	var err error
@@ -1385,12 +1458,15 @@ func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 	attrTypes["organization_id"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["suspended_at"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["suspended_reason"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["tags"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 5)
+		vals := make(map[string]tftypes.Value, 6)
 
 		val, err = v.CreatedAt.ToTerraformValue(ctx)
 
@@ -1432,6 +1508,14 @@ func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 
 		vals["suspended_reason"] = val
 
+		val, err = v.Tags.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["tags"] = val
+
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
@@ -1461,12 +1545,40 @@ func (v MetadataValue) String() string {
 func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	var tagsVal basetypes.MapValue
+	switch {
+	case v.Tags.IsUnknown():
+		tagsVal = types.MapUnknown(types.StringType)
+	case v.Tags.IsNull():
+		tagsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		tagsVal, d = types.MapValue(types.StringType, v.Tags.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"created_at":       basetypes.StringType{},
+			"created_by":       basetypes.StringType{},
+			"organization_id":  basetypes.StringType{},
+			"suspended_at":     basetypes.StringType{},
+			"suspended_reason": basetypes.StringType{},
+			"tags": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
 	attributeTypes := map[string]attr.Type{
 		"created_at":       basetypes.StringType{},
 		"created_by":       basetypes.StringType{},
 		"organization_id":  basetypes.StringType{},
 		"suspended_at":     basetypes.StringType{},
 		"suspended_reason": basetypes.StringType{},
+		"tags": basetypes.MapType{
+			ElemType: types.StringType,
+		},
 	}
 
 	if v.IsNull() {
@@ -1485,6 +1597,7 @@ func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 			"organization_id":  v.OrganizationId,
 			"suspended_at":     v.SuspendedAt,
 			"suspended_reason": v.SuspendedReason,
+			"tags":             tagsVal,
 		})
 
 	return objVal, diags
@@ -1525,6 +1638,10 @@ func (v MetadataValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.Tags.Equal(other.Tags) {
+		return false
+	}
+
 	return true
 }
 
@@ -1543,6 +1660,388 @@ func (v MetadataValue) AttributeTypes(ctx context.Context) map[string]attr.Type 
 		"organization_id":  basetypes.StringType{},
 		"suspended_at":     basetypes.StringType{},
 		"suspended_reason": basetypes.StringType{},
+		"tags": basetypes.MapType{
+			ElemType: types.StringType,
+		},
+	}
+}
+
+var _ basetypes.ObjectTypable = PrivateEndpointsType{}
+
+type PrivateEndpointsType struct {
+	basetypes.ObjectType
+}
+
+func (t PrivateEndpointsType) Equal(o attr.Type) bool {
+	other, ok := o.(PrivateEndpointsType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t PrivateEndpointsType) String() string {
+	return "PrivateEndpointsType"
+}
+
+func (t PrivateEndpointsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	elasticsearchAttribute, ok := attributes["elasticsearch"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`elasticsearch is missing from object`)
+
+		return nil, diags
+	}
+
+	elasticsearchVal, ok := elasticsearchAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`elasticsearch expected to be basetypes.StringValue, was: %T`, elasticsearchAttribute))
+	}
+
+	kibanaAttribute, ok := attributes["kibana"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kibana is missing from object`)
+
+		return nil, diags
+	}
+
+	kibanaVal, ok := kibanaAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kibana expected to be basetypes.StringValue, was: %T`, kibanaAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return PrivateEndpointsValue{
+		Elasticsearch: elasticsearchVal,
+		Kibana:        kibanaVal,
+		state:         attr.ValueStateKnown,
+	}, diags
+}
+
+func NewPrivateEndpointsValueNull() PrivateEndpointsValue {
+	return PrivateEndpointsValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewPrivateEndpointsValueUnknown() PrivateEndpointsValue {
+	return PrivateEndpointsValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewPrivateEndpointsValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (PrivateEndpointsValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing PrivateEndpointsValue Attribute Value",
+				"While creating a PrivateEndpointsValue value, a missing attribute value was detected. "+
+					"A PrivateEndpointsValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("PrivateEndpointsValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid PrivateEndpointsValue Attribute Type",
+				"While creating a PrivateEndpointsValue value, an invalid attribute value was detected. "+
+					"A PrivateEndpointsValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("PrivateEndpointsValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("PrivateEndpointsValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra PrivateEndpointsValue Attribute Value",
+				"While creating a PrivateEndpointsValue value, an extra attribute value was detected. "+
+					"A PrivateEndpointsValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra PrivateEndpointsValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewPrivateEndpointsValueUnknown(), diags
+	}
+
+	elasticsearchAttribute, ok := attributes["elasticsearch"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`elasticsearch is missing from object`)
+
+		return NewPrivateEndpointsValueUnknown(), diags
+	}
+
+	elasticsearchVal, ok := elasticsearchAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`elasticsearch expected to be basetypes.StringValue, was: %T`, elasticsearchAttribute))
+	}
+
+	kibanaAttribute, ok := attributes["kibana"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`kibana is missing from object`)
+
+		return NewPrivateEndpointsValueUnknown(), diags
+	}
+
+	kibanaVal, ok := kibanaAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`kibana expected to be basetypes.StringValue, was: %T`, kibanaAttribute))
+	}
+
+	if diags.HasError() {
+		return NewPrivateEndpointsValueUnknown(), diags
+	}
+
+	return PrivateEndpointsValue{
+		Elasticsearch: elasticsearchVal,
+		Kibana:        kibanaVal,
+		state:         attr.ValueStateKnown,
+	}, diags
+}
+
+func NewPrivateEndpointsValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) PrivateEndpointsValue {
+	object, diags := NewPrivateEndpointsValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewPrivateEndpointsValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t PrivateEndpointsType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewPrivateEndpointsValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewPrivateEndpointsValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewPrivateEndpointsValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewPrivateEndpointsValueMust(PrivateEndpointsValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t PrivateEndpointsType) ValueType(ctx context.Context) attr.Value {
+	return PrivateEndpointsValue{}
+}
+
+var _ basetypes.ObjectValuable = PrivateEndpointsValue{}
+
+type PrivateEndpointsValue struct {
+	Elasticsearch basetypes.StringValue `tfsdk:"elasticsearch"`
+	Kibana        basetypes.StringValue `tfsdk:"kibana"`
+	state         attr.ValueState
+}
+
+func (v PrivateEndpointsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 2)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["elasticsearch"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["kibana"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 2)
+
+		val, err = v.Elasticsearch.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["elasticsearch"] = val
+
+		val, err = v.Kibana.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["kibana"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v PrivateEndpointsValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v PrivateEndpointsValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v PrivateEndpointsValue) String() string {
+	return "PrivateEndpointsValue"
+}
+
+func (v PrivateEndpointsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"elasticsearch": basetypes.StringType{},
+		"kibana":        basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"elasticsearch": v.Elasticsearch,
+			"kibana":        v.Kibana,
+		})
+
+	return objVal, diags
+}
+
+func (v PrivateEndpointsValue) Equal(o attr.Value) bool {
+	other, ok := o.(PrivateEndpointsValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Elasticsearch.Equal(other.Elasticsearch) {
+		return false
+	}
+
+	if !v.Kibana.Equal(other.Kibana) {
+		return false
+	}
+
+	return true
+}
+
+func (v PrivateEndpointsValue) Type(ctx context.Context) attr.Type {
+	return PrivateEndpointsType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v PrivateEndpointsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"elasticsearch": basetypes.StringType{},
+		"kibana":        basetypes.StringType{},
 	}
 }
 

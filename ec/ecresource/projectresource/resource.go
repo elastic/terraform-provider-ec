@@ -57,7 +57,9 @@ type modelHandler[T any] interface {
 
 type api[TModel any] interface {
 	Create(context.Context, TModel) (TModel, diag.Diagnostics)
-	Patch(context.Context, TModel) diag.Diagnostics
+	// Patch sends the plan model to the API. The second model is prior state (before apply), used to
+	// decide whether metadata.tags changed—including clearing tags when the plan map is empty.
+	Patch(context.Context, TModel, TModel) diag.Diagnostics
 	EnsureInitialised(context.Context, TModel) diag.Diagnostics
 	Read(context.Context, string, TModel) (bool, TModel, diag.Diagnostics)
 	Delete(context.Context, TModel) diag.Diagnostics

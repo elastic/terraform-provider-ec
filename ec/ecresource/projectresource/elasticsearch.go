@@ -47,6 +47,7 @@ type elasticsearchModelReader struct{}
 
 func (es elasticsearchModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
+	patchMetadataSchema(resp)
 }
 
 func (es elasticsearchModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
@@ -61,6 +62,7 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
+	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
 	aliasIsConfigured := util.IsKnown(cfg.Alias)
@@ -80,6 +82,7 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_elasticsearch_project.NewEndpointsValueUnknown()
+		plan.PrivateEndpoints = resource_elasticsearch_project.NewPrivateEndpointsValueUnknown()
 	}
 
 	return plan
@@ -140,6 +143,16 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
 
+	if util.IsKnown(model.Metadata) && !model.Metadata.IsNull() {
+		metaReq, metaDiags := projectMetadataRequestFromTFMetadata(ctx, model.Metadata.Tags)
+		if metaDiags.HasError() {
+			return model, metaDiags
+		}
+		if metaReq != nil {
+			createBody.Metadata = metaReq
+		}
+	}
+
 	resp, err := es.client.CreateElasticsearchProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -172,32 +185,46 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 	return model, diags
 }
 
-func (es elasticsearchApi) Patch(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
+func (es elasticsearchApi) Patch(ctx context.Context, plan, state resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
 	updateBody := serverless.PatchElasticsearchProjectRequest{
-		Name: model.Name.ValueStringPointer(),
+		Name: plan.Name.ValueStringPointer(),
 	}
 
-	if model.Alias.ValueString() != "" {
-		updateBody.Alias = model.Alias.ValueStringPointer()
+	if plan.Alias.ValueString() != "" {
+		updateBody.Alias = plan.Alias.ValueStringPointer()
 	}
 
-	if util.IsKnown(model.SearchLake) {
+	if util.IsKnown(plan.SearchLake) {
 		updateBody.SearchLake = &serverless.OptionalElasticsearchSearchLake{}
 
-		if util.IsKnown(model.SearchLake.BoostWindow) {
-			boostWindow := int(model.SearchLake.BoostWindow.ValueInt64())
+		if util.IsKnown(plan.SearchLake.BoostWindow) {
+			boostWindow := int(plan.SearchLake.BoostWindow.ValueInt64())
 			updateBody.SearchLake.BoostWindow = &boostWindow
 		}
 
-		if util.IsKnown(model.SearchLake.SearchPower) {
-			searchPower := int(model.SearchLake.SearchPower.ValueInt64())
+		if util.IsKnown(plan.SearchLake.SearchPower) {
+			searchPower := int(plan.SearchLake.SearchPower.ValueInt64())
 			updateBody.SearchLake.SearchPower = &searchPower
 		}
 	}
 
-	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, model.TrafficFilterIds)
+	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
 
-	resp, err := es.client.PatchElasticsearchProjectWithResponse(ctx, model.Id.ValueString(), nil, updateBody)
+	stateTags := types.MapNull(types.StringType)
+	if util.IsKnown(state.Metadata) && !state.Metadata.IsNull() {
+		stateTags = state.Metadata.Tags
+	}
+	if util.IsKnown(plan.Metadata) && !plan.Metadata.IsNull() {
+		om, metaDiags := optionalMetadataForTagPatch(ctx, plan.Metadata.Tags, stateTags)
+		if metaDiags.HasError() {
+			return metaDiags
+		}
+		if om != nil {
+			updateBody.Metadata = om
+		}
+	}
+
+	resp, err := es.client.PatchElasticsearchProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -301,6 +328,12 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 		metadataValues["suspended_at"] = basetypes.NewStringValue(resp.JSON200.Metadata.SuspendedAt.String())
 	}
 
+	tagsVal, tagsDiags := metadataTagsFromAPI(ctx, resp.JSON200.Metadata.Tags)
+	if tagsDiags.HasError() {
+		return false, model, tagsDiags
+	}
+	metadataValues["tags"] = tagsVal
+
 	metadata, diags := resource_elasticsearch_project.NewMetadataValue(
 		model.Metadata.AttributeTypes(ctx),
 		metadataValues,
@@ -309,6 +342,22 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 		return false, model, diags
 	}
 	model.Metadata = metadata
+
+	if resp.JSON200.PrivateEndpoints != nil {
+		privateEP, peDiags := resource_elasticsearch_project.NewPrivateEndpointsValue(
+			model.PrivateEndpoints.AttributeTypes(ctx),
+			map[string]attr.Value{
+				"elasticsearch": basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Elasticsearch),
+				"kibana":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Kibana),
+			},
+		)
+		if peDiags.HasError() {
+			return false, model, peDiags
+		}
+		model.PrivateEndpoints = privateEP
+	} else {
+		model.PrivateEndpoints = resource_elasticsearch_project.NewPrivateEndpointsValueNull()
+	}
 
 	model.Name = basetypes.NewStringValue(resp.JSON200.Name)
 	model.OptimizedFor = basetypes.NewStringValue(string(resp.JSON200.OptimizedFor))
