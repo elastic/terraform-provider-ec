@@ -50,6 +50,7 @@ func TestElasticsearchModelReader_Schema(t *testing.T) {
 	require.False(t, resp.Diagnostics.HasError())
 	expected := resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
 	patchMetadataSchema(&resource.SchemaResponse{Schema: expected})
+	patchOptimizedForSchema(&resource.SchemaResponse{Schema: expected})
 	require.Equal(t, expected, resp.Schema)
 }
 
