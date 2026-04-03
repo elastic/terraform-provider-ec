@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
@@ -29,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -47,7 +49,15 @@ type elasticsearchModelReader struct{}
 
 func (es elasticsearchModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
+	patchOptimizedForSchema(resp)
 	patchMetadataSchema(resp)
+}
+
+func patchOptimizedForSchema(resp *resource.SchemaResponse) {
+	optimizedForAttr := resp.Schema.Attributes["optimized_for"].(schema.StringAttribute)
+	optimizedForAttr.Description = strings.ReplaceAll(optimizedForAttr.Description, "\n-", "\n\t-")
+	optimizedForAttr.MarkdownDescription = strings.ReplaceAll(optimizedForAttr.MarkdownDescription, "\n-", "\n\t-")
+	resp.Schema.Attributes["optimized_for"] = optimizedForAttr
 }
 
 func (es elasticsearchModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {

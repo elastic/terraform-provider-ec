@@ -36,8 +36,8 @@ resource "ec_elasticsearch_project" "my_project" {
 - `metadata` (Attributes) Metadata request for a project with tags. (see [below for nested schema](#nestedatt--metadata))
 - `optimized_for` (String) The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
 
-- The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
-- The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
+	- The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+	- The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
 - `search_lake` (Attributes) Configuration for entire set of capabilities that make the data searchable in Elasticsearch. (see [below for nested schema](#nestedatt--search_lake))
 - `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
