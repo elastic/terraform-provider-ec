@@ -52,6 +52,72 @@
             }
           },
           {
+            "name": "metadata",
+            "single_nested": {
+              "computed_optional_required": "computed_optional",
+              "attributes": [
+                {
+                  "name": "tags",
+                  "map": {
+                    "computed_optional_required": "required",
+                    "element_type": {
+                      "string": {}
+                    },
+                    "description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+                    "validators": [
+                      {
+                        "custom": {
+                          "imports": [
+                            {
+                              "path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+                            }
+                          ],
+                          "schema_definition": "mapvalidator.SizeBetween(1, 64)"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "created_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was created."
+                  }
+                },
+                {
+                  "name": "created_by",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "ID of the user."
+                  }
+                },
+                {
+                  "name": "organization_id",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The Organization ID who owns the project."
+                  }
+                },
+                {
+                  "name": "suspended_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was suspended."
+                  }
+                },
+                {
+                  "name": "suspended_reason",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Reason why the project was suspended."
+                  }
+                }
+              ],
+              "description": "Metadata request for a project with tags."
+            }
+          },
+          {
             "name": "name",
             "string": {
               "computed_optional_required": "required",
@@ -74,7 +140,7 @@
             "name": "optimized_for",
             "string": {
               "computed_optional_required": "computed_optional",
-              "description": "The purpose for which the hardware of this elasticsearch project is optimized for. Also known as the Elasticsearch project subtype.",
+              "description": "The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.\n\n- The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.\n- The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.\n",
               "validators": [
                 {
                   "custom": {
@@ -126,7 +192,7 @@
                               "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
                             }
                           ],
-                          "schema_definition": "int64validator.Between(0, 180)"
+                          "schema_definition": "int64validator.Between(1, 180)"
                         }
                       }
                     ]
@@ -145,7 +211,7 @@
                               "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
                             }
                           ],
-                          "schema_definition": "int64validator.Between(5, 3000)"
+                          "schema_definition": "int64validator.Between(28, 3000)"
                         }
                       }
                     ]
@@ -241,47 +307,26 @@
             }
           },
           {
-            "name": "metadata",
+            "name": "private_endpoints",
             "single_nested": {
               "computed_optional_required": "computed",
               "attributes": [
                 {
-                  "name": "created_at",
+                  "name": "elasticsearch",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Date and time when the project was created."
+                    "description": "The PrivateLink endpoint URL to access elasticsearch."
                   }
                 },
                 {
-                  "name": "created_by",
+                  "name": "kibana",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "ID of the user."
-                  }
-                },
-                {
-                  "name": "organization_id",
-                  "string": {
-                    "computed_optional_required": "computed",
-                    "description": "The Organization ID who owns the project."
-                  }
-                },
-                {
-                  "name": "suspended_at",
-                  "string": {
-                    "computed_optional_required": "computed",
-                    "description": "Date and time when the project was suspended."
-                  }
-                },
-                {
-                  "name": "suspended_reason",
-                  "string": {
-                    "computed_optional_required": "computed",
-                    "description": "Reason why the project was suspended."
+                    "description": "The PrivateLink endpoint URL to access kibana."
                   }
                 }
               ],
-              "description": "Additional details about the project."
+              "description": "Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled."
             }
           },
           {
@@ -362,6 +407,72 @@
                   }
                 }
               ]
+            }
+          },
+          {
+            "name": "metadata",
+            "single_nested": {
+              "computed_optional_required": "computed_optional",
+              "attributes": [
+                {
+                  "name": "tags",
+                  "map": {
+                    "computed_optional_required": "required",
+                    "element_type": {
+                      "string": {}
+                    },
+                    "description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+                    "validators": [
+                      {
+                        "custom": {
+                          "imports": [
+                            {
+                              "path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+                            }
+                          ],
+                          "schema_definition": "mapvalidator.SizeBetween(1, 64)"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "created_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was created."
+                  }
+                },
+                {
+                  "name": "created_by",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "ID of the user."
+                  }
+                },
+                {
+                  "name": "organization_id",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The Organization ID who owns the project."
+                  }
+                },
+                {
+                  "name": "suspended_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was suspended."
+                  }
+                },
+                {
+                  "name": "suspended_reason",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Reason why the project was suspended."
+                  }
+                }
+              ],
+              "description": "Metadata request for a project with tags."
             }
           },
           {
@@ -512,47 +623,40 @@
             }
           },
           {
-            "name": "metadata",
+            "name": "private_endpoints",
             "single_nested": {
               "computed_optional_required": "computed",
               "attributes": [
                 {
-                  "name": "created_at",
+                  "name": "apm",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Date and time when the project was created."
+                    "description": "The PrivateLink endpoint URL to access APM."
                   }
                 },
                 {
-                  "name": "created_by",
+                  "name": "elasticsearch",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "ID of the user."
+                    "description": "The PrivateLink endpoint URL to access elasticsearch."
                   }
                 },
                 {
-                  "name": "organization_id",
+                  "name": "ingest",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "The Organization ID who owns the project."
+                    "description": "The PrivateLink endpoint URL to access the Managed OTLP Endpoint."
                   }
                 },
                 {
-                  "name": "suspended_at",
+                  "name": "kibana",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Date and time when the project was suspended."
-                  }
-                },
-                {
-                  "name": "suspended_reason",
-                  "string": {
-                    "computed_optional_required": "computed",
-                    "description": "Reason why the project was suspended."
+                    "description": "The PrivateLink endpoint URL to access kibana."
                   }
                 }
               ],
-              "description": "Additional details about the project."
+              "description": "Private endpoints (URLs) for Observability projects when PrivateLink is enabled."
             }
           },
           {
@@ -655,6 +759,72 @@
             }
           },
           {
+            "name": "metadata",
+            "single_nested": {
+              "computed_optional_required": "computed_optional",
+              "attributes": [
+                {
+                  "name": "tags",
+                  "map": {
+                    "computed_optional_required": "required",
+                    "element_type": {
+                      "string": {}
+                    },
+                    "description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+                    "validators": [
+                      {
+                        "custom": {
+                          "imports": [
+                            {
+                              "path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+                            }
+                          ],
+                          "schema_definition": "mapvalidator.SizeBetween(1, 64)"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "created_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was created."
+                  }
+                },
+                {
+                  "name": "created_by",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "ID of the user."
+                  }
+                },
+                {
+                  "name": "organization_id",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The Organization ID who owns the project."
+                  }
+                },
+                {
+                  "name": "suspended_at",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Date and time when the project was suspended."
+                  }
+                },
+                {
+                  "name": "suspended_reason",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "Reason why the project was suspended."
+                  }
+                }
+              ],
+              "description": "Metadata request for a project with tags."
+            }
+          },
+          {
             "name": "name",
             "string": {
               "computed_optional_required": "required",
@@ -727,7 +897,7 @@
                         "path": "github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
                       }
                     ],
-                    "schema_definition": "listvalidator.SizeBetween(2, 3)"
+                    "schema_definition": "listvalidator.SizeBetween(1, 3)"
                   }
                 }
               ],
@@ -742,6 +912,62 @@
             "string": {
               "computed_optional_required": "required",
               "description": "Unique human-readable identifier for a region in Elastic Cloud."
+            }
+          },
+          {
+            "name": "search_lake",
+            "single_nested": {
+              "computed_optional_required": "computed_optional",
+              "attributes": [
+                {
+                  "name": "data_retention",
+                  "single_nested": {
+                    "computed_optional_required": "computed_optional",
+                    "attributes": [
+                      {
+                        "name": "default_retention_days",
+                        "int64": {
+                          "computed_optional_required": "computed_optional",
+                          "description": "Default number of days during which data remains available in Elasticsearch data streams. Can be set to \"null\" for unlimited. A default of 396 will be applied if no value is specified on project creation.",
+                          "validators": [
+                            {
+                              "custom": {
+                                "imports": [
+                                  {
+                                    "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                  }
+                                ],
+                                "schema_definition": "int64validator.Between(7, 3681)"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "max_retention_days",
+                        "int64": {
+                          "computed_optional_required": "computed_optional",
+                          "description": "Maximum number of days allowed for retaining data in Elasticsearch data streams. Can be set to \"null\" for unlimited. A default of 396 will be applied if no value is specified on project creation.",
+                          "validators": [
+                            {
+                              "custom": {
+                                "imports": [
+                                  {
+                                    "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                  }
+                                ],
+                                "schema_definition": "int64validator.Between(7, 3681)"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "description": "Configuration to control the data retention in Elasticsearch data streams."
+                  }
+                }
+              ],
+              "description": "Configuration for the entire set of capabilities that make the data searchable in Security."
             }
           },
           {
@@ -837,47 +1063,33 @@
             }
           },
           {
-            "name": "metadata",
+            "name": "private_endpoints",
             "single_nested": {
               "computed_optional_required": "computed",
               "attributes": [
                 {
-                  "name": "created_at",
+                  "name": "elasticsearch",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "Date and time when the project was created."
+                    "description": "The PrivateLink endpoint URL to access elasticsearch."
                   }
                 },
                 {
-                  "name": "created_by",
+                  "name": "ingest",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "ID of the user."
+                    "description": "The PrivateLink endpoint URL to access the Managed OTLP Endpoint."
                   }
                 },
                 {
-                  "name": "organization_id",
+                  "name": "kibana",
                   "string": {
                     "computed_optional_required": "computed",
-                    "description": "The Organization ID who owns the project."
-                  }
-                },
-                {
-                  "name": "suspended_at",
-                  "string": {
-                    "computed_optional_required": "computed",
-                    "description": "Date and time when the project was suspended."
-                  }
-                },
-                {
-                  "name": "suspended_reason",
-                  "string": {
-                    "computed_optional_required": "computed",
-                    "description": "Reason why the project was suspended."
+                    "description": "The PrivateLink endpoint URL to access kibana."
                   }
                 }
               ],
-              "description": "Additional details about the project."
+              "description": "Private endpoints (URLs) for Security projects when PrivateLink is enabled."
             }
           },
           {

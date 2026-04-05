@@ -34,7 +34,9 @@ resource "ec_security_project" "my_project" {
 
 - `admin_features_package` (String) admin features package (BYOK, BYOIDP, CCS, CCR)
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+- `metadata` (Attributes) Metadata request for a project with tags. (see [below for nested schema](#nestedatt--metadata))
 - `product_types` (Attributes List) (see [below for nested schema](#nestedatt--product_types))
+- `search_lake` (Attributes) Configuration for the entire set of capabilities that make the data searchable in Security. (see [below for nested schema](#nestedatt--search_lake))
 - `traffic_filter_ids` (Set of String) Set of traffic filter IDs to associate with this project
 
 ### Read-Only
@@ -43,8 +45,24 @@ resource "ec_security_project" "my_project" {
 - `credentials` (Attributes) Basic auth credentials to access the Elasticsearch API. (see [below for nested schema](#nestedatt--credentials))
 - `endpoints` (Attributes) The endpoints to access the different apps of the project. (see [below for nested schema](#nestedatt--endpoints))
 - `id` (String) ID of the project.
-- `metadata` (Attributes) Additional details about the project. (see [below for nested schema](#nestedatt--metadata))
+- `private_endpoints` (Attributes) Private endpoints (URLs) for Security projects when PrivateLink is enabled. (see [below for nested schema](#nestedatt--private_endpoints))
 - `type` (String) the type of the project
+
+<a id="nestedatt--metadata"></a>
+### Nested Schema for `metadata`
+
+Optional:
+
+- `tags` (Map of String) Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+
+Read-Only:
+
+- `created_at` (String) Date and time when the project was created.
+- `created_by` (String) ID of the user.
+- `organization_id` (String) The Organization ID who owns the project.
+- `suspended_at` (String) Date and time when the project was suspended.
+- `suspended_reason` (String) Reason why the project was suspended.
+
 
 <a id="nestedatt--product_types"></a>
 ### Nested Schema for `product_types`
@@ -53,6 +71,23 @@ Required:
 
 - `product_line` (String) The identifier of the Security Solution product line.
 - `product_tier` (String) The identifier of the Security Solution product tier.
+
+
+<a id="nestedatt--search_lake"></a>
+### Nested Schema for `search_lake`
+
+Optional:
+
+- `data_retention` (Attributes) Configuration to control the data retention in Elasticsearch data streams. (see [below for nested schema](#nestedatt--search_lake--data_retention))
+
+<a id="nestedatt--search_lake--data_retention"></a>
+### Nested Schema for `search_lake.data_retention`
+
+Optional:
+
+- `default_retention_days` (Number) Default number of days during which data remains available in Elasticsearch data streams. Can be set to "null" for unlimited. A default of 396 will be applied if no value is specified on project creation.
+- `max_retention_days` (Number) Maximum number of days allowed for retaining data in Elasticsearch data streams. Can be set to "null" for unlimited. A default of 396 will be applied if no value is specified on project creation.
+
 
 
 <a id="nestedatt--credentials"></a>
@@ -74,16 +109,14 @@ Read-Only:
 - `kibana` (String) The endpoint to access kibana.
 
 
-<a id="nestedatt--metadata"></a>
-### Nested Schema for `metadata`
+<a id="nestedatt--private_endpoints"></a>
+### Nested Schema for `private_endpoints`
 
 Read-Only:
 
-- `created_at` (String) Date and time when the project was created.
-- `created_by` (String) ID of the user.
-- `organization_id` (String) The Organization ID who owns the project.
-- `suspended_at` (String) Date and time when the project was suspended.
-- `suspended_reason` (String) Reason why the project was suspended.
+- `elasticsearch` (String) The PrivateLink endpoint URL to access elasticsearch.
+- `ingest` (String) The PrivateLink endpoint URL to access the Managed OTLP Endpoint.
+- `kibana` (String) The PrivateLink endpoint URL to access kibana.
 
 ## Import
 

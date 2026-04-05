@@ -300,6 +300,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteTrafficFilterWithR
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteTrafficFilterWithResponse), varargs...)
 }
 
+// GetElasticsearchProjectCanDeleteWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetElasticsearchProjectCanDeleteWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectCanDeleteResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetElasticsearchProjectCanDeleteWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetElasticsearchProjectCanDeleteResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetElasticsearchProjectCanDeleteWithResponse indicates an expected call of GetElasticsearchProjectCanDeleteWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectCanDeleteWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectCanDeleteWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectCanDeleteWithResponse), varargs...)
+}
+
+// GetElasticsearchProjectLinkCandidatesWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetElasticsearchProjectLinkCandidatesWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.GetElasticsearchProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectLinkCandidatesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetElasticsearchProjectLinkCandidatesWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetElasticsearchProjectLinkCandidatesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetElasticsearchProjectLinkCandidatesWithResponse indicates an expected call of GetElasticsearchProjectLinkCandidatesWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectLinkCandidatesWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectLinkCandidatesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectLinkCandidatesWithResponse), varargs...)
+}
+
 // GetElasticsearchProjectRolesWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) GetElasticsearchProjectRolesWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectRolesResponse, error) {
 	m.ctrl.T.Helper()
@@ -358,6 +398,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectW
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectWithResponse), varargs...)
+}
+
+// GetObservabilityProjectCanDeleteWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetObservabilityProjectCanDeleteWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectCanDeleteResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetObservabilityProjectCanDeleteWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetObservabilityProjectCanDeleteResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetObservabilityProjectCanDeleteWithResponse indicates an expected call of GetObservabilityProjectCanDeleteWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectCanDeleteWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectCanDeleteWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetObservabilityProjectCanDeleteWithResponse), varargs...)
+}
+
+// GetObservabilityProjectLinkCandidatesWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetObservabilityProjectLinkCandidatesWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.GetObservabilityProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectLinkCandidatesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetObservabilityProjectLinkCandidatesWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetObservabilityProjectLinkCandidatesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetObservabilityProjectLinkCandidatesWithResponse indicates an expected call of GetObservabilityProjectLinkCandidatesWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectLinkCandidatesWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectLinkCandidatesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetObservabilityProjectLinkCandidatesWithResponse), varargs...)
 }
 
 // GetObservabilityProjectRolesWithResponse mocks base method.
@@ -438,6 +518,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetRegionWithResponse(ct
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRegionWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetRegionWithResponse), varargs...)
+}
+
+// GetSecurityProjectCanDeleteWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetSecurityProjectCanDeleteWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectCanDeleteResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetSecurityProjectCanDeleteWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetSecurityProjectCanDeleteResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecurityProjectCanDeleteWithResponse indicates an expected call of GetSecurityProjectCanDeleteWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectCanDeleteWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectCanDeleteWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetSecurityProjectCanDeleteWithResponse), varargs...)
+}
+
+// GetSecurityProjectLinkCandidatesWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetSecurityProjectLinkCandidatesWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.GetSecurityProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectLinkCandidatesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetSecurityProjectLinkCandidatesWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetSecurityProjectLinkCandidatesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecurityProjectLinkCandidatesWithResponse indicates an expected call of GetSecurityProjectLinkCandidatesWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetSecurityProjectLinkCandidatesWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectLinkCandidatesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetSecurityProjectLinkCandidatesWithResponse), varargs...)
 }
 
 // GetSecurityProjectRolesWithResponse mocks base method.
@@ -1204,6 +1324,46 @@ func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProject(ctx, id any, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProject), varargs...)
 }
 
+// GetElasticsearchProjectCanDelete mocks base method.
+func (m *MockClientInterface) GetElasticsearchProjectCanDelete(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetElasticsearchProjectCanDelete", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetElasticsearchProjectCanDelete indicates an expected call of GetElasticsearchProjectCanDelete.
+func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectCanDelete(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectCanDelete", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProjectCanDelete), varargs...)
+}
+
+// GetElasticsearchProjectLinkCandidates mocks base method.
+func (m *MockClientInterface) GetElasticsearchProjectLinkCandidates(ctx context.Context, id serverless.ProjectID, params *serverless.GetElasticsearchProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetElasticsearchProjectLinkCandidates", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetElasticsearchProjectLinkCandidates indicates an expected call of GetElasticsearchProjectLinkCandidates.
+func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectLinkCandidates(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectLinkCandidates", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProjectLinkCandidates), varargs...)
+}
+
 // GetElasticsearchProjectRoles mocks base method.
 func (m *MockClientInterface) GetElasticsearchProjectRoles(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -1262,6 +1422,46 @@ func (mr *MockClientInterfaceMockRecorder) GetObservabilityProject(ctx, id any, 
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProject), varargs...)
+}
+
+// GetObservabilityProjectCanDelete mocks base method.
+func (m *MockClientInterface) GetObservabilityProjectCanDelete(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetObservabilityProjectCanDelete", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetObservabilityProjectCanDelete indicates an expected call of GetObservabilityProjectCanDelete.
+func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectCanDelete(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectCanDelete", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProjectCanDelete), varargs...)
+}
+
+// GetObservabilityProjectLinkCandidates mocks base method.
+func (m *MockClientInterface) GetObservabilityProjectLinkCandidates(ctx context.Context, id serverless.ProjectID, params *serverless.GetObservabilityProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetObservabilityProjectLinkCandidates", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetObservabilityProjectLinkCandidates indicates an expected call of GetObservabilityProjectLinkCandidates.
+func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectLinkCandidates(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectLinkCandidates", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProjectLinkCandidates), varargs...)
 }
 
 // GetObservabilityProjectRoles mocks base method.
@@ -1342,6 +1542,46 @@ func (mr *MockClientInterfaceMockRecorder) GetSecurityProject(ctx, id any, reqEd
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProject), varargs...)
+}
+
+// GetSecurityProjectCanDelete mocks base method.
+func (m *MockClientInterface) GetSecurityProjectCanDelete(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetSecurityProjectCanDelete", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecurityProjectCanDelete indicates an expected call of GetSecurityProjectCanDelete.
+func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectCanDelete(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectCanDelete", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProjectCanDelete), varargs...)
+}
+
+// GetSecurityProjectLinkCandidates mocks base method.
+func (m *MockClientInterface) GetSecurityProjectLinkCandidates(ctx context.Context, id serverless.ProjectID, params *serverless.GetSecurityProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetSecurityProjectLinkCandidates", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecurityProjectLinkCandidates indicates an expected call of GetSecurityProjectLinkCandidates.
+func (mr *MockClientInterfaceMockRecorder) GetSecurityProjectLinkCandidates(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecurityProjectLinkCandidates", reflect.TypeOf((*MockClientInterface)(nil).GetSecurityProjectLinkCandidates), varargs...)
 }
 
 // GetSecurityProjectRoles mocks base method.
