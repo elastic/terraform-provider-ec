@@ -1,3 +1,16 @@
+# 0.12.5 (April 7, 2025)
+
+FEATURES:
+
+* resource/project: Add support for importing Serverless projects with `terraform import` ([#961](https://github.com/elastic/terraform-provider-ec/issues/961))
+* resource/project: Add support for managing Serverless project tags ([#983](https://github.com/elastic/terraform-provider-ec/issues/983))
+* resource/serverless_traffic_filter: Add serverless traffic filter resource and API endpoints for managing IP filters ([#978](https://github.com/elastic/terraform-provider-ec/issues/978))
+* resource/traffic_filter: Add support for `remote_cluster` traffic filter type with `remote_cluster_id` and `remote_cluster_org_id` attributes ([#965](https://github.com/elastic/terraform-provider-ec/issues/965))
+
+NOTES:
+
+* data-source/traffic_filter: The `source` and `description` fields in traffic filter rules now return `null` instead of an empty string when not set. Users who check for empty strings (e.g., `source == ""`) should update their configurations to check for `null` instead (e.g., `source == null`). ([#965](https://github.com/elastic/terraform-provider-ec/issues/965))
+
 # 0.12.4 (December 19, 2024)
 
 BUG FIXES:
