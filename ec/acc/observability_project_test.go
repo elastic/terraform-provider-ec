@@ -26,6 +26,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -157,6 +158,27 @@ func TestAcc_ObservabilityProject_MetadataTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
 				),
 			},
+			{
+				Config: testAccObservabilityProjectWithMetadataTagTeam(resId, randomName, region, "platform"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_team", "platform"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
+				),
+			},
+			{
+				Config: testAccObservabilityProjectWithEmptyMetadataTags(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckNoResourceAttr(resourceName, "metadata.tags.acc_team"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "0"),
+				),
+			},
 		},
 	})
 }
@@ -187,6 +209,18 @@ resource ec_observability_project "%s" {
 	}
 }
 `, id, name, region, team)
+}
+
+func testAccObservabilityProjectWithEmptyMetadataTags(id, name, region string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {}
+	}
+}
+`, id, name, region)
 }
 
 func TestAcc_ObservabilityProjectTier(t *testing.T) {

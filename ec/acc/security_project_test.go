@@ -190,6 +190,27 @@ func TestAcc_SecurityProject_MetadataTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
 				),
 			},
+			{
+				Config: testAccSecurityProjectWithMetadataTagTeam(resId, randomName, region, "platform"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_team", "platform"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
+				),
+			},
+			{
+				Config: testAccSecurityProjectWithEmptyMetadataTags(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckNoResourceAttr(resourceName, "metadata.tags.acc_team"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "0"),
+				),
+			},
 		},
 	})
 }
@@ -220,6 +241,18 @@ resource ec_security_project "%s" {
 	}
 }
 `, id, name, region, team)
+}
+
+func testAccSecurityProjectWithEmptyMetadataTags(id, name, region string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {}
+	}
+}
+`, id, name, region)
 }
 
 func testAccSecurityProjectWithAdminFeaturesAndProductTypes(id string, name string, region string, adminPackage string) string {
