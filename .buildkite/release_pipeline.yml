@@ -3,5 +3,6 @@ steps:
     command: .buildkite/release.sh
     agents:
       image: "docker.io/library/golang:1.26"
-      cpu: "8"
-      memory: "4G"
+      cpu: "16"
+      memory: "24G"
+      ephemeralStorage: "40G"
