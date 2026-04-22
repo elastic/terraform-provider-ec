@@ -1911,3 +1911,37 @@ func Test_PersistSnapshotSource(t *testing.T) {
 		})
 	}
 }
+
+func Test_readEncryptionKeyPath(t *testing.T) {
+	tests := []struct {
+		name     string
+		settings *models.DeploymentSettings
+		want     *string
+	}{
+		{
+			name:     "nil settings returns nil",
+			settings: nil,
+			want:     nil,
+		},
+		{
+			name:     "settings without byok returns nil",
+			settings: &models.DeploymentSettings{},
+			want:     nil,
+		},
+		{
+			name: "settings with byok returns key resource path",
+			settings: &models.DeploymentSettings{
+				Byok: &models.ByokSettings{
+					KeyResourcePath: ec.String("arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000"),
+				},
+			},
+			want: ec.String("arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := readEncryptionKeyPath(tt.settings)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

@@ -67,6 +67,7 @@ type Deployment struct {
 	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
 	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
 	MigrateToLatestHardware    *bool                                    `tfsdk:"migrate_to_latest_hardware"`
+	EncryptionKeyPath          *string                                  `tfsdk:"encryption_key_path"`
 }
 
 func (dep *Deployment) PersistSnapshotSource(ctx context.Context, esPlan *elasticsearchv2.ElasticsearchTF) diag.Diagnostics {
@@ -258,9 +259,18 @@ func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteRes
 		return nil, err
 	}
 
+	dep.EncryptionKeyPath = readEncryptionKeyPath(res.Settings)
+
 	dep.parseCredentials(deploymentResources)
 
 	return &dep, nil
+}
+
+func readEncryptionKeyPath(in *models.DeploymentSettings) *string {
+	if in == nil || in.Byok == nil || in.Byok.KeyResourcePath == nil {
+		return nil
+	}
+	return in.Byok.KeyResourcePath
 }
 
 func readTrafficFilters(in *models.DeploymentSettings) ([]string, error) {

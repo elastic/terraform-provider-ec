@@ -138,6 +138,15 @@ func DeploymentSchema() schema.Schema {
 ~> **Note** Hardware migrations are not supported for deployments with node types. To use this field, the deployment needs to be migrated to node roles first.`,
 				Optional: true,
 			},
+			"encryption_key_path": schema.StringAttribute{
+				Description: `Customer-managed encryption key resource path for data-at-rest encryption (e.g. arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000). Not supported on ECE.
+
+~> **Note** Changing this value after deployment creation will force a new deployment to be created.`,
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
 			"kibana":              kibanav2.KibanaSchema(),
 			"apm":                 apmv2.ApmSchema(),
