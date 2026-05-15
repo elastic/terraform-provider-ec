@@ -25,7 +25,9 @@ jobs:
           cache: true
 
       - name: Download Go modules
-        run: go mod download
+        run: |
+          go mod download
+          go mod tidy
 
       - name: Regenerate NOTICE
         run: make notice
