@@ -374,8 +374,8 @@ github.com/dprotaso/go-yit v0.0.0-20250513223454-5ece0c5aa76c h1:EMwsP/vaHQDLhAX
 github.com/dprotaso/go-yit v0.0.0-20250513223454-5ece0c5aa76c/go.mod h1:lHwJo6jMevQL9tNpW6vLyhkK13bYHBcoh9tUakMhbnE=
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
-github.com/elastic/cloud-sdk-go v1.24.2 h1:fcxsTBmVwwrdoK2Gb146te8+4Pm+NQTsaDbedCNeJBs=
-github.com/elastic/cloud-sdk-go v1.24.2/go.mod h1:pvE/y2hboD2yGzpJnBc4ZhfazYJF/V2qdhXzXeU2hDs=
+github.com/elastic/cloud-sdk-go v1.25.0 h1:qvhuqxhhPY4fBm5lTCt6rWfM1xwJhZclvxKv0e0P594=
+github.com/elastic/cloud-sdk-go v1.25.0/go.mod h1:pvE/y2hboD2yGzpJnBc4ZhfazYJF/V2qdhXzXeU2hDs=
 github.com/elastic/go-licenser v0.4.2 h1:bPbGm8bUd8rxzSswFOqvQh1dAkKGkgAmrPxbUi+Y9+A=
 github.com/elastic/go-licenser v0.4.2/go.mod h1:W8eH6FaZDR8fQGm+7FnVa7MxI1b/6dAqxz+zPB8nm5c=
 github.com/elazarl/goproxy v1.7.2 h1:Y2o6urb7Eule09PjlhQRGNsqRfPmYI3KKQLFpCAV3+o=
