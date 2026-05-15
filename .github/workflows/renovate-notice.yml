@@ -1,0 +1,43 @@
+name: Update NOTICE for Renovate PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  update-notice:
+    name: Update NOTICE
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'elastic-renovate-prod[bot]'
+    permissions:
+      contents: write
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Download Go modules
+        run: go mod download
+
+      - name: Regenerate NOTICE
+        run: make notice
+
+      - name: Commit updated NOTICE if changed
+        run: |
+          if git diff --quiet NOTICE; then
+            echo "NOTICE is up-to-date, nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add NOTICE
+          git commit -m "Update NOTICE for dependency changes"
+          git push
