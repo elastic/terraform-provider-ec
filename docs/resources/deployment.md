@@ -323,7 +323,7 @@ EOF
 
 - `alias` (String) Deployment alias, affects the format of the resource URLs. Set to an empty value ("") to disable the alias.
 - `apm` (Attributes) **DEPRECATED** APM cluster definition. This should only be used for deployments running a version lower than 8.0 (see [below for nested schema](#nestedatt--apm))
-- `encryption_key_path` (String) Customer-managed encryption key resource path for data-at-rest encryption (e.g. arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000). Not supported on ECE.
+- `encryption_key_path` (String) Customer-managed encryption key resource path for data-at-rest encryption. Both key ARNs (arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000) and alias ARNs (arn:aws:kms:us-east-1:123456789:alias/my-key-alias) are supported. Not supported on ECE.
 
 ~> **Note** Changing this value after deployment creation will force a new deployment to be created.
 - `enterprise_search` (Attributes) Enterprise Search cluster definition. (see [below for nested schema](#nestedatt--enterprise_search))

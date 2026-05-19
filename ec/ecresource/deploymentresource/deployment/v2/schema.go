@@ -139,7 +139,7 @@ func DeploymentSchema() schema.Schema {
 				Optional: true,
 			},
 			"encryption_key_path": schema.StringAttribute{
-				Description: `Customer-managed encryption key resource path for data-at-rest encryption (e.g. arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000). Not supported on ECE.
+				Description: `Customer-managed encryption key resource path for data-at-rest encryption. Both key ARNs (arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000) and alias ARNs (arn:aws:kms:us-east-1:123456789:alias/my-key-alias) are supported. Not supported on ECE.
 
 ~> **Note** Changing this value after deployment creation will force a new deployment to be created.`,
 				Optional: true,
