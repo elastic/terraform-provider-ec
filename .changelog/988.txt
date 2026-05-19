@@ -1,0 +1,3 @@
+```release-note:feature
+resource/ec_deployment: Add `encryption_key_path` attribute for customer-managed encryption key (BYOK) support
+```
