@@ -57,6 +57,7 @@ type DeploymentTF struct {
 	Observability              types.Object `tfsdk:"observability"`
 	ResetElasticsearchPassword types.Bool   `tfsdk:"reset_elasticsearch_password"`
 	MigrateToLatestHardware    types.Bool   `tfsdk:"migrate_to_latest_hardware"`
+	EncryptionKeyPath          types.String `tfsdk:"encryption_key_path"`
 }
 
 func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*models.DeploymentCreateRequest, diag.Diagnostics) {
@@ -171,6 +172,13 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 	}
 
 	result.Settings.Observability = observabilityPayload
+
+	if !dep.EncryptionKeyPath.IsNull() && !dep.EncryptionKeyPath.IsUnknown() {
+		keyResourcePath := dep.EncryptionKeyPath.ValueString()
+		result.Settings.Byok = &models.ByokSettings{
+			KeyResourcePath: &keyResourcePath,
+		}
+	}
 
 	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, dep.Tags)
 
