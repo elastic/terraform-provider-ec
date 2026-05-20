@@ -1,3 +1,9 @@
+# 0.13.0 (May 20, 2026)
+
+FEATURES:
+
+* resource/ec_deployment: Add `encryption_key_path` attribute for customer-managed encryption key (BYOK) support ([#988](https://github.com/elastic/terraform-provider-ec/issues/988))
+
 # 0.12.5 (April 7, 2025)
 
 FEATURES:
