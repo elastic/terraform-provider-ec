@@ -18483,10 +18483,10 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 
 Dependency : github.com/bmatcuk/doublestar/v4
-Version: v4.9.1
+Version: v4.10.0
 Licence type (autodetected): MIT
 
-Contents of probable licence file $GOMODCACHE/github.com/bmatcuk/doublestar/v4@v4.9.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/bmatcuk/doublestar/v4@v4.10.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -37337,10 +37337,10 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
 --------------------------------------------------------------------------------
 
 Dependency : github.com/hashicorp/go-changelog
-Version: v0.0.0-20260313085444-0239a8aa07df
+Version: v0.0.0-20260420140951-a47758c56a59
 Licence type (autodetected): MPL-2.0
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-changelog@v0.0.0-20260313085444-0239a8aa07df/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-changelog@v0.0.0-20260420140951-a47758c56a59/LICENSE:
 
 Copyright IBM Corp. 2020, 2025
 
@@ -44461,12 +44461,12 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 --------------------------------------------------------------------------------
 
 Dependency : github.com/hashicorp/terraform-json
-Version: v0.27.2
+Version: v0.27.3-0.20260213134036-298b8f6b673a
 Licence type (autodetected): MPL-2.0
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/terraform-json@v0.27.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/terraform-json@v0.27.3-0.20260213134036-298b8f6b673a/LICENSE:
 
-Copyright (c) 2019 HashiCorp, Inc.
+Copyright IBM Corp. 2019, 2026
 
 Mozilla Public License Version 2.0
 ==================================
@@ -45231,12 +45231,12 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 --------------------------------------------------------------------------------
 
 Dependency : github.com/hashicorp/terraform-plugin-docs
-Version: v0.24.0
+Version: v0.25.0
 Licence type (autodetected): MPL-2.0
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/terraform-plugin-docs@v0.24.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/terraform-plugin-docs@v0.25.0/LICENSE:
 
-Copyright (c) 2020 HashiCorp, Inc.
+Copyright IBM Corp. 2020, 2026
 
 Mozilla Public License Version 2.0
 ==================================
