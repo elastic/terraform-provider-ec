@@ -39,6 +39,8 @@ func TestAccDeployment_failed_upgrade_retry(t *testing.T) {
 			{
 				Config: fixtureDeploymentDefaults(t, "testdata/deployment_upgrade_retry_1.tf"),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resName, "tags.monitor", "false"),
 					readEsCredentials(t, &esCreds),
 					checkMajorMinorVersion(t, resName, 7, 10),
 				),
@@ -49,6 +51,8 @@ func TestAccDeployment_failed_upgrade_retry(t *testing.T) {
 				Config:      fixtureDeploymentDefaults(t, "testdata/deployment_upgrade_retry_2.tf"),
 				ExpectError: regexp.MustCompile(`\[kibana\].*Plan[ |\t|\n]+change[ |\t|\n]+failed.*`),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resName, "tags.monitor", "false"),
 					checkMajorMinorVersion(t, resName, 7, 10),
 				),
 			},
@@ -57,6 +61,8 @@ func TestAccDeployment_failed_upgrade_retry(t *testing.T) {
 				PreConfig: deleteIndex(t, &esCreds, ".kibana_2"),
 				Config:    fixtureDeploymentDefaults(t, "testdata/deployment_upgrade_retry_2.tf"),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resName, "tags.monitor", "false"),
 					checkMajorMinorVersion(t, resName, 7, 11),
 				),
 			},
