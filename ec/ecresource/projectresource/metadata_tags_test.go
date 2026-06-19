@@ -27,6 +27,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func strPtr(s string) *string { return &s }
+
 func TestOptionalMetadataForTagPatch_emptyPlanWithPriorTagsSendsNullRemovals(t *testing.T) {
 	ctx := context.Background()
 	planTags, _ := types.MapValue(types.StringType, map[string]attr.Value{})
@@ -36,10 +38,8 @@ func TestOptionalMetadataForTagPatch_emptyPlanWithPriorTagsSendsNullRemovals(t *
 	om, diags := optionalMetadataForTagPatch(ctx, planTags, stateTags)
 	require.False(t, diags.HasError())
 	require.NotNil(t, om)
-	tags, ok := (*om)["tags"].(map[string]interface{})
-	require.True(t, ok)
-	require.Contains(t, tags, "k")
-	require.Nil(t, tags["k"])
+	require.Contains(t, om.Tags, "k")
+	require.Nil(t, om.Tags["k"])
 }
 
 func TestOptionalMetadataForTagPatch_bothEmptyNoPatch(t *testing.T) {
@@ -62,9 +62,8 @@ func TestOptionalMetadataForTagPatch_removedKeysAreJSONNull(t *testing.T) {
 	om, diags := optionalMetadataForTagPatch(ctx, planTags, stateTags)
 	require.False(t, diags.HasError())
 	require.NotNil(t, om)
-	tags, ok := (*om)["tags"].(map[string]interface{})
-	require.True(t, ok)
-	require.Equal(t, "platform", tags["acc_team"])
-	require.Contains(t, tags, "acc_test")
-	require.Nil(t, tags["acc_test"])
+	require.NotNil(t, om.Tags["acc_team"])
+	require.Equal(t, "platform", *om.Tags["acc_team"])
+	require.Contains(t, om.Tags, "acc_test")
+	require.Nil(t, om.Tags["acc_test"])
 }

@@ -219,6 +219,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 						"organization_id":  basetypes.NewStringValue("org_id"),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringValue("suspension_reason"),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagsEmpty,
 					},
 				)
@@ -534,6 +535,7 @@ func TestSecurityApi_Create(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagMap,
 					},
 				)
@@ -742,6 +744,7 @@ func TestSecurityApi_Patch(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagMap,
 					},
 				)
@@ -754,13 +757,15 @@ func TestSecurityApi_Patch(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagsEmpty,
 					},
 				)
 
+				val := "security"
 				meta := serverless.OptionalMetadata{
-					"tags": map[string]interface{}{
-						"cost_center": "security",
+					Tags: serverless.ProjectPatchTags{
+						"cost_center": &val,
 					},
 				}
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -829,7 +834,7 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
 							return &serverless.GetSecurityProjectStatusResponse{
-								JSON200: &serverless.ProjectStatus{Phase: serverless.Initializing},
+								JSON200: &serverless.ProjectStatus{Phase: serverless.ProjectStatusPhaseInitializing},
 							}, nil
 						}
 
@@ -868,7 +873,7 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
 							return &serverless.GetSecurityProjectStatusResponse{
-								JSON200: &serverless.ProjectStatus{Phase: serverless.Initializing},
+								JSON200: &serverless.ProjectStatus{Phase: serverless.ProjectStatusPhaseInitializing},
 							}, nil
 						}
 
@@ -903,11 +908,11 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
 				mockApiClient.EXPECT().GetSecurityProjectStatusWithResponse(ctx, model.Id.ValueString()).DoAndReturn(
 					func(_ context.Context, id string, _ ...serverless.RequestEditorFn) (*serverless.GetSecurityProjectStatusResponse, error) {
-						phase := serverless.Initialized
+						phase := serverless.ProjectStatusPhaseInitialized
 
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
-							phase = serverless.Initializing
+							phase = serverless.ProjectStatusPhaseInitializing
 						}
 
 						return &serverless.GetSecurityProjectStatusResponse{
@@ -1101,6 +1106,7 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1180,6 +1186,7 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringValue(now.String()),
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1287,6 +1294,7 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1390,6 +1398,7 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1472,6 +1481,7 @@ func TestSecurityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsFromAPI,
 						},
 					),

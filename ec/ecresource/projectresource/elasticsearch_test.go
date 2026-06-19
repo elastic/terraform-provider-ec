@@ -191,6 +191,7 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 						"organization_id":  basetypes.NewStringValue("org_id"),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringValue("suspension_reason"),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagsEmpty,
 					},
 				)
@@ -518,6 +519,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagMap,
 					},
 				)
@@ -738,6 +740,7 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagMap,
 					},
 				)
@@ -750,13 +753,15 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
+						"system_tags": types.MapNull(types.StringType),
 						"tags":             tagsEmpty,
 					},
 				)
 
+				val := "eng"
 				meta := serverless.OptionalMetadata{
-					"tags": map[string]interface{}{
-						"cost_center": "eng",
+					Tags: serverless.ProjectPatchTags{
+						"cost_center": &val,
 					},
 				}
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -829,7 +834,7 @@ func TestElasticsearchApi_EnsureInitialised(t *testing.T) {
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
 							return &serverless.GetElasticsearchProjectStatusResponse{
-								JSON200: &serverless.ProjectStatus{Phase: serverless.Initializing},
+								JSON200: &serverless.ProjectStatus{Phase: serverless.ProjectStatusPhaseInitializing},
 							}, nil
 						}
 
@@ -868,7 +873,7 @@ func TestElasticsearchApi_EnsureInitialised(t *testing.T) {
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
 							return &serverless.GetElasticsearchProjectStatusResponse{
-								JSON200: &serverless.ProjectStatus{Phase: serverless.Initializing},
+								JSON200: &serverless.ProjectStatus{Phase: serverless.ProjectStatusPhaseInitializing},
 							}, nil
 						}
 
@@ -903,11 +908,11 @@ func TestElasticsearchApi_EnsureInitialised(t *testing.T) {
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
 				mockApiClient.EXPECT().GetElasticsearchProjectStatusWithResponse(ctx, model.Id.ValueString()).DoAndReturn(
 					func(_ context.Context, id string, _ ...serverless.RequestEditorFn) (*serverless.GetElasticsearchProjectStatusResponse, error) {
-						phase := serverless.Initialized
+						phase := serverless.ProjectStatusPhaseInitialized
 
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
-							phase = serverless.Initializing
+							phase = serverless.ProjectStatusPhaseInitializing
 						}
 
 						return &serverless.GetElasticsearchProjectStatusResponse{
@@ -1086,6 +1091,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1173,6 +1179,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringValue(now.String()),
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1257,6 +1264,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
+							"system_tags": types.MapNull(types.StringType),
 							"tags":             tagsFromAPI,
 						},
 					),

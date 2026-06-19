@@ -261,6 +261,102 @@ func TestAcc_ElasticsearchProjectImport(t *testing.T) {
 	})
 }
 
+func TestAcc_ElasticsearchProject_LinkedProjects(t *testing.T) {
+	originID := "origin"
+	targetID := "target"
+	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", originID)
+	targetResourceName := fmt.Sprintf("ec_observability_project.%s", targetID)
+	originName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	targetName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccElasticsearchProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetID, targetName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", originName),
+					resource.TestCheckResourceAttrSet(resourceName, "linked.projects.%"),
+					testCheckLinkedProject(resourceName, targetResourceName, "observability"),
+				),
+			},
+			{
+				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetID, targetName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", originName),
+					testCheckLinkedProject(resourceName, targetResourceName, "observability"),
+				),
+			},
+		},
+	})
+}
+
+func testAccElasticsearchProjectWithLinkedObservability(esID, esName, region, targetID, targetName string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+
+	linked = {
+		projects = {
+			"${ec_observability_project.%s.id}" = {
+				type = "observability"
+			}
+		}
+	}
+}
+`, targetID, targetName, region, esID, esName, region, targetID)
+}
+
+func testCheckLinkedProject(resourceName, targetResourceName, targetType string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[targetResourceName]
+		if !ok {
+			return fmt.Errorf("target resource not found: %s", targetResourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("target resource has no ID: %s", targetResourceName)
+		}
+
+		origin, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource not found: %s", resourceName)
+		}
+
+		typeKey := fmt.Sprintf("linked.projects.%s.type", rs.Primary.ID)
+		statusKey := fmt.Sprintf("linked.projects.%s.status", rs.Primary.ID)
+		countKey := "linked.projects.%"
+
+		if got := origin.Primary.Attributes[countKey]; got != "1" {
+			return fmt.Errorf("expected 1 linked project, got %s", got)
+		}
+		if got := origin.Primary.Attributes[typeKey]; got != targetType {
+			return fmt.Errorf("expected linked project type %q, got %q", targetType, got)
+		}
+		if got := origin.Primary.Attributes[statusKey]; got == "" {
+			return fmt.Errorf("linked project status not set")
+		}
+
+		return nil
+	}
+}
+
 func testAccElasticsearchProjectDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
 	client, err := newServerlessAPI()
