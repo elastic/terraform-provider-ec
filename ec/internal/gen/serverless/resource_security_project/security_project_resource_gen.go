@@ -134,6 +134,53 @@ func SecurityProjectResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"linked": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"projects": schema.MapNestedAttribute{
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"status": schema.StringAttribute{
+									Computed:            true,
+									Description:         "The state of the linked project.",
+									MarkdownDescription: "The state of the linked project.",
+								},
+								"type": schema.StringAttribute{
+									Required:            true,
+									Description:         "The type of the linked project",
+									MarkdownDescription: "The type of the linked project",
+									Validators: []validator.String{
+										stringvalidator.OneOf(
+											"elasticsearch",
+											"observability",
+											"security",
+											"workplaceai",
+											"vectordb",
+										),
+									},
+								},
+							},
+							CustomType: ProjectsType{
+								ObjectType: types.ObjectType{
+									AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+								},
+							},
+						},
+						Required: true,
+						Validators: []validator.Map{
+							mapvalidator.SizeAtLeast(1),
+						},
+					},
+				},
+				CustomType: LinkedType{
+					ObjectType: types.ObjectType{
+						AttrTypes: LinkedValue{}.AttributeTypes(ctx),
+					},
+				},
+				Optional:            true,
+				Computed:            true,
+				Description:         "Configuration for linked projects associated with this project",
+				MarkdownDescription: "Configuration for linked projects associated with this project",
+			},
 			"metadata": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"created_at": schema.StringAttribute{
@@ -161,11 +208,17 @@ func SecurityProjectResourceSchema(ctx context.Context) schema.Schema {
 						Description:         "Reason why the project was suspended.",
 						MarkdownDescription: "Reason why the project was suspended.",
 					},
+					"system_tags": schema.MapAttribute{
+						ElementType:         types.StringType,
+						Computed:            true,
+						Description:         "System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags.",
+						MarkdownDescription: "System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags.",
+					},
 					"tags": schema.MapAttribute{
 						ElementType:         types.StringType,
 						Required:            true,
-						Description:         "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
-						MarkdownDescription: "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+						Description:         "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.",
+						MarkdownDescription: "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.",
 						Validators: []validator.Map{
 							mapvalidator.SizeBetween(1, 64),
 						},
@@ -330,6 +383,7 @@ type SecurityProjectModel struct {
 	Credentials          CredentialsValue      `tfsdk:"credentials"`
 	Endpoints            EndpointsValue        `tfsdk:"endpoints"`
 	Id                   types.String          `tfsdk:"id"`
+	Linked               LinkedValue           `tfsdk:"linked"`
 	Metadata             MetadataValue         `tfsdk:"metadata"`
 	Name                 types.String          `tfsdk:"name"`
 	PrivateEndpoints     PrivateEndpointsValue `tfsdk:"private_endpoints"`
@@ -1153,6 +1207,744 @@ func (v EndpointsValue) AttributeTypes(ctx context.Context) map[string]attr.Type
 	}
 }
 
+var _ basetypes.ObjectTypable = LinkedType{}
+
+type LinkedType struct {
+	basetypes.ObjectType
+}
+
+func (t LinkedType) Equal(o attr.Type) bool {
+	other, ok := o.(LinkedType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t LinkedType) String() string {
+	return "LinkedType"
+}
+
+func (t LinkedType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	projectsAttribute, ok := attributes["projects"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`projects is missing from object`)
+
+		return nil, diags
+	}
+
+	projectsVal, ok := projectsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`projects expected to be basetypes.MapValue, was: %T`, projectsAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return LinkedValue{
+		Projects: projectsVal,
+		state:    attr.ValueStateKnown,
+	}, diags
+}
+
+func NewLinkedValueNull() LinkedValue {
+	return LinkedValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewLinkedValueUnknown() LinkedValue {
+	return LinkedValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewLinkedValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (LinkedValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing LinkedValue Attribute Value",
+				"While creating a LinkedValue value, a missing attribute value was detected. "+
+					"A LinkedValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("LinkedValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid LinkedValue Attribute Type",
+				"While creating a LinkedValue value, an invalid attribute value was detected. "+
+					"A LinkedValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("LinkedValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("LinkedValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra LinkedValue Attribute Value",
+				"While creating a LinkedValue value, an extra attribute value was detected. "+
+					"A LinkedValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra LinkedValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewLinkedValueUnknown(), diags
+	}
+
+	projectsAttribute, ok := attributes["projects"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`projects is missing from object`)
+
+		return NewLinkedValueUnknown(), diags
+	}
+
+	projectsVal, ok := projectsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`projects expected to be basetypes.MapValue, was: %T`, projectsAttribute))
+	}
+
+	if diags.HasError() {
+		return NewLinkedValueUnknown(), diags
+	}
+
+	return LinkedValue{
+		Projects: projectsVal,
+		state:    attr.ValueStateKnown,
+	}, diags
+}
+
+func NewLinkedValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) LinkedValue {
+	object, diags := NewLinkedValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewLinkedValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t LinkedType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewLinkedValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewLinkedValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewLinkedValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewLinkedValueMust(LinkedValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t LinkedType) ValueType(ctx context.Context) attr.Value {
+	return LinkedValue{}
+}
+
+var _ basetypes.ObjectValuable = LinkedValue{}
+
+type LinkedValue struct {
+	Projects basetypes.MapValue `tfsdk:"projects"`
+	state    attr.ValueState
+}
+
+func (v LinkedValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["projects"] = basetypes.MapType{
+		ElemType: ProjectsValue{}.Type(ctx),
+	}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.Projects.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["projects"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v LinkedValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v LinkedValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v LinkedValue) String() string {
+	return "LinkedValue"
+}
+
+func (v LinkedValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	projects := types.MapValueMust(
+		ProjectsType{
+			basetypes.ObjectType{
+				AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+			},
+		},
+		v.Projects.Elements(),
+	)
+
+	if v.Projects.IsNull() {
+		projects = types.MapNull(
+			ProjectsType{
+				basetypes.ObjectType{
+					AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	if v.Projects.IsUnknown() {
+		projects = types.MapUnknown(
+			ProjectsType{
+				basetypes.ObjectType{
+					AttrTypes: ProjectsValue{}.AttributeTypes(ctx),
+				},
+			},
+		)
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"projects": basetypes.MapType{
+			ElemType: ProjectsValue{}.Type(ctx),
+		},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"projects": projects,
+		})
+
+	return objVal, diags
+}
+
+func (v LinkedValue) Equal(o attr.Value) bool {
+	other, ok := o.(LinkedValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Projects.Equal(other.Projects) {
+		return false
+	}
+
+	return true
+}
+
+func (v LinkedValue) Type(ctx context.Context) attr.Type {
+	return LinkedType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v LinkedValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"projects": basetypes.MapType{
+			ElemType: ProjectsValue{}.Type(ctx),
+		},
+	}
+}
+
+var _ basetypes.ObjectTypable = ProjectsType{}
+
+type ProjectsType struct {
+	basetypes.ObjectType
+}
+
+func (t ProjectsType) Equal(o attr.Type) bool {
+	other, ok := o.(ProjectsType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t ProjectsType) String() string {
+	return "ProjectsType"
+}
+
+func (t ProjectsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	statusAttribute, ok := attributes["status"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`status is missing from object`)
+
+		return nil, diags
+	}
+
+	statusVal, ok := statusAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`status expected to be basetypes.StringValue, was: %T`, statusAttribute))
+	}
+
+	typeAttribute, ok := attributes["type"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`type is missing from object`)
+
+		return nil, diags
+	}
+
+	typeVal, ok := typeAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`type expected to be basetypes.StringValue, was: %T`, typeAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return ProjectsValue{
+		Status:       statusVal,
+		ProjectsType: typeVal,
+		state:        attr.ValueStateKnown,
+	}, diags
+}
+
+func NewProjectsValueNull() ProjectsValue {
+	return ProjectsValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewProjectsValueUnknown() ProjectsValue {
+	return ProjectsValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewProjectsValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (ProjectsValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing ProjectsValue Attribute Value",
+				"While creating a ProjectsValue value, a missing attribute value was detected. "+
+					"A ProjectsValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("ProjectsValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid ProjectsValue Attribute Type",
+				"While creating a ProjectsValue value, an invalid attribute value was detected. "+
+					"A ProjectsValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("ProjectsValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("ProjectsValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra ProjectsValue Attribute Value",
+				"While creating a ProjectsValue value, an extra attribute value was detected. "+
+					"A ProjectsValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra ProjectsValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewProjectsValueUnknown(), diags
+	}
+
+	statusAttribute, ok := attributes["status"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`status is missing from object`)
+
+		return NewProjectsValueUnknown(), diags
+	}
+
+	statusVal, ok := statusAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`status expected to be basetypes.StringValue, was: %T`, statusAttribute))
+	}
+
+	typeAttribute, ok := attributes["type"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`type is missing from object`)
+
+		return NewProjectsValueUnknown(), diags
+	}
+
+	typeVal, ok := typeAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`type expected to be basetypes.StringValue, was: %T`, typeAttribute))
+	}
+
+	if diags.HasError() {
+		return NewProjectsValueUnknown(), diags
+	}
+
+	return ProjectsValue{
+		Status:       statusVal,
+		ProjectsType: typeVal,
+		state:        attr.ValueStateKnown,
+	}, diags
+}
+
+func NewProjectsValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) ProjectsValue {
+	object, diags := NewProjectsValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewProjectsValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t ProjectsType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewProjectsValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewProjectsValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewProjectsValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewProjectsValueMust(ProjectsValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t ProjectsType) ValueType(ctx context.Context) attr.Value {
+	return ProjectsValue{}
+}
+
+var _ basetypes.ObjectValuable = ProjectsValue{}
+
+type ProjectsValue struct {
+	Status       basetypes.StringValue `tfsdk:"status"`
+	ProjectsType basetypes.StringValue `tfsdk:"type"`
+	state        attr.ValueState
+}
+
+func (v ProjectsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 2)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["status"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["type"] = basetypes.StringType{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 2)
+
+		val, err = v.Status.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["status"] = val
+
+		val, err = v.ProjectsType.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["type"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v ProjectsValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v ProjectsValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v ProjectsValue) String() string {
+	return "ProjectsValue"
+}
+
+func (v ProjectsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"status": basetypes.StringType{},
+		"type":   basetypes.StringType{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"status": v.Status,
+			"type":   v.ProjectsType,
+		})
+
+	return objVal, diags
+}
+
+func (v ProjectsValue) Equal(o attr.Value) bool {
+	other, ok := o.(ProjectsValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Status.Equal(other.Status) {
+		return false
+	}
+
+	if !v.ProjectsType.Equal(other.ProjectsType) {
+		return false
+	}
+
+	return true
+}
+
+func (v ProjectsValue) Type(ctx context.Context) attr.Type {
+	return ProjectsType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v ProjectsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"status": basetypes.StringType{},
+		"type":   basetypes.StringType{},
+	}
+}
+
 var _ basetypes.ObjectTypable = MetadataType{}
 
 type MetadataType struct {
@@ -1268,6 +2060,24 @@ func (t MetadataType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 			fmt.Sprintf(`suspended_reason expected to be basetypes.StringValue, was: %T`, suspendedReasonAttribute))
 	}
 
+	systemTagsAttribute, ok := attributes["system_tags"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`system_tags is missing from object`)
+
+		return nil, diags
+	}
+
+	systemTagsVal, ok := systemTagsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`system_tags expected to be basetypes.MapValue, was: %T`, systemTagsAttribute))
+	}
+
 	tagsAttribute, ok := attributes["tags"]
 
 	if !ok {
@@ -1296,6 +2106,7 @@ func (t MetadataType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 		OrganizationId:  organizationIdVal,
 		SuspendedAt:     suspendedAtVal,
 		SuspendedReason: suspendedReasonVal,
+		SystemTags:      systemTagsVal,
 		Tags:            tagsVal,
 		state:           attr.ValueStateKnown,
 	}, diags
@@ -1454,6 +2265,24 @@ func NewMetadataValue(attributeTypes map[string]attr.Type, attributes map[string
 			fmt.Sprintf(`suspended_reason expected to be basetypes.StringValue, was: %T`, suspendedReasonAttribute))
 	}
 
+	systemTagsAttribute, ok := attributes["system_tags"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`system_tags is missing from object`)
+
+		return NewMetadataValueUnknown(), diags
+	}
+
+	systemTagsVal, ok := systemTagsAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`system_tags expected to be basetypes.MapValue, was: %T`, systemTagsAttribute))
+	}
+
 	tagsAttribute, ok := attributes["tags"]
 
 	if !ok {
@@ -1482,6 +2311,7 @@ func NewMetadataValue(attributeTypes map[string]attr.Type, attributes map[string
 		OrganizationId:  organizationIdVal,
 		SuspendedAt:     suspendedAtVal,
 		SuspendedReason: suspendedReasonVal,
+		SystemTags:      systemTagsVal,
 		Tags:            tagsVal,
 		state:           attr.ValueStateKnown,
 	}, diags
@@ -1560,12 +2390,13 @@ type MetadataValue struct {
 	OrganizationId  basetypes.StringValue `tfsdk:"organization_id"`
 	SuspendedAt     basetypes.StringValue `tfsdk:"suspended_at"`
 	SuspendedReason basetypes.StringValue `tfsdk:"suspended_reason"`
+	SystemTags      basetypes.MapValue    `tfsdk:"system_tags"`
 	Tags            basetypes.MapValue    `tfsdk:"tags"`
 	state           attr.ValueState
 }
 
 func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 6)
+	attrTypes := make(map[string]tftypes.Type, 7)
 
 	var val tftypes.Value
 	var err error
@@ -1575,6 +2406,9 @@ func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 	attrTypes["organization_id"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["suspended_at"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["suspended_reason"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["system_tags"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 	attrTypes["tags"] = basetypes.MapType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
@@ -1583,7 +2417,7 @@ func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 6)
+		vals := make(map[string]tftypes.Value, 7)
 
 		val, err = v.CreatedAt.ToTerraformValue(ctx)
 
@@ -1625,6 +2459,14 @@ func (v MetadataValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 
 		vals["suspended_reason"] = val
 
+		val, err = v.SystemTags.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["system_tags"] = val
+
 		val, err = v.Tags.ToTerraformValue(ctx)
 
 		if err != nil {
@@ -1662,6 +2504,34 @@ func (v MetadataValue) String() string {
 func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	var systemTagsVal basetypes.MapValue
+	switch {
+	case v.SystemTags.IsUnknown():
+		systemTagsVal = types.MapUnknown(types.StringType)
+	case v.SystemTags.IsNull():
+		systemTagsVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		systemTagsVal, d = types.MapValue(types.StringType, v.SystemTags.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"created_at":       basetypes.StringType{},
+			"created_by":       basetypes.StringType{},
+			"organization_id":  basetypes.StringType{},
+			"suspended_at":     basetypes.StringType{},
+			"suspended_reason": basetypes.StringType{},
+			"system_tags": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+			"tags": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
 	var tagsVal basetypes.MapValue
 	switch {
 	case v.Tags.IsUnknown():
@@ -1681,6 +2551,9 @@ func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 			"organization_id":  basetypes.StringType{},
 			"suspended_at":     basetypes.StringType{},
 			"suspended_reason": basetypes.StringType{},
+			"system_tags": basetypes.MapType{
+				ElemType: types.StringType,
+			},
 			"tags": basetypes.MapType{
 				ElemType: types.StringType,
 			},
@@ -1693,6 +2566,9 @@ func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 		"organization_id":  basetypes.StringType{},
 		"suspended_at":     basetypes.StringType{},
 		"suspended_reason": basetypes.StringType{},
+		"system_tags": basetypes.MapType{
+			ElemType: types.StringType,
+		},
 		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},
@@ -1714,6 +2590,7 @@ func (v MetadataValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 			"organization_id":  v.OrganizationId,
 			"suspended_at":     v.SuspendedAt,
 			"suspended_reason": v.SuspendedReason,
+			"system_tags":      systemTagsVal,
 			"tags":             tagsVal,
 		})
 
@@ -1755,6 +2632,10 @@ func (v MetadataValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.SystemTags.Equal(other.SystemTags) {
+		return false
+	}
+
 	if !v.Tags.Equal(other.Tags) {
 		return false
 	}
@@ -1777,6 +2658,9 @@ func (v MetadataValue) AttributeTypes(ctx context.Context) map[string]attr.Type 
 		"organization_id":  basetypes.StringType{},
 		"suspended_at":     basetypes.StringType{},
 		"suspended_reason": basetypes.StringType{},
+		"system_tags": basetypes.MapType{
+			ElemType: types.StringType,
+		},
 		"tags": basetypes.MapType{
 			ElemType: types.StringType,
 		},

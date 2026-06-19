@@ -48,6 +48,8 @@ tags:
     description: Management of Security projects
   - name: workplaceai projects
     description: Management of Workplace AI projects
+  - name: vectordb projects
+    description: Management of VectorDB projects
   - name: linked projects
   - name: regions
     description: Cloud service provider regions
@@ -74,6 +76,14 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/ProjectID'
+        - name: tags
+          in: query
+          style: deepObject
+          description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+          explode: true
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProjectTags'
       responses:
         '200':
           description: The Elasticsearch project list
@@ -306,12 +316,14 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/ProjectID'
-      - name: type
+      - name: types
         in: query
-        description: The type of projects to return as link candidates.
+        description: One or more types of projects to return as link candidates.
         required: false
         schema:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectType'
       - name: csp
         in: query
         description: The Cloud Service Provider to filter the link candidate projects by.
@@ -336,6 +348,17 @@ paths:
         required: false
         schema:
           type: string
+      - name: tags
+        in: query
+        style: deepObject
+        description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+        required: false
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ProjectTags'
+        example:
+          tags[environment]: production
+          tags[team]: team-a
     get:
       summary: Get Elasticsearch project link candidates
       description: The response contains the list of projects which can be linked to the specified Elasticsearch project in a cross-project search configuration.
@@ -421,6 +444,14 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/ProjectID'
+        - name: tags
+          in: query
+          style: deepObject
+          description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+          required: false
+          explode: true
+          schema:
+            $ref: '#/components/schemas/ProjectTags'
       responses:
         '200':
           description: The Observability project list
@@ -653,12 +684,14 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/ProjectID'
-      - name: type
+      - name: types
         in: query
-        description: The type of projects to return as link candidates.
+        description: One or more types of projects to return as link candidates.
         required: false
         schema:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectType'
       - name: csp
         in: query
         description: The Cloud Service Provider to filter the link candidate projects by.
@@ -683,6 +716,17 @@ paths:
         required: false
         schema:
           type: string
+      - name: tags
+        in: query
+        style: deepObject
+        description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+        required: false
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ProjectTags'
+        example:
+          tags[environment]: production
+          tags[team]: team-a
     get:
       summary: Get Observability project link candidates
       description: The response contains the list of projects which can be linked to the specified Observability project in a cross-project search configuration.
@@ -768,6 +812,14 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/ProjectID'
+        - name: tags
+          in: query
+          style: deepObject
+          description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+          required: false
+          explode: true
+          schema:
+            $ref: '#/components/schemas/ProjectTags'
       responses:
         '200':
           description: The Security project list
@@ -1000,12 +1052,14 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/ProjectID'
-      - name: type
+      - name: types
         in: query
-        description: The type of projects to return as link candidates.
+        description: One or more types of projects to return as link candidates.
         required: false
         schema:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectType'
       - name: csp
         in: query
         description: The Cloud Service Provider to filter the link candidate projects by.
@@ -1030,6 +1084,17 @@ paths:
         required: false
         schema:
           type: string
+      - name: tags
+        in: query
+        style: deepObject
+        description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+        required: false
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ProjectTags'
+        example:
+          tags[environment]: production
+          tags[team]: team-a
     get:
       summary: Get Security project link candidates
       description: The response contains the list of projects which can be linked to the specified Security project in a cross-project search configuration.
@@ -1208,7 +1273,14 @@ paths:
       parameters:
         - name: region
           in: query
-          description: Filter metadata to a specific AWS region.
+          description: Filter metadata to a specific region (e.g. aws-eu-west-1, azure-australiaeast).
+          required: false
+          schema:
+            type: string
+            minLength: 1
+        - name: csp
+          in: query
+          description: Filter metadata to a specific cloud service provider (aws, azure, gcp).
           required: false
           schema:
             type: string
@@ -1307,6 +1379,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
@@ -1370,6 +1444,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MultiErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
     InternalServerError:
       description: Internal server error
       content:
@@ -1383,7 +1463,6 @@ components:
       required:
         - linked_projects
         - monitored_projects
-        - linked_status
         - can_be_deleted
       properties:
         linked_projects:
@@ -1417,8 +1496,31 @@ components:
           $ref: '#/components/schemas/ElasticsearchSearchLake'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/CreateLinkedRequest'
         metadata:
           $ref: '#/components/schemas/ProjectMetadataRequest'
+      additionalProperties: false
+    CreateLinkedProjectRequest:
+      type: object
+      description: Details of the linked project
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/ProjectType'
+      additionalProperties: false
+    CreateLinkedRequest:
+      type: object
+      description: Configuration for linked projects associated with this project
+      required:
+        - projects
+      properties:
+        projects:
+          type: object
+          minProperties: 1
+          additionalProperties:
+            $ref: '#/components/schemas/CreateLinkedProjectRequest'
       additionalProperties: false
     CreateObservabilityProjectRequest:
       type: object
@@ -1437,6 +1539,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         product_tier:
           $ref: '#/components/schemas/ObservabilityProjectProductTier'
+        linked:
+          $ref: '#/components/schemas/CreateLinkedRequest'
         metadata:
           $ref: '#/components/schemas/ProjectMetadataRequest'
       additionalProperties: false
@@ -1472,6 +1576,8 @@ components:
           $ref: '#/components/schemas/SecuritySearchLake'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/CreateLinkedRequest'
         metadata:
           $ref: '#/components/schemas/ProjectMetadataRequest'
       additionalProperties: false
@@ -1549,6 +1655,8 @@ components:
           $ref: '#/components/schemas/CloudID'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
         type:
           type: string
           description: the type of the project
@@ -1591,6 +1699,8 @@ components:
           $ref: '#/components/schemas/CloudID'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
         type:
           type: string
           description: the type of the project
@@ -1683,6 +1793,17 @@ components:
           type: string
           description: An identifier for this type of error.
           example: code.error
+    LinkConfiguration:
+      type: object
+      description: Configuration for projects linked to this project
+      required:
+        - projects
+      properties:
+        projects:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/LinkedProject'
+      additionalProperties: false
     LinkedCandidateProject:
       type: object
       required:
@@ -1723,6 +1844,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LinkedCandidateProject'
+    LinkedProject:
+      type: object
+      required:
+        - status
+        - type
+      properties:
+        status:
+          $ref: '#/components/schemas/LinkedProjectStatus'
+        type:
+          $ref: '#/components/schemas/ProjectType'
+    LinkedProjectStatus:
+      type: string
+      description: The state of the linked project.
+      enum:
+        - enabled
+        - suspended
+        - deleted
     MultiErrorResponse:
       type: object
       description: A non-empty list of errors.
@@ -1760,6 +1898,8 @@ components:
           $ref: '#/components/schemas/CloudID'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
         type:
           type: string
           description: the type of the project
@@ -1799,6 +1939,8 @@ components:
           $ref: '#/components/schemas/CloudID'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
         type:
           type: string
           description: the type of the project
@@ -1875,11 +2017,13 @@ components:
           example: https://my-project-alias-df6c6d.ingest.private.us-east-1.aws.elastic.cloud
     ObservabilityProjectProductTier:
       type: string
-      description: the tier of the observability project
+      description: the tier of the observability project. The default is "complete" when not specified at creation time.
       enum:
         - complete
         - logs_essentials
-      default: complete
+      x-enumNames:
+        - ObservabilityProjectProductTierComplete
+        - ObservabilityProjectProductTierLogsEssentials
     OptionalElasticsearchSearchLake:
       type: object
       description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
@@ -1897,11 +2041,35 @@ components:
           maximum: 180
           nullable: true
       nullable: true
+    OptionalLinkConfiguration:
+      type: object
+      description: Configuration for projects linked to this project
+      properties:
+        projects:
+          type: object
+          minProperties: 1
+          additionalProperties:
+            $ref: '#/components/schemas/OptionalLinkedProject'
+      additionalProperties: false
+      nullable: true
+    OptionalLinkedProject:
+      type: object
+      description: Details of the linked project
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/ProjectType'
+      additionalProperties: false
+      nullable: true
     OptionalMetadata:
       type: object
       description: Metadata about the project
       required:
         - tags
+      properties:
+        tags:
+          $ref: '#/components/schemas/ProjectPatchTags'
     OptionalSecurityAdminFeaturesPackage:
       type: string
       description: admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
@@ -1934,6 +2102,8 @@ components:
           $ref: '#/components/schemas/OptionalElasticsearchSearchLake'
         traffic_filters:
           $ref: '#/components/schemas/OptionalTrafficFilters'
+        linked:
+          $ref: '#/components/schemas/OptionalLinkConfiguration'
         metadata:
           $ref: '#/components/schemas/OptionalMetadata'
       additionalProperties: false
@@ -1947,6 +2117,8 @@ components:
           $ref: '#/components/schemas/ProjectAlias'
         traffic_filters:
           $ref: '#/components/schemas/OptionalTrafficFilters'
+        linked:
+          $ref: '#/components/schemas/OptionalLinkConfiguration'
         product_tier:
           $ref: '#/components/schemas/ObservabilityProjectProductTier'
         metadata:
@@ -1975,6 +2147,8 @@ components:
           $ref: '#/components/schemas/OptionalTrafficFilters'
         metadata:
           $ref: '#/components/schemas/OptionalMetadata'
+        linked:
+          $ref: '#/components/schemas/OptionalLinkConfiguration'
       additionalProperties: false
     ProjectAlias:
       type: string
@@ -2038,6 +2212,8 @@ components:
           example: trial expired
         tags:
           $ref: '#/components/schemas/ProjectTags'
+        system_tags:
+          $ref: '#/components/schemas/ProjectSystemTags'
     ProjectMetadataRequest:
       type: object
       description: Metadata request for a project with tags.
@@ -2052,6 +2228,12 @@ components:
       example: my project
       maxLength: 255
       minLength: 1
+    ProjectPatchTags:
+      type: object
+      description: Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectTagPatchValue'
+      minProperties: 1
     ProjectRole:
       type: string
       description: A role name for a particular project
@@ -2108,6 +2290,17 @@ components:
         - deleting
         - suspending
         - suspended
+    ProjectSystemTags:
+      type: object
+      description: System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags.
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectTagValue'
+    ProjectTagPatchValue:
+      type: string
+      maxLength: 128
+      minLength: 1
+      nullable: true
+      pattern: ^[a-z0-9][a-z0-9_-]*$
     ProjectTagValue:
       type: string
       maxLength: 128
@@ -2115,7 +2308,7 @@ components:
       pattern: ^[a-z0-9][a-z0-9_-]*$
     ProjectTags:
       type: object
-      description: Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+      description: Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
       additionalProperties:
         $ref: '#/components/schemas/ProjectTagValue'
       maxProperties: 64
@@ -2128,11 +2321,13 @@ components:
         - observability
         - security
         - workplaceai
+        - vectordb
       x-enumNames:
         - ProjectTypeElasticsearch
         - ProjectTypeObservability
         - ProjectTypeSecurity
         - ProjectTypeWorkplaceAI
+        - ProjectTypeVectorDB
     RegionID:
       type: string
       description: Unique human-readable identifier for a region in Elastic Cloud.
@@ -2156,6 +2351,11 @@ components:
       enum:
         - complete
         - essentials
+      x-enumNames:
+        - SecurityProductTierComplete
+        - SecurityProductTierEssentials
+        - SecurityProductTierSearchAiLake
+        - SecurityProductTierAiSocEngine
     SecurityProductType:
       type: object
       description: Defines Security product type object with product line and tier dimensions.
@@ -2194,6 +2394,8 @@ components:
           $ref: '#/components/schemas/CloudID'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
         type:
           type: string
           description: the type of the project
@@ -2248,6 +2450,8 @@ components:
           $ref: '#/components/schemas/CloudID'
         traffic_filters:
           $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
         type:
           type: string
           description: the type of the project
@@ -2528,8 +2732,16 @@ components:
       properties:
         region:
           type: string
+        csp:
+          type: string
+          description: Cloud service provider (aws, azure, gcp)
         vpc_service_name:
           type: string
+          deprecated: true
+          description: Deprecated. Use private_service_name instead. Kept for backward compatibility.
+        private_service_name:
+          type: string
+          description: 'CSP-agnostic service name. For AWS: VPC endpoint service name. For Azure: Private Link Service alias. For GCP: Service Attachment URI.'
         private_hosted_zone_domain_name:
           type: string
         availability_zones:
@@ -2539,21 +2751,26 @@ components:
     TrafficFilterRule:
       type: object
       description: The container for a traffic filter rule.
-      required:
-        - source
       properties:
         description:
           type: string
           description: Description of the rule.
         source:
           type: string
-          description: 'Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID'
+          description: 'Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID. Required for ip and vpce types.'
+        azure_endpoint_name:
+          type: string
+          description: Name of the Azure Private Endpoint. Required for private_endpoint type.
+        azure_endpoint_guid:
+          type: string
+          description: Resource GUID of the Azure Private Endpoint. Required for private_endpoint type.
     TrafficFilterType:
       type: string
       description: Type of the traffic filter
       enum:
         - ip
         - vpce
+        - private_endpoint
       maxLength: 32
       minLength: 1
   requestBodies:
