@@ -27,8 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func strPtr(s string) *string { return &s }
-
 func TestOptionalMetadataForTagPatch_emptyPlanWithPriorTagsSendsNullRemovals(t *testing.T) {
 	ctx := context.Background()
 	planTags, _ := types.MapValue(types.StringType, map[string]attr.Value{})
