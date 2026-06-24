@@ -115,6 +115,10 @@ func testSweepServerlessProjects(_ string) error {
 	return merr.ErrorOrNil()
 }
 
+// maxServerlessProjectListPages caps pagination loops if the API keeps returning
+// the same next_page token or ignores the query parameter.
+const maxServerlessProjectListPages = 100
+
 func listServerlessProjects(ctx context.Context, projectType string) ([]serverlessProject, error) {
 	cfg, err := newAPIConfig()
 	if err != nil {
@@ -123,10 +127,13 @@ func listServerlessProjects(ctx context.Context, projectType string) ([]serverle
 
 	baseURL := strings.TrimRight(cfg.Host, "/") + "/api/v1/serverless/projects/" + projectType
 	projects := make([]serverlessProject, 0)
+	seenIDs := make(map[string]struct{})
 	nextPage := ""
 
-	for {
+	for pageNum := 0; pageNum < maxServerlessProjectListPages; pageNum++ {
 		reqURL := baseURL
+		// next_page is returned in list responses but is not declared as a query
+		// parameter in the checked-in OpenAPI spec (or the published API docs).
 		if nextPage != "" {
 			reqURL += "?next_page=" + url.QueryEscape(nextPage)
 		}
@@ -167,6 +174,13 @@ func listServerlessProjects(ctx context.Context, projectType string) ([]serverle
 		}
 
 		for _, item := range page.Items {
+			if _, dup := seenIDs[item.ID]; dup {
+				return nil, fmt.Errorf(
+					"listing %s projects: duplicate project %s on page %d (pagination token may be ignored)",
+					projectType, item.ID, pageNum+1,
+				)
+			}
+			seenIDs[item.ID] = struct{}{}
 			projects = append(projects, serverlessProject{
 				id:        item.ID,
 				name:      item.Name,
@@ -175,12 +189,15 @@ func listServerlessProjects(ctx context.Context, projectType string) ([]serverle
 		}
 
 		if page.NextPage == nil || *page.NextPage == "" {
-			break
+			return projects, nil
+		}
+		if nextPage == *page.NextPage {
+			return nil, fmt.Errorf("listing %s projects: next_page token did not advance", projectType)
 		}
 		nextPage = *page.NextPage
 	}
 
-	return projects, nil
+	return nil, fmt.Errorf("listing %s projects: exceeded %d pages", projectType, maxServerlessProjectListPages)
 }
 
 // staleServerlessProject uses created_at because ProjectMetadata does not
