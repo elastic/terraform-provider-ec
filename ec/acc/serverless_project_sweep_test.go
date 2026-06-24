@@ -35,6 +35,11 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 )
 
+// serverlessProjectStaleAfter is the minimum age before the sweeper deletes a
+// project. It must exceed the ACC test timeout (120m) to avoid deleting
+// resources from a still-running build when another build's pre-exit runs.
+const serverlessProjectStaleAfter = 3 * time.Hour
+
 func init() {
 	resource.AddTestSweepers("ec_serverless_projects", &resource.Sweeper{
 		Name: "ec_serverless_projects",
@@ -178,11 +183,10 @@ func listServerlessProjects(ctx context.Context, projectType string) ([]serverle
 	return projects, nil
 }
 
-// staleServerlessProject mirrors the deployment sweeper's 1h cutoff. Serverless
-// project metadata only exposes created_at (not last_modified), so an unusually
-// long ACC run could theoretically be swept mid-test.
+// staleServerlessProject uses created_at because ProjectMetadata does not
+// expose last_modified (unlike deployment sweepers).
 func staleServerlessProject(createdAt time.Time) bool {
-	return createdAt.Before(time.Now().Add(-time.Hour))
+	return createdAt.Before(time.Now().Add(-serverlessProjectStaleAfter))
 }
 
 func deleteElasticsearchProject(ctx context.Context, client *serverless.ClientWithResponses, id string) error {
