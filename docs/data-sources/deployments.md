@@ -51,6 +51,7 @@ data "ec_deployments" "example" {
 - `healthy` (String) Filter the result set by their health status.
 - `integrations_server` (Block List) Filter by Integrations Server resource kind status or configuration. (see [below for nested schema](#nestedblock--integrations_server))
 - `kibana` (Block List) Filter by Kibana resource kind status or configuration. (see [below for nested schema](#nestedblock--kibana))
+- `name` (String) Filter the result by the full deployment name.
 - `name_prefix` (String) Prefix to filter the returned deployment list by.
 - `size` (Number) The maximum number of deployments to return. Defaults to `100`.
 - `tags` (Map of String) Filter the result set by their assigned tags.

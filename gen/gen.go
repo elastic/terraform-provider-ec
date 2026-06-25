@@ -24,7 +24,6 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"log"
 	"os"
 	"text/template"
@@ -50,5 +49,5 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	ioutil.WriteFile("./ec/version.go", buf.Bytes(), 0666)
+	os.WriteFile("./ec/version.go", buf.Bytes(), 0666)
 }

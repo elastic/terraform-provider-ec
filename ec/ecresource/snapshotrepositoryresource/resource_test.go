@@ -40,7 +40,6 @@ func TestResourceSnapshotRepository(t *testing.T) {
 				readResponse(s3Json1),
 				readResponse(s3Json1),
 				readResponse(s3Json1),
-				readResponse(s3Json1),
 				updateResponse(s3Json2),
 				readResponse(s3Json2),
 				readResponse(s3Json2),
@@ -203,6 +202,7 @@ func TestResourceSnapshotRepository_notFoundAfterRead(t *testing.T) {
 				createResponse(s3Json1),
 				readResponse(s3Json1),
 				notFoundReadResponse(),
+				deleteResponse(), // required for cleanup
 			),
 		),
 		Steps: []r.TestStep{

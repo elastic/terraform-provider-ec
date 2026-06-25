@@ -51,7 +51,7 @@ func DeploymentSchema() schema.Schema {
 			"alias": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
-				Description: "Deployment alias, affects the format of the resource URLs.",
+				Description: "Deployment alias, affects the format of the resource URLs. Set to an empty value (\"\") to disable the alias.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -90,6 +90,7 @@ func DeploymentSchema() schema.Schema {
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					setUnknownIfResetPasswordIsTrue{},
 				},
 			},
 			"elasticsearch_password": schema.StringAttribute{
@@ -129,6 +130,22 @@ func DeploymentSchema() schema.Schema {
 			"reset_elasticsearch_password": schema.BoolAttribute{
 				Description: "Explicitly resets the elasticsearch_password when true",
 				Optional:    true,
+			},
+			"migrate_to_latest_hardware": schema.BoolAttribute{
+				Description: `When set to true, the deployment will be updated according to the latest deployment template values.
+
+~> **Note** If the <code>instance_configuration_id</code> or <code>instance_configuration_version</code> fields are set for a specific topology element, that element will not be updated.
+~> **Note** Hardware migrations are not supported for deployments with node types. To use this field, the deployment needs to be migrated to node roles first.`,
+				Optional: true,
+			},
+			"encryption_key_path": schema.StringAttribute{
+				Description: `Customer-managed encryption key resource path for data-at-rest encryption. Both key ARNs (arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000) and alias ARNs (arn:aws:kms:us-east-1:123456789:alias/my-key-alias) are supported. Not supported on ECE.
+
+~> **Note** Changing this value after deployment creation will force a new deployment to be created.`,
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"elasticsearch":       elasticsearchv2.ElasticsearchSchema(),
 			"kibana":              kibanav2.KibanaSchema(),

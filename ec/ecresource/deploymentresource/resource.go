@@ -49,9 +49,9 @@ func (r *Resource) ready(dg *diag.Diagnostics) bool {
 }
 
 func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
-	client, diags := internal.ConvertProviderData(request.ProviderData)
+	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
-	r.client = client
+	r.client = clients.Stateful
 }
 
 func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {

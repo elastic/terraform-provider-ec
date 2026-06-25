@@ -36,6 +36,10 @@ For the benefit of all and to maintain consistency, we have come up with some si
   - Have test cases for the new code. If you have questions about how to do this, please ask in your pull request.
   
   - Run `make format`, `make lint` and `make fmt`.
+
+  - Run `make docs-generate` to regenerate provider documentation if you've made changes to resource or data source schemas.
+
+  - Run `make notice` to update the NOTICE file if you've added new dependencies.
   
   - Ensure that [unit](#unit) and [acceptance](#acceptance) tests succeed with `make unit testacc`.
 
@@ -78,8 +82,8 @@ Closes #1234
 
 ### Environment prerequisites
 
-- [Terraform](https://www.terraform.io/downloads.html) 0.13+
-- [Go](https://golang.org/doc/install) 1.13
+- [Terraform](https://www.terraform.io/downloads.html) At least 1.2.7
+- [Go](https://golang.org/doc/install) 1.21
 
 This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). Running `make vendor` will download all the required dependencies.
 

@@ -1,3 +1,0 @@
-```release-note:enhancement
-provider: Remove direct dependency on the old Terraform Plugin SDK
-```

@@ -28,7 +28,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_observabilityPayload(t *testing.T) {
@@ -50,7 +49,7 @@ func Test_observabilityPayload(t *testing.T) {
 			args: args{
 				observability: &Observability{
 					DeploymentId: &mock.ValidClusterID,
-					RefId:        ec.String("main-elasticsearch"),
+					RefId:        new("main-elasticsearch"),
 					Metrics:      true,
 					Logs:         true,
 				},
@@ -76,12 +75,12 @@ func Test_observabilityPayload(t *testing.T) {
 				API: api.NewMock(
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
@@ -114,12 +113,12 @@ func Test_observabilityPayload(t *testing.T) {
 				API: api.NewMock(
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
@@ -146,12 +145,12 @@ func Test_observabilityPayload(t *testing.T) {
 				API: api.NewMock(
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
@@ -178,19 +177,19 @@ func Test_observabilityPayload(t *testing.T) {
 				API: api.NewMock(
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
 					),
 				),
 				observability: &Observability{
-					DeploymentId: ec.String("self"),
+					DeploymentId: new("self"),
 					Metrics:      true,
 					Logs:         false,
 				},
@@ -198,7 +197,7 @@ func Test_observabilityPayload(t *testing.T) {
 			want: &models.DeploymentObservabilitySettings{
 				Metrics: &models.DeploymentMetricsSettings{
 					Destination: &models.ObservabilityAbsoluteDeployment{
-						DeploymentID: ec.String("self"),
+						DeploymentID: new("self"),
 						RefID:        "",
 					},
 				},
@@ -210,20 +209,20 @@ func Test_observabilityPayload(t *testing.T) {
 				API: api.NewMock(
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
 					),
 				),
 				observability: &Observability{
-					DeploymentId: ec.String("self"),
-					RefId:        ec.String("main-elasticsearch"),
+					DeploymentId: new("self"),
+					RefId:        new("main-elasticsearch"),
 					Metrics:      true,
 					Logs:         false,
 				},
@@ -231,7 +230,7 @@ func Test_observabilityPayload(t *testing.T) {
 			want: &models.DeploymentObservabilitySettings{
 				Metrics: &models.DeploymentMetricsSettings{
 					Destination: &models.ObservabilityAbsoluteDeployment{
-						DeploymentID: ec.String("self"),
+						DeploymentID: new("self"),
 						RefID:        "main-elasticsearch",
 					},
 				},

@@ -26,7 +26,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 // expandFilters expands all filters into a search request model
@@ -41,6 +40,15 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 				// The "keyword" addition denotes that the query will be using a keyword
 				// field rather than a text field in order to ensure the query is not analyzed
 				"name.keyword": {Value: &namePrefix},
+			},
+		})
+	}
+
+	name := state.Name.ValueString()
+	if name != "" {
+		queries = append(queries, &models.QueryContainer{
+			Term: map[string]models.TermQuery{
+				"name.keyword": {Value: &name},
 			},
 		})
 	}
@@ -111,7 +119,7 @@ func expandFilters(ctx context.Context, state modelV0) (*models.SearchRequest, d
 
 	searchReq := models.SearchRequest{
 		Size: int32(state.Size.ValueInt64()),
-		Sort: []interface{}{"id"},
+		Sort: []any{"id"},
 	}
 
 	if len(queries) > 0 {
@@ -196,7 +204,7 @@ func newNestedTermQuery(path, term string, value string) *models.QueryContainer 
 func newNestedTagQuery(key string, value string) *models.QueryContainer {
 	return &models.QueryContainer{
 		Nested: &models.NestedQuery{
-			Path: ec.String("metadata.tags"),
+			Path: new("metadata.tags"),
 			Query: &models.QueryContainer{
 				Bool: &models.BoolQuery{
 					Filter: []*models.QueryContainer{

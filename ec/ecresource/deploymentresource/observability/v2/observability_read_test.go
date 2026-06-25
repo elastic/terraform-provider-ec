@@ -27,7 +27,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func Test_readObservability(t *testing.T) {
@@ -65,7 +64,7 @@ func Test_readObservability(t *testing.T) {
 			}},
 			want: &Observability{
 				DeploymentId: &mock.ValidClusterID,
-				RefId:        ec.String("main-elasticsearch"),
+				RefId:        new("main-elasticsearch"),
 				Logs:         true,
 			},
 		},
@@ -83,7 +82,7 @@ func Test_readObservability(t *testing.T) {
 			}},
 			want: &Observability{
 				DeploymentId: &mock.ValidClusterID,
-				RefId:        ec.String("main-elasticsearch"),
+				RefId:        new("main-elasticsearch"),
 				Metrics:      true,
 			},
 		},
@@ -107,7 +106,7 @@ func Test_readObservability(t *testing.T) {
 			}},
 			want: &Observability{
 				DeploymentId: &mock.ValidClusterID,
-				RefId:        ec.String("main-elasticsearch"),
+				RefId:        new("main-elasticsearch"),
 				Logs:         true,
 				Metrics:      true,
 			},

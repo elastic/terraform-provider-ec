@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 )
 
@@ -38,16 +37,16 @@ func Test_hasRunningResources(t *testing.T) {
 			name: "has all the resources stopped",
 			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
 				Elasticsearch: []*models.ElasticsearchResourceInfo{
-					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("stopped")}},
+					{Info: &models.ElasticsearchClusterInfo{Status: new("stopped")}},
 				},
 				Kibana: []*models.KibanaResourceInfo{
-					{Info: &models.KibanaClusterInfo{Status: ec.String("stopped")}},
+					{Info: &models.KibanaClusterInfo{Status: new("stopped")}},
 				},
 				Apm: []*models.ApmResourceInfo{
-					{Info: &models.ApmInfo{Status: ec.String("stopped")}},
+					{Info: &models.ApmInfo{Status: new("stopped")}},
 				},
 				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
-					{Info: &models.EnterpriseSearchInfo{Status: ec.String("stopped")}},
+					{Info: &models.EnterpriseSearchInfo{Status: new("stopped")}},
 				},
 			}}},
 			want: false,
@@ -56,16 +55,16 @@ func Test_hasRunningResources(t *testing.T) {
 			name: "has some resources stopped",
 			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
 				Elasticsearch: []*models.ElasticsearchResourceInfo{
-					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("running")}},
+					{Info: &models.ElasticsearchClusterInfo{Status: new("running")}},
 				},
 				Kibana: []*models.KibanaResourceInfo{
-					{Info: &models.KibanaClusterInfo{Status: ec.String("stopped")}},
+					{Info: &models.KibanaClusterInfo{Status: new("stopped")}},
 				},
 				Apm: []*models.ApmResourceInfo{
-					{Info: &models.ApmInfo{Status: ec.String("running")}},
+					{Info: &models.ApmInfo{Status: new("running")}},
 				},
 				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
-					{Info: &models.EnterpriseSearchInfo{Status: ec.String("running")}},
+					{Info: &models.EnterpriseSearchInfo{Status: new("running")}},
 				},
 			}}},
 			want: true,
@@ -74,16 +73,16 @@ func Test_hasRunningResources(t *testing.T) {
 			name: "has all resources running",
 			args: args{res: &models.DeploymentGetResponse{Resources: &models.DeploymentResources{
 				Elasticsearch: []*models.ElasticsearchResourceInfo{
-					{Info: &models.ElasticsearchClusterInfo{Status: ec.String("running")}},
+					{Info: &models.ElasticsearchClusterInfo{Status: new("running")}},
 				},
 				Kibana: []*models.KibanaResourceInfo{
-					{Info: &models.KibanaClusterInfo{Status: ec.String("running")}},
+					{Info: &models.KibanaClusterInfo{Status: new("running")}},
 				},
 				Apm: []*models.ApmResourceInfo{
-					{Info: &models.ApmInfo{Status: ec.String("running")}},
+					{Info: &models.ApmInfo{Status: new("running")}},
 				},
 				EnterpriseSearch: []*models.EnterpriseSearchResourceInfo{
-					{Info: &models.EnterpriseSearchInfo{Status: ec.String("running")}},
+					{Info: &models.EnterpriseSearchInfo{Status: new("running")}},
 				},
 			}}},
 			want: true,

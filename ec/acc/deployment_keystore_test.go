@@ -30,11 +30,11 @@ func TestAccDeployment_keystore(t *testing.T) {
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	configs := []string{
-		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_create.tf", randomName, getRegion(), "default"),
-		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update1.tf", randomName, getRegion(), "default"),
-		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update2.tf", randomName, getRegion(), "default"),
-		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update3.tf", randomName, getRegion(), "default"),
-		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update4.tf", randomName, getRegion(), "default"),
+		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_create.tf", randomName, getRegion(), defaultTemplate),
+		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update1.tf", randomName, getRegion(), defaultTemplate),
+		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update2.tf", randomName, getRegion(), defaultTemplate),
+		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update3.tf", randomName, getRegion(), defaultTemplate),
+		fixtureAccDeploymentResourceBasicDefaults(t, "testdata/deployment_keystore_update4.tf", randomName, getRegion(), defaultTemplate),
 	}
 
 	resource.ParallelTest(t, resource.TestCase{

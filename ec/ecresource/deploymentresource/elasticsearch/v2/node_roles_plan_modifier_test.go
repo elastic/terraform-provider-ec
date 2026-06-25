@@ -23,7 +23,7 @@ import (
 
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -174,9 +174,9 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 			stateValue, diags := types.SetValueFrom(context.Background(), types.StringType, tt.args.attributeState)
 			assert.Nil(t, diags)
 
-			deploymentStateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
+			deploymentStateValue := util.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
-			deploymentPlanValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
+			deploymentPlanValue := util.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
 			req := planmodifier.SetRequest{
 				// AttributeState:  attributeStateValue,
@@ -225,10 +225,6 @@ func Test_nodeRolesPlanModifier(t *testing.T) {
 	}
 }
 
-func ptr[T any](t T) *T {
-	return &t
-}
-
 func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 	tests := []struct {
 		name              string
@@ -259,7 +255,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -267,7 +263,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -280,7 +276,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -288,7 +284,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("2g"),
+						Size:      new("2g"),
 						ZoneCount: 3,
 					},
 				},
@@ -301,7 +297,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -309,7 +305,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 2,
 					},
 				},
@@ -322,11 +318,11 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -334,7 +330,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -347,11 +343,11 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -359,11 +355,11 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("2g"),
+						Size:      new("2g"),
 						ZoneCount: 3,
 					},
 				},
@@ -376,11 +372,11 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -388,11 +384,11 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 2,
 					},
 				},
@@ -405,7 +401,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
@@ -416,11 +412,11 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 				},
@@ -438,22 +434,22 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size: ptr("1g"),
+						Size: new("1g"),
 					},
 				},
 			},
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 2,
 					},
 				},
@@ -471,7 +467,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
@@ -482,7 +478,7 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
@@ -503,22 +499,22 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 			plan: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size: ptr("1g"),
+						Size: new("1g"),
 					},
 				},
 			},
 			state: &deploymentv2.Deployment{
 				Elasticsearch: &v2.Elasticsearch{
 					HotTier: &v2.ElasticsearchTopology{
-						Size:      ptr("1g"),
+						Size:      new("1g"),
 						ZoneCount: 3,
 					},
 					WarmTier: &v2.ElasticsearchTopology{
-						Size: ptr("1g"),
+						Size: new("1g"),
 					},
 				},
 			},
@@ -538,8 +534,8 @@ func TestSetUnknownOnTopologySizeChange_PlanModifySet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.state, deploymentv2.DeploymentSchema().Type())
-			planValue := testutil.TfTypesValueFromGoTypeValue(t, tt.plan, deploymentv2.DeploymentSchema().Type())
+			stateValue := util.TfTypesValueFromGoTypeValue(t, tt.state, deploymentv2.DeploymentSchema().Type())
+			planValue := util.TfTypesValueFromGoTypeValue(t, tt.plan, deploymentv2.DeploymentSchema().Type())
 			req := planmodifier.SetRequest{
 				PlanValue: tt.planValue,
 				State: tfsdk.State{

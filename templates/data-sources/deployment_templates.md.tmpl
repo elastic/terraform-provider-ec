@@ -1,0 +1,15 @@
+---
+page_title: "Elastic Cloud: {{ .Name }} {{ .Type }}"
+description: |-
+  {{ .Description }}
+---
+
+# {{ .Type }}: {{ .Name }}
+
+{{ .Description }}
+
+## Example Usage
+
+{{ tffile .ExampleFile }}
+
+{{ .SchemaMarkdown | trimspace }}

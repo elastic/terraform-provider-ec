@@ -27,6 +27,7 @@ import (
 )
 
 func TestAccDeployment_docker_image_override(t *testing.T) {
+	t.Skip("skipped until further investigation - https://github.com/elastic/terraform-provider-ec/issues/746")
 	resName := "ec_deployment.docker_image"
 	randomName := prefix + "docker_image_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 

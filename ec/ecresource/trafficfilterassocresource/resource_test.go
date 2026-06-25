@@ -41,7 +41,6 @@ func TestResourceTrafficFilterAssoc(t *testing.T) {
 				readResponse(),
 				readResponse(),
 				readResponse(),
-				readResponse(),
 				deleteResponse(),
 			),
 		),
@@ -70,6 +69,7 @@ func TestResourceTrafficFilterAssoc_externalDeletion1(t *testing.T) {
 				createResponse(),
 				readResponse(),
 				readResponseAssociationDeleted(),
+				deleteResponse(),
 			),
 		),
 		Steps: []r.TestStep{
@@ -94,6 +94,7 @@ func TestResourceTrafficFilterAssoc_externalDeletion2(t *testing.T) {
 				createResponse(),
 				readResponse(),
 				readResponseTrafficFilterDeleted(),
+				deleteResponse(),
 			),
 		),
 		Steps: []r.TestStep{

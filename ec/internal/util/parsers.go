@@ -28,3 +28,11 @@ func MemoryToState(mem int32) string {
 	}
 	return fmt.Sprintf("%dg", mem/1024)
 }
+
+func MemoryToStateOptional(mem *int32) *string {
+	if mem == nil {
+		return nil
+	}
+	result := MemoryToState(*mem)
+	return &result
+}

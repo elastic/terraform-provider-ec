@@ -1,7 +1,8 @@
 BINARY_LOCATION ?= bin/$(BINARY)
 PLUGIN_LOCATION ?= ~/.terraform.d/plugins
 OS = $(shell uname -s|tr '[:upper:]' '[:lower:]')
-ARCH = $(shell uname -m)
+ARCH_RAW = $(shell uname -m)
+ARCH = $(subst aarch64,arm64,$(subst x86_64,amd64,$(ARCH_RAW)))
 STRIPPED_V ?= $(subst -dev,,$(VERSION))
 PLUGIN_0.13 = registry.terraform.io/elastic/ec/$(STRIPPED_V)/$(OS)_$(ARCH)/terraform-provider-ec_v$(STRIPPED_V)
 
@@ -33,5 +34,5 @@ install: build
 
 ## Generate Terraform docs
 .PHONY: docs-generate
-docs-generate: tools ## Generate documentation for the provider
-	@ $(GOBIN)/tfplugindocs
+docs-generate: ## Generate documentation for the provider
+	@ go tool tfplugindocs

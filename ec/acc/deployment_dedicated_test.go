@@ -28,7 +28,7 @@ func TestAccDeployment_dedicated_coordinating(t *testing.T) {
 	resName := "ec_deployment.dedicated_coordinating"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	startCfg := "testdata/deployment_dedicated_coordinating.tf"
-	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), hotWarmTemplate)
+	cfg := fixtureAccDeploymentResourceBasicDefaults(t, startCfg, randomName, getRegion(), generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -140,7 +140,7 @@ func TestAccDeployment_dedicated_master(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 
 					resource.TestCheckNoResourceAttr(resName, "elasticsearch.cold"),
-					resource.TestCheckNoResourceAttr(resName, "elasticsearch.master"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.master.size", "0g"),
 					resource.TestCheckNoResourceAttr(resName, "elasticsearch.warm"),
 
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "1g"),

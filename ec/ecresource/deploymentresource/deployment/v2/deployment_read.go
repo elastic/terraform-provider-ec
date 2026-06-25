@@ -24,21 +24,26 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
+
+	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	apmv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/apm/v2"
+	elasticsearchv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v1"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	enterprisesearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/enterprisesearch/v2"
 	integrationsserverv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/integrationsserver/v2"
 	kibanav2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/kibana/v2"
+	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v1"
 	observabilityv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v2"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type Deployment struct {
@@ -61,6 +66,30 @@ type Deployment struct {
 	EnterpriseSearch           *enterprisesearchv2.EnterpriseSearch     `tfsdk:"enterprise_search"`
 	Observability              *observabilityv2.Observability           `tfsdk:"observability"`
 	ResetElasticsearchPassword *bool                                    `tfsdk:"reset_elasticsearch_password"`
+	MigrateToLatestHardware    *bool                                    `tfsdk:"migrate_to_latest_hardware"`
+	EncryptionKeyPath          *string                                  `tfsdk:"encryption_key_path"`
+}
+
+func (dep *Deployment) PersistSnapshotSource(ctx context.Context, esPlan *elasticsearchv2.ElasticsearchTF) diag.Diagnostics {
+	if dep == nil || dep.Elasticsearch == nil {
+		return nil
+	}
+
+	if esPlan == nil || esPlan.SnapshotSource.IsNull() || esPlan.SnapshotSource.IsUnknown() {
+		return nil
+	}
+
+	var snapshotSource *elasticsearchv1.ElasticsearchSnapshotSourceTF
+	if diags := tfsdk.ValueAs(ctx, esPlan.SnapshotSource, &snapshotSource); diags.HasError() {
+		return diags
+	}
+
+	dep.Elasticsearch.SnapshotSource = &elasticsearchv2.ElasticsearchSnapshotSource{
+		SourceElasticsearchClusterId: snapshotSource.SourceElasticsearchClusterId.ValueString(),
+		SnapshotName:                 snapshotSource.SnapshotName.ValueString(),
+	}
+
+	return nil
 }
 
 // Nullify Elasticsearch topologies that have zero size and are not specified in plan
@@ -101,6 +130,59 @@ func nullifyUnspecifiedZeroSizedTier(tierPlan types.Object, tier *elasticsearchv
 	}
 
 	return tier
+}
+
+// SetLatestInstanceConfigInfo Sets latest instance_configuration_id and instance_configuration_version for each
+// topology element, based on the migrate template request
+func (dep *Deployment) SetLatestInstanceConfigInfo(migrateUpdateRequest *deployments.MigrateDeploymentTemplateOK) {
+	if migrateUpdateRequest == nil {
+		return
+	}
+
+	if dep.Elasticsearch != nil {
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.HotTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "hot"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.WarmTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "warm"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.ColdTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "cold"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.FrozenTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "frozen"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.MlTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "ml"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.MasterTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "master"))
+		elasticsearchv2.SetLatestInstanceConfigInfo(dep.Elasticsearch.CoordinatingTier, elasticsearchv2.GetTopologyFromMigrateRequest(migrateUpdateRequest, "coordinating"))
+	}
+
+	if len(migrateUpdateRequest.Payload.Resources.Apm) > 0 && len(migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology) > 0 {
+		apmv2.SetLatestInstanceConfigInfo(dep.Apm, migrateUpdateRequest.Payload.Resources.Apm[0].Plan.ClusterTopology[0])
+	}
+
+	if len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch) > 0 && len(migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology) > 0 {
+		enterprisesearchv2.SetLatestInstanceConfigInfo(dep.EnterpriseSearch, migrateUpdateRequest.Payload.Resources.EnterpriseSearch[0].Plan.ClusterTopology[0])
+	}
+
+	if len(migrateUpdateRequest.Payload.Resources.IntegrationsServer) > 0 && len(migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology) > 0 {
+		integrationsserverv2.SetLatestInstanceConfigInfo(dep.IntegrationsServer, migrateUpdateRequest.Payload.Resources.IntegrationsServer[0].Plan.ClusterTopology[0])
+	}
+
+	if len(migrateUpdateRequest.Payload.Resources.Kibana) > 0 && len(migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology) > 0 {
+		kibanav2.SetLatestInstanceConfigInfo(dep.Kibana, migrateUpdateRequest.Payload.Resources.Kibana[0].Plan.ClusterTopology[0])
+	}
+}
+
+// SetLatestInstanceConfigInfoToCurrent Sets latest instance_configuration_id and instance_configuration_version for each
+// topology element, based on the current values
+func (dep *Deployment) SetLatestInstanceConfigInfoToCurrent() {
+	if dep.Elasticsearch != nil {
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.HotTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.WarmTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.ColdTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.FrozenTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.MlTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.MasterTier)
+		elasticsearchv2.SetLatestInstanceConfigInfoToCurrent(dep.Elasticsearch.CoordinatingTier)
+	}
+
+	apmv2.SetLatestInstanceConfigInfoToCurrent(dep.Apm)
+	enterprisesearchv2.SetLatestInstanceConfigInfoToCurrent(dep.EnterpriseSearch)
+	integrationsserverv2.SetLatestInstanceConfigInfoToCurrent(dep.IntegrationsServer)
+	kibanav2.SetLatestInstanceConfigInfoToCurrent(dep.Kibana)
 }
 
 func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteResources, deploymentResources []*models.DeploymentResource) (*Deployment, error) {
@@ -177,9 +259,18 @@ func ReadDeployment(res *models.DeploymentGetResponse, remotes *models.RemoteRes
 		return nil, err
 	}
 
+	dep.EncryptionKeyPath = readEncryptionKeyPath(res.Settings)
+
 	dep.parseCredentials(deploymentResources)
 
 	return &dep, nil
+}
+
+func readEncryptionKeyPath(in *models.DeploymentSettings) *string {
+	if in == nil || in.Byok == nil || in.Byok.KeyResourcePath == nil {
+		return nil
+	}
+	return in.Byok.KeyResourcePath
 }
 
 func readTrafficFilters(in *models.DeploymentSettings) ([]string, error) {
@@ -215,19 +306,34 @@ func (dep *Deployment) parseCredentials(resources []*models.DeploymentResource) 
 	}
 }
 
-func (dep *Deployment) ProcessSelfInObservability() {
-
-	if dep.Observability == nil {
-		return
+func (dep *Deployment) ProcessSelfInObservability(ctx context.Context, base DeploymentTF) diag.Diagnostics {
+	if dep == nil || dep.Observability == nil {
+		return nil
 	}
 
 	if dep.Observability.DeploymentId == nil {
-		return
+		return nil
+	}
+
+	var baseObservability v1.ObservabilityTF
+	diags := base.Observability.As(ctx, &baseObservability, basetypes.ObjectAsOptions{
+		UnhandledNullAsEmpty:    true,
+		UnhandledUnknownAsEmpty: true,
+	})
+	if diags.HasError() {
+		return diags
+	}
+
+	deploymentIDIsKnown := !baseObservability.DeploymentId.IsNull() && !baseObservability.DeploymentId.IsUnknown()
+	if deploymentIDIsKnown && baseObservability.DeploymentId.ValueString() != "self" {
+		return nil
 	}
 
 	if *dep.Observability.DeploymentId == dep.Id {
 		*dep.Observability.DeploymentId = "self"
 	}
+
+	return nil
 }
 
 func (dep *Deployment) IncludePrivateStateTrafficFilters(ctx context.Context, base DeploymentTF, privateFilters []string) diag.Diagnostics {
@@ -273,8 +379,19 @@ func (dep *Deployment) SetCredentialsIfEmpty(state *DeploymentTF) {
 	}
 
 	if (dep.ApmSecretToken == nil || *dep.ApmSecretToken == "") && state.ApmSecretToken.ValueString() != "" {
-		dep.ApmSecretToken = ec.String(state.ApmSecretToken.ValueString())
+		dep.ApmSecretToken = new(state.ApmSecretToken.ValueString())
 	}
+}
+
+func (dep *Deployment) HasNodeTypes() bool {
+	if dep.Elasticsearch != nil {
+		for _, t := range dep.Elasticsearch.GetTopologies() {
+			if t.HasNodeTypes() {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func getLowestVersion(res *models.DeploymentResources) (string, error) {

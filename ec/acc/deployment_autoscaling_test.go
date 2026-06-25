@@ -50,7 +50,7 @@ func TestAccDeployment_autoscaling(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.cold.size", "0g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.cold.size_resource", "memory"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.cold.zone_count", "1"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.cold.autoscaling.max_size", "58g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.cold.autoscaling.max_size", "60g"),
 
 					resource.TestCheckResourceAttr(resName, "elasticsearch.frozen.size", "0g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.frozen.size_resource", "memory"),

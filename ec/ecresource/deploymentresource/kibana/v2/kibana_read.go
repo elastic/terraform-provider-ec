@@ -24,17 +24,20 @@ import (
 )
 
 type Kibana struct {
-	ElasticsearchClusterRefId *string       `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     *string       `tfsdk:"ref_id"`
-	ResourceId                *string       `tfsdk:"resource_id"`
-	Region                    *string       `tfsdk:"region"`
-	HttpEndpoint              *string       `tfsdk:"http_endpoint"`
-	HttpsEndpoint             *string       `tfsdk:"https_endpoint"`
-	InstanceConfigurationId   *string       `tfsdk:"instance_configuration_id"`
-	Size                      *string       `tfsdk:"size"`
-	SizeResource              *string       `tfsdk:"size_resource"`
-	ZoneCount                 int           `tfsdk:"zone_count"`
-	Config                    *KibanaConfig `tfsdk:"config"`
+	ElasticsearchClusterRefId          *string       `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                              *string       `tfsdk:"ref_id"`
+	ResourceId                         *string       `tfsdk:"resource_id"`
+	Region                             *string       `tfsdk:"region"`
+	HttpEndpoint                       *string       `tfsdk:"http_endpoint"`
+	HttpsEndpoint                      *string       `tfsdk:"https_endpoint"`
+	InstanceConfigurationId            *string       `tfsdk:"instance_configuration_id"`
+	LatestInstanceConfigurationId      *string       `tfsdk:"latest_instance_configuration_id"`
+	InstanceConfigurationVersion       *int          `tfsdk:"instance_configuration_version"`
+	LatestInstanceConfigurationVersion *int          `tfsdk:"latest_instance_configuration_version"`
+	Size                               *string       `tfsdk:"size"`
+	SizeResource                       *string       `tfsdk:"size_resource"`
+	ZoneCount                          int           `tfsdk:"zone_count"`
+	Config                             *KibanaConfig `tfsdk:"config"`
 }
 
 func ReadKibanas(in []*models.KibanaResourceInfo) (*Kibana, error) {
@@ -73,6 +76,7 @@ func readKibana(in *models.KibanaResourceInfo) (*Kibana, error) {
 
 	if len(topologies) > 0 {
 		kibana.InstanceConfigurationId = topologies[0].InstanceConfigurationId
+		kibana.InstanceConfigurationVersion = topologies[0].InstanceConfigurationVersion
 		kibana.Size = topologies[0].Size
 		kibana.SizeResource = topologies[0].SizeResource
 		kibana.ZoneCount = topologies[0].ZoneCount
@@ -96,4 +100,20 @@ func readKibana(in *models.KibanaResourceInfo) (*Kibana, error) {
 func IsKibanaStopped(res *models.KibanaResourceInfo) bool {
 	return res == nil || res.Info == nil || res.Info.Status == nil ||
 		*res.Info.Status == "stopped"
+}
+
+func SetLatestInstanceConfigInfo(currentTopology *Kibana, latestTopology *models.KibanaClusterTopologyElement) {
+	if currentTopology != nil && latestTopology != nil {
+		currentTopology.LatestInstanceConfigurationId = &latestTopology.InstanceConfigurationID
+		if latestTopology.InstanceConfigurationVersion != nil {
+			currentTopology.LatestInstanceConfigurationVersion = new(int(*latestTopology.InstanceConfigurationVersion))
+		}
+	}
+}
+
+func SetLatestInstanceConfigInfoToCurrent(topology *Kibana) {
+	if topology != nil {
+		topology.LatestInstanceConfigurationId = topology.InstanceConfigurationId
+		topology.LatestInstanceConfigurationVersion = topology.InstanceConfigurationVersion
+	}
 }

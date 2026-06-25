@@ -1,15 +1,18 @@
+version: "2"
 linters:
   disable-all: true
   enable:
     - errcheck
-    - gofmt
-    - gosimple
     - ineffassign
     - misspell
     - staticcheck
     - unconvert
     - unused
-    - vet
+    - govet
+
+formatters:
+  enable:
+    - gofmt
 
 linters-settings:
   errcheck:

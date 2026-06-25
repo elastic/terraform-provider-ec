@@ -19,7 +19,6 @@ package v2
 
 import (
 	"context"
-
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
@@ -57,12 +56,25 @@ type DeploymentTF struct {
 	EnterpriseSearch           types.Object `tfsdk:"enterprise_search"`
 	Observability              types.Object `tfsdk:"observability"`
 	ResetElasticsearchPassword types.Bool   `tfsdk:"reset_elasticsearch_password"`
+	MigrateToLatestHardware    types.Bool   `tfsdk:"migrate_to_latest_hardware"`
+	EncryptionKeyPath          types.String `tfsdk:"encryption_key_path"`
 }
 
 func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*models.DeploymentCreateRequest, diag.Diagnostics) {
+	// The alias behaves like this:
+	// - Not set in the config (null/unknown) -> Default alias is added
+	// - Set to empty string -> No alias is added
+	// - Set to non-empty string -> Alias with that value is added
+	var alias *string
+	if dep.Alias.IsNull() || dep.Alias.IsUnknown() {
+		alias = nil
+	} else {
+		alias = new(dep.Alias.ValueString())
+	}
+
 	var result = models.DeploymentCreateRequest{
 		Name:      dep.Name.ValueString(),
-		Alias:     dep.Alias.ValueString(),
+		Alias:     alias,
 		Resources: &models.DeploymentCreateResources{},
 		Settings:  &models.DeploymentCreateSettings{},
 		Metadata:  &models.DeploymentCreateMetadata{},
@@ -160,6 +172,13 @@ func (dep DeploymentTF) CreateRequest(ctx context.Context, client *api.API) (*mo
 	}
 
 	result.Settings.Observability = observabilityPayload
+
+	if !dep.EncryptionKeyPath.IsNull() && !dep.EncryptionKeyPath.IsUnknown() {
+		keyResourcePath := dep.EncryptionKeyPath.ValueString()
+		result.Settings.Byok = &models.ByokSettings{
+			KeyResourcePath: &keyResourcePath,
+		}
+	}
 
 	result.Metadata.Tags, diags = converters.TypesMapToModelsTags(ctx, dep.Tags)
 

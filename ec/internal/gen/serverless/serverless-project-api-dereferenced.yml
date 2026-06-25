@@ -1,0 +1,2573 @@
+openapi: 3.0.1
+info:
+  title: Elastic Cloud Serverless API
+  description: |
+    This API enables you to manage Elastic Cloud Serverless Projects.
+    You can create, update, and delete projects, as well as manage project features and usage.
+
+    You can find more information and examples using this API in the [documentation](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/manage-serverless-projects-using-api).
+
+    ## API principles
+
+    The Elastic Cloud Serverless REST API is built following REST principles:
+
+    * Resources (such as projects) are represented as URIs.
+    * Standard HTTP response codes and verbs are used (GET, POST, PUT, PATCH and DELETE).
+    * API calls are stateless. Every request that you make happens in isolation from other calls and must include all the information necessary to fulfill the request.
+    * JSON is the data interchange format.
+
+    ## Open API Specification
+
+    The Project Management API is documented using the [OpenAPI Specification](https://en.wikipedia.org/wiki/OpenAPI_Specification). The current supported version of the specification is 3.0.
+    For details, check the [API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/) or download the [OpenAPI Specification](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless.yaml).
+    This specification can be used to generate client SDKs, or on tools that support it, such as the [Swagger Editor](https://editor.swagger.io/).
+
+    ## Documentation source and versions
+        
+    This documentation is derived from a private repository.
+    It is provided under license [Attribution-NonCommercial-NoDerivatives 4.0 International](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+  version: 0.1.0
+  x-doc-license:
+    name: Attribution-NonCommercial-NoDerivatives 4.0 International
+    url: https://creativecommons.org/licenses/by-nc-nd/4.0/
+  x-feedbackLink:
+    label: Feedback
+    url: https://github.com/elastic/docs-content/issues/new?assignees=&labels=feedback%2Ccommunity&projects=&template=api-feedback.yaml&title=%5BFeedback%5D%3A+
+servers:
+  - url: https://api.elastic-cloud.com
+security:
+  - apiKey: []
+tags:
+  - name: elasticsearch projects
+    description: Management of Elasticsearch projects
+  - name: linked candidate projects
+    description: Management of project link candidates
+  - name: observability projects
+    description: Management of Observability projects
+  - name: security projects
+    description: Management of Security projects
+  - name: workplaceai projects
+    description: Management of Workplace AI projects
+  - name: linked projects
+  - name: regions
+    description: Cloud service provider regions
+  - name: traffic filters
+    description: Management of Elastic Cloud traffic filters
+paths:
+  /api/v1/serverless/projects/elasticsearch:
+    get:
+      summary: Get Elasticsearch projects
+      description: Fetches a list of Elasticsearch projects.
+      operationId: listElasticsearchProjects
+      tags:
+        - elasticsearch projects
+      parameters:
+        - name: traffic_filter
+          in: query
+          description: Filters the returned list of projects. Only projects associated with the provided traffic_filter will be returned.
+          required: false
+          schema:
+            type: string
+        - name: linked
+          in: query
+          description: Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProjectID'
+      responses:
+        '200':
+          description: The Elasticsearch project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticsearchProjectList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      description: Create an Elasticsearch project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps such as Elasticsearch and Kibana. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+      summary: Create an Elasticsearch project
+      operationId: createElasticsearchProject
+      tags:
+        - elasticsearch projects
+      requestBody:
+        description: Configuration of the elasticsearch project to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateElasticsearchProjectRequest'
+            example:
+              name: Example project
+              region_id: aws-us-east-1
+      responses:
+        '201':
+          description: The created elasticsearch project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticsearchProjectCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /api/v1/serverless/projects/elasticsearch/{id}:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get an Elasticsearch project
+      operationId: getElasticsearchProject
+      tags:
+        - elasticsearch projects
+      responses:
+        '200':
+          description: The requested Elasticsearch project
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticsearchProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      description: Only the fields included in the body of the request will be updated.
+      summary: Update an Elasticsearch project
+      operationId: patchElasticsearchProject
+      tags:
+        - elasticsearch projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      requestBody:
+        description: The Elasticsearch project patch body
+        required: true
+        content:
+          application/json:
+            example:
+              name: Example project
+            schema:
+              $ref: '#/components/schemas/PatchElasticsearchProjectRequest'
+      responses:
+        '200':
+          description: The updated Elasticsearch project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticsearchProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      summary: Delete an Elasticsearch project
+      operationId: deleteElasticsearchProject
+      tags:
+        - elasticsearch projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project deletion scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/elasticsearch/{id}/_can-delete:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get Elasticsearch project delete status
+      description: Find issues that would prevent deletion of a project
+      operationId: getElasticsearchProjectCanDelete
+      tags:
+        - linked projects
+      responses:
+        '200':
+          description: The requested delete status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanDeleteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/elasticsearch/{id}/_reset-credentials:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: If-Match
+        in: header
+        description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+        required: false
+        schema:
+          type: string
+    post:
+      description: Retrieve new project credentials, invalidating the previous ones.
+      summary: Reset the project credentials
+      operationId: resetElasticsearchProjectCredentials
+      tags:
+        - elasticsearch projects
+      responses:
+        '200':
+          description: The new project credentials.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCredentials'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/serverless/projects/elasticsearch/{id}/_resume:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    post:
+      description: Resume a previously suspended Elasticsearch project. Projects can be automatically suspended after their trial period has expired.
+      summary: Resume Elasticsearch project
+      operationId: resumeElasticsearchProject
+      tags:
+        - elasticsearch projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project resumption scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/elasticsearch/{id}/link-candidates:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: type
+        in: query
+        description: The type of projects to return as link candidates.
+        required: false
+        schema:
+          type: string
+      - name: csp
+        in: query
+        description: The Cloud Service Provider to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: region
+        in: query
+        description: The region to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: name
+        in: query
+        description: The project name to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+      - name: alias
+        in: query
+        description: The project alias to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+    get:
+      summary: Get Elasticsearch project link candidates
+      description: The response contains the list of projects which can be linked to the specified Elasticsearch project in a cross-project search configuration.
+      operationId: getElasticsearchProjectLinkCandidates
+      tags:
+        - linked candidate projects
+      responses:
+        '200':
+          description: The requested link candidate projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedCandidatesList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/elasticsearch/{id}/roles:
+    parameters:
+      - name: id
+        in: path
+        description: The ID of the project
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      description: Retrieve the custom roles defined for an Elasticsearch project.
+      summary: Get roles for an Elasticsearch project
+      operationId: getElasticsearchProjectRoles
+      tags:
+        - elasticsearch projects
+      responses:
+        '200':
+          description: The requested roles
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRolesByProjectID'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/elasticsearch/{id}/status:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get the status of an Elasticsearch project
+      description: The response indicates whether the project is initialized and ready to be used. The phase will change from "initializing" to "initialized" when the project is ready.
+      operationId: getElasticsearchProjectStatus
+      tags:
+        - elasticsearch projects
+      responses:
+        '200':
+          description: The requested Elasticsearch project status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/observability:
+    get:
+      summary: Get Observability projects
+      description: Fetches a list of Observability projects.
+      operationId: listObservabilityProjects
+      tags:
+        - observability projects
+      parameters:
+        - name: traffic_filter
+          in: query
+          description: traffic filters associated with this project
+          required: false
+          schema:
+            type: string
+        - name: linked
+          in: query
+          description: Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProjectID'
+      responses:
+        '200':
+          description: The Observability project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityProjectList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      description: The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps such as Elasticsearch, Kibana and APM. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+      summary: Create an observability project
+      operationId: createObservabilityProject
+      tags:
+        - observability projects
+      requestBody:
+        description: Configuration of the observability project to create.
+        required: true
+        content:
+          application/json:
+            example:
+              name: Example project
+              region_id: aws-us-east-1
+            schema:
+              $ref: '#/components/schemas/CreateObservabilityProjectRequest'
+      responses:
+        '201':
+          description: The created observability project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityProjectCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /api/v1/serverless/projects/observability/{id}:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get an Observability project
+      operationId: getObservabilityProject
+      tags:
+        - observability projects
+      responses:
+        '200':
+          description: The requested Observability project
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      description: Only the fields included in the body of the request will be updated.
+      summary: Update an Observability project
+      operationId: patchObservabilityProject
+      tags:
+        - observability projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      requestBody:
+        description: The patched Observability project
+        required: true
+        content:
+          application/json:
+            example:
+              name: Example project
+            schema:
+              $ref: '#/components/schemas/PatchObservabilityProjectRequest'
+      responses:
+        '200':
+          description: The updated Observability project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservabilityProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      summary: Delete an Observability project
+      operationId: deleteObservabilityProject
+      tags:
+        - observability projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project deletion scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/observability/{id}/_can-delete:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get Observability project delete status
+      description: Find issues that would prevent deletion of a project
+      operationId: getObservabilityProjectCanDelete
+      tags:
+        - linked projects
+      responses:
+        '200':
+          description: The requested delete status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanDeleteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/observability/{id}/_reset-credentials:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: If-Match
+        in: header
+        description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+        required: false
+        schema:
+          type: string
+    post:
+      description: Retrieve new project credentials, invalidating the previous ones.
+      summary: Reset the project credentials
+      operationId: resetObservabilityProjectCredentials
+      tags:
+        - observability projects
+      responses:
+        '200':
+          description: The new project credentials.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCredentials'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/serverless/projects/observability/{id}/_resume:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    post:
+      description: Resume a previously suspended Observability project. Projects can be automatically suspended after their trial period has expired.
+      summary: Resume Observability project
+      operationId: resumeObservabilityProject
+      tags:
+        - observability projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project resumption scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/observability/{id}/link-candidates:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: type
+        in: query
+        description: The type of projects to return as link candidates.
+        required: false
+        schema:
+          type: string
+      - name: csp
+        in: query
+        description: The Cloud Service Provider to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: region
+        in: query
+        description: The region to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: name
+        in: query
+        description: The project name to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+      - name: alias
+        in: query
+        description: The project alias to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+    get:
+      summary: Get Observability project link candidates
+      description: The response contains the list of projects which can be linked to the specified Observability project in a cross-project search configuration.
+      operationId: getObservabilityProjectLinkCandidates
+      tags:
+        - linked candidate projects
+      responses:
+        '200':
+          description: The requested link candidate projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedCandidatesList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/observability/{id}/roles:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      description: Retrieve the custom roles defined for an Observability project.
+      summary: Get roles for an Observability project
+      operationId: getObservabilityProjectRoles
+      tags:
+        - observability projects
+      responses:
+        '200':
+          description: The requested roles
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRolesByProjectID'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/observability/{id}/status:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get the status of an Observability project
+      description: The response indicates whether the project is initialized and ready to be used. The phase will change from "initializing" to "initialized" when the project is ready.
+      operationId: getObservabilityProjectStatus
+      tags:
+        - observability projects
+      responses:
+        '200':
+          description: The requested Observability project status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/security:
+    get:
+      summary: Get Security projects
+      description: Fetches a list of Security projects.
+      operationId: listSecurityProjects
+      tags:
+        - security projects
+      parameters:
+        - name: traffic_filter
+          in: query
+          description: traffic filters associated with this project
+          required: false
+          schema:
+            type: string
+        - name: linked
+          in: query
+          description: Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProjectID'
+      responses:
+        '200':
+          description: The Security project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityProjectList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Create a security project
+      description: The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps such as Elasticsearch and Kibana. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+      operationId: createSecurityProject
+      tags:
+        - security projects
+      requestBody:
+        description: Configuration of the security project to create.
+        required: true
+        content:
+          application/json:
+            example:
+              name: Example project
+              region_id: aws-us-east-1
+            schema:
+              $ref: '#/components/schemas/CreateSecurityProjectRequest'
+      responses:
+        '201':
+          description: The created security project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityProjectCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /api/v1/serverless/projects/security/{id}:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get a Security project
+      operationId: getSecurityProject
+      tags:
+        - security projects
+      responses:
+        '200':
+          description: The requested Security project
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      description: Only the fields included in the body of the request will be updated.
+      summary: Update a Security project
+      operationId: patchSecurityProject
+      tags:
+        - security projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      requestBody:
+        description: The patched Security project
+        required: true
+        content:
+          application/json:
+            example:
+              name: Example project
+            schema:
+              $ref: '#/components/schemas/PatchSecurityProjectRequest'
+      responses:
+        '200':
+          description: The updated Security project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      summary: Delete a Security project
+      operationId: deleteSecurityProject
+      tags:
+        - security projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project deletion scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/security/{id}/_can-delete:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get Security project delete status
+      description: Find issues that would prevent deletion of a project
+      operationId: getSecurityProjectCanDelete
+      tags:
+        - linked projects
+      responses:
+        '200':
+          description: The requested delete status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanDeleteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/security/{id}/_reset-credentials:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: If-Match
+        in: header
+        description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+        required: false
+        schema:
+          type: string
+    post:
+      description: Retrieve new project credentials, invalidating the previous ones.
+      summary: Reset the project credentials
+      operationId: resetSecurityProjectCredentials
+      tags:
+        - security projects
+      responses:
+        '200':
+          description: The new project credentials.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCredentials'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/serverless/projects/security/{id}/_resume:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    post:
+      description: Resume a previously suspended Security project. Projects can be automatically suspended after their trial period has expired.
+      summary: Resume Security project
+      operationId: resumeSecurityProject
+      tags:
+        - security projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project resumption scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/security/{id}/link-candidates:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: type
+        in: query
+        description: The type of projects to return as link candidates.
+        required: false
+        schema:
+          type: string
+      - name: csp
+        in: query
+        description: The Cloud Service Provider to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: region
+        in: query
+        description: The region to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: name
+        in: query
+        description: The project name to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+      - name: alias
+        in: query
+        description: The project alias to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+    get:
+      summary: Get Security project link candidates
+      description: The response contains the list of projects which can be linked to the specified Security project in a cross-project search configuration.
+      operationId: getSecurityProjectLinkCandidates
+      tags:
+        - linked candidate projects
+      responses:
+        '200':
+          description: The requested link candidate projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedCandidatesList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/security/{id}/roles:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      description: Retrieve the custom roles defined for a Security project.
+      summary: Get roles for a Security project
+      operationId: getSecurityProjectRoles
+      tags:
+        - security projects
+      responses:
+        '200':
+          description: The requested roles
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRolesByProjectID'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/security/{id}/status:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      description: The response indicates whether the project is initialized and ready to be used. The phase will change from "initializing" to "initialized" when the project is ready.
+      summary: Get the status of a Security project
+      operationId: getSecurityProjectStatus
+      tags:
+        - security projects
+      responses:
+        '200':
+          description: The requested Security project status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/regions:
+    get:
+      description: Retrieve the available cloud service provider regions where a project can be created.
+      summary: Get regions
+      operationId: listRegions
+      tags:
+        - regions
+      responses:
+        '200':
+          description: The regions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/serverless/regions/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: ID of the region
+        required: true
+        schema:
+          $ref: '#/components/schemas/RegionID'
+    get:
+      description: Retrieve the details of a cloud service provider region.
+      summary: Get a region
+      operationId: getRegion
+      tags:
+        - regions
+      responses:
+        '200':
+          description: The requested region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/traffic-filters:
+    get:
+      summary: List traffic filters
+      description: List all of the traffic filters.
+      operationId: listTrafficFilters
+      tags:
+        - traffic filters
+      parameters:
+        - name: include_by_default
+          in: query
+          description: Retrieves a list of resources that have include_by_default set or not set
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: region
+          in: query
+          description: If provided limits the traffic filters to that region only.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The collection of traffic filters were successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a traffic filter
+      description: Creates a traffic filter that consists of a set of rules.
+      operationId: createTrafficFilter
+      tags:
+        - traffic filters
+      requestBody:
+        $ref: '#/components/requestBodies/CreateTrafficFilterRequestBody'
+      responses:
+        '201':
+          description: The traffic filter definition is valid and the creation has started.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/serverless/traffic-filters/metadata:
+    get:
+      summary: List PrivateLink region metadata
+      description: |
+        Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+      operationId: getTrafficFilterMetadata
+      tags:
+        - traffic filters
+      parameters:
+        - name: region
+          in: query
+          description: Filter metadata to a specific AWS region.
+          required: false
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Metadata returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/serverless/traffic-filters/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: The traffic filter ID.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Retrieves the traffic filter by ID.
+      description: Retrieves a list of resources that are associated to the specified traffic filter.
+      operationId: getTrafficFilter
+      tags:
+        - traffic filters
+      responses:
+        '200':
+          description: The container for a set of traffic filter rules.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      summary: Updates a traffic filter
+      description: Updates the traffic filter with the definition.
+      operationId: patchTrafficFilter
+      tags:
+        - traffic filters
+      requestBody:
+        $ref: '#/components/requestBodies/PatchTrafficFilterBody'
+      responses:
+        '200':
+          description: The traffic filter definition was valid and the update has started.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrafficFilterInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      x-doc:
+        tag: traffic filters
+    delete:
+      summary: Delete a traffic filter
+      description: Deletes the traffic filter by ID.
+      operationId: deleteTrafficFilter
+      tags:
+        - traffic filters
+      responses:
+        '204':
+          description: The traffic filter was successfully deleted.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  securitySchemes:
+    apiKey:
+      description: |
+        API keys are used to authenticate requests to the Elastic Cloud Serverless REST API.
+        Generate your secret API key in https://cloud.elastic.co/account/keys
+        You must provide the API key for all API requests in the Authorization header as follows:
+
+        ```
+        "Authorization: ApiKey $API_KEY"
+        ```
+
+        For example, if you interact with the API using the curl command:
+
+        ```
+        curl -H "Authorization: ApiKey essu_..." https://api.elastic-cloud.com/api/v1/serverless/projects/elasticsearch
+        ```
+      name: Authorization
+      type: apiKey
+      in: header
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    UnprocessableEntity:
+      description: Unprocessable entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    PreconditionFailed:
+      description: Precondition failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MultiErrorResponse'
+  schemas:
+    CanDeleteResponse:
+      type: object
+      description: Container for deletion eligibility details.
+      required:
+        - linked_projects
+        - monitored_projects
+        - linked_status
+        - can_be_deleted
+      properties:
+        linked_projects:
+          description: Details about linked origins that affect deletion.
+          type: array
+          items:
+            $ref: '#/components/schemas/DependentProjectSummary'
+        can_be_deleted:
+          description: Indicates whether the project can be deleted.
+          type: boolean
+    CloudID:
+      type: string
+      description: The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
+      example: my_project:LmF3cy5lbGFzdG
+    CreateElasticsearchProjectRequest:
+      type: object
+      description: A request to create an Elasticsearch serverless project.
+      required:
+        - name
+        - region_id
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        optimized_for:
+          $ref: '#/components/schemas/ElasticsearchOptimizedFor'
+        search_lake:
+          $ref: '#/components/schemas/ElasticsearchSearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadataRequest'
+      additionalProperties: false
+    CreateObservabilityProjectRequest:
+      type: object
+      description: A request to create an Observability project.
+      required:
+        - name
+        - region_id
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        product_tier:
+          $ref: '#/components/schemas/ObservabilityProjectProductTier'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadataRequest'
+      additionalProperties: false
+    CreateSecurityProjectRequest:
+      type: object
+      description: A request to create a Security project.
+      required:
+        - name
+        - region_id
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        admin_features_package:
+          $ref: '#/components/schemas/SecurityAdminFeaturesPackage'
+        product_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityProductType'
+          default:
+            - product_line: security
+              product_tier: complete
+            - product_line: cloud
+              product_tier: complete
+            - product_line: endpoint
+              product_tier: complete
+          minItems: 1
+          maxItems: 3
+        search_lake:
+          $ref: '#/components/schemas/SecuritySearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadataRequest'
+      additionalProperties: false
+    DataRetention:
+      type: object
+      description: Configuration to control the data retention in Elasticsearch data streams.
+      properties:
+        max_retention_days:
+          type: integer
+          description: Maximum number of days allowed for retaining data in Elasticsearch data streams. Can be set to "null" for unlimited. A default of 396 will be applied if no value is specified on project creation.
+          minimum: 7
+          maximum: 3681
+          nullable: true
+        default_retention_days:
+          type: integer
+          description: Default number of days during which data remains available in Elasticsearch data streams. Can be set to "null" for unlimited. A default of 396 will be applied if no value is specified on project creation.
+          minimum: 7
+          maximum: 3681
+          nullable: true
+      nullable: true
+    DependentProjectSummary:
+      type: object
+      description: Summary details of a project.
+      required:
+        - id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        type:
+          $ref: '#/components/schemas/ProjectType'
+    ElasticsearchOptimizedFor:
+      type: string
+      description: |
+        The purpose for which the hardware of this elasticsearch project is optimized. Also known as the Elasticsearch project subtype.
+
+        - The `general_purpose` option is suitable for most search use cases. For example, it is the right profile for full-text search, sparse vectors, and dense vectors that use compression such as BBQ. It is used by default when you create projects from the UI.
+        - The `vector` option is recommended only for uncompressed dense vectors (`dense_vector` fields with `int4` or `int8` quantization strategies) and high dimensionality. Refer to documentation about billing dimensions for the impact to virtual compute unit (VCU) consumption.
+      enum:
+        - general_purpose
+        - vector
+      example: general_purpose
+      externalDocs:
+        description: Elasticsearch Serverless billing dimensions
+        url: https://www.elastic.co/docs/deploy-manage/cloud-organization/billing/elasticsearch-billing-dimensions
+    ElasticsearchProject:
+      type: object
+      description: An Elasticsearch serverless project.
+      required:
+        - alias
+        - cloud_id
+        - endpoints
+        - id
+        - metadata
+        - name
+        - optimized_for
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - elasticsearch
+        optimized_for:
+          $ref: '#/components/schemas/ElasticsearchOptimizedFor'
+        search_lake:
+          $ref: '#/components/schemas/ElasticsearchSearchLake'
+        endpoints:
+          $ref: '#/components/schemas/ElasticsearchProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/ElasticsearchProjectPrivateEndpoints'
+    ElasticsearchProjectCreated:
+      type: object
+      description: The created Elasticsearch project along with credentials to access Elasticsearch.
+      required:
+        - alias
+        - cloud_id
+        - credentials
+        - endpoints
+        - id
+        - metadata
+        - name
+        - optimized_for
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - elasticsearch
+        optimized_for:
+          $ref: '#/components/schemas/ElasticsearchOptimizedFor'
+        search_lake:
+          $ref: '#/components/schemas/ElasticsearchSearchLake'
+        endpoints:
+          $ref: '#/components/schemas/ElasticsearchProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/ElasticsearchProjectPrivateEndpoints'
+        credentials:
+          $ref: '#/components/schemas/ProjectCredentials'
+    ElasticsearchProjectEndpoints:
+      type: object
+      description: The endpoints to access the different apps of the project.
+      required:
+        - elasticsearch
+        - kibana
+      properties:
+        elasticsearch:
+          type: string
+          description: The endpoint to access elasticsearch.
+          example: https://my-project-alias-df6c6d.es.us-east-1.aws.elastic.cloud
+        kibana:
+          type: string
+          description: The endpoint to access kibana.
+          example: https://my-project-alias-df6c6d.kb.us-east-1.aws.elastic.cloud
+    ElasticsearchProjectList:
+      type: object
+      description: A paginated list of serverless elasticsearch projects.
+      required:
+        - items
+      properties:
+        next_page:
+          deprecated: true
+          description: A token to fetch the next page.
+          type: string
+          example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
+        items:
+          description: The actual projects.
+          type: array
+          items:
+            $ref: '#/components/schemas/ElasticsearchProject'
+    ElasticsearchProjectPrivateEndpoints:
+      type: object
+      description: Private endpoints (URLs) for Elasticsearch projects when PrivateLink is enabled.
+      required:
+        - elasticsearch
+        - kibana
+      properties:
+        elasticsearch:
+          type: string
+          description: The PrivateLink endpoint URL to access elasticsearch.
+          example: https://my-project-alias-df6c6d.es.private.us-east-1.aws.elastic.cloud
+        kibana:
+          type: string
+          description: The PrivateLink endpoint URL to access kibana.
+          example: https://my-project-alias-df6c6d.kb.private.us-east-1.aws.elastic.cloud
+    ElasticsearchSearchLake:
+      type: object
+      description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch.
+      properties:
+        search_power:
+          description: Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.
+          type: integer
+          minimum: 28
+          maximum: 3000
+          example: 100
+        boost_window:
+          description: Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window.
+          type: integer
+          minimum: 1
+          maximum: 180
+          example: 100
+    ErrorResponse:
+      type: object
+      description: An error response returned by the API.
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          description: A human-readable message of the error.
+          example: Explicative error message
+        code:
+          type: string
+          description: An identifier for this type of error.
+          example: code.error
+    LinkedCandidateProject:
+      type: object
+      required:
+        - id
+        - name
+        - alias
+        - type
+        - csp
+        - region
+        - tags
+        - linked
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        type:
+          $ref: '#/components/schemas/ProjectType'
+        csp:
+          type: string
+        region:
+          $ref: '#/components/schemas/RegionID'
+        tags:
+          $ref: '#/components/schemas/ProjectTags'
+        linked:
+          type: boolean
+          description: Indicates whether the project is already linked to the requesting project.
+    LinkedCandidatesList:
+      type: object
+      description: A list of all projects that can be linked for a project.
+      required:
+        - items
+      properties:
+        items:
+          description: The linked candidates.
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedCandidateProject'
+    MultiErrorResponse:
+      type: object
+      description: A non-empty list of errors.
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorResponse'
+    ObservabilityProject:
+      type: object
+      description: An Observability project.
+      required:
+        - alias
+        - cloud_id
+        - endpoints
+        - id
+        - metadata
+        - name
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - observability
+        product_tier:
+          $ref: '#/components/schemas/ObservabilityProjectProductTier'
+        endpoints:
+          $ref: '#/components/schemas/ObservabilityProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/ObservabilityProjectPrivateEndpoints'
+    ObservabilityProjectCreated:
+      type: object
+      description: The created Observability project along with credentials to access Elasticsearch.
+      required:
+        - alias
+        - cloud_id
+        - credentials
+        - endpoints
+        - id
+        - metadata
+        - name
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - observability
+        product_tier:
+          $ref: '#/components/schemas/ObservabilityProjectProductTier'
+        endpoints:
+          $ref: '#/components/schemas/ObservabilityProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/ObservabilityProjectPrivateEndpoints'
+        credentials:
+          $ref: '#/components/schemas/ProjectCredentials'
+    ObservabilityProjectEndpoints:
+      type: object
+      description: The endpoints to access the different apps of the project.
+      required:
+        - elasticsearch
+        - kibana
+        - apm
+        - ingest
+      properties:
+        elasticsearch:
+          description: The endpoint to access elasticsearch.
+          type: string
+        kibana:
+          description: The endpoint to access kibana.
+          type: string
+        apm:
+          description: The endpoint to access apm.
+          type: string
+        ingest:
+          description: The endpoint to access the Managed OTLP Endpoint.
+          type: string
+    ObservabilityProjectList:
+      type: object
+      description: A paginated list of serverless Observability projects.
+      required:
+        - items
+      properties:
+        next_page:
+          deprecated: true
+          description: A token to fetch the next page.
+          type: string
+        items:
+          type: array
+          description: The actual projects.
+          items:
+            $ref: '#/components/schemas/ObservabilityProject'
+    ObservabilityProjectPrivateEndpoints:
+      type: object
+      description: Private endpoints (URLs) for Observability projects when PrivateLink is enabled.
+      required:
+        - elasticsearch
+        - kibana
+        - apm
+        - ingest
+      properties:
+        elasticsearch:
+          type: string
+          description: The PrivateLink endpoint URL to access elasticsearch.
+          example: https://my-project-alias-df6c6d.es.private.us-east-1.aws.elastic.cloud
+        kibana:
+          type: string
+          description: The PrivateLink endpoint URL to access kibana.
+          example: https://my-project-alias-df6c6d.kb.private.us-east-1.aws.elastic.cloud
+        apm:
+          type: string
+          description: The PrivateLink endpoint URL to access APM.
+          example: https://my-project-alias-df6c6d.apm.private.us-east-1.aws.elastic.cloud
+        ingest:
+          type: string
+          description: The PrivateLink endpoint URL to access the Managed OTLP Endpoint.
+          example: https://my-project-alias-df6c6d.ingest.private.us-east-1.aws.elastic.cloud
+    ObservabilityProjectProductTier:
+      type: string
+      description: the tier of the observability project
+      enum:
+        - complete
+        - logs_essentials
+      default: complete
+    OptionalElasticsearchSearchLake:
+      type: object
+      description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
+      properties:
+        search_power:
+          description: Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs. It can be passed as `null` to reset the Search Power to the default value.
+          type: integer
+          nullable: true
+          minimum: 28
+          maximum: 3000
+        boost_window:
+          description: Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. It can be passed as `null` to reset the Search Boost Window to the default value.
+          type: integer
+          minimum: 1
+          maximum: 180
+          nullable: true
+      nullable: true
+    OptionalMetadata:
+      type: object
+      description: Metadata about the project
+      required:
+        - tags
+    OptionalSecurityAdminFeaturesPackage:
+      type: string
+      description: admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
+      enum:
+        - standard
+        - enterprise
+      nullable: true
+    OptionalSecuritySearchLake:
+      type: object
+      description: Configuration for the entire set of capabilities that make the data searchable in Security.
+      properties:
+        data_retention:
+          $ref: '#/components/schemas/DataRetention'
+      nullable: true
+    OptionalTrafficFilters:
+      type: array
+      description: traffic filters IDs
+      items:
+        $ref: '#/components/schemas/TrafficFilter'
+      nullable: true
+    PatchElasticsearchProjectRequest:
+      type: object
+      description: A request to patch an existing Elasticsearch serverless project.
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        search_lake:
+          $ref: '#/components/schemas/OptionalElasticsearchSearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
+        metadata:
+          $ref: '#/components/schemas/OptionalMetadata'
+      additionalProperties: false
+    PatchObservabilityProjectRequest:
+      type: object
+      description: A request to update an existing Observability project.
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
+        product_tier:
+          $ref: '#/components/schemas/ObservabilityProjectProductTier'
+        metadata:
+          $ref: '#/components/schemas/OptionalMetadata'
+      additionalProperties: false
+    PatchSecurityProjectRequest:
+      type: object
+      description: A request to patch an existing Security project.
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        admin_features_package:
+          $ref: '#/components/schemas/OptionalSecurityAdminFeaturesPackage'
+        product_types:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/SecurityProductType'
+          minItems: 1
+          maxItems: 3
+        search_lake:
+          $ref: '#/components/schemas/OptionalSecuritySearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
+        metadata:
+          $ref: '#/components/schemas/OptionalMetadata'
+      additionalProperties: false
+    ProjectAlias:
+      type: string
+      description: A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+      example: my-project-alias
+      maxLength: 50
+      minLength: 1
+      pattern: ^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$
+    ProjectAliasWithSuffix:
+      type: string
+      description: A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+      example: my-project-alias-bdc0f7
+      maxLength: 57
+      minLength: 8
+      pattern: ^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$
+    ProjectCredentials:
+      type: object
+      description: Basic auth credentials to access the Elasticsearch API.
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Basic auth username that can be used to access the Elasticsearch API.
+          example: admin
+        password:
+          type: string
+          description: Basic auth password that can be used to access the Elasticsearch API.
+          example: '*****'
+          format: password
+    ProjectID:
+      type: string
+      description: ID of the project.
+      pattern: ^[a-z0-9]{32}$
+    ProjectMetadata:
+      type: object
+      description: Additional details about the project.
+      required:
+        - created_at
+        - created_by
+        - organization_id
+      properties:
+        created_at:
+          type: string
+          description: Date and time when the project was created.
+          format: date-time
+        created_by:
+          $ref: '#/components/schemas/UserID'
+        organization_id:
+          type: string
+          description: The Organization ID who owns the project.
+          example: '198583657190'
+        suspended_at:
+          type: string
+          description: Date and time when the project was suspended.
+          format: date-time
+        suspended_reason:
+          type: string
+          description: Reason why the project was suspended.
+          example: trial expired
+        tags:
+          $ref: '#/components/schemas/ProjectTags'
+    ProjectMetadataRequest:
+      type: object
+      description: Metadata request for a project with tags.
+      required:
+        - tags
+      properties:
+        tags:
+          $ref: '#/components/schemas/ProjectTags'
+    ProjectName:
+      type: string
+      description: Descriptive name for a project.
+      example: my project
+      maxLength: 255
+      minLength: 1
+    ProjectRole:
+      type: string
+      description: A role name for a particular project
+    ProjectRoleDescription:
+      type: string
+      description: A role description for a particular role
+    ProjectRoleDetails:
+      type: object
+      description: Roles of a serverless project.
+      required:
+        - name
+        - description
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectRole'
+        description:
+          $ref: '#/components/schemas/ProjectRoleDescription'
+    ProjectRoles:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectRoleDetails'
+    ProjectRolesByProjectID:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectRoles'
+    ProjectStatus:
+      type: object
+      description: Status of a serverless project.
+      required:
+        - phase
+      properties:
+        phase:
+          $ref: '#/components/schemas/ProjectStatusPhase'
+        phase_change_timestamp:
+          type: string
+          description: Date and time when the project changed to the current phase.
+          format: date-time
+    ProjectStatusPhase:
+      type: string
+      description: |
+        Current phase of the project:
+        - initializing: the project is still being created and is not ready for use yet. Projects being resumed or restored transition back to this phase.
+        - initialized: the project has been created successfully and is ready for use
+        - deleting: the project is being deleted but the process has not completed yet. The project is not usable in this phase.
+        - deleted: the project has been deleted. This is a terminal phase, after which the project will be removed from the system after a certain retention period.
+        - suspending: the project is being suspended but the process has not completed yet. The project is not usable in this phase.
+        - suspended: the project has been suspended. The project is not usable in this phase.
+      enum:
+        - initializing
+        - initialized
+        - deleting
+        - suspending
+        - suspended
+    ProjectTagValue:
+      type: string
+      maxLength: 128
+      minLength: 1
+      pattern: ^[a-z0-9][a-z0-9_-]*$
+    ProjectTags:
+      type: object
+      description: Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectTagValue'
+      maxProperties: 64
+      minProperties: 1
+    ProjectType:
+      type: string
+      description: The type of the linked project
+      enum:
+        - elasticsearch
+        - observability
+        - security
+        - workplaceai
+      x-enumNames:
+        - ProjectTypeElasticsearch
+        - ProjectTypeObservability
+        - ProjectTypeSecurity
+        - ProjectTypeWorkplaceAI
+    RegionID:
+      type: string
+      description: Unique human-readable identifier for a region in Elastic Cloud.
+      example: aws-us-east-1
+    SecurityAdminFeaturesPackage:
+      type: string
+      description: admin features package (BYOK, BYOIDP, CCS, CCR)
+      enum:
+        - standard
+        - enterprise
+    SecurityProductLine:
+      type: string
+      description: The identifier of the Security Solution product line.
+      enum:
+        - security
+        - cloud
+        - endpoint
+    SecurityProductTier:
+      type: string
+      description: The identifier of the Security Solution product tier.
+      enum:
+        - complete
+        - essentials
+    SecurityProductType:
+      type: object
+      description: Defines Security product type object with product line and tier dimensions.
+      required:
+        - product_line
+        - product_tier
+      properties:
+        product_line:
+          $ref: '#/components/schemas/SecurityProductLine'
+        product_tier:
+          $ref: '#/components/schemas/SecurityProductTier'
+    SecurityProject:
+      type: object
+      description: A Security project.
+      required:
+        - alias
+        - cloud_id
+        - endpoints
+        - id
+        - metadata
+        - name
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - security
+        endpoints:
+          $ref: '#/components/schemas/SecurityProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/SecurityProjectPrivateEndpoints'
+        search_lake:
+          $ref: '#/components/schemas/SecuritySearchLake'
+        admin_features_package:
+          $ref: '#/components/schemas/SecurityAdminFeaturesPackage'
+        product_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityProductType'
+          default:
+            - product_line: security
+              product_tier: complete
+            - product_line: cloud
+              product_tier: complete
+            - product_line: endpoint
+              product_tier: complete
+          minItems: 1
+          maxItems: 3
+    SecurityProjectCreated:
+      type: object
+      description: The created Security project along with credentials to access Elasticsearch.
+      required:
+        - alias
+        - cloud_id
+        - credentials
+        - endpoints
+        - id
+        - metadata
+        - name
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - security
+        endpoints:
+          $ref: '#/components/schemas/SecurityProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/SecurityProjectPrivateEndpoints'
+        search_lake:
+          $ref: '#/components/schemas/SecuritySearchLake'
+        admin_features_package:
+          $ref: '#/components/schemas/SecurityAdminFeaturesPackage'
+        product_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityProductType'
+          default:
+            - product_line: security
+              product_tier: complete
+            - product_line: cloud
+              product_tier: complete
+            - product_line: endpoint
+              product_tier: complete
+          minItems: 1
+          maxItems: 3
+        credentials:
+          $ref: '#/components/schemas/ProjectCredentials'
+    SecurityProjectEndpoints:
+      type: object
+      description: The endpoints to access the different apps of the project.
+      required:
+        - elasticsearch
+        - kibana
+        - ingest
+      properties:
+        elasticsearch:
+          description: The endpoint to access elasticsearch.
+          type: string
+        kibana:
+          description: The endpoint to access kibana.
+          type: string
+        ingest:
+          description: The endpoint to access the Managed OTLP Endpoint.
+          type: string
+    SecurityProjectList:
+      type: object
+      description: A paginated list of serverless Security projects.
+      required:
+        - items
+      properties:
+        next_page:
+          deprecated: true
+          description: A token to fetch the next page.
+          type: string
+        items:
+          description: The actual projects.
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityProject'
+    SecurityProjectPrivateEndpoints:
+      type: object
+      description: Private endpoints (URLs) for Security projects when PrivateLink is enabled.
+      required:
+        - elasticsearch
+        - kibana
+        - ingest
+      properties:
+        elasticsearch:
+          type: string
+          description: The PrivateLink endpoint URL to access elasticsearch.
+          example: https://my-project-alias-df6c6d.es.private.us-east-1.aws.elastic.cloud
+        kibana:
+          type: string
+          description: The PrivateLink endpoint URL to access kibana.
+          example: https://my-project-alias-df6c6d.kb.private.us-east-1.aws.elastic.cloud
+        ingest:
+          type: string
+          description: The PrivateLink endpoint URL to access the Managed OTLP Endpoint.
+          example: https://my-project-alias-df6c6d.ingest.private.us-east-1.aws.elastic.cloud
+    SecuritySearchLake:
+      type: object
+      description: Configuration for the entire set of capabilities that make the data searchable in Security.
+      properties:
+        data_retention:
+          $ref: '#/components/schemas/DataRetention'
+    TrafficFilter:
+      type: object
+      description: traffic filters association info
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: traffic filter ID
+          example: traffic-filter-1
+    TrafficFilters:
+      type: array
+      description: traffic filters IDs
+      items:
+        $ref: '#/components/schemas/TrafficFilter'
+    UserID:
+      type: string
+      description: ID of the user.
+      example: '1014289666002276'
+    CSP:
+      type: string
+      description: The identifier of the cloud service provider hosting this region.
+      enum:
+        - aws
+        - gcp
+        - azure
+    CountryCode:
+      type: string
+      description: ISO 3166-1 alpha-2 country code which this region is associated with
+      example: US
+    Region:
+      type: object
+      description: A Cloud Service Provider region.
+      required:
+        - id
+        - name
+        - csp
+        - csp_region
+        - country_code
+        - project_creation_enabled
+      properties:
+        id:
+          $ref: '#/components/schemas/RegionID'
+        name:
+          example: US (Virginia)
+          description: The human readable name for the region
+          type: string
+        csp:
+          $ref: '#/components/schemas/CSP'
+        csp_region:
+          example: us-east-1
+          description: The unique identifier of the underlying cloud service provider region.
+          type: string
+        country_code:
+          $ref: '#/components/schemas/CountryCode'
+        project_creation_enabled:
+          description: Specifies whether the region is available for project creation
+          type: boolean
+    CreateTrafficFilterRequest:
+      type: object
+      description: The specification for traffic filter.
+      required:
+        - name
+        - region
+        - type
+      properties:
+        name:
+          type: string
+          description: Name of the traffic filter
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          description: Description of the traffic filter
+          minLength: 0
+          maxLength: 512
+        type:
+          $ref: '#/components/schemas/TrafficFilterType'
+        include_by_default:
+          type: boolean
+          description: Should the traffic filter be automatically included in the new projects
+        region:
+          type: string
+          description: The traffic filter can be attached only to projects in the specific region
+          minLength: 1
+          maxLength: 32
+        rules:
+          type: array
+          description: List of rules
+          items:
+            $ref: '#/components/schemas/TrafficFilterRule'
+    PatchTrafficFilterRequest:
+      type: object
+      description: The specification for traffic filter.
+      properties:
+        name:
+          type: string
+          description: Name of the traffic filter
+        description:
+          type: string
+          description: Description of the traffic filter
+        include_by_default:
+          type: boolean
+          description: Should the traffic filter be automatically included in the new projects
+        rules:
+          type: array
+          description: List of rules
+          items:
+            $ref: '#/components/schemas/TrafficFilterRule'
+    TrafficFilterAvailabilityZone:
+      type: object
+      required:
+        - name
+        - id
+      properties:
+        name:
+          type: string
+        id:
+          type: string
+    TrafficFilterInfo:
+      type: object
+      description: The container for a set of traffic filter rules.
+      required:
+        - id
+        - include_by_default
+        - name
+        - region
+        - rules
+        - type
+      properties:
+        id:
+          type: string
+          description: The traffic filter ID
+          minLength: 32
+          maxLength: 32
+        name:
+          type: string
+          description: Name of the traffic filter
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          description: Description of the traffic filter
+          minLength: 0
+          maxLength: 512
+        type:
+          $ref: '#/components/schemas/TrafficFilterType'
+        include_by_default:
+          type: boolean
+          description: Should the traffic filter be automatically included in the new projects
+        region:
+          type: string
+          description: The traffic filter can be attached only to projects in the specific region
+          minLength: 1
+          maxLength: 32
+        rules:
+          type: array
+          description: List of rules
+          items:
+            $ref: '#/components/schemas/TrafficFilterRule'
+    TrafficFilterList:
+      type: object
+      description: The container for a set of traffic filter.
+      required:
+        - items
+      properties:
+        next_page:
+          description: A token to fetch the next page.
+          type: string
+          example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
+          nullable: true
+        items:
+          type: array
+          description: List of traffic filters
+          items:
+            $ref: '#/components/schemas/TrafficFilterInfo'
+    TrafficFilterMetadata:
+      type: object
+      description: Region-scoped PrivateLink metadata.
+      properties:
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrafficFilterRegionMetadata'
+    TrafficFilterRegionMetadata:
+      type: object
+      required:
+        - region
+        - vpc_service_name
+        - private_hosted_zone_domain_name
+        - availability_zones
+      properties:
+        region:
+          type: string
+        vpc_service_name:
+          type: string
+        private_hosted_zone_domain_name:
+          type: string
+        availability_zones:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrafficFilterAvailabilityZone'
+    TrafficFilterRule:
+      type: object
+      description: The container for a traffic filter rule.
+      required:
+        - source
+      properties:
+        description:
+          type: string
+          description: Description of the rule.
+        source:
+          type: string
+          description: 'Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID'
+    TrafficFilterType:
+      type: string
+      description: Type of the traffic filter
+      enum:
+        - ip
+        - vpce
+      maxLength: 32
+      minLength: 1
+  requestBodies:
+    CreateTrafficFilterRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateTrafficFilterRequest'
+      description: The specification for traffic filter.
+      required: true
+    PatchTrafficFilterBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PatchTrafficFilterRequest'
+      description: The specification for traffic filter.
+      required: true

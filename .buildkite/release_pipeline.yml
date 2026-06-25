@@ -1,0 +1,8 @@
+steps:
+  - label: ":rocket: Release"
+    command: .buildkite/release.sh
+    agents:
+      image: "docker.io/library/golang:1.26"
+      cpu: "16"
+      memory: "24G"
+      ephemeralStorage: "40G"

@@ -4,12 +4,18 @@ page_title: "Provider: Elastic Cloud"
 
 # Elastic Cloud Provider
 
-The Elastic Cloud Terraform provider can be used to configure and manage Elastic Cloud deployments using the Elastic Cloud
-APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider. Elastic Cloud APIs are available for:
+The Elastic Cloud Terraform provider can be used to configure and manage resources on Elastic Cloud, such as Elastic Hosted Deployments or Elastic Serverless Projects, using the Elastic Cloud APIs. Use the navigation to the left to read about data sources and resources supported by the Elastic Cloud provider.
 
-* Elasticsearch Service (ESS).
-* Elastic Cloud Enterprise (ECE).
-* Elasticsearch Service Private (ESSP).
+This provider works with:
+
+* Elastic Cloud Hosted
+* Elastic Cloud Serverless
+* Elastic Cloud Enterprise (Self managed offering)
+* Elastic GovCloud offerings
+
+## Version guidance
+
+It is strongly recommended to consistently utilize the latest versions of both the Elastic Cloud terraform provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
 
 ## Minimum Terraform version
 
@@ -38,7 +44,7 @@ To generate an API key, follow these steps:
   1. Open you browser and navigate to <https://cloud.elastic.co/login>.
   2. Log in with your email and password.
   3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
-  4. Navigate to [Features > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  4. Navigate to [Organization > API Keys](https://cloud.elastic.co/account/keys) and click on **Create API Key**.
   5. Choose a name for your API key.
   6. Save your API key somewhere.
 

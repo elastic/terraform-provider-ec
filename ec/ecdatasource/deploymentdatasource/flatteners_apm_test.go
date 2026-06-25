@@ -48,11 +48,11 @@ func Test_flattenApmResource(t *testing.T) {
 			name: "parses the apm resource",
 			args: args{in: []*models.ApmResourceInfo{
 				{
-					RefID:                     ec.String("main-apm"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					RefID:                     new("main-apm"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.ApmInfo{
-						Healthy: ec.Bool(true),
-						Status:  ec.String("started"),
+						Healthy: new(true),
+						Status:  new("started"),
 						ID:      &mock.ValidClusterID,
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "apmresource.cloud.elastic.co",
@@ -71,7 +71,7 @@ func Test_flattenApmResource(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.apm.r4",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -79,7 +79,7 @@ func Test_flattenApmResource(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.apm.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},

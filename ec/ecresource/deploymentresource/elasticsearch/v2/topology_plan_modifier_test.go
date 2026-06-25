@@ -21,10 +21,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/testutil"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -70,7 +69,7 @@ func Test_topologyPlanModifier(t *testing.T) {
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MinSize: ec.String("1g"),
+								MinSize: new("1g"),
 							},
 						}),
 					},
@@ -88,15 +87,137 @@ func Test_topologyPlanModifier(t *testing.T) {
 		},
 
 		{
-			name: "it should use the current state if the topology is defined in the state and the template has not changed",
+			name: "it should not use state if the migrate_to_latest_hardware is true and migration is available",
 			args: args{
 				attributePlan: types.StringUnknown(),
 				deploymentState: deploymentv2.Deployment{
 					DeploymentTemplateId: "aws-io-optimized-v2",
 					Elasticsearch: &v2.Elasticsearch{
 						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(1),
 							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
-								MaxSize: ec.String("1g"),
+								MinSize: new("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: new(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: false,
+		},
+
+		{
+			name: "it should use state if the migrate_to_latest_hardware is true but migration is not available",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationId:            new("aws.data.highio.i3"),
+							LatestInstanceConfigurationId:      new("aws.data.highio.i3"),
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(0),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: new("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: new(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: true,
+		},
+
+		{
+			name: "it should use state if IC version is defined for the topology element, even if migration is available",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(1),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: new("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: new(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion: new(1),
+							Autoscaling:                  &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: true,
+		},
+
+		{
+			name: "it should use state if IC ID is defined for the topology element, even if migration is available",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationVersion:       new(0),
+							LatestInstanceConfigurationVersion: new(1),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MinSize: new("1g"),
+							},
+						}),
+					},
+				},
+				deploymentPlan: deploymentv2.Deployment{
+					DeploymentTemplateId:    "aws-io-optimized-v2",
+					MigrateToLatestHardware: new(true),
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationId: new("aws.data.highio.c5d"),
+							Autoscaling:             &v2.ElasticsearchTopologyAutoscaling{},
+						}),
+					},
+				},
+			},
+			expectedToUseState: true,
+		},
+
+		{
+			name: "it should use the current state if the topology is defined in the state, the template has not changed, and migrate_to_latest_hardware is undefined",
+			args: args{
+				attributePlan: types.StringUnknown(),
+				deploymentState: deploymentv2.Deployment{
+					DeploymentTemplateId: "aws-io-optimized-v2",
+					Elasticsearch: &v2.Elasticsearch{
+						HotTier: v2.CreateTierForTest("hot_content", v2.ElasticsearchTopology{
+							InstanceConfigurationId:       new("aws.data.highio.i3"),
+							LatestInstanceConfigurationId: new("aws.data.highio.c5d"),
+							Autoscaling: &v2.ElasticsearchTopologyAutoscaling{
+								MaxSize: new("1g"),
 							},
 						}),
 					},
@@ -118,9 +239,9 @@ func Test_topologyPlanModifier(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			modifier := v2.UseTopologyStateForUnknown("hot")
 
-			deploymentStateValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
+			deploymentStateValue := util.TfTypesValueFromGoTypeValue(t, tt.args.deploymentState, deploymentv2.DeploymentSchema().Type())
 
-			deploymentPlanValue := testutil.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
+			deploymentPlanValue := util.TfTypesValueFromGoTypeValue(t, tt.args.deploymentPlan, deploymentv2.DeploymentSchema().Type())
 
 			plan := tfsdk.Plan{
 				Raw:    deploymentPlanValue,

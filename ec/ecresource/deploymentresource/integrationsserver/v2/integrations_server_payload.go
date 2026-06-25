@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -29,51 +28,57 @@ import (
 )
 
 type IntegrationsServerTF struct {
-	ElasticsearchClusterRefId types.String `tfsdk:"elasticsearch_cluster_ref_id"`
-	RefId                     types.String `tfsdk:"ref_id"`
-	ResourceId                types.String `tfsdk:"resource_id"`
-	Region                    types.String `tfsdk:"region"`
-	HttpEndpoint              types.String `tfsdk:"http_endpoint"`
-	HttpsEndpoint             types.String `tfsdk:"https_endpoint"`
-	Endpoints                 types.Object `tfsdk:"endpoints"`
-	InstanceConfigurationId   types.String `tfsdk:"instance_configuration_id"`
-	Size                      types.String `tfsdk:"size"`
-	SizeResource              types.String `tfsdk:"size_resource"`
-	ZoneCount                 types.Int64  `tfsdk:"zone_count"`
-	Config                    types.Object `tfsdk:"config"`
+	ElasticsearchClusterRefId          types.String `tfsdk:"elasticsearch_cluster_ref_id"`
+	RefId                              types.String `tfsdk:"ref_id"`
+	ResourceId                         types.String `tfsdk:"resource_id"`
+	Region                             types.String `tfsdk:"region"`
+	HttpEndpoint                       types.String `tfsdk:"http_endpoint"`
+	HttpsEndpoint                      types.String `tfsdk:"https_endpoint"`
+	Endpoints                          types.Object `tfsdk:"endpoints"`
+	InstanceConfigurationId            types.String `tfsdk:"instance_configuration_id"`
+	LatestInstanceConfigurationId      types.String `tfsdk:"latest_instance_configuration_id"`
+	InstanceConfigurationVersion       types.Int64  `tfsdk:"instance_configuration_version"`
+	LatestInstanceConfigurationVersion types.Int64  `tfsdk:"latest_instance_configuration_version"`
+	Size                               types.String `tfsdk:"size"`
+	SizeResource                       types.String `tfsdk:"size_resource"`
+	ZoneCount                          types.Int64  `tfsdk:"zone_count"`
+	Config                             types.Object `tfsdk:"config"`
 }
 
 type EndpointsTF struct {
-	Fleet *string `tfsdk:"fleet"`
-	APM   *string `tfsdk:"apm"`
+	Fleet     *string `tfsdk:"fleet"`
+	APM       *string `tfsdk:"apm"`
+	Symbols   *string `tfsdk:"symbols"`
+	Profiling *string `tfsdk:"profiling"`
 }
 
 func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.IntegrationsServerPayload) (*models.IntegrationsServerPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !srv.ElasticsearchClusterRefId.IsNull() {
-		payload.ElasticsearchClusterRefID = ec.String(srv.ElasticsearchClusterRefId.ValueString())
+		payload.ElasticsearchClusterRefID = new(srv.ElasticsearchClusterRefId.ValueString())
 	}
 
 	if !srv.RefId.IsNull() {
-		payload.RefID = ec.String(srv.RefId.ValueString())
+		payload.RefID = new(srv.RefId.ValueString())
 	}
 
 	if srv.Region.ValueString() != "" {
-		payload.Region = ec.String(srv.Region.ValueString())
+		payload.Region = new(srv.Region.ValueString())
 	}
 
 	ds := integrationsServerConfigPayload(ctx, srv.Config, payload.Plan.IntegrationsServer)
 	diags.Append(ds...)
 
 	topologyTF := topologyv1.TopologyTF{
-		InstanceConfigurationId: srv.InstanceConfigurationId,
-		Size:                    srv.Size,
-		SizeResource:            srv.SizeResource,
-		ZoneCount:               srv.ZoneCount,
+		InstanceConfigurationId:      srv.InstanceConfigurationId,
+		InstanceConfigurationVersion: srv.InstanceConfigurationVersion,
+		Size:                         srv.Size,
+		SizeResource:                 srv.SizeResource,
+		ZoneCount:                    srv.ZoneCount,
 	}
 
-	toplogyPayload, ds := integrationsServerTopologyPayload(ctx, topologyTF, defaultIntegrationsServerTopology(payload.Plan.ClusterTopology), 0)
+	toplogyPayload, ds := integrationsServerTopologyPayload(ctx, topologyTF, defaultIntegrationsServerTopology(payload.Plan.ClusterTopology)[0])
 
 	diags.Append(ds...)
 
@@ -85,11 +90,8 @@ func (srv IntegrationsServerTF) payload(ctx context.Context, payload models.Inte
 }
 
 func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, updateResources *models.DeploymentUpdateResources) (*models.IntegrationsServerPayload, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	var srv *IntegrationsServerTF
-
-	if diags = tfsdk.ValueAs(ctx, srvObj, &srv); diags.HasError() {
+	srv, diags := objectToIntegrationsServer(ctx, srvObj)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -111,6 +113,51 @@ func IntegrationsServerPayload(ctx context.Context, srvObj types.Object, updateR
 	}
 
 	return payload, nil
+}
+
+func objectToIntegrationsServer(ctx context.Context, plan types.Object) (*IntegrationsServerTF, diag.Diagnostics) {
+	var integrationsServer *IntegrationsServerTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &integrationsServer); diags.HasError() {
+		return nil, diags
+	}
+
+	return integrationsServer, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	integrationsServerPlan, diags := objectToIntegrationsServer(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	integrationsServerState, diags := objectToIntegrationsServer(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	if integrationsServerPlan == nil || integrationsServerState == nil {
+		return false, nil
+	}
+
+	// We won't migrate this topology element if 'instance_configuration_id' or 'instance_configuration_version' are
+	// defined on the TF configuration. Otherwise, we may be setting an incorrect value for 'size', in case the
+	// template IC has different size increments
+	if !integrationsServerPlan.InstanceConfigurationId.IsUnknown() || !integrationsServerPlan.InstanceConfigurationVersion.IsUnknown() {
+		return false, nil
+	}
+
+	instanceConfigIdsDiff := integrationsServerState.InstanceConfigurationId != integrationsServerState.LatestInstanceConfigurationId
+	instanceConfigVersionsDiff := integrationsServerState.InstanceConfigurationVersion != integrationsServerState.LatestInstanceConfigurationVersion
+
+	// We consider that a migration is available when:
+	//    * the current instance config ID doesn't match the one in the template
+	//    * the instance config IDs match but the instance config versions differ
+	return instanceConfigIdsDiff || instanceConfigVersionsDiff, nil
 }
 
 // payloadFromUpdate returns the IntegrationsServerPayload from a deployment

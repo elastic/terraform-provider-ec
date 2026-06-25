@@ -44,7 +44,11 @@ func fileAsResponseBody(t *testing.T, name string) io.ReadCloser {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	var buf = new(bytes.Buffer)
 	if _, err := io.Copy(buf, f); err != nil {
@@ -68,44 +72,44 @@ func Test_createRequest(t *testing.T) {
 	}
 
 	sampleKibana := &kibanav2.Kibana{
-		ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-		RefId:                     ec.String("main-kibana"),
-		ResourceId:                ec.String(mock.ValidClusterID),
-		Region:                    ec.String("us-east-1"),
-		InstanceConfigurationId:   ec.String("aws.kibana.r5d"),
-		Size:                      ec.String("1g"),
+		ElasticsearchClusterRefId: new("main-elasticsearch"),
+		RefId:                     new("main-kibana"),
+		ResourceId:                new(mock.ValidClusterID),
+		Region:                    new("us-east-1"),
+		InstanceConfigurationId:   new("aws.kibana.r5d"),
+		Size:                      new("1g"),
 		ZoneCount:                 1,
 	}
 
 	sampleApm := &apmv2.Apm{
-		ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-		RefId:                     ec.String("main-apm"),
-		ResourceId:                ec.String(mock.ValidClusterID),
-		Region:                    ec.String("us-east-1"),
+		ElasticsearchClusterRefId: new("main-elasticsearch"),
+		RefId:                     new("main-apm"),
+		ResourceId:                new(mock.ValidClusterID),
+		Region:                    new("us-east-1"),
 		Config: &apmv2.ApmConfig{
-			DebugEnabled: ec.Bool(false),
+			DebugEnabled: new(false),
 		},
-		InstanceConfigurationId: ec.String("aws.apm.r5d"),
-		Size:                    ec.String("0.5g"),
+		InstanceConfigurationId: new("aws.apm.r5d"),
+		Size:                    new("0.5g"),
 		ZoneCount:               1,
 	}
 
 	sampleEnterpriseSearch := &enterprisesearchv2.EnterpriseSearch{
-		ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-		RefId:                     ec.String("main-enterprise_search"),
-		ResourceId:                ec.String(mock.ValidClusterID),
-		Region:                    ec.String("us-east-1"),
-		InstanceConfigurationId:   ec.String("aws.enterprisesearch.m5d"),
-		Size:                      ec.String("2g"),
+		ElasticsearchClusterRefId: new("main-elasticsearch"),
+		RefId:                     new("main-enterprise_search"),
+		ResourceId:                new(mock.ValidClusterID),
+		Region:                    new("us-east-1"),
+		InstanceConfigurationId:   new("aws.enterprisesearch.m5d"),
+		Size:                      new("2g"),
 		ZoneCount:                 1,
-		NodeTypeAppserver:         ec.Bool(true),
-		NodeTypeConnector:         ec.Bool(true),
-		NodeTypeWorker:            ec.Bool(true),
+		NodeTypeAppserver:         new(true),
+		NodeTypeConnector:         new(true),
+		NodeTypeWorker:            new(true),
 	}
 
 	sampleObservability := &observabilityv2.Observability{
-		DeploymentId: ec.String(mock.ValidClusterID),
-		RefId:        ec.String("main-elasticsearch"),
+		DeploymentId: new(mock.ValidClusterID),
+		RefId:        new("main-elasticsearch"),
 		Logs:         true,
 		Metrics:      true,
 	}
@@ -117,19 +121,19 @@ func Test_createRequest(t *testing.T) {
 		Region:               "us-east-1",
 		Version:              "7.11.1",
 		Elasticsearch: &elasticsearchv2.Elasticsearch{
-			RefId:      ec.String("main-elasticsearch"),
-			ResourceId: ec.String(mock.ValidClusterID),
-			Region:     ec.String("us-east-1"),
+			RefId:      new("main-elasticsearch"),
+			ResourceId: new(mock.ValidClusterID),
+			Region:     new("us-east-1"),
 			Config: &elasticsearchv2.ElasticsearchConfig{
-				UserSettingsYaml:         ec.String("some.setting: value"),
-				UserSettingsOverrideYaml: ec.String("some.setting: value2"),
-				UserSettingsJson:         ec.String("{\"some.setting\":\"value\"}"),
-				UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
+				UserSettingsYaml:         new("some.setting: value"),
+				UserSettingsOverrideYaml: new("some.setting: value2"),
+				UserSettingsJson:         new("{\"some.setting\":\"value\"}"),
+				UserSettingsOverrideJson: new("{\"some.setting\":\"value2\"}"),
 			},
 			HotTier: elasticsearchv2.CreateTierForTest(
 				"hot_content",
 				elasticsearchv2.ElasticsearchTopology{
-					Size: ec.String("2g"),
+					Size: new("2g"),
 					NodeRoles: []string{
 						"master",
 						"ingest",
@@ -145,7 +149,7 @@ func Test_createRequest(t *testing.T) {
 			WarmTier: elasticsearchv2.CreateTierForTest(
 				"warm",
 				elasticsearchv2.ElasticsearchTopology{
-					Size: ec.String("2g"),
+					Size: new("2g"),
 					NodeRoles: []string{
 						"data_warm",
 						"remote_cluster_client",
@@ -163,24 +167,24 @@ func Test_createRequest(t *testing.T) {
 	}
 
 	sampleElasticsearch := &elasticsearchv2.Elasticsearch{
-		RefId:      ec.String("main-elasticsearch"),
-		ResourceId: ec.String(mock.ValidClusterID),
-		Region:     ec.String("us-east-1"),
+		RefId:      new("main-elasticsearch"),
+		ResourceId: new(mock.ValidClusterID),
+		Region:     new("us-east-1"),
 		Config: &elasticsearchv2.ElasticsearchConfig{
-			UserSettingsYaml:         ec.String("some.setting: value"),
-			UserSettingsOverrideYaml: ec.String("some.setting: value2"),
-			UserSettingsJson:         ec.String("{\"some.setting\":\"value\"}"),
-			UserSettingsOverrideJson: ec.String("{\"some.setting\":\"value2\"}"),
+			UserSettingsYaml:         new("some.setting: value"),
+			UserSettingsOverrideYaml: new("some.setting: value2"),
+			UserSettingsJson:         new("{\"some.setting\":\"value\"}"),
+			UserSettingsOverrideJson: new("{\"some.setting\":\"value2\"}"),
 		},
 		HotTier: elasticsearchv2.CreateTierForTest(
 			"hot_content",
 			elasticsearchv2.ElasticsearchTopology{
-				InstanceConfigurationId: ec.String("aws.data.highio.i3"),
-				Size:                    ec.String("2g"),
-				NodeTypeData:            ec.String("true"),
-				NodeTypeIngest:          ec.String("true"),
-				NodeTypeMaster:          ec.String("true"),
-				NodeTypeMl:              ec.String("false"),
+				InstanceConfigurationId: new("aws.data.highio.i3"),
+				Size:                    new("2g"),
+				NodeTypeData:            new("true"),
+				NodeTypeIngest:          new("true"),
+				NodeTypeMaster:          new("true"),
+				NodeTypeMl:              new("false"),
 				ZoneCount:               1,
 				Autoscaling:             &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 			},
@@ -235,12 +239,12 @@ func Test_createRequest(t *testing.T) {
 					mock.New200Response(hotWarmTpl()),
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
@@ -249,7 +253,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: new("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -274,26 +278,26 @@ func Test_createRequest(t *testing.T) {
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version:                  "7.11.1",
 								UserSettingsYaml:         `some.setting: value`,
 								UserSettingsOverrideYaml: `some.setting: value2`,
-								UserSettingsJSON: map[string]interface{}{
+								UserSettingsJSON: map[string]any{
 									"some.setting": "value",
 								},
-								UserSettingsOverrideJSON: map[string]interface{}{
+								UserSettingsOverrideJSON: map[string]any{
 									"some.setting": "value2",
 								},
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-hot-warm-v2"),
+								ID: new("aws-hot-warm-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -301,7 +305,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									Elasticsearch: &models.ElasticsearchConfiguration{
@@ -317,13 +321,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -331,7 +335,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d2",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									Elasticsearch: &models.ElasticsearchConfiguration{
@@ -343,13 +347,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -357,9 +361,9 @@ func Test_createRequest(t *testing.T) {
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-kibana"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -367,7 +371,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -377,20 +381,20 @@ func Test_createRequest(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-apm"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									SystemSettings: &models.ApmSystemSettings{
-										DebugEnabled: ec.Bool(false),
+										DebugEnabled: new(false),
 									},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(512),
 									},
 								}},
@@ -399,9 +403,9 @@ func Test_createRequest(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-enterprise_search"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
@@ -409,13 +413,13 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(2048),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Connector: ec.Bool(true),
-											Worker:    ec.Bool(true),
+											Appserver: new(true),
+											Connector: new(true),
+											Worker:    new(true),
 										},
 									},
 								},
@@ -434,12 +438,12 @@ func Test_createRequest(t *testing.T) {
 					mock.New200Response(ioOptimizedTpl()),
 					mock.New200Response(
 						mock.NewStructBody(models.DeploymentGetResponse{
-							Healthy: ec.Bool(true),
-							ID:      ec.String(mock.ValidClusterID),
+							Healthy: new(true),
+							ID:      new(mock.ValidClusterID),
 							Resources: &models.DeploymentResources{
 								Elasticsearch: []*models.ElasticsearchResourceInfo{{
-									ID:    ec.String(mock.ValidClusterID),
-									RefID: ec.String("main-elasticsearch"),
+									ID:    new(mock.ValidClusterID),
+									RefID: new("main-elasticsearch"),
 								}},
 							},
 						}),
@@ -448,7 +452,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: new("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -473,62 +477,62 @@ func Test_createRequest(t *testing.T) {
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version:                  "7.7.0",
 								UserSettingsYaml:         `some.setting: value`,
 								UserSettingsOverrideYaml: `some.setting: value2`,
-								UserSettingsJSON: map[string]interface{}{
+								UserSettingsJSON: map[string]any{
 									"some.setting": "value",
 								},
-								UserSettingsOverrideJSON: map[string]interface{}{
+								UserSettingsOverrideJSON: map[string]any{
 									"some.setting": "value2",
 								},
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID:                      "hot_content",
 								ZoneCount:               1,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(2048),
 								},
 								Elasticsearch: &models.ElasticsearchConfiguration{
 									NodeAttributes: map[string]string{"data": "hot"},
 								},
 								NodeType: &models.ElasticsearchNodeType{
-									Data:   ec.Bool(true),
-									Ingest: ec.Bool(true),
-									Master: ec.Bool(true),
-									Ml:     ec.Bool(false),
+									Data:   new(true),
+									Ingest: new(true),
+									Master: new(true),
+									Ml:     new(false),
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-kibana"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -536,7 +540,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -546,20 +550,20 @@ func Test_createRequest(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-apm"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{
 									SystemSettings: &models.ApmSystemSettings{
-										DebugEnabled: ec.Bool(false),
+										DebugEnabled: new(false),
 									},
 								},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(512),
 									},
 								}},
@@ -568,9 +572,9 @@ func Test_createRequest(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-enterprise_search"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
@@ -578,13 +582,13 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(2048),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Connector: ec.Bool(true),
-											Worker:    ec.Bool(true),
+											Appserver: new(true),
+											Connector: new(true),
+											Worker:    new(true),
 										},
 									},
 								},
@@ -614,7 +618,8 @@ func Test_createRequest(t *testing.T) {
 			// Ref ids are taken from template, not from defaults values in this test.
 			// Defaults are processed by TF during config processing.
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: new(""),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -625,18 +630,18 @@ func Test_createRequest(t *testing.T) {
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("es-ref-id"),
+						Region: new("us-east-1"),
+						RefID:  new("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.7.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID: "hot_content",
@@ -646,32 +651,32 @@ func Test_createRequest(t *testing.T) {
 								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(8192),
 								},
 								NodeType: &models.ElasticsearchNodeType{
-									Data:   ec.Bool(true),
-									Ingest: ec.Bool(true),
-									Master: ec.Bool(true),
+									Data:   new(true),
+									Ingest: new(true),
+									Master: new(true),
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("kibana-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("kibana-ref-id"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -679,7 +684,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -689,16 +694,16 @@ func Test_createRequest(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("apm-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("apm-ref-id"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(512),
 									},
 								}},
@@ -707,9 +712,9 @@ func Test_createRequest(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("enterprise_search-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("enterprise_search-ref-id"),
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
@@ -717,13 +722,13 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               2,
 										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(2048),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Connector: ec.Bool(true),
-											Worker:    ec.Bool(true),
+											Appserver: new(true),
+											Connector: new(true),
+											Worker:    new(true),
 										},
 									},
 								},
@@ -751,7 +756,8 @@ func Test_createRequest(t *testing.T) {
 				client: api.NewMock(mock.New200Response(ioOptimizedTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
-				Name: "my_deployment_name",
+				Name:  "my_deployment_name",
+				Alias: new(""),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -764,18 +770,18 @@ func Test_createRequest(t *testing.T) {
 				// Defaults are processed by TF during config processing.
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("es-ref-id"),
+						Region: new("us-east-1"),
+						RefID:  new("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.11.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID: "hot_content",
@@ -785,7 +791,7 @@ func Test_createRequest(t *testing.T) {
 								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(8192),
 								},
 								NodeRoles: []string{
@@ -798,22 +804,22 @@ func Test_createRequest(t *testing.T) {
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("kibana-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("kibana-ref-id"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -821,7 +827,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -831,16 +837,16 @@ func Test_createRequest(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("apm-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("apm-ref-id"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(512),
 									},
 								}},
@@ -849,9 +855,9 @@ func Test_createRequest(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("enterprise_search-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("enterprise_search-ref-id"),
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
@@ -859,13 +865,13 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               2,
 										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(2048),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Connector: ec.Bool(true),
-											Worker:    ec.Bool(true),
+											Appserver: new(true),
+											Connector: new(true),
+											Worker:    new(true),
 										},
 									},
 								},
@@ -888,29 +894,29 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.7.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("4g"),
+								Size:        new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 					},
 					Kibana: &kibanav2.Kibana{
-						RefId:                     ec.String("main-kibana"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						Size:                      ec.String("2g"),
+						RefId:                     new("main-kibana"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
+						Size:                      new("2g"),
 					},
 					Apm: &apmv2.Apm{
-						RefId:                     ec.String("main-apm"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						Size:                      ec.String("1g"),
+						RefId:                     new("main-apm"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
+						Size:                      new("1g"),
 					},
 					EnterpriseSearch: &enterprisesearchv2.EnterpriseSearch{
-						RefId:                     ec.String("main-enterprise_search"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						Size:                      ec.String("4g"),
+						RefId:                     new("main-enterprise_search"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
+						Size:                      new("4g"),
 					},
 					TrafficFilter: []string{"0.0.0.0/0", "192.168.10.0/24"},
 				},
@@ -918,7 +924,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: new("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -929,18 +935,18 @@ func Test_createRequest(t *testing.T) {
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.7.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID: "hot_content",
@@ -950,32 +956,32 @@ func Test_createRequest(t *testing.T) {
 								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(4096),
 								},
 								NodeType: &models.ElasticsearchNodeType{
-									Data:   ec.Bool(true),
-									Ingest: ec.Bool(true),
-									Master: ec.Bool(true),
+									Data:   new(true),
+									Ingest: new(true),
+									Master: new(true),
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-kibana"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -983,7 +989,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(2048),
 										},
 									},
@@ -993,16 +999,16 @@ func Test_createRequest(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-apm"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								}},
@@ -1011,9 +1017,9 @@ func Test_createRequest(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-enterprise_search"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
@@ -1021,13 +1027,13 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               2,
 										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(4096),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Connector: ec.Bool(true),
-											Worker:    ec.Bool(true),
+											Appserver: new(true),
+											Connector: new(true),
+											Worker:    new(true),
 										},
 									},
 								},
@@ -1050,23 +1056,23 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.7.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:   ec.String("main-elasticsearch"),
+						RefId:   new("main-elasticsearch"),
 						HotTier: defaultHotTier,
 					},
 					Kibana: &kibanav2.Kibana{
-						RefId:                     ec.String("main-kibana"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						InstanceConfigurationId:   ec.String("aws.kibana.r5d"),
+						RefId:                     new("main-kibana"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
+						InstanceConfigurationId:   new("aws.kibana.r5d"),
 					},
 					Apm: &apmv2.Apm{
-						RefId:                     ec.String("main-apm"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						InstanceConfigurationId:   ec.String("aws.apm.r5d"),
+						RefId:                     new("main-apm"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
+						InstanceConfigurationId:   new("aws.apm.r5d"),
 					},
 					EnterpriseSearch: &enterprisesearchv2.EnterpriseSearch{
-						RefId:                     ec.String("main-enterprise_search"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
-						InstanceConfigurationId:   ec.String("aws.enterprisesearch.m5d"),
+						RefId:                     new("main-enterprise_search"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
+						InstanceConfigurationId:   new("aws.enterprisesearch.m5d"),
 					},
 					TrafficFilter: []string{"0.0.0.0/0", "192.168.10.0/24"},
 				},
@@ -1074,7 +1080,7 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:  "my_deployment_name",
-				Alias: "my-deployment",
+				Alias: new("my-deployment"),
 				Settings: &models.DeploymentCreateSettings{
 					TrafficFilterSettings: &models.TrafficFilterSettings{
 						Rulesets: []string{"0.0.0.0/0", "192.168.10.0/24"},
@@ -1085,18 +1091,18 @@ func Test_createRequest(t *testing.T) {
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), false), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.7.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID: "hot_content",
@@ -1106,32 +1112,32 @@ func Test_createRequest(t *testing.T) {
 								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(8192),
 								},
 								NodeType: &models.ElasticsearchNodeType{
-									Data:   ec.Bool(true),
-									Ingest: ec.Bool(true),
-									Master: ec.Bool(true),
+									Data:   new(true),
+									Ingest: new(true),
+									Master: new(true),
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-kibana"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -1139,7 +1145,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -1149,16 +1155,16 @@ func Test_createRequest(t *testing.T) {
 					},
 					Apm: []*models.ApmPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-apm"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-apm"),
 							Plan: &models.ApmPlan{
 								Apm: &models.ApmConfiguration{},
 								ClusterTopology: []*models.ApmTopologyElement{{
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.apm.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(512),
 									},
 								}},
@@ -1167,9 +1173,9 @@ func Test_createRequest(t *testing.T) {
 					},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-enterprise_search"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-enterprise_search"),
 							Plan: &models.EnterpriseSearchPlan{
 								EnterpriseSearch: &models.EnterpriseSearchConfiguration{},
 								ClusterTopology: []*models.EnterpriseSearchTopologyElement{
@@ -1177,13 +1183,13 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               2,
 										InstanceConfigurationID: "aws.enterprisesearch.m5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(2048),
 										},
 										NodeType: &models.EnterpriseSearchNodeTypes{
-											Appserver: ec.Bool(true),
-											Connector: ec.Bool(true),
-											Worker:    ec.Bool(true),
+											Appserver: new(true),
+											Connector: new(true),
+											Worker:    new(true),
 										},
 									},
 								},
@@ -1210,26 +1216,27 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), false), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("es-ref-id"),
+						Region: new("us-east-1"),
+						RefID:  new("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 							Curation:                  nil,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Curation: nil,
 								Version:  "7.9.2",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-hot-warm-v2"),
+								ID: new("aws-hot-warm-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -1237,26 +1244,26 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeType: &models.ElasticsearchNodeType{
-										Data:   ec.Bool(true),
-										Ingest: ec.Bool(true),
-										Master: ec.Bool(true),
+										Data:   new(true),
+										Ingest: new(true),
+										Master: new(true),
 									},
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										NodeAttributes: map[string]string{"data": "hot"},
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1264,13 +1271,13 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d2",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeType: &models.ElasticsearchNodeType{
-										Data:   ec.Bool(true),
-										Ingest: ec.Bool(true),
-										Master: ec.Bool(false),
+										Data:   new(true),
+										Ingest: new(true),
+										Master: new(false),
 									},
 									Elasticsearch: &models.ElasticsearchConfiguration{
 										NodeAttributes: map[string]string{
@@ -1279,13 +1286,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -1293,9 +1300,9 @@ func Test_createRequest(t *testing.T) {
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("kibana-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("kibana-ref-id"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -1303,7 +1310,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -1331,26 +1338,27 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("es-ref-id"),
+						Region: new("us-east-1"),
+						RefID:  new("es-ref-id"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 							Curation:                  nil,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Curation: nil,
 								Version:  "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-hot-warm-v2"),
+								ID: new("aws-hot-warm-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -1358,7 +1366,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -1374,13 +1382,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1388,7 +1396,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d2",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -1402,13 +1410,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -1416,9 +1424,9 @@ func Test_createRequest(t *testing.T) {
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("es-ref-id"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("kibana-ref-id"),
+							ElasticsearchClusterRefID: new("es-ref-id"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("kibana-ref-id"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -1426,7 +1434,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -1448,7 +1456,7 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:   ec.String("main-elasticsearch"),
+						RefId:   new("main-elasticsearch"),
 						HotTier: defaultHotTier,
 						Extension: elasticsearchv2.ElasticsearchExtensions{
 							{
@@ -1482,48 +1490,49 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, hotWarmTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 								UserBundles: []*models.ElasticsearchUserBundle{
 									{
-										URL:                  ec.String("repo://1231122"),
-										Name:                 ec.String("my-bundle"),
-										ElasticsearchVersion: ec.String("7.7.0"),
+										URL:                  new("repo://1231122"),
+										Name:                 new("my-bundle"),
+										ElasticsearchVersion: new("7.7.0"),
 									},
 									{
-										URL:                  ec.String("repo://1231123"),
-										Name:                 ec.String("my-second-bundle"),
-										ElasticsearchVersion: ec.String("7.7.0"),
+										URL:                  new("repo://1231123"),
+										Name:                 new("my-second-bundle"),
+										ElasticsearchVersion: new("7.7.0"),
 									},
 								},
 								UserPlugins: []*models.ElasticsearchUserPlugin{
 									{
-										URL:                  ec.String("repo://12311234"),
-										Name:                 ec.String("my-plugin"),
-										ElasticsearchVersion: ec.String("7.7.0"),
+										URL:                  new("repo://12311234"),
+										Name:                 new("my-plugin"),
+										ElasticsearchVersion: new("7.7.0"),
 									},
 									{
-										URL:                  ec.String("repo://12311235"),
-										Name:                 ec.String("my-second-plugin"),
-										ElasticsearchVersion: ec.String("7.7.0"),
+										URL:                  new("repo://12311235"),
+										Name:                 new("my-second-plugin"),
+										ElasticsearchVersion: new("7.7.0"),
 									},
 								},
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-hot-warm-v2"),
+								ID: new("aws-hot-warm-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -1531,7 +1540,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -1547,13 +1556,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1561,7 +1570,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d2",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -1575,13 +1584,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -1601,26 +1610,26 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.Bool(true),
+						RefId:     new("main-elasticsearch"),
+						Autoscale: new(true),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						ColdTier: elasticsearchv2.CreateTierForTest(
 							"cold",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						WarmTier: elasticsearchv2.CreateTierForTest(
 							"warm",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("4g"),
+								Size:        new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
@@ -1630,24 +1639,25 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(true),
+							AutoscalingEnabled: new(true),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -1655,7 +1665,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -1669,13 +1679,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(59392),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1683,7 +1693,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -1699,13 +1709,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1713,7 +1723,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -1727,13 +1737,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -1753,30 +1763,30 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.Bool(true),
+						RefId:     new("main-elasticsearch"),
+						Autoscale: new(true),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size: ec.String("8g"),
+								Size: new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
-									MaxSize: ec.String("232g"),
+									MaxSize: new("232g"),
 								},
 							},
 						),
 						ColdTier: elasticsearchv2.CreateTierForTest(
 							"cold",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						WarmTier: elasticsearchv2.CreateTierForTest(
 							"warm",
 							elasticsearchv2.ElasticsearchTopology{
-								Size: ec.String("4g"),
+								Size: new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
-									MaxSize: ec.String("116g"),
+									MaxSize: new("116g"),
 								},
 							},
 						),
@@ -1786,24 +1796,25 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(true),
+							AutoscalingEnabled: new(true),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -1811,7 +1822,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -1825,13 +1836,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(59392),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1839,7 +1850,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -1855,13 +1866,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(237568),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1869,7 +1880,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -1883,13 +1894,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -1909,32 +1920,32 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						ColdTier: elasticsearchv2.CreateTierForTest(
 							"cold",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						WarmTier: elasticsearchv2.CreateTierForTest(
 							"warm",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("4g"),
+								Size:        new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						MasterTier: elasticsearchv2.CreateTierForTest(
 							"master",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("1g"),
+								Size:        new("1g"),
 								ZoneCount:   3,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
@@ -1945,24 +1956,25 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -1970,7 +1982,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -1984,13 +1996,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(59392),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -1998,7 +2010,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -2013,13 +2025,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2027,7 +2039,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               3,
 									InstanceConfigurationID: "aws.master.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 									NodeRoles: []string{
@@ -2037,7 +2049,7 @@ func Test_createRequest(t *testing.T) {
 									// Elasticsearch: &models.ElasticsearchConfiguration{},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
@@ -2047,7 +2059,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -2061,13 +2073,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -2087,32 +2099,32 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						ColdTier: elasticsearchv2.CreateTierForTest(
 							"cold",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						WarmTier: elasticsearchv2.CreateTierForTest(
 							"warm",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("4g"),
+								Size:        new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						CoordinatingTier: elasticsearchv2.CreateTierForTest(
 							"coordinating",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								ZoneCount:   2,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
@@ -2123,24 +2135,25 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -2148,7 +2161,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -2162,13 +2175,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(59392),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2176,7 +2189,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.coordinating.m5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -2186,7 +2199,7 @@ func Test_createRequest(t *testing.T) {
 									// Elasticsearch: &models.ElasticsearchConfiguration{},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
@@ -2196,7 +2209,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -2211,13 +2224,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2225,7 +2238,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -2239,13 +2252,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -2265,32 +2278,32 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						ColdTier: elasticsearchv2.CreateTierForTest(
 							"cold",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						WarmTier: elasticsearchv2.CreateTierForTest(
 							"warm",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("4g"),
+								Size:        new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						CoordinatingTier: elasticsearchv2.CreateTierForTest(
 							"coordinating",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								ZoneCount:   2,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
@@ -2298,7 +2311,7 @@ func Test_createRequest(t *testing.T) {
 						MasterTier: elasticsearchv2.CreateTierForTest(
 							"master",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("1g"),
+								Size:        new("1g"),
 								ZoneCount:   3,
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
@@ -2309,24 +2322,25 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -2334,7 +2348,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -2348,13 +2362,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(59392),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2362,7 +2376,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.coordinating.m5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -2372,7 +2386,7 @@ func Test_createRequest(t *testing.T) {
 									// Elasticsearch: &models.ElasticsearchConfiguration{},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
@@ -2382,7 +2396,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -2396,13 +2410,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2410,7 +2424,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               3,
 									InstanceConfigurationID: "aws.master.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 									NodeRoles: []string{
@@ -2420,7 +2434,7 @@ func Test_createRequest(t *testing.T) {
 									// Elasticsearch: &models.ElasticsearchConfiguration{},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
@@ -2430,7 +2444,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -2444,13 +2458,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -2470,44 +2484,44 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.14.1",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						Config: &elasticsearchv2.ElasticsearchConfig{
-							DockerImage: ec.String("docker.elastic.com/elasticsearch/container:7.14.1-hash"),
+							DockerImage: new("docker.elastic.com/elasticsearch/container:7.14.1-hash"),
 						},
-						Autoscale: ec.Bool(false),
+						Autoscale: new(false),
 						TrustAccount: elasticsearchv2.ElasticsearchTrustAccounts{
 							{
-								AccountId: ec.String("ANID"),
-								TrustAll:  ec.Bool(true),
+								AccountId: new("ANID"),
+								TrustAll:  new(true),
 							},
 						},
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 					},
 					Kibana: &kibanav2.Kibana{
-						RefId:                     ec.String("main-kibana"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
+						RefId:                     new("main-kibana"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
 						Config: &kibanav2.KibanaConfig{
-							DockerImage: ec.String("docker.elastic.com/kibana/container:7.14.1-hash"),
+							DockerImage: new("docker.elastic.com/kibana/container:7.14.1-hash"),
 						},
 					},
 					Apm: &apmv2.Apm{
-						RefId:                     ec.String("main-apm"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
+						RefId:                     new("main-apm"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
 						Config: &apmv2.ApmConfig{
-							DockerImage: ec.String("docker.elastic.com/apm/container:7.14.1-hash"),
+							DockerImage: new("docker.elastic.com/apm/container:7.14.1-hash"),
 						},
 					},
 					EnterpriseSearch: &enterprisesearchv2.EnterpriseSearch{
-						RefId:                     ec.String("main-enterprise_search"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
+						RefId:                     new("main-enterprise_search"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
 						Config: &enterprisesearchv2.EnterpriseSearchConfig{
-							DockerImage: ec.String("docker.elastic.com/enterprise_search/container:7.14.1-hash"),
+							DockerImage: new("docker.elastic.com/enterprise_search/container:7.14.1-hash"),
 						},
 					},
 				},
@@ -2515,33 +2529,34 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 							Trust: &models.ElasticsearchClusterTrustSettings{
 								Accounts: []*models.AccountTrustRelationship{
 									{
-										AccountID: ec.String("ANID"),
-										TrustAll:  ec.Bool(true),
+										AccountID: new("ANID"),
+										TrustAll:  new(true),
 									},
 								},
 							},
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version:     "7.14.1",
 								DockerImage: "docker.elastic.com/elasticsearch/container:7.14.1-hash",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -2549,7 +2564,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -2565,20 +2580,20 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
 						},
 					})},
 					Apm: []*models.ApmPayload{{
-						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						ElasticsearchClusterRefID: new("main-elasticsearch"),
 						Plan: &models.ApmPlan{
 							Apm: &models.ApmConfiguration{
 								DockerImage: "docker.elastic.com/apm/container:7.14.1-hash",
@@ -2589,17 +2604,17 @@ func Test_createRequest(t *testing.T) {
 							ClusterTopology: []*models.ApmTopologyElement{{
 								InstanceConfigurationID: "aws.apm.r5d",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(512),
 								},
 								ZoneCount: 1,
 							}},
 						},
-						RefID:  ec.String("main-apm"),
-						Region: ec.String("us-east-1"),
+						RefID:  new("main-apm"),
+						Region: new("us-east-1"),
 					}},
 					Kibana: []*models.KibanaPayload{{
-						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						ElasticsearchClusterRefID: new("main-elasticsearch"),
 						Plan: &models.KibanaClusterPlan{
 							Kibana: &models.KibanaConfiguration{
 								DockerImage: "docker.elastic.com/kibana/container:7.14.1-hash",
@@ -2607,17 +2622,17 @@ func Test_createRequest(t *testing.T) {
 							ClusterTopology: []*models.KibanaClusterTopologyElement{{
 								InstanceConfigurationID: "aws.kibana.r5d",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(1024),
 								},
 								ZoneCount: 1,
 							}},
 						},
-						RefID:  ec.String("main-kibana"),
-						Region: ec.String("us-east-1"),
+						RefID:  new("main-kibana"),
+						Region: new("us-east-1"),
 					}},
 					EnterpriseSearch: []*models.EnterpriseSearchPayload{{
-						ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+						ElasticsearchClusterRefID: new("main-elasticsearch"),
 						Plan: &models.EnterpriseSearchPlan{
 							EnterpriseSearch: &models.EnterpriseSearchConfiguration{
 								DockerImage: "docker.elastic.com/enterprise_search/container:7.14.1-hash",
@@ -2625,19 +2640,19 @@ func Test_createRequest(t *testing.T) {
 							ClusterTopology: []*models.EnterpriseSearchTopologyElement{{
 								InstanceConfigurationID: "aws.enterprisesearch.m5d",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(2048),
 								},
 								NodeType: &models.EnterpriseSearchNodeTypes{
-									Appserver: ec.Bool(true),
-									Connector: ec.Bool(true),
-									Worker:    ec.Bool(true),
+									Appserver: new(true),
+									Connector: new(true),
+									Worker:    new(true),
 								},
 								ZoneCount: 2,
 							}},
 						},
-						RefID:  ec.String("main-enterprise_search"),
-						Region: ec.String("us-east-1"),
+						RefID:  new("main-enterprise_search"),
+						Region: new("us-east-1"),
 					}},
 				},
 			},
@@ -2653,52 +2668,52 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.12.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:     ec.String("main-elasticsearch"),
-						Autoscale: ec.Bool(false),
+						RefId:     new("main-elasticsearch"),
+						Autoscale: new(false),
 						TrustAccount: elasticsearchv2.ElasticsearchTrustAccounts{
 							{
-								AccountId: ec.String("ANID"),
-								TrustAll:  ec.Bool(true),
+								AccountId: new("ANID"),
+								TrustAll:  new(true),
 							},
 							{
-								AccountId:      ec.String("anotherID"),
-								TrustAll:       ec.Bool(false),
+								AccountId:      new("anotherID"),
+								TrustAll:       new(false),
 								TrustAllowlist: []string{"abc", "hij", "dfg"},
 							},
 						},
 						TrustExternal: elasticsearchv2.ElasticsearchTrustExternals{
 							{
-								RelationshipId: ec.String("external_id"),
-								TrustAll:       ec.Bool(true),
+								RelationshipId: new("external_id"),
+								TrustAll:       new(true),
 							},
 							{
-								RelationshipId: ec.String("another_external_id"),
-								TrustAll:       ec.Bool(false),
+								RelationshipId: new("another_external_id"),
+								TrustAll:       new(false),
 								TrustAllowlist: []string{"abc", "dfg"},
 							},
 						},
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size: ec.String("8g"),
+								Size: new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
-									MaxSize: ec.String("232g"),
+									MaxSize: new("232g"),
 								},
 							},
 						),
 						ColdTier: elasticsearchv2.CreateTierForTest(
 							"cold",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("2g"),
+								Size:        new("2g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
 						WarmTier: elasticsearchv2.CreateTierForTest(
 							"warm",
 							elasticsearchv2.ElasticsearchTopology{
-								Size: ec.String("4g"),
+								Size: new("4g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{
-									MaxSize: ec.String("116g"),
+									MaxSize: new("116g"),
 								},
 							},
 						),
@@ -2708,25 +2723,26 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 							Trust: &models.ElasticsearchClusterTrustSettings{
 								Accounts: []*models.AccountTrustRelationship{
 									{
-										AccountID: ec.String("ANID"),
-										TrustAll:  ec.Bool(true),
+										AccountID: new("ANID"),
+										TrustAll:  new(true),
 									},
 									{
-										AccountID: ec.String("anotherID"),
-										TrustAll:  ec.Bool(false),
+										AccountID: new("anotherID"),
+										TrustAll:  new(false),
 										TrustAllowlist: []string{
 											"abc", "hij", "dfg",
 										},
@@ -2734,12 +2750,12 @@ func Test_createRequest(t *testing.T) {
 								},
 								External: []*models.ExternalTrustRelationship{
 									{
-										TrustRelationshipID: ec.String("external_id"),
-										TrustAll:            ec.Bool(true),
+										TrustRelationshipID: new("external_id"),
+										TrustAll:            new(true),
 									},
 									{
-										TrustRelationshipID: ec.String("another_external_id"),
-										TrustAll:            ec.Bool(false),
+										TrustRelationshipID: new("another_external_id"),
+										TrustAll:            new(false),
 										TrustAllowlist: []string{
 											"abc", "dfg",
 										},
@@ -2748,12 +2764,12 @@ func Test_createRequest(t *testing.T) {
 							},
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.12.0",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -2761,7 +2777,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(2048),
 									},
 									NodeRoles: []string{
@@ -2775,13 +2791,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(59392),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2789,7 +2805,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highio.i3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(8192),
 									},
 									NodeRoles: []string{
@@ -2805,13 +2821,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(237568),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 								{
@@ -2819,7 +2835,7 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               2,
 									InstanceConfigurationID: "aws.data.highstorage.d3",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(4096),
 									},
 									NodeRoles: []string{
@@ -2833,13 +2849,13 @@ func Test_createRequest(t *testing.T) {
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(0),
 										},
 									},
 									AutoscalingMax: &models.TopologySize{
 										Value:    ec.Int32(118784),
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 									},
 								},
 							},
@@ -2859,33 +2875,34 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.9.2",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId:   ec.String("main-elasticsearch"),
+						RefId:   new("main-elasticsearch"),
 						HotTier: defaultHotTier,
 					},
 					Kibana: &kibanav2.Kibana{
-						RefId:                     ec.String("main-kibana"),
-						ElasticsearchClusterRefId: ec.String("main-elasticsearch"),
+						RefId:                     new("main-kibana"),
+						ElasticsearchClusterRefId: new("main-elasticsearch"),
 					},
 				},
 				client: api.NewMock(mock.New200Response(ccsTpl())),
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ccsTpl(), false), &models.ElasticsearchPayload{
-						Region:   ec.String("us-east-1"),
-						RefID:    ec.String("main-elasticsearch"),
+						Region:   new("us-east-1"),
+						RefID:    new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{},
 						Plan: &models.ElasticsearchClusterPlan{
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.9.2",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-cross-cluster-search-v2"),
+								ID: new("aws-cross-cluster-search-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
 								{
@@ -2893,17 +2910,17 @@ func Test_createRequest(t *testing.T) {
 									ZoneCount:               1,
 									InstanceConfigurationID: "aws.ccs.r5d",
 									Size: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 									NodeType: &models.ElasticsearchNodeType{
-										Data:   ec.Bool(true),
-										Ingest: ec.Bool(true),
-										Master: ec.Bool(true),
+										Data:   new(true),
+										Ingest: new(true),
+										Master: new(true),
 									},
 									TopologyElementControl: &models.TopologyElementControl{
 										Min: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -2913,9 +2930,9 @@ func Test_createRequest(t *testing.T) {
 					})},
 					Kibana: []*models.KibanaPayload{
 						{
-							ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
-							Region:                    ec.String("us-east-1"),
-							RefID:                     ec.String("main-kibana"),
+							ElasticsearchClusterRefID: new("main-elasticsearch"),
+							Region:                    new("us-east-1"),
+							RefID:                     new("main-kibana"),
 							Plan: &models.KibanaClusterPlan{
 								Kibana: &models.KibanaConfiguration{},
 								ClusterTopology: []*models.KibanaClusterTopologyElement{
@@ -2923,7 +2940,7 @@ func Test_createRequest(t *testing.T) {
 										ZoneCount:               1,
 										InstanceConfigurationID: "aws.kibana.r5d",
 										Size: &models.TopologySize{
-											Resource: ec.String("memory"),
+											Resource: new("memory"),
 											Value:    ec.Int32(1024),
 										},
 									},
@@ -2945,11 +2962,11 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.10.1",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
@@ -2964,26 +2981,27 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{Tags: []*models.MetadataItem{
-					{Key: ec.String("aaa"), Value: ec.String("bbb")},
-					{Key: ec.String("cost-center"), Value: ec.String("rnd")},
-					{Key: ec.String("owner"), Value: ec.String("elastic")},
+					{Key: new("aaa"), Value: new("bbb")},
+					{Key: new("cost-center"), Value: new("rnd")},
+					{Key: new("owner"), Value: new("elastic")},
 				}},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
 						Plan: &models.ElasticsearchClusterPlan{
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.10.1",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID: "hot_content",
@@ -2993,7 +3011,7 @@ func Test_createRequest(t *testing.T) {
 								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(8192),
 								},
 								NodeRoles: []string{
@@ -3006,13 +3024,13 @@ func Test_createRequest(t *testing.T) {
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},
@@ -3031,14 +3049,14 @@ func Test_createRequest(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.10.1",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						SnapshotSource: &elasticsearchv2.ElasticsearchSnapshotSource{
 							SourceElasticsearchClusterId: "8c63b87af9e24ea49b8a4bfe550e5fe9",
 						},
 						HotTier: elasticsearchv2.CreateTierForTest(
 							"hot_content",
 							elasticsearchv2.ElasticsearchTopology{
-								Size:        ec.String("8g"),
+								Size:        new("8g"),
 								Autoscaling: &elasticsearchv2.ElasticsearchTopologyAutoscaling{},
 							},
 						),
@@ -3048,14 +3066,15 @@ func Test_createRequest(t *testing.T) {
 			},
 			want: &models.DeploymentCreateRequest{
 				Name:     "my_deployment_name",
+				Alias:    new(""),
 				Settings: &models.DeploymentCreateSettings{},
 				Metadata: &models.DeploymentCreateMetadata{
 					Tags: []*models.MetadataItem{},
 				},
 				Resources: &models.DeploymentCreateResources{
 					Elasticsearch: []*models.ElasticsearchPayload{elasticsearchv2.EnrichWithEmptyTopologies(elasticsearchPayloadFromReader(t, ioOptimizedTpl(), true), &models.ElasticsearchPayload{
-						Region: ec.String("us-east-1"),
-						RefID:  ec.String("main-elasticsearch"),
+						Region: new("us-east-1"),
+						RefID:  new("main-elasticsearch"),
 						Settings: &models.ElasticsearchClusterSettings{
 							DedicatedMastersThreshold: 6,
 						},
@@ -3063,15 +3082,15 @@ func Test_createRequest(t *testing.T) {
 							Transient: &models.TransientElasticsearchPlanConfiguration{
 								RestoreSnapshot: &models.RestoreSnapshotConfiguration{
 									SourceClusterID: "8c63b87af9e24ea49b8a4bfe550e5fe9",
-									SnapshotName:    ec.String(""),
+									SnapshotName:    new(""),
 								},
 							},
-							AutoscalingEnabled: ec.Bool(false),
+							AutoscalingEnabled: new(false),
 							Elasticsearch: &models.ElasticsearchConfiguration{
 								Version: "7.10.1",
 							},
 							DeploymentTemplate: &models.DeploymentTemplateReference{
-								ID: ec.String("aws-io-optimized-v2"),
+								ID: new("aws-io-optimized-v2"),
 							},
 							ClusterTopology: []*models.ElasticsearchClusterTopologyElement{{
 								ID: "hot_content",
@@ -3081,7 +3100,7 @@ func Test_createRequest(t *testing.T) {
 								ZoneCount:               2,
 								InstanceConfigurationID: "aws.data.highio.i3",
 								Size: &models.TopologySize{
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 									Value:    ec.Int32(8192),
 								},
 								NodeRoles: []string{
@@ -3094,13 +3113,13 @@ func Test_createRequest(t *testing.T) {
 								},
 								TopologyElementControl: &models.TopologyElementControl{
 									Min: &models.TopologySize{
-										Resource: ec.String("memory"),
+										Resource: new("memory"),
 										Value:    ec.Int32(1024),
 									},
 								},
 								AutoscalingMax: &models.TopologySize{
 									Value:    ec.Int32(118784),
-									Resource: ec.String("memory"),
+									Resource: new("memory"),
 								},
 							}},
 						},

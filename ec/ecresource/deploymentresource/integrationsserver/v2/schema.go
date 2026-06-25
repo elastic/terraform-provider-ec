@@ -19,12 +19,12 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -32,6 +32,9 @@ func IntegrationsServerSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
 		Description: "Integrations Server cluster definition. Integrations Server replaces `apm` in Stack versions > 8.0",
 		Optional:    true,
+		Validators: []validator.Object{
+			objectvalidator.AlsoRequires(path.MatchRoot("kibana")),
+		},
 		Attributes: map[string]schema.Attribute{
 			"elasticsearch_cluster_ref_id": schema.StringAttribute{
 				Optional: true,
@@ -50,25 +53,25 @@ func IntegrationsServerSchema() schema.Attribute {
 			"resource_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"region": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"http_endpoint": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"https_endpoint": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"endpoints": schema.ObjectAttribute{
@@ -76,25 +79,46 @@ func IntegrationsServerSchema() schema.Attribute {
 				Computed:    true,
 				Description: "URLs for the accessing the Fleet and APM API's within this Integrations Server resource.",
 				AttributeTypes: map[string]attr.Type{
-					"apm":   types.StringType,
-					"fleet": types.StringType,
+					"apm":       types.StringType,
+					"fleet":     types.StringType,
+					"symbols":   types.StringType,
+					"profiling": types.StringType,
 				},
 				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"instance_configuration_id": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", false),
+				},
+			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", false),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", true),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("integrations_server", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{
@@ -109,7 +133,7 @@ func IntegrationsServerSchema() schema.Attribute {
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"config": schema.SingleNestedAttribute{

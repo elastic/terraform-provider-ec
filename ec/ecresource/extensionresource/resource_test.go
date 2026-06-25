@@ -31,7 +31,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 
 	provider "github.com/elastic/terraform-provider-ec/ec"
 )
@@ -239,7 +238,7 @@ func TestResourceDeploymentExtension_gracefulDeletion(t *testing.T) {
 						Path:   "/api/v1/deployments/extensions/someid",
 					},
 					mock.NewStructBody(models.Extension{
-						ID: ec.String("{ }"),
+						ID: new("{ }"),
 					},
 					),
 				),
@@ -331,13 +330,13 @@ func updateResponse() mock.Response {
 			Body:   mock.NewStringBody(`{"description":"Some updated description","download_url":"https://example.com","extension_type":"bundle","name":"My updated extension","version":"7.10.1"}` + "\n"),
 		},
 		mock.NewStructBody(models.Extension{
-			ID:            ec.String("someid"),
-			Name:          ec.String("My updated extension"),
+			ID:            new("someid"),
+			Name:          new("My updated extension"),
 			Description:   "Some updated description",
-			ExtensionType: ec.String("bundle"),
-			Version:       ec.String("7.10.1"),
+			ExtensionType: new("bundle"),
+			Version:       new("7.10.1"),
 			DownloadURL:   "https://example.com",
-			URL:           ec.String("repo://1234"),
+			URL:           new("repo://1234"),
 			FileMetadata: &models.ExtensionFileMetadata{
 				LastModifiedDate: lastModified(),
 				Size:             1000,
@@ -354,7 +353,7 @@ func deleteResponse() mock.Response {
 			Path:   "/api/v1/deployments/extensions/someid",
 		},
 		mock.NewStructBody(models.Extension{
-			ID: ec.String("someid"),
+			ID: new("someid"),
 		}),
 	)
 }
@@ -369,11 +368,11 @@ func readResponse1() mock.Response {
 			Query:  url.Values{"include_deployments": {"false"}},
 		},
 		mock.NewStructBody(models.Extension{
-			ID:            ec.String("someid"),
-			Name:          ec.String("My extension"),
+			ID:            new("someid"),
+			Name:          new("My extension"),
 			Description:   "Some description",
-			ExtensionType: ec.String("bundle"),
-			Version:       ec.String("*"),
+			ExtensionType: new("bundle"),
+			Version:       new("*"),
 		}),
 	)
 }
@@ -387,13 +386,13 @@ func readResponse2() mock.Response {
 			Query:  url.Values{"include_deployments": {"false"}},
 		},
 		mock.NewStructBody(models.Extension{
-			ID:            ec.String("someid"),
-			Name:          ec.String("My updated extension"),
+			ID:            new("someid"),
+			Name:          new("My updated extension"),
 			Description:   "Some updated description",
-			ExtensionType: ec.String("bundle"),
-			Version:       ec.String("7.10.1"),
+			ExtensionType: new("bundle"),
+			Version:       new("7.10.1"),
 			DownloadURL:   "https://example.com",
-			URL:           ec.String("repo://1234"),
+			URL:           new("repo://1234"),
 			FileMetadata: &models.ExtensionFileMetadata{
 				LastModifiedDate: lastModified(),
 				Size:             1000,

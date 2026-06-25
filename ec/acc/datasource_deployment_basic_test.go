@@ -34,8 +34,8 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 	secondRandomName := prefix + "-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	randomAlias := "alias" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	depCfg := "testdata/datasource_deployment_basic.tf"
-	cfgWithAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), computeOpTemplate, "true")
-	cfgWithoutAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), computeOpTemplate, "false")
+	cfgWithAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), cpuOpTemplate, "true")
+	cfgWithoutAutoscaling := fixtureAccDeploymentDatasourceBasicAlias(t, depCfg, randomAlias, randomName, secondRandomName, getRegion(), cpuOpTemplate, "false")
 	var namePrefix = secondRandomName[:22]
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -169,7 +169,6 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 				Config: cfgWithAutoscaling,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(depsDatasourceName, "name_prefix", namePrefix),
-					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployment_template_id", resourceName, "deployment_template_id"),
 
 					// Verify Name and Alias is present
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.name", resourceName, "name"),
@@ -179,13 +178,14 @@ func TestAccDatasourceDeployment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_resource_id", resourceName, "elasticsearch.resource_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.kibana_resource_id", resourceName, "kibana.resource_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.apm_resource_id", resourceName, "apm.resource_id"),
-					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.enterprise_search_resource_id", resourceName, "enterprise_search.resource_id"),
 
 					// Ref ID check.
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.elasticsearch_ref_id", resourceName, "elasticsearch.ref_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.kibana_ref_id", resourceName, "kibana.ref_id"),
 					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.apm_ref_id", resourceName, "apm.ref_id"),
-					resource.TestCheckResourceAttrPair(depsDatasourceName, "deployments.0.enterprise_search_ref_id", resourceName, "enterprise_search.ref_id"),
+
+					// Query by name
+					resource.TestCheckResourceAttrPair("data.ec_deployments.name_query", "deployments.0.name", resourceName, "name"),
 				),
 			},
 		},
@@ -201,6 +201,6 @@ func fixtureAccDeploymentDatasourceBasicAlias(t *testing.T, fileName, alias, nam
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, name, region, deploymentTpl, autoscaling, alias, secondName, region, deploymentTpl, secondName, region, deploymentTpl,
+		region, name, region, deploymentTpl, autoscaling, alias, secondName, region, deploymentTpl, secondName, region,
 	)
 }

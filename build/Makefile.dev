@@ -1,11 +1,18 @@
 ### Development targets
 
 ## Downlaods all the Golang dependencies and generates the NOTICE file.
-vendor: $(GOBIN)/go-licenser
+.PHONY: vendor
+vendor:
 	@ echo "-> Downloading project imports..."
 	@ go mod download
 	@ go mod tidy
-	@ $(GOBIN)/go-licenser -license ASL2 -notice
+	@ go tool go-licenser -license ASL2
+	@ $(MAKE) notice
+
+## Updates the NOTICE file with license information for all dependencies.
+.PHONY: notice
+notice:
+	@ go list -m -json all | go tool go-licence-detector -noticeOut=NOTICE -noticeTemplate build/NOTICE.tmpl -includeIndirect -rules build/notice_rules.json -overrides build/notice_overrides.ndjson
 
 ## Removes the versioned cloud-sdk-go and uses the local copy (assumed to be in ../cloud-sdk-go).
 .PHONY: fake-sdk
@@ -16,4 +23,3 @@ fake-sdk:
 .PHONY: remove-fake-sdk
 remove-fake-sdk:
 	@ go mod edit -dropreplace=github.com/elastic/cloud-sdk-go
-	

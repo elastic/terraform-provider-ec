@@ -23,24 +23,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 )
 
+type ProviderClients struct {
+	Stateful   *api.API
+	Serverless serverless.ClientWithResponsesInterface
+}
+
 // ConvertProviderData is a helper function for DataSource.Configure and Resource.Configure implementations
-func ConvertProviderData(providerData any) (*api.API, diag.Diagnostics) {
+func ConvertProviderData(providerData any) (ProviderClients, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if providerData == nil {
-		return nil, diags
+		return ProviderClients{}, diags
 	}
 
-	client, ok := providerData.(*api.API)
+	clients, ok := providerData.(ProviderClients)
 	if !ok {
 		diags.AddError(
 			"Unexpected Provider Data",
-			fmt.Sprintf("Expected *api.API, got: %T. Please report this issue to the provider developers.", providerData),
+			fmt.Sprintf("Expected ProviderClients, got: %T. Please report this issue to the provider developers.", providerData),
 		)
 
-		return nil, diags
+		return ProviderClients{}, diags
 	}
-	return client, diags
+
+	return clients, diags
 }

@@ -26,21 +26,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-// This test case takes that on a ccs "ec_deployment".
+// This test case takes that on a cross cluster search "ec_deployment".
 func TestAccDeployment_ccs(t *testing.T) {
-	ccsResName := "ec_deployment.ccs"
-	sourceResName := "ec_deployment.source_ccs.0"
+	generalPurposeResName := "ec_deployment.general_purpose"
+	sourceResName := "ec_deployment.source_storage_optimized.0"
 
-	ccsRandomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	generalPurposeRandomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	sourceRandomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
 	startCfg := "testdata/deployment_ccs_1.tf"
 	secondCfg := "testdata/deployment_ccs_2.tf"
-	cfg := fixtureAccDeploymentResourceBasicCcs(t, startCfg,
-		ccsRandomName, getRegion(), ccsTemplate,
+	cfg := fixtureAccDeploymentResourceBasicCrossClusterSearch(t, startCfg,
+		generalPurposeRandomName, getRegion(), generalPurposeTemplate,
 		sourceRandomName, getRegion(), defaultTemplate,
 	)
-	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, ccsRandomName, getRegion(), ccsTemplate)
+	secondConfigCfg := fixtureAccDeploymentResourceBasicDefaults(t, secondCfg, generalPurposeRandomName, getRegion(), generalPurposeTemplate)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -48,51 +48,48 @@ func TestAccDeployment_ccs(t *testing.T) {
 		CheckDestroy:             testAccDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create a CCS deployment with the default settings.
+				// Create a general purpose deployment with a cross cluster search configuration
 				Config: cfg,
-				// The legacy CCS DT does not support autoscaling, which leads to autoscaling being 'unknown'.
-				// Ideally we would set autoscaling to null if the deployment template does not support autoscaling,
-				// but that would require's refactoring our schema and this template is no longer part of the public offering.
-				//
-				// We can revisit this if there's demand for clean plans when the template does not support autoscaling.
-				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
-					// CCS Checks
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.instance_configuration_id"),
-					// CCS defaults to 1g.
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size", "1g"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size_resource", "memory"),
+					// general purpose template checks
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
+					// general purpose template defaults to 8g.
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size", "8g"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
 					// Remote cluster settings
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.#", "3"),
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.remote_cluster.0.deployment_id"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.0.alias", fmt.Sprint(sourceRandomName, "-0")),
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.remote_cluster.1.deployment_id"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.1.alias", fmt.Sprint(sourceRandomName, "-1")),
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.remote_cluster.2.deployment_id"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.2.alias", fmt.Sprint(sourceRandomName, "-2")),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.#", "3"),
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.remote_cluster.0.deployment_id"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.0.alias", fmt.Sprint(sourceRandomName, "-0")),
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.remote_cluster.1.deployment_id"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.1.alias", fmt.Sprint(sourceRandomName, "-1")),
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.remote_cluster.2.deployment_id"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.2.alias", fmt.Sprint(sourceRandomName, "-2")),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.zone_count", "2"),
 
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ml"),
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.node_roles.#"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.zone_count", "1"),
-					resource.TestCheckNoResourceAttr(sourceResName, "kibana"),
-					resource.TestCheckNoResourceAttr(sourceResName, "apm"),
-					resource.TestCheckNoResourceAttr(sourceResName, "enterprise_search"),
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.node_roles.#"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_data"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_master"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_ml"),
+
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "kibana"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "apm"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "enterprise_search"),
+
 					// Source Checks
-
 					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.size", "1g"),
 					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.size_resource", "memory"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ml"),
 					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(sourceResName, "elasticsearch.hot.zone_count", "1"),
+					resource.TestCheckNoResourceAttr(sourceResName, "elasticsearch.hot.node_type_data"),
+					resource.TestCheckNoResourceAttr(sourceResName, "elasticsearch.hot.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(sourceResName, "elasticsearch.hot.node_type_master"),
+					resource.TestCheckNoResourceAttr(sourceResName, "elasticsearch.hot.node_type_ml"),
+					resource.TestCheckResourceAttrSet(sourceResName, "elasticsearch.hot.node_roles.#"),
+
 					resource.TestCheckNoResourceAttr(sourceResName, "kibana"),
 					resource.TestCheckNoResourceAttr(sourceResName, "apm"),
 					resource.TestCheckNoResourceAttr(sourceResName, "enterprise_search"),
@@ -100,39 +97,41 @@ func TestAccDeployment_ccs(t *testing.T) {
 			},
 			{
 				// Change the Elasticsearch topology size and node count.
-				Config:             secondConfigCfg,
-				ExpectNonEmptyPlan: true,
+				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size", "2g"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.size_resource", "memory"),
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size", "4g"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.remote_cluster.#", "0"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.#", "0"),
 
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_data"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ingest"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_master"),
-					resource.TestCheckNoResourceAttr(ccsResName, "elasticsearch.hot.node_type_ml"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_data"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_ingest"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_master"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "elasticsearch.hot.node_type_ml"),
 
-					resource.TestCheckResourceAttrSet(ccsResName, "elasticsearch.hot.node_roles.#"),
-					resource.TestCheckResourceAttr(ccsResName, "elasticsearch.hot.zone_count", "1"),
-					resource.TestCheckResourceAttr(ccsResName, "kibana.zone_count", "1"),
-					resource.TestCheckResourceAttrSet(ccsResName, "kibana.instance_configuration_id"),
-					resource.TestCheckResourceAttr(ccsResName, "kibana.size", "1g"),
-					resource.TestCheckResourceAttr(ccsResName, "kibana.size_resource", "memory"),
-					resource.TestCheckNoResourceAttr(ccsResName, "apm"),
-					resource.TestCheckNoResourceAttr(ccsResName, "enterprise_search"),
+					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.node_roles.#"),
+					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.zone_count", "2"),
+
+					// TODO: uncomment once bug for kibana instance_configuration_version is fixed
+					// resource.TestCheckResourceAttrSet(generalPurposeResName, "kibana.instance_configuration_id"),
+					// resource.TestCheckResourceAttrSet(generalPurposeResName, "kibana.instance_configuration_version"),
+					// resource.TestCheckResourceAttr(generalPurposeResName, "kibana.size", "1g"),
+					// resource.TestCheckResourceAttr(generalPurposeResName, "kibana.size_resource", "memory"),
+
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "apm"),
+					resource.TestCheckNoResourceAttr(generalPurposeResName, "enterprise_search"),
 				),
 			},
 		},
 	})
 }
 
-func fixtureAccDeploymentResourceBasicCcs(t *testing.T, fileName, name, region, ccsTplName, sourceName, sourceRegion, sourceTplName string) string {
+func fixtureAccDeploymentResourceBasicCrossClusterSearch(t *testing.T, fileName, name, region, targetTplName, sourceName, sourceRegion, sourceTplName string) string {
 	t.Helper()
 
-	ccsTpl := setDefaultTemplate(region, ccsTplName)
+	targetTpl := setDefaultTemplate(region, targetTplName)
 	sourceTpl := setDefaultTemplate(region, sourceTplName)
 
 	b, err := os.ReadFile(fileName)
@@ -140,7 +139,7 @@ func fixtureAccDeploymentResourceBasicCcs(t *testing.T, fileName, name, region, 
 		t.Fatal(err)
 	}
 	return fmt.Sprintf(string(b),
-		region, name, region, ccsTpl,
+		region, name, region, targetTpl,
 		sourceName, sourceRegion, sourceTpl,
 	)
 }

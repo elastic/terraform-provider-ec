@@ -38,8 +38,6 @@ resource "ec_deployment" "basic_datasource" {
 
   apm = {}
 
-  enterprise_search = {}
-
   observability = {
     deployment_id = ec_deployment.basic_observability.id
   }
@@ -64,24 +62,15 @@ data "ec_deployment" "success" {
 }
 
 data "ec_deployments" "query" {
-  name_prefix            = substr(ec_deployment.basic_datasource.name, 0, 22)
-  deployment_template_id = "%s"
+  name_prefix = substr(ec_deployment.basic_datasource.name, 0, 22)
 
-  elasticsearch {
-    version = data.ec_stack.latest.version
-  }
+  depends_on = [
+    ec_deployment.basic_datasource,
+  ]
+}
 
-  kibana {
-    version = data.ec_stack.latest.version
-  }
-
-  apm {
-    version = data.ec_stack.latest.version
-  }
-
-  enterprise_search {
-    version = data.ec_stack.latest.version
-  }
+data "ec_deployments" "name_query" {
+  name = ec_deployment.basic_datasource.name
 
   depends_on = [
     ec_deployment.basic_datasource,

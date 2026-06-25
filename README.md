@@ -3,11 +3,12 @@
 ![Go](https://github.com/elastic/terraform-provider-ec/workflows/Go/badge.svg?branch=master)
 [![Acceptance Status](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/badge/icon?subject=acceptance&style=plastic)](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+master/)
 
-Terraform provider for the Elastic Cloud API, including:
+The Elastic Cloud Terraform provider can be used to configure and manage resources on Elastic Cloud, such as Elastic Hosted Deployments or Elastic Serverless Projects, using the Elastic Cloud APIs. 
 
-* Elasticsearch Service (ESS).
-* Elastic Cloud Enterprise (ECE).
-* Elasticsearch Service Private (ESSP).
+* Elastic Cloud Hosted (ECH)
+* Elastic Cloud Serverless
+* Elastic Cloud Enterprise (ECE)
+* Elastic GovCloud offerings
 
 _Model changes might be introduced between minors until version 1.0.0 is released. Such changes and the expected impact will be detailed in the change log and the individual release notes._
 
@@ -20,6 +21,10 @@ Things which are out of scope for provider:
 - Configuring snapshots settings for deployment (since they are using Elasticsearch SLM for this now, see https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-lifecycle-management.html)
 
 We now have Terraform provider for Elastic Stack https://github.com/elastic/terraform-provider-elasticstack which should be used for any operations on Elastic Stack products.
+
+## Version guidance
+
+It is strongly recommended to consistently utilize the latest versions of both the Elastic Cloud terraform provider and Terraform CLI. Doing so not only mitigates the risk of encountering known issues but also enhances overall user experience.
 
 ## Support
 
@@ -43,7 +48,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = "0.10.0"
+      version = "0.13.0"
     }
   }
 }
@@ -87,6 +92,13 @@ resource "ec_deployment" "example_minimal" {
     hot = {
       autoscaling = {}
     }
+
+    ml = {
+       autoscaling = {
+          autoscale = true
+       }
+    }
+
   }
 
   kibana = {
@@ -111,16 +123,18 @@ $ cd terraform-provider-ec
 $ make install
 ```
 
-### Generating an Elasticsearch Service (ESS) API Key
+### Generating an Elastic Cloud Hosted (ECH) API Key
 
 To generate an API key, follow these steps:
 
   1. Open your browser and navigate to <https://cloud.elastic.co/login>.
   2. Log in with your email and password.
   3. Click on [Elasticsearch Service](https://cloud.elastic.co/deployments).
-  4. Navigate to [Features > API Keys](https://cloud.elastic.co/deployment-features/keys) and click on **Generate API Key**.
+  4. Navigate to [Organization > API Keys](https://cloud.elastic.co/account/keys) and click on **Create API Key**.
   5. Choose a name for your API key.
   6. Save your API key somewhere safe.
+
+**Note: If you use GovCloud, you need to generate API via https://console.us-gov-east-1.aws.elastic-cloud.com. If you use Elastic Cloud Enterprise (ECE), follow https://www.elastic.co/docs/deploy-manage/api-keys/elastic-cloud-enterprise-api-keys about how generate API key**
 
 ### Using your API Key on the Elastic Cloud terraform provider
 
@@ -161,7 +175,7 @@ resource "ec_deployment" "defaults" {
 }
 ```
 
-- `topology` attribute of `elasticsearch` is replaced with a number of dedicated attributes, one per tier, e.g. 
+- `topology` attribute of `elasticsearch` is replaced with a number of dedicated attributes, one per tier, e.g.
 
 ```
   elasticsearch {
@@ -182,7 +196,7 @@ resource "ec_deployment" "defaults" {
   }
 ```
 
-has to be converted to 
+has to be converted to
 
 ```
   elasticsearch = {
@@ -203,7 +217,7 @@ has to be converted to
 
 ```
 
-- due to some existing limitations of TF, nested attributes that are nested inside other nested attributes cannot be `Computed`. It means that all such attributes have to be mentioned in configurations even if they are empty. E.g., a definition of `elasticsearch` has to include all topology elements (tiers) that have non-zero size or can be scaled up (if autoscaling is enabled) in the corresponding template. For example, the simplest definition of `elasticsearch` for `aws-io-optimized-v2` template is 
+- due to some existing limitations of TF, nested attributes that are nested inside other nested attributes cannot be `Computed`. It means that all such attributes have to be mentioned in configurations even if they are empty. E.g., a definition of `elasticsearch` has to include all topology elements (tiers) that have non-zero size or can be scaled up (if autoscaling is enabled) in the corresponding template. For example, the simplest definition of `elasticsearch` for `aws-io-optimized-v2` template is
 
 ```hcl
 resource "ec_deployment" "defaults" {

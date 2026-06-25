@@ -22,11 +22,10 @@ import (
 	"encoding/json"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 func expandModel(ctx context.Context, state modelV0) *models.KeystoreContents {
-	var value interface{}
+	var value any
 	secretName := state.SettingName.ValueString()
 	strVal := state.Value.ValueString()
 
@@ -39,7 +38,7 @@ func expandModel(ctx context.Context, state modelV0) *models.KeystoreContents {
 	return &models.KeystoreContents{
 		Secrets: map[string]models.KeystoreSecret{
 			secretName: {
-				AsFile: ec.Bool(state.AsFile.ValueBool()),
+				AsFile: new(state.AsFile.ValueBool()),
 				Value:  value,
 			},
 		},

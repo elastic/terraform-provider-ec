@@ -3,11 +3,11 @@
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: buildkite-pipeline-terraform-provider-ec
-  description: Buildkite Pipeline for terraform-provider-ec
+  name: buildkite-pipeline-terraform-provider-ec-acceptance
+  description: Buildkite Pipeline for terraform-provider-ec acceptance tests
   links:
     - title: Pipeline
-      url: https://buildkite.com/elastic/terraform-provider-ec
+      url: https://buildkite.com/elastic/terraform-provider-ec-acceptance
 
 spec:
   type: buildkite-pipeline
@@ -17,10 +17,13 @@ spec:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
     metadata:
-      name: terraform-provider-ec
+      name: terraform-provider-ec-acceptance
     spec:
       repository: elastic/terraform-provider-ec
-      pipeline_file: ".buildkite/pipeline.yml"
+      pipeline_file: ".buildkite/acceptance_pipeline.yml"
+      provider_settings:
+        build_pull_request_forks: false
+        build_pull_requests: true
 ---
 # yaml-language-server: $schema=https://gist.githubusercontent.com/elasticmachine/988b80dae436cafea07d9a4a460a011d/raw/rre.schema.json
 apiVersion: backstage.io/v1alpha1
@@ -43,7 +46,7 @@ spec:
       name: terraform-provider-ec-release
     spec:
       repository: elastic/terraform-provider-ec
-      pipeline_file: ".buildkite/release.yml"
+      pipeline_file: ".buildkite/release_pipeline.yml"
       provider_settings:
         build_branches: false
         build_pull_request_forks: false

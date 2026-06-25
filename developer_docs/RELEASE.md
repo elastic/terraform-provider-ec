@@ -17,8 +17,6 @@ Releasing a new version implies that there have been changes in the source code 
 
 ### Make sure `VERSION` is up to date
 
-**Since the `VERSION` is now updated via github actions, just double check that it is updated, and if not, manually do so**.
-
 Since the source has changed, we need to update the current committed version to a higher version so that the release is published.
 
 The version is currently defined in the [Makefile](./Makefile) as an exported environment variable called `VERSION` in the [SEMVER](https://semver.org) format: `MAJOR.MINOR.PATCH`
@@ -43,16 +41,25 @@ Since we heavily depend on `github.com/elastic/cloud-sdk-go`, make sure that dep
 
 ### Generating a changelog for the new version
 
-The changelog should be automatically generated on each push to `master` or the relevant branch, and the resulting changelog can be found at the top level under `CHANGELOG.md`. It is generated from a set of `<pr>.txt` files that are saved as a changelog. 
+The changelog can be found at the top level under `CHANGELOG.md`. It is generated from a set of `<pr>.txt` files that
+are saved as a changelog.
+
+To update the changelog, run `make changelog`.
 
 #### Patch version changelog
 
-When releasing patch versions, the changelog will be branched out in the minor branch, once the 
+When releasing patch versions, the changelog will be branched out in the minor branch.
+
+### Ensure the NOTICE file is up-to-date
+
+Run `make vendor` to update the `NOTICE`.
 
 ## Executing the release
 
-After all the prerequisites have been ticked off, the only thing remaining is to run `make tag`. The Jenkins CI will attempt to release a new version. Make sure the published version is listed in the [Terraform registry](https://registry.terraform.io/providers/elastic/ec/latest/docs), you can follow the progress on the [Jenkins dashboard](https://devops-ci.elastic.co/job/elastic+terraform-provider-ec+release/).
+After all the prerequisites have been ticked off, the only thing remaining is to run `make tag`. The Buildkite Release job will attempt to release a new version. Make sure the published version is listed in the [Terraform registry](https://registry.terraform.io/providers/elastic/ec/latest/docs), you can follow the progress on the [Buildkite job](https://buildkite.com/elastic/terraform-provider-ec-release).
 
 ## Post release tasks
 
-After the release has been completed, all the `.changelog/*.txt` files need to be deleted in the `master` and the minor branch so that a new changelog can be issued. Additionally, the next version header should be added in the changelog as `# <VERSION> (Unreleased)` at the top of the `CHANGELOG.md` file.
+- After the release has been completed, the next version header should be added in the changelog as `# <VERSION> (Unreleased)` at the top of the `CHANGELOG.md` file.
+- The VERSION in the [Makefile](../Makefile) should be updated
+- The version in all examples should be updated to the next version to be released. 
