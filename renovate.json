@@ -5,6 +5,14 @@
   "postUpdateOptions": [
     "gomodTidy"
   ],
+  "postUpgradeTasks": {
+    "commands": [
+      "make notice"
+    ],
+    "fileFilters": [
+      "NOTICE"
+    ]
+  },
   "automerge": true,
   "automergeType": "pr",
   "packageRules": [
