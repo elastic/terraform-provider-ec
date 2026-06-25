@@ -4,6 +4,6 @@ set -euo pipefail
 
 if  [[ "$BUILDKITE_STEP_KEY" == "acceptance-tests" ]]; then
   echo "--- Sweeps any deployments older than 1h and serverless projects older than 3h."
-  EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET SWEEPARGS='-sweep-run=ec_deployments -sweep-run=ec_serverless_projects' make sweep
+  EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET SWEEPARGS='-sweep-run=ec_deployments,ec_serverless_projects' make sweep
   rm -rf reports bin
 fi

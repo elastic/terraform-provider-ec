@@ -203,6 +203,9 @@ func listServerlessProjects(ctx context.Context, projectType string) ([]serverle
 // staleServerlessProject uses created_at because ProjectMetadata does not
 // expose last_modified (unlike deployment sweepers).
 func staleServerlessProject(createdAt time.Time) bool {
+	if createdAt.IsZero() {
+		return false
+	}
 	return createdAt.Before(time.Now().Add(-serverlessProjectStaleAfter))
 }
 
