@@ -19,6 +19,7 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -152,30 +153,22 @@ func EnterpriseSearchSchema() schema.Attribute {
 					"user_settings_json": schema.StringAttribute{
 						Description: `An arbitrary JSON object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_yaml' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (This field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
 						Optional:    true,
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.SetNullWhenEmptyString(),
-						},
+						Validators:  []validator.String{validators.StringNotEmpty()},
 					},
 					"user_settings_override_json": schema.StringAttribute{
 						Description: `An arbitrary JSON object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_yaml' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
 						Optional:    true,
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.SetNullWhenEmptyString(),
-						},
+						Validators:  []validator.String{validators.StringNotEmpty()},
 					},
 					"user_settings_yaml": schema.StringAttribute{
 						Description: `An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)`,
 						Optional:    true,
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.SetNullWhenEmptyString(),
-						},
+						Validators:  []validator.String{validators.StringNotEmpty()},
 					},
 					"user_settings_override_yaml": schema.StringAttribute{
 						Description: `An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)`,
 						Optional:    true,
-						PlanModifiers: []planmodifier.String{
-							planmodifiers.SetNullWhenEmptyString(),
-						},
+						Validators:  []validator.String{validators.StringNotEmpty()},
 					},
 				},
 			},

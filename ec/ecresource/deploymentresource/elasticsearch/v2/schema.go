@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -203,30 +204,22 @@ func elasticsearchConfigSchema() schema.Attribute {
 			"user_settings_json": schema.StringAttribute{
 				Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.SetNullWhenEmptyString(),
-				},
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 			"user_settings_override_json": schema.StringAttribute{
 				Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.SetNullWhenEmptyString(),
-				},
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 			"user_settings_yaml": schema.StringAttribute{
 				Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.SetNullWhenEmptyString(),
-				},
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 			"user_settings_override_yaml": schema.StringAttribute{
 				Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.SetNullWhenEmptyString(),
-				},
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 		},
 	}
