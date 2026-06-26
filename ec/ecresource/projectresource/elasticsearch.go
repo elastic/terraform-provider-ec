@@ -51,6 +51,7 @@ func (es elasticsearchModelReader) Schema(ctx context.Context, _ resource.Schema
 	resp.Schema = resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
 	patchOptimizedForSchema(resp)
 	patchMetadataSchema(resp)
+	patchLinkedStatusUseStateForUnknown(resp)
 }
 
 func patchOptimizedForSchema(resp *resource.SchemaResponse) {
@@ -86,7 +87,7 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-	plan.Metadata = preserveMetadataForPlan(plan.Metadata, state.Metadata)
+	plan.Metadata = preserveElasticsearchMetadataSystemTags(plan.Metadata, state.Metadata)
 
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
@@ -245,7 +246,7 @@ func (es elasticsearchApi) Patch(ctx context.Context, plan, state resource_elast
 		}
 	}
 
-	updateBody.Linked = expandLinkedForPatchElasticsearch(plan)
+	updateBody.Linked = expandLinkedForPatchElasticsearch(plan, state)
 
 	resp, err := es.client.PatchElasticsearchProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
@@ -509,24 +510,22 @@ func expandLinkedForCreateElasticsearch(model resource_elasticsearch_project.Ela
 	return &serverless.CreateLinkedRequest{Projects: projects}
 }
 
-func expandLinkedForPatchElasticsearch(plan resource_elasticsearch_project.ElasticsearchProjectModel) *serverless.OptionalLinkConfiguration {
-	if !util.IsKnown(plan.Linked) || plan.Linked.IsNull() || plan.Linked.Projects.IsNull() {
-		return nil
+func expandLinkedForPatchElasticsearch(plan, state resource_elasticsearch_project.ElasticsearchProjectModel) *serverless.OptionalLinkConfiguration {
+	var planProjects, stateProjects basetypes.MapValue
+	if util.IsKnown(plan.Linked) && !plan.Linked.IsNull() {
+		planProjects = plan.Linked.Projects
+	}
+	if util.IsKnown(state.Linked) && !state.Linked.IsNull() {
+		stateProjects = state.Linked.Projects
 	}
 
-	projects := make(map[string]*serverless.OptionalLinkedProject, len(plan.Linked.Projects.Elements()))
-	for projectID, v := range plan.Linked.Projects.Elements() {
+	return expandLinkedProjectsForPatch(planProjects, stateProjects, func(v attr.Value) *serverless.OptionalLinkedProject {
 		pv, ok := v.(resource_elasticsearch_project.ProjectsValue)
 		if !ok {
-			continue
+			return nil
 		}
-		projects[projectID] = &serverless.OptionalLinkedProject{
+		return &serverless.OptionalLinkedProject{
 			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
 		}
-	}
-
-	if len(projects) == 0 {
-		return nil
-	}
-	return &serverless.OptionalLinkConfiguration{Projects: &projects}
+	})
 }

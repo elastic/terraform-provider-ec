@@ -50,6 +50,7 @@ type securityModelReader struct{}
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
 	patchMetadataSchema(resp)
+	patchLinkedStatusUseStateForUnknown(resp)
 
 	// Add plan modifiers to admin_features_package and product_types
 	// UseStateForUnknown prevents Terraform from showing a diff when the API doesn't return
@@ -94,7 +95,7 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-	plan.Metadata = preserveMetadataForPlan(plan.Metadata, state.Metadata)
+	plan.Metadata = preserveSecurityMetadataSystemTags(plan.Metadata, state.Metadata)
 
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
@@ -230,7 +231,7 @@ func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_
 	}
 
 	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
-	updateBody.Linked = expandLinkedForPatchSecurity(plan)
+	updateBody.Linked = expandLinkedForPatchSecurity(plan, state)
 
 	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
@@ -562,24 +563,22 @@ func expandLinkedForCreateSecurity(model resource_security_project.SecurityProje
 	return &serverless.CreateLinkedRequest{Projects: projects}
 }
 
-func expandLinkedForPatchSecurity(plan resource_security_project.SecurityProjectModel) *serverless.OptionalLinkConfiguration {
-	if !util.IsKnown(plan.Linked) || plan.Linked.IsNull() || plan.Linked.Projects.IsNull() {
-		return nil
+func expandLinkedForPatchSecurity(plan, state resource_security_project.SecurityProjectModel) *serverless.OptionalLinkConfiguration {
+	var planProjects, stateProjects basetypes.MapValue
+	if util.IsKnown(plan.Linked) && !plan.Linked.IsNull() {
+		planProjects = plan.Linked.Projects
+	}
+	if util.IsKnown(state.Linked) && !state.Linked.IsNull() {
+		stateProjects = state.Linked.Projects
 	}
 
-	projects := make(map[string]*serverless.OptionalLinkedProject, len(plan.Linked.Projects.Elements()))
-	for projectID, v := range plan.Linked.Projects.Elements() {
+	return expandLinkedProjectsForPatch(planProjects, stateProjects, func(v attr.Value) *serverless.OptionalLinkedProject {
 		pv, ok := v.(resource_security_project.ProjectsValue)
 		if !ok {
-			continue
+			return nil
 		}
-		projects[projectID] = &serverless.OptionalLinkedProject{
+		return &serverless.OptionalLinkedProject{
 			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
 		}
-	}
-
-	if len(projects) == 0 {
-		return nil
-	}
-	return &serverless.OptionalLinkConfiguration{Projects: &projects}
+	})
 }

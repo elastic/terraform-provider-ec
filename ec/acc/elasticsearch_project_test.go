@@ -263,11 +263,13 @@ func TestAcc_ElasticsearchProjectImport(t *testing.T) {
 
 func TestAcc_ElasticsearchProject_LinkedProjects(t *testing.T) {
 	originID := "origin"
-	targetID := "target"
+	targetIDA := "target_a"
+	targetIDB := "target_b"
 	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", originID)
-	targetResourceName := fmt.Sprintf("ec_observability_project.%s", targetID)
+	targetAResourceName := fmt.Sprintf("ec_observability_project.%s", targetIDA)
 	originName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	targetName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	targetAName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	targetBName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	region := getRegion()
 	if !strings.HasPrefix(region, "aws-") {
 		region = fmt.Sprintf("aws-%s", region)
@@ -279,15 +281,15 @@ func TestAcc_ElasticsearchProject_LinkedProjects(t *testing.T) {
 		CheckDestroy:             testAccElasticsearchProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetID, targetName),
+				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetIDA, targetAName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", originName),
 					resource.TestCheckResourceAttrSet(resourceName, "linked.projects.%"),
-					testCheckLinkedProject(resourceName, targetResourceName, "observability"),
+					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
 				),
 			},
 			{
-				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetID, targetName),
+				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetIDA, targetAName),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectEmptyPlan(),
@@ -295,7 +297,26 @@ func TestAcc_ElasticsearchProject_LinkedProjects(t *testing.T) {
 				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", originName),
-					testCheckLinkedProject(resourceName, targetResourceName, "observability"),
+					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
+				),
+			},
+			{
+				// Link a second project and verify both are present.
+				Config: testAccElasticsearchProjectWithLinkedObservabilityProjects(originID, originName, region, targetIDA, targetAName, targetIDB, targetBName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", originName),
+					resource.TestCheckResourceAttr(resourceName, "linked.projects.%", "2"),
+					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
+				),
+			},
+			{
+				// Remove the second project from the config; the provider must
+				// emit a nil patch value to unlink it.
+				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetIDA, targetAName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", originName),
+					resource.TestCheckResourceAttr(resourceName, "linked.projects.%", "1"),
+					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
 				),
 			},
 		},
@@ -322,6 +343,36 @@ resource ec_elasticsearch_project "%s" {
 	}
 }
 `, targetID, targetName, region, esID, esName, region, targetID)
+}
+
+func testAccElasticsearchProjectWithLinkedObservabilityProjects(esID, esName, region, targetID1, targetName1, targetID2, targetName2 string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+
+	linked = {
+		projects = {
+			"${ec_observability_project.%s.id}" = {
+				type = "observability"
+			}
+			"${ec_observability_project.%s.id}" = {
+				type = "observability"
+			}
+		}
+	}
+}
+`, targetID1, targetName1, region, targetID2, targetName2, region, esID, esName, region, targetID1, targetID2)
 }
 
 func testCheckLinkedProject(resourceName, targetResourceName, targetType string) resource.TestCheckFunc {

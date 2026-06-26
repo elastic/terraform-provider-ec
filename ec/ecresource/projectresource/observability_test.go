@@ -50,6 +50,7 @@ func TestObservabilityModelReader_Schema(t *testing.T) {
 	require.False(t, resp.Diagnostics.HasError())
 	expected := resource_observability_project.ObservabilityProjectResourceSchema(ctx)
 	patchMetadataSchema(&resource.SchemaResponse{Schema: expected})
+	patchLinkedStatusUseStateForUnknown(&resource.SchemaResponse{Schema: expected})
 	require.Equal(t, expected, resp.Schema)
 }
 

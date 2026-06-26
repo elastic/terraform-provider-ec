@@ -20,9 +20,11 @@ package projectresource
 import (
 	"context"
 	"maps"
-	"reflect"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
+	resource_elasticsearch_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
+	resource_observability_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
+	resource_security_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -34,6 +36,32 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
+
+// patchLinkedStatusUseStateForUnknown prevents Terraform from showing "known after
+// apply" noise for linked.projects.*.status when other attributes change.
+func patchLinkedStatusUseStateForUnknown(resp *resource.SchemaResponse) {
+	linkedAttr, ok := resp.Schema.Attributes["linked"].(schema.SingleNestedAttribute)
+	if !ok {
+		return
+	}
+
+	projectsAttr, ok := linkedAttr.Attributes["projects"].(schema.MapNestedAttribute)
+	if !ok {
+		return
+	}
+
+	nestedObj := projectsAttr.NestedObject
+	statusAttr, ok := nestedObj.Attributes["status"].(schema.StringAttribute)
+	if !ok {
+		return
+	}
+
+	statusAttr.PlanModifiers = append(statusAttr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
+	nestedObj.Attributes["status"] = statusAttr
+	projectsAttr.NestedObject = nestedObj
+	linkedAttr.Attributes["projects"] = projectsAttr
+	resp.Schema.Attributes["linked"] = linkedAttr
+}
 
 // patchMetadataSchema relaxes metadata.tags and adds plan modifiers so computed metadata
 // attributes (created_at, etc.) do not become unknown when only tags are set in config.
@@ -76,37 +104,58 @@ func patchMetadataTagsSchema(resp *resource.SchemaResponse) {
 	resp.Schema.Attributes["metadata"] = metaAttr
 }
 
-// preserveMetadataForPlan prepares the plan metadata value. It preserves
-// system tags from state when the plan does not specify them, keeping the
-// planned metadata stable and avoiding spurious non-empty plans.
-func preserveMetadataForPlan[T attr.Value](plan, state T) T {
-	var source reflect.Value
-	if util.IsKnown(plan) {
-		source = reflect.ValueOf(plan)
-	} else if util.IsKnown(state) {
-		source = reflect.ValueOf(state)
-	} else {
+// preserveElasticsearchMetadataSystemTags prepares the plan metadata value for
+// elasticsearch projects. It preserves system_tags from state when the plan
+// does not specify them, keeping the planned metadata stable and avoiding
+// spurious non-empty plans.
+func preserveElasticsearchMetadataSystemTags(plan, state resource_elasticsearch_project.MetadataValue) resource_elasticsearch_project.MetadataValue {
+	if !util.IsKnown(plan) {
+		if util.IsKnown(state) {
+			return state
+		}
 		return plan
 	}
-
-	base := reflect.New(source.Type()).Elem()
-	base.Set(source)
-
-	if field := base.FieldByName("SystemTags"); field.IsValid() && field.CanSet() {
-		systemTags := field.Interface().(basetypes.MapValue)
-
-		// If the plan did not set system_tags, start from the state value so the
-		// planned metadata remains stable. system_tags is read-only and may
-		// briefly lag behind alias changes, so we avoid predicting it.
-		if (systemTags.IsNull() || systemTags.IsUnknown()) && util.IsKnown(state) {
-			stateCopy := reflect.ValueOf(state)
-			if stateField := stateCopy.FieldByName("SystemTags"); stateField.IsValid() {
-				field.Set(reflect.ValueOf(stateField.Interface().(basetypes.MapValue)))
-			}
-		}
+	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
+		return plan
 	}
+	plan.SystemTags = state.SystemTags
+	return plan
+}
 
-	return base.Interface().(T)
+// preserveObservabilityMetadataSystemTags prepares the plan metadata value for
+// observability projects. It preserves system_tags from state when the plan
+// does not specify them, keeping the planned metadata stable and avoiding
+// spurious non-empty plans.
+func preserveObservabilityMetadataSystemTags(plan, state resource_observability_project.MetadataValue) resource_observability_project.MetadataValue {
+	if !util.IsKnown(plan) {
+		if util.IsKnown(state) {
+			return state
+		}
+		return plan
+	}
+	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
+		return plan
+	}
+	plan.SystemTags = state.SystemTags
+	return plan
+}
+
+// preserveSecurityMetadataSystemTags prepares the plan metadata value for
+// security projects. It preserves system_tags from state when the plan does not
+// specify them, keeping the planned metadata stable and avoiding spurious
+// non-empty plans.
+func preserveSecurityMetadataSystemTags(plan, state resource_security_project.MetadataValue) resource_security_project.MetadataValue {
+	if !util.IsKnown(plan) {
+		if util.IsKnown(state) {
+			return state
+		}
+		return plan
+	}
+	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
+		return plan
+	}
+	plan.SystemTags = state.SystemTags
+	return plan
 }
 
 func metadataSystemTagsFromAPI(ctx context.Context, tags *serverless.ProjectSystemTags) (basetypes.MapValue, diag.Diagnostics) {

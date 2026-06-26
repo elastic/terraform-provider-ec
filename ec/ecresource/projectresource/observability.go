@@ -46,6 +46,7 @@ type observabilityModelReader struct{}
 func (obs observabilityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_observability_project.ObservabilityProjectResourceSchema(ctx)
 	patchMetadataSchema(resp)
+	patchLinkedStatusUseStateForUnknown(resp)
 }
 
 func (obs observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
@@ -77,7 +78,7 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-	plan.Metadata = preserveMetadataForPlan(plan.Metadata, state.Metadata)
+	plan.Metadata = preserveObservabilityMetadataSystemTags(plan.Metadata, state.Metadata)
 
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
@@ -209,7 +210,7 @@ func (obs observabilityApi) Patch(ctx context.Context, plan, state resource_obse
 		}
 	}
 
-	updateBody.Linked = expandLinkedForPatchObservability(plan)
+	updateBody.Linked = expandLinkedForPatchObservability(plan, state)
 
 	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
@@ -461,24 +462,22 @@ func expandLinkedForCreateObservability(model resource_observability_project.Obs
 	return &serverless.CreateLinkedRequest{Projects: projects}
 }
 
-func expandLinkedForPatchObservability(plan resource_observability_project.ObservabilityProjectModel) *serverless.OptionalLinkConfiguration {
-	if !util.IsKnown(plan.Linked) || plan.Linked.IsNull() || plan.Linked.Projects.IsNull() {
-		return nil
+func expandLinkedForPatchObservability(plan, state resource_observability_project.ObservabilityProjectModel) *serverless.OptionalLinkConfiguration {
+	var planProjects, stateProjects basetypes.MapValue
+	if util.IsKnown(plan.Linked) && !plan.Linked.IsNull() {
+		planProjects = plan.Linked.Projects
+	}
+	if util.IsKnown(state.Linked) && !state.Linked.IsNull() {
+		stateProjects = state.Linked.Projects
 	}
 
-	projects := make(map[string]*serverless.OptionalLinkedProject, len(plan.Linked.Projects.Elements()))
-	for projectID, v := range plan.Linked.Projects.Elements() {
+	return expandLinkedProjectsForPatch(planProjects, stateProjects, func(v attr.Value) *serverless.OptionalLinkedProject {
 		pv, ok := v.(resource_observability_project.ProjectsValue)
 		if !ok {
-			continue
+			return nil
 		}
-		projects[projectID] = &serverless.OptionalLinkedProject{
+		return &serverless.OptionalLinkedProject{
 			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
 		}
-	}
-
-	if len(projects) == 0 {
-		return nil
-	}
-	return &serverless.OptionalLinkConfiguration{Projects: &projects}
+	})
 }

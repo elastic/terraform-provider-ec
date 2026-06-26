@@ -72,6 +72,12 @@ func TestSecurityModelReader_Schema(t *testing.T) {
 		require.Len(t, sa.PlanModifiers, 1)
 		require.IsType(t, stringplanmodifier.UseStateForUnknown(), sa.PlanModifiers[0])
 	}
+
+	linkedAttr := resp.Schema.Attributes["linked"].(schema.SingleNestedAttribute)
+	projectsAttr := linkedAttr.Attributes["projects"].(schema.MapNestedAttribute)
+	statusAttr := projectsAttr.NestedObject.Attributes["status"].(schema.StringAttribute)
+	require.Len(t, statusAttr.PlanModifiers, 1)
+	require.IsType(t, stringplanmodifier.UseStateForUnknown(), statusAttr.PlanModifiers[0])
 }
 
 func TestSecurityModelReader_ReadFrom(t *testing.T) {

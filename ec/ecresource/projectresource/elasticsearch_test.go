@@ -51,6 +51,7 @@ func TestElasticsearchModelReader_Schema(t *testing.T) {
 	expected := resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
 	patchMetadataSchema(&resource.SchemaResponse{Schema: expected})
 	patchOptimizedForSchema(&resource.SchemaResponse{Schema: expected})
+	patchLinkedStatusUseStateForUnknown(&resource.SchemaResponse{Schema: expected})
 	require.Equal(t, expected, resp.Schema)
 }
 
