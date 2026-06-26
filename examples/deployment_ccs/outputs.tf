@@ -7,11 +7,11 @@ output "elasticsearch_version" {
 }
 
 output "elasticsearch_cloud_id" {
-  value = ec_deployment.ccs.elasticsearch[0].cloud_id
+  value = ec_deployment.ccs.elasticsearch.cloud_id
 }
 
 output "elasticsearch_https_endpoint" {
-  value = ec_deployment.ccs.elasticsearch[0].https_endpoint
+  value = ec_deployment.ccs.elasticsearch.https_endpoint
 }
 
 output "elasticsearch_username" {

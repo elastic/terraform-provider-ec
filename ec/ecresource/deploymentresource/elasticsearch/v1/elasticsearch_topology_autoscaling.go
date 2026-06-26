@@ -27,6 +27,7 @@ type ElasticsearchTopologyAutoscalingTF struct {
 	MinSizeResource    types.String `tfsdk:"min_size_resource"`
 	MinSize            types.String `tfsdk:"min_size"`
 	PolicyOverrideJson types.String `tfsdk:"policy_override_json"`
+	TierAutoscale      types.Bool   `tfsdk:"autoscale"`
 }
 
 type ElasticsearchTopologyAutoscaling struct {
@@ -35,6 +36,7 @@ type ElasticsearchTopologyAutoscaling struct {
 	MinSizeResource    *string `tfsdk:"min_size_resource"`
 	MinSize            *string `tfsdk:"min_size"`
 	PolicyOverrideJson *string `tfsdk:"policy_override_json"`
+	TierAutoscale      *bool   `tfsdk:"autoscale"`
 }
 
 type ElasticsearchTopologyAutoscalings []ElasticsearchTopologyAutoscaling

@@ -24,7 +24,6 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource"
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -54,18 +53,15 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			getRule: func(trafficfilterapi.GetParams) (*models.TrafficFilterRulesetInfo, error) {
 				err := "GetRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return nil, fmt.Errorf(err)
+				return nil, fmt.Errorf("%v", err)
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 
@@ -84,8 +80,7 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 
@@ -100,20 +95,18 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 					Associations: []*models.FilterAssociation{
 						{
 							ID:         &deploymentID,
-							EntityType: ec.String("deployment"),
+							EntityType: new("deployment"),
 						},
 					},
 				}, nil
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 
@@ -128,15 +121,14 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 					Associations: []*models.FilterAssociation{
 						{
 							ID:         &deploymentID,
-							EntityType: ec.String("deployment"),
+							EntityType: new("deployment"),
 						},
 					},
 				}, nil
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				assert.Equal(t, "rule2", params.ID)
@@ -155,13 +147,11 @@ func Test_handleTrafficFilterChange(t *testing.T) {
 			},
 			createRule: func(params trafficfilterapi.CreateAssociationParams) error {
 				err := "CreateRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 			deleteRule: func(params trafficfilterapi.DeleteAssociationParams) error {
 				err := "DeleteRule function SHOULD NOT be called"
-				t.Errorf(err)
-				return fmt.Errorf(err)
+				return fmt.Errorf("%v", err)
 			},
 		},
 	}

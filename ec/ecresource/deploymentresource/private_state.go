@@ -20,6 +20,8 @@ package deploymentresource
 import (
 	"context"
 	"encoding/json"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
@@ -30,6 +32,8 @@ type PrivateState interface {
 }
 
 const trafficFilterStateKey = "traffic_filters"
+const migrationUpdateRequestKey = "migration_update_request"
+const instanceConfigurationsKey = "instance_configurations"
 
 func readPrivateStateTrafficFilters(ctx context.Context, state PrivateState) ([]string, diag.Diagnostics) {
 	privateFilterBytes, diags := state.GetKey(ctx, trafficFilterStateKey)
@@ -56,4 +60,80 @@ func updatePrivateStateTrafficFilters(ctx context.Context, state PrivateState, f
 	}
 
 	return state.SetKey(ctx, trafficFilterStateKey, filterBytes)
+}
+
+func ReadPrivateStateMigrateTemplateRequest(ctx context.Context, state PrivateState) (*deployments.MigrateDeploymentTemplateOK, diag.Diagnostics) {
+	migrationUpdateRequestBytes, diags := state.GetKey(ctx, migrationUpdateRequestKey)
+	if migrationUpdateRequestBytes == nil || diags.HasError() {
+		return nil, diags
+	}
+
+	var migrationUpdateRequest models.DeploymentUpdateRequest
+	err := migrationUpdateRequest.UnmarshalBinary(migrationUpdateRequestBytes)
+	if err != nil {
+		diags.AddError("failed to parse private state", err.Error())
+		return nil, diags
+	}
+
+	migrateTemplateRequest := deployments.NewMigrateDeploymentTemplateOK()
+	migrateTemplateRequest.Payload = &migrationUpdateRequest
+
+	return migrateTemplateRequest, diags
+}
+
+func UpdatePrivateStateMigrateTemplateRequest(ctx context.Context, state PrivateState, migrateTemplateRequest *deployments.MigrateDeploymentTemplateOK) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if migrateTemplateRequest == nil {
+		return diags
+	}
+
+	migrationUpdateRequestBytes, err := migrateTemplateRequest.Payload.MarshalBinary()
+	if err != nil {
+		diags.AddError("failed to update private state", err.Error())
+		return diags
+	}
+
+	return state.SetKey(ctx, migrationUpdateRequestKey, migrationUpdateRequestBytes)
+}
+
+func ReadPrivateStateInstanceConfigurations(
+	ctx context.Context,
+	state PrivateState,
+) ([]models.InstanceConfigurationInfo, diag.Diagnostics) {
+	data, diags := state.GetKey(ctx, instanceConfigurationsKey)
+	if data == nil || diags.HasError() {
+		return nil, diags
+	}
+
+	var instanceConfigurations []models.InstanceConfigurationInfo
+	err := json.Unmarshal(data, &instanceConfigurations)
+	if err != nil {
+		diags.AddError("instance-configurations: failed to parse private state", err.Error())
+		return nil, diags
+	}
+
+	return instanceConfigurations, diags
+}
+
+func UpdatePrivateStateInstanceConfigurations(
+	ctx context.Context,
+	state PrivateState,
+	instanceConfigurations []*models.InstanceConfigurationInfo,
+) diag.Diagnostics {
+	var ics []models.InstanceConfigurationInfo
+	for _, ic := range instanceConfigurations {
+		if ic != nil {
+			ics = append(ics, *ic)
+		}
+	}
+
+	data, err := json.Marshal(ics)
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.AddError("failed to update private state", err.Error())
+		return diags
+	}
+
+	return state.SetKey(ctx, instanceConfigurationsKey, data)
 }

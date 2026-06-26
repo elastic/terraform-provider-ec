@@ -19,14 +19,13 @@ package v2
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/exp/slices"
 )
 
 type ElasticsearchTF struct {
@@ -52,16 +51,12 @@ type ElasticsearchTF struct {
 	TrustAccount     types.Set    `tfsdk:"trust_account"`
 	TrustExternal    types.Set    `tfsdk:"trust_external"`
 	Strategy         types.String `tfsdk:"strategy"`
+	KeystoreContents types.Map    `tfsdk:"keystore_contents"`
 }
 
-func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResources *models.DeploymentUpdateResources, dtID, version string, useNodeRoles bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
-	var es *ElasticsearchTF
-
-	if esObj.IsNull() || esObj.IsUnknown() {
-		return nil, nil
-	}
-
-	if diags := tfsdk.ValueAs(ctx, esObj, &es); diags.HasError() {
+func ElasticsearchPayload(ctx context.Context, plan types.Object, state *types.Object, updateResources *models.DeploymentUpdateResources, dtID, version string, useNodeRoles bool) (*models.ElasticsearchPayload, diag.Diagnostics) {
+	es, diags := objectToElasticsearch(ctx, plan)
+	if diags.HasError() {
 		return nil, diags
 	}
 
@@ -69,9 +64,17 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResourc
 		return nil, nil
 	}
 
+	var esState *ElasticsearchTF
+	if state != nil {
+		esState, diags = objectToElasticsearch(ctx, *state)
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
 	templatePayload := EnrichElasticsearchTemplate(payloadFromUpdate(updateResources), dtID, version, useNodeRoles)
 
-	payload, diags := es.payload(ctx, templatePayload)
+	payload, diags := es.payload(ctx, templatePayload, esState)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -79,15 +82,63 @@ func ElasticsearchPayload(ctx context.Context, esObj types.Object, updateResourc
 	return payload, nil
 }
 
-func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload) (*models.ElasticsearchPayload, diag.Diagnostics) {
+func objectToElasticsearch(ctx context.Context, plan types.Object) (*ElasticsearchTF, diag.Diagnostics) {
+	var es *ElasticsearchTF
+
+	if plan.IsNull() || plan.IsUnknown() {
+		return nil, nil
+	}
+
+	if diags := tfsdk.ValueAs(ctx, plan, &es); diags.HasError() {
+		return nil, diags
+	}
+
+	return es, nil
+}
+
+func CheckAvailableMigration(ctx context.Context, plan types.Object, state types.Object) (bool, diag.Diagnostics) {
+	esPlan, diags := objectToElasticsearch(ctx, plan)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	esState, diags := objectToElasticsearch(ctx, state)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	if esPlan == nil || esState == nil {
+		return false, nil
+	}
+
+	planTiers, diags := esPlan.topologies(ctx)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	stateTiers, diags := esState.topologies(ctx)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	for topologyId, tier := range planTiers {
+		if tier != nil && stateTiers[topologyId] != nil && tier.checkAvailableMigration(stateTiers[topologyId]) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (es *ElasticsearchTF) payload(ctx context.Context, res *models.ElasticsearchPayload, state *ElasticsearchTF) (*models.ElasticsearchPayload, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if !es.RefId.IsNull() {
-		res.RefID = ec.String(es.RefId.ValueString())
+		res.RefID = new(es.RefId.ValueString())
 	}
 
 	if es.Region.ValueString() != "" {
-		res.Region = ec.String(es.Region.ValueString())
+		res.Region = new(es.Region.ValueString())
 	}
 
 	// Unsetting the curation properties is since they're deprecated since
@@ -105,7 +156,7 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	res.Plan.Elasticsearch, ds = elasticsearchConfigPayload(ctx, es.Config, res.Plan.Elasticsearch)
 	diags.Append(ds...)
 
-	res.Settings, ds = elasticsearchSnapshotPayload(ctx, es.Snapshot, res.Settings)
+	res.Settings, ds = elasticsearchSnapshotPayload(ctx, es.Snapshot, res.Settings, state)
 	diags.Append(ds...)
 
 	diags.Append(elasticsearchSnapshotSourcePayload(ctx, es.SnapshotSource, res.Plan)...)
@@ -113,13 +164,19 @@ func (es *ElasticsearchTF) payload(ctx context.Context, res *models.Elasticsearc
 	diags.Append(elasticsearchExtensionPayload(ctx, es.Extension, res.Plan.Elasticsearch)...)
 
 	if !es.Autoscale.IsNull() && !es.Autoscale.IsUnknown() {
-		res.Plan.AutoscalingEnabled = ec.Bool(es.Autoscale.ValueBool())
+		res.Plan.AutoscalingEnabled = new(es.Autoscale.ValueBool())
 	}
 
-	res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
-	diags.Append(ds...)
+	// Only add trust settings to update payload if trust has changed
+	if state == nil || !es.TrustAccount.Equal(state.TrustAccount) || !es.TrustExternal.Equal(state.TrustExternal) {
+		res.Settings, ds = elasticsearchTrustAccountPayload(ctx, es.TrustAccount, res.Settings)
+		diags.Append(ds...)
 
-	res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
+		res.Settings, ds = elasticsearchTrustExternalPayload(ctx, es.TrustExternal, res.Settings)
+		diags.Append(ds...)
+	}
+
+	res.Settings, ds = elasticsearchKeystoreContentsPayload(ctx, es.KeystoreContents, res.Settings, state)
 	diags.Append(ds...)
 
 	elasticsearchStrategyPayload(es.Strategy, res.Plan)
@@ -248,22 +305,23 @@ func dedicatedTopoogies(topologies []*models.ElasticsearchClusterTopologyElement
 func elasticsearchStrategyPayload(strategy types.String, payload *models.ElasticsearchClusterPlan) {
 	createModelIfNeeded := func() {
 		if payload.Transient == nil {
-			payload.Transient = &models.TransientElasticsearchPlanConfiguration{
-				Strategy: &models.PlanStrategy{},
-			}
+			payload.Transient = &models.TransientElasticsearchPlanConfiguration{}
+		}
+		if payload.Transient.Strategy == nil {
+			payload.Transient.Strategy = &models.PlanStrategy{}
 		}
 	}
 
 	switch strategy.ValueString() {
 	case strategyAutodetect:
 		createModelIfNeeded()
-		payload.Transient.Strategy.Autodetect = models.AutodetectStrategyConfig(map[string]interface{}{})
+		payload.Transient.Strategy.Autodetect = models.AutodetectStrategyConfig(map[string]any{})
 	case strategyGrowAndShrink:
 		createModelIfNeeded()
-		payload.Transient.Strategy.GrowAndShrink = models.GrowShrinkStrategyConfig(map[string]interface{}{})
+		payload.Transient.Strategy.GrowAndShrink = models.GrowShrinkStrategyConfig(map[string]any{})
 	case strategyRollingGrowAndShrink:
 		createModelIfNeeded()
-		payload.Transient.Strategy.RollingGrowAndShrink = models.RollingGrowShrinkStrategyConfig(map[string]interface{}{})
+		payload.Transient.Strategy.RollingGrowAndShrink = models.RollingGrowShrinkStrategyConfig(map[string]any{})
 	case strategyRollingAll:
 		createModelIfNeeded()
 		payload.Transient.Strategy.Rolling = &models.RollingStrategyConfig{
@@ -290,7 +348,7 @@ func EnrichElasticsearchTemplate(tpl *models.ElasticsearchPayload, templateId, v
 	}
 
 	if tpl.Plan.DeploymentTemplate.ID == nil || *tpl.Plan.DeploymentTemplate.ID == "" {
-		tpl.Plan.DeploymentTemplate.ID = ec.String(templateId)
+		tpl.Plan.DeploymentTemplate.ID = new(templateId)
 	}
 
 	if tpl.Plan.Elasticsearch.Version == "" {

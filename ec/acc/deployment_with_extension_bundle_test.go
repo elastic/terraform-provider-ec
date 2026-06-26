@@ -23,9 +23,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 )
@@ -35,11 +35,7 @@ func TestAccDeployment_withExtension(t *testing.T) {
 	resName := "ec_deployment.with_extension"
 	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
-	filePath := filepath.Join(os.TempDir(), "extension.zip")
-
-	// TODO: this causes the test to fail with the invalid file error
-	// however we need find a way to delete the temp file
-	// defer os.Remove(filePath)
+	filePath := filepath.Join(t.TempDir(), "extension.zip")
 
 	cfg := fixtureAccDeploymentWithExtensionBundle(t,
 		"testdata/deployment_with_extension_bundle_file.tf",

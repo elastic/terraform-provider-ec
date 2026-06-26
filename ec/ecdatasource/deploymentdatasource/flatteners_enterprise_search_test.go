@@ -48,13 +48,13 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 			name: "parses the enterprisesearch resource",
 			args: args{in: []*models.EnterpriseSearchResourceInfo{
 				{
-					RefID:                     ec.String("main-enterprise_search"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					RefID:                     new("main-enterprise_search"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.EnterpriseSearchInfo{
-						Healthy: ec.Bool(true),
-						Status:  ec.String("started"),
+						Healthy: new(true),
+						Status:  new("started"),
 						ID:      &mock.ValidClusterID,
-						Name:    ec.String("some-enterprisesearch-name"),
+						Name:    new("some-enterprisesearch-name"),
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "enterprisesearchresource.cloud.elastic.co",
 							Ports: &models.ClusterMetadataPortInfo{
@@ -73,24 +73,24 @@ func Test_flattenEnterpriseSearchResource(t *testing.T) {
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.enterprisesearch.r4",
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(1024),
 											},
 											NodeType: &models.EnterpriseSearchNodeTypes{
-												Appserver: ec.Bool(true),
-												Worker:    ec.Bool(false),
+												Appserver: new(true),
+												Worker:    new(false),
 											},
 										},
 										{
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.enterprisesearch.m5d",
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(0),
 											},
 											NodeType: &models.EnterpriseSearchNodeTypes{
-												Appserver: ec.Bool(true),
-												Worker:    ec.Bool(false),
+												Appserver: new(true),
+												Worker:    new(false),
 											},
 										},
 									},

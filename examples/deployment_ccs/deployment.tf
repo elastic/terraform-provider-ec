@@ -4,7 +4,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = "0.9.0"
+      version = "0.13.0"
     }
   }
 }
@@ -68,12 +68,12 @@ resource "ec_deployment" "ccs" {
       {
         deployment_id = ec_deployment.source_deployment.id
         alias         = ec_deployment.source_deployment.name
-        ref_id        = ec_deployment.source_deployment.elasticsearch.0.ref_id
+        ref_id        = ec_deployment.source_deployment.elasticsearch.ref_id
       },
       {
         deployment_id = ec_deployment.second_source.id
         alias         = ec_deployment.second_source.name
-        ref_id        = ec_deployment.second_source.elasticsearch.0.ref_id
+        ref_id        = ec_deployment.second_source.elasticsearch.ref_id
       }
     ]
   }

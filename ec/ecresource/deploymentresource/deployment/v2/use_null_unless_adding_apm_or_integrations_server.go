@@ -53,7 +53,7 @@ func (m useNullUnlessAddingAPMOrIntegrationsServer) PlanModifyString(ctx context
 
 	// Critically, we'll return here if this value has been set from state.
 	// The rest of this function only applies if there is no value already in state.
-	if !req.PlanValue.IsUnknown() {
+	if !req.PlanValue.IsUnknown() && !req.PlanValue.IsNull() {
 		return
 	}
 
@@ -70,6 +70,7 @@ func (m useNullUnlessAddingAPMOrIntegrationsServer) PlanModifyString(ctx context
 	}
 
 	if addedAPM || addedIntegrationsServer {
+		resp.PlanValue = types.StringUnknown()
 		return
 	}
 

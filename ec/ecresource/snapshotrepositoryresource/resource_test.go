@@ -23,7 +23,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	r "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	r "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
@@ -35,7 +35,6 @@ func TestResourceSnapshotRepository(t *testing.T) {
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
 				createResponse(s3Json1),
-				readResponse(s3Json1),
 				readResponse(s3Json1),
 				readResponse(s3Json1),
 				readResponse(s3Json1),
@@ -203,6 +202,7 @@ func TestResourceSnapshotRepository_notFoundAfterRead(t *testing.T) {
 				createResponse(s3Json1),
 				readResponse(s3Json1),
 				notFoundReadResponse(),
+				deleteResponse(), // required for cleanup
 			),
 		),
 		Steps: []r.TestStep{

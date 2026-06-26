@@ -37,6 +37,10 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 				Description: "Prefix to filter the returned deployment list by.",
 				Optional:    true,
 			},
+			"name": schema.StringAttribute{
+				Description: "Filter the result by the full deployment name.",
+				Optional:    true,
+			},
 			"healthy": schema.StringAttribute{
 				Description: "Filter the result set by their health status.",
 				Optional:    true,
@@ -179,6 +183,7 @@ func resourceFiltersAttrTypes(resourceKind util.ResourceKind) map[string]attr.Ty
 type modelV0 struct {
 	ID                   types.String `tfsdk:"id"`
 	NamePrefix           types.String `tfsdk:"name_prefix"`
+	Name                 types.String `tfsdk:"name"`
 	Healthy              types.String `tfsdk:"healthy"`
 	DeploymentTemplateID types.String `tfsdk:"deployment_template_id"`
 	Tags                 types.Map    `tfsdk:"tags"`

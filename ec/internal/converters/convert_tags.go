@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 )
 
 // flattenTags takes in Deployment Metadata resource models and returns its
@@ -61,8 +60,8 @@ func MapToModelsTags(raw map[string]string) []*models.MetadataItem {
 	result := make([]*models.MetadataItem, 0, len(raw))
 	for k, v := range raw {
 		result = append(result, &models.MetadataItem{
-			Key:   ec.String(k),
-			Value: ec.String(v),
+			Key:   new(k),
+			Value: new(v),
 		})
 	}
 
@@ -82,8 +81,8 @@ func TypesMapToModelsTags(ctx context.Context, raw types.Map) ([]*models.Metadat
 			return nil, diags
 		}
 		result = append(result, &models.MetadataItem{
-			Key:   ec.String(k),
-			Value: ec.String(tag),
+			Key:   new(k),
+			Value: new(tag),
 		})
 	}
 

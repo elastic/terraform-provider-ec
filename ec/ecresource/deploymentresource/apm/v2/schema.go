@@ -19,16 +19,20 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 func ApmConfigSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
 		Description: `Optionally define the Apm configuration options for the APM Server`,
 		Optional:    true,
+		Validators: []validator.Object{
+			objectvalidator.AlsoRequires(path.MatchRoot("kibana")),
+		},
 		Attributes: map[string]schema.Attribute{
 			"docker_image": schema.StringAttribute{
 				Description: "Optionally override the docker image the APM nodes will use. This option will not work in ESS customers and should only be changed if you know what you're doing.",
@@ -76,8 +80,9 @@ func ApmConfigSchema() schema.Attribute {
 
 func ApmSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
-		Description: "**DEPRECATED** APM cluster definition. This should only be used for deployments running a version lower than 8.0",
-		Optional:    true,
+		Description:   "**DEPRECATED** APM cluster definition. This should only be used for deployments running a version lower than 8.0",
+		Optional:      true,
+		PlanModifiers: []planmodifier.Object{},
 		Attributes: map[string]schema.Attribute{
 			"elasticsearch_cluster_ref_id": schema.StringAttribute{
 				Optional: true,
@@ -96,39 +101,58 @@ func ApmSchema() schema.Attribute {
 			"resource_id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"region": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"http_endpoint": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"https_endpoint": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"instance_configuration_id": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("apm", false),
+				},
+			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("apm", false),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("apm", true),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("apm", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("apm", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{
@@ -143,7 +167,7 @@ func ApmSchema() schema.Attribute {
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"config": ApmConfigSchema(),

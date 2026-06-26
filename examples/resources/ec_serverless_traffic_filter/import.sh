@@ -1,0 +1,1 @@
+terraform import ec_serverless_traffic_filter.id 320b7b540dfc967a7a649c18e2fce4ed

@@ -22,23 +22,25 @@ import (
 )
 
 type EnterpriseSearchTopologyTF struct {
-	InstanceConfigurationId types.String `tfsdk:"instance_configuration_id"`
-	Size                    types.String `tfsdk:"size"`
-	SizeResource            types.String `tfsdk:"size_resource"`
-	ZoneCount               types.Int64  `tfsdk:"zone_count"`
-	NodeTypeAppserver       types.Bool   `tfsdk:"node_type_appserver"`
-	NodeTypeConnector       types.Bool   `tfsdk:"node_type_connector"`
-	NodeTypeWorker          types.Bool   `tfsdk:"node_type_worker"`
+	InstanceConfigurationId      types.String `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion types.Int64  `tfsdk:"instance_configuration_version"`
+	Size                         types.String `tfsdk:"size"`
+	SizeResource                 types.String `tfsdk:"size_resource"`
+	ZoneCount                    types.Int64  `tfsdk:"zone_count"`
+	NodeTypeAppserver            types.Bool   `tfsdk:"node_type_appserver"`
+	NodeTypeConnector            types.Bool   `tfsdk:"node_type_connector"`
+	NodeTypeWorker               types.Bool   `tfsdk:"node_type_worker"`
 }
 
 type EnterpriseSearchTopology struct {
-	InstanceConfigurationId *string `tfsdk:"instance_configuration_id"`
-	Size                    *string `tfsdk:"size"`
-	SizeResource            *string `tfsdk:"size_resource"`
-	ZoneCount               int     `tfsdk:"zone_count"`
-	NodeTypeAppserver       *bool   `tfsdk:"node_type_appserver"`
-	NodeTypeConnector       *bool   `tfsdk:"node_type_connector"`
-	NodeTypeWorker          *bool   `tfsdk:"node_type_worker"`
+	InstanceConfigurationId      *string `tfsdk:"instance_configuration_id"`
+	InstanceConfigurationVersion *int    `tfsdk:"instance_configuration_version"`
+	Size                         *string `tfsdk:"size"`
+	SizeResource                 *string `tfsdk:"size_resource"`
+	ZoneCount                    int     `tfsdk:"zone_count"`
+	NodeTypeAppserver            *bool   `tfsdk:"node_type_appserver"`
+	NodeTypeConnector            *bool   `tfsdk:"node_type_connector"`
+	NodeTypeWorker               *bool   `tfsdk:"node_type_worker"`
 }
 
 type EnterpriseSearchTopologies []EnterpriseSearchTopology

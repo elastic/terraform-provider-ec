@@ -26,17 +26,13 @@ if [ -z "${PREVIOUS_CHANGELOG}" ]; then
     exit 1
 fi
 
-if [ -z "${GOBIN}" ]; then
-    GOBIN=$(go env GOPATH)/bin
-fi
-
-CHANGELOG=$(${GOBIN}/changelog-build -this-release ${TARGET_SHA} \
-                      -last-release ${PREVIOUS_RELEASE_SHA} \
-                      -git-dir ${__parent} \
-                      -entries-dir .changelog \
-                      -changelog-template ${__dir}/changelog.tmpl \
-                      -note-template ${__dir}/release-note.tmpl \
-                      )
+CHANGELOG=$(cd "${__parent}" && go tool changelog-build -this-release ${TARGET_SHA} \
+                                     -last-release ${PREVIOUS_RELEASE_SHA} \
+                                     -git-dir ${__parent} \
+                                     -entries-dir .changelog \
+                                     -changelog-template ${__dir}/changelog.tmpl \
+                                     -note-template ${__dir}/release-note.tmpl \
+                                     )
 
 if [ -z "$CHANGELOG" ]; then
     echo "No changelog generated."

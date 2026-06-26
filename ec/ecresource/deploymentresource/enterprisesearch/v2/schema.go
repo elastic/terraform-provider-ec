@@ -19,17 +19,23 @@ package v2
 
 import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 func EnterpriseSearchSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
 		Description: "Enterprise Search cluster definition.",
 		Optional:    true,
+		Validators: []validator.Object{
+			objectvalidator.AlsoRequires(path.MatchRoot("kibana")),
+		},
 		Attributes: map[string]schema.Attribute{
 			"elasticsearch_cluster_ref_id": schema.StringAttribute{
 				Optional: true,
@@ -73,14 +79,33 @@ func EnterpriseSearchSchema() schema.Attribute {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", false),
+				},
+			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", false),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", true),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", true),
 				},
 			},
 			"size": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownUnlessTemplateChanged(),
+					planmodifiers.UseStateForUnknownUnlessMigrationIsRequired("enterprise_search", false),
 				},
 			},
 			"size_resource": schema.StringAttribute{

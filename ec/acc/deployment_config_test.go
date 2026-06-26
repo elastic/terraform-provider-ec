@@ -29,14 +29,11 @@ import (
 )
 
 const (
-	defaultTemplate          = "io-optimized"
-	hotWarmTemplate          = "hot-warm"
-	ccsTemplate              = "cross-cluster-search"
-	computeOpTemplate        = "compute-optimized"
-	memoryOpTemplate         = "memory-optimized"
-	enterpriseSearchTemplate = "enterprise-search-dedicated"
-	observabilityTemplate    = "observability"
-	securityTemplate         = "security"
+	defaultTemplate        = "storage-optimized"
+	generalPurposeTemplate = "general-purpose"
+	cpuOpTemplate          = "cpu-optimized"
+	cpuOpFasterTemplate    = "cpu-optimized-faster-warm"
+	vectorSearchTemplate   = "vector-search-optimized"
 )
 
 func getRegion() string {
@@ -86,12 +83,13 @@ func setDefaultTemplate(region, template string) string {
 }
 
 func buildAwsTemplate(template string) string {
-	v2Templates := []string{defaultTemplate, hotWarmTemplate, ccsTemplate,
-		computeOpTemplate, memoryOpTemplate, enterpriseSearchTemplate,
+	armTemplates := []string{
+		vectorSearchTemplate,
+		cpuOpTemplate,
 	}
 
-	if slice.HasString(v2Templates, template) {
-		return "aws-" + template + "-v2"
+	if slice.HasString(armTemplates, template) {
+		return "aws-" + template + "-arm"
 	}
 
 	return "aws-" + template
@@ -115,25 +113,28 @@ func getResources(deploymentTemplate string) (*models.DeploymentCreateResources,
 	return res.DeploymentTemplate.Resources, nil
 }
 
-func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC, essIC string, err error) {
-	resources, err := getResources(deploymentTemplate)
-	if err != nil {
-		return "", "", "", "", err
-	}
-
-	esRes := resources.Elasticsearch[0].Plan.ClusterTopology
-
-	for _, t := range esRes {
-		if *t.Size.Value > 0 {
-			esIC = t.InstanceConfigurationID
+func getElasticsearchHotInstanceConfiguration(resources *models.DeploymentCreateResources, deploymentTemplate string) (string, error) {
+	for _, topology := range resources.Elasticsearch[0].Plan.ClusterTopology {
+		if topology.ID == "hot_content" && topology.InstanceConfigurationID != "" {
+			return topology.InstanceConfigurationID, nil
 		}
 	}
 
-	if esIC == "" {
-		return "", "", "", "",
-			fmt.Errorf(
-				"could not find default instance configuration for Elasticsearch, verify  details for: %v",
-				deploymentTemplate)
+	return "", fmt.Errorf(
+		"could not find default hot tier instance configuration for Elasticsearch, verify details for: %v",
+		deploymentTemplate,
+	)
+}
+
+func getInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC string, err error) {
+	resources, err := getResources(deploymentTemplate)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	esIC, err = getElasticsearchHotInstanceConfiguration(resources, deploymentTemplate)
+	if err != nil {
+		return "", "", "", err
 	}
 
 	kibanaIC = resources.Kibana[0].
@@ -142,8 +143,5 @@ func setInstanceConfigurations(deploymentTemplate string) (esIC, kibanaIC, apmIC
 	apmIC = resources.Apm[0].
 		Plan.ClusterTopology[0].InstanceConfigurationID
 
-	essIC = resources.EnterpriseSearch[0].
-		Plan.ClusterTopology[0].InstanceConfigurationID
-
-	return esIC, kibanaIC, apmIC, essIC, nil
+	return esIC, kibanaIC, apmIC, nil
 }

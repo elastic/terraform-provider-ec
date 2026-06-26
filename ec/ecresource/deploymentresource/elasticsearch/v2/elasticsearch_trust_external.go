@@ -128,7 +128,7 @@ func elasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, m
 
 		ds := tfsdk.ValueAs(ctx, elem, &account)
 
-		diags = append(diags, ds...)
+		diags.Append(ds...)
 
 		if ds.HasError() {
 			continue
@@ -144,7 +144,7 @@ func elasticsearchTrustAccountPayload(ctx context.Context, accounts types.Set, m
 
 		ds = account.TrustAllowlist.ElementsAs(ctx, &payload.TrustAllowlist, true)
 
-		diags = append(diags, ds...)
+		diags.Append(ds...)
 
 		if ds.HasError() {
 			continue

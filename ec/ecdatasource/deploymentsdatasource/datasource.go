@@ -20,32 +20,44 @@ package deploymentsdatasource
 import (
 	"context"
 	"fmt"
-	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 var _ datasource.DataSource = &DataSource{}
 var _ datasource.DataSourceWithConfigure = &DataSource{}
+var _ datasource.DataSourceWithConfigValidators = &DataSource{}
 
 type DataSource struct {
 	client *api.API
 }
 
 func (d *DataSource) Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse) {
-	client, diags := internal.ConvertProviderData(request.ProviderData)
+	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
-	d.client = client
+	d.client = clients.Stateful
+}
+
+func (d *DataSource) ConfigValidators(ctx context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		// Only one of name_prefix and name should be configured
+		datasourcevalidator.Conflicting(
+			path.MatchRoot("name_prefix"),
+			path.MatchRoot("name"),
+		),
+	}
 }
 
 func (d *DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
@@ -100,7 +112,7 @@ func modelToState(ctx context.Context, res *models.DeploymentsSearchResponse, st
 	var diags diag.Diagnostics
 
 	if b, _ := res.MarshalBinary(); len(b) > 0 {
-		state.ID = types.StringValue(strconv.Itoa(schema.HashString(string(b))))
+		state.ID = types.StringValue(util.HashString(string(b)))
 	}
 	state.ReturnCount = types.Int64Value(int64(*res.ReturnCount))
 

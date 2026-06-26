@@ -19,14 +19,13 @@ package elasticsearchkeystoreresource
 
 import (
 	"context"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // Create will create an item in the Elasticsearch keystore
@@ -73,5 +72,5 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 }
 
 func hashID(elem ...string) string {
-	return strconv.Itoa(schema.HashString(strings.Join(elem, "-")))
+	return util.HashString(strings.Join(elem, "-"))
 }

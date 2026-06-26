@@ -18,6 +18,7 @@
 package acc
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"testing"
@@ -29,6 +30,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
 
 	"github.com/elastic/terraform-provider-ec/ec"
+	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 )
 
 const (
@@ -72,7 +74,7 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
-func newAPI() (*api.API, error) {
+func newAPIConfig() (api.Config, error) {
 	var host = api.ESSEndpoint
 	if h := os.Getenv("EC_HOST"); h != "" {
 		host = h
@@ -106,7 +108,7 @@ func newAPI() (*api.API, error) {
 		APIKey: apikey, Username: username, Password: password,
 	})
 	if err != nil {
-		return nil, err
+		return api.Config{}, err
 	}
 
 	var insecure bool
@@ -114,14 +116,39 @@ func newAPI() (*api.API, error) {
 		insecure = true
 	}
 
-	return api.NewAPI(api.Config{
+	return api.Config{
 		ErrorDevice:   os.Stdout,
 		Client:        &http.Client{},
 		AuthWriter:    authWriter,
 		Host:          host,
 		SkipTLSVerify: insecure,
 		Retries:       ec.DefaultHTTPRetries,
-	})
+	}, nil
+}
+
+func newAPI() (*api.API, error) {
+	cfg, err := newAPIConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return api.NewAPI(cfg)
+}
+
+func newServerlessAPI() (serverless.ClientWithResponsesInterface, error) {
+	cfg, err := newAPIConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return serverless.NewClientWithResponses(
+		cfg.Host,
+		serverless.WithHTTPClient(cfg.Client),
+		serverless.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+			cfg.AuthWriter.AuthRequest(req)
+			return nil
+		}),
+	)
 }
 
 // requiresAPIConn should be called in functions which would be executed by the

@@ -16,8 +16,4 @@ resource "ec_deployment" "defaults" {
   }
 
   kibana = {}
-
-  enterprise_search = {
-    zone_count = 1
-  }
 }

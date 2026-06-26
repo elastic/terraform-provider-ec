@@ -1,0 +1,353 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package acc
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+func TestAcc_SecurityProject(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	alias := "alias-for-acc-test-project"
+	newName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create a basic project.
+				Config: testAccBasicSecurityProject(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
+			{
+				// Explicitly set the alias.
+				Config: testAccSecurityProjectWithAlias(resId, randomName, region, alias),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "alias", alias),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
+			{
+				// Change the name.
+				Config: testAccSecurityProjectWithAlias(resId, newName, region, alias),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", newName),
+					resource.TestCheckResourceAttr(resourceName, "alias", alias),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "credentials.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+				),
+			},
+			{
+				// Test import.
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// product_types are verified by ImportPlanChecks, so can be ignored here.
+				ImportStateVerifyIgnore: []string{"credentials", "product_types"},
+				// Use ImportPlanChecks to verify semantic equality of product_types.
+				// ExpectEmptyPlan confirms that the plan after import shows no changes,
+				// which indicates semantic equality is working correctly even if product_types
+				// are returned in a different order by the API.
+				ImportPlanChecks: resource.ImportPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+		},
+	})
+}
+
+func TestAcc_SecurityProjectWithAdminFeaturesAndProductTypes(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create project with admin_features_package and product_types
+				// Verify these fields are correctly populated from API response
+				Config: testAccSecurityProjectWithAdminFeaturesAndProductTypes(resId, randomName, region, "standard"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "admin_features_package"),
+					resource.TestCheckResourceAttrSet(resourceName, "product_types.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "product_types.0.product_line"),
+					resource.TestCheckResourceAttrSet(resourceName, "product_types.0.product_tier"),
+				),
+			},
+		},
+	})
+}
+
+func testAccBasicSecurityProject(id string, name string, region string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name = "%s"
+	region_id = "%s"
+}
+`, id, name, region)
+}
+
+func testAccSecurityProjectWithAlias(id string, name string, region string, alias string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name = "%s"
+	region_id = "%s"
+	alias = "%s"
+}
+`, id, name, region, alias)
+}
+
+func TestAcc_SecurityProject_MetadataTags(t *testing.T) {
+	resId := "tags_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSecurityProjectWithMetadataTag(resId, randomName, region, "v1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_test", "v1"),
+				),
+			},
+			{
+				Config: testAccSecurityProjectWithMetadataTag(resId, randomName, region, "v2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_test", "v2"),
+				),
+			},
+			{
+				Config: testAccSecurityProjectWithMetadataTagTeam(resId, randomName, region, "platform"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_team", "platform"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
+				),
+			},
+			{
+				Config: testAccSecurityProjectWithMetadataTagTeam(resId, randomName, region, "platform"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.acc_team", "platform"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "1"),
+				),
+			},
+			{
+				Config: testAccSecurityProjectWithEmptyMetadataTags(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckNoResourceAttr(resourceName, "metadata.tags.acc_team"),
+					resource.TestCheckResourceAttr(resourceName, "metadata.tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSecurityProjectWithMetadataTag(id, name, region, tagValue string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {
+			acc_test = "%s"
+		}
+	}
+}
+`, id, name, region, tagValue)
+}
+
+func testAccSecurityProjectWithMetadataTagTeam(id, name, region, team string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {
+			acc_team = "%s"
+		}
+	}
+}
+`, id, name, region, team)
+}
+
+func testAccSecurityProjectWithEmptyMetadataTags(id, name, region string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	metadata = {
+		tags = {}
+	}
+}
+`, id, name, region)
+}
+
+func testAccSecurityProjectWithAdminFeaturesAndProductTypes(id string, name string, region string, adminPackage string) string {
+	return fmt.Sprintf(`
+resource ec_security_project "%s" {
+	name = "%s"
+	region_id = "%s"
+	admin_features_package = "%s"
+	product_types = [
+		{
+			product_line = "endpoint"
+			product_tier = "essentials"
+		},
+		{
+			product_line = "security"
+			product_tier = "essentials"
+		}
+	]
+}
+`, id, name, region, adminPackage)
+}
+
+func TestAcc_SecurityProjectImport(t *testing.T) {
+	resId := "import_project"
+	resourceName := fmt.Sprintf("ec_security_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccSecurityProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create a project to import.
+				Config: testAccBasicSecurityProject(resId, randomName, region),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				// Import the project and verify all attributes.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "region_id", region),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "alias"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.elasticsearch"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoints.kibana"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_at"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.created_by"),
+					resource.TestCheckResourceAttrSet(resourceName, "metadata.organization_id"),
+					resource.TestCheckResourceAttr(resourceName, "type", "security"),
+				),
+			},
+		},
+	})
+}
+
+func testAccSecurityProjectDestroy(s *terraform.State) error {
+	// retrieve the connection established in Provider configuration
+	client, err := newServerlessAPI()
+	if err != nil {
+		return err
+	}
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "ec_security_project" {
+			continue
+		}
+
+		res, err := client.GetSecurityProjectWithResponse(context.Background(), rs.Primary.ID)
+
+		// The resource will only exist if it can be obtained via the API and
+		// the metadata status is not set to hidden. Currently ESS clients
+		// cannot delete a deployment, so even when it's been shut down it will
+		// show up on the GET call.
+		if err == nil && res.JSON200 != nil {
+			res, err := client.DeleteSecurityProjectWithResponse(context.Background(), rs.Primary.ID, nil)
+			if err != nil && res.StatusCode() == 200 {
+				return nil
+			}
+
+			return fmt.Errorf("security project [%s] still exists", rs.Primary.ID)
+		}
+	}
+
+	return nil
+}

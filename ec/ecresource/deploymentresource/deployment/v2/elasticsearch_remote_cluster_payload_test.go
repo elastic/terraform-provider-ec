@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 )
 
@@ -48,7 +47,7 @@ func Test_handleRemoteClusters(t *testing.T) {
 				plan: Deployment{
 					Id: "320b7b540dfc967a7a649c18e2fce4ed",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 					},
 				},
 				client: api.NewMock(mock.New202ResponseAssertion(
@@ -83,19 +82,19 @@ func Test_handleRemoteClusters(t *testing.T) {
 					Region:               "us-east-1",
 					Version:              "7.7.0",
 					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: ec.String("main-elasticsearch"),
+						RefId: new("main-elasticsearch"),
 						RemoteCluster: elasticsearchv2.ElasticsearchRemoteClusters{
 							{
-								Alias:           ec.String("alias"),
-								DeploymentId:    ec.String("someid"),
-								RefId:           ec.String("main-elasticsearch"),
-								SkipUnavailable: ec.Bool(true),
+								Alias:           new("alias"),
+								DeploymentId:    new("someid"),
+								RefId:           new("main-elasticsearch"),
+								SkipUnavailable: new(true),
 							},
 							{
-								Alias:           ec.String("alias"),
-								DeploymentId:    ec.String("some other id"),
-								RefId:           ec.String("main-elasticsearch"),
-								SkipUnavailable: ec.Bool(false),
+								Alias:           new("alias"),
+								DeploymentId:    new("some other id"),
+								RefId:           new("main-elasticsearch"),
+								SkipUnavailable: new(false),
 							},
 						},
 					},
@@ -139,29 +138,29 @@ func Test_writeRemoteClusters(t *testing.T) {
 			args: args{
 				remoteClusters: elasticsearchv2.ElasticsearchRemoteClusters{
 					{
-						Alias:           ec.String("alias"),
-						DeploymentId:    ec.String("someid"),
-						RefId:           ec.String("main-elasticsearch"),
-						SkipUnavailable: ec.Bool(true),
+						Alias:           new("alias"),
+						DeploymentId:    new("someid"),
+						RefId:           new("main-elasticsearch"),
+						SkipUnavailable: new(true),
 					},
 					{
-						Alias:        ec.String("alias"),
-						DeploymentId: ec.String("some other id"),
-						RefId:        ec.String("main-elasticsearch"),
+						Alias:        new("alias"),
+						DeploymentId: new("some other id"),
+						RefId:        new("main-elasticsearch"),
 					},
 				},
 			},
 			want: &models.RemoteResources{Resources: []*models.RemoteResourceRef{
 				{
-					Alias:              ec.String("alias"),
-					DeploymentID:       ec.String("someid"),
-					ElasticsearchRefID: ec.String("main-elasticsearch"),
-					SkipUnavailable:    ec.Bool(true),
+					Alias:              new("alias"),
+					DeploymentID:       new("someid"),
+					ElasticsearchRefID: new("main-elasticsearch"),
+					SkipUnavailable:    new(true),
 				},
 				{
-					Alias:              ec.String("alias"),
-					DeploymentID:       ec.String("some other id"),
-					ElasticsearchRefID: ec.String("main-elasticsearch"),
+					Alias:              new("alias"),
+					DeploymentID:       new("some other id"),
+					ElasticsearchRefID: new("main-elasticsearch"),
 				},
 			}},
 		},

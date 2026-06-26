@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/deployment: Validates that the node_types/node_roles configuration used is supported by the specified Stack version.
-```

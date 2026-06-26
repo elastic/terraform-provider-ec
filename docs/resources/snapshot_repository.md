@@ -14,6 +14,8 @@ Manages Elastic Cloud Enterprise snapshot repositories.
 
 ## Example Usage
 
+### S3 style
+
 ```terraform
 resource "ec_snapshot_repository" "this" {
   name = "my-snapshot-repository"
@@ -21,6 +23,38 @@ resource "ec_snapshot_repository" "this" {
     bucket     = "my-bucket"
     access_key = "my-access-key"
     secret_key = "my-secret-key"
+  }
+}
+```
+
+### Azure
+
+```terraform
+resource "ec_snapshot_repository" "this" {
+  name = "my-snapshot-repository"
+  generic = {
+    type = "azure"
+    settings = jsonencode({
+      container = "my_container"
+      client    = "my_alternate_client"
+      compress  = false
+    })
+  }
+}
+```
+
+### GCS
+
+```terraform
+resource "ec_snapshot_repository" "this" {
+  name = "my-snapshot-repository"
+  generic = {
+    type = "gcs"
+    settings = jsonencode({
+      bucket   = "my_bucket"
+      client   = "my_alternate_client"
+      compress = false
+    })
   }
 }
 ```

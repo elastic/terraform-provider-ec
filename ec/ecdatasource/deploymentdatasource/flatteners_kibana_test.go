@@ -48,11 +48,11 @@ func Test_flattenKibanaResources(t *testing.T) {
 			name: "parses the kibana resource",
 			args: args{in: []*models.KibanaResourceInfo{
 				{
-					RefID:                     ec.String("main-kibana"),
-					ElasticsearchClusterRefID: ec.String("main-elasticsearch"),
+					RefID:                     new("main-kibana"),
+					ElasticsearchClusterRefID: new("main-elasticsearch"),
 					Info: &models.KibanaClusterInfo{
-						Healthy:   ec.Bool(true),
-						Status:    ec.String("started"),
+						Healthy:   new(true),
+						Status:    new("started"),
 						ClusterID: &mock.ValidClusterID,
 						Metadata: &models.ClusterMetadataInfo{
 							Endpoint: "kibanaresource.cloud.elastic.co",
@@ -72,7 +72,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.kibana.r4",
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(1024),
 											},
 										},
@@ -80,7 +80,7 @@ func Test_flattenKibanaResources(t *testing.T) {
 											ZoneCount:               1,
 											InstanceConfigurationID: "aws.kibana.m5d",
 											Size: &models.TopologySize{
-												Resource: ec.String("memory"),
+												Resource: new("memory"),
 												Value:    ec.Int32(0),
 											},
 										},

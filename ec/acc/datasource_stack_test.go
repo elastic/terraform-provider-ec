@@ -22,7 +22,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDatasourceStack_latest(t *testing.T) {
@@ -60,6 +60,7 @@ func TestAccDatasourceStack_regex(t *testing.T) {
 				Config:             cfg,
 				PreventDiskCleanup: true,
 				Check: checkDataSourceStack(datasourceName,
+					resource.TestCheckResourceAttrSet(datasourceName, "enterprise_search.0.docker_image"),
 					resource.TestCheckResourceAttr(datasourceName, "version_regex", "8.4.?"),
 					resource.TestCheckResourceAttr(datasourceName, "region", getRegion()),
 				),
@@ -96,8 +97,5 @@ func checkDataSourceStack(resName string, checks ...resource.TestCheckFunc) reso
 
 		// APM
 		resource.TestCheckResourceAttrSet(resName, "apm.0.docker_image"),
-
-		// Enterprise Search
-		resource.TestCheckResourceAttrSet(resName, "enterprise_search.0.docker_image"),
 	}, checks...)...)
 }

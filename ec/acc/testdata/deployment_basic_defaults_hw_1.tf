@@ -15,4 +15,8 @@ resource "ec_deployment" "defaults" {
       autoscaling = {}
     }
   }
+
+  kibana = {}
+
+  integrations_server = {}
 }

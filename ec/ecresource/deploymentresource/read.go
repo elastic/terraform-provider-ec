@@ -22,10 +22,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deputil"
+	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/eskeystoreapi"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/esremoteclustersapi"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
@@ -64,7 +65,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 	}
 
 	// use state for the plan (there is no plan and config during Read) - otherwise we can get unempty plan output
-	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil, privateFilters)
+	newState, diags = r.read(ctx, curState.Id.ValueString(), &curState, nil, nil, privateFilters, response)
 
 	response.Diagnostics.Append(diags...)
 
@@ -80,7 +81,7 @@ func (r *Resource) Read(ctx context.Context, request resource.ReadRequest, respo
 }
 
 // at least one of state and plan should not be nil
-func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource, privateFilters []string) (*deploymentv2.Deployment, diag.Diagnostics) {
+func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.DeploymentTF, plan *deploymentv2.DeploymentTF, deploymentResources []*models.DeploymentResource, privateFilters []string, readResponse *resource.ReadResponse) (*deploymentv2.Deployment, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var base deploymentv2.DeploymentTF
@@ -99,10 +100,11 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		API:          r.client,
 		DeploymentID: id,
 		QueryParams: deputil.QueryParams{
-			ShowSettings:     true,
-			ShowPlans:        true,
-			ShowMetadata:     true,
-			ShowPlanDefaults: true,
+			ShowSettings:               true,
+			ShowPlans:                  true,
+			ShowMetadata:               true,
+			ShowPlanDefaults:           true,
+			ShowInstanceConfigurations: true,
 		},
 	})
 	if err != nil {
@@ -110,8 +112,12 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 			diags.AddError("Deployment not found", err.Error())
 			return nil, diags
 		}
-		diags.AddError("Deloyment get error", err.Error())
+		diags.AddError("Deployment get error", err.Error())
 		return nil, diags
+	}
+
+	if readResponse != nil {
+		UpdatePrivateStateInstanceConfigurations(ctx, readResponse.Private, response.InstanceConfigurations)
 	}
 
 	if !HasRunningResources(response) {
@@ -165,19 +171,78 @@ func (r *Resource) read(ctx context.Context, id string, state *deploymentv2.Depl
 		deployment.ResetElasticsearchPassword = base.ResetElasticsearchPassword.ValueBoolPointer()
 	}
 
+	if !base.MigrateToLatestHardware.IsNull() && !base.MigrateToLatestHardware.IsUnknown() {
+		deployment.MigrateToLatestHardware = base.MigrateToLatestHardware.ValueBoolPointer()
+	}
+
 	diags.Append(deployment.IncludePrivateStateTrafficFilters(ctx, base, privateFilters)...)
 
 	deployment.SetCredentialsIfEmpty(state)
 
-	deployment.ProcessSelfInObservability()
+	diags.Append(deployment.ProcessSelfInObservability(ctx, base)...)
 
 	deployment.NullifyUnusedEsTopologies(ctx, baseElasticsearch)
+	diags.Append(deployment.PersistSnapshotSource(ctx, baseElasticsearch)...)
+
+	if !deployment.HasNodeTypes() {
+		// The MigrateDeploymentTemplate request can only be performed for deployments that use node roles.
+		// We'll skip this logic for deployments with node types.
+		migrateTemplateRequest, err := r.client.V1API.Deployments.MigrateDeploymentTemplate(
+			deployments.NewMigrateDeploymentTemplateParams().WithDeploymentID(deployment.Id).WithTemplateID(deployment.DeploymentTemplateId),
+			r.client.AuthWriter,
+		)
+
+		if err != nil {
+			diags.AddError("Template migrate request error", err.Error())
+			return nil, diags
+		}
+
+		// Store migrate request in private state
+		if readResponse != nil {
+			UpdatePrivateStateMigrateTemplateRequest(ctx, readResponse.Private, migrateTemplateRequest)
+		}
+
+		deployment.SetLatestInstanceConfigInfo(migrateTemplateRequest)
+	} else {
+		// Set latest_instance_configuration_* fields to current values
+		// If this isn't done, when migrating a deployment to node roles, these fields will contain inconsistent values
+		deployment.SetLatestInstanceConfigInfoToCurrent()
+	}
 
 	// Set Elasticsearch `strategy` to the one from plan.
 	// We don't care about backend current `strategy`'s value and should not trigger a change,
 	// if the backend's value differs from the local state.
 	if baseElasticsearch != nil && !baseElasticsearch.Strategy.IsNull() {
 		deployment.Elasticsearch.Strategy = baseElasticsearch.Strategy.ValueStringPointer()
+	}
+
+	// sync Elasticsearch keystore contents if plan or state defines it:
+	// - all keystore entries that are not managed by the resource are left alone
+	// - if backend doesn't contain some keystore entry, the entry should be removed from the future state as well
+	if baseElasticsearch != nil && deployment.Elasticsearch != nil && !baseElasticsearch.KeystoreContents.IsNull() {
+		ds := baseElasticsearch.KeystoreContents.ElementsAs(ctx, &deployment.Elasticsearch.KeystoreContents, true)
+		diags.Append(ds...)
+
+		keystoreContents, err := eskeystoreapi.Get(eskeystoreapi.GetParams{
+			API:          r.client,
+			DeploymentID: id,
+		})
+		if err != nil {
+			diags.AddError("Deployment keystore read error", err.Error())
+			return nil, diags
+		}
+
+		for entryName, entryVal := range deployment.Elasticsearch.KeystoreContents {
+			secret, ok := keystoreContents.Secrets[entryName]
+			if !ok {
+				delete(deployment.Elasticsearch.KeystoreContents, entryName)
+				continue
+			}
+			if secret.AsFile != nil {
+				entryVal.AsFile = secret.AsFile
+				deployment.Elasticsearch.KeystoreContents[entryName] = entryVal
+			}
+		}
 	}
 
 	// ReadDeployment returns empty config struct if there is no config, so we have to nullify it if plan doesn't contain it

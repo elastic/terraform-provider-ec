@@ -33,17 +33,25 @@ type ElasticsearchSnapshot struct {
 	Repository *ElasticsearchSnapshotRepositoryInfo `tfsdk:"repository"`
 }
 
+type ElasticsearchSnapshotTF struct {
+	Enabled    bool         `tfsdk:"enabled"`
+	Repository types.Object `tfsdk:"repository"` //< ElasticsearchSnapshotRepositoryInfo
+}
+
 type ElasticsearchSnapshotRepositoryInfo struct {
 	Reference *ElasticsearchSnapshotRepositoryReference `tfsdk:"reference"`
+}
+
+type ElasticsearchSnapshotRepositoryInfoTF struct {
+	Reference types.Object `tfsdk:"reference"` //< ElasticsearchSnapshotRepositoryReference
 }
 
 type ElasticsearchSnapshotRepositoryReference struct {
 	RepositoryName string `tfsdk:"repository_name"`
 }
 
-type ElasticsearchSnapshotTF struct {
-	Enabled    bool         `tfsdk:"enabled"`
-	Repository types.Object `tfsdk:"repository"` //< ElasticsearchSnapshotRepositoryInfo
+type ElasticsearchSnapshotRepositoryReferenceTF struct {
+	RepositoryName types.String `tfsdk:"repository_name"`
 }
 
 func readElasticsearchSnapshot(in *models.ElasticsearchClusterSettings) (*ElasticsearchSnapshot, error) {
@@ -70,9 +78,15 @@ func readElasticsearchSnapshot(in *models.ElasticsearchClusterSettings) (*Elasti
 	return &snapshot, nil
 }
 
-func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model *models.ElasticsearchClusterSettings) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
-	var snapshot *ElasticsearchSnapshotTF
+func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model *models.ElasticsearchClusterSettings, state *ElasticsearchTF) (*models.ElasticsearchClusterSettings, diag.Diagnostics) {
+	var snapshot ElasticsearchSnapshotTF
 	if srcObj.IsNull() || srcObj.IsUnknown() {
+		return model, nil
+	}
+
+	// Only put snapshot updates into the payload, if the plan is making changes to the snapshot settings
+	// (To avoid overwriting changes made outside, i.e. with the elasticstack provider)
+	if state != nil && state.Snapshot.Equal(srcObj) {
 		return model, nil
 	}
 
@@ -91,14 +105,23 @@ func elasticsearchSnapshotPayload(ctx context.Context, srcObj attr.Value, model 
 		return model, nil
 	}
 
-	var repo *ElasticsearchSnapshotRepositoryInfo
+	var repo ElasticsearchSnapshotRepositoryInfoTF
 	if diags := tfsdk.ValueAs(ctx, snapshot.Repository, &repo); diags.HasError() {
+		return model, diags
+	}
+
+	if repo.Reference.IsNull() || repo.Reference.IsUnknown() {
+		return model, nil
+	}
+
+	var reference ElasticsearchSnapshotRepositoryReferenceTF
+	if diags := tfsdk.ValueAs(ctx, repo.Reference, &reference); diags.HasError() {
 		return model, diags
 	}
 
 	model.Snapshot.Repository = &models.ClusterSnapshotRepositoryInfo{
 		Reference: &models.ClusterSnapshotRepositoryReference{
-			RepositoryName: repo.Reference.RepositoryName,
+			RepositoryName: reference.RepositoryName.ValueString(),
 		},
 	}
 

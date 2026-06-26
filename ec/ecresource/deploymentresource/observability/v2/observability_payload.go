@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/util"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	v1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/observability/v1"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -59,7 +58,7 @@ func ObservabilityPayload(ctx context.Context, obsObj types.Object, client *api.
 			Kind:         util.Elasticsearch,
 			API:          client,
 			DeploymentID: observability.DeploymentId.ValueString(),
-			RefID:        ec.String(""),
+			RefID:        new(""),
 		}
 
 		if err := deploymentapi.PopulateRefID(params); err != nil {
@@ -74,7 +73,7 @@ func ObservabilityPayload(ctx context.Context, obsObj types.Object, client *api.
 	if observability.Logs.ValueBool() {
 		payload.Logging = &models.DeploymentLoggingSettings{
 			Destination: &models.ObservabilityAbsoluteDeployment{
-				DeploymentID: ec.String(observability.DeploymentId.ValueString()),
+				DeploymentID: new(observability.DeploymentId.ValueString()),
 				RefID:        refID,
 			},
 		}
@@ -83,7 +82,7 @@ func ObservabilityPayload(ctx context.Context, obsObj types.Object, client *api.
 	if observability.Metrics.ValueBool() {
 		payload.Metrics = &models.DeploymentMetricsSettings{
 			Destination: &models.ObservabilityAbsoluteDeployment{
-				DeploymentID: ec.String(observability.DeploymentId.ValueString()),
+				DeploymentID: new(observability.DeploymentId.ValueString()),
 				RefID:        refID,
 			},
 		}

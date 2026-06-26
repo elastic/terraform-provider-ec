@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -141,7 +143,7 @@ func ElasticsearchSchema() schema.Attribute {
 
 			"snapshot": elasticsearchSnapshotSchema(),
 
-			"snapshot_source": elasticsearchSnapshotSourceSchema(),
+			"snapshot_source": ElasticsearchSnapshotSourceSchema(),
 
 			"extension": elasticsearchExtensionSchema(),
 
@@ -149,6 +151,32 @@ func ElasticsearchSchema() schema.Attribute {
 				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
 				Optional:    true,
 				Validators:  []validator.String{stringvalidator.OneOf(strategiesList...)},
+			},
+
+			"keystore_contents": keystoreContentsSchema(),
+		},
+	}
+}
+
+func keystoreContentsSchema() schema.Attribute {
+	return schema.MapNestedAttribute{
+		Description: "Keystore contents that are controlled by the deployment resource.",
+		Optional:    true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"value": schema.StringAttribute{
+					Description: "Secret value. This can either be a string or a JSON object that is stored as a JSON string in the keystore.",
+					Required:    true,
+					Sensitive:   true,
+				},
+				"as_file": schema.BoolAttribute{
+					Description: "If true, the secret is handled as a file. Otherwise, it's handled as a plain string.",
+					Optional:    true,
+					Computed:    true,
+					PlanModifiers: []planmodifier.Bool{
+						planmodifiers.BoolDefaultValue(false),
+					},
+				},
 			},
 		},
 	}
@@ -169,7 +197,7 @@ func elasticsearchConfigSchema() schema.Attribute {
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
+					planmodifiers.UseStateIfNotNullForUnknown(),
 				},
 			},
 			"user_settings_json": schema.StringAttribute{
@@ -218,7 +246,7 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 				},
 			},
 			"max_size": schema.StringAttribute{
-				Description: "Maximum size value for the maximum autoscaling setting.",
+				Description: `Maximum autoscaling size. Set it to "0g" if tier should not be created when autoscaling is enabled on ES level`,
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
@@ -234,10 +262,18 @@ func elasticsearchTopologyAutoscalingSchema(topologyAttributeName string) schema
 				},
 			},
 			"min_size": schema.StringAttribute{
-				Description: "Minimum size value for the minimum autoscaling setting.",
+				Description: "Minimum autoscaling size.",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
+					UseTopologyStateForUnknown(topologyAttributeName),
+				},
+			},
+			"autoscale": schema.BoolAttribute{
+				Description: "Whether this specific tier should be auto-scaled, overrides deployment-wide setting. Allowed for `ml` tier only.",
+				Computed:    true,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Bool{
 					UseTopologyStateForUnknown(topologyAttributeName),
 				},
 			},
@@ -339,7 +375,7 @@ func elasticsearchSnapshotRepositoryReferenceSchema() schema.Attribute {
 	}
 }
 
-func elasticsearchSnapshotSourceSchema() schema.Attribute {
+func ElasticsearchSnapshotSourceSchema() schema.Attribute {
 	return schema.SingleNestedAttribute{
 		Description: `Restores data from a snapshot of another deployment.
 
@@ -461,17 +497,45 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 		nodeRolesPlanModifiers = append(nodeRolesPlanModifiers, SetUnknownOnTopologySizeChange())
 	}
 
+	var topologyPlanModifiers []planmodifier.Object
+	if options.tierName == "master" {
+		topologyPlanModifiers = append(topologyPlanModifiers, UseTopologyStateForUnknown("master"))
+	}
+
 	return schema.SingleNestedAttribute{
-		Optional: !options.required,
-		// it should be Computed but Computed triggers TF weird behaviour that leads to unempty plan for zero change config
-		// Computed:    true,
-		Required:    options.required,
-		Description: fmt.Sprintf("'%s' topology element", options.tierName),
+		Optional:      !options.required,
+		Computed:      options.tierName == "master",
+		Required:      options.required,
+		Description:   fmt.Sprintf("'%s' topology element", options.tierName),
+		PlanModifiers: topologyPlanModifiers,
 		Attributes: map[string]schema.Attribute{
 			"instance_configuration_id": schema.StringAttribute{
-				Description: `Computed Instance Configuration ID of the topology element`,
+				Description: `Instance Configuration ID of the topology element`,
+				Computed:    true,
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					UseTopologyStateForUnknown(options.tierName),
+				},
+			},
+			"latest_instance_configuration_id": schema.StringAttribute{
+				Description: `Latest Instance Configuration ID available on the deployment template for the topology element`,
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
+					UseTopologyStateForUnknown(options.tierName),
+				},
+			},
+			"instance_configuration_version": schema.Int64Attribute{
+				Description: `Instance Configuration version of the topology element`,
+				Computed:    true,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Int64{
+					UseTopologyStateForUnknown(options.tierName),
+				},
+			},
+			"latest_instance_configuration_version": schema.Int64Attribute{
+				Description: `Latest version available for the Instance Configuration with the latest_instance_configuration_id`,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Int64{
 					UseTopologyStateForUnknown(options.tierName),
 				},
 			},
@@ -555,4 +619,8 @@ func elasticsearchTopologySchema(options topologySchemaOptions) schema.Attribute
 			"autoscaling": elasticsearchTopologyAutoscalingSchema(options.tierName),
 		},
 	}
+}
+
+func ElasticsearchTopologyAttrs() map[string]attr.Type {
+	return elasticsearchTopologySchema(topologySchemaOptions{}).GetType().(attr.TypeWithAttributeTypes).AttributeTypes()
 }

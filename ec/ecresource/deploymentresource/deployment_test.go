@@ -28,7 +28,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	r "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	r "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
@@ -61,24 +61,24 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 
 	createDeploymentResponseJson := []byte(`
 	{
-		"alias": "my-deployment-name", 
-		"created": true, 
-		"id": "accd2e61fa835a5a32bb6b2938ce91f3", 
+		"alias": "my-deployment-name",
+		"created": true,
+		"id": "accd2e61fa835a5a32bb6b2938ce91f3",
 		"resources": [
 			{
-				"kind": "elasticsearch", 
-				"cloud_id": "my_deployment_name:cloud_id", 
-				"region": "us-east-1", 
-				"ref_id": "main-elasticsearch", 
+				"kind": "elasticsearch",
+				"cloud_id": "my_deployment_name:cloud_id",
+				"region": "us-east-1",
+				"ref_id": "main-elasticsearch",
 				"credentials": {
-					"username": "elastic", 
+					"username": "elastic",
 					"password": "password"
-				}, 
+				},
 				"id": "resource_id"
 			}
-		], 
+		],
 		"name": "my_deployment_name"
-	}	
+	}
 	`)
 
 	templateFileName := "testdata/aws-io-optimized-v2.json"
@@ -86,8 +86,11 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
 			api.NewMock(
-				getTemplate(t, templateFileName),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, false),
 				createDeployment(t, readFile(t, "testdata/aws-io-optimized-v2-empty-config-create-expected-payload.json"), createDeploymentResponseJson, requestId),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment2.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
@@ -96,9 +99,20 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 				mock.New202Response(io.NopCloser(strings.NewReader(""))),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				readRemoteClusters(t),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-template-migration-response.json")),
+				getTemplate(t, templateFileName, true),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				readRemoteClusters(t),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-template-migration-response.json")),
+				getTemplate(t, templateFileName, true),
+				getTemplate(t, templateFileName, true),
 				shutdownDeployment(t),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment1.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment2.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
+				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 			),
 		),
 		Steps: []r.TestStep{
@@ -109,14 +123,20 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 	})
 }
 
-func getTemplate(t *testing.T, filename string) mock.Response {
+func getTemplate(t *testing.T, filename string, withICs bool) mock.Response {
+	var query url.Values
+	if withICs {
+		query = url.Values{"region": {"us-east-1"}, "show_instance_configurations": {"true"}, "show_max_zones": {"true"}}
+	} else {
+		query = url.Values{"region": {"us-east-1"}, "show_instance_configurations": {"false"}, "show_max_zones": {"false"}}
+	}
 	return mock.New200ResponseAssertion(
 		&mock.RequestAssertion{
 			Host:   api.DefaultMockHost,
 			Header: api.DefaultReadMockHeaders,
 			Method: "GET",
 			Path:   "/api/v1/deployments/templates/aws-io-optimized-v2",
-			Query:  url.Values{"region": {"us-east-1"}, "show_instance_configurations": {"false"}},
+			Query:  query,
 		},
 		readTestData(t, filename),
 	)
@@ -126,7 +146,7 @@ func readFile(t *testing.T, fileName string) []byte {
 	t.Helper()
 	res, err := os.ReadFile(fileName)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to read file %s: %v", fileName, err)
 	}
 	return res
 }
@@ -135,7 +155,7 @@ func readTestData(t *testing.T, filename string) io.ReadCloser {
 	t.Helper()
 	f, err := os.Open(filename)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to open file %s: %v", filename, err)
 	}
 	return f
 }
@@ -145,13 +165,13 @@ func createDeployment(t *testing.T, expectedRequestJson, responseJson []byte, re
 	var expectedRequest *models.DeploymentCreateRequest
 	err := json.Unmarshal(expectedRequestJson, &expectedRequest)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to unmarshal request json %s: %v", string(expectedRequestJson), err)
 	}
 
 	var response *models.DeploymentCreateResponse
 	err = json.Unmarshal(responseJson, &response)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("failed to unmarshal response json %s: %v", string(responseJson), err)
 	}
 
 	return mock.New201ResponseAssertion(

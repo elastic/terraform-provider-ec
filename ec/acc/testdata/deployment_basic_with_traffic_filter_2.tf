@@ -20,8 +20,6 @@ resource "ec_deployment" "basic" {
 
   apm = {}
 
-  enterprise_search = {}
-
   traffic_filter = [
     ec_deployment_traffic_filter.default.id,
   ]

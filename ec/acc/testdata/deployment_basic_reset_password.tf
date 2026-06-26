@@ -25,9 +25,5 @@ resource "ec_deployment" "basic" {
     instance_configuration_id = "%s"
   }
 
-  enterprise_search = {
-    instance_configuration_id = "%s"
-  }
-
   reset_elasticsearch_password = true
 }

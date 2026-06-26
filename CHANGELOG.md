@@ -1,4 +1,112 @@
-# 0.9.0 (Unreleased)
+# 0.13.0 (May 20, 2026)
+
+FEATURES:
+
+* resource/ec_deployment: Add `encryption_key_path` attribute for customer-managed encryption key (BYOK) support ([#988](https://github.com/elastic/terraform-provider-ec/issues/988))
+
+# 0.12.5 (April 7, 2025)
+
+FEATURES:
+
+* resource/project: Add support for importing Serverless projects with `terraform import` ([#961](https://github.com/elastic/terraform-provider-ec/issues/961))
+* resource/project: Add support for managing Serverless project tags ([#983](https://github.com/elastic/terraform-provider-ec/issues/983))
+* resource/serverless_traffic_filter: Add serverless traffic filter resource and API endpoints for managing IP filters ([#978](https://github.com/elastic/terraform-provider-ec/issues/978))
+* resource/traffic_filter: Add support for `remote_cluster` traffic filter type with `remote_cluster_id` and `remote_cluster_org_id` attributes ([#965](https://github.com/elastic/terraform-provider-ec/issues/965))
+
+NOTES:
+
+* data-source/traffic_filter: The `source` and `description` fields in traffic filter rules now return `null` instead of an empty string when not set. Users who check for empty strings (e.g., `source == ""`) should update their configurations to check for `null` instead (e.g., `source == null`). ([#965](https://github.com/elastic/terraform-provider-ec/issues/965))
+
+# 0.12.4 (December 19, 2024)
+
+BUG FIXES:
+
+* resource/organization: Fix a bug where adding deployments or projects to an existing user would:
+  * Remove the existing resource permissions
+  * Cause the provider to fail with an inconsistent state error ([#957](https://github.com/elastic/terraform-provider-ec/issues/957))
+
+# 0.12.3 (December 5, 2024)
+
+FEATURES:
+
+* resource/observability_project: Support `product_tier` attribute in ec_security_project, allowing the creation of log essential project types. ([#940](https://github.com/elastic/terraform-provider-ec/issues/940))
+
+BUG FIXES:
+
+* resource/security_project: Populate admin_features_package and product_types in ec_security_project ([#938](https://github.com/elastic/terraform-provider-ec/issues/938))
+
+# 0.12.2 (December 5, 2024)
+
+BUG FIXES:
+
+Remove validators.Known() for the provider endpoint. ([#869](https://github.com/elastic/terraform-provider-ec/issues/869))
+Don't use nil state for a computed attribute. ([#878](https://github.com/elastic/terraform-provider-ec/pull/878))
+
+# 0.12.1 (September 27, 2024)
+
+This release adds the schema documentation for the `ec_organization` resource. There are no changes to the provider itself.
+
+# 0.12.0 (September 26, 2024)
+
+FEATURES:
+
+* resource/organization: Allows managing the members of an organization: They can now be invited to the organization (and later removed) and their assigned roles can be updated. ([#855](https://github.com/elastic/terraform-provider-ec/issues/855))
+
+BUG FIXES:
+
+* datasource/gcp_private_service_connect_endpoint: Add missing regions. ([#860](https://github.com/elastic/terraform-provider-ec/issues/860))
+* resource/deployment: Avoid overriding snapshot settings with every update. The snapshot settings are now only updated if they are actually set in the terraform config. This allows managing the snapshot lifecycle policy with the elasticstack provider instead of the ec provider. ([#858](https://github.com/elastic/terraform-provider-ec/issues/858))
+* resource/deployment: Avoid sending an update for trust settings if they have not changed. ([#859](https://github.com/elastic/terraform-provider-ec/issues/859))
+
+# 0.11.0 (August 29, 2024)
+
+FEATURES:
+
+* resource/deployment: Automatically add a dedicated master tier when it is required due to the number of nodes in the cluster. Also removes it again if the number of nodes drops below the threshold for a dedicated master tier.
+This does not affect configurations that have explicitly configured a master tier. ([#814](https://github.com/elastic/terraform-provider-ec/issues/814))
+* resource/project: Adds `elasticsearch_project`, `observability_project`, and `security_project` resources to manage Serverless projects. ([#817](https://github.com/elastic/terraform-provider-ec/issues/817))
+
+BUG FIXES:
+
+* datasource/gcp_private_service_connect_endpoint: Fixup incorrect reference data for northamerica-northeast1. ([#823](https://github.com/elastic/terraform-provider-ec/issues/823))
+* resource/deployment: Correctly handle deployment-alias being set to empty value. Setting an empty value should remove the alias instead of ignoring the change. ([#821](https://github.com/elastic/terraform-provider-ec/issues/821))
+* resource/deployment: Fixes a bug where a validation would fail when using a dynamic stack version (e.g. `data.ec_stack.latest.version`) ([#820](https://github.com/elastic/terraform-provider-ec/issues/820))
+
+# 0.10.0 (April 03, 2024)
+
+FEATURES:
+
+* datasource/deployments: Adds additional parameter `name` to allow searching by exact deployment name. ([#797](https://github.com/elastic/terraform-provider-ec/issues/797))
+* datasource/deploymenttemplates: Adds a new datasource to list all deployment-templates available in a region. ([#799](https://github.com/elastic/terraform-provider-ec/issues/799))
+* resource/deployment: Added support for autoscaling Machine Learning tier only ([#761](https://github.com/elastic/terraform-provider-ec/issues/761))
+* resource/deployment: Added support for symbols and profiling endpoints. ([#783](https://github.com/elastic/terraform-provider-ec/issues/783))
+* resource/deployment: Validate the Kibana is present when attempting to enable other stateless resources. ([#792](https://github.com/elastic/terraform-provider-ec/issues/792))
+
+ENHANCEMENTS:
+
+* provider: Remove direct dependency on the old Terraform Plugin SDK ([#720](https://github.com/elastic/terraform-provider-ec/issues/720))
+* provider: Update go version to 1.21 ([#713](https://github.com/elastic/terraform-provider-ec/issues/713))
+* resource/deployment: Add support for instance configuration versions
+  * Add instance_configuration_version field to all resources and allow to update the instance_configuration_id to a value not defined in the template.
+  * Add migrate_to_latest_hardware field to allow migrating to the latest deployment template values.
+  * Add latest_instance_configuration_id and latest_instance_configuration_version read-only fields. ([#755](https://github.com/elastic/terraform-provider-ec/issues/755))
+
+BUG FIXES:
+
+* resource/deployment: Don't rewrite the observability deployment ID to `self` when it's been explicitly configured. ([#789](https://github.com/elastic/terraform-provider-ec/issues/789))
+* resource/deployment: Fix issue setting the elasticsearch_username when resetting the elasticsearch_password ([#777](https://github.com/elastic/terraform-provider-ec/issues/777))
+* resource/deployment: Fix segfaults during Create/Update
+  * When `elasticsearch` attribute contains both `strategy` and `snapshot_source`.
+  * When `elasticsearch` defines `snapshot` with `repository` that doesn't contain `reference`. ([#719](https://github.com/elastic/terraform-provider-ec/issues/719))
+* resource/deployment: Persist the snapshot source settings during reads. This fixes a [provider crash](https://github.com/elastic/terraform-provider-ec/issues/787) when creating a deployment from a snapshot. ([#788](https://github.com/elastic/terraform-provider-ec/issues/788))
+* resource/deployment: Update the elasticsearch_username when resetting the password. ([#752](https://github.com/elastic/terraform-provider-ec/issues/752))
+* resource/extension: Fix provider crash when updating the contents of an extension. ([#749](https://github.com/elastic/terraform-provider-ec/issues/749))
+
+# 0.9.0 (September 22, 2023)
+
+FEATURES:
+
+* resource/deployment: new "elasticsearch"'s "keystore_contents" attribute to manage deployment keystore items during deployment create and update calls. ([#674](https://github.com/elastic/terraform-provider-ec/issues/674))
 
 ENHANCEMENTS:
 
