@@ -33,6 +33,11 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/plan/planutil"
 )
 
+// deploymentStaleAfter is the minimum age before the sweeper deletes a
+// deployment. It must exceed the ACC test timeout (120m) to avoid deleting
+// resources from a still-running build when another build's pre-exit runs.
+const deploymentStaleAfter = 3 * time.Hour
+
 func init() {
 	// Registering the sweeper as "ec_deployments" instead of "ec_deployment"
 	// since sweeping with --sweep-name will target any sweepers which contain
@@ -109,5 +114,5 @@ func shutdownDeployment(c *api.API, dep string, wg *sync.WaitGroup) error {
 }
 
 func staleDeployment(lastModified time.Time) bool {
-	return lastModified.Before(time.Now().Add(-time.Hour))
+	return lastModified.Before(time.Now().Add(-deploymentStaleAfter))
 }
