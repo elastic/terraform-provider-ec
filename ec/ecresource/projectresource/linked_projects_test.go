@@ -31,7 +31,21 @@ func TestExpandLinkedProjectsForPatch(t *testing.T) {
 		require.Equal(t, serverless.ProjectType("elasticsearch"), (*patch.Projects)["a"].Type)
 	})
 
-	t.Run("emits nil for removed keys", func(t *testing.T) {
+	t.Run("keeps existing keys present in plan", func(t *testing.T) {
+		plan, _ := types.MapValue(types.StringType, map[string]attr.Value{
+			"a": strValue("elasticsearch"),
+		})
+		state, _ := types.MapValue(types.StringType, map[string]attr.Value{
+			"a": strValue("elasticsearch"),
+		})
+		patch := expandLinkedProjectsForPatch(plan, state, toOptional)
+		require.NotNil(t, patch)
+		require.NotNil(t, patch.Projects)
+		require.Contains(t, *patch.Projects, "a")
+		require.Len(t, *patch.Projects, 1)
+	})
+
+	t.Run("emits nil for keys that have been removed from the plan", func(t *testing.T) {
 		plan, _ := types.MapValue(types.StringType, map[string]attr.Value{
 			"a": strValue("elasticsearch"),
 		})
@@ -44,11 +58,16 @@ func TestExpandLinkedProjectsForPatch(t *testing.T) {
 		require.NotNil(t, patch.Projects)
 		require.Contains(t, *patch.Projects, "a")
 		require.Contains(t, *patch.Projects, "b")
-		require.NotNil(t, (*patch.Projects)["a"])
+		require.Equal(t, serverless.ProjectType("elasticsearch"), (*patch.Projects)["a"].Type)
 		require.Nil(t, (*patch.Projects)["b"])
 	})
 
-	t.Run("unlinks everything when the whole block is removed", func(t *testing.T) {
+	t.Run("returns nil when the planned map is empty and state is empty", func(t *testing.T) {
+		patch := expandLinkedProjectsForPatch(types.MapNull(types.StringType), types.MapNull(types.StringType), toOptional)
+		require.Nil(t, patch)
+	})
+
+	t.Run("emits nil for all keys when the planned map is empty", func(t *testing.T) {
 		state, _ := types.MapValue(types.StringType, map[string]attr.Value{
 			"a": strValue("elasticsearch"),
 			"b": strValue("observability"),
@@ -56,18 +75,9 @@ func TestExpandLinkedProjectsForPatch(t *testing.T) {
 		patch := expandLinkedProjectsForPatch(types.MapNull(types.StringType), state, toOptional)
 		require.NotNil(t, patch)
 		require.NotNil(t, patch.Projects)
-		require.Len(t, *patch.Projects, 2)
+		require.Contains(t, *patch.Projects, "a")
+		require.Contains(t, *patch.Projects, "b")
 		require.Nil(t, (*patch.Projects)["a"])
 		require.Nil(t, (*patch.Projects)["b"])
-	})
-
-	t.Run("returns nil when plan and state are empty", func(t *testing.T) {
-		patch := expandLinkedProjectsForPatch(types.MapNull(types.StringType), types.MapNull(types.StringType), toOptional)
-		require.Nil(t, patch)
-	})
-
-	t.Run("returns nil when state is empty and plan has no links", func(t *testing.T) {
-		patch := expandLinkedProjectsForPatch(types.MapNull(types.StringType), types.MapNull(types.StringType), toOptional)
-		require.Nil(t, patch)
 	})
 }

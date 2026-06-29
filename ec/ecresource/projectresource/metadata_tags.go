@@ -25,6 +25,7 @@ import (
 	resource_elasticsearch_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
 	resource_observability_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
 	resource_security_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -37,8 +38,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// patchLinkedStatusUseStateForUnknown prevents Terraform from showing "known after
-// apply" noise for linked.projects.*.status when other attributes change.
+// patchLinkedStatusUseStateForUnknown ensures that status values for already linked
+// projects are preserved in the plan while allowing newly linked projects to
+// receive their status from the API during apply.
 func patchLinkedStatusUseStateForUnknown(resp *resource.SchemaResponse) {
 	linkedAttr, ok := resp.Schema.Attributes["linked"].(schema.SingleNestedAttribute)
 	if !ok {
@@ -56,7 +58,7 @@ func patchLinkedStatusUseStateForUnknown(resp *resource.SchemaResponse) {
 		return
 	}
 
-	statusAttr.PlanModifiers = append(statusAttr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
+	statusAttr.PlanModifiers = append(statusAttr.PlanModifiers, planmodifiers.UseStateForUnknownOrUnknown())
 	nestedObj.Attributes["status"] = statusAttr
 	projectsAttr.NestedObject = nestedObj
 	linkedAttr.Attributes["projects"] = projectsAttr

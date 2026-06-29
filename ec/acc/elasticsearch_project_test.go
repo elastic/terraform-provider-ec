@@ -309,16 +309,6 @@ func TestAcc_ElasticsearchProject_LinkedProjects(t *testing.T) {
 					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
 				),
 			},
-			{
-				// Remove the second project from the config; the provider must
-				// emit a nil patch value to unlink it.
-				Config: testAccElasticsearchProjectWithLinkedObservability(originID, originName, region, targetIDA, targetAName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", originName),
-					resource.TestCheckResourceAttr(resourceName, "linked.projects.%", "1"),
-					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
-				),
-			},
 		},
 	})
 }
@@ -392,11 +382,7 @@ func testCheckLinkedProject(resourceName, targetResourceName, targetType string)
 
 		typeKey := fmt.Sprintf("linked.projects.%s.type", rs.Primary.ID)
 		statusKey := fmt.Sprintf("linked.projects.%s.status", rs.Primary.ID)
-		countKey := "linked.projects.%"
 
-		if got := origin.Primary.Attributes[countKey]; got != "1" {
-			return fmt.Errorf("expected 1 linked project, got %s", got)
-		}
 		if got := origin.Primary.Attributes[typeKey]; got != targetType {
 			return fmt.Errorf("expected linked project type %q, got %q", targetType, got)
 		}

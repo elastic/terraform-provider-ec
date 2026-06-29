@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/mocks"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
+	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -77,7 +78,7 @@ func TestSecurityModelReader_Schema(t *testing.T) {
 	projectsAttr := linkedAttr.Attributes["projects"].(schema.MapNestedAttribute)
 	statusAttr := projectsAttr.NestedObject.Attributes["status"].(schema.StringAttribute)
 	require.Len(t, statusAttr.PlanModifiers, 1)
-	require.IsType(t, stringplanmodifier.UseStateForUnknown(), statusAttr.PlanModifiers[0])
+	require.IsType(t, planmodifiers.UseStateForUnknownOrUnknown(), statusAttr.PlanModifiers[0])
 }
 
 func TestSecurityModelReader_ReadFrom(t *testing.T) {
