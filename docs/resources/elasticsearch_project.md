@@ -58,16 +58,16 @@ Required:
 
 - `projects` (Attributes Map) (see [below for nested schema](#nestedatt--linked--projects))
 
+Read-Only:
+
+- `statuses` (Map of String) Status of each linked project, keyed by project ID. Populated by the provider from the API.
+
 <a id="nestedatt--linked--projects"></a>
 ### Nested Schema for `linked.projects`
 
 Required:
 
 - `type` (String) The type of the linked project
-
-Read-Only:
-
-- `status` (String) The state of the linked project.
 
 
 
