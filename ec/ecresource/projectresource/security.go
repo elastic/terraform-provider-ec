@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
@@ -255,33 +254,17 @@ func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_
 }
 
 func (sec securityApi) EnsureInitialised(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
-	id := model.Id.ValueString()
-	for {
+	return waitForProjectInitialised(ctx, contextualSleep, func(ctx context.Context, id string) (serverless.ProjectStatusPhase, error) {
 		resp, err := sec.client.GetSecurityProjectStatusWithResponse(ctx, id)
 		if err != nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(err.Error(), err.Error()),
-			}
+			return "", err
 		}
-
 		if resp.JSON200 == nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Failed to get security_project status",
-					fmt.Sprintf("The API request failed with: %d %s\n%s",
-						resp.StatusCode(),
-						resp.Status(),
-						resp.Body),
-				),
-			}
+			return "", fmt.Errorf("failed to get security_project status: %d %s\n%s",
+				resp.StatusCode(), resp.Status(), resp.Body)
 		}
-
-		if resp.JSON200.Phase == serverless.ProjectStatusPhaseInitialized {
-			return nil
-		}
-
-		sec.sleeper.Sleep(200 * time.Millisecond)
-	}
+		return resp.JSON200.Phase, nil
+	}, model.Id.ValueString())
 }
 
 func (sec securityApi) Read(ctx context.Context, id string, model resource_security_project.SecurityProjectModel) (bool, resource_security_project.SecurityProjectModel, diag.Diagnostics) {

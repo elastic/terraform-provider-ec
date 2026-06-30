@@ -270,33 +270,17 @@ func (es elasticsearchApi) Patch(ctx context.Context, plan, state resource_elast
 }
 
 func (es elasticsearchApi) EnsureInitialised(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
-	id := model.Id.ValueString()
-	for {
+	return waitForProjectInitialised(ctx, contextualSleep, func(ctx context.Context, id string) (serverless.ProjectStatusPhase, error) {
 		resp, err := es.client.GetElasticsearchProjectStatusWithResponse(ctx, id)
 		if err != nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(err.Error(), err.Error()),
-			}
+			return "", err
 		}
-
 		if resp.JSON200 == nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Failed to get elasticsearch_project status",
-					fmt.Sprintf("The API request failed with: %d %s\n%s",
-						resp.StatusCode(),
-						resp.Status(),
-						resp.Body),
-				),
-			}
+			return "", fmt.Errorf("failed to get elasticsearch_project status: %d %s\n%s",
+				resp.StatusCode(), resp.Status(), resp.Body)
 		}
-
-		if resp.JSON200.Phase == serverless.ProjectStatusPhaseInitialized {
-			return nil
-		}
-
-		es.sleeper.Sleep(200 * time.Millisecond)
-	}
+		return resp.JSON200.Phase, nil
+	}, model.Id.ValueString())
 }
 
 func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_elasticsearch_project.ElasticsearchProjectModel) (bool, resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {

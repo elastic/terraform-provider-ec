@@ -803,7 +803,7 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().GetObservabilityProjectStatusWithResponse(ctx, model.Id.ValueString()).DoAndReturn(
+				mockApiClient.EXPECT().GetObservabilityProjectStatusWithResponse(gomock.Any(), model.Id.ValueString()).DoAndReturn(
 					func(_ context.Context, id string, _ ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectStatusResponse, error) {
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
@@ -842,7 +842,7 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().GetObservabilityProjectStatusWithResponse(ctx, model.Id.ValueString()).DoAndReturn(
+				mockApiClient.EXPECT().GetObservabilityProjectStatusWithResponse(gomock.Any(), model.Id.ValueString()).DoAndReturn(
 					func(_ context.Context, id string, _ ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectStatusResponse, error) {
 						if callsBeforeInitialised > 0 {
 							callsBeforeInitialised--
@@ -861,8 +861,11 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 					expectedDiags: diag.Diagnostics{
 
 						diag.NewErrorDiagnostic(
-							"Failed to get observability_project status",
-							fmt.Sprintf("The API request failed with: %d %s\n%s",
+							fmt.Sprintf("failed to get observability_project status: %d %s\n%s",
+								failedResponse.StatusCode(),
+								failedResponse.Status(),
+								failedResponse.Body),
+							fmt.Sprintf("failed to get observability_project status: %d %s\n%s",
 								failedResponse.StatusCode(),
 								failedResponse.Status(),
 								failedResponse.Body),
@@ -880,7 +883,7 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().GetObservabilityProjectStatusWithResponse(ctx, model.Id.ValueString()).DoAndReturn(
+				mockApiClient.EXPECT().GetObservabilityProjectStatusWithResponse(gomock.Any(), model.Id.ValueString()).DoAndReturn(
 					func(_ context.Context, id string, _ ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectStatusResponse, error) {
 						phase := serverless.ProjectStatusPhaseInitialized
 
@@ -905,6 +908,10 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			origSleep := contextualSleep
+			contextualSleep = func(context.Context, time.Duration) {}
+			t.Cleanup(func() { contextualSleep = origSleep })
+
 			ctx := context.Background()
 			td := tt.testData(ctx)
 			api := observabilityApi{sleeper: fakeSleeper{}}.WithClient(td.client)
