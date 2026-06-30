@@ -95,7 +95,6 @@ func TestSecurityModelReader_ReadFrom(t *testing.T) {
 				model := resource_security_project.SecurityProjectModel{
 					Id:               basetypes.NewStringValue("id"),
 					ProductTypes:     productTypesList,
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -133,8 +132,7 @@ func TestSecurityModelReader_GetID(t *testing.T) {
 	mr := securityModelReader{}
 	expectedId := "expected_id"
 	model := resource_security_project.SecurityProjectModel{
-		Statuses: types.MapNull(types.StringType),
-		Id:       basetypes.NewStringValue(expectedId),
+		Id: basetypes.NewStringValue(expectedId),
 	}
 
 	require.Equal(t, expectedId, mr.GetID(model))
@@ -155,8 +153,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown credentials",
 			testData: func() testData {
 				state := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("state"),
+					Id: types.StringValue("state"),
 				}
 				state.Credentials = resource_security_project.NewCredentialsValueMust(
 					state.Credentials.AttributeTypes(context.Background()),
@@ -168,13 +165,11 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses:    types.MapNull(types.StringType),
 						Id:          types.StringValue("plan"),
 						Credentials: resource_security_project.NewCredentialsValueUnknown(),
 					},
 					state: state,
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses:    types.MapNull(types.StringType),
 						Id:          types.StringValue("plan"),
 						Credentials: state.Credentials,
 					},
@@ -185,8 +180,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown endpoints",
 			testData: func() testData {
 				state := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("state"),
+					Id: types.StringValue("state"),
 				}
 				state.Endpoints = resource_security_project.NewEndpointsValueMust(
 					state.Endpoints.AttributeTypes(context.Background()),
@@ -199,13 +193,11 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses:  types.MapNull(types.StringType),
 						Id:        types.StringValue("plan"),
 						Endpoints: resource_security_project.NewEndpointsValueUnknown(),
 					},
 					state: state,
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses:  types.MapNull(types.StringType),
 						Id:        types.StringValue("plan"),
 						Endpoints: state.Endpoints,
 					},
@@ -216,8 +208,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown metadata",
 			testData: func() testData {
 				state := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("state"),
+					Id: types.StringValue("state"),
 				}
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				state.Metadata = resource_security_project.NewMetadataValueMust(
@@ -235,13 +226,11 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
 						Id:       types.StringValue("plan"),
 						Metadata: resource_security_project.NewMetadataValueUnknown(),
 					},
 					state: state,
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
 						Id:       types.StringValue("plan"),
 						Metadata: state.Metadata,
 					},
@@ -252,8 +241,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown private_endpoints",
 			testData: func() testData {
 				state := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("state"),
+					Id: types.StringValue("state"),
 				}
 				state.PrivateEndpoints = resource_security_project.NewPrivateEndpointsValueMust(
 					state.PrivateEndpoints.AttributeTypes(context.Background()),
@@ -266,13 +254,11 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						PrivateEndpoints: resource_security_project.NewPrivateEndpointsValueUnknown(),
 					},
 					state: state,
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						PrivateEndpoints: state.PrivateEndpoints,
 					},
@@ -284,27 +270,23 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("plan"),
-						Name:     types.StringValue("planned name"),
-						Alias:    types.StringValue("alias"),
+						Id:    types.StringValue("plan"),
+						Name:  types.StringValue("planned name"),
+						Alias: types.StringValue("alias"),
 					},
 					state: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("state"),
-						Name:     types.StringValue("state name"),
-						Alias:    types.StringValue("alias"),
+						Id:    types.StringValue("state"),
+						Name:  types.StringValue("state name"),
+						Alias: types.StringValue("alias"),
 					},
 					cfg: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Alias:    types.StringValue("alias"),
+						Alias: types.StringValue("alias"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("plan"),
-						Name:     types.StringValue("planned name"),
-						Alias:    types.StringValue("alias"),
-						CloudId:  types.StringUnknown(),
+						Id:      types.StringValue("plan"),
+						Name:    types.StringValue("planned name"),
+						Alias:   types.StringValue("alias"),
+						CloudId: types.StringUnknown(),
 					},
 				}
 			},
@@ -314,19 +296,16 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("plan"),
-						Name:     types.StringValue("name"),
-						Alias:    types.StringValue("planned alias"),
+						Id:    types.StringValue("plan"),
+						Name:  types.StringValue("name"),
+						Alias: types.StringValue("planned alias"),
 					},
 					state: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("state"),
-						Name:     types.StringValue("name"),
-						Alias:    types.StringValue("state alias"),
+						Id:    types.StringValue("state"),
+						Name:  types.StringValue("name"),
+						Alias: types.StringValue("state alias"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						Name:             types.StringValue("name"),
 						Alias:            types.StringValue("planned alias"),
@@ -342,17 +321,14 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 			testData: func() testData {
 				return testData{
 					plan: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("plan"),
-						Name:     types.StringValue("planned name"),
+						Id:   types.StringValue("plan"),
+						Name: types.StringValue("planned name"),
 					},
 					state: resource_security_project.SecurityProjectModel{
-						Statuses: types.MapNull(types.StringType),
-						Id:       types.StringValue("state"),
-						Name:     types.StringValue("state name"),
+						Id:   types.StringValue("state"),
+						Name: types.StringValue("state name"),
 					},
 					expected: resource_security_project.SecurityProjectModel{
-						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						Name:             types.StringValue("planned name"),
 						CloudId:          types.StringUnknown(),
@@ -459,7 +435,6 @@ func TestSecurityApi_Create(t *testing.T) {
 			name: "should not populate unset optional fields in create request",
 			testData: func(ctx context.Context) testData {
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
 				}
@@ -501,7 +476,6 @@ func TestSecurityApi_Create(t *testing.T) {
 			name: "should populate provided optional fields in create request",
 			testData: func(ctx context.Context) testData {
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
 					Alias:    types.StringValue("project alias"),
@@ -550,7 +524,6 @@ func TestSecurityApi_Create(t *testing.T) {
 					"owner": basetypes.NewStringValue("sec-team"),
 				})
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
 				}
@@ -643,9 +616,8 @@ func TestSecurityApi_Patch(t *testing.T) {
 			name: "should fail when the api returns an error",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
-					Name:     types.StringValue("project name"),
+					Id:   types.StringValue("project id"),
+					Name: types.StringValue("project name"),
 				}
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
 				mockApiClient.EXPECT().PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, serverless.PatchSecurityProjectRequest{
@@ -668,9 +640,8 @@ func TestSecurityApi_Patch(t *testing.T) {
 			name: "should fail when the api call does not return a 201 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
-					Name:     types.StringValue("project name"),
+					Id:   types.StringValue("project id"),
+					Name: types.StringValue("project name"),
 				}
 				failedResponse := &serverless.PatchSecurityProjectResponse{
 					HTTPResponse: &http.Response{
@@ -706,7 +677,6 @@ func TestSecurityApi_Patch(t *testing.T) {
 			name: "should not populate unset optional fields in patch request",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
 					Id:       types.StringValue("project id"),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
@@ -731,7 +701,6 @@ func TestSecurityApi_Patch(t *testing.T) {
 			name: "should populate provided optional fields in create request",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
 					Id:       types.StringValue("project id"),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
@@ -763,7 +732,6 @@ func TestSecurityApi_Patch(t *testing.T) {
 				})
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				planModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
 					Id:       types.StringValue("project id"),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
@@ -857,8 +825,7 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				callsBeforeInitialised := rand.Intn(20)
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -889,8 +856,7 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				callsBeforeInitialised := rand.Intn(20)
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				failedResponse := &serverless.GetSecurityProjectStatusResponse{
@@ -936,8 +902,7 @@ func TestSecurityApi_EnsureInitialised(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				callsBeforeInitialised := rand.Intn(20)
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1014,8 +979,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1037,8 +1001,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1063,8 +1026,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				failedResponse := &serverless.GetSecurityProjectResponse{
@@ -1101,8 +1063,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				readModel := &serverless.SecurityProject{
@@ -1126,10 +1087,9 @@ func TestSecurityApi_Read(t *testing.T) {
 
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
-					Alias:    types.StringValue("expected-alias"),
-					CloudId:  types.StringValue(readModel.CloudId),
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
 					Endpoints: resource_security_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1180,8 +1140,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				now := time.Now()
@@ -1208,10 +1167,9 @@ func TestSecurityApi_Read(t *testing.T) {
 
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
-					Alias:    types.StringValue("expected-alias"),
-					CloudId:  types.StringValue(readModel.CloudId),
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
 					Endpoints: resource_security_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1262,8 +1220,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				adminFeaturesPackage := serverless.SecurityAdminFeaturesPackage("enterprise")
@@ -1318,10 +1275,9 @@ func TestSecurityApi_Read(t *testing.T) {
 				}
 
 				expectedModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
-					Alias:    types.StringValue("expected-alias"),
-					CloudId:  types.StringValue(readModel.CloudId),
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
 					Endpoints: resource_security_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1392,7 +1348,6 @@ func TestSecurityApi_Read(t *testing.T) {
 				}
 
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses:             types.MapNull(types.StringType),
 					Id:                   types.StringValue(id),
 					AdminFeaturesPackage: basetypes.NewStringValue("standard"),
 					ProductTypes:         resource_security_project.NewProductTypesListValueMust(resource_security_project.ProductTypesValue{}.Type(ctx), configuredProductTypes),
@@ -1424,10 +1379,9 @@ func TestSecurityApi_Read(t *testing.T) {
 				// Expected model should reflect what the API returned (null for missing fields)
 				// The plan modifiers will handle preventing spurious diffs during planning
 				expectedModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
-					Alias:    types.StringValue("expected-alias"),
-					CloudId:  types.StringValue(readModel.CloudId),
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
 					Endpoints: resource_security_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1478,8 +1432,7 @@ func TestSecurityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
+					Id: types.StringValue(id),
 				}
 
 				pt := serverless.ProjectTags{"environment": "production"}
@@ -1509,10 +1462,9 @@ func TestSecurityApi_Read(t *testing.T) {
 					"environment": basetypes.NewStringValue("production"),
 				})
 				expectedModel := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue(id),
-					Alias:    types.StringValue("expected-alias"),
-					CloudId:  types.StringValue(readModel.CloudId),
+					Id:      types.StringValue(id),
+					Alias:   types.StringValue("expected-alias"),
+					CloudId: types.StringValue(readModel.CloudId),
 					Endpoints: resource_security_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1590,8 +1542,7 @@ func TestSecurityApi_Delete(t *testing.T) {
 			name: "should error if delete errors",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1612,8 +1563,7 @@ func TestSecurityApi_Delete(t *testing.T) {
 			name: "should error if delete returns a non-200 and non-404 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				failedResponse := &serverless.DeleteSecurityProjectResponse{
@@ -1649,8 +1599,7 @@ func TestSecurityApi_Delete(t *testing.T) {
 			name: "should succeed if delete returns a 404 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1670,8 +1619,7 @@ func TestSecurityApi_Delete(t *testing.T) {
 			name: "should succeed if delete returns a 200 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_security_project.SecurityProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Id:       types.StringValue("project id"),
+					Id: types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)

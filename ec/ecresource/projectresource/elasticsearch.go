@@ -197,12 +197,11 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 	)
 	model.Credentials = creds
 
-	linked, statuses, linkedDiags := flattenElasticsearchLinked(ctx, resp.JSON201.Linked)
+	linked, linkedDiags := flattenElasticsearchLinked(ctx, resp.JSON201.Linked)
 	if linkedDiags.HasError() {
 		return model, linkedDiags
 	}
 	model.Linked = linked
-	model.Statuses = statuses
 
 	return model, diags
 }
@@ -373,12 +372,11 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 	}
 	model.Metadata = metadata
 
-	linked, statuses, linkedDiags := flattenElasticsearchLinked(ctx, resp.JSON200.Linked)
+	linked, linkedDiags := flattenElasticsearchLinked(ctx, resp.JSON200.Linked)
 	if linkedDiags.HasError() {
 		return false, model, linkedDiags
 	}
 	model.Linked = linked
-	model.Statuses = statuses
 
 	if resp.JSON200.PrivateEndpoints != nil {
 		privateEP, peDiags := resource_elasticsearch_project.NewPrivateEndpointsValue(
@@ -451,10 +449,9 @@ func (es elasticsearchApi) Delete(ctx context.Context, model resource_elasticsea
 	return nil
 }
 
-func flattenElasticsearchLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_elasticsearch_project.LinkedValue, types.Map, diag.Diagnostics) {
-	nullLinked := resource_elasticsearch_project.NewLinkedValueNull()
+func flattenElasticsearchLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_elasticsearch_project.LinkedValue, diag.Diagnostics) {
 	if linked == nil || len(linked.Projects) == 0 {
-		return nullLinked, types.MapNull(types.StringType), nil
+		return resource_elasticsearch_project.NewLinkedValueNull(), nil
 	}
 
 	projectsMap := make(map[string]attr.Value, len(linked.Projects))
@@ -467,7 +464,7 @@ func flattenElasticsearchLinked(ctx context.Context, linked *serverless.LinkConf
 			},
 		)
 		if projectDiags.HasError() {
-			return resource_elasticsearch_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectDiags
+			return resource_elasticsearch_project.NewLinkedValueUnknown(), projectDiags
 		}
 		projectsMap[projectID] = pv
 		statusesMap[projectID] = basetypes.NewStringValue(string(project.Status))
@@ -475,25 +472,26 @@ func flattenElasticsearchLinked(ctx context.Context, linked *serverless.LinkConf
 
 	projects, projectsDiags := types.MapValue(resource_elasticsearch_project.ProjectsValue{}.Type(ctx), projectsMap)
 	if projectsDiags.HasError() {
-		return resource_elasticsearch_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectsDiags
+		return resource_elasticsearch_project.NewLinkedValueUnknown(), projectsDiags
 	}
 
 	statuses, statusesDiags := types.MapValue(types.StringType, statusesMap)
 	if statusesDiags.HasError() {
-		return resource_elasticsearch_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), statusesDiags
+		return resource_elasticsearch_project.NewLinkedValueUnknown(), statusesDiags
 	}
 
 	typedLinked, linkedDiags := resource_elasticsearch_project.NewLinkedValue(
 		resource_elasticsearch_project.LinkedValue{}.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"projects": projects,
+			"statuses": statuses,
 		},
 	)
 	if linkedDiags.HasError() {
-		return resource_elasticsearch_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), linkedDiags
+		return resource_elasticsearch_project.NewLinkedValueUnknown(), linkedDiags
 	}
 
-	return typedLinked, statuses, nil
+	return typedLinked, nil
 }
 
 func expandLinkedForCreateElasticsearch(model resource_elasticsearch_project.ElasticsearchProjectModel) *serverless.CreateLinkedRequest {

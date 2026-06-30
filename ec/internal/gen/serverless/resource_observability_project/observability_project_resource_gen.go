@@ -139,6 +139,12 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 							mapvalidator.SizeAtLeast(1),
 						},
 					},
+					"statuses": schema.MapAttribute{
+						ElementType:         types.StringType,
+						Computed:            true,
+						Description:         "Status of each linked project, keyed by project ID. Populated by the provider from the API.",
+						MarkdownDescription: "Status of each linked project, keyed by project ID. Populated by the provider from the API.",
+					},
 				},
 				CustomType: LinkedType{
 					ObjectType: types.ObjectType{
@@ -259,12 +265,6 @@ func ObservabilityProjectResourceSchema(ctx context.Context) schema.Schema {
 				Description:         "Unique human-readable identifier for a region in Elastic Cloud.",
 				MarkdownDescription: "Unique human-readable identifier for a region in Elastic Cloud.",
 			},
-			"statuses": schema.MapAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				Description:         "Status of each linked project, keyed by project ID. Populated by the provider from the API.",
-				MarkdownDescription: "Status of each linked project, keyed by project ID. Populated by the provider from the API.",
-			},
 			"traffic_filter_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
@@ -295,7 +295,6 @@ type ObservabilityProjectModel struct {
 	PrivateEndpoints PrivateEndpointsValue `tfsdk:"private_endpoints"`
 	ProductTier      types.String          `tfsdk:"product_tier"`
 	RegionId         types.String          `tfsdk:"region_id"`
-	Statuses         types.Map             `tfsdk:"statuses"`
 	TrafficFilterIds types.Set             `tfsdk:"traffic_filter_ids"`
 	Type             types.String          `tfsdk:"type"`
 }
@@ -1211,12 +1210,31 @@ func (t LinkedType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`projects expected to be basetypes.MapValue, was: %T`, projectsAttribute))
 	}
 
+	statusesAttribute, ok := attributes["statuses"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`statuses is missing from object`)
+
+		return nil, diags
+	}
+
+	statusesVal, ok := statusesAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`statuses expected to be basetypes.MapValue, was: %T`, statusesAttribute))
+	}
+
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	return LinkedValue{
 		Projects: projectsVal,
+		Statuses: statusesVal,
 		state:    attr.ValueStateKnown,
 	}, diags
 }
@@ -1302,12 +1320,31 @@ func NewLinkedValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`projects expected to be basetypes.MapValue, was: %T`, projectsAttribute))
 	}
 
+	statusesAttribute, ok := attributes["statuses"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`statuses is missing from object`)
+
+		return NewLinkedValueUnknown(), diags
+	}
+
+	statusesVal, ok := statusesAttribute.(basetypes.MapValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`statuses expected to be basetypes.MapValue, was: %T`, statusesAttribute))
+	}
+
 	if diags.HasError() {
 		return NewLinkedValueUnknown(), diags
 	}
 
 	return LinkedValue{
 		Projects: projectsVal,
+		Statuses: statusesVal,
 		state:    attr.ValueStateKnown,
 	}, diags
 }
@@ -1381,11 +1418,12 @@ var _ basetypes.ObjectValuable = LinkedValue{}
 
 type LinkedValue struct {
 	Projects basetypes.MapValue `tfsdk:"projects"`
+	Statuses basetypes.MapValue `tfsdk:"statuses"`
 	state    attr.ValueState
 }
 
 func (v LinkedValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 1)
+	attrTypes := make(map[string]tftypes.Type, 2)
 
 	var val tftypes.Value
 	var err error
@@ -1393,12 +1431,15 @@ func (v LinkedValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	attrTypes["projects"] = basetypes.MapType{
 		ElemType: ProjectsValue{}.Type(ctx),
 	}.TerraformType(ctx)
+	attrTypes["statuses"] = basetypes.MapType{
+		ElemType: types.StringType,
+	}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 1)
+		vals := make(map[string]tftypes.Value, 2)
 
 		val, err = v.Projects.ToTerraformValue(ctx)
 
@@ -1407,6 +1448,14 @@ func (v LinkedValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 		}
 
 		vals["projects"] = val
+
+		val, err = v.Statuses.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["statuses"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -1466,9 +1515,35 @@ func (v LinkedValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		)
 	}
 
+	var statusesVal basetypes.MapValue
+	switch {
+	case v.Statuses.IsUnknown():
+		statusesVal = types.MapUnknown(types.StringType)
+	case v.Statuses.IsNull():
+		statusesVal = types.MapNull(types.StringType)
+	default:
+		var d diag.Diagnostics
+		statusesVal, d = types.MapValue(types.StringType, v.Statuses.Elements())
+		diags.Append(d...)
+	}
+
+	if diags.HasError() {
+		return types.ObjectUnknown(map[string]attr.Type{
+			"projects": basetypes.MapType{
+				ElemType: ProjectsValue{}.Type(ctx),
+			},
+			"statuses": basetypes.MapType{
+				ElemType: types.StringType,
+			},
+		}), diags
+	}
+
 	attributeTypes := map[string]attr.Type{
 		"projects": basetypes.MapType{
 			ElemType: ProjectsValue{}.Type(ctx),
+		},
+		"statuses": basetypes.MapType{
+			ElemType: types.StringType,
 		},
 	}
 
@@ -1484,6 +1559,7 @@ func (v LinkedValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		attributeTypes,
 		map[string]attr.Value{
 			"projects": projects,
+			"statuses": statusesVal,
 		})
 
 	return objVal, diags
@@ -1508,6 +1584,10 @@ func (v LinkedValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.Statuses.Equal(other.Statuses) {
+		return false
+	}
+
 	return true
 }
 
@@ -1523,6 +1603,9 @@ func (v LinkedValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"projects": basetypes.MapType{
 			ElemType: ProjectsValue{}.Type(ctx),
+		},
+		"statuses": basetypes.MapType{
+			ElemType: types.StringType,
 		},
 	}
 }

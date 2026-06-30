@@ -108,13 +108,11 @@ func TestCreate(t *testing.T) {
 				}
 
 				readModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Name:     basetypes.NewStringValue("name"),
+					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
 					Name:             basetypes.NewStringValue("name"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -149,13 +147,11 @@ func TestCreate(t *testing.T) {
 				}
 
 				readModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Name:     basetypes.NewStringValue("name"),
+					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
 					Name:             basetypes.NewStringValue("name"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -191,13 +187,11 @@ func TestCreate(t *testing.T) {
 				}
 
 				readModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Name:     basetypes.NewStringValue("name"),
+					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
 					Name:             basetypes.NewStringValue("name"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -230,13 +224,11 @@ func TestCreate(t *testing.T) {
 				}
 
 				readModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Name:     basetypes.NewStringValue("name"),
+					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
 					Name:             basetypes.NewStringValue("name"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -274,13 +266,11 @@ func TestCreate(t *testing.T) {
 				}
 
 				readModel := resource_elasticsearch_project.ElasticsearchProjectModel{
-					Statuses: types.MapNull(types.StringType),
-					Name:     basetypes.NewStringValue("name"),
+					Name: basetypes.NewStringValue("name"),
 				}
 				createdModel := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
 					Name:             basetypes.NewStringValue("name"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 				finalModel := createdModel

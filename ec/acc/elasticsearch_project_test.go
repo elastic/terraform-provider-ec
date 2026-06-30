@@ -416,7 +416,7 @@ func testCheckLinkedProject(resourceName, targetResourceName, targetType string)
 		}
 
 		typeKey := fmt.Sprintf("linked.projects.%s.type", rs.Primary.ID)
-		statusKey := fmt.Sprintf("statuses.%s", rs.Primary.ID)
+		statusKey := fmt.Sprintf("linked.statuses.%s", rs.Primary.ID)
 
 		if got := origin.Primary.Attributes[typeKey]; got != targetType {
 			return fmt.Errorf("expected linked project type %q, got %q", targetType, got)

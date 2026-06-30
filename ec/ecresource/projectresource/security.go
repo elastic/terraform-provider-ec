@@ -197,12 +197,11 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 	)
 	model.Credentials = creds
 
-	linked, statuses, linkedDiags := flattenSecurityLinked(ctx, resp.JSON201.Linked)
+	linked, linkedDiags := flattenSecurityLinked(ctx, resp.JSON201.Linked)
 	if linkedDiags.HasError() {
 		return model, linkedDiags
 	}
 	model.Linked = linked
-	model.Statuses = statuses
 
 	return model, diags
 }
@@ -359,12 +358,11 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	}
 	model.Metadata = metadata
 
-	linked, statuses, linkedDiags := flattenSecurityLinked(ctx, resp.JSON200.Linked)
+	linked, linkedDiags := flattenSecurityLinked(ctx, resp.JSON200.Linked)
 	if linkedDiags.HasError() {
 		return false, model, linkedDiags
 	}
 	model.Linked = linked
-	model.Statuses = statuses
 
 	if resp.JSON200.PrivateEndpoints != nil {
 		privateEP, peDiags := resource_security_project.NewPrivateEndpointsValue(
@@ -504,9 +502,9 @@ func (sec securityApi) Delete(ctx context.Context, model resource_security_proje
 	return nil
 }
 
-func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_security_project.LinkedValue, types.Map, diag.Diagnostics) {
+func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_security_project.LinkedValue, diag.Diagnostics) {
 	if linked == nil || len(linked.Projects) == 0 {
-		return resource_security_project.NewLinkedValueNull(), types.MapNull(types.StringType), nil
+		return resource_security_project.NewLinkedValueNull(), nil
 	}
 
 	projectsMap := make(map[string]attr.Value, len(linked.Projects))
@@ -519,7 +517,7 @@ func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfigura
 			},
 		)
 		if projectDiags.HasError() {
-			return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectDiags
+			return resource_security_project.NewLinkedValueUnknown(), projectDiags
 		}
 		projectsMap[projectID] = pv
 		statusesMap[projectID] = basetypes.NewStringValue(string(project.Status))
@@ -527,25 +525,26 @@ func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfigura
 
 	projects, projectsDiags := types.MapValue(resource_security_project.ProjectsValue{}.Type(ctx), projectsMap)
 	if projectsDiags.HasError() {
-		return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectsDiags
+		return resource_security_project.NewLinkedValueUnknown(), projectsDiags
 	}
 
 	statuses, statusesDiags := types.MapValue(types.StringType, statusesMap)
 	if statusesDiags.HasError() {
-		return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), statusesDiags
+		return resource_security_project.NewLinkedValueUnknown(), statusesDiags
 	}
 
 	typedLinked, linkedDiags := resource_security_project.NewLinkedValue(
 		resource_security_project.LinkedValue{}.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"projects": projects,
+			"statuses": statuses,
 		},
 	)
 	if linkedDiags.HasError() {
-		return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), linkedDiags
+		return resource_security_project.NewLinkedValueUnknown(), linkedDiags
 	}
 
-	return typedLinked, statuses, nil
+	return typedLinked, nil
 }
 
 func expandLinkedForCreateSecurity(model resource_security_project.SecurityProjectModel) *serverless.CreateLinkedRequest {

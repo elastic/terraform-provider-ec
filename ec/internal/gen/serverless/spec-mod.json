@@ -96,6 +96,16 @@
                       }
                     ]
                   }
+                },
+                {
+                  "name": "statuses",
+                  "map": {
+                    "computed_optional_required": "computed",
+                    "element_type": {
+                      "string": {}
+                    },
+                    "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
+                  }
                 }
               ],
               "description": "Configuration for linked projects associated with this project"
@@ -417,16 +427,6 @@
               },
               "description": "Set of traffic filter IDs to associate with this project"
             }
-          },
-          {
-            "name": "statuses",
-            "map": {
-              "computed_optional_required": "computed",
-              "element_type": {
-                "string": {}
-              },
-              "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
-            }
           }
         ]
       }
@@ -523,6 +523,16 @@
                         }
                       }
                     ]
+                  }
+                },
+                {
+                  "name": "statuses",
+                  "map": {
+                    "computed_optional_required": "computed",
+                    "element_type": {
+                      "string": {}
+                    },
+                    "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
                   }
                 }
               ],
@@ -814,16 +824,6 @@
               },
               "description": "Set of traffic filter IDs to associate with this project"
             }
-          },
-          {
-            "name": "statuses",
-            "map": {
-              "computed_optional_required": "computed",
-              "element_type": {
-                "string": {}
-              },
-              "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
-            }
           }
         ]
       }
@@ -939,6 +939,16 @@
                         }
                       }
                     ]
+                  }
+                },
+                {
+                  "name": "statuses",
+                  "map": {
+                    "computed_optional_required": "computed",
+                    "element_type": {
+                      "string": {}
+                    },
+                    "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
                   }
                 }
               ],
@@ -1316,16 +1326,6 @@
                 "string": {}
               },
               "description": "Set of traffic filter IDs to associate with this project"
-            }
-          },
-          {
-            "name": "statuses",
-            "map": {
-              "computed_optional_required": "computed",
-              "element_type": {
-                "string": {}
-              },
-              "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
             }
           }
         ]

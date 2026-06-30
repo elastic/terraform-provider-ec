@@ -86,7 +86,6 @@ func TestRead(t *testing.T) {
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -121,7 +120,6 @@ func TestRead(t *testing.T) {
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -154,7 +152,6 @@ func TestRead(t *testing.T) {
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("id"),
-					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 

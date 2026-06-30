@@ -36,7 +36,7 @@ jq '
       (.map_nested.nested_object.attributes |= [.[] | select(.name != "status")])
     else . end
   ]
-| (.resources[] | select(.name | endswith("_project")) | .schema.attributes) += [{
+| (.resources[] | select(.name | endswith("_project")) | .schema.attributes[] | select(.name=="linked") | .single_nested.attributes) += [{
     "name": "statuses",
     "map": {
       "computed_optional_required": "computed",
