@@ -50,7 +50,6 @@ func TestObservabilityModelReader_Schema(t *testing.T) {
 	require.False(t, resp.Diagnostics.HasError())
 	expected := resource_observability_project.ObservabilityProjectResourceSchema(ctx)
 	patchMetadataSchema(&resource.SchemaResponse{Schema: expected})
-	patchLinkedStatusUseStateForUnknown(&resource.SchemaResponse{Schema: expected})
 	require.Equal(t, expected, resp.Schema)
 }
 
@@ -68,6 +67,7 @@ func TestObservabilityModelReader_ReadFrom(t *testing.T) {
 			testData: func() testData {
 				model := resource_observability_project.ObservabilityProjectModel{
 					Id:               basetypes.NewStringValue("id"),
+					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -105,7 +105,8 @@ func TestObservabilityModelReader_GetID(t *testing.T) {
 	mr := observabilityModelReader{}
 	expectedId := "expected_id"
 	model := resource_observability_project.ObservabilityProjectModel{
-		Id: basetypes.NewStringValue(expectedId),
+		Statuses: types.MapNull(types.StringType),
+		Id:       basetypes.NewStringValue(expectedId),
 	}
 
 	require.Equal(t, expectedId, mr.GetID(model))
@@ -126,7 +127,8 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown credentials",
 			testData: func() testData {
 				state := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("state"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("state"),
 				}
 				state.Credentials = resource_observability_project.NewCredentialsValueMust(
 					state.Credentials.AttributeTypes(context.Background()),
@@ -138,11 +140,13 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
+						Statuses:    types.MapNull(types.StringType),
 						Id:          types.StringValue("plan"),
 						Credentials: resource_observability_project.NewCredentialsValueUnknown(),
 					},
 					state: state,
 					expected: resource_observability_project.ObservabilityProjectModel{
+						Statuses:    types.MapNull(types.StringType),
 						Id:          types.StringValue("plan"),
 						Credentials: state.Credentials,
 					},
@@ -153,7 +157,8 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown endpoints",
 			testData: func() testData {
 				state := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("state"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("state"),
 				}
 				state.Endpoints = resource_observability_project.NewEndpointsValueMust(
 					state.Endpoints.AttributeTypes(context.Background()),
@@ -167,11 +172,13 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
+						Statuses:  types.MapNull(types.StringType),
 						Id:        types.StringValue("plan"),
 						Endpoints: resource_observability_project.NewEndpointsValueUnknown(),
 					},
 					state: state,
 					expected: resource_observability_project.ObservabilityProjectModel{
+						Statuses:  types.MapNull(types.StringType),
 						Id:        types.StringValue("plan"),
 						Endpoints: state.Endpoints,
 					},
@@ -182,7 +189,8 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown metadata",
 			testData: func() testData {
 				state := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("state"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("state"),
 				}
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				state.Metadata = resource_observability_project.NewMetadataValueMust(
@@ -200,11 +208,13 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
+						Statuses: types.MapNull(types.StringType),
 						Id:       types.StringValue("plan"),
 						Metadata: resource_observability_project.NewMetadataValueUnknown(),
 					},
 					state: state,
 					expected: resource_observability_project.ObservabilityProjectModel{
+						Statuses: types.MapNull(types.StringType),
 						Id:       types.StringValue("plan"),
 						Metadata: state.Metadata,
 					},
@@ -215,7 +225,8 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			name: "should use state for unknown private_endpoints",
 			testData: func() testData {
 				state := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("state"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("state"),
 				}
 				state.PrivateEndpoints = resource_observability_project.NewPrivateEndpointsValueMust(
 					state.PrivateEndpoints.AttributeTypes(context.Background()),
@@ -229,11 +240,13 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
+						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						PrivateEndpoints: resource_observability_project.NewPrivateEndpointsValueUnknown(),
 					},
 					state: state,
 					expected: resource_observability_project.ObservabilityProjectModel{
+						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						PrivateEndpoints: state.PrivateEndpoints,
 					},
@@ -245,23 +258,27 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			testData: func() testData {
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
-						Id:    types.StringValue("plan"),
-						Name:  types.StringValue("planned name"),
-						Alias: types.StringValue("alias"),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("plan"),
+						Name:     types.StringValue("planned name"),
+						Alias:    types.StringValue("alias"),
 					},
 					state: resource_observability_project.ObservabilityProjectModel{
-						Id:    types.StringValue("state"),
-						Name:  types.StringValue("state name"),
-						Alias: types.StringValue("alias"),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("state"),
+						Name:     types.StringValue("state name"),
+						Alias:    types.StringValue("alias"),
 					},
 					cfg: resource_observability_project.ObservabilityProjectModel{
-						Alias: types.StringValue("alias"),
+						Statuses: types.MapNull(types.StringType),
+						Alias:    types.StringValue("alias"),
 					},
 					expected: resource_observability_project.ObservabilityProjectModel{
-						Id:      types.StringValue("plan"),
-						Name:    types.StringValue("planned name"),
-						Alias:   types.StringValue("alias"),
-						CloudId: types.StringUnknown(),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("plan"),
+						Name:     types.StringValue("planned name"),
+						Alias:    types.StringValue("alias"),
+						CloudId:  types.StringUnknown(),
 					},
 				}
 			},
@@ -271,16 +288,19 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			testData: func() testData {
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
-						Id:    types.StringValue("plan"),
-						Name:  types.StringValue("name"),
-						Alias: types.StringValue("planned alias"),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("plan"),
+						Name:     types.StringValue("name"),
+						Alias:    types.StringValue("planned alias"),
 					},
 					state: resource_observability_project.ObservabilityProjectModel{
-						Id:    types.StringValue("state"),
-						Name:  types.StringValue("name"),
-						Alias: types.StringValue("state alias"),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("state"),
+						Name:     types.StringValue("name"),
+						Alias:    types.StringValue("state alias"),
 					},
 					expected: resource_observability_project.ObservabilityProjectModel{
+						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						Name:             types.StringValue("name"),
 						Alias:            types.StringValue("planned alias"),
@@ -296,14 +316,17 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 			testData: func() testData {
 				return testData{
 					plan: resource_observability_project.ObservabilityProjectModel{
-						Id:   types.StringValue("plan"),
-						Name: types.StringValue("planned name"),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("plan"),
+						Name:     types.StringValue("planned name"),
 					},
 					state: resource_observability_project.ObservabilityProjectModel{
-						Id:   types.StringValue("state"),
-						Name: types.StringValue("state name"),
+						Statuses: types.MapNull(types.StringType),
+						Id:       types.StringValue("state"),
+						Name:     types.StringValue("state name"),
 					},
 					expected: resource_observability_project.ObservabilityProjectModel{
+						Statuses:         types.MapNull(types.StringType),
 						Id:               types.StringValue("plan"),
 						Name:             types.StringValue("planned name"),
 						CloudId:          types.StringUnknown(),
@@ -410,6 +433,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 			name: "should not populate unset optional fields in create request",
 			testData: func(ctx context.Context) testData {
 				initialModel := resource_observability_project.ObservabilityProjectModel{
+					Statuses: types.MapNull(types.StringType),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
 				}
@@ -451,6 +475,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 			name: "should populate provided optional fields in create request",
 			testData: func(ctx context.Context) testData {
 				initialModel := resource_observability_project.ObservabilityProjectModel{
+					Statuses: types.MapNull(types.StringType),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
 					Alias:    types.StringValue("project alias"),
@@ -499,6 +524,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 					"owner": basetypes.NewStringValue("team-b"),
 				})
 				initialModel := resource_observability_project.ObservabilityProjectModel{
+					Statuses: types.MapNull(types.StringType),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
 				}
@@ -591,8 +617,9 @@ func TestObservabilityApi_Patch(t *testing.T) {
 			name: "should fail when the api returns an error",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id:   types.StringValue("project id"),
-					Name: types.StringValue("project name"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
+					Name:     types.StringValue("project name"),
 				}
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
 				mockApiClient.EXPECT().PatchObservabilityProjectWithResponse(ctx, model.Id.ValueString(), nil, serverless.PatchObservabilityProjectRequest{
@@ -615,8 +642,9 @@ func TestObservabilityApi_Patch(t *testing.T) {
 			name: "should fail when the api call does not return a 201 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id:   types.StringValue("project id"),
-					Name: types.StringValue("project name"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
+					Name:     types.StringValue("project name"),
 				}
 				failedResponse := &serverless.PatchObservabilityProjectResponse{
 					HTTPResponse: &http.Response{
@@ -652,6 +680,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 			name: "should not populate unset optional fields in patch request",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
+					Statuses: types.MapNull(types.StringType),
 					Id:       types.StringValue("project id"),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
@@ -676,6 +705,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 			name: "should populate provided optional fields in create request",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
+					Statuses: types.MapNull(types.StringType),
 					Id:       types.StringValue("project id"),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
@@ -707,6 +737,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 				})
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				planModel := resource_observability_project.ObservabilityProjectModel{
+					Statuses: types.MapNull(types.StringType),
 					Id:       types.StringValue("project id"),
 					Name:     types.StringValue("project name"),
 					RegionId: types.StringValue("nether region"),
@@ -800,7 +831,8 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				callsBeforeInitialised := rand.Intn(20)
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -831,7 +863,8 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				callsBeforeInitialised := rand.Intn(20)
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				failedResponse := &serverless.GetObservabilityProjectStatusResponse{
@@ -877,7 +910,8 @@ func TestObservabilityApi_EnsureInitialised(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				callsBeforeInitialised := rand.Intn(20)
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -940,7 +974,8 @@ func TestObservabilityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue(id),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -962,7 +997,8 @@ func TestObservabilityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue(id),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -987,7 +1023,8 @@ func TestObservabilityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue(id),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
 				}
 
 				failedResponse := &serverless.GetObservabilityProjectResponse{
@@ -1024,7 +1061,8 @@ func TestObservabilityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue(id),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
 				}
 
 				readModel := &serverless.ObservabilityProject{
@@ -1048,9 +1086,10 @@ func TestObservabilityApi_Read(t *testing.T) {
 
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_observability_project.ObservabilityProjectModel{
-					Id:      types.StringValue(id),
-					Alias:   types.StringValue("expected-alias"),
-					CloudId: types.StringValue(readModel.CloudId),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
+					Alias:    types.StringValue("expected-alias"),
+					CloudId:  types.StringValue(readModel.CloudId),
 					Endpoints: resource_observability_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1100,7 +1139,8 @@ func TestObservabilityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue(id),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
 				}
 
 				now := time.Now()
@@ -1127,9 +1167,10 @@ func TestObservabilityApi_Read(t *testing.T) {
 
 				tagsEmpty, _ := types.MapValue(types.StringType, map[string]attr.Value{})
 				expectedModel := resource_observability_project.ObservabilityProjectModel{
-					Id:      types.StringValue(id),
-					Alias:   types.StringValue("expected-alias"),
-					CloudId: types.StringValue(readModel.CloudId),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
+					Alias:    types.StringValue("expected-alias"),
+					CloudId:  types.StringValue(readModel.CloudId),
 					Endpoints: resource_observability_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1179,7 +1220,8 @@ func TestObservabilityApi_Read(t *testing.T) {
 			testData: func(ctx context.Context) testData {
 				id := "project id"
 				initialModel := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue(id),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
 				}
 
 				pt := serverless.ProjectTags{"environment": "staging"}
@@ -1208,9 +1250,10 @@ func TestObservabilityApi_Read(t *testing.T) {
 					"environment": basetypes.NewStringValue("staging"),
 				})
 				expectedModel := resource_observability_project.ObservabilityProjectModel{
-					Id:      types.StringValue(id),
-					Alias:   types.StringValue("expected-alias"),
-					CloudId: types.StringValue(readModel.CloudId),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue(id),
+					Alias:    types.StringValue("expected-alias"),
+					CloudId:  types.StringValue(readModel.CloudId),
 					Endpoints: resource_observability_project.NewEndpointsValueMust(
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
@@ -1287,7 +1330,8 @@ func TestObservabilityApi_Delete(t *testing.T) {
 			name: "should error if delete errors",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1308,7 +1352,8 @@ func TestObservabilityApi_Delete(t *testing.T) {
 			name: "should error if delete returns a non-200 and non-404 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				failedResponse := &serverless.DeleteObservabilityProjectResponse{
@@ -1344,7 +1389,8 @@ func TestObservabilityApi_Delete(t *testing.T) {
 			name: "should succeed if delete returns a 404 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
@@ -1364,7 +1410,8 @@ func TestObservabilityApi_Delete(t *testing.T) {
 			name: "should succeed if delete returns a 200 response",
 			testData: func(ctx context.Context) testData {
 				model := resource_observability_project.ObservabilityProjectModel{
-					Id: types.StringValue("project id"),
+					Statuses: types.MapNull(types.StringType),
+					Id:       types.StringValue("project id"),
 				}
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)

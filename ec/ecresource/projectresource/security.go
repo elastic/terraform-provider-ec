@@ -50,7 +50,6 @@ type securityModelReader struct{}
 func (sec securityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_security_project.SecurityProjectResourceSchema(ctx)
 	patchMetadataSchema(resp)
-	patchLinkedStatusUseStateForUnknown(resp)
 
 	// Add plan modifiers to admin_features_package and product_types
 	// UseStateForUnknown prevents Terraform from showing a diff when the API doesn't return
@@ -198,11 +197,12 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 	)
 	model.Credentials = creds
 
-	linked, linkedDiags := flattenSecurityLinked(ctx, resp.JSON201.Linked)
+	linked, statuses, linkedDiags := flattenSecurityLinked(ctx, resp.JSON201.Linked)
 	if linkedDiags.HasError() {
 		return model, linkedDiags
 	}
 	model.Linked = linked
+	model.Statuses = statuses
 
 	return model, diags
 }
@@ -359,11 +359,12 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	}
 	model.Metadata = metadata
 
-	linked, linkedDiags := flattenSecurityLinked(ctx, resp.JSON200.Linked)
+	linked, statuses, linkedDiags := flattenSecurityLinked(ctx, resp.JSON200.Linked)
 	if linkedDiags.HasError() {
 		return false, model, linkedDiags
 	}
 	model.Linked = linked
+	model.Statuses = statuses
 
 	if resp.JSON200.PrivateEndpoints != nil {
 		privateEP, peDiags := resource_security_project.NewPrivateEndpointsValue(
@@ -503,29 +504,35 @@ func (sec securityApi) Delete(ctx context.Context, model resource_security_proje
 	return nil
 }
 
-func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_security_project.LinkedValue, diag.Diagnostics) {
+func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_security_project.LinkedValue, types.Map, diag.Diagnostics) {
 	if linked == nil || len(linked.Projects) == 0 {
-		return resource_security_project.NewLinkedValueNull(), nil
+		return resource_security_project.NewLinkedValueNull(), types.MapNull(types.StringType), nil
 	}
 
 	projectsMap := make(map[string]attr.Value, len(linked.Projects))
+	statusesMap := make(map[string]attr.Value, len(linked.Projects))
 	for projectID, project := range linked.Projects {
 		pv, projectDiags := resource_security_project.NewProjectsValue(
 			resource_security_project.ProjectsValue{}.AttributeTypes(ctx),
 			map[string]attr.Value{
-				"status": basetypes.NewStringValue(string(project.Status)),
-				"type":   basetypes.NewStringValue(string(project.Type)),
+				"type": basetypes.NewStringValue(string(project.Type)),
 			},
 		)
 		if projectDiags.HasError() {
-			return resource_security_project.NewLinkedValueUnknown(), projectDiags
+			return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectDiags
 		}
 		projectsMap[projectID] = pv
+		statusesMap[projectID] = basetypes.NewStringValue(string(project.Status))
 	}
 
 	projects, projectsDiags := types.MapValue(resource_security_project.ProjectsValue{}.Type(ctx), projectsMap)
 	if projectsDiags.HasError() {
-		return resource_security_project.NewLinkedValueUnknown(), projectsDiags
+		return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectsDiags
+	}
+
+	statuses, statusesDiags := types.MapValue(types.StringType, statusesMap)
+	if statusesDiags.HasError() {
+		return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), statusesDiags
 	}
 
 	typedLinked, linkedDiags := resource_security_project.NewLinkedValue(
@@ -535,10 +542,10 @@ func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfigura
 		},
 	)
 	if linkedDiags.HasError() {
-		return resource_security_project.NewLinkedValueUnknown(), linkedDiags
+		return resource_security_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), linkedDiags
 	}
 
-	return typedLinked, nil
+	return typedLinked, statuses, nil
 }
 
 func expandLinkedForCreateSecurity(model resource_security_project.SecurityProjectModel) *serverless.CreateLinkedRequest {

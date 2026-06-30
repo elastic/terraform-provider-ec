@@ -88,6 +88,7 @@ func TestUpdate(t *testing.T) {
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("project id"),
+					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 
@@ -128,6 +129,7 @@ func TestUpdate(t *testing.T) {
 
 				model := resource_elasticsearch_project.ElasticsearchProjectModel{
 					Id:               basetypes.NewStringValue("project id"),
+					Statuses:         types.MapNull(types.StringType),
 					TrafficFilterIds: types.SetNull(types.StringType),
 				}
 				readModel := model

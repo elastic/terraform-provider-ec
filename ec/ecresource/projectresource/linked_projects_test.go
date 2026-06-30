@@ -20,64 +20,96 @@ func TestExpandLinkedProjectsForPatch(t *testing.T) {
 		}
 	}
 
-	t.Run("adds new keys from plan", func(t *testing.T) {
-		plan, _ := types.MapValue(types.StringType, map[string]attr.Value{
-			"a": strValue("elasticsearch"),
-		})
-		patch := expandLinkedProjectsForPatch(plan, types.MapNull(types.StringType), toOptional)
-		require.NotNil(t, patch)
-		require.NotNil(t, patch.Projects)
-		require.Contains(t, *patch.Projects, "a")
-		require.Equal(t, serverless.ProjectType("elasticsearch"), (*patch.Projects)["a"].Type)
-	})
+	// mapStr builds a typed map from id -> type string. A nil input produces a
+	// null map (the framework representation of "absent").
+	mapStr := func(m map[string]string) basetypes.MapValue {
+		if m == nil {
+			return types.MapNull(types.StringType)
+		}
+		elems := make(map[string]attr.Value, len(m))
+		for k, v := range m {
+			elems[k] = strValue(v)
+		}
+		out, _ := types.MapValue(types.StringType, elems)
+		return out
+	}
 
-	t.Run("keeps existing keys present in plan", func(t *testing.T) {
-		plan, _ := types.MapValue(types.StringType, map[string]attr.Value{
-			"a": strValue("elasticsearch"),
-		})
-		state, _ := types.MapValue(types.StringType, map[string]attr.Value{
-			"a": strValue("elasticsearch"),
-		})
-		patch := expandLinkedProjectsForPatch(plan, state, toOptional)
-		require.NotNil(t, patch)
-		require.NotNil(t, patch.Projects)
-		require.Contains(t, *patch.Projects, "a")
-		require.Len(t, *patch.Projects, 1)
-	})
+	tests := []struct {
+		name         string
+		plan         map[string]string
+		state        map[string]string
+		wantNilPatch bool
+		wantTyped    map[string]string // keys expected present with the given type
+		wantUnlinked []string          // keys expected present as nil
+	}{
+		{
+			name:      "adds new keys from plan",
+			plan:      map[string]string{"a": "elasticsearch"},
+			state:     nil,
+			wantTyped: map[string]string{"a": "elasticsearch"},
+		},
+		{
+			name:      "keeps existing keys present in plan",
+			plan:      map[string]string{"a": "elasticsearch"},
+			state:     map[string]string{"a": "elasticsearch"},
+			wantTyped: map[string]string{"a": "elasticsearch"},
+		},
+		{
+			name:         "emits nil for keys removed from the plan",
+			plan:         map[string]string{"a": "elasticsearch"},
+			state:        map[string]string{"a": "elasticsearch", "b": "observability"},
+			wantTyped:    map[string]string{"a": "elasticsearch"},
+			wantUnlinked: []string{"b"},
+		},
+		{
+			name:         "emits nil for all keys when the whole plan is removed",
+			plan:         nil,
+			state:        map[string]string{"a": "elasticsearch", "b": "observability"},
+			wantUnlinked: []string{"a", "b"},
+		},
+		{
+			name:         "returns nil when plan and state are empty",
+			plan:         nil,
+			state:        nil,
+			wantNilPatch: true,
+		},
+		{
+			name:      "ignores unknown state",
+			plan:      map[string]string{"a": "elasticsearch"},
+			state:     nil,
+			wantTyped: map[string]string{"a": "elasticsearch"},
+		},
+	}
 
-	t.Run("emits nil for keys that have been removed from the plan", func(t *testing.T) {
-		plan, _ := types.MapValue(types.StringType, map[string]attr.Value{
-			"a": strValue("elasticsearch"),
-		})
-		state, _ := types.MapValue(types.StringType, map[string]attr.Value{
-			"a": strValue("elasticsearch"),
-			"b": strValue("observability"),
-		})
-		patch := expandLinkedProjectsForPatch(plan, state, toOptional)
-		require.NotNil(t, patch)
-		require.NotNil(t, patch.Projects)
-		require.Contains(t, *patch.Projects, "a")
-		require.Contains(t, *patch.Projects, "b")
-		require.Equal(t, serverless.ProjectType("elasticsearch"), (*patch.Projects)["a"].Type)
-		require.Nil(t, (*patch.Projects)["b"])
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			patch := expandLinkedProjectsForPatch(mapStr(tt.plan), mapStr(tt.state), toOptional)
 
-	t.Run("returns nil when the planned map is empty and state is empty", func(t *testing.T) {
-		patch := expandLinkedProjectsForPatch(types.MapNull(types.StringType), types.MapNull(types.StringType), toOptional)
-		require.Nil(t, patch)
-	})
+			if tt.wantNilPatch {
+				require.Nil(t, patch)
+				return
+			}
 
-	t.Run("emits nil for all keys when the planned map is empty", func(t *testing.T) {
-		state, _ := types.MapValue(types.StringType, map[string]attr.Value{
-			"a": strValue("elasticsearch"),
-			"b": strValue("observability"),
+			require.NotNil(t, patch)
+			require.NotNil(t, patch.Projects)
+
+			// All typed keys present with the expected type.
+			for id, typ := range tt.wantTyped {
+				v, ok := (*patch.Projects)[id]
+				require.True(t, ok, "expected key %q to be present", id)
+				require.NotNil(t, v, "expected key %q to be non-nil (typed)", id)
+				require.Equal(t, serverless.ProjectType(typ), v.Type)
+			}
+
+			// All unlinked keys present as explicit nil.
+			for _, id := range tt.wantUnlinked {
+				v, ok := (*patch.Projects)[id]
+				require.True(t, ok, "expected unlinked key %q to be present (as nil)", id)
+				require.Nil(t, v, "expected key %q to be nil (unlink)", id)
+			}
+
+			// No other keys.
+			require.Len(t, *patch.Projects, len(tt.wantTyped)+len(tt.wantUnlinked))
 		})
-		patch := expandLinkedProjectsForPatch(types.MapNull(types.StringType), state, toOptional)
-		require.NotNil(t, patch)
-		require.NotNil(t, patch.Projects)
-		require.Contains(t, *patch.Projects, "a")
-		require.Contains(t, *patch.Projects, "b")
-		require.Nil(t, (*patch.Projects)["a"])
-		require.Nil(t, (*patch.Projects)["b"])
-	})
+	}
 }

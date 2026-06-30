@@ -103,8 +103,12 @@ func TestModifyPlan(t *testing.T) {
 		res := resource.ModifyPlanResponse{}
 
 		mockHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
-		mockHandler.EXPECT().ReadFrom(ctx, req.Config).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{}, nil)
-		mockHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{}, nil)
+		mockHandler.EXPECT().ReadFrom(ctx, req.Config).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{
+			Statuses: types.MapNull(types.StringType),
+		}, nil)
+		mockHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{
+			Statuses: types.MapNull(types.StringType),
+		}, nil)
 		mockHandler.EXPECT().ReadFrom(ctx, req.State).Return(nil, nil)
 
 		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
@@ -128,8 +132,12 @@ func TestModifyPlan(t *testing.T) {
 		res := resource.ModifyPlanResponse{}
 
 		mockHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
-		mockHandler.EXPECT().ReadFrom(ctx, req.Config).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{}, nil)
-		mockHandler.EXPECT().ReadFrom(ctx, req.State).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{}, nil)
+		mockHandler.EXPECT().ReadFrom(ctx, req.Config).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{
+			Statuses: types.MapNull(types.StringType),
+		}, nil)
+		mockHandler.EXPECT().ReadFrom(ctx, req.State).Return(&resource_elasticsearch_project.ElasticsearchProjectModel{
+			Statuses: types.MapNull(types.StringType),
+		}, nil)
 		mockHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(nil, nil)
 
 		r := Resource[resource_elasticsearch_project.ElasticsearchProjectModel]{
@@ -158,14 +166,17 @@ func TestModifyPlan(t *testing.T) {
 
 		planModel := &resource_elasticsearch_project.ElasticsearchProjectModel{
 			Id:               types.StringValue("plan"),
+			Statuses:         types.MapNull(types.StringType),
 			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 		stateModel := &resource_elasticsearch_project.ElasticsearchProjectModel{
 			Id:               types.StringValue("state"),
+			Statuses:         types.MapNull(types.StringType),
 			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 		cfgModel := &resource_elasticsearch_project.ElasticsearchProjectModel{
 			Id:               types.StringValue("config"),
+			Statuses:         types.MapNull(types.StringType),
 			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 
@@ -196,6 +207,7 @@ func TestImportState(t *testing.T) {
 		}
 		schema := resource_elasticsearch_project.ElasticsearchProjectResourceSchema(ctx)
 		emptyModel := resource_elasticsearch_project.ElasticsearchProjectModel{
+			Statuses:         types.MapNull(types.StringType),
 			TrafficFilterIds: types.SetNull(types.StringType),
 		}
 		emptyValue := util.TfTypesValueFromGoTypeValue(t, emptyModel, schema.Type())

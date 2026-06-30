@@ -9,8 +9,10 @@ import (
 
 // expandLinkedProjectsForPatch builds an OptionalLinkConfiguration patch body from
 // the planned and prior-state linked project maps. Keys present in the plan are
-// added/updated; keys that existed in state but have been removed from the plan
-// are emitted as null so the API unlinks them.
+// added/updated. Keys that existed in state but are no longer in the plan are
+// emitted as an explicit null, because the serverless PATCH API treats an
+// omitted key as "no change" rather than "unlink" — omission would silently
+// leave the link intact.
 func expandLinkedProjectsForPatch(
 	planProjects, stateProjects basetypes.MapValue,
 	toOptional func(attr.Value) *serverless.OptionalLinkedProject,
@@ -36,7 +38,8 @@ func expandLinkedProjectsForPatch(
 		projects[id] = toOptional(v)
 	}
 
-	// Emit null for keys that existed in state but are no longer in the plan.
+	// Unlink keys that existed in state but are no longer in the plan by emitting
+	// an explicit null. Omitting the key would leave the link intact.
 	for id := range stateElems {
 		if _, ok := planElems[id]; !ok {
 			projects[id] = nil

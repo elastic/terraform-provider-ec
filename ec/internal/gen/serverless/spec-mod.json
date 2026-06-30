@@ -54,7 +54,7 @@
           {
             "name": "linked",
             "single_nested": {
-              "computed_optional_required": "computed_optional",
+              "computed_optional_required": "optional",
               "attributes": [
                 {
                   "name": "projects",
@@ -79,13 +79,6 @@
                                 }
                               }
                             ]
-                          }
-                        },
-                        {
-                          "name": "status",
-                          "string": {
-                            "computed_optional_required": "computed",
-                            "description": "The state of the linked project."
                           }
                         }
                       ]
@@ -424,6 +417,16 @@
               },
               "description": "Set of traffic filter IDs to associate with this project"
             }
+          },
+          {
+            "name": "statuses",
+            "map": {
+              "computed_optional_required": "computed",
+              "element_type": {
+                "string": {}
+              },
+              "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
+            }
           }
         ]
       }
@@ -479,7 +482,7 @@
           {
             "name": "linked",
             "single_nested": {
-              "computed_optional_required": "computed_optional",
+              "computed_optional_required": "optional",
               "attributes": [
                 {
                   "name": "projects",
@@ -504,13 +507,6 @@
                                 }
                               }
                             ]
-                          }
-                        },
-                        {
-                          "name": "status",
-                          "string": {
-                            "computed_optional_required": "computed",
-                            "description": "The state of the linked project."
                           }
                         }
                       ]
@@ -818,6 +814,16 @@
               },
               "description": "Set of traffic filter IDs to associate with this project"
             }
+          },
+          {
+            "name": "statuses",
+            "map": {
+              "computed_optional_required": "computed",
+              "element_type": {
+                "string": {}
+              },
+              "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
+            }
           }
         ]
       }
@@ -892,7 +898,7 @@
           {
             "name": "linked",
             "single_nested": {
-              "computed_optional_required": "computed_optional",
+              "computed_optional_required": "optional",
               "attributes": [
                 {
                   "name": "projects",
@@ -917,13 +923,6 @@
                                 }
                               }
                             ]
-                          }
-                        },
-                        {
-                          "name": "status",
-                          "string": {
-                            "computed_optional_required": "computed",
-                            "description": "The state of the linked project."
                           }
                         }
                       ]
@@ -1317,6 +1316,16 @@
                 "string": {}
               },
               "description": "Set of traffic filter IDs to associate with this project"
+            }
+          },
+          {
+            "name": "statuses",
+            "map": {
+              "computed_optional_required": "computed",
+              "element_type": {
+                "string": {}
+              },
+              "description": "Status of each linked project, keyed by project ID. Populated by the provider from the API."
             }
           }
         ]

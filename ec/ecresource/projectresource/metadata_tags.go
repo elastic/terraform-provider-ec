@@ -25,7 +25,6 @@ import (
 	resource_elasticsearch_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
 	resource_observability_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
 	resource_security_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
-	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -37,33 +36,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
-
-// patchLinkedStatusUseStateForUnknown ensures that status values for already linked
-// projects are preserved in the plan while allowing newly linked projects to
-// receive their status from the API during apply.
-func patchLinkedStatusUseStateForUnknown(resp *resource.SchemaResponse) {
-	linkedAttr, ok := resp.Schema.Attributes["linked"].(schema.SingleNestedAttribute)
-	if !ok {
-		return
-	}
-
-	projectsAttr, ok := linkedAttr.Attributes["projects"].(schema.MapNestedAttribute)
-	if !ok {
-		return
-	}
-
-	nestedObj := projectsAttr.NestedObject
-	statusAttr, ok := nestedObj.Attributes["status"].(schema.StringAttribute)
-	if !ok {
-		return
-	}
-
-	statusAttr.PlanModifiers = append(statusAttr.PlanModifiers, planmodifiers.UseStateForUnknownOrUnknown())
-	nestedObj.Attributes["status"] = statusAttr
-	projectsAttr.NestedObject = nestedObj
-	linkedAttr.Attributes["projects"] = projectsAttr
-	resp.Schema.Attributes["linked"] = linkedAttr
-}
 
 // patchMetadataSchema relaxes metadata.tags and adds plan modifiers so computed metadata
 // attributes (created_at, etc.) do not become unknown when only tags are set in config.

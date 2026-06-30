@@ -309,6 +309,15 @@ func TestAcc_ElasticsearchProject_LinkedProjects(t *testing.T) {
 					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
 				),
 			},
+			{
+				// Remove the second project from the config; the provider must unlink it.
+				Config: testAccElasticsearchProjectWithLinkedObservabilityAndSecondProject(originID, originName, region, targetIDA, targetAName, targetIDB, targetBName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", originName),
+					resource.TestCheckResourceAttr(resourceName, "linked.projects.%", "1"),
+					testCheckLinkedProject(resourceName, targetAResourceName, "observability"),
+				),
+			},
 		},
 	})
 }
@@ -333,6 +342,32 @@ resource ec_elasticsearch_project "%s" {
 	}
 }
 `, targetID, targetName, region, esID, esName, region, targetID)
+}
+func testAccElasticsearchProjectWithLinkedObservabilityAndSecondProject(esID, esName, region, targetID1, targetName1, targetID2, targetName2 string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+
+	linked = {
+		projects = {
+			"${ec_observability_project.%s.id}" = {
+				type = "observability"
+			}
+		}
+	}
+}
+`, targetID1, targetName1, region, targetID2, targetName2, region, esID, esName, region, targetID1)
 }
 
 func testAccElasticsearchProjectWithLinkedObservabilityProjects(esID, esName, region, targetID1, targetName1, targetID2, targetName2 string) string {
@@ -381,7 +416,7 @@ func testCheckLinkedProject(resourceName, targetResourceName, targetType string)
 		}
 
 		typeKey := fmt.Sprintf("linked.projects.%s.type", rs.Primary.ID)
-		statusKey := fmt.Sprintf("linked.projects.%s.status", rs.Primary.ID)
+		statusKey := fmt.Sprintf("statuses.%s", rs.Primary.ID)
 
 		if got := origin.Primary.Attributes[typeKey]; got != targetType {
 			return fmt.Errorf("expected linked project type %q, got %q", targetType, got)

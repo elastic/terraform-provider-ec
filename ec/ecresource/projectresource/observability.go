@@ -46,7 +46,6 @@ type observabilityModelReader struct{}
 func (obs observabilityModelReader) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resource_observability_project.ObservabilityProjectResourceSchema(ctx)
 	patchMetadataSchema(resp)
-	patchLinkedStatusUseStateForUnknown(resp)
 }
 
 func (obs observabilityModelReader) ReadFrom(ctx context.Context, getter modelGetter) (*resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
@@ -171,11 +170,12 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 		model.ProductTier = basetypes.NewStringValue(string(serverless.ObservabilityProjectProductTierComplete))
 	}
 
-	linked, linkedDiags := flattenObservabilityLinked(ctx, resp.JSON201.Linked)
+	linked, statuses, linkedDiags := flattenObservabilityLinked(ctx, resp.JSON201.Linked)
 	if linkedDiags.HasError() {
 		return model, linkedDiags
 	}
 	model.Linked = linked
+	model.Statuses = statuses
 
 	return model, diags
 }
@@ -339,11 +339,12 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 	}
 	model.Metadata = metadata
 
-	linked, linkedDiags := flattenObservabilityLinked(ctx, resp.JSON200.Linked)
+	linked, statuses, linkedDiags := flattenObservabilityLinked(ctx, resp.JSON200.Linked)
 	if linkedDiags.HasError() {
 		return false, model, linkedDiags
 	}
 	model.Linked = linked
+	model.Statuses = statuses
 
 	if resp.JSON200.PrivateEndpoints != nil {
 		privateEP, peDiags := resource_observability_project.NewPrivateEndpointsValue(
@@ -402,29 +403,35 @@ func (obs observabilityApi) Delete(ctx context.Context, model resource_observabi
 	return nil
 }
 
-func flattenObservabilityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_observability_project.LinkedValue, diag.Diagnostics) {
+func flattenObservabilityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_observability_project.LinkedValue, types.Map, diag.Diagnostics) {
 	if linked == nil || len(linked.Projects) == 0 {
-		return resource_observability_project.NewLinkedValueNull(), nil
+		return resource_observability_project.NewLinkedValueNull(), types.MapNull(types.StringType), nil
 	}
 
 	projectsMap := make(map[string]attr.Value, len(linked.Projects))
+	statusesMap := make(map[string]attr.Value, len(linked.Projects))
 	for projectID, project := range linked.Projects {
 		pv, projectDiags := resource_observability_project.NewProjectsValue(
 			resource_observability_project.ProjectsValue{}.AttributeTypes(ctx),
 			map[string]attr.Value{
-				"status": basetypes.NewStringValue(string(project.Status)),
-				"type":   basetypes.NewStringValue(string(project.Type)),
+				"type": basetypes.NewStringValue(string(project.Type)),
 			},
 		)
 		if projectDiags.HasError() {
-			return resource_observability_project.NewLinkedValueUnknown(), projectDiags
+			return resource_observability_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectDiags
 		}
 		projectsMap[projectID] = pv
+		statusesMap[projectID] = basetypes.NewStringValue(string(project.Status))
 	}
 
 	projects, projectsDiags := types.MapValue(resource_observability_project.ProjectsValue{}.Type(ctx), projectsMap)
 	if projectsDiags.HasError() {
-		return resource_observability_project.NewLinkedValueUnknown(), projectsDiags
+		return resource_observability_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), projectsDiags
+	}
+
+	statuses, statusesDiags := types.MapValue(types.StringType, statusesMap)
+	if statusesDiags.HasError() {
+		return resource_observability_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), statusesDiags
 	}
 
 	typedLinked, linkedDiags := resource_observability_project.NewLinkedValue(
@@ -434,10 +441,10 @@ func flattenObservabilityLinked(ctx context.Context, linked *serverless.LinkConf
 		},
 	)
 	if linkedDiags.HasError() {
-		return resource_observability_project.NewLinkedValueUnknown(), linkedDiags
+		return resource_observability_project.NewLinkedValueUnknown(), types.MapNull(types.StringType), linkedDiags
 	}
 
-	return typedLinked, nil
+	return typedLinked, statuses, nil
 }
 
 func expandLinkedForCreateObservability(model resource_observability_project.ObservabilityProjectModel) *serverless.CreateLinkedRequest {
