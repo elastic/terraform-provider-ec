@@ -22,6 +22,9 @@ import (
 	"maps"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
+	resource_elasticsearch_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
+	resource_observability_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
+	resource_security_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -73,6 +76,64 @@ func patchMetadataTagsSchema(resp *resource.SchemaResponse) {
 	}
 	metaAttr.Attributes["tags"] = tagsAttr
 	resp.Schema.Attributes["metadata"] = metaAttr
+}
+
+// preserveElasticsearchMetadataSystemTags prepares the plan metadata value for
+// elasticsearch projects. It preserves system_tags from state when the plan
+// does not specify them, keeping the planned metadata stable and avoiding
+// spurious non-empty plans.
+func preserveElasticsearchMetadataSystemTags(plan, state resource_elasticsearch_project.MetadataValue) resource_elasticsearch_project.MetadataValue {
+	if !util.IsKnown(plan) {
+		if util.IsKnown(state) {
+			return state
+		}
+		return plan
+	}
+	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
+		return plan
+	}
+	plan.SystemTags = state.SystemTags
+	return plan
+}
+
+// preserveObservabilityMetadataSystemTags prepares the plan metadata value for
+// observability projects. It preserves system_tags from state when the plan
+// does not specify them, keeping the planned metadata stable and avoiding
+// spurious non-empty plans.
+func preserveObservabilityMetadataSystemTags(plan, state resource_observability_project.MetadataValue) resource_observability_project.MetadataValue {
+	if !util.IsKnown(plan) {
+		if util.IsKnown(state) {
+			return state
+		}
+		return plan
+	}
+	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
+		return plan
+	}
+	plan.SystemTags = state.SystemTags
+	return plan
+}
+
+// preserveSecurityMetadataSystemTags prepares the plan metadata value for
+// security projects. It preserves system_tags from state when the plan does not
+// specify them, keeping the planned metadata stable and avoiding spurious
+// non-empty plans.
+func preserveSecurityMetadataSystemTags(plan, state resource_security_project.MetadataValue) resource_security_project.MetadataValue {
+	if !util.IsKnown(plan) {
+		if util.IsKnown(state) {
+			return state
+		}
+		return plan
+	}
+	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
+		return plan
+	}
+	plan.SystemTags = state.SystemTags
+	return plan
+}
+
+func metadataSystemTagsFromAPI(ctx context.Context, tags *serverless.ProjectSystemTags) (basetypes.MapValue, diag.Diagnostics) {
+	return types.MapNull(types.StringType), nil
 }
 
 func metadataTagsFromAPI(ctx context.Context, tags *serverless.ProjectTags) (basetypes.MapValue, diag.Diagnostics) {
@@ -139,16 +200,15 @@ func optionalMetadataForTagPatch(ctx context.Context, planTags, stateTags basety
 	if maps.Equal(planMap, stateMap) {
 		return nil, diags
 	}
-	var wrapped map[string]interface{}
+	wrapped := make(serverless.ProjectPatchTags)
 	if len(planMap) == 0 && len(stateMap) > 0 {
-		wrapped = make(map[string]interface{}, len(stateMap))
 		for k := range stateMap {
 			wrapped[k] = nil
 		}
 	} else {
-		wrapped = make(map[string]interface{}, len(planMap)+len(stateMap))
 		for k, v := range planMap {
-			wrapped[k] = v
+			value := v
+			wrapped[k] = &value
 		}
 		for k := range stateMap {
 			if _, ok := planMap[k]; !ok {
@@ -156,6 +216,6 @@ func optionalMetadataForTagPatch(ctx context.Context, planTags, stateTags basety
 			}
 		}
 	}
-	om := serverless.OptionalMetadata{"tags": wrapped}
+	om := serverless.OptionalMetadata{Tags: wrapped}
 	return &om, diags
 }
