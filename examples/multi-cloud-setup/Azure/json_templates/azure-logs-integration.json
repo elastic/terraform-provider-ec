@@ -1,0 +1,354 @@
+{
+    "name": "Azure Logs",
+    "description": "",
+    "namespace": "default",
+    "policy_id": "${policy_id}",
+    "enabled": true,
+    "output_id": "",
+    "inputs": [
+      {
+        "type": "azure-eventhub",
+        "policy_template": "eventhub",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.eventhub"
+            },
+            "vars": {
+              "parse_message": {
+                "value": false,
+                "type": "bool"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "data_stream.dataset": {
+                "value": "azure.eventhub",
+                "type": "text"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-eventhub",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure-eventhub",
+        "policy_template": "adlogs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.auditlogs"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-auditlogs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.identity_protection"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-identity-protection-logs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.provisioning"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-provisioning-logs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.signinlogs"
+            },
+            "vars": {
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-signinlogs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure-eventhub",
+        "policy_template": "platformlogs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.platformlogs"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-platformlogs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure-eventhub",
+        "policy_template": "activitylogs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.activitylogs"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-activitylogs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure-eventhub",
+        "policy_template": "springcloudlogs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.springcloudlogs"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-springcloudlogs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure-eventhub",
+        "policy_template": "firewall_logs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.firewall_logs"
+            },
+            "vars": {
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "storage_account_container": {
+                "type": "text"
+              },
+              "tags": {
+                "value": [
+                  "azure-firewall",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure-eventhub",
+        "policy_template": "application_gateway",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "azure.application_gateway"
+            },
+            "vars": {
+              "tags": {
+                "value": [
+                  "azure-application-gateway-logs",
+                  "forwarded"
+                ],
+                "type": "text"
+              },
+              "preserve_original_event": {
+                "value": false,
+                "type": "bool"
+              },
+              "processors": {
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "package": {
+      "name": "azure",
+      "title": "Azure Logs",
+      "version": "1.5.2"
+    },
+    "vars": {
+      "eventhub": {
+        "type": "text",
+        "value": "${eventhub}"
+      },
+      "consumer_group": {
+        "value": "$Default",
+        "type": "text"
+      },
+      "connection_string": {
+        "type": "text",
+        "value": "${connection_string}"
+      },
+      "storage_account": {
+        "type": "text",
+        "value": "${storage_account}"
+      },
+      "storage_account_key": {
+        "type": "text",
+        "value": "${storage_account_key}"
+      },
+      "resource_manager_endpoint": {
+        "type": "text"
+      }
+    }
+  }

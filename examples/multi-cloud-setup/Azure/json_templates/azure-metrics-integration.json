@@ -1,0 +1,267 @@
+{
+    "name": "Azure Metrics",
+    "description": "",
+    "namespace": "default",
+    "policy_id": "${policy_id}",
+    "enabled": true,
+    "output_id": "",
+    "inputs": [
+      {
+        "type": "azure/metrics",
+        "policy_template": "monitor",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.monitor"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resources": {
+                "value": "- resource_query: \"resourceType eq 'Microsoft.DocumentDb/databaseAccounts'\"\n  metrics:\n  - name: [\"DataUsage\", \"DocumentCount\", \"DocumentQuota\"]\n    namespace: \"Microsoft.DocumentDb/databaseAccounts\"\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "compute_vm",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.compute_vm"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "compute_vm_scaleset",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.compute_vm_scaleset"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "container_registry",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.container_registry"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "container_instance",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.container_instance"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "container_service",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.container_service"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "database_account",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.database_account"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "azure/metrics",
+        "policy_template": "storage_account",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "azure.storage_account"
+            },
+            "vars": {
+              "period": {
+                "value": "300s",
+                "type": "text"
+              },
+              "resource_groups": {
+                "value": [],
+                "type": "text"
+              },
+              "resource_ids": {
+                "value": [],
+                "type": "text"
+              },
+              "service_types": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "package": {
+      "name": "azure_metrics",
+      "title": "Azure Resource Metrics",
+      "version": "1.0.5"
+    },
+    "vars": {
+      "client_id": {
+        "type": "text",
+        "value": "${client_id}"
+      },
+      "client_secret": {
+        "type": "text",
+        "value": "${client_secret}"
+      },
+      "tenant_id": {
+        "type": "text",
+        "value": "${tenant_id}"
+      },
+      "subscription_id": {
+        "type": "text",
+        "value": "${subscription_id}"
+      },
+      "refresh_list_interval": {
+        "value": "600s",
+        "type": "text"
+      },
+      "resource_manager_endpoint": {
+        "type": "text"
+      },
+      "active_directory_endpoint": {
+        "type": "text"
+      }
+    }
+  }

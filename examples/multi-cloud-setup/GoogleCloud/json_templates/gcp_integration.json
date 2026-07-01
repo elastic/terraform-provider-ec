@@ -1,0 +1,400 @@
+{
+  "name": "gcp",
+  "description": "Terraformed GCP integration",
+  "namespace": "default",
+  "policy_id": "${policy_id}",
+  "enabled": true,
+  "output_id": "",
+  "inputs": [
+    {
+      "type": "gcp-pubsub",
+      "policy_template": "audit",
+      "enabled": %{ if audit_log_topic != ""}true%{ else }false%{ endif },
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "logs",
+            "dataset": "gcp.audit"
+          },
+          "vars": {
+            "topic": {
+              "value": "${audit_log_topic}",
+              "type": "text"
+            },
+            "subscription_name": {
+              "value": "${audit_log_topic}",
+              "type": "text"
+            },
+            "subscription_create": {
+              "value": true,
+              "type": "bool"
+            },
+            "alternative_host": {
+              "type": "text"
+            },
+            "tags": {
+              "value": [
+                "forwarded",
+                "gcp-audit"
+              ],
+              "type": "text"
+            },
+            "preserve_original_event": {
+              "value": false,
+              "type": "bool"
+            },
+            "processors": {
+              "type": "yaml"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp-pubsub",
+      "policy_template": "firewall",
+      "enabled": %{ if firewall_log_topic != ""}true%{ else }false%{ endif },
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "logs",
+            "dataset": "gcp.firewall"
+          },
+          "vars": {
+            "topic": {
+              "value": "${firewall_log_topic}",
+              "type": "text"
+            },
+            "subscription_name": {
+              "value": "${firewall_log_topic}",
+              "type": "text"
+            },
+            "subscription_create": {
+              "value": true,
+              "type": "bool"
+            },
+            "alternative_host": {
+              "type": "text"
+            },
+            "tags": {
+              "value": [
+                "forwarded",
+                "gcp-firewall"
+              ],
+              "type": "text"
+            },
+            "preserve_original_event": {
+              "value": false,
+              "type": "bool"
+            },
+            "processors": {
+              "type": "yaml"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp-pubsub",
+      "policy_template": "vpcflow",
+      "enabled": %{ if vpcflow_log_topic != ""}true%{ else }false%{ endif },
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "logs",
+            "dataset": "gcp.vpcflow"
+          },
+          "vars": {
+            "topic": {
+              "value": "${vpcflow_log_topic}",
+              "type": "text"
+            },
+            "subscription_name": {
+              "value": "${vpcflow_log_topic}",
+              "type": "text"
+            },
+            "subscription_create": {
+              "value": true,
+              "type": "bool"
+            },
+            "alternative_host": {
+              "type": "text"
+            },
+            "tags": {
+              "value": [
+                "forwarded",
+                "gcp-vpcflow"
+              ],
+              "type": "text"
+            },
+            "preserve_original_event": {
+              "value": false,
+              "type": "bool"
+            },
+            "processors": {
+              "type": "yaml"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp-pubsub",
+      "policy_template": "dns",
+      "enabled": %{ if dns_log_topic != ""}true%{ else }false%{ endif },
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "logs",
+            "dataset": "gcp.dns"
+          },
+          "vars": {
+            "topic": {
+              "value": "${dns_log_topic}",
+              "type": "text"
+            },
+            "subscription_name": {
+              "value": "${dns_log_topic}",
+              "type": "text"
+            },
+            "subscription_create": {
+              "value": true,
+              "type": "bool"
+            },
+            "alternative_host": {
+              "type": "text"
+            },
+            "tags": {
+              "value": [
+                "forwarded",
+                "gcp-dns"
+              ],
+              "type": "text"
+            },
+            "preserve_original_event": {
+              "value": false,
+              "type": "bool"
+            },
+            "processors": {
+              "type": "yaml"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp/metrics",
+      "policy_template": "billing",
+      "enabled": false,
+      "streams": [
+        {
+          "enabled": false,
+          "data_stream": {
+            "type": "metrics",
+            "dataset": "gcp.billing"
+          },
+          "vars": {
+            "period": {
+              "value": "24h",
+              "type": "text"
+            },
+            "dataset_id": {
+              "type": "text"
+            },
+            "table_pattern": {
+              "value": "gcp_billing_export_v1",
+              "type": "text"
+            },
+            "cost_type": {
+              "value": "regular",
+              "type": "text"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp/metrics",
+      "policy_template": "compute",
+      "enabled": true,
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "metrics",
+            "dataset": "gcp.compute"
+          },
+          "vars": {
+            "zone": {
+              "type": "text"
+            },
+            "region": {
+              "type": "text"
+            },
+            "period": {
+              "value": "60s",
+              "type": "text"
+            },
+            "exclude_labels": {
+              "type": "bool"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp/metrics",
+      "policy_template": "firestore",
+      "enabled": true,
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "metrics",
+            "dataset": "gcp.firestore"
+          },
+          "vars": {
+            "zone": {
+              "type": "text"
+            },
+            "region": {
+              "type": "text"
+            },
+            "period": {
+              "value": "60s",
+              "type": "text"
+            },
+            "exclude_labels": {
+              "type": "bool"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp/metrics",
+      "policy_template": "loadbalancing",
+      "enabled": true,
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "metrics",
+            "dataset": "gcp.loadbalancing_metrics"
+          },
+          "vars": {
+            "zone": {
+              "type": "text"
+            },
+            "region": {
+              "type": "text"
+            },
+            "period": {
+              "value": "60s",
+              "type": "text"
+            },
+            "exclude_labels": {
+              "type": "bool"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp-pubsub",
+      "policy_template": "loadbalancing",
+      "enabled": %{ if lb_log_topic != ""}true%{ else }false%{ endif },
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "logs",
+            "dataset": "gcp.loadbalancing_logs"
+          },
+          "vars": {
+            "topic": {
+              "value": "${lb_log_topic}",
+              "type": "text"
+            },
+            "subscription_name": {
+              "value": "${lb_log_topic}",
+              "type": "text"
+            },
+            "subscription_create": {
+              "value": true,
+              "type": "bool"
+            },
+            "alternative_host": {
+              "type": "text"
+            },
+            "tags": {
+              "value": [
+                "forwarded",
+                "gcp-loadbalancing_logs"
+              ],
+              "type": "text"
+            },
+            "preserve_original_event": {
+              "value": false,
+              "type": "bool"
+            },
+            "processors": {
+              "type": "yaml"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "gcp/metrics",
+      "policy_template": "storage",
+      "enabled": true,
+      "streams": [
+        {
+          "enabled": true,
+          "data_stream": {
+            "type": "metrics",
+            "dataset": "gcp.storage"
+          },
+          "vars": {
+            "zone": {
+              "type": "text"
+            },
+            "region": {
+              "type": "text"
+            },
+            "period": {
+              "value": "60s",
+              "type": "text"
+            },
+            "exclude_labels": {
+              "type": "bool"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "package": {
+    "name": "gcp",
+    "title": "Google Cloud Platform",
+    "version": "2.7.0"
+  },
+  "vars": {
+    "project_id": {
+      "value": "${gcp_project}",
+      "type": "text"
+    },
+    "credentials_file": {
+      "type": "text"
+    },
+    "credentials_json": {
+	  "value": ${gcp_credentials_json},	
+    "type": "text"
+    }
+  }
+}
