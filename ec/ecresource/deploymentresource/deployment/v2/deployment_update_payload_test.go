@@ -2144,22 +2144,22 @@ func Test_ensureMajorVersionStrategy(t *testing.T) {
 		wantGroupBy  string
 	}{
 		{
-			name: "minor upgrade keeps logical_zone_name",
+			name:    "minor upgrade keeps logical_zone_name",
 			groupBy: "logical_zone_name", stateVersion: "8.14.0", planVersion: "8.15.0",
 			wantGroupBy: "logical_zone_name",
 		},
 		{
-			name: "major upgrade switches to __all__",
+			name:    "major upgrade switches to __all__",
 			groupBy: "logical_zone_name", stateVersion: "8.15.0", planVersion: "9.0.0",
 			wantGroupBy: "__all__",
 		},
 		{
-			name: "non-zone strategy is untouched on major upgrade",
+			name:    "non-zone strategy is untouched on major upgrade",
 			groupBy: "__name__", stateVersion: "8.15.0", planVersion: "9.0.0",
 			wantGroupBy: "__name__",
 		},
 		{
-			name: "empty stateVersion (create) is a no-op",
+			name:    "empty stateVersion (create) is a no-op",
 			groupBy: "logical_zone_name", stateVersion: "", planVersion: "9.0.0",
 			wantGroupBy: "logical_zone_name",
 		},
