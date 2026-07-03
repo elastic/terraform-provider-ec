@@ -45,11 +45,13 @@ const (
 	strategyGrowAndShrink        = "grow_and_shrink"
 	strategyRollingGrowAndShrink = "rolling_grow_and_shrink"
 	strategyRollingAll           = "rolling_all"
+	strategyRollingZone          = "rolling_zone"
 )
 
 // List of update strategies availables.
 var strategiesList = []string{
 	strategyAutodetect, strategyGrowAndShrink, strategyRollingGrowAndShrink, strategyRollingAll,
+	strategyRollingZone,
 }
 
 func ElasticsearchSchema() schema.Attribute {

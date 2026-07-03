@@ -378,7 +378,7 @@ For ESS please use the [elasticstack_elasticsearch_snapshot_repository](https://
 - `snapshot_source` (Attributes) Restores data from a snapshot of another deployment.
 
 ~> **Note on behavior** The <code>snapshot_source</code> block will not be saved in the Terraform state due to its transient nature. This means that whenever the <code>snapshot_source</code> block is set, a snapshot will **always be restored**, unless removed before running <code>terraform apply</code>. (see [below for nested schema](#nestedatt--elasticsearch--snapshot_source))
-- `strategy` (String) Configuration strategy type autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all
+- `strategy` (String) Configuration strategy type autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all, rolling_zone
 - `trust_account` (Attributes Set) Optional Elasticsearch account trust settings. (see [below for nested schema](#nestedatt--elasticsearch--trust_account))
 - `trust_external` (Attributes Set) Optional Elasticsearch external trust settings. (see [below for nested schema](#nestedatt--elasticsearch--trust_external))
 - `warm` (Attributes) 'warm' topology element (see [below for nested schema](#nestedatt--elasticsearch--warm))
