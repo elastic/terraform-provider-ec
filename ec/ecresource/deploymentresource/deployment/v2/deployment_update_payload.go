@@ -19,7 +19,6 @@ package v2
 
 import (
 	"context"
-	"strings"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
@@ -196,7 +195,6 @@ func (plan DeploymentTF) UpdateRequest(ctx context.Context, client *api.API, sta
 		// can't be full once the cluster has been created, so the Strategy must be set
 		// to "partial".
 		ensurePartialSnapshotStrategy(elasticsearchPayload)
-		ensureMajorVersionStrategy(elasticsearchPayload, state.Version.ValueString(), plan.Version.ValueString())
 
 		result.Resources.Elasticsearch = append(result.Resources.Elasticsearch, elasticsearchPayload)
 	}
@@ -284,22 +282,6 @@ func (plan DeploymentTF) checkAvailableMigration(ctx context.Context, state Depl
 	isMigrationAvailable := esHasMigration || apmHasMigration || entSearchHasMigration || intServerHasMigration || kibanaHasMigration
 
 	return isMigrationAvailable, diags
-}
-
-// ensureMajorVersionStrategy switches any rolling_zone strategy (group_by: logical_zone_name)
-// to group_by: __all__ when upgrading across a major version boundary, as required by the
-// Elastic Cloud API.
-func ensureMajorVersionStrategy(es *models.ElasticsearchPayload, stateVersion, planVersion string) {
-	if stateVersion == "" || es.Plan.Transient == nil || es.Plan.Transient.Strategy == nil {
-		return
-	}
-	rolling := es.Plan.Transient.Strategy.Rolling
-	if rolling == nil || rolling.GroupBy != "logical_zone_name" {
-		return
-	}
-	if strings.SplitN(stateVersion, ".", 2)[0] != strings.SplitN(planVersion, ".", 2)[0] {
-		rolling.GroupBy = "__all__"
-	}
 }
 
 func ensurePartialSnapshotStrategy(es *models.ElasticsearchPayload) {

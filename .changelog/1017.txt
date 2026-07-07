@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/ec_deployment: Add `rolling_zone` strategy for AZ-aware rolling restarts of Elasticsearch clusters.
+```

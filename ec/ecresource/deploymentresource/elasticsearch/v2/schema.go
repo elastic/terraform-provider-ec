@@ -150,9 +150,12 @@ func ElasticsearchSchema() schema.Attribute {
 			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": schema.StringAttribute{
-				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
-				Optional:    true,
-				Validators:  []validator.String{stringvalidator.OneOf(strategiesList...)},
+				Description: "Configuration strategy type " + strings.Join(strategiesList, ", ") +
+					". ~> **Note on behavior** `rolling_zone` cannot be used for major version upgrades." +
+					" Set `strategy = \"rolling_all\"` when upgrading across a major version boundary" +
+					" (the API requires `group_by: __all__`).",
+				Optional:   true,
+				Validators: []validator.String{stringvalidator.OneOf(strategiesList...)},
 			},
 
 			"keystore_contents": keystoreContentsSchema(),
