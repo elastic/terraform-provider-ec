@@ -22,15 +22,13 @@ import (
 	"maps"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
-	resource_elasticsearch_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
-	resource_observability_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
-	resource_security_project "github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -54,6 +52,15 @@ func patchMetadataSchema(resp *resource.SchemaResponse) {
 		sa.PlanModifiers = append(sa.PlanModifiers, stringplanmodifier.UseStateForUnknown())
 		metaAttr.Attributes[key] = sa
 	}
+
+	// system_tags is read-only and stable across updates; UseStateForUnknown
+	// keeps the prior state value in the plan to avoid spurious "known after
+	// apply" noise when an unrelated attribute changes.
+	if st, ok := metaAttr.Attributes["system_tags"].(schema.MapAttribute); ok {
+		st.PlanModifiers = append(st.PlanModifiers, mapplanmodifier.UseStateForUnknown())
+		metaAttr.Attributes["system_tags"] = st
+	}
+
 	resp.Schema.Attributes["metadata"] = metaAttr
 }
 
@@ -78,62 +85,16 @@ func patchMetadataTagsSchema(resp *resource.SchemaResponse) {
 	resp.Schema.Attributes["metadata"] = metaAttr
 }
 
-// preserveElasticsearchMetadataSystemTags prepares the plan metadata value for
-// elasticsearch projects. It preserves system_tags from state when the plan
-// does not specify them, keeping the planned metadata stable and avoiding
-// spurious non-empty plans.
-func preserveElasticsearchMetadataSystemTags(plan, state resource_elasticsearch_project.MetadataValue) resource_elasticsearch_project.MetadataValue {
-	if !util.IsKnown(plan) {
-		if util.IsKnown(state) {
-			return state
-		}
-		return plan
-	}
-	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
-		return plan
-	}
-	plan.SystemTags = state.SystemTags
-	return plan
-}
-
-// preserveObservabilityMetadataSystemTags prepares the plan metadata value for
-// observability projects. It preserves system_tags from state when the plan
-// does not specify them, keeping the planned metadata stable and avoiding
-// spurious non-empty plans.
-func preserveObservabilityMetadataSystemTags(plan, state resource_observability_project.MetadataValue) resource_observability_project.MetadataValue {
-	if !util.IsKnown(plan) {
-		if util.IsKnown(state) {
-			return state
-		}
-		return plan
-	}
-	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
-		return plan
-	}
-	plan.SystemTags = state.SystemTags
-	return plan
-}
-
-// preserveSecurityMetadataSystemTags prepares the plan metadata value for
-// security projects. It preserves system_tags from state when the plan does not
-// specify them, keeping the planned metadata stable and avoiding spurious
-// non-empty plans.
-func preserveSecurityMetadataSystemTags(plan, state resource_security_project.MetadataValue) resource_security_project.MetadataValue {
-	if !util.IsKnown(plan) {
-		if util.IsKnown(state) {
-			return state
-		}
-		return plan
-	}
-	if util.IsKnown(plan.SystemTags) || !util.IsKnown(state) {
-		return plan
-	}
-	plan.SystemTags = state.SystemTags
-	return plan
-}
-
 func metadataSystemTagsFromAPI(ctx context.Context, tags *serverless.ProjectSystemTags) (basetypes.MapValue, diag.Diagnostics) {
-	return types.MapNull(types.StringType), nil
+	if tags == nil || len(*tags) == 0 {
+		m, d := types.MapValue(types.StringType, map[string]attr.Value{})
+		return m, d
+	}
+	elems := make(map[string]attr.Value, len(*tags))
+	for k, v := range *tags {
+		elems[k] = basetypes.NewStringValue(v)
+	}
+	return types.MapValue(types.StringType, elems)
 }
 
 func metadataTagsFromAPI(ctx context.Context, tags *serverless.ProjectTags) (basetypes.MapValue, diag.Diagnostics) {

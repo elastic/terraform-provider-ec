@@ -93,7 +93,6 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-	plan.Metadata = preserveSecurityMetadataSystemTags(plan.Metadata, state.Metadata)
 
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()

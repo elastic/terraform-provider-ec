@@ -192,7 +192,7 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 						"organization_id":  basetypes.NewStringValue("org_id"),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringValue("suspension_reason"),
-						"system_tags":      types.MapNull(types.StringType),
+						"system_tags":      emptyStringMap(),
 						"tags":             tagsEmpty,
 					},
 				)
@@ -205,7 +205,7 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 					state: state,
 					expected: resource_observability_project.ObservabilityProjectModel{
 						Id:       types.StringValue("plan"),
-						Metadata: state.Metadata,
+						Metadata: resource_observability_project.NewMetadataValueUnknown(),
 					},
 				}
 			},
@@ -509,7 +509,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
-						"system_tags":      types.MapNull(types.StringType),
+						"system_tags":      emptyStringMap(),
 						"tags":             tagMap,
 					},
 				)
@@ -718,7 +718,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
-						"system_tags":      types.MapNull(types.StringType),
+						"system_tags":      emptyStringMap(),
 						"tags":             tagMap,
 					},
 				)
@@ -731,7 +731,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 						"organization_id":  basetypes.NewStringNull(),
 						"suspended_at":     basetypes.NewStringNull(),
 						"suspended_reason": basetypes.NewStringNull(),
-						"system_tags":      types.MapNull(types.StringType),
+						"system_tags":      emptyStringMap(),
 						"tags":             tagsEmpty,
 					},
 				)
@@ -1074,7 +1074,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
-							"system_tags":      types.MapNull(types.StringType),
+							"system_tags":      emptyStringMap(),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1153,7 +1153,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringValue(now.String()),
 							"suspended_reason": basetypes.NewStringValue(*readModel.Metadata.SuspendedReason),
-							"system_tags":      types.MapNull(types.StringType),
+							"system_tags":      emptyStringMap(),
 							"tags":             tagsEmpty,
 						},
 					),
@@ -1234,7 +1234,7 @@ func TestObservabilityApi_Read(t *testing.T) {
 							"organization_id":  basetypes.NewStringValue(readModel.Metadata.OrganizationId),
 							"suspended_at":     basetypes.NewStringNull(),
 							"suspended_reason": basetypes.NewStringNull(),
-							"system_tags":      types.MapNull(types.StringType),
+							"system_tags":      emptyStringMap(),
 							"tags":             tagsFromAPI,
 						},
 					),

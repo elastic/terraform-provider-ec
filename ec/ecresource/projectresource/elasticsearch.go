@@ -86,7 +86,6 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-	plan.Metadata = preserveElasticsearchMetadataSystemTags(plan.Metadata, state.Metadata)
 
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()

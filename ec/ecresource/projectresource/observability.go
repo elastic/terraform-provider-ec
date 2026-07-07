@@ -76,7 +76,6 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-	plan.Metadata = preserveObservabilityMetadataSystemTags(plan.Metadata, state.Metadata)
 
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
