@@ -51,14 +51,12 @@ resource "ec_deployment" "example_minimal" {
 ### With config
 
 `es.yaml`
-
 ```yaml
 # My example YAML configuration for elasicsearch nodes
 repositories.url.allowed_urls: ["http://www.example.org/root/*", "https://*.mydomain.com/*?*#*"]
 ```
 
 `deployment.tf`:
-
 ```terraform
 # Retrieve the latest stack pack version
 data "ec_stack" "latest" {
@@ -193,7 +191,6 @@ resource "ec_deployment" "example_observability" {
 ```
 
 It is possible to enable observability without using a second deployment, by storing the observability data in the current deployment. To enable this, set `deployment_id` to `self`.
-
 ```hcl
 observability = {
   deployment_id = "self"
@@ -329,18 +326,15 @@ EOF
 - `encryption_key_path` (String) Customer-managed encryption key resource path for data-at-rest encryption. Both key ARNs (arn:aws:kms:us-east-1:123456789:key/12345678-0000-0000-0000-000000000000) and alias ARNs (arn:aws:kms:us-east-1:123456789:alias/my-key-alias) are supported. Not supported on ECE.
 
 ~> **Note** Changing this value after deployment creation will force a new deployment to be created.
-
 - `enterprise_search` (Attributes) Enterprise Search cluster definition. (see [below for nested schema](#nestedatt--enterprise_search))
 - `integrations_server` (Attributes) Integrations Server cluster definition. Integrations Server replaces `apm` in Stack versions > 8.0 (see [below for nested schema](#nestedatt--integrations_server))
 - `kibana` (Attributes) Kibana cluster definition.
 
 -> **Note on disabling Kibana** While optional it is recommended deployments specify a Kibana block, since not doing so might cause issues when modifying or upgrading the deployment. (see [below for nested schema](#nestedatt--kibana))
-
 - `migrate_to_latest_hardware` (Boolean) When set to true, the deployment will be updated according to the latest deployment template values.
 
 ~> **Note** If the <code>instance_configuration_id</code> or <code>instance_configuration_version</code> fields are set for a specific topology element, that element will not be updated.
 ~> **Note** Hardware migrations are not supported for deployments with node types. To use this field, the deployment needs to be migrated to node roles first.
-
 - `name` (String) Name for the deployment
 - `observability` (Attributes) Observability settings that you can set to ship logs and metrics to a deployment. The target deployment can also be the current deployment itself by setting observability.deployment_id to `self`. (see [below for nested schema](#nestedatt--observability))
 - `request_id` (String) Request ID to set when you create the deployment. Use it only when previous attempts return an error and `request_id` is returned as part of the error.
@@ -355,12 +349,10 @@ EOF
 
 ~> **Note on deployment credentials** The <code>elastic</code> user credentials are only available whilst creating a deployment. Importing a deployment will not import the <code>elasticsearch_username</code> or <code>elasticsearch_password</code> attributes.
 ~> **Note on deployment credentials in state** The <code>elastic</code> user credentials are stored in the state file as plain text. Please follow the official Terraform recommendations regarding senstaive data in state.
-
 - `elasticsearch_username` (String) Username for authenticating to the Elasticsearch resource.
 - `id` (String) Unique identifier of this deployment.
 
 <a id="nestedatt--elasticsearch"></a>
-
 ### Nested Schema for `elasticsearch`
 
 Required:
@@ -383,11 +375,9 @@ Optional:
 - `snapshot` (Attributes) (ECE only) Snapshot configuration settings for an Elasticsearch cluster.
 
 For ESS please use the [elasticstack_elasticsearch_snapshot_repository](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) resource from the [Elastic Stack terraform provider](https://registry.terraform.io/providers/elastic/elasticstack/latest). (see [below for nested schema](#nestedatt--elasticsearch--snapshot))
-
 - `snapshot_source` (Attributes) Restores data from a snapshot of another deployment.
 
 ~> **Note on behavior** The <code>snapshot_source</code> block will not be saved in the Terraform state due to its transient nature. This means that whenever the <code>snapshot_source</code> block is set, a snapshot will **always be restored**, unless removed before running <code>terraform apply</code>. (see [below for nested schema](#nestedatt--elasticsearch--snapshot_source))
-
 - `strategy` (String) Configuration strategy type autodetect, grow_and_shrink, rolling_grow_and_shrink, rolling_all, rolling_zone. ~> **Note on behavior** `rolling_zone` cannot be used for major version upgrades. Set `strategy = "rolling_all"` when upgrading across a major version boundary (the API requires `group_by: __all__`).
 - `trust_account` (Attributes Set) Optional Elasticsearch account trust settings. (see [below for nested schema](#nestedatt--elasticsearch--trust_account))
 - `trust_external` (Attributes Set) Optional Elasticsearch external trust settings. (see [below for nested schema](#nestedatt--elasticsearch--trust_external))
@@ -402,7 +392,6 @@ Read-Only:
 - `resource_id` (String) The Elasticsearch resource unique identifier
 
 <a id="nestedatt--elasticsearch--hot"></a>
-
 ### Nested Schema for `elasticsearch.hot`
 
 Required:
@@ -428,7 +417,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--hot--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.hot.autoscaling`
 
 Optional:
@@ -443,8 +431,9 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--elasticsearch--cold"></a>
 
+
+<a id="nestedatt--elasticsearch--cold"></a>
 ### Nested Schema for `elasticsearch.cold`
 
 Required:
@@ -470,7 +459,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--cold--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.cold.autoscaling`
 
 Optional:
@@ -485,8 +473,9 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--elasticsearch--config"></a>
 
+
+<a id="nestedatt--elasticsearch--config"></a>
 ### Nested Schema for `elasticsearch.config`
 
 Optional:
@@ -498,8 +487,8 @@ Optional:
 - `user_settings_override_yaml` (String) YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides
 - `user_settings_yaml` (String) YAML-formatted user level "elasticsearch.yml" setting overrides
 
-<a id="nestedatt--elasticsearch--coordinating"></a>
 
+<a id="nestedatt--elasticsearch--coordinating"></a>
 ### Nested Schema for `elasticsearch.coordinating`
 
 Required:
@@ -525,7 +514,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--coordinating--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.coordinating.autoscaling`
 
 Optional:
@@ -540,8 +528,9 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--elasticsearch--extension"></a>
 
+
+<a id="nestedatt--elasticsearch--extension"></a>
 ### Nested Schema for `elasticsearch.extension`
 
 Required:
@@ -551,8 +540,8 @@ Required:
 - `url` (String) Bundle or plugin URL, the extension URL can be obtained from the `ec_deployment_extension.<name>.url` attribute or the API and cannot be a random HTTP address that is hosted elsewhere.
 - `version` (String) Elasticsearch compatibility version. Bundles should specify major or minor versions with wildcards, such as `7.*` or `*` but **plugins must use full version notation down to the patch level**, such as `7.10.1` and wildcards are not allowed.
 
-<a id="nestedatt--elasticsearch--frozen"></a>
 
+<a id="nestedatt--elasticsearch--frozen"></a>
 ### Nested Schema for `elasticsearch.frozen`
 
 Required:
@@ -578,7 +567,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--frozen--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.frozen.autoscaling`
 
 Optional:
@@ -593,8 +581,9 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--elasticsearch--keystore_contents"></a>
 
+
+<a id="nestedatt--elasticsearch--keystore_contents"></a>
 ### Nested Schema for `elasticsearch.keystore_contents`
 
 Required:
@@ -605,8 +594,8 @@ Optional:
 
 - `as_file` (Boolean) If true, the secret is handled as a file. Otherwise, it's handled as a plain string.
 
-<a id="nestedatt--elasticsearch--master"></a>
 
+<a id="nestedatt--elasticsearch--master"></a>
 ### Nested Schema for `elasticsearch.master`
 
 Required:
@@ -632,7 +621,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--master--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.master.autoscaling`
 
 Optional:
@@ -647,8 +635,9 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--elasticsearch--ml"></a>
 
+
+<a id="nestedatt--elasticsearch--ml"></a>
 ### Nested Schema for `elasticsearch.ml`
 
 Required:
@@ -674,7 +663,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--ml--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.ml.autoscaling`
 
 Optional:
@@ -689,8 +677,9 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--elasticsearch--remote_cluster"></a>
 
+
+<a id="nestedatt--elasticsearch--remote_cluster"></a>
 ### Nested Schema for `elasticsearch.remote_cluster`
 
 Required:
@@ -703,8 +692,8 @@ Optional:
 - `ref_id` (String) Remote elasticsearch "ref_id", it is best left to the default value
 - `skip_unavailable` (Boolean) If true, skip the cluster during search when disconnected
 
-<a id="nestedatt--elasticsearch--snapshot"></a>
 
+<a id="nestedatt--elasticsearch--snapshot"></a>
 ### Nested Schema for `elasticsearch.snapshot`
 
 Required:
@@ -716,7 +705,6 @@ Optional:
 - `repository` (Attributes) Snapshot repository configuration (see [below for nested schema](#nestedatt--elasticsearch--snapshot--repository))
 
 <a id="nestedatt--elasticsearch--snapshot--repository"></a>
-
 ### Nested Schema for `elasticsearch.snapshot.repository`
 
 Optional:
@@ -724,15 +712,16 @@ Optional:
 - `reference` (Attributes) Cluster snapshot reference repository settings, containing the repository name in ECE fashion (see [below for nested schema](#nestedatt--elasticsearch--snapshot--repository--reference))
 
 <a id="nestedatt--elasticsearch--snapshot--repository--reference"></a>
-
 ### Nested Schema for `elasticsearch.snapshot.repository.reference`
 
 Required:
 
 - `repository_name` (String) ECE snapshot repository name, from the '/platform/configuration/snapshots/repositories' endpoint
 
-<a id="nestedatt--elasticsearch--snapshot_source"></a>
 
+
+
+<a id="nestedatt--elasticsearch--snapshot_source"></a>
 ### Nested Schema for `elasticsearch.snapshot_source`
 
 Required:
@@ -741,10 +730,10 @@ Required:
 
 Optional:
 
-- `snapshot_name` (String) Name of the snapshot to restore. Use '**latest_success**' to get the most recent successful snapshot.
+- `snapshot_name` (String) Name of the snapshot to restore. Use '__latest_success__' to get the most recent successful snapshot.
+
 
 <a id="nestedatt--elasticsearch--trust_account"></a>
-
 ### Nested Schema for `elasticsearch.trust_account`
 
 Required:
@@ -756,8 +745,8 @@ Optional:
 
 - `trust_allowlist` (Set of String) The list of clusters to trust. Only used when `trust_all` is false.
 
-<a id="nestedatt--elasticsearch--trust_external"></a>
 
+<a id="nestedatt--elasticsearch--trust_external"></a>
 ### Nested Schema for `elasticsearch.trust_external`
 
 Required:
@@ -769,8 +758,8 @@ Optional:
 
 - `trust_allowlist` (Set of String) The list of clusters to trust. Only used when `trust_all` is false.
 
-<a id="nestedatt--elasticsearch--warm"></a>
 
+<a id="nestedatt--elasticsearch--warm"></a>
 ### Nested Schema for `elasticsearch.warm`
 
 Required:
@@ -796,7 +785,6 @@ Read-Only:
 - `node_roles` (Set of String) The computed list of node roles for the current topology element
 
 <a id="nestedatt--elasticsearch--warm--autoscaling"></a>
-
 ### Nested Schema for `elasticsearch.warm.autoscaling`
 
 Optional:
@@ -811,8 +799,10 @@ Read-Only:
 
 - `policy_override_json` (String) Computed policy overrides set directly via the API or other clients.
 
-<a id="nestedatt--apm"></a>
 
+
+
+<a id="nestedatt--apm"></a>
 ### Nested Schema for `apm`
 
 Optional:
@@ -836,7 +826,6 @@ Read-Only:
 - `resource_id` (String)
 
 <a id="nestedatt--apm--config"></a>
-
 ### Nested Schema for `apm.config`
 
 Optional:
@@ -848,8 +837,9 @@ Optional:
 - `user_settings_override_yaml` (String) An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
 - `user_settings_yaml` (String) An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
 
-<a id="nestedatt--enterprise_search"></a>
 
+
+<a id="nestedatt--enterprise_search"></a>
 ### Nested Schema for `enterprise_search`
 
 Optional:
@@ -876,7 +866,6 @@ Read-Only:
 - `resource_id` (String)
 
 <a id="nestedatt--enterprise_search--config"></a>
-
 ### Nested Schema for `enterprise_search.config`
 
 Optional:
@@ -887,8 +876,9 @@ Optional:
 - `user_settings_override_yaml` (String) An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
 - `user_settings_yaml` (String) An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
 
-<a id="nestedatt--integrations_server"></a>
 
+
+<a id="nestedatt--integrations_server"></a>
 ### Nested Schema for `integrations_server`
 
 Optional:
@@ -913,7 +903,6 @@ Read-Only:
 - `resource_id` (String)
 
 <a id="nestedatt--integrations_server--config"></a>
-
 ### Nested Schema for `integrations_server.config`
 
 Optional:
@@ -925,8 +914,8 @@ Optional:
 - `user_settings_override_yaml` (String) An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
 - `user_settings_yaml` (String) An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
 
-<a id="nestedatt--integrations_server--endpoints"></a>
 
+<a id="nestedatt--integrations_server--endpoints"></a>
 ### Nested Schema for `integrations_server.endpoints`
 
 Optional:
@@ -936,8 +925,9 @@ Optional:
 - `profiling` (String)
 - `symbols` (String)
 
-<a id="nestedatt--kibana"></a>
 
+
+<a id="nestedatt--kibana"></a>
 ### Nested Schema for `kibana`
 
 Optional:
@@ -961,7 +951,6 @@ Read-Only:
 - `resource_id` (String)
 
 <a id="nestedatt--kibana--config"></a>
-
 ### Nested Schema for `kibana.config`
 
 Optional:
@@ -972,8 +961,9 @@ Optional:
 - `user_settings_override_yaml` (String) An arbitrary YAML object allowing ECE admins owners to set clusters' parameters (only one of this and 'user_settings_override_json' is allowed), ie in addition to the documented 'system_settings'. (This field together with 'system_settings' and 'user_settings*' defines the total set of resource settings)
 - `user_settings_yaml` (String) An arbitrary YAML object allowing (non-admin) cluster owners to set their parameters (only one of this and 'user_settings_json' is allowed), provided they are on the whitelist ('user_settings_whitelist') and not on the blacklist ('user_settings_blacklist'). (These field together with 'user_settings_override*' and 'system_settings' defines the total set of resource settings)
 
-<a id="nestedatt--observability"></a>
 
+
+<a id="nestedatt--observability"></a>
 ### Nested Schema for `observability`
 
 Required:
