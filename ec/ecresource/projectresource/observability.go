@@ -76,7 +76,6 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
 	}

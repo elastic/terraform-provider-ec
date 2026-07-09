@@ -93,7 +93,6 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
 	}

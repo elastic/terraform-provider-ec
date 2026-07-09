@@ -86,7 +86,6 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 		plan.Alias = basetypes.NewStringUnknown()
 	}
 
-
 	if cloudIDIsUnknown {
 		plan.CloudId = basetypes.NewStringUnknown()
 	}
