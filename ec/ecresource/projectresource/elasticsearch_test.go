@@ -204,7 +204,7 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 					state: state,
 					expected: resource_elasticsearch_project.ElasticsearchProjectModel{
 						Id:       types.StringValue("plan"),
-						Metadata: resource_elasticsearch_project.NewMetadataValueUnknown(),
+						Metadata: state.Metadata,
 					},
 				}
 			},

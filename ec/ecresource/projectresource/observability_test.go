@@ -205,7 +205,7 @@ func TestObservabilityModelReader_Modify(t *testing.T) {
 					state: state,
 					expected: resource_observability_project.ObservabilityProjectModel{
 						Id:       types.StringValue("plan"),
-						Metadata: resource_observability_project.NewMetadataValueUnknown(),
+						Metadata: state.Metadata,
 					},
 				}
 			},

@@ -232,7 +232,7 @@ func TestSecurityModelReader_Modify(t *testing.T) {
 					state: state,
 					expected: resource_security_project.SecurityProjectModel{
 						Id:       types.StringValue("plan"),
-						Metadata: resource_security_project.NewMetadataValueUnknown(),
+						Metadata: state.Metadata,
 					},
 				}
 			},

@@ -59,6 +59,7 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
+	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
 	plan.Linked = useStateForUnknownOrNull(plan.Linked, state.Linked, resource_observability_project.NewLinkedValueNull())
 	if plan.ProductTier.IsUnknown() && !state.ProductTier.IsNull() {
 		plan.ProductTier = state.ProductTier

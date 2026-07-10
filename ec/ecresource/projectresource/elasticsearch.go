@@ -72,6 +72,7 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
 	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
+	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
 	plan.Linked = useStateForUnknownOrNull(plan.Linked, state.Linked, resource_elasticsearch_project.NewLinkedValueNull())
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
