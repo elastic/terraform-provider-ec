@@ -21,11 +21,20 @@ import (
 	"context"
 	"testing"
 
+	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/require"
 )
+
+// emptyStringMap returns a known, empty map[string]string value, matching
+// what metadataSystemTagsFromAPI / metadataTagsFromAPI produce when the API
+// returns nil or empty tags.
+func emptyStringMap() basetypes.MapValue {
+	m, _ := types.MapValue(types.StringType, map[string]attr.Value{})
+	return m
+}
 
 func TestOptionalMetadataForTagPatch_emptyPlanWithPriorTagsSendsNullRemovals(t *testing.T) {
 	ctx := context.Background()
@@ -36,10 +45,8 @@ func TestOptionalMetadataForTagPatch_emptyPlanWithPriorTagsSendsNullRemovals(t *
 	om, diags := optionalMetadataForTagPatch(ctx, planTags, stateTags)
 	require.False(t, diags.HasError())
 	require.NotNil(t, om)
-	tags, ok := (*om)["tags"].(map[string]interface{})
-	require.True(t, ok)
-	require.Contains(t, tags, "k")
-	require.Nil(t, tags["k"])
+	require.Contains(t, om.Tags, "k")
+	require.Nil(t, om.Tags["k"])
 }
 
 func TestOptionalMetadataForTagPatch_bothEmptyNoPatch(t *testing.T) {
@@ -62,9 +69,43 @@ func TestOptionalMetadataForTagPatch_removedKeysAreJSONNull(t *testing.T) {
 	om, diags := optionalMetadataForTagPatch(ctx, planTags, stateTags)
 	require.False(t, diags.HasError())
 	require.NotNil(t, om)
-	tags, ok := (*om)["tags"].(map[string]interface{})
-	require.True(t, ok)
-	require.Equal(t, "platform", tags["acc_team"])
-	require.Contains(t, tags, "acc_test")
-	require.Nil(t, tags["acc_test"])
+	require.NotNil(t, om.Tags["acc_team"])
+	require.Equal(t, "platform", *om.Tags["acc_team"])
+	require.Contains(t, om.Tags, "acc_test")
+	require.Nil(t, om.Tags["acc_test"])
+}
+
+func TestMetadataSystemTagsFromAPI(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("returns an empty map when tags are nil", func(t *testing.T) {
+		got, diags := metadataSystemTagsFromAPI(ctx, nil)
+		require.False(t, diags.HasError())
+		require.True(t, got.IsNull() || len(got.Elements()) == 0)
+	})
+
+	t.Run("returns an empty map when tags are empty", func(t *testing.T) {
+		empty := serverless.ProjectSystemTags{}
+		got, diags := metadataSystemTagsFromAPI(ctx, &empty)
+		require.False(t, diags.HasError())
+		require.True(t, got.IsNull() || len(got.Elements()) == 0)
+	})
+
+	t.Run("populates tags from the API response", func(t *testing.T) {
+		tags := serverless.ProjectSystemTags{
+			"managed-by": "terraform",
+			"_foo":       "bar",
+		}
+		got, diags := metadataSystemTagsFromAPI(ctx, &tags)
+		require.False(t, diags.HasError())
+		require.False(t, got.IsNull())
+
+		var m map[string]string
+		diags2 := got.ElementsAs(ctx, &m, false)
+		require.False(t, diags2.HasError())
+		require.Equal(t, map[string]string{
+			"managed-by": "terraform",
+			"_foo":       "bar",
+		}, m)
+	})
 }

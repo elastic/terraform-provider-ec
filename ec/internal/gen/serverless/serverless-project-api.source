@@ -1,0 +1,9 @@
+# Source tracking for the vendored Serverless API spec.
+#
+# This file records the upstream gitref used to produce serverless-project-api-dereferenced.yml.
+# It is read by scripts/update-serverless-spec.sh when refreshing the spec.
+#
+# renovate: datasource=git-refs depName=serverless-api-specification packageName=https://github.com/elastic/serverless-api-specification currentValue=main
+source: https://github.com/elastic/serverless-api-specification
+path:   specifications/generated/production/public-user-serverless-api-dereferenced.yml
+ref:    059c09ac14f19a861a87f2611d0d6e60fa43a08f
