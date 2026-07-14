@@ -430,7 +430,6 @@ func testCheckLinkedProject(resourceName, targetResourceName, targetType string)
 }
 
 func testAccElasticsearchProjectDestroy(s *terraform.State) error {
-	// retrieve the connection established in Provider configuration
 	client, err := newServerlessAPI()
 	if err != nil {
 		return err
@@ -441,19 +440,22 @@ func testAccElasticsearchProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		res, err := client.GetElasticsearchProjectWithResponse(context.Background(), rs.Primary.ID)
-
-		// The resource will only exist if it can be obtained via the API and
-		// the metadata status is not set to hidden. Currently ESS clients
-		// cannot delete a deployment, so even when it's been shut down it will
-		// show up on the GET call.
-		if err == nil && res.JSON200 != nil {
-			res, err := client.DeleteElasticsearchProjectWithResponse(context.Background(), rs.Primary.ID, nil)
-			if err != nil && res.StatusCode() == 200 {
-				return nil
-			}
-
-			return fmt.Errorf("elasticsearch project [%s] still exists", rs.Primary.ID)
+		if err := assertServerlessProjectDeleted(
+			func(ctx context.Context, id string) (bool, error) {
+				res, err := client.GetElasticsearchProjectWithResponse(ctx, id)
+				if err != nil {
+					return false, err
+				}
+				return res.JSON200 != nil, nil
+			},
+			func(ctx context.Context, id string) error {
+				res, err := client.DeleteElasticsearchProjectWithResponse(ctx, id, nil)
+				return deleteServerlessProjectResponse(res, err)
+			},
+			"elasticsearch project",
+			rs.Primary.ID,
+		); err != nil {
+			return err
 		}
 	}
 
