@@ -1,0 +1,101 @@
+name: Update NOTICE for Renovate PRs
+
+# Regenerates NOTICE on Renovate dependency PRs and commits the result onto the
+# PR branch.
+#
+# Why a Vault-minted token instead of the default GITHUB_TOKEN?
+# A push authenticated with the default GITHUB_TOKEN does NOT re-trigger required
+# checks (GitHub's anti-recursion rule), so the NOTICE commit would leave the PR
+# stuck on stale checks and block automerge. This workflow mints a short-lived,
+# contents:write-scoped token via Vault OIDC (elastic/ci-gh-actions/fetch-github-token);
+# a commit made with it is treated like a normal actor and DOES re-trigger checks.
+#
+# This replaces the abandoned Renovate `postUpgradeTasks` approach, which required
+# allowlisting `make notice` in elastic/renovate-workflows-base — frozen by InfoSec.
+#
+# Prerequisite: the Vault TokenPolicy `token-policy-terraform-provider-ec-notice`
+# (elastic/catalog-info) must be merged and realized. Its OIDC bound claim pins
+# this workflow to `.github/workflows/renovate-notice.yml@refs/heads/renovate/*`,
+# so the file path and the `renovate/` branch scope below must not change.
+#
+# Follows the current elastic/mcp-gateway reference workflow
+# (.github/workflows/renovate-helm-docs.yml), which evolved past PR #78's original
+# git-push approach to commit via the Contents API — verified, correctly authored
+# as the vault bot, and with no hardcoded git identity to keep in sync.
+
+on:
+  pull_request:
+    # Only dependency PRs affect NOTICE, so scope to go module changes.
+    paths:
+      - go.mod
+      - go.sum
+    types: [opened, synchronize, reopened]
+
+# One NOTICE-regen run per PR at a time; a newer push supersedes the older run.
+concurrency:
+  group: renovate-notice-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write # required for Vault OIDC auth to mint the ephemeral token
+  contents: read  # the write happens via the Vault-minted token, not GITHUB_TOKEN
+
+jobs:
+  update-notice:
+    name: Update NOTICE
+    runs-on: ubuntu-latest
+    # Only act on Renovate's own PRs.
+    if: github.event.pull_request.user.login == 'elastic-renovate-prod[bot]'
+    steps:
+      # Mint a short-lived GitHub token from Vault via the workflow's own OIDC
+      # identity. Scope (contents:write, this repo, renovate/* branches) is defined
+      # by the TokenPolicy, not here.
+      - name: Fetch ephemeral GitHub token
+        id: fetch-token
+        uses: elastic/ci-gh-actions/fetch-github-token@2feb1c6f5086cf8e06f61ef35e275abed3456f7b # v1.5.3
+        with:
+          vault-instance: "ci-prod"
+
+      - name: Check out PR branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          # Check out with the Vault-minted token so the fix-up commit is authored by
+          # the vault bot and therefore re-triggers required checks + automerge.
+          token: ${{ steps.fetch-token.outputs.token }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      # Renovate's `gomodTidy` postUpdateOption already keeps go.mod/go.sum tidy;
+      # we only need the module cache populated so `go list -m -json all` resolves.
+      - name: Download Go modules
+        run: go mod download
+
+      - name: Regenerate NOTICE
+        run: make notice
+
+      - name: Commit NOTICE if changed
+        env:
+          GH_TOKEN: ${{ steps.fetch-token.outputs.token }}
+        run: |
+          if git diff --quiet -- NOTICE; then
+            echo "NOTICE is up-to-date, nothing to commit"
+            exit 0
+          fi
+          # Commit via the Contents API (not git commit) so GitHub marks it as a
+          # verified commit. Verified bot signatures only apply to API-created
+          # commits with no custom author/committer info, so leave those unset —
+          # GitHub authors the commit as the vault bot
+          # (150874479+elastic-vault-github-plugin-prod[bot]@users.noreply.github.com),
+          # which is exactly the identity `gitIgnoredAuthors` in renovate.json lists.
+          gh api --method PUT "repos/${{ github.repository }}/contents/NOTICE" \
+            -f message="Update NOTICE for dependency changes" \
+            -F content=@<(base64 -w0 NOTICE) \
+            -f branch="${{ github.event.pull_request.head.ref }}" \
+            -f sha="$(git rev-parse HEAD:NOTICE)"
+          # The Contents API commit re-triggers this workflow; that run finds NOTICE
+          # up-to-date and exits without committing, so there's no loop.
