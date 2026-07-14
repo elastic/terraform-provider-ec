@@ -96,6 +96,14 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 		plan.PrivateEndpoints = resource_elasticsearch_project.NewPrivateEndpointsValueUnknown()
 	}
 
+	// system_tags includes _alias, which is derived from the project alias/name.
+	// When either changes, system_tags must be recomputed by Read rather than
+	// preserved from state, otherwise the stale _alias causes an inconsistent
+	// result after apply.
+	if cloudIDIsUnknown && !plan.Metadata.IsUnknown() && !plan.Metadata.IsNull() {
+		plan.Metadata.SystemTags = types.MapUnknown(types.StringType)
+	}
+
 	return plan
 }
 
