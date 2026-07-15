@@ -70,13 +70,17 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
 
-      # Renovate's `gomodTidy` postUpdateOption already keeps go.mod/go.sum tidy;
-      # we only need the module cache populated so `go list -m -json all` resolves.
-      - name: Download Go modules
-        run: go mod download
-
+      # Regenerate NOTICE the same way the required go.yml check does: tidy with this
+      # repo's Go toolchain (so our NOTICE can't diverge from what CI recomputes if
+      # Renovate's tidy differs), then make notice. `make notice` builds go-licence-detector
+      # on demand via the go.mod tool directive. (go-licenser, which make vendor also runs,
+      # only writes .go source headers and is unrelated to NOTICE, so it is intentionally
+      # not run here.) We commit only NOTICE.
       - name: Regenerate NOTICE
-        run: make notice
+        run: |
+          go mod download
+          go mod tidy
+          make notice
 
       - name: Commit NOTICE if changed
         env:
