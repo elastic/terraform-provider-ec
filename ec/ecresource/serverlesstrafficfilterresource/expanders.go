@@ -100,8 +100,9 @@ func expandRules(ctx context.Context, rulesList types.List, diags *diag.Diagnost
 
 	rules := make([]serverless.TrafficFilterRule, 0, len(rulesValues))
 	for _, rv := range rulesValues {
+		source := rv.Source.ValueString()
 		rule := serverless.TrafficFilterRule{
-			Source: rv.Source.ValueString(),
+			Source: &source,
 		}
 		if !rv.Description.IsNull() && !rv.Description.IsUnknown() {
 			desc := rv.Description.ValueString()
@@ -148,10 +149,14 @@ func flattenRules(ctx context.Context, rules []serverless.TrafficFilterRule, dia
 		if rule.Description != nil {
 			desc = basetypes.NewStringValue(*rule.Description)
 		}
+		source := basetypes.NewStringNull()
+		if rule.Source != nil {
+			source = basetypes.NewStringValue(*rule.Source)
+		}
 		rv, d := resource_serverless_traffic_filter.NewRulesValue(
 			resource_serverless_traffic_filter.RulesValue{}.AttributeTypes(ctx),
 			map[string]attr.Value{
-				"source":      basetypes.NewStringValue(rule.Source),
+				"source":      source,
 				"description": desc,
 			},
 		)

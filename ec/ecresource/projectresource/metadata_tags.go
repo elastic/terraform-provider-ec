@@ -28,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -51,6 +52,15 @@ func patchMetadataSchema(resp *resource.SchemaResponse) {
 		sa.PlanModifiers = append(sa.PlanModifiers, stringplanmodifier.UseStateForUnknown())
 		metaAttr.Attributes[key] = sa
 	}
+
+	// system_tags is read-only and stable across updates; UseStateForUnknown
+	// keeps the prior state value in the plan to avoid spurious "known after
+	// apply" noise when an unrelated attribute changes.
+	if st, ok := metaAttr.Attributes["system_tags"].(schema.MapAttribute); ok {
+		st.PlanModifiers = append(st.PlanModifiers, mapplanmodifier.UseStateForUnknown())
+		metaAttr.Attributes["system_tags"] = st
+	}
+
 	resp.Schema.Attributes["metadata"] = metaAttr
 }
 
@@ -73,6 +83,18 @@ func patchMetadataTagsSchema(resp *resource.SchemaResponse) {
 	}
 	metaAttr.Attributes["tags"] = tagsAttr
 	resp.Schema.Attributes["metadata"] = metaAttr
+}
+
+func metadataSystemTagsFromAPI(ctx context.Context, tags *serverless.ProjectSystemTags) (basetypes.MapValue, diag.Diagnostics) {
+	if tags == nil || len(*tags) == 0 {
+		m, d := types.MapValue(types.StringType, map[string]attr.Value{})
+		return m, d
+	}
+	elems := make(map[string]attr.Value, len(*tags))
+	for k, v := range *tags {
+		elems[k] = basetypes.NewStringValue(v)
+	}
+	return types.MapValue(types.StringType, elems)
 }
 
 func metadataTagsFromAPI(ctx context.Context, tags *serverless.ProjectTags) (basetypes.MapValue, diag.Diagnostics) {
@@ -139,16 +161,15 @@ func optionalMetadataForTagPatch(ctx context.Context, planTags, stateTags basety
 	if maps.Equal(planMap, stateMap) {
 		return nil, diags
 	}
-	var wrapped map[string]interface{}
+	wrapped := make(serverless.ProjectPatchTags)
 	if len(planMap) == 0 && len(stateMap) > 0 {
-		wrapped = make(map[string]interface{}, len(stateMap))
 		for k := range stateMap {
 			wrapped[k] = nil
 		}
 	} else {
-		wrapped = make(map[string]interface{}, len(planMap)+len(stateMap))
 		for k, v := range planMap {
-			wrapped[k] = v
+			value := v
+			wrapped[k] = &value
 		}
 		for k := range stateMap {
 			if _, ok := planMap[k]; !ok {
@@ -156,6 +177,6 @@ func optionalMetadataForTagPatch(ctx context.Context, planTags, stateTags basety
 			}
 		}
 	}
-	om := serverless.OptionalMetadata{"tags": wrapped}
+	om := serverless.OptionalMetadata{Tags: wrapped}
 	return &om, diags
 }

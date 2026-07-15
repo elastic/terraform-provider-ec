@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/ecdatasource/deploymenttemplates"
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
+	"github.com/elastic/terraform-provider-ec/ec/internal/serverlesshttp"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -336,7 +337,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	serverlessClient, err := serverless.NewClientWithResponses(
 		cfg.Host,
-		serverless.WithHTTPClient(cfg.Client),
+		serverless.WithHTTPClient(&http.Client{
+			Transport: serverlesshttp.New(serverlesshttp.WithNext(cfg.Client.Transport)),
+		}),
 		serverless.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 			cfg.AuthWriter.AuthRequest(req)
 			return nil

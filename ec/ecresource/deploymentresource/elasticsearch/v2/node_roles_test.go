@@ -161,3 +161,66 @@ func Test_UseNodeRoles(t *testing.T) {
 		})
 	}
 }
+
+func Test_ValidateRollingZoneUpgrade(t *testing.T) {
+	makeObj := func(strategy *string) types.Object {
+		var obj types.Object
+		diags := tfsdk.ValueFrom(context.Background(), Elasticsearch{Strategy: strategy}, ElasticsearchSchema().GetType(), &obj)
+		if diags.HasError() {
+			t.Fatalf("failed to build elasticsearch object: %v", diags)
+		}
+		return obj
+	}
+
+	rollingZone := strategyRollingZone
+	rollingAll := strategyRollingAll
+
+	tests := []struct {
+		name         string
+		stateVersion string
+		planVersion  string
+		strategy     *string
+		wantError    bool
+	}{
+		{
+			name:         "rolling_zone on minor upgrade is allowed",
+			stateVersion: "8.14.0", planVersion: "8.15.0",
+			strategy: &rollingZone, wantError: false,
+		},
+		{
+			name:         "rolling_zone on major upgrade is rejected",
+			stateVersion: "8.15.0", planVersion: "9.0.0",
+			strategy: &rollingZone, wantError: true,
+		},
+		{
+			name:         "rolling_all on major upgrade is allowed",
+			stateVersion: "8.15.0", planVersion: "9.0.0",
+			strategy: &rollingAll, wantError: false,
+		},
+		{
+			name:         "nil strategy on major upgrade is allowed",
+			stateVersion: "8.15.0", planVersion: "9.0.0",
+			strategy: nil, wantError: false,
+		},
+		{
+			name:         "empty stateVersion (new deployment) is a no-op",
+			stateVersion: "", planVersion: "9.0.0",
+			strategy: &rollingZone, wantError: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			diags := ValidateRollingZoneUpgrade(
+				context.Background(),
+				types.StringValue(tt.stateVersion),
+				types.StringValue(tt.planVersion),
+				makeObj(tt.strategy),
+			)
+			if tt.wantError {
+				assert.True(t, diags.HasError(), "expected an error diagnostic")
+			} else {
+				assert.False(t, diags.HasError(), "expected no error diagnostic, got: %v", diags)
+			}
+		})
+	}
+}

@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_security_project"
@@ -78,9 +77,10 @@ func (sec securityModelReader) GetID(model resource_security_project.SecurityPro
 func (sec securityModelReader) Modify(plan resource_security_project.SecurityProjectModel, state resource_security_project.SecurityProjectModel, cfg resource_security_project.SecurityProjectModel) resource_security_project.SecurityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
-	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
 	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
+	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
 	plan.SearchLake = useStateForUnknown(plan.SearchLake, state.SearchLake)
+	plan.Linked = useStateForUnknownOrNull(plan.Linked, state.Linked, resource_security_project.NewLinkedValueNull())
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
 	aliasIsConfigured := util.IsKnown(cfg.Alias)
@@ -90,17 +90,25 @@ func (sec securityModelReader) Modify(plan resource_security_project.SecurityPro
 	aliasIsUnknown := nameHasChanged && !aliasIsConfigured
 	endpointsAreUnknown := aliasHasChanged || (!aliasIsConfigured && nameHasChanged)
 
-	if cloudIDIsUnknown {
-		plan.CloudId = basetypes.NewStringUnknown()
-	}
-
 	if aliasIsUnknown {
 		plan.Alias = basetypes.NewStringUnknown()
+	}
+
+	if cloudIDIsUnknown {
+		plan.CloudId = basetypes.NewStringUnknown()
 	}
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_security_project.NewEndpointsValueUnknown()
 		plan.PrivateEndpoints = resource_security_project.NewPrivateEndpointsValueUnknown()
+	}
+
+	// system_tags includes _alias, which is derived from the project alias/name.
+	// When either changes, system_tags must be recomputed by Read rather than
+	// preserved from state, otherwise the stale _alias causes an inconsistent
+	// result after apply.
+	if cloudIDIsUnknown && !plan.Metadata.IsUnknown() && !plan.Metadata.IsNull() {
+		plan.Metadata.SystemTags = types.MapUnknown(types.StringType)
 	}
 
 	return plan
@@ -163,6 +171,7 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 	}
 
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
+	createBody.Linked = expandLinkedForCreateSecurity(model)
 
 	resp, err := sec.client.CreateSecurityProjectWithResponse(ctx, createBody)
 	if err != nil {
@@ -193,6 +202,13 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 		},
 	)
 	model.Credentials = creds
+
+	linked, linkedDiags := flattenSecurityLinked(ctx, resp.JSON201.Linked)
+	if linkedDiags.HasError() {
+		return model, linkedDiags
+	}
+	model.Linked = linked
+
 	return model, diags
 }
 
@@ -220,6 +236,7 @@ func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_
 	}
 
 	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
+	updateBody.Linked = expandLinkedForPatchSecurity(plan, state)
 
 	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
@@ -244,33 +261,17 @@ func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_
 }
 
 func (sec securityApi) EnsureInitialised(ctx context.Context, model resource_security_project.SecurityProjectModel) diag.Diagnostics {
-	id := model.Id.ValueString()
-	for {
+	return waitForProjectInitialised(ctx, contextualSleep, func(ctx context.Context, id string) (serverless.ProjectStatusPhase, error) {
 		resp, err := sec.client.GetSecurityProjectStatusWithResponse(ctx, id)
 		if err != nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(err.Error(), err.Error()),
-			}
+			return "", err
 		}
-
 		if resp.JSON200 == nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Failed to get security_project status",
-					fmt.Sprintf("The API request failed with: %d %s\n%s",
-						resp.StatusCode(),
-						resp.Status(),
-						resp.Body),
-				),
-			}
+			return "", fmt.Errorf("failed to get security_project status: %d %s\n%s",
+				resp.StatusCode(), resp.Status(), resp.Body)
 		}
-
-		if resp.JSON200.Phase == serverless.Initialized {
-			return nil
-		}
-
-		sec.sleeper.Sleep(200 * time.Millisecond)
-	}
+		return resp.JSON200.Phase, nil
+	}, model.Id.ValueString())
 }
 
 func (sec securityApi) Read(ctx context.Context, id string, model resource_security_project.SecurityProjectModel) (bool, resource_security_project.SecurityProjectModel, diag.Diagnostics) {
@@ -332,6 +333,12 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	}
 	metadataValues["tags"] = tagsVal
 
+	systemTagsVal, systemTagsDiags := metadataSystemTagsFromAPI(ctx, resp.JSON200.Metadata.SystemTags)
+	if systemTagsDiags.HasError() {
+		return false, model, systemTagsDiags
+	}
+	metadataValues["system_tags"] = systemTagsVal
+
 	metadata, diags := resource_security_project.NewMetadataValue(
 		model.Metadata.AttributeTypes(ctx),
 		metadataValues,
@@ -340,6 +347,12 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 		return false, model, diags
 	}
 	model.Metadata = metadata
+
+	linked, linkedDiags := flattenSecurityLinked(ctx, resp.JSON200.Linked)
+	if linkedDiags.HasError() {
+		return false, model, linkedDiags
+	}
+	model.Linked = linked
 
 	if resp.JSON200.PrivateEndpoints != nil {
 		privateEP, peDiags := resource_security_project.NewPrivateEndpointsValue(
@@ -477,4 +490,91 @@ func (sec securityApi) Delete(ctx context.Context, model resource_security_proje
 	}
 
 	return nil
+}
+
+func flattenSecurityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_security_project.LinkedValue, diag.Diagnostics) {
+	if linked == nil || len(linked.Projects) == 0 {
+		return resource_security_project.NewLinkedValueNull(), nil
+	}
+
+	projectsMap := make(map[string]attr.Value, len(linked.Projects))
+	statusesMap := make(map[string]attr.Value, len(linked.Projects))
+	for projectID, project := range linked.Projects {
+		pv, projectDiags := resource_security_project.NewProjectsValue(
+			resource_security_project.ProjectsValue{}.AttributeTypes(ctx),
+			map[string]attr.Value{
+				"type": basetypes.NewStringValue(string(project.Type)),
+			},
+		)
+		if projectDiags.HasError() {
+			return resource_security_project.NewLinkedValueUnknown(), projectDiags
+		}
+		projectsMap[projectID] = pv
+		statusesMap[projectID] = basetypes.NewStringValue(string(project.Status))
+	}
+
+	projects, projectsDiags := types.MapValue(resource_security_project.ProjectsValue{}.Type(ctx), projectsMap)
+	if projectsDiags.HasError() {
+		return resource_security_project.NewLinkedValueUnknown(), projectsDiags
+	}
+
+	statuses, statusesDiags := types.MapValue(types.StringType, statusesMap)
+	if statusesDiags.HasError() {
+		return resource_security_project.NewLinkedValueUnknown(), statusesDiags
+	}
+
+	typedLinked, linkedDiags := resource_security_project.NewLinkedValue(
+		resource_security_project.LinkedValue{}.AttributeTypes(ctx),
+		map[string]attr.Value{
+			"projects": projects,
+			"statuses": statuses,
+		},
+	)
+	if linkedDiags.HasError() {
+		return resource_security_project.NewLinkedValueUnknown(), linkedDiags
+	}
+
+	return typedLinked, nil
+}
+
+func expandLinkedForCreateSecurity(model resource_security_project.SecurityProjectModel) *serverless.CreateLinkedRequest {
+	if !util.IsKnown(model.Linked) || model.Linked.IsNull() || model.Linked.Projects.IsNull() {
+		return nil
+	}
+
+	projects := make(map[string]serverless.CreateLinkedProjectRequest, len(model.Linked.Projects.Elements()))
+	for projectID, v := range model.Linked.Projects.Elements() {
+		pv, ok := v.(resource_security_project.ProjectsValue)
+		if !ok {
+			continue
+		}
+		projects[projectID] = serverless.CreateLinkedProjectRequest{
+			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
+		}
+	}
+
+	if len(projects) == 0 {
+		return nil
+	}
+	return &serverless.CreateLinkedRequest{Projects: projects}
+}
+
+func expandLinkedForPatchSecurity(plan, state resource_security_project.SecurityProjectModel) *serverless.OptionalLinkConfiguration {
+	var planProjects, stateProjects basetypes.MapValue
+	if util.IsKnown(plan.Linked) && !plan.Linked.IsNull() {
+		planProjects = plan.Linked.Projects
+	}
+	if util.IsKnown(state.Linked) && !state.Linked.IsNull() {
+		stateProjects = state.Linked.Projects
+	}
+
+	return expandLinkedProjectsForPatch(planProjects, stateProjects, func(v attr.Value) *serverless.OptionalLinkedProject {
+		pv, ok := v.(resource_security_project.ProjectsValue)
+		if !ok {
+			return nil
+		}
+		return &serverless.OptionalLinkedProject{
+			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
+		}
+	})
 }
