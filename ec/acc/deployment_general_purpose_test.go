@@ -60,7 +60,7 @@ func TestAccDeployment_general_purpose(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch toplogy size and node count.
+				// Change hot size and zone counts.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.

@@ -63,7 +63,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 				),
 			},
 			{
-				// Add an APM resource size.
+				// Add integrations_server and increase kibana size.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// changed

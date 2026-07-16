@@ -58,7 +58,7 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				),
 			},
 			{
-				// Create a Compute Optimized deployment with the default settings.
+				// Migrate to the latest hardware for the CPU optimized template.
 				Config: migrateToLatestHwCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
