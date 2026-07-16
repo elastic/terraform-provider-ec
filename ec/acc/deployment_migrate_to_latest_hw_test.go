@@ -46,7 +46,7 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.m5d"), // it should contain custom IC
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
@@ -64,7 +64,7 @@ func TestAccDeployment_migrate_to_latest_hw(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpTemplate)),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", expectedHotIC), // it should contain the latest cpu opt IC
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),

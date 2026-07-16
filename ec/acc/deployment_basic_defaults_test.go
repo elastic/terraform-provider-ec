@@ -52,7 +52,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 				// Deployment Template and schema defaults.
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
@@ -68,7 +68,7 @@ func TestAccDeployment_basic_defaults_first(t *testing.T) {
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// changed
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
@@ -148,10 +148,10 @@ func TestAccDeployment_basic_defaults_hw(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.instance_configuration_id"),
-					// general purpose config set to 4g.
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "4g"),
+					// general purpose config set to 2g.
+					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size", "4g"),
+					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.warm.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
