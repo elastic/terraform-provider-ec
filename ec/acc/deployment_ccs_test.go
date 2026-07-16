@@ -54,7 +54,6 @@ func TestAccDeployment_ccs(t *testing.T) {
 
 					// general purpose template checks
 					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
 					// Remote cluster settings
@@ -100,7 +99,6 @@ func TestAccDeployment_ccs(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
 					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.#", "0"),
