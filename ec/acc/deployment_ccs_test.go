@@ -94,10 +94,9 @@ func TestAccDeployment_ccs(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch topology size and node count.
+				// Remove remote cluster (CCS) configuration.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Changes.
 					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
