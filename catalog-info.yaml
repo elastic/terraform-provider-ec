@@ -21,6 +21,8 @@ spec:
     spec:
       repository: elastic/terraform-provider-ec
       pipeline_file: ".buildkite/acceptance_pipeline.yml"
+      cancel_intermediate_builds: true
+      cancel_intermediate_builds_branch_filter: "!master"
       provider_settings:
         build_pull_request_forks: false
         build_pull_requests: true
