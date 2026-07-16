@@ -15,7 +15,7 @@
         "skip_target_branches": [ ],
         "skip_ci_on_only_changed": [
           "^docs/",
-          "^developer_docs/"
+          "^dev-docs/"
         ],
         "always_require_ci_on_changed": [ ]
       }
