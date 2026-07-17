@@ -14,10 +14,9 @@ generated from a single committed OpenAPI spec. Do **not** hand-edit any of thes
 The input is a **vendored** (committed), fully dereferenced OpenAPI file:
 
 - `ec/internal/gen/serverless/serverless-project-api-dereferenced.yml` — the spec itself.
-- `ec/internal/gen/serverless/serverless-project-api.source` — records where it came from: the
-  upstream repo ([`elastic/serverless-api-specification`](https://github.com/elastic/serverless-api-specification)),
-  the path within it, and the exact gitref. A `renovate:` annotation on that file lets Renovate bump
-  the ref automatically.
+- `ec/internal/gen/serverless/serverless-project-api.source` — records where the spec came from
+  (the upstream spec repo, the path within it, and the exact gitref); see that file for the
+  specifics.
 
 There is **no network fetch during generation**: `make gen` runs entirely against the committed
 `…-dereferenced.yml`, so regeneration is fully deterministic (an unchanged spec produces no diff).

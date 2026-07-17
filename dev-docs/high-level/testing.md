@@ -5,7 +5,7 @@ The cloud provider has two test tiers with very different cost and safety profil
 | Tier | Command | Credentials | Cost / duration | Safe to run locally? |
 |------|---------|-------------|-----------------|----------------------|
 | Unit | `make unit` (alias `make tests`) | none | seconds, free | Yes, always |
-| Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | up to ~2h, **real money** | **No — see warning below** |
+| Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | **real money**; full suite ~2h | Targeted cases: yes (encouraged pre-PR); full suite: no (CI) |
 
 Unlike the stack provider (`terraform-provider-elasticstack`), the cloud provider has
 **no local Docker stack**. Acceptance tests run against the **live Elastic Cloud API**, provisioning
@@ -26,12 +26,16 @@ and destroying real deployments and serverless projects. All test wiring lives i
 > **real Elastic Cloud deployments** against the live API. Runs can last up to ~2 hours
 > (`-timeout 120m`) and **cost real money**.
 
-> 🚫 **Agents must never run acceptance tests** — no `TF_ACC` in agentic workflows, and no
-> live-cloud credentials are exposed to agents; agents rely on the CI run instead of provisioning
-> paid infrastructure. The tests *are* run automatically for every PR, but by the dedicated
-> **Buildkite acceptance pipeline** (the GitHub Actions `go.yml` CI runs unit/lint/docs only), and a
-> human reviews the result. A maintainer may also run them locally when a change needs it — mind the
-> cost and `make sweep` any leftovers.
+> ✅ **Run targeted cases locally before a PR.** Running the one or two `TestAcc…` cases that cover
+> your change (see [Targeting a single test](#targeting-a-single-test)) is the expected pre-PR step —
+> it gives faster feedback and costs far less than triggering the full suite on every push. Clean up
+> with `make sweep` afterwards.
+>
+> 🚫 **Don't run the _full_ suite locally for routine iteration, and agents never run acceptance
+> tests at all** — no `TF_ACC` in agentic workflows and no live-cloud credentials are exposed to
+> agents. The full suite runs automatically for every PR on the dedicated **Buildkite acceptance
+> pipeline** (the GitHub Actions `go.yml` CI runs unit/lint/docs only), and a human reviews the
+> result.
 
 Gating and recipe (from `build/Makefile.test`):
 

@@ -1,9 +1,8 @@
 # Coding Standards
 
 This document outlines the coding standards and conventions used in the cloud provider
-(`terraform-provider-ec`). Unlike the stack provider (`terraform-provider-elasticstack`),
-this repository is **already 100% on the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugin/framework)** —
-there is no SDKv2 code and no migration in progress.
+(`terraform-provider-ec`), which is built entirely on the
+[terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugin/framework) (no SDKv2).
 
 For where code lives see [`./repo-structure.md`](./repo-structure.md); for day-to-day commands
 see [`./development-workflow.md`](./development-workflow.md).

@@ -10,14 +10,15 @@ The root `Makefile` just `include`s split fragments under `build/` (`Makefile.bu
 `.dev`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`; those
 fragments are the source of truth for exact behavior.
 
-> **Acceptance tests cost real money.** `make testacc` (and anything gated by `TF_ACC=1`) creates and
-> destroys **real, paid Elastic Cloud deployments** via `EC_API_KEY` and can run up to ~2 hours. They
-> run automatically for every PR on the **Buildkite acceptance pipeline** (a human reviews the
-> result), so you rarely need to run them yourself. If you do run them locally, mind the cost and
-> `make sweep` any leftovers; and **never run them from an agentic workflow** — agents rely on the
-> Buildkite run rather than provisioning paid infrastructure. See [`testing.md`](./testing.md).
-> `make unit` needs no credentials and is always safe. There is **no local Docker stack** for this
-> provider.
+> **Acceptance tests hit the real, paid Elastic Cloud API.** `make testacc` (anything gated by
+> `TF_ACC=1`) provisions and destroys real deployments/projects via `EC_API_KEY` and costs money.
+> **Before opening a PR, run the _targeted_ test(s) covering your change locally** —
+> `make testacc TEST_NAME='TestAccMyThing'` — for fast feedback, then `make sweep` any leftovers.
+> Don't run the **full** suite locally for routine iteration (~2 hours); the Buildkite acceptance
+> pipeline runs the full suite for every PR and a human reviews the result. **Agents never run
+> acceptance tests** — no live-cloud credentials are exposed to agentic workflows. See
+> [`testing.md`](./testing.md). `make unit` needs no credentials and is always safe. There is **no
+> local Docker stack** for this provider.
 
 ## Worth knowing (beyond `make help`)
 
@@ -50,8 +51,12 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 1. `make build` — regenerates code and compiles.
 2. `make lint` — Go + provider linters, license headers, docs check, `.tf` formatting.
 3. `make unit` — safe unit tests, no credentials.
-4. `make docs-generate` — only if you changed resource/data-source schemas or `examples/`.
-5. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
+4. Run the **targeted** acceptance test(s) covering your change —
+   `make testacc TEST_NAME='TestAcc…'` — then `make sweep` any leftovers. Skip if the change has no
+   runtime behavior (docs/config only).
+5. `make docs-generate` — only if you changed resource/data-source schemas or `examples/`.
+6. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
    [`contributing.md`](./contributing.md)).
 
-**Agents must not run `make testacc`.** Rely on the Buildkite acceptance run and human review instead.
+The **full** acceptance suite runs on Buildkite for every PR; run only the targeted cases locally,
+and note that **agents never run acceptance tests** at all.
