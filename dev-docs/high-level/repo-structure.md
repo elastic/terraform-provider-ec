@@ -17,7 +17,7 @@ the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugi
 | `main.go` | Provider entrypoint (`providerserver.Serve`). |
 | `ec/` | All provider code — resources, data sources, and internals (see below). |
 | `gen/` | `gen.go`, a small `go:generate` program that writes `ec/version.go` from the `Makefile` `VERSION`. |
-| `Makefile` + `build/` | The root `Makefile` just `include`s the split fragments under `build/` (`Makefile.build`, `.test`, `.dev`, `.deps`, `.lint`, `.format`, `.release`, `.version`). |
+| `Makefile` + `build/` | The root `Makefile` `include`s the split fragments under `build/` (`Makefile.build`, `.test`, `.dev`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`. |
 | `scripts/` | Helper scripts (changelog, version bump, `Makefile.help`, etc.). |
 | `templates/` + `docs/` | Doc **sources** (`templates/`) and the **generated** registry docs (`docs/`). See [`documentation.md`](./documentation.md). |
 | `examples/` | Example Terraform configs, also pulled into the generated docs. |

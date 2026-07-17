@@ -106,9 +106,10 @@ Run `make format` before committing and `make lint` to gate. Both are thin wrapp
   [`testify`](https://github.com/stretchr/testify) (`assert`/`require`) for assertions. Tests are
   colocated with the code they cover (e.g. `ec/internal/converters/convert_tags_test.go`).
 - Unit tests (`make unit`) need no credentials and are always safe to run.
-- **Acceptance tests hit the real, paid Elastic Cloud API**, take up to ~2 hours, and run out-of-band
-  on CI — do **not** run them locally or from an agentic workflow. There is no local Docker stack.
-  See [`./testing.md`](./testing.md) for the full contract.
+- **Acceptance tests hit the real, paid Elastic Cloud API** and cost money. Run the **targeted**
+  `TestAcc…` case(s) for your change locally before a PR; the **full** suite runs on Buildkite per
+  PR, and **agents never run acceptance tests**. There is no local Docker stack. See
+  [`./testing.md`](./testing.md) for the full contract.
 
 ## Changelog
 

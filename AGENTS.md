@@ -20,9 +20,10 @@ and related resources through the Elastic Cloud API.
 ## Testing note — acceptance tests hit the real, paid Elastic Cloud API
 
 - Acceptance tests (`make testacc`, and anything gated by `TF_ACC=1`) create and destroy **real
-  deployments** against the live Elastic Cloud API (`EC_API_KEY`), take up to ~2 hours, and cost
-  real money. **Do not run them locally or from an agentic workflow.** They run out-of-band on
-  Buildkite for each PR, and a human reviews the result. See [`testing.md`](./dev-docs/high-level/testing.md).
+  deployments** against the live Elastic Cloud API (`EC_API_KEY`) and cost real money. **Never run
+  acceptance tests from an agentic workflow** — no live-cloud credentials are exposed to agents. The
+  full suite runs on Buildkite per PR (a human reviews the result); a human working on a change
+  should run the targeted `TestAcc…` case(s) locally first. See [`testing.md`](./dev-docs/high-level/testing.md).
 - There is **no local Docker stack** for this provider (unlike the Elastic Stack provider). Unit
   tests (`make unit`) need no credentials and are always safe to run.
 

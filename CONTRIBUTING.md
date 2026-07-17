@@ -104,7 +104,7 @@ The categories recognized by `scripts/changelog.tmpl` are:
 | `release-note:enhancement` | ENHANCEMENTS |
 | `release-note:bug` | BUG FIXES |
 
-At release time these per-PR files are consolidated into `CHANGELOG.md` by `scripts/generate-changelog.sh` and then deleted.
+At release time these per-PR files are consolidated into `CHANGELOG.md` via `make changelog` (`scripts/generate-changelog.sh`); the consolidated fragment files are then removed as part of release prep.
 
 ## Setting up a dev environment
 
