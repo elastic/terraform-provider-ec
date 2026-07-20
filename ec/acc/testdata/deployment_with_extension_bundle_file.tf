@@ -19,6 +19,7 @@ resource "ec_deployment" "with_extension" {
 
   elasticsearch = {
     hot = {
+      size        = "2g"
       autoscaling = {}
     }
     extension = [{

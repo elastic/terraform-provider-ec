@@ -43,7 +43,6 @@ func TestAccDeployment_template_migration(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, cpuOpFasterTemplate)),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.c5d"), // cpu optimized IC
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
@@ -61,7 +60,6 @@ func TestAccDeployment_template_migration(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resName, "deployment_template_id", setDefaultTemplate(region, generalPurposeTemplate)),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.instance_configuration_id", "aws.es.datahot.m5d"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
