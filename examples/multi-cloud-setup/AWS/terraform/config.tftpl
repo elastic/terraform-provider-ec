@@ -1,0 +1,49 @@
+inputs:
+%{ for values in s3-sqs-objs ~}
+  - type: "s3-sqs"
+    id: "${values.arn}"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          elasticsearch_url: "${elasticsearch_url}"
+          username: "${elasticsearch_user}"
+          password: "${elasticsearch_password}"
+          es_datastream_name: "${values.datastream}"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+%{ endfor ~}
+  # - type: "sqs"
+  #   id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
+  #   outputs:
+  #     - type: "elasticsearch"
+  #       args:
+  #         elasticsearch_url: "${elasticsearch_url}"
+  #         username: "${elasticsearch_user}"
+  #         password: "${elasticsearch_password}"
+  #         es_datastream_name: "logs-generic-default"
+  #         batch_max_actions: 500
+  #         batch_max_bytes: 10485760
+  # - type: "kinesis-data-stream"
+  #   id: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
+  #   outputs:
+  #     - type: "elasticsearch"
+  #       args:
+  #         elasticsearch_url: "${elasticsearch_url}"
+  #         username: "${elasticsearch_user}"
+  #         password: "${elasticsearch_password}"
+  #         es_datastream_name: "logs-generic-default"
+  #         batch_max_actions: 500
+  #         batch_max_bytes: 10485760
+%{ for arn in cw-logs-objs ~}
+  - type: "cloudwatch-logs"
+    id: "${arn}"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          elasticsearch_url: "${elasticsearch_url}"
+          username: "${elasticsearch_user}"
+          password: "${elasticsearch_password}"
+          es_datastream_name: "logs-aws.cloudwatch_logs-esf"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+%{ endfor ~}

@@ -1,0 +1,1036 @@
+{
+    "name": "kubernetes",
+    "description": "Terraformed k8s integration",
+    "namespace": "default",
+    "policy_id": "${policy_id}",
+    "enabled": true,
+    "output_id": "",
+    "inputs": [
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "kubelet",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.container"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://$${env.NODE_NAME}:10250"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "add_resource_metadata_config": {
+                "value": "# add_resource_metadata:\n#   namespace:\n#     include_labels: [\"namespacelabel1\"]\n#   node:\n#     include_labels: [\"nodelabel2\"]\n#     include_annotations: [\"nodeannotation1\"]\n#   deployment: false\n",
+                "type": "yaml"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.node"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://$${env.NODE_NAME}:10250"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.pod"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://$${env.NODE_NAME}:10250"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              },
+              "add_resource_metadata_config": {
+                "value": "# add_resource_metadata:\n#   namespace:\n#     include_labels: [\"namespacelabel1\"]\n#   node:\n#     include_labels: [\"nodelabel2\"]\n#     include_annotations: [\"nodeannotation1\"]\n#   deployment: false\n",
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.system"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://$${env.NODE_NAME}:10250"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.volume"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://$${env.NODE_NAME}:10250"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "kube-state-metrics",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_container"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              },
+              "add_resource_metadata_config": {
+                "value": "# add_resource_metadata:\n#   namespace:\n#     include_labels: [\"namespacelabel1\"]\n#   node:\n#     include_labels: [\"nodelabel2\"]\n#     include_annotations: [\"nodeannotation1\"]\n#   deployment: false\n",
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_cronjob"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_daemonset"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_deployment"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_job"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_node"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_persistentvolume"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_persistentvolumeclaim"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_pod"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              },
+              "add_resource_metadata_config": {
+                "value": "# add_resource_metadata:\n#   namespace:\n#     include_labels: [\"namespacelabel1\"]\n#   node:\n#     include_labels: [\"nodelabel2\"]\n#     include_annotations: [\"nodeannotation1\"]\n#   deployment: false\n",
+                "type": "yaml"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_replicaset"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_resourcequota"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_service"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_statefulset"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          },
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.state_storageclass"
+            },
+            "vars": {
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "hosts": {
+                "value": [
+                  "kube-state-metrics:8080"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "node": {
+                "type": "text"
+              },
+              "namespace": {
+                "type": "text"
+              },
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "kube-apiserver",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.apiserver"
+            },
+            "vars": {
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://$${env.KUBERNETES_SERVICE_HOST}:$${env.KUBERNETES_SERVICE_PORT}"
+                ],
+                "type": "text"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              },
+              "period": {
+                "value": "30s",
+                "type": "text"
+              },
+              "ssl.certificate_authorities": {
+                "value": [
+                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                ],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "kube-proxy",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.proxy"
+            },
+            "vars": {
+              "hosts": {
+                "value": [
+                  "localhost:10249"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "kube-scheduler",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.scheduler"
+            },
+            "vars": {
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://0.0.0.0:10259"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "scheduler_label_key": {
+                "value": "component",
+                "type": "text"
+              },
+              "scheduler_label_value": {
+                "value": "kube-scheduler",
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "kube-controller-manager",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.controllermanager"
+            },
+            "vars": {
+              "bearer_token_file": {
+                "value": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                "type": "text"
+              },
+              "hosts": {
+                "value": [
+                  "https://0.0.0.0:10257"
+                ],
+                "type": "text"
+              },
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "ssl.verification_mode": {
+                "value": "none",
+                "type": "text"
+              },
+              "controller_manager_label_key": {
+                "value": "component",
+                "type": "text"
+              },
+              "controller_manager_label_value": {
+                "value": "kube-controller-manager",
+                "type": "text"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "kubernetes/metrics",
+        "policy_template": "events",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "metrics",
+              "dataset": "kubernetes.event"
+            },
+            "vars": {
+              "period": {
+                "value": "10s",
+                "type": "text"
+              },
+              "add_metadata": {
+                "value": true,
+                "type": "bool"
+              },
+              "skip_older": {
+                "value": true,
+                "type": "bool"
+              },
+              "leaderelection": {
+                "value": true,
+                "type": "bool"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "filestream",
+        "policy_template": "container-logs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "kubernetes.container_logs"
+            },
+            "vars": {
+              "paths": {
+                "value": [
+                  "/var/log/containers/*$${kubernetes.container.id}.log"
+                ],
+                "type": "text"
+              },
+              "symlinks": {
+                "value": true,
+                "type": "bool"
+              },
+              "containerParserStream": {
+                "value": "all",
+                "type": "text"
+              },
+              "containerParserFormat": {
+                "value": "auto",
+                "type": "text"
+              },
+              "additionalParsersConfig": {
+                "value": "# - ndjson:\n#     target: json\n#     ignore_decoding_error: true\n# - multiline:\n#     type: pattern\n#     pattern: '^\\['\n#     negate: true\n#     match: after\n",
+                "type": "yaml"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "filestream",
+        "policy_template": "audit-logs",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "kubernetes.audit_logs"
+            },
+            "vars": {
+              "paths": {
+                "value": [
+                  "/var/log/kubernetes/kube-apiserver-audit.log"
+                ],
+                "type": "text"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "package": {
+      "name": "kubernetes",
+      "title": "Kubernetes",
+      "version": "1.24.0"
+    }
+}
