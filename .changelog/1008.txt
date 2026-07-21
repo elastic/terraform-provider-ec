@@ -1,0 +1,3 @@
+```release-note:feature
+resource/ec_project: Add `linked` block for cross-project search linking (elasticsearch, observability, security projects) with a `projects` map and read-only `statuses` output
+```

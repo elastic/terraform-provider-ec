@@ -31,6 +31,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func strPtr(s string) *string { return &s }
+
 func TestFromTrafficFilterInfo(t *testing.T) {
 	ctx := context.Background()
 
@@ -46,12 +48,12 @@ func TestFromTrafficFilterInfo(t *testing.T) {
 				Name:             "test-filter",
 				Region:           "aws-us-east-1",
 				Type:             serverless.Ip,
-				Description:      new("Test description"),
+				Description:      strPtr("Test description"),
 				IncludeByDefault: false,
 				Rules: []serverless.TrafficFilterRule{
 					{
-						Source:      "192.168.1.0/24",
-						Description: new("Office network"),
+						Source:      strPtr("192.168.1.0/24"),
+						Description: strPtr("Office network"),
 					},
 				},
 			},
@@ -92,8 +94,8 @@ func TestFromTrafficFilterInfo(t *testing.T) {
 				Type:             serverless.Ip,
 				IncludeByDefault: false,
 				Rules: []serverless.TrafficFilterRule{
-					{Source: "10.0.0.0/8", Description: new("Internal")},
-					{Source: "172.16.0.0/12"},
+					{Source: strPtr("10.0.0.0/8"), Description: strPtr("Internal")},
+					{Source: strPtr("172.16.0.0/12")},
 				},
 			},
 			validate: func(t *testing.T, model resource_serverless_traffic_filter.ServerlessTrafficFilterModel) {
@@ -118,7 +120,7 @@ func TestToCreateRequest(t *testing.T) {
 
 	t.Run("full model", func(t *testing.T) {
 		rules := buildRulesList(ctx, t, []serverless.TrafficFilterRule{
-			{Source: "10.0.0.0/8", Description: new("Internal")},
+			{Source: strPtr("10.0.0.0/8"), Description: strPtr("Internal")},
 		})
 
 		model := resource_serverless_traffic_filter.ServerlessTrafficFilterModel{
@@ -143,7 +145,8 @@ func TestToCreateRequest(t *testing.T) {
 		assert.Equal(t, false, *req.IncludeByDefault)
 		require.NotNil(t, req.Rules)
 		assert.Len(t, *req.Rules, 1)
-		assert.Equal(t, "10.0.0.0/8", (*req.Rules)[0].Source)
+		require.NotNil(t, (*req.Rules)[0].Source)
+		assert.Equal(t, "10.0.0.0/8", *(*req.Rules)[0].Source)
 	})
 
 	t.Run("minimal model with null optional fields", func(t *testing.T) {
@@ -204,18 +207,20 @@ func TestExpandRules(t *testing.T) {
 
 	t.Run("converts rules with description", func(t *testing.T) {
 		rules := buildRulesList(ctx, t, []serverless.TrafficFilterRule{
-			{Source: "10.0.0.0/8", Description: new("Internal")},
-			{Source: "172.16.0.0/12"},
+			{Source: strPtr("10.0.0.0/8"), Description: strPtr("Internal")},
+			{Source: strPtr("172.16.0.0/12")},
 		})
 
 		var diags diag.Diagnostics
 		result := expandRules(ctx, rules, &diags)
 		require.False(t, diags.HasError())
 		require.Len(t, result, 2)
-		assert.Equal(t, "10.0.0.0/8", result[0].Source)
+		require.NotNil(t, result[0].Source)
+		assert.Equal(t, "10.0.0.0/8", *result[0].Source)
 		require.NotNil(t, result[0].Description)
 		assert.Equal(t, "Internal", *result[0].Description)
-		assert.Equal(t, "172.16.0.0/12", result[1].Source)
+		require.NotNil(t, result[1].Source)
+		assert.Equal(t, "172.16.0.0/12", *result[1].Source)
 		assert.Nil(t, result[1].Description)
 	})
 }
@@ -241,8 +246,8 @@ func TestFlattenRules(t *testing.T) {
 	t.Run("converts rules with and without description", func(t *testing.T) {
 		var diags diag.Diagnostics
 		result := flattenRules(ctx, []serverless.TrafficFilterRule{
-			{Source: "10.0.0.0/8", Description: new("Internal")},
-			{Source: "172.16.0.0/12"},
+			{Source: strPtr("10.0.0.0/8"), Description: strPtr("Internal")},
+			{Source: strPtr("172.16.0.0/12")},
 		}, &diags)
 		require.False(t, diags.HasError())
 		assert.Equal(t, 2, len(result.Elements()))
@@ -259,10 +264,14 @@ func buildRulesList(ctx context.Context, t *testing.T, apiRules []serverless.Tra
 		if rule.Description != nil {
 			desc = basetypes.NewStringValue(*rule.Description)
 		}
+		source := basetypes.NewStringNull()
+		if rule.Source != nil {
+			source = basetypes.NewStringValue(*rule.Source)
+		}
 		rv, d := resource_serverless_traffic_filter.NewRulesValue(
 			resource_serverless_traffic_filter.RulesValue{}.AttributeTypes(ctx),
 			map[string]attr.Value{
-				"source":      basetypes.NewStringValue(rule.Source),
+				"source":      source,
 				"description": desc,
 			},
 		)

@@ -2486,6 +2486,80 @@ func Test_writeElasticsearch(t *testing.T) {
 			}),
 		},
 		{
+			name: "parse rolling_zone (zone-by-zone) configuration strategy",
+			args: args{
+				esPlan: Elasticsearch{
+					RefId:      new("main-elasticsearch"),
+					ResourceId: new(mock.ValidClusterID),
+					Region:     new("some-region"),
+					HotTier: &ElasticsearchTopology{
+						id:        "hot_content",
+						Size:      new("2g"),
+						ZoneCount: 3,
+					},
+					Strategy: new("rolling_zone"),
+				},
+				updatePayloads: testutil.UpdatePayloadsFromTemplate(t, "../../testdata/template-aws-io-optimized-v2.json"),
+				templateID:     "aws-io-optimized-v2",
+				version:        "7.7.0",
+				useNodeRoles:   false,
+			},
+			want: EnrichWithEmptyTopologies(tp770(), &models.ElasticsearchPayload{
+				Region: new("some-region"),
+				RefID:  new("main-elasticsearch"),
+				Settings: &models.ElasticsearchClusterSettings{
+					DedicatedMastersThreshold: 6,
+				},
+				Plan: &models.ElasticsearchClusterPlan{
+					AutoscalingEnabled: new(false),
+					Elasticsearch: &models.ElasticsearchConfiguration{
+						Version: "7.7.0",
+					},
+					DeploymentTemplate: &models.DeploymentTemplateReference{
+						ID: new("aws-io-optimized-v2"),
+					},
+					ClusterTopology: []*models.ElasticsearchClusterTopologyElement{
+						{
+							ID:                      "hot_content",
+							ZoneCount:               3,
+							InstanceConfigurationID: "aws.data.highio.i3",
+							Size: &models.TopologySize{
+								Resource: new("memory"),
+								Value:    ec.Int32(2048),
+							},
+							NodeType: &models.ElasticsearchNodeType{
+								Data:   new(true),
+								Ingest: new(true),
+								Master: new(true),
+							},
+							Elasticsearch: &models.ElasticsearchConfiguration{
+								NodeAttributes: map[string]string{
+									"data": "hot",
+								},
+							},
+							TopologyElementControl: &models.TopologyElementControl{
+								Min: &models.TopologySize{
+									Resource: new("memory"),
+									Value:    ec.Int32(1024),
+								},
+							},
+							AutoscalingMax: &models.TopologySize{
+								Value:    ec.Int32(118784),
+								Resource: new("memory"),
+							},
+						},
+					},
+					Transient: &models.TransientElasticsearchPlanConfiguration{
+						Strategy: &models.PlanStrategy{
+							Rolling: &models.RollingStrategyConfig{
+								GroupBy: "logical_zone_name",
+							},
+						},
+					},
+				},
+			}),
+		},
+		{
 			name: "parses an ES resource with keystore entries",
 			args: args{
 				esPlan: Elasticsearch{

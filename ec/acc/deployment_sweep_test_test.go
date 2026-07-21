@@ -32,9 +32,9 @@ func Test_staleDeployment(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "hour old deployment is not stale",
+			name: "deployment younger than stale window is not stale",
 			args: args{
-				lastModified: time.Now().Add(-time.Minute * 59),
+				lastModified: time.Now().Add(-deploymentStaleAfter + time.Minute),
 			},
 		},
 		{
@@ -44,9 +44,9 @@ func Test_staleDeployment(t *testing.T) {
 			},
 		},
 		{
-			name: "hour old+ deployment is stale",
+			name: "deployment older than stale window is stale",
 			args: args{
-				lastModified: time.Now().Add(-time.Minute * 62),
+				lastModified: time.Now().Add(-deploymentStaleAfter - time.Minute*2),
 			},
 			want: true,
 		},

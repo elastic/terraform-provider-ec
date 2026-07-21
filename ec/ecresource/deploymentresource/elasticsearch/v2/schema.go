@@ -46,11 +46,13 @@ const (
 	strategyGrowAndShrink        = "grow_and_shrink"
 	strategyRollingGrowAndShrink = "rolling_grow_and_shrink"
 	strategyRollingAll           = "rolling_all"
+	strategyRollingZone          = "rolling_zone"
 )
 
 // List of update strategies availables.
 var strategiesList = []string{
 	strategyAutodetect, strategyGrowAndShrink, strategyRollingGrowAndShrink, strategyRollingAll,
+	strategyRollingZone,
 }
 
 func ElasticsearchSchema() schema.Attribute {
@@ -149,9 +151,12 @@ func ElasticsearchSchema() schema.Attribute {
 			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": schema.StringAttribute{
-				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
-				Optional:    true,
-				Validators:  []validator.String{stringvalidator.OneOf(strategiesList...)},
+				Description: "Configuration strategy type " + strings.Join(strategiesList, ", ") +
+					". ~> **Note on behavior** `rolling_zone` cannot be used for major version upgrades." +
+					" Set `strategy = \"rolling_all\"` when upgrading across a major version boundary" +
+					" (the API requires `group_by: __all__`).",
+				Optional:   true,
+				Validators: []validator.String{stringvalidator.OneOf(strategiesList...)},
 			},
 
 			"keystore_contents": keystoreContentsSchema(),
