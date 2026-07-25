@@ -12,6 +12,7 @@ resource "ec_deployment" "cpu_optimized" {
 
   elasticsearch = {
     hot = {
+      size        = "2g"
       autoscaling = {}
     }
   }

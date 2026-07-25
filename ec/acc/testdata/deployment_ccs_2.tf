@@ -11,7 +11,7 @@ resource "ec_deployment" "general_purpose" {
 
   elasticsearch = {
     hot = {
-      size        = "4g"
+      size        = "2g"
       autoscaling = {}
     }
   }

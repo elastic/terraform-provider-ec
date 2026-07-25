@@ -11,6 +11,7 @@ resource "ec_deployment" "observability_tpl" {
 
   elasticsearch = {
     hot = {
+      size        = "2g"
       autoscaling = {}
     }
   }
