@@ -1,0 +1,8 @@
+
+.vs/slnx.sqlite
+*.tfstate
+*.backup
+terraform/*.tfstate
+terraform/.terraform
+*.hcl
+local_env
