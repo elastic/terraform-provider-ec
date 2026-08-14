@@ -327,6 +327,11 @@ func elasticsearchStrategyPayload(strategy types.String, payload *models.Elastic
 		payload.Transient.Strategy.Rolling = &models.RollingStrategyConfig{
 			GroupBy: "__all__",
 		}
+	case strategyRollingZone:
+		createModelIfNeeded()
+		payload.Transient.Strategy.Rolling = &models.RollingStrategyConfig{
+			GroupBy: "logical_zone_name",
+		}
 	}
 }
 

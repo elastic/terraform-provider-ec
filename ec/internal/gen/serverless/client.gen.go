@@ -107,6 +107,27 @@ func (e ElasticsearchProjectCreatedType) Valid() bool {
 	}
 }
 
+// Defines values for LinkedProjectStatus.
+const (
+	LinkedProjectStatusDeleted   LinkedProjectStatus = "deleted"
+	LinkedProjectStatusEnabled   LinkedProjectStatus = "enabled"
+	LinkedProjectStatusSuspended LinkedProjectStatus = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the LinkedProjectStatus enum.
+func (e LinkedProjectStatus) Valid() bool {
+	switch e {
+	case LinkedProjectStatusDeleted:
+		return true
+	case LinkedProjectStatusEnabled:
+		return true
+	case LinkedProjectStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ObservabilityProjectType.
 const (
 	ObservabilityProjectTypeObservability ObservabilityProjectType = "observability"
@@ -175,25 +196,25 @@ func (e OptionalSecurityAdminFeaturesPackage) Valid() bool {
 
 // Defines values for ProjectStatusPhase.
 const (
-	Deleting     ProjectStatusPhase = "deleting"
-	Initialized  ProjectStatusPhase = "initialized"
-	Initializing ProjectStatusPhase = "initializing"
-	Suspended    ProjectStatusPhase = "suspended"
-	Suspending   ProjectStatusPhase = "suspending"
+	ProjectStatusPhaseDeleting     ProjectStatusPhase = "deleting"
+	ProjectStatusPhaseInitialized  ProjectStatusPhase = "initialized"
+	ProjectStatusPhaseInitializing ProjectStatusPhase = "initializing"
+	ProjectStatusPhaseSuspended    ProjectStatusPhase = "suspended"
+	ProjectStatusPhaseSuspending   ProjectStatusPhase = "suspending"
 )
 
 // Valid indicates whether the value is a known member of the ProjectStatusPhase enum.
 func (e ProjectStatusPhase) Valid() bool {
 	switch e {
-	case Deleting:
+	case ProjectStatusPhaseDeleting:
 		return true
-	case Initialized:
+	case ProjectStatusPhaseInitialized:
 		return true
-	case Initializing:
+	case ProjectStatusPhaseInitializing:
 		return true
-	case Suspended:
+	case ProjectStatusPhaseSuspended:
 		return true
-	case Suspending:
+	case ProjectStatusPhaseSuspending:
 		return true
 	default:
 		return false
@@ -205,6 +226,7 @@ const (
 	ProjectTypeElasticsearch ProjectType = "elasticsearch"
 	ProjectTypeObservability ProjectType = "observability"
 	ProjectTypeSecurity      ProjectType = "security"
+	ProjectTypeVectorDB      ProjectType = "vectordb"
 	ProjectTypeWorkplaceAI   ProjectType = "workplaceai"
 )
 
@@ -216,6 +238,8 @@ func (e ProjectType) Valid() bool {
 	case ProjectTypeObservability:
 		return true
 	case ProjectTypeSecurity:
+		return true
+	case ProjectTypeVectorDB:
 		return true
 	case ProjectTypeWorkplaceAI:
 		return true
@@ -313,14 +337,17 @@ func (e SecurityProjectCreatedType) Valid() bool {
 
 // Defines values for TrafficFilterType.
 const (
-	Ip   TrafficFilterType = "ip"
-	Vpce TrafficFilterType = "vpce"
+	Ip              TrafficFilterType = "ip"
+	PrivateEndpoint TrafficFilterType = "private_endpoint"
+	Vpce            TrafficFilterType = "vpce"
 )
 
 // Valid indicates whether the value is a known member of the TrafficFilterType enum.
 func (e TrafficFilterType) Valid() bool {
 	switch e {
 	case Ip:
+		return true
+	case PrivateEndpoint:
 		return true
 	case Vpce:
 		return true
@@ -352,6 +379,9 @@ type CreateElasticsearchProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
 
+	// Linked Configuration for linked projects associated with this project
+	Linked *CreateLinkedRequest `json:"linked,omitempty"`
+
 	// Metadata Metadata request for a project with tags.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
@@ -374,10 +404,24 @@ type CreateElasticsearchProjectRequest struct {
 	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
 }
 
+// CreateLinkedProjectRequest Details of the linked project
+type CreateLinkedProjectRequest struct {
+	// Type The type of the linked project
+	Type ProjectType `json:"type"`
+}
+
+// CreateLinkedRequest Configuration for linked projects associated with this project
+type CreateLinkedRequest struct {
+	Projects map[string]CreateLinkedProjectRequest `json:"projects"`
+}
+
 // CreateObservabilityProjectRequest A request to create an Observability project.
 type CreateObservabilityProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Linked Configuration for linked projects associated with this project
+	Linked *CreateLinkedRequest `json:"linked,omitempty"`
 
 	// Metadata Metadata request for a project with tags.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
@@ -385,7 +429,7 @@ type CreateObservabilityProjectRequest struct {
 	// Name Descriptive name for a project.
 	Name ProjectName `json:"name"`
 
-	// ProductTier the tier of the observability project
+	// ProductTier the tier of the observability project. The default is "complete" when not specified at creation time.
 	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
@@ -402,6 +446,9 @@ type CreateSecurityProjectRequest struct {
 
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Linked Configuration for linked projects associated with this project
+	Linked *CreateLinkedRequest `json:"linked,omitempty"`
 
 	// Metadata Metadata request for a project with tags.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
@@ -485,6 +532,9 @@ type ElasticsearchProject struct {
 	// Id ID of the project.
 	Id ProjectID `json:"id"`
 
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
+
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
 
@@ -532,6 +582,9 @@ type ElasticsearchProjectCreated struct {
 
 	// Id ID of the project.
 	Id ProjectID `json:"id"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
 
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
@@ -610,6 +663,11 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+// LinkConfiguration Configuration for projects linked to this project
+type LinkConfiguration struct {
+	Projects map[string]LinkedProject `json:"projects"`
+}
+
 // LinkedCandidateProject defines model for LinkedCandidateProject.
 type LinkedCandidateProject struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
@@ -628,7 +686,7 @@ type LinkedCandidateProject struct {
 	// Region Unique human-readable identifier for a region in Elastic Cloud.
 	Region RegionID `json:"region"`
 
-	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
 	Tags ProjectTags `json:"tags"`
 
 	// Type The type of the linked project
@@ -640,6 +698,18 @@ type LinkedCandidatesList struct {
 	// Items The linked candidates.
 	Items []LinkedCandidateProject `json:"items"`
 }
+
+// LinkedProject defines model for LinkedProject.
+type LinkedProject struct {
+	// Status The state of the linked project.
+	Status LinkedProjectStatus `json:"status"`
+
+	// Type The type of the linked project
+	Type ProjectType `json:"type"`
+}
+
+// LinkedProjectStatus The state of the linked project.
+type LinkedProjectStatus string
 
 // MultiErrorResponse A non-empty list of errors.
 type MultiErrorResponse struct {
@@ -660,6 +730,9 @@ type ObservabilityProject struct {
 	// Id ID of the project.
 	Id ProjectID `json:"id"`
 
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
+
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
 
@@ -669,7 +742,7 @@ type ObservabilityProject struct {
 	// PrivateEndpoints Private endpoints (URLs) for Observability projects when PrivateLink is enabled.
 	PrivateEndpoints *ObservabilityProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
 
-	// ProductTier the tier of the observability project
+	// ProductTier the tier of the observability project. The default is "complete" when not specified at creation time.
 	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
@@ -702,6 +775,9 @@ type ObservabilityProjectCreated struct {
 	// Id ID of the project.
 	Id ProjectID `json:"id"`
 
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
+
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
 
@@ -711,7 +787,7 @@ type ObservabilityProjectCreated struct {
 	// PrivateEndpoints Private endpoints (URLs) for Observability projects when PrivateLink is enabled.
 	PrivateEndpoints *ObservabilityProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
 
-	// ProductTier the tier of the observability project
+	// ProductTier the tier of the observability project. The default is "complete" when not specified at creation time.
 	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 
 	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
@@ -767,7 +843,7 @@ type ObservabilityProjectPrivateEndpoints struct {
 	Kibana string `json:"kibana"`
 }
 
-// ObservabilityProjectProductTier the tier of the observability project
+// ObservabilityProjectProductTier the tier of the observability project. The default is "complete" when not specified at creation time.
 type ObservabilityProjectProductTier string
 
 // OptionalElasticsearchSearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
@@ -779,8 +855,22 @@ type OptionalElasticsearchSearchLake struct {
 	SearchPower *int `json:"search_power,omitempty"`
 }
 
+// OptionalLinkConfiguration Configuration for projects linked to this project
+type OptionalLinkConfiguration struct {
+	Projects *map[string]*OptionalLinkedProject `json:"projects,omitempty"`
+}
+
+// OptionalLinkedProject Details of the linked project
+type OptionalLinkedProject struct {
+	// Type The type of the linked project
+	Type ProjectType `json:"type"`
+}
+
 // OptionalMetadata Metadata about the project
-type OptionalMetadata = map[string]interface{}
+type OptionalMetadata struct {
+	// Tags Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.
+	Tags ProjectPatchTags `json:"tags"`
+}
 
 // OptionalSecurityAdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
 type OptionalSecurityAdminFeaturesPackage string
@@ -798,6 +888,9 @@ type OptionalTrafficFilters = []TrafficFilter
 type PatchElasticsearchProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *OptionalLinkConfiguration `json:"linked,omitempty"`
 
 	// Metadata Metadata about the project
 	Metadata *OptionalMetadata `json:"metadata,omitempty"`
@@ -817,13 +910,16 @@ type PatchObservabilityProjectRequest struct {
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
 
+	// Linked Configuration for projects linked to this project
+	Linked *OptionalLinkConfiguration `json:"linked,omitempty"`
+
 	// Metadata Metadata about the project
 	Metadata *OptionalMetadata `json:"metadata,omitempty"`
 
 	// Name Descriptive name for a project.
 	Name *ProjectName `json:"name,omitempty"`
 
-	// ProductTier the tier of the observability project
+	// ProductTier the tier of the observability project. The default is "complete" when not specified at creation time.
 	ProductTier *ObservabilityProjectProductTier `json:"product_tier,omitempty"`
 
 	// TrafficFilters traffic filters IDs
@@ -837,6 +933,9 @@ type PatchSecurityProjectRequest struct {
 
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
 	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *OptionalLinkConfiguration `json:"linked,omitempty"`
 
 	// Metadata Metadata about the project
 	Metadata *OptionalMetadata `json:"metadata,omitempty"`
@@ -902,18 +1001,24 @@ type ProjectMetadata struct {
 	// SuspendedReason Reason why the project was suspended.
 	SuspendedReason *string `json:"suspended_reason,omitempty"`
 
-	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+	// SystemTags System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags.
+	SystemTags *ProjectSystemTags `json:"system_tags,omitempty"`
+
+	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
 	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // ProjectMetadataRequest Metadata request for a project with tags.
 type ProjectMetadataRequest struct {
-	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
 	Tags ProjectTags `json:"tags"`
 }
 
 // ProjectName Descriptive name for a project.
 type ProjectName = string
+
+// ProjectPatchTags Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.
+type ProjectPatchTags map[string]*ProjectTagPatchValue
 
 // ProjectRole A role name for a particular project
 type ProjectRole = string
@@ -962,10 +1067,16 @@ type ProjectStatus struct {
 // - suspended: the project has been suspended. The project is not usable in this phase.
 type ProjectStatusPhase string
 
+// ProjectSystemTags System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags.
+type ProjectSystemTags map[string]ProjectTagValue
+
+// ProjectTagPatchValue defines model for ProjectTagPatchValue.
+type ProjectTagPatchValue = string
+
 // ProjectTagValue defines model for ProjectTagValue.
 type ProjectTagValue = string
 
-// ProjectTags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+// ProjectTags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
 type ProjectTags map[string]ProjectTagValue
 
 // ProjectType The type of the linked project
@@ -1030,6 +1141,9 @@ type SecurityProject struct {
 	// Id ID of the project.
 	Id ProjectID `json:"id"`
 
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
+
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
 
@@ -1075,6 +1189,9 @@ type SecurityProjectCreated struct {
 
 	// Id ID of the project.
 	Id ProjectID `json:"id"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
 
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
@@ -1194,19 +1311,34 @@ type TrafficFilterMetadata struct {
 
 // TrafficFilterRegionMetadata defines model for TrafficFilterRegionMetadata.
 type TrafficFilterRegionMetadata struct {
-	AvailabilityZones           []TrafficFilterAvailabilityZone `json:"availability_zones"`
-	PrivateHostedZoneDomainName string                          `json:"private_hosted_zone_domain_name"`
-	Region                      string                          `json:"region"`
-	VpcServiceName              string                          `json:"vpc_service_name"`
+	AvailabilityZones []TrafficFilterAvailabilityZone `json:"availability_zones"`
+
+	// Csp Cloud service provider (aws, azure, gcp)
+	Csp                         *string `json:"csp,omitempty"`
+	PrivateHostedZoneDomainName string  `json:"private_hosted_zone_domain_name"`
+
+	// PrivateServiceName CSP-agnostic service name. For AWS: VPC endpoint service name. For Azure: Private Link Service alias. For GCP: Service Attachment URI.
+	PrivateServiceName *string `json:"private_service_name,omitempty"`
+	Region             string  `json:"region"`
+
+	// VpcServiceName Deprecated. Use private_service_name instead. Kept for backward compatibility.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	VpcServiceName string `json:"vpc_service_name"`
 }
 
 // TrafficFilterRule The container for a traffic filter rule.
 type TrafficFilterRule struct {
+	// AzureEndpointGuid Resource GUID of the Azure Private Endpoint. Required for private_endpoint type.
+	AzureEndpointGuid *string `json:"azure_endpoint_guid,omitempty"`
+
+	// AzureEndpointName Name of the Azure Private Endpoint. Required for private_endpoint type.
+	AzureEndpointName *string `json:"azure_endpoint_name,omitempty"`
+
 	// Description Description of the rule.
 	Description *string `json:"description,omitempty"`
 
-	// Source Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID
-	Source string `json:"source"`
+	// Source Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID. Required for ip and vpce types.
+	Source *string `json:"source,omitempty"`
 }
 
 // TrafficFilterType Type of the traffic filter
@@ -1223,6 +1355,9 @@ type BadRequest = MultiErrorResponse
 
 // Conflict A non-empty list of errors.
 type Conflict = MultiErrorResponse
+
+// Forbidden A non-empty list of errors.
+type Forbidden = MultiErrorResponse
 
 // InternalServerError A non-empty list of errors.
 type InternalServerError = MultiErrorResponse
@@ -1252,6 +1387,9 @@ type ListElasticsearchProjectsParams struct {
 
 	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
 	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // DeleteElasticsearchProjectParams defines parameters for DeleteElasticsearchProject.
@@ -1280,8 +1418,8 @@ type ResumeElasticsearchProjectParams struct {
 
 // GetElasticsearchProjectLinkCandidatesParams defines parameters for GetElasticsearchProjectLinkCandidates.
 type GetElasticsearchProjectLinkCandidatesParams struct {
-	// Type The type of projects to return as link candidates.
-	Type *string `form:"type,omitempty" json:"type,omitempty"`
+	// Types One or more types of projects to return as link candidates.
+	Types *[]ProjectType `form:"types,omitempty" json:"types,omitempty"`
 
 	// Csp The Cloud Service Provider to filter the link candidate projects by.
 	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
@@ -1294,6 +1432,9 @@ type GetElasticsearchProjectLinkCandidatesParams struct {
 
 	// Alias The project alias to filter the link candidates by.
 	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // ListObservabilityProjectsParams defines parameters for ListObservabilityProjects.
@@ -1303,6 +1444,9 @@ type ListObservabilityProjectsParams struct {
 
 	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
 	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // DeleteObservabilityProjectParams defines parameters for DeleteObservabilityProject.
@@ -1331,8 +1475,8 @@ type ResumeObservabilityProjectParams struct {
 
 // GetObservabilityProjectLinkCandidatesParams defines parameters for GetObservabilityProjectLinkCandidates.
 type GetObservabilityProjectLinkCandidatesParams struct {
-	// Type The type of projects to return as link candidates.
-	Type *string `form:"type,omitempty" json:"type,omitempty"`
+	// Types One or more types of projects to return as link candidates.
+	Types *[]ProjectType `form:"types,omitempty" json:"types,omitempty"`
 
 	// Csp The Cloud Service Provider to filter the link candidate projects by.
 	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
@@ -1345,6 +1489,9 @@ type GetObservabilityProjectLinkCandidatesParams struct {
 
 	// Alias The project alias to filter the link candidates by.
 	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // ListSecurityProjectsParams defines parameters for ListSecurityProjects.
@@ -1354,6 +1501,9 @@ type ListSecurityProjectsParams struct {
 
 	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
 	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // DeleteSecurityProjectParams defines parameters for DeleteSecurityProject.
@@ -1382,8 +1532,8 @@ type ResumeSecurityProjectParams struct {
 
 // GetSecurityProjectLinkCandidatesParams defines parameters for GetSecurityProjectLinkCandidates.
 type GetSecurityProjectLinkCandidatesParams struct {
-	// Type The type of projects to return as link candidates.
-	Type *string `form:"type,omitempty" json:"type,omitempty"`
+	// Types One or more types of projects to return as link candidates.
+	Types *[]ProjectType `form:"types,omitempty" json:"types,omitempty"`
 
 	// Csp The Cloud Service Provider to filter the link candidate projects by.
 	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
@@ -1396,6 +1546,9 @@ type GetSecurityProjectLinkCandidatesParams struct {
 
 	// Alias The project alias to filter the link candidates by.
 	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // ListTrafficFiltersParams defines parameters for ListTrafficFilters.
@@ -1409,8 +1562,11 @@ type ListTrafficFiltersParams struct {
 
 // GetTrafficFilterMetadataParams defines parameters for GetTrafficFilterMetadata.
 type GetTrafficFilterMetadataParams struct {
-	// Region Filter metadata to a specific AWS region.
+	// Region Filter metadata to a specific region (e.g. aws-eu-west-1, azure-australiaeast).
 	Region *string `form:"region,omitempty" json:"region,omitempty"`
+
+	// Csp Filter metadata to a specific cloud service provider (aws, azure, gcp).
+	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
 }
 
 // CreateElasticsearchProjectJSONRequestBody defines body for CreateElasticsearchProject for application/json ContentType.
@@ -2292,6 +2448,22 @@ func NewListElasticsearchProjectsRequest(server string, params *ListElasticsearc
 
 		}
 
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
 	}
 
@@ -2649,9 +2821,9 @@ func NewGetElasticsearchProjectLinkCandidatesRequest(server string, id ProjectID
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Type != nil {
+		if params.Types != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "types", *params.Types, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2716,6 +2888,22 @@ func NewGetElasticsearchProjectLinkCandidatesRequest(server string, id ProjectID
 		if params.Alias != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -2849,6 +3037,22 @@ func NewListObservabilityProjectsRequest(server string, params *ListObservabilit
 		if params.Linked != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "linked", *params.Linked, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -3219,9 +3423,9 @@ func NewGetObservabilityProjectLinkCandidatesRequest(server string, id ProjectID
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Type != nil {
+		if params.Types != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "types", *params.Types, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -3286,6 +3490,22 @@ func NewGetObservabilityProjectLinkCandidatesRequest(server string, id ProjectID
 		if params.Alias != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -3419,6 +3639,22 @@ func NewListSecurityProjectsRequest(server string, params *ListSecurityProjectsP
 		if params.Linked != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "linked", *params.Linked, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -3789,9 +4025,9 @@ func NewGetSecurityProjectLinkCandidatesRequest(server string, id ProjectID, par
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Type != nil {
+		if params.Types != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "types", *params.Types, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -3856,6 +4092,22 @@ func NewGetSecurityProjectLinkCandidatesRequest(server string, id ProjectID, par
 		if params.Alias != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -4139,6 +4391,22 @@ func NewGetTrafficFilterMetadataRequest(server string, params *GetTrafficFilterM
 		if params.Region != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region", *params.Region, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Csp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "csp", *params.Csp, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -5368,6 +5636,7 @@ type DeleteTrafficFilterResponse struct {
 	HTTPResponse *http.Response
 	JSON400      *BadRequest
 	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON409      *Conflict
 	JSON500      *InternalServerError
@@ -7352,6 +7621,13 @@ func ParseDeleteTrafficFilterResponse(rsp *http.Response) (*DeleteTrafficFilterR
 			return nil, err
 		}
 		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound

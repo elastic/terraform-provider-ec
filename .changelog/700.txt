@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Validate that `user_settings_json`, `user_settings_override_json`, `user_settings_yaml`, and `user_settings_override_yaml` values are non-empty strings. Configuring these attributes as `""` previously caused a "Provider produced inconsistent result after apply" error; they now fail during planning with a clear validation error.
+```

@@ -70,10 +70,10 @@ func TestResourceRead(t *testing.T) {
 					Name:             "test-filter",
 					Region:           "aws-us-east-1",
 					Type:             serverless.Ip,
-					Description:      new("Test filter"),
+					Description:      strPtr("Test filter"),
 					IncludeByDefault: false,
 					Rules: []serverless.TrafficFilterRule{
-						{Source: "192.168.1.0/24", Description: new("Office")},
+						{Source: strPtr("192.168.1.0/24"), Description: strPtr("Office")},
 					},
 				},
 			}, nil)

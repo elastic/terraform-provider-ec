@@ -34,6 +34,7 @@ resource "ec_security_project" "my_project" {
 
 - `admin_features_package` (String) admin features package (BYOK, BYOIDP, CCS, CCR)
 - `alias` (String) A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+- `linked` (Attributes) Configuration for linked projects associated with this project (see [below for nested schema](#nestedatt--linked))
 - `metadata` (Attributes) Metadata request for a project with tags. (see [below for nested schema](#nestedatt--metadata))
 - `product_types` (Attributes List) (see [below for nested schema](#nestedatt--product_types))
 - `search_lake` (Attributes) Configuration for the entire set of capabilities that make the data searchable in Security. (see [below for nested schema](#nestedatt--search_lake))
@@ -48,12 +49,32 @@ resource "ec_security_project" "my_project" {
 - `private_endpoints` (Attributes) Private endpoints (URLs) for Security projects when PrivateLink is enabled. (see [below for nested schema](#nestedatt--private_endpoints))
 - `type` (String) the type of the project
 
+<a id="nestedatt--linked"></a>
+### Nested Schema for `linked`
+
+Required:
+
+- `projects` (Attributes Map) (see [below for nested schema](#nestedatt--linked--projects))
+
+Read-Only:
+
+- `statuses` (Map of String) Status of each linked project, keyed by project ID. Populated by the provider from the API.
+
+<a id="nestedatt--linked--projects"></a>
+### Nested Schema for `linked.projects`
+
+Required:
+
+- `type` (String) The type of the linked project
+
+
+
 <a id="nestedatt--metadata"></a>
 ### Nested Schema for `metadata`
 
 Optional:
 
-- `tags` (Map of String) Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.
+- `tags` (Map of String) Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
 
 Read-Only:
 
@@ -62,6 +83,7 @@ Read-Only:
 - `organization_id` (String) The Organization ID who owns the project.
 - `suspended_at` (String) Date and time when the project was suspended.
 - `suspended_reason` (String) Reason why the project was suspended.
+- `system_tags` (Map of String) System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags.
 
 
 <a id="nestedatt--product_types"></a>

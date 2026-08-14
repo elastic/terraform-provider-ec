@@ -18,6 +18,7 @@
 package acc
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -47,6 +48,31 @@ func TestAccDeployment_emptyconfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resName, "elasticsearch.config.%", "6"),
 					resource.TestCheckNoResourceAttr(resName, "elasticsearch.config.user_settings_yaml"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDeployment_empty_config_values(t *testing.T) {
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	startCfg := "testdata/deployment_empty_config_values.tf"
+
+	cfg := fixtureAccDeploymentResourceBasicWithApps(
+		t, startCfg, randomName, getRegion(), defaultTemplate,
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Regression test for https://github.com/elastic/terraform-provider-ec/issues/698.
+				// Empty user settings should be rejected with a clear validation error
+				// instead of causing a confusing "provider produced inconsistent result"
+				// error during apply.
+				Config:      cfg,
+				ExpectError: regexp.MustCompile(`Value must not be empty`),
 			},
 		},
 	})

@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/elastic/terraform-provider-ec/ec/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -45,11 +46,13 @@ const (
 	strategyGrowAndShrink        = "grow_and_shrink"
 	strategyRollingGrowAndShrink = "rolling_grow_and_shrink"
 	strategyRollingAll           = "rolling_all"
+	strategyRollingZone          = "rolling_zone"
 )
 
 // List of update strategies availables.
 var strategiesList = []string{
 	strategyAutodetect, strategyGrowAndShrink, strategyRollingGrowAndShrink, strategyRollingAll,
+	strategyRollingZone,
 }
 
 func ElasticsearchSchema() schema.Attribute {
@@ -148,9 +151,12 @@ func ElasticsearchSchema() schema.Attribute {
 			"extension": elasticsearchExtensionSchema(),
 
 			"strategy": schema.StringAttribute{
-				Description: "Configuration strategy type " + strings.Join(strategiesList, ", "),
-				Optional:    true,
-				Validators:  []validator.String{stringvalidator.OneOf(strategiesList...)},
+				Description: "Configuration strategy type " + strings.Join(strategiesList, ", ") +
+					". ~> **Note on behavior** `rolling_zone` cannot be used for major version upgrades." +
+					" Set `strategy = \"rolling_all\"` when upgrading across a major version boundary" +
+					" (the API requires `group_by: __all__`).",
+				Optional:   true,
+				Validators: []validator.String{stringvalidator.OneOf(strategiesList...)},
 			},
 
 			"keystore_contents": keystoreContentsSchema(),
@@ -203,18 +209,22 @@ func elasticsearchConfigSchema() schema.Attribute {
 			"user_settings_json": schema.StringAttribute{
 				Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 			"user_settings_override_json": schema.StringAttribute{
 				Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 			"user_settings_yaml": schema.StringAttribute{
 				Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 			"user_settings_override_yaml": schema.StringAttribute{
 				Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 				Optional:    true,
+				Validators:  []validator.String{validators.StringNotEmpty()},
 			},
 		},
 	}

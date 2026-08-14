@@ -5,14 +5,9 @@
   "postUpdateOptions": [
     "gomodTidy"
   ],
-  "postUpgradeTasks": {
-    "commands": [
-      "make notice"
-    ],
-    "fileFilters": [
-      "NOTICE"
-    ]
-  },
+  "gitIgnoredAuthors": [
+    "150874479+elastic-vault-github-plugin-prod[bot]@users.noreply.github.com"
+  ],
   "automerge": true,
   "automergeType": "pr",
   "packageRules": [

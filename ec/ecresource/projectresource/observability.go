@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_observability_project"
@@ -59,8 +58,12 @@ func (obs observabilityModelReader) GetID(model resource_observability_project.O
 func (obs observabilityModelReader) Modify(plan resource_observability_project.ObservabilityProjectModel, state resource_observability_project.ObservabilityProjectModel, cfg resource_observability_project.ObservabilityProjectModel) resource_observability_project.ObservabilityProjectModel {
 	plan.Credentials = useStateForUnknown(plan.Credentials, state.Credentials)
 	plan.Endpoints = useStateForUnknown(plan.Endpoints, state.Endpoints)
-	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
 	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
+	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
+	plan.Linked = useStateForUnknownOrNull(plan.Linked, state.Linked, resource_observability_project.NewLinkedValueNull())
+	if plan.ProductTier.IsUnknown() && !state.ProductTier.IsNull() {
+		plan.ProductTier = state.ProductTier
+	}
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
 	aliasIsConfigured := util.IsKnown(cfg.Alias)
@@ -70,17 +73,25 @@ func (obs observabilityModelReader) Modify(plan resource_observability_project.O
 	aliasIsUnknown := nameHasChanged && !aliasIsConfigured
 	endpointsAreUnknown := aliasHasChanged || (!aliasIsConfigured && nameHasChanged)
 
-	if cloudIDIsUnknown {
-		plan.CloudId = basetypes.NewStringUnknown()
-	}
-
 	if aliasIsUnknown {
 		plan.Alias = basetypes.NewStringUnknown()
+	}
+
+	if cloudIDIsUnknown {
+		plan.CloudId = basetypes.NewStringUnknown()
 	}
 
 	if endpointsAreUnknown {
 		plan.Endpoints = resource_observability_project.NewEndpointsValueUnknown()
 		plan.PrivateEndpoints = resource_observability_project.NewPrivateEndpointsValueUnknown()
+	}
+
+	// system_tags includes _alias, which is derived from the project alias/name.
+	// When either changes, system_tags must be recomputed by Read rather than
+	// preserved from state, otherwise the stale _alias causes an inconsistent
+	// result after apply.
+	if cloudIDIsUnknown && !plan.Metadata.IsUnknown() && !plan.Metadata.IsNull() {
+		plan.Metadata.SystemTags = types.MapUnknown(types.StringType)
 	}
 
 	return plan
@@ -127,6 +138,8 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 		}
 	}
 
+	createBody.Linked = expandLinkedForCreateObservability(model)
+
 	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
@@ -156,6 +169,19 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 		},
 	)
 	model.Credentials = creds
+
+	if resp.JSON201.ProductTier != nil {
+		model.ProductTier = basetypes.NewStringValue(string(*resp.JSON201.ProductTier))
+	} else if model.ProductTier.IsUnknown() {
+		model.ProductTier = basetypes.NewStringValue(string(serverless.ObservabilityProjectProductTierComplete))
+	}
+
+	linked, linkedDiags := flattenObservabilityLinked(ctx, resp.JSON201.Linked)
+	if linkedDiags.HasError() {
+		return model, linkedDiags
+	}
+	model.Linked = linked
+
 	return model, diags
 }
 
@@ -189,6 +215,8 @@ func (obs observabilityApi) Patch(ctx context.Context, plan, state resource_obse
 		}
 	}
 
+	updateBody.Linked = expandLinkedForPatchObservability(plan, state)
+
 	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
@@ -212,33 +240,17 @@ func (obs observabilityApi) Patch(ctx context.Context, plan, state resource_obse
 }
 
 func (obs observabilityApi) EnsureInitialised(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {
-	id := model.Id.ValueString()
-	for {
+	return waitForProjectInitialised(ctx, contextualSleep, func(ctx context.Context, id string) (serverless.ProjectStatusPhase, error) {
 		resp, err := obs.client.GetObservabilityProjectStatusWithResponse(ctx, id)
 		if err != nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(err.Error(), err.Error()),
-			}
+			return "", err
 		}
-
 		if resp.JSON200 == nil {
-			return diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Failed to get observability_project status",
-					fmt.Sprintf("The API request failed with: %d %s\n%s",
-						resp.StatusCode(),
-						resp.Status(),
-						resp.Body),
-				),
-			}
+			return "", fmt.Errorf("failed to get observability_project status: %d %s\n%s",
+				resp.StatusCode(), resp.Status(), resp.Body)
 		}
-
-		if resp.JSON200.Phase == serverless.Initialized {
-			return nil
-		}
-
-		obs.sleeper.Sleep(200 * time.Millisecond)
-	}
+		return resp.JSON200.Phase, nil
+	}, model.Id.ValueString())
 }
 
 func (obs observabilityApi) Read(ctx context.Context, id string, model resource_observability_project.ObservabilityProjectModel) (bool, resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
@@ -301,6 +313,12 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 	}
 	metadataValues["tags"] = tagsVal
 
+	systemTagsVal, systemTagsDiags := metadataSystemTagsFromAPI(ctx, resp.JSON200.Metadata.SystemTags)
+	if systemTagsDiags.HasError() {
+		return false, model, systemTagsDiags
+	}
+	metadataValues["system_tags"] = systemTagsVal
+
 	metadata, diags := resource_observability_project.NewMetadataValue(
 		model.Metadata.AttributeTypes(ctx),
 		metadataValues,
@@ -309,6 +327,12 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 		return false, model, diags
 	}
 	model.Metadata = metadata
+
+	linked, linkedDiags := flattenObservabilityLinked(ctx, resp.JSON200.Linked)
+	if linkedDiags.HasError() {
+		return false, model, linkedDiags
+	}
+	model.Linked = linked
 
 	if resp.JSON200.PrivateEndpoints != nil {
 		privateEP, peDiags := resource_observability_project.NewPrivateEndpointsValue(
@@ -365,4 +389,91 @@ func (obs observabilityApi) Delete(ctx context.Context, model resource_observabi
 	}
 
 	return nil
+}
+
+func flattenObservabilityLinked(ctx context.Context, linked *serverless.LinkConfiguration) (resource_observability_project.LinkedValue, diag.Diagnostics) {
+	if linked == nil || len(linked.Projects) == 0 {
+		return resource_observability_project.NewLinkedValueNull(), nil
+	}
+
+	projectsMap := make(map[string]attr.Value, len(linked.Projects))
+	statusesMap := make(map[string]attr.Value, len(linked.Projects))
+	for projectID, project := range linked.Projects {
+		pv, projectDiags := resource_observability_project.NewProjectsValue(
+			resource_observability_project.ProjectsValue{}.AttributeTypes(ctx),
+			map[string]attr.Value{
+				"type": basetypes.NewStringValue(string(project.Type)),
+			},
+		)
+		if projectDiags.HasError() {
+			return resource_observability_project.NewLinkedValueUnknown(), projectDiags
+		}
+		projectsMap[projectID] = pv
+		statusesMap[projectID] = basetypes.NewStringValue(string(project.Status))
+	}
+
+	projects, projectsDiags := types.MapValue(resource_observability_project.ProjectsValue{}.Type(ctx), projectsMap)
+	if projectsDiags.HasError() {
+		return resource_observability_project.NewLinkedValueUnknown(), projectsDiags
+	}
+
+	statuses, statusesDiags := types.MapValue(types.StringType, statusesMap)
+	if statusesDiags.HasError() {
+		return resource_observability_project.NewLinkedValueUnknown(), statusesDiags
+	}
+
+	typedLinked, linkedDiags := resource_observability_project.NewLinkedValue(
+		resource_observability_project.LinkedValue{}.AttributeTypes(ctx),
+		map[string]attr.Value{
+			"projects": projects,
+			"statuses": statuses,
+		},
+	)
+	if linkedDiags.HasError() {
+		return resource_observability_project.NewLinkedValueUnknown(), linkedDiags
+	}
+
+	return typedLinked, nil
+}
+
+func expandLinkedForCreateObservability(model resource_observability_project.ObservabilityProjectModel) *serverless.CreateLinkedRequest {
+	if !util.IsKnown(model.Linked) || model.Linked.IsNull() || model.Linked.Projects.IsNull() {
+		return nil
+	}
+
+	projects := make(map[string]serverless.CreateLinkedProjectRequest, len(model.Linked.Projects.Elements()))
+	for projectID, v := range model.Linked.Projects.Elements() {
+		pv, ok := v.(resource_observability_project.ProjectsValue)
+		if !ok {
+			continue
+		}
+		projects[projectID] = serverless.CreateLinkedProjectRequest{
+			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
+		}
+	}
+
+	if len(projects) == 0 {
+		return nil
+	}
+	return &serverless.CreateLinkedRequest{Projects: projects}
+}
+
+func expandLinkedForPatchObservability(plan, state resource_observability_project.ObservabilityProjectModel) *serverless.OptionalLinkConfiguration {
+	var planProjects, stateProjects basetypes.MapValue
+	if util.IsKnown(plan.Linked) && !plan.Linked.IsNull() {
+		planProjects = plan.Linked.Projects
+	}
+	if util.IsKnown(state.Linked) && !state.Linked.IsNull() {
+		stateProjects = state.Linked.Projects
+	}
+
+	return expandLinkedProjectsForPatch(planProjects, stateProjects, func(v attr.Value) *serverless.OptionalLinkedProject {
+		pv, ok := v.(resource_observability_project.ProjectsValue)
+		if !ok {
+			return nil
+		}
+		return &serverless.OptionalLinkedProject{
+			Type: serverless.ProjectType(pv.ProjectsType.ValueString()),
+		}
+	})
 }

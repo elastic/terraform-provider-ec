@@ -22,6 +22,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/deptemplateapi"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	deploymentv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
+	elasticsearchv2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/elasticsearch/v2"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -50,6 +51,14 @@ func (r Resource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest
 	}
 
 	UpdateDedicatedMasterTier(ctx, req.Config, req.Plan, req.Private, resp, loadTemplate)
+
+	if !req.State.Raw.IsNull() {
+		var state deploymentv2.DeploymentTF
+		resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+		if !resp.Diagnostics.HasError() {
+			resp.Diagnostics.Append(elasticsearchv2.ValidateRollingZoneUpgrade(ctx, state.Version, plan.Version, plan.Elasticsearch)...)
+		}
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}

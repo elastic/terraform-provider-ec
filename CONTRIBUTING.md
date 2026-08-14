@@ -7,6 +7,7 @@ Contributions are very welcome, these can include documentation, bug reports, is
   - [Code Contribution Guidelines](#code-contribution-guidelines)
     - [Workflow](#workflow)
     - [Commit Messages](#commit-messages)
+    - [Changelog](#changelog)
   - [Setting up a dev environment](#setting-up-a-dev-environment)
     - [Environment prerequisites](#environment-prerequisites)
   - [Development](#development)
@@ -43,7 +44,7 @@ For the benefit of all and to maintain consistency, we have come up with some si
   
   - Ensure that [unit](#unit) and [acceptance](#acceptance) tests succeed with `make unit testacc`.
 
-  - After you've opened your Pull request and have a PR number, make sure to generate a changelog entry, [See example entries](https://github.com/elastic/terraform-provider-ec/tree/95e7f5c7fe6795163aff1118a7f7add44e23de50/.changelog).
+  - After you've opened your Pull request and have a PR number, add a changelog entry for any user-facing change — see [Changelog](#changelog) below.
   
   - Use the provided PR template, and assign any labels which may fit your PR.
   
@@ -77,6 +78,33 @@ Completes the `ec_deployment` markdown document with all of the fields.
 
 Closes #1234
 ```
+
+### Changelog
+
+Every user-facing change needs a changelog entry in its PR. Add one file per PR at `.changelog/{PR}.txt`, where `{PR}` is the pull request number; this repo uses HashiCorp's [go-changelog](https://github.com/hashicorp/go-changelog) format. Each file holds one or more fenced blocks tagged with a category, for example:
+
+````
+```release-note:bug
+resource/ec_deployment_traffic_filter: Fix "Provider produced inconsistent result after apply" when renaming a traffic filter
+```
+````
+
+Skip the file for changes that aren't user-facing (CI-only tweaks, dependency bumps, internal refactors).
+
+The categories recognized by `scripts/changelog.tmpl` are:
+
+| Category | Consolidated heading |
+| --- | --- |
+| `release-note:breaking-change` | BREAKING CHANGES |
+| `release-note:note` | NOTES |
+| `release-note:feature` | FEATURES |
+| `release-note:new-resource` | FEATURES |
+| `release-note:new-data-source` | FEATURES |
+| `release-note:new-guide` | FEATURES |
+| `release-note:enhancement` | ENHANCEMENTS |
+| `release-note:bug` | BUG FIXES |
+
+At release time these per-PR files are consolidated into `CHANGELOG.md` via `make changelog` (`scripts/generate-changelog.sh`); the consolidated fragment files are then removed as part of release prep.
 
 ## Setting up a dev environment
 

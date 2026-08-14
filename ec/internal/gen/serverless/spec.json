@@ -40,6 +40,63 @@
 						}
 					},
 					{
+						"name": "linked",
+						"single_nested": {
+							"computed_optional_required": "computed_optional",
+							"attributes": [
+								{
+									"name": "projects",
+									"map_nested": {
+										"computed_optional_required": "required",
+										"nested_object": {
+											"attributes": [
+												{
+													"name": "type",
+													"string": {
+														"computed_optional_required": "required",
+														"description": "The type of the linked project",
+														"validators": [
+															{
+																"custom": {
+																	"imports": [
+																		{
+																			"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+																		}
+																	],
+																	"schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"workplaceai\",\n\"vectordb\",\n)"
+																}
+															}
+														]
+													}
+												},
+												{
+													"name": "status",
+													"string": {
+														"computed_optional_required": "computed",
+														"description": "The state of the linked project."
+													}
+												}
+											]
+										},
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+														}
+													],
+													"schema_definition": "mapvalidator.SizeAtLeast(1)"
+												}
+											}
+										]
+									}
+								}
+							],
+							"description": "Configuration for linked projects associated with this project"
+						}
+					},
+					{
 						"name": "metadata",
 						"single_nested": {
 							"computed_optional_required": "computed_optional",
@@ -51,7 +108,7 @@
 										"element_type": {
 											"string": {}
 										},
-										"description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+										"description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.",
 										"validators": [
 											{
 												"custom": {
@@ -99,6 +156,16 @@
 									"string": {
 										"computed_optional_required": "computed",
 										"description": "Reason why the project was suspended."
+									}
+								},
+								{
+									"name": "system_tags",
+									"map": {
+										"computed_optional_required": "computed",
+										"element_type": {
+											"string": {}
+										},
+										"description": "System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags."
 									}
 								}
 							],
@@ -346,6 +413,63 @@
 						}
 					},
 					{
+						"name": "linked",
+						"single_nested": {
+							"computed_optional_required": "computed_optional",
+							"attributes": [
+								{
+									"name": "projects",
+									"map_nested": {
+										"computed_optional_required": "required",
+										"nested_object": {
+											"attributes": [
+												{
+													"name": "type",
+													"string": {
+														"computed_optional_required": "required",
+														"description": "The type of the linked project",
+														"validators": [
+															{
+																"custom": {
+																	"imports": [
+																		{
+																			"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+																		}
+																	],
+																	"schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"workplaceai\",\n\"vectordb\",\n)"
+																}
+															}
+														]
+													}
+												},
+												{
+													"name": "status",
+													"string": {
+														"computed_optional_required": "computed",
+														"description": "The state of the linked project."
+													}
+												}
+											]
+										},
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+														}
+													],
+													"schema_definition": "mapvalidator.SizeAtLeast(1)"
+												}
+											}
+										]
+									}
+								}
+							],
+							"description": "Configuration for linked projects associated with this project"
+						}
+					},
+					{
 						"name": "metadata",
 						"single_nested": {
 							"computed_optional_required": "computed_optional",
@@ -357,7 +481,7 @@
 										"element_type": {
 											"string": {}
 										},
-										"description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+										"description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.",
 										"validators": [
 											{
 												"custom": {
@@ -406,6 +530,16 @@
 										"computed_optional_required": "computed",
 										"description": "Reason why the project was suspended."
 									}
+								},
+								{
+									"name": "system_tags",
+									"map": {
+										"computed_optional_required": "computed",
+										"element_type": {
+											"string": {}
+										},
+										"description": "System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags."
+									}
 								}
 							],
 							"description": "Metadata request for a project with tags."
@@ -434,10 +568,7 @@
 						"name": "product_tier",
 						"string": {
 							"computed_optional_required": "computed_optional",
-							"default": {
-								"static": "complete"
-							},
-							"description": "the tier of the observability project",
+							"description": "the tier of the observability project. The default is \"complete\" when not specified at creation time.",
 							"validators": [
 								{
 									"custom": {
@@ -655,6 +786,63 @@
 						}
 					},
 					{
+						"name": "linked",
+						"single_nested": {
+							"computed_optional_required": "computed_optional",
+							"attributes": [
+								{
+									"name": "projects",
+									"map_nested": {
+										"computed_optional_required": "required",
+										"nested_object": {
+											"attributes": [
+												{
+													"name": "type",
+													"string": {
+														"computed_optional_required": "required",
+														"description": "The type of the linked project",
+														"validators": [
+															{
+																"custom": {
+																	"imports": [
+																		{
+																			"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+																		}
+																	],
+																	"schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"workplaceai\",\n\"vectordb\",\n)"
+																}
+															}
+														]
+													}
+												},
+												{
+													"name": "status",
+													"string": {
+														"computed_optional_required": "computed",
+														"description": "The state of the linked project."
+													}
+												}
+											]
+										},
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+														}
+													],
+													"schema_definition": "mapvalidator.SizeAtLeast(1)"
+												}
+											}
+										]
+									}
+								}
+							],
+							"description": "Configuration for linked projects associated with this project"
+						}
+					},
+					{
 						"name": "metadata",
 						"single_nested": {
 							"computed_optional_required": "computed_optional",
@@ -666,7 +854,7 @@
 										"element_type": {
 											"string": {}
 										},
-										"description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64. A tag key can contain only alphanumerics, underscores, and hyphens.",
+										"description": "Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.",
 										"validators": [
 											{
 												"custom": {
@@ -714,6 +902,16 @@
 									"string": {
 										"computed_optional_required": "computed",
 										"description": "Reason why the project was suspended."
+									}
+								},
+								{
+									"name": "system_tags",
+									"map": {
+										"computed_optional_required": "computed",
+										"element_type": {
+											"string": {}
+										},
+										"description": "System tags associated with a project in the form of key-value pairs. These tags are added by the internal system and are read-only. The keys are prefixed with an underscore to differentiate them from user tags."
 									}
 								}
 							],

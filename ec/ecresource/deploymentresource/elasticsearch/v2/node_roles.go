@@ -184,3 +184,43 @@ func useStateAndNodeRolesInPlanModifiers(ctx context.Context, configValue attr.V
 
 	return true, useNodeRoles, nil
 }
+
+// ValidateRollingZoneUpgrade returns an error diagnostic if the rolling_zone strategy is set
+// during a major version upgrade. The Elastic Cloud API requires group_by: __all__ for major
+// upgrades; silently rewriting the strategy would cause a plan/state mismatch.
+func ValidateRollingZoneUpgrade(ctx context.Context, stateVersion, planVersion types.String, planElasticsearch types.Object) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if stateVersion.IsNull() || stateVersion.IsUnknown() || planVersion.IsNull() || planVersion.IsUnknown() {
+		return diags
+	}
+
+	oldVersion, err := semver.Parse(stateVersion.ValueString())
+	if err != nil {
+		return diags
+	}
+	newVersion, err := semver.Parse(planVersion.ValueString())
+	if err != nil {
+		return diags
+	}
+
+	if oldVersion.Major == newVersion.Major {
+		return diags
+	}
+
+	var es *ElasticsearchTF
+	diags.Append(tfsdk.ValueAs(ctx, planElasticsearch, &es)...)
+	if diags.HasError() || es == nil {
+		return diags
+	}
+
+	if es.Strategy.ValueString() == strategyRollingZone {
+		diags.AddAttributeError(
+			path.Root("elasticsearch").AtName("strategy"),
+			"Invalid strategy for major version upgrade",
+			"`rolling_zone` cannot be used for major version upgrades. Set `strategy = \"rolling_all\"` when upgrading across a major version boundary (the API requires `group_by: __all__`).",
+		)
+	}
+
+	return diags
+}

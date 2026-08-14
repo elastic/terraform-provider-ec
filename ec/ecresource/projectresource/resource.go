@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless/resource_elasticsearch_project"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -138,4 +139,16 @@ func useStateForUnknown[T basetypes.ObjectValuable](planValue T, stateValue T) T
 	}
 
 	return planValue
+}
+
+func useStateForUnknownOrNull[T attr.Value](planValue T, stateValue T, nullValue T) T {
+	if !planValue.IsUnknown() {
+		return planValue
+	}
+
+	if !stateValue.IsNull() && !stateValue.IsUnknown() {
+		return stateValue
+	}
+
+	return nullValue
 }
