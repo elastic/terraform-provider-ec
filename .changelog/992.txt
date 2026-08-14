@@ -1,0 +1,3 @@
+```release-note:bug
+resource/traffic_filter: Fix "Provider produced inconsistent result after apply" when renaming a traffic filter — rule IDs are now correctly marked as unknown during plan when the filter name changes
+```
