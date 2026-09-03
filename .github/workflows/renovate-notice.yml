@@ -57,7 +57,7 @@ jobs:
           vault-instance: "ci-prod"
 
       - name: Check out PR branch
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           # Check out with the Vault-minted token so the fix-up commit is authored by
