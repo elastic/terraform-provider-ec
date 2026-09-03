@@ -233,6 +233,8 @@ func newSampleStack(t *testing.T) modelV0 {
 
 func Test_stackFromFilters(t *testing.T) {
 	var stackPacks = []*models.StackVersionConfig{
+		{Version: "8.19.21"},
+		{Version: "8.19.2"},
 		{Version: "7.9.1"},
 		{Version: "7.9.0"},
 		{Version: "7.8.1"},
@@ -256,6 +258,11 @@ func Test_stackFromFilters(t *testing.T) {
 			want: &models.StackVersionConfig{Version: "7.9.0"},
 		},
 		{
+			name: "returns the stack pack without greedy regex",
+			args: args{expr: "8.19.2", stacks: stackPacks},
+			want: &models.StackVersionConfig{Version: "8.19.2"},
+		},
+		{
 			name: "returns the stack pack with patch regex",
 			args: args{expr: "7.8.?", stacks: stackPacks},
 			want: &models.StackVersionConfig{Version: "7.8.1"},
@@ -263,7 +270,7 @@ func Test_stackFromFilters(t *testing.T) {
 		{
 			name: "returns the latest stackpack",
 			args: args{expr: "latest", stacks: stackPacks},
-			want: &models.StackVersionConfig{Version: "7.9.1"},
+			want: &models.StackVersionConfig{Version: "8.19.21"},
 		},
 		{
 			name: "returns the latest stackpack with a locked version",
@@ -274,6 +281,14 @@ func Test_stackFromFilters(t *testing.T) {
 				version: "7.8.1",
 			},
 			want: &models.StackVersionConfig{Version: "7.8.1"},
+		},
+		{
+			name: "returns specific stackpack with strict regex",
+			args: args{
+				expr:   "^8.19.2$",
+				stacks: stackPacks,
+			},
+			want: &models.StackVersionConfig{Version: "8.19.2"},
 		},
 		{
 			name: "returns an error when the expression doesn't match the stackpack",
