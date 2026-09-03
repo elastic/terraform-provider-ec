@@ -68,14 +68,16 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
+	re, _ := regexp.Compile("\\^?[0-9]\\.[0-9]*\\.[0-9]*\\$?")
 	res, err := stackapi.List(stackapi.ListParams{
-		API:    d.client,
-		Region: newState.Region.ValueString(),
+		API:     d.client,
+		Region:  newState.Region.ValueString(),
+		Deleted: re.MatchString(newState.VersionRegex.ValueString()),
 	})
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Failed retrieving the specified stack version",
-			fmt.Sprintf("Failed retrieving the specified stack version: %s", err),
+			"Failed retrieving stack version list",
+			fmt.Sprintf("Failed retrieving stack version list: %s", err),
 		)
 		return
 	}
@@ -130,7 +132,7 @@ func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *
 	return diagnostics
 }
 
-func stackFromFilters(expr, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
+func stackFromFilters(expr string, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
 	if expr == "latest" && locked && version != "" {
 		expr = version
 	}
@@ -139,7 +141,7 @@ func stackFromFilters(expr, version string, locked bool, stacks []*models.StackV
 		return stacks[0], nil
 	}
 
-	re, err := regexp.Compile(expr)
+	re, err := regexp.Compile(`(?:` + expr + `)\b`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile the version_regex: %w", err)
 	}
