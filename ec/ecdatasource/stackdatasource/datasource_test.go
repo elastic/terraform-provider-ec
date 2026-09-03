@@ -233,6 +233,8 @@ func newSampleStack(t *testing.T) modelV0 {
 
 func Test_stackFromFilters(t *testing.T) {
 	var stackPacks = []*models.StackVersionConfig{
+		{Version: "8.19.21"},
+		{Version: "8.19.2"},
 		{Version: "7.9.1"},
 		{Version: "7.9.0"},
 		{Version: "7.8.1"},
@@ -256,6 +258,11 @@ func Test_stackFromFilters(t *testing.T) {
 			want: &models.StackVersionConfig{Version: "7.9.0"},
 		},
 		{
+			name: "returns the stack pack without greedy regex",
+			args: args{expr: "8.19.2", stacks: stackPacks},
+			want: &models.StackVersionConfig{Version: "8.19.2"},
+		},
+		{
 			name: "returns the stack pack with patch regex",
 			args: args{expr: "7.8.?", stacks: stackPacks},
 			want: &models.StackVersionConfig{Version: "7.8.1"},
@@ -263,7 +270,7 @@ func Test_stackFromFilters(t *testing.T) {
 		{
 			name: "returns the latest stackpack",
 			args: args{expr: "latest", stacks: stackPacks},
-			want: &models.StackVersionConfig{Version: "7.9.1"},
+			want: &models.StackVersionConfig{Version: "8.19.21"},
 		},
 		{
 			name: "returns the latest stackpack with a locked version",
@@ -274,6 +281,32 @@ func Test_stackFromFilters(t *testing.T) {
 				version: "7.8.1",
 			},
 			want: &models.StackVersionConfig{Version: "7.8.1"},
+		},
+		{
+			name: "returns specific stackpack with strict regex",
+			args: args{
+				expr:   "^8.19.2$",
+				stacks: stackPacks,
+			},
+			want: &models.StackVersionConfig{Version: "8.19.2"},
+		},
+		{
+			name: "err on invalid version",
+			args: args{
+				expr:   "8..2",
+				stacks: stackPacks,
+			},
+			err: errors.New(`failed to obtain a stack version matching "8..2": please specify a valid version_regex`),
+		},
+		{
+			name: "returns specific stackpack with strict regex",
+			args: args{
+				expr: "10.0.0",
+				stacks: []*models.StackVersionConfig{
+					{Version: "10.0.0", Deleted: new(true)},
+				},
+			},
+			want: &models.StackVersionConfig{Version: "10.0.0", Deleted: new(true)},
 		},
 		{
 			name: "returns an error when the expression doesn't match the stackpack",
@@ -300,6 +333,54 @@ func Test_stackFromFilters(t *testing.T) {
 				fmt.Println(err, "!= want ", tt.err)
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_isExactVersion(t *testing.T) {
+	type args struct {
+		expr string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "bare version matches",
+			args: args{expr: "9.5.2"},
+			want: true,
+		},
+		{
+			name: "anchored version matches",
+			args: args{expr: "^9.5.2$"},
+			want: true,
+		},
+		{
+			name: "large versions match",
+			args: args{expr: "99.999.9999"},
+			want: true,
+		},
+		{
+			name: "wildcards don't match",
+			args: args{expr: "9.5.?"},
+			want: false,
+		},
+		{
+			name: "latest doesn't match",
+			args: args{expr: "latest"},
+			want: false,
+		},
+		{
+			name: "anchored wildcards don't match",
+			args: args{expr: "^9.5.+$"},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			exact, _ := isExactVersion(tt.args.expr)
+			assert.Equalf(t, tt.want, exact, "isExactVersion(%v)", tt.args.expr)
 		})
 	}
 }

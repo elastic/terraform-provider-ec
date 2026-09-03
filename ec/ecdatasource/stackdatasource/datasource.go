@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -28,7 +29,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/stackapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/stack"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
@@ -68,25 +71,56 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
-	res, err := stackapi.List(stackapi.ListParams{
-		API:    d.client,
-		Region: newState.Region.ValueString(),
-	})
+	var stackVersion *models.StackVersionConfig
+	exact, err := isExactVersion(newState.VersionRegex.ValueString())
 	if err != nil {
 		response.Diagnostics.AddError(
-			"Failed retrieving the specified stack version",
-			fmt.Sprintf("Failed retrieving the specified stack version: %s", err),
+			"Could not evaluate version",
+			err.Error(),
 		)
+
 		return
 	}
+	if exact {
+		cleanVersion := strings.TrimSuffix(strings.TrimPrefix(newState.VersionRegex.ValueString(), "^"), "$")
 
-	stack, err := stackFromFilters(newState.VersionRegex.ValueString(), newState.Version.ValueString(), newState.Lock.ValueBool(), res.Stacks)
-	if err != nil {
-		response.Diagnostics.AddError(err.Error(), err.Error())
-		return
+		// querying the stack api with nil authinfo forces the public version list, which is more complete than the authenticated list
+		res, err := d.client.V1API.Stack.GetVersionStack(
+			stack.NewGetVersionStackParams().
+				WithContext(api.WithRegion(ctx, newState.Region.ValueString())).
+				WithVersion(cleanVersion),
+			nil,
+		)
+		if err != nil {
+			response.Diagnostics.AddError(
+				"Failed retrieving specified stack version",
+				fmt.Sprintf("Failed retrieving specified stack version %s in region %s: %s", cleanVersion, newState.Region.ValueString(), apierror.Wrap(err)),
+			)
+			return
+		}
+		stackVersion = res.Payload
+	} else {
+		res, err := stackapi.List(stackapi.ListParams{
+			API:    d.client,
+			Region: newState.Region.ValueString(),
+		})
+		if err != nil {
+			response.Diagnostics.AddError(
+				"Failed retrieving stack version list",
+				fmt.Sprintf("Failed retrieving stack version list: %s", err),
+			)
+			return
+		}
+
+		matchStack, err := stackFromFilters(newState.VersionRegex.ValueString(), newState.Version.ValueString(), newState.Lock.ValueBool(), res.Stacks)
+		if err != nil {
+			response.Diagnostics.AddError(err.Error(), err.Error())
+			return
+		}
+		stackVersion = matchStack
 	}
 
-	response.Diagnostics.Append(modelToState(ctx, stack, &newState)...)
+	response.Diagnostics.Append(modelToState(ctx, stackVersion, &newState)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -130,7 +164,16 @@ func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *
 	return diagnostics
 }
 
-func stackFromFilters(expr, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
+func isExactVersion(expr string) (bool, error) {
+	// "latest" is implicitly rejected as an exact match
+	re, err := regexp.Compile(`\^?[0-9]+\.[0-9]+\.[0-9]+\$?`)
+	if err != nil {
+		return false, err
+	}
+	return re.MatchString(expr), nil
+}
+
+func stackFromFilters(expr string, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
 	if expr == "latest" && locked && version != "" {
 		expr = version
 	}
@@ -139,14 +182,14 @@ func stackFromFilters(expr, version string, locked bool, stacks []*models.StackV
 		return stacks[0], nil
 	}
 
-	re, err := regexp.Compile(expr)
+	re, err := regexp.Compile(`(?:` + expr + `)\b`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile the version_regex: %w", err)
 	}
 
-	for _, stack := range stacks {
-		if re.MatchString(stack.Version) {
-			return stack, nil
+	for _, stackVersion := range stacks {
+		if re.MatchString(stackVersion.Version) {
+			return stackVersion, nil
 		}
 	}
 
