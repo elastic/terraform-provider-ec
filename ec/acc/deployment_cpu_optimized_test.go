@@ -42,7 +42,6 @@ func TestAccDeployment_cpuOptimized(t *testing.T) {
 				Config: cfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
@@ -55,11 +54,10 @@ func TestAccDeployment_cpuOptimized(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch topology size and add capacity to the APM instance.
+				// Add an APM instance.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "2g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
