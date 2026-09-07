@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/ec_stack: Accept an exact stack version that is no longer in the advertised Cloud list, so pinned deployments can keep planning after a version is withdrawn
+```
