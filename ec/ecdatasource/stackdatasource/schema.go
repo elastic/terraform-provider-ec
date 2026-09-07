@@ -34,11 +34,13 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Description: `Use this data source to retrieve information about an existing Elastic Cloud stack.
 
-  -> **Note on regions** Before you start, you might want to check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions available in Elasticsearch Service (ESS).`,
+  -> **Note on regions** Before you start, you might want to check the [full list](https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html) of regions available in Elasticsearch Service (ESS).
+
+  ~> **Note on advertised versions** The Cloud API only lists a subset of stack versions. An exact ` + "`version_regex`" + ` (for example ` + "`9.5.2`" + `) or an explicit ` + "`version`" + ` is still accepted when that version is missing from the list, so a pinned deployment can keep planning after a version is withdrawn. ` + "`latest`" + ` always follows the current advertised newest version; set ` + "`version`" + ` (or an exact regex) to stay on a withdrawn latest until its replacement is published.`,
 		Attributes: map[string]schema.Attribute{
 			"version_regex": schema.StringAttribute{
 				Required:    true,
-				Description: "Regex to filter the available stacks. Can be any valid regex expression, when multiple stacks are matched through a regex, the latest version is returned. `latest` is also accepted to obtain the latest available stack version.",
+				Description: "Regex to filter the advertised stacks. Can be any valid regex expression, when multiple stacks are matched through a regex, the latest version is returned. `latest` is also accepted to obtain the latest advertised stack version. An exact version (for example `9.5.2` or `^9.5.2$`) is used even when it is not currently advertised.",
 			},
 			"region": schema.StringAttribute{
 				Required:    true,
@@ -46,7 +48,7 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 			},
 			"lock": schema.BoolAttribute{
 				Optional:    true,
-				Description: "Lock the `latest` `version_regex` obtained, so that the new stack release doesn't cascade the changes down to the deployments. It can be changed at any time.",
+				Description: "Lock the `latest` `version_regex` obtained, so that the new stack release doesn't cascade the changes down to the deployments. It can be changed at any time. Data sources do not receive prior state, so `lock` only pins when `version` is also set in configuration.",
 			},
 
 			// Computed attributes
@@ -55,8 +57,9 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 				MarkdownDescription: "Unique identifier of this data source.",
 			},
 			"version": schema.StringAttribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "The stack version",
+				Description: "The stack version. Set this to pin a specific version even when it is not in the advertised list. When omitted, the version is selected from `version_regex`.",
 			},
 			"accessible": schema.BoolAttribute{
 				Computed:    true,

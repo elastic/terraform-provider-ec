@@ -21,7 +21,9 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
+	"github.com/blang/semver/v4"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -80,10 +82,19 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
-	stack, err := stackFromFilters(newState.VersionRegex.ValueString(), newState.Version.ValueString(), newState.Lock.ValueBool(), res.Stacks)
+	// Data sources do not receive prior state. An explicit version in config
+	// (or an exact version_regex) is the only pin that can survive a yank.
+	stack, warning, err := resolveStack(resolveParams{
+		Expr:    newState.VersionRegex.ValueString(),
+		Version: newState.Version.ValueString(),
+		Stacks:  res.Stacks,
+	})
 	if err != nil {
 		response.Diagnostics.AddError(err.Error(), err.Error())
 		return
+	}
+	if warning != "" {
+		response.Diagnostics.AddWarning("Stack version is not advertised", warning)
 	}
 
 	response.Diagnostics.Append(modelToState(ctx, stack, &newState)...)
@@ -91,7 +102,6 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 		return
 	}
 
-	// Finally, set the state
 	response.Diagnostics.Append(response.State.Set(ctx, newState)...)
 }
 
@@ -130,12 +140,40 @@ func modelToState(ctx context.Context, stack *models.StackVersionConfig, state *
 	return diagnostics
 }
 
-func stackFromFilters(expr, version string, locked bool, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
-	if expr == "latest" && locked && version != "" {
-		expr = version
+type resolveParams struct {
+	Expr    string
+	Version string
+	Stacks  []*models.StackVersionConfig
+}
+
+func resolveStack(p resolveParams) (*models.StackVersionConfig, string, error) {
+	pin := p.Version
+	if pin == "" {
+		if v, ok := exactVersion(p.Expr); ok {
+			pin = v
+		}
 	}
 
+	if pin != "" {
+		if advertised, err := stackFromFilters(regexp.QuoteMeta(pin), p.Stacks); err == nil {
+			return advertised, "", nil
+		}
+		return &models.StackVersionConfig{Version: pin}, fmt.Sprintf(
+			"%s is not in the advertised stack list; using it anyway. Creating a deployment on a withdrawn version will still fail; keeping an existing deployment on this version is allowed.",
+			pin,
+		), nil
+	}
+
+	stack, err := stackFromFilters(p.Expr, p.Stacks)
+	return stack, "", err
+}
+
+func stackFromFilters(expr string, stacks []*models.StackVersionConfig) (*models.StackVersionConfig, error) {
 	if expr == "latest" {
+		if len(stacks) == 0 {
+			return nil, fmt.Errorf(`failed to obtain a stack version matching "latest": ` +
+				`please specify a valid version_regex`)
+		}
 		return stacks[0], nil
 	}
 
@@ -153,6 +191,23 @@ func stackFromFilters(expr, version string, locked bool, stacks []*models.StackV
 	return nil, fmt.Errorf(`failed to obtain a stack version matching "%s": `+
 		`please specify a valid version_regex`, expr,
 	)
+}
+
+// exactVersion returns expr if it is a concrete stack version (optionally
+// wrapped in ^...$), not a broader regex such as "9.5.?" or "latest".
+func exactVersion(expr string) (string, bool) {
+	if expr == "" || expr == "latest" {
+		return "", false
+	}
+	trimmed := strings.TrimSuffix(strings.TrimPrefix(expr, "^"), "$")
+	if _, err := semver.Parse(trimmed); err != nil {
+		return "", false
+	}
+	re, err := regexp.Compile(expr)
+	if err != nil || !re.MatchString(trimmed) {
+		return "", false
+	}
+	return trimmed, true
 }
 
 func newElasticsearchConfigModelV0() elasticsearchConfigModelV0 {

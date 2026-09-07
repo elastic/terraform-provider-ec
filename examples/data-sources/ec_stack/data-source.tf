@@ -8,3 +8,8 @@ data "ec_stack" "latest_patch" {
   version_regex = "7.9.?"
   region        = "us-east-1"
 }
+
+data "ec_stack" "pinned" {
+  version_regex = "9.5.2"
+  region        = "us-east-1"
+}

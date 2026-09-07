@@ -239,10 +239,8 @@ func Test_stackFromFilters(t *testing.T) {
 		{Version: "7.8.0"},
 	}
 	type args struct {
-		expr    string
-		version string
-		locked  bool
-		stacks  []*models.StackVersionConfig
+		expr   string
+		stacks []*models.StackVersionConfig
 	}
 	tests := []struct {
 		name string
@@ -266,21 +264,16 @@ func Test_stackFromFilters(t *testing.T) {
 			want: &models.StackVersionConfig{Version: "7.9.1"},
 		},
 		{
-			name: "returns the latest stackpack with a locked version",
-			args: args{
-				expr:    "latest",
-				stacks:  stackPacks,
-				locked:  true,
-				version: "7.8.1",
-			},
-			want: &models.StackVersionConfig{Version: "7.8.1"},
-		},
-		{
 			name: "returns an error when the expression doesn't match the stackpack",
 			args: args{expr: "7.9.1", stacks: []*models.StackVersionConfig{
 				{Version: "7.8.0"},
 			}},
 			err: errors.New(`failed to obtain a stack version matching "7.9.1": please specify a valid version_regex`),
+		},
+		{
+			name: "returns an error when latest has no stacks",
+			args: args{expr: "latest", stacks: nil},
+			err:  errors.New(`failed to obtain a stack version matching "latest": please specify a valid version_regex`),
 		},
 		{
 			name: "returns an error when the regex can't be compiled",
@@ -295,10 +288,115 @@ func Test_stackFromFilters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := stackFromFilters(tt.args.expr, tt.args.version, tt.args.locked, tt.args.stacks)
+			got, err := stackFromFilters(tt.args.expr, tt.args.stacks)
 			if !assert.Equal(t, tt.err, err) {
 				fmt.Println(err, "!= want ", tt.err)
 			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_resolveStack(t *testing.T) {
+	advertised := []*models.StackVersionConfig{
+		{Version: "8.19.21"},
+		{Version: "8.19.20"},
+		{Version: "8.18.8"},
+	}
+	withPatch := []*models.StackVersionConfig{
+		{Version: "9.5.3"},
+		{Version: "8.19.21"},
+	}
+
+	type want struct {
+		version string
+		warning bool
+		err     bool
+	}
+
+	tests := []struct {
+		name string
+		p    resolveParams
+		want want
+	}{
+		{
+			name: "exact regex uses the advertised match",
+			p:    resolveParams{Expr: "8.19.21", Stacks: advertised},
+			want: want{version: "8.19.21"},
+		},
+		{
+			name: "exact regex is used when the version is no longer advertised",
+			p:    resolveParams{Expr: "9.5.2", Stacks: advertised},
+			want: want{version: "9.5.2", warning: true},
+		},
+		{
+			name: "anchored exact regex is used when the version is no longer advertised",
+			p:    resolveParams{Expr: "^9.5.2$", Stacks: advertised},
+			want: want{version: "9.5.2", warning: true},
+		},
+		{
+			name: "explicit version attribute pins a withdrawn version",
+			p:    resolveParams{Expr: "latest", Version: "9.5.2", Stacks: advertised},
+			want: want{version: "9.5.2", warning: true},
+		},
+		{
+			name: "explicit version attribute uses the advertised pack when present",
+			p:    resolveParams{Expr: "latest", Version: "8.19.20", Stacks: advertised},
+			want: want{version: "8.19.20"},
+		},
+		{
+			name: "patch regex uses the advertised match",
+			p:    resolveParams{Expr: `9\.5\..+`, Stacks: withPatch},
+			want: want{version: "9.5.3"},
+		},
+		{
+			name: "patch regex errors when nothing advertised matches",
+			p:    resolveParams{Expr: `9\.5\..+`, Stacks: advertised},
+			want: want{err: true},
+		},
+		{
+			name: "latest uses the advertised newest",
+			p:    resolveParams{Expr: "latest", Stacks: advertised},
+			want: want{version: "8.19.21"},
+		},
+		{
+			name: "latest moves to a newly advertised newer stack",
+			p:    resolveParams{Expr: "latest", Stacks: withPatch},
+			want: want{version: "9.5.3"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, warning, err := resolveStack(tt.p)
+			if tt.want.err {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want.warning, warning != "")
+			assert.Equal(t, tt.want.version, got.Version)
+		})
+	}
+}
+
+func Test_exactVersion(t *testing.T) {
+	tests := []struct {
+		expr string
+		want string
+		ok   bool
+	}{
+		{expr: "9.5.2", want: "9.5.2", ok: true},
+		{expr: "^9.5.2$", want: "9.5.2", ok: true},
+		{expr: "9.5.?", ok: false},
+		{expr: `9\.5\..+`, ok: false},
+		{expr: "latest", ok: false},
+		{expr: "", ok: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.expr, func(t *testing.T) {
+			got, ok := exactVersion(tt.expr)
+			assert.Equal(t, tt.ok, ok)
 			assert.Equal(t, tt.want, got)
 		})
 	}
