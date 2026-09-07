@@ -7,7 +7,7 @@ change. For contributor setup and PR expectations see [`contributing.md`](./cont
 where code lives see [`repo-structure.md`](./repo-structure.md).
 
 The root `Makefile` just `include`s split fragments under `build/` (`Makefile.build`, `.test`,
-`.dev`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`; those
+`.dev`, `.openspec`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`; those
 fragments are the source of truth for exact behavior.
 
 > **Acceptance tests hit the real, paid Elastic Cloud API.** `make testacc` (anything gated by
@@ -25,9 +25,14 @@ fragments are the source of truth for exact behavior.
 - **`make build` runs `make gen` first**, so a plain build regenerates code before compiling to
   `bin/terraform-provider-ec`; `make install` then copies the binary into your local Terraform
   plugin path.
-- **`make lint` is the umbrella check** — Go and Terraform-provider linters, license-header check,
-  generated-docs validation, and `.tf` formatting. `make format` applies the fixes. Run `make lint`
-  before opening a PR.
+- **`make setup-openspec`** installs the OpenSpec CLI (`npm ci`). Node.js 24 is required only for
+  OpenSpec, not for `make lint` or the provider build. Go modules remain `make vendor`.
+- **`make lint` is the Go/Terraform umbrella** — golangci-lint, license-header check, provider
+  linters, generated-docs validation, and `.tf` formatting. `make format` applies those fixes. Run
+  `make lint` before opening a PR.
+- **`make check-openspec`** structurally validates `openspec/` (`openspec validate --all`). It is
+  not part of `make lint`; CI runs it in `.github/workflows/openspec.yml`. Run it locally when you
+  change specs. It installs the CLI via `setup-openspec` if needed.
 - **`make gen`** (alias `make generate`) regenerates the serverless client *and* `ec/version.go`. To
   refresh the vendored serverless OpenAPI spec, use `scripts/update-serverless-spec.sh` — see
   [`generated-clients.md`](./generated-clients.md).
@@ -51,11 +56,12 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 1. `make build` — regenerates code and compiles.
 2. `make lint` — Go + provider linters, license headers, docs check, `.tf` formatting.
 3. `make unit` — safe unit tests, no credentials.
-4. Run the **targeted** acceptance test(s) covering your change —
+4. `make check-openspec` — only if you changed `openspec/` (CI also runs this in `openspec.yml`).
+5. Run the **targeted** acceptance test(s) covering your change —
    `make testacc TEST_NAME='TestAcc…'` — then `make sweep` any leftovers. Skip if the change has no
    runtime behavior (docs/config only).
-5. `make docs-generate` — only if you changed resource/data-source schemas or `examples/`.
-6. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
+6. `make docs-generate` — only if you changed resource/data-source schemas or `examples/`.
+7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
    [`contributing.md`](./contributing.md)).
 
 The **full** acceptance suite runs on Buildkite for every PR; run only the targeted cases locally,

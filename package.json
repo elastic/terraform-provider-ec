@@ -1,0 +1,10 @@
+{
+  "name": "terraform-provider-ec-openspec",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.5.0"
+  }
+}

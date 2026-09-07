@@ -1,0 +1,6 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Go, Terraform Plugin Framework
+  Domain: Terraform provider for Elastic Cloud (hosted deployments, serverless projects, traffic filters, extensions)
+  Requirements: Canonical specs live in openspec/specs/ (OpenSpec). Authoring conventions will land in dev-docs/high-level/openspec-requirements.md.

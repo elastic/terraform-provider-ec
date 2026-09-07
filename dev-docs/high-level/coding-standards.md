@@ -90,6 +90,9 @@ Run `make format` before committing and `make lint` to gate. Both are thin wrapp
 - **`tfproviderdocs`** — generated-docs consistency (see [`./documentation.md`](./documentation.md)).
 - **`terraform fmt -check`** — formatting of `.tf` example/test files.
 
+OpenSpec structural validation is **`make check-openspec`**, not part of `make lint`. CI runs it in
+`.github/workflows/openspec.yml`.
+
 ## Error handling
 
 - Surface errors through `diag.Diagnostics`: call `resp.Diagnostics.AddError(...)` and bail early when

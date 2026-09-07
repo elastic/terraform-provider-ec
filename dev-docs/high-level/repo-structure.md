@@ -17,13 +17,15 @@ the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugi
 | `main.go` | Provider entrypoint (`providerserver.Serve`). |
 | `ec/` | All provider code — resources, data sources, and internals (see below). |
 | `gen/` | `gen.go`, a small `go:generate` program that writes `ec/version.go` from the `Makefile` `VERSION`. |
-| `Makefile` + `build/` | The root `Makefile` `include`s the split fragments under `build/` (`Makefile.build`, `.test`, `.dev`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`. |
+| `Makefile` + `build/` | The root `Makefile` `include`s the split fragments under `build/` (`Makefile.build`, `.test`, `.dev`, `.openspec`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`. |
+| `openspec/` | OpenSpec requirements tree (`specs/`, `changes/`, `config.yaml`). Structural validation via `make check-openspec`. |
+| `package.json` | Pins the OpenSpec CLI (`@fission-ai/openspec`); install with `make setup-openspec`. |
 | `scripts/` | Helper scripts (changelog, version bump, `Makefile.help`, etc.). |
 | `templates/` + `docs/` | Doc **sources** (`templates/`) and the **generated** registry docs (`docs/`). See [`documentation.md`](./documentation.md). |
 | `examples/` | Example Terraform configs, also pulled into the generated docs. |
 | `.changelog/` | Per-PR changelog fragments (`{PR}.txt`); consolidated into `CHANGELOG.md` at release. See [`contributing.md`](./contributing.md). |
 | `.buildkite/` | Buildkite pipelines — notably the per-PR **acceptance** pipeline. See [`testing.md`](./testing.md). |
-| `.github/` | GitHub Actions (unit/lint/docs via `go.yml`) and repo config. |
+| `.github/` | GitHub Actions (unit/lint/docs via `go.yml`, OpenSpec via `openspec.yml`) and repo config. |
 | `dev-docs/` | Developer docs (this set), including [`RELEASE.md`](../RELEASE.md) — the release runbook. |
 | `docs-elastic/` | AsciiDoc source (`index.asciidoc`) for the Elastic docs site. |
 | `tools/` | Tool dependencies (pinned via `go` tooling). |
