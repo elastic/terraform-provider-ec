@@ -25,7 +25,7 @@ the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugi
 | `examples/` | Example Terraform configs, also pulled into the generated docs. |
 | `.changelog/` | Per-PR changelog fragments (`{PR}.txt`); consolidated into `CHANGELOG.md` at release. See [`contributing.md`](./contributing.md). |
 | `.buildkite/` | Buildkite pipelines — notably the per-PR **acceptance** pipeline. See [`testing.md`](./testing.md). |
-| `.github/` | GitHub Actions (unit/lint/docs via `go.yml`, OpenSpec via `openspec.yml`) and repo config. |
+| `.github/` | GitHub Actions (unit/lint/docs via `go.yml`, OpenSpec via `openspec.yml`, Renovate auto-approve via `approve-renovate.yml`) and repo config. |
 | `dev-docs/` | Developer docs (this set), including [`RELEASE.md`](../RELEASE.md) — the release runbook. |
 | `docs-elastic/` | AsciiDoc source (`index.asciidoc`) for the Elastic docs site. |
 | `tools/` | Tool dependencies (pinned via `go` tooling). |
