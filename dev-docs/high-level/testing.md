@@ -80,13 +80,14 @@ Acceptance runs are wired through Buildkite, not run inline by contributors:
 - [`.buildkite/pull-requests.json`](../../.buildkite/pull-requests.json) gates the
   `terraform-provider-ec-acceptance` pipeline: org users with `admin`/`write` (plus `renovate[bot]`)
   trigger it on commit or on a `build this` / `test this` comment. The pipeline always runs so the
-  required `buildkite/terraform-provider-ec-acceptance` status is posted; docs-only PRs are a
-  fast no-op inside `acceptance.sh` rather than skipped at the trigger.
+  required `buildkite/terraform-provider-ec-acceptance` status is posted. Docs-only PRs still start
+  an agent (`pre-command` still loads the API key) but skip `make testacc` and the `pre-exit` sweep.
 - [`.buildkite/acceptance_pipeline.yml`](../../.buildkite/acceptance_pipeline.yml) defines the
   single "Acceptance tests" step running [`.buildkite/acceptance.sh`](../../.buildkite/acceptance.sh)
   on a `golang` image.
-- `acceptance.sh` exits 0 without `make testacc` when the PR only touches `docs/` or `dev-docs/`;
-  otherwise it runs `make vendor` then `EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET make testacc`.
+- `acceptance.sh` exits 0 without `make testacc` when the PR only touches `docs/` or `dev-docs/`
+  (and writes `.buildkite/.skip-acceptance-sweep` so `pre-exit` does not sweep); otherwise it
+  runs `make vendor` then `EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET make testacc`.
 - Branch protection on `master` requires **CLA**, **Unit**, and
   `buildkite/terraform-provider-ec-acceptance`. GitHub auto-merge (used by Renovate) waits on those
   checks. Non-major Renovate PRs are auto-approved as `github-actions[bot]` by
@@ -94,7 +95,8 @@ Acceptance runs are wired through Buildkite, not run inline by contributors:
   Renovate enables auto-merge.
 - The [`pre-command`](../../.buildkite/hooks/pre-command) hook loads the API key from Vault and
   exports `BUILD_ID` (which makes `make sweep` skip its interactive confirmation).
-- The [`pre-exit`](../../.buildkite/hooks/pre-exit) hook always sweeps afterward (see below).
+- The [`pre-exit`](../../.buildkite/hooks/pre-exit) hook sweeps afterward unless the docs-only
+  skip file is present (see below).
 
 The Buildkite result is a required check; merge is blocked until it is green.
 
@@ -120,8 +122,9 @@ sweep:
   matching filters.
 - **CI cleans up automatically:** Buildkite's `pre-exit` hook (on the `acceptance-tests` step) runs
   `SWEEPARGS='-sweep-run=ec_deployments,ec_serverless_projects' make sweep` after every acceptance
-  build — so stale deployments **and** projects are reaped on exit regardless of pass/fail. (The
-  `acceptance.sh` step itself only runs `make vendor` + `make testacc`.)
+  build except docs-only skips (`.buildkite/.skip-acceptance-sweep`) — so stale deployments
+  **and** projects are reaped on exit regardless of pass/fail. (The `acceptance.sh` step itself
+  only runs `make vendor` + `make testacc`, or exits early on docs-only PRs.)
 - **When to run manually:** after a *local* acceptance failure that may have left dangling
   infrastructure, or to reclaim serverless quota (see below).
 

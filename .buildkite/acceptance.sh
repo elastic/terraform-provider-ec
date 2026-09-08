@@ -18,6 +18,8 @@ docs_only_pr() {
 
 if docs_only_pr; then
   echo "--- Skip acceptance tests (docs/dev-docs only)"
+  # pre-exit still runs; skip sweep so a leftover cleanup failure cannot fail the required check.
+  touch .buildkite/.skip-acceptance-sweep
   exit 0
 fi
 
