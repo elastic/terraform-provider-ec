@@ -1,0 +1,17 @@
+# OpenSpec CLI (see package.json); installed via `make setup-openspec`
+OPENSPEC_BIN := $(CURDIR)/node_modules/.bin/openspec
+
+## Install Node dependencies (OpenSpec CLI via npm ci)
+.PHONY: setup-openspec
+setup-openspec: node_modules/.openspec-stamp
+
+node_modules/.openspec-stamp: package-lock.json package.json
+	@ command -v npm >/dev/null 2>&1 || { echo "npm not found; install Node.js 24.x for OpenSpec" >&2; exit 1; }
+	npm ci
+	@ touch $@
+
+## Validate OpenSpec specs and change proposals (structural)
+.PHONY: check-openspec
+check-openspec: setup-openspec
+	@ test -x $(OPENSPEC_BIN) || { echo "OpenSpec CLI missing; run 'make setup-openspec'" >&2; exit 1; }
+	@ OPENSPEC_TELEMETRY=0 $(OPENSPEC_BIN) validate --all

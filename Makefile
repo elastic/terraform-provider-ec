@@ -10,6 +10,7 @@ include scripts/Makefile.help
 include build/Makefile.build
 include build/Makefile.test
 include build/Makefile.dev
+include build/Makefile.openspec
 include build/Makefile.deps
 include build/Makefile.lint
 include build/Makefile.format

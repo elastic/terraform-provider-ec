@@ -10,6 +10,8 @@ examples/*/*.tfstate.backup
 .apikey
 dist
 .terraform.lock.hcl
+node_modules/
 
 # agent local overrides (not committed)
 .agents/settings.local.json
+.agents/worktrees

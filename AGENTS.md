@@ -31,6 +31,7 @@ and related resources through the Elastic Cloud API.
 
 - Build: `make build`
 - Lint: `make lint`
+- If you changed `openspec/`: `make check-openspec`
 - Unit tests (no cloud, always safe): `make unit`
 - If you changed resource/data-source schemas or examples, regenerate docs with `make docs-generate`
   and verify with `make tfproviderdocs`. See [`documentation.md`](./dev-docs/high-level/documentation.md).
@@ -38,6 +39,6 @@ and related resources through the Elastic Cloud API.
   [`generated-clients.md`](./dev-docs/high-level/generated-clients.md).
 - Add a `.changelog/{PR}.txt` entry for user-facing changes (see [`contributing.md`](./dev-docs/high-level/contributing.md)).
 
-> The OpenSpec requirements layer and the GitHub Agentic Workflows (issue intake, quality scans,
-> and PR verification) are being introduced in later phases of the LLM-driven SDLC epic. Their
-> docs and links will be added here as those land.
+> The OpenSpec CLI is installed via `make setup-openspec` (Node.js 24, `npm ci`) and validated by
+> `make check-openspec` / `.github/workflows/openspec.yml`. Spec authoring conventions, lifecycle
+> skills, and GitHub Agentic Workflows land in later Phase 1–4 issues of the LLM-driven SDLC epic.
