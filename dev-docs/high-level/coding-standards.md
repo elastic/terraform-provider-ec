@@ -91,7 +91,10 @@ Run `make format` before committing and `make lint` to gate. Both are thin wrapp
 - **`terraform fmt -check`** — formatting of `.tf` example/test files.
 
 OpenSpec structural validation is **`make check-openspec`**, not part of `make lint`. CI runs it in
-`.github/workflows/openspec.yml`.
+`.github/workflows/openspec.yml`. Author specs per [`openspec-requirements.md`](./openspec-requirements.md)
+(Purpose / SHALL-MUST requirements / Given-When-Then scenarios). Canonical specs live in
+`openspec/specs/`; new or changed behavior is proposed under `openspec/changes/` and archived into
+`openspec/specs/` after the implementation lands.
 
 ## Error handling
 

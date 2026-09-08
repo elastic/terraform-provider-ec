@@ -6,5 +6,6 @@ the PR flow, dev-environment setup, the pre-submit checklist, commit conventions
 `.changelog/{PR}.txt` changelog convention.
 
 For the how-to detail behind it, see [`development-workflow.md`](./development-workflow.md) (make
-targets and the change loop), [`testing.md`](./testing.md) (unit + acceptance, required env), and
-[`coding-standards.md`](./coding-standards.md).
+targets and the change loop), [`testing.md`](./testing.md) (unit + acceptance, required env),
+[`coding-standards.md`](./coding-standards.md), and [`openspec-requirements.md`](./openspec-requirements.md)
+(OpenSpec Purpose / SHALL-MUST / Scenarios).
