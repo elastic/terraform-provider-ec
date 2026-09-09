@@ -18,7 +18,8 @@ the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugi
 | `ec/` | All provider code — resources, data sources, and internals (see below). |
 | `gen/` | `gen.go`, a small `go:generate` program that writes `ec/version.go` from the `Makefile` `VERSION`. |
 | `Makefile` + `build/` | The root `Makefile` `include`s the split fragments under `build/` (`Makefile.build`, `.test`, `.dev`, `.openspec`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`. |
-| `openspec/` | OpenSpec requirements tree (`specs/`, `changes/`, `config.yaml`). Structural validation via `make check-openspec`. Authoring conventions: [`openspec-requirements.md`](./openspec-requirements.md). |
+| `openspec/` | OpenSpec requirements tree (`specs/`, `changes/`, `config.yaml`). Structural validation via `make check-openspec`. Authoring conventions: [`openspec-requirements.md`](./openspec-requirements.md). Change loop: [`openspec-workflows.md`](./openspec-workflows.md). |
+| `.agents/` | Canonical agent assets (`.claude` is a symlink here). Skills under `.agents/skills/` — `/release` plus generated `openspec-*` lifecycle skills. |
 | `package.json` | Pins the OpenSpec CLI (`@fission-ai/openspec`); install with `make setup-openspec`. |
 | `scripts/` | Helper scripts (changelog, version bump, `Makefile.help`, etc.). |
 | `templates/` + `docs/` | Doc **sources** (`templates/`) and the **generated** registry docs (`docs/`). See [`documentation.md`](./documentation.md). |

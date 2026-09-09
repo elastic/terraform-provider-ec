@@ -33,7 +33,8 @@ fragments are the source of truth for exact behavior.
 - **`make check-openspec`** structurally validates `openspec/` (`openspec validate --all`). It is
   not part of `make lint`; CI runs it in `.github/workflows/openspec.yml`. Run it locally when you
   change specs. It installs the CLI via `setup-openspec` if needed. Authoring conventions:
-  [`openspec-requirements.md`](./openspec-requirements.md).
+  [`openspec-requirements.md`](./openspec-requirements.md). Which skill to use for a change:
+  [`openspec-workflows.md`](./openspec-workflows.md).
 - **`make gen`** (alias `make generate`) regenerates the serverless client *and* `ec/version.go`. To
   refresh the vendored serverless OpenAPI spec, use `scripts/update-serverless-spec.sh` — see
   [`generated-clients.md`](./generated-clients.md).

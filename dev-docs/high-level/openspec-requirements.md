@@ -6,9 +6,9 @@ already in the provider. Proposed new or changed behavior lives under `openspec/
 implementation is archived into `openspec/specs/`.
 
 This page is the authoring contract: file layout, requirement phrasing, and when to write a spec.
-Operational skills that create / apply / archive a change land in later Phase 1 issues; GitHub
-Agentic Workflows (`change-factory`, `verify-openspec`) land in later phases. Until those exist,
-follow the layout here by hand.
+Create, apply, and archive a change with the skills in [`.agents/skills/`](../../.agents/skills/)
+— which to reach for is in [`openspec-workflows.md`](./openspec-workflows.md). GitHub Agentic
+Workflows (`change-factory`, `verify-openspec`) land in later phases.
 
 ## Layout
 
@@ -20,9 +20,10 @@ follow the layout here by hand.
   - **`#### Scenario: …`** — Given / When / Then checks reviewers and agents can trace to code or tests.
 - **`openspec/changes/<name>/`** — An in-progress **change**: proposal, design, tasks, and **delta
   specs**. This is the default path for any work that adds or updates requirements. After the code
-  matches the change, `openspec archive` folds the deltas into `openspec/specs/` and moves the change
-  under `openspec/changes/archive/`.
-- **`openspec/config.yaml`** — Project OpenSpec configuration.
+  matches the change, **openspec-sync-specs** / **openspec-archive-change** fold the deltas into
+  `openspec/specs/` and move the change under `openspec/changes/archive/`.
+- **`openspec/config.yaml`** — Project OpenSpec configuration (context, per-artifact rules, apply/archive
+  guidance). The generated skills read this; do not fork the `SKILL.md` files to inject conventions.
 
 Copy from the seed exemplars rather than inventing a new shape:
 
@@ -126,7 +127,8 @@ These apply to every spec in this repo and to any later change that implements o
 `make check-openspec` installs the pinned OpenSpec CLI (`make setup-openspec`, Node.js 24) and runs
 `openspec validate --all`. That checks structure and normative keywords. It does **not** prove the
 Go implementation matches every requirement — that is code review (and, later, the
-`openspec-verify-change` skill / `verify-openspec` label).
+`openspec-verify-change` skill / `verify-openspec` label). Operational loop:
+[`openspec-workflows.md`](./openspec-workflows.md).
 
 Run it locally whenever you touch `openspec/`.
 
