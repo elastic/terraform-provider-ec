@@ -10,7 +10,8 @@ They intentionally stay high-level and link to deeper, canonical docs elsewhere 
 - Generated clients: [`generated-clients.md`](./generated-clients.md)
 - Documentation: [`documentation.md`](./documentation.md)
 - Contributing: [`contributing.md`](./contributing.md)
+- OpenSpec authoring (Purpose / SHALL / Scenarios): [`openspec-requirements.md`](./openspec-requirements.md)
 
-> Docs for the OpenSpec requirements layer and the GitHub Agentic Workflows (overview, factory
-> workflows, continuous-quality scanners, OpenSpec loop, and the `verify-openspec` gate) will be
-> added here as those phases of the LLM-driven SDLC epic land.
+> Docs for GitHub Agentic Workflows (overview, factory workflows, continuous-quality scanners,
+> the OpenSpec implementation loop, and the `verify-openspec` gate) will be added here as those
+> phases of the LLM-driven SDLC epic land.
