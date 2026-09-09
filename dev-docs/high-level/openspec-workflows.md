@@ -10,10 +10,14 @@ are injected via [`openspec/config.yaml`](../../openspec/config.yaml). After a C
 `make gen-openspec-skills`. That writes exactly the seven skills below as `--tools agents` and does
 **not** consult the global OpenSpec profile.
 
-Do **not** run `openspec update` or `openspec init --tools claude`. `update` uses the global *core*
-profile (propose/explore/apply/update/sync/archive) and would delete `new-change` / `continue-change`.
-`.claude` is a symlink to `.agents`; `--tools claude` would write through that link and fight the
-`agents` tree.
+Do **not** run `openspec init` or `openspec update` in this repo (any `--tools` value). Both use
+the global *core* profile (propose/explore/apply/update/sync/archive) and would delete
+`new-change` / `continue-change`. `.claude` is a symlink to `.agents`; `--tools claude` would
+write through that link and fight the `agents` tree.
+
+Until the `use_npx_openspec` hook (Phase 1.9), invoke the pinned CLI as `npx openspec` or
+`./node_modules/.bin/openspec` (after `make setup-openspec`). A bare `openspec` on PATH may be a
+different version than `package.json`.
 
 GitHub Agentic Workflows (`change-factory`, `verify-openspec`) and the heavier
 `openspec-implementation-loop` / `openspec-verify-change` skills land in later Phase 1–4 issues.
