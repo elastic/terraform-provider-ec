@@ -34,7 +34,8 @@ fragments are the source of truth for exact behavior.
   not part of `make lint`; CI runs it in `.github/workflows/openspec.yml`. Run it locally when you
   change specs. It installs the CLI via `setup-openspec` if needed. Authoring conventions:
   [`openspec-requirements.md`](./openspec-requirements.md). Which skill to use for a change:
-  [`openspec-workflows.md`](./openspec-workflows.md).
+  [`openspec-workflows.md`](./openspec-workflows.md). After an OpenSpec CLI bump, regenerate those
+  skills with **`make gen-openspec-skills`** — not `openspec update`.
 - **`make gen`** (alias `make generate`) regenerates the serverless client *and* `ec/version.go`. To
   refresh the vendored serverless OpenAPI spec, use `scripts/update-serverless-spec.sh` — see
   [`generated-clients.md`](./generated-clients.md).

@@ -6,8 +6,14 @@ phrasing, and when a spec is required, see [`openspec-requirements.md`](./opensp
 The step-by-step procedures live in the generated skills under [`.agents/skills/`](../../.agents/skills/).
 This page is **which skill to use and when**. Do not hand-edit those `SKILL.md` files — they are
 generated from the pinned OpenSpec CLI (`generatedBy` in the frontmatter). Cloud-provider conventions
-are injected via [`openspec/config.yaml`](../../openspec/config.yaml). Refresh with `openspec update`
-after a CLI bump.
+are injected via [`openspec/config.yaml`](../../openspec/config.yaml). After a CLI bump, regenerate with
+`make gen-openspec-skills`. That writes exactly the seven skills below as `--tools agents` and does
+**not** consult the global OpenSpec profile.
+
+Do **not** run `openspec update` or `openspec init --tools claude`. `update` uses the global *core*
+profile (propose/explore/apply/update/sync/archive) and would delete `new-change` / `continue-change`.
+`.claude` is a symlink to `.agents`; `--tools claude` would write through that link and fight the
+`agents` tree.
 
 GitHub Agentic Workflows (`change-factory`, `verify-openspec`) and the heavier
 `openspec-implementation-loop` / `openspec-verify-change` skills land in later Phase 1–4 issues.

@@ -69,7 +69,7 @@ refresh, changelog-only).
 
 | Situation | Location |
 | --- | --- |
-| New or changed behavior (the default) | `openspec/changes/<id>/` — delta specs plus proposal / design / tasks. After implement + verify, archive into `openspec/specs/`. |
+| New or changed behavior (the default) | `openspec/changes/<id>/` — delta specs plus proposal / design / tasks. After implement, archive into `openspec/specs/`. |
 | Behavior already in the product, captured as a copyable example (this seed) | `openspec/specs/<capability>/spec.md` directly. |
 | Tiny follow-up on an existing canonical spec (typo, link, wording) | Edit `openspec/specs/` directly. |
 
