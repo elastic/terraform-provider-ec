@@ -110,7 +110,7 @@ The data source SHALL list stack packs for the configured `region` through the E
 
 ### Requirement: `latest` selects the first listed stack
 
-When `version_regex` is the literal string `latest`, the data source SHALL return the first stack in the list. This path SHALL NOT use the no-match diagnostic used for regex lookup. An empty list is unhandled: the data source does not check length before selecting the first stack.
+When `version_regex` is the literal string `latest`, the data source SHALL return the first stack in the list.
 
 #### Scenario: latest
 
@@ -119,18 +119,9 @@ When `version_regex` is the literal string `latest`, the data source SHALL retur
 - WHEN the data source resolves a stack
 - THEN the provider SHALL select version `7.9.1`
 
-#### Scenario: latest with an empty list
-
-- GIVEN the stack list is empty
-- AND `version_regex = "latest"`
-- WHEN the data source resolves a stack
-- THEN the provider SHALL NOT return the no-match diagnostic used for regex lookup
-
 ### Requirement: `lock` does not change lookup on Read
 
 `lock` SHALL be an optional configuration attribute. Read SHALL load **configuration only** (`version` is computed and is not in config), so a previously selected version is not available on a later Read. Therefore `lock = true` with `version_regex = "latest"` SHALL still select the first listed stack, the same as unlocked `latest`. `lock` SHALL NOT change lookup when `version_regex` is not `latest`.
-
-Schema copy describes `lock` as pinning `latest` so a new stack release does not cascade. That advertised pin is **not** Terraform-observable on Read.
 
 #### Scenario: locked latest still takes the first stack
 
@@ -207,3 +198,24 @@ On a successful lookup, the data source SHALL write the selected stack into stat
 - GIVEN the selected stack has no APM config (nil or empty)
 - WHEN the data source writes state
 - THEN `apm` SHALL be empty/null rather than a list of one empty object
+
+## Known gaps (non-normative)
+
+These record limitations of the current implementation. A later fix is a change that
+updates the `SHALL`s above; do not treat this section as the desired contract.
+
+### `lock` does not pin
+
+Schema and registry docs describe `lock` as pinning the `latest` result so a new
+stack release does not cascade. `stackFromFilters` still implements that pin when
+`version` is non-empty, and the unit test `"returns the latest stackpack with a
+locked version"` expects it. Read loads configuration only, so `version` is empty
+and the pin is not Terraform-observable. A change that makes `lock` work should
+replace the Read requirement above.
+
+### `latest` with an empty list
+
+The `latest` path indexes the first list element with no length check. An empty
+list panics; it does not use the regex no-match diagnostic. A change should add
+an explicit error (or documented empty handling) and a scenario with a positive
+THEN.

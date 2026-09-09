@@ -103,6 +103,9 @@ combinatorics.
 Optional `## Schema` sketches use HCL with `<required|optional|computed, type>` annotations. They
 orient the reader; the Requirements section is normative.
 
+When a current-behavior spec captures a known limitation, keep the `SHALL` as the observable rule
+and add a non-normative **Known gaps** note. A later bug fix is a change that updates the `SHALL`.
+
 ## Cloud-provider constraints
 
 These apply to every spec in this repo and to any later change that implements one:
