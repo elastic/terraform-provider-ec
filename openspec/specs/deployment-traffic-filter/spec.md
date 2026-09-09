@@ -4,7 +4,7 @@ Resource implementation: `ec/ecresource/trafficfilterresource`
 
 ## Purpose
 
-Define schema and behavior for the Elastic Cloud traffic filter **resource** `ec_deployment_traffic_filter` (capability id `deployment-traffic-filter`): ruleset identity and import, type-gated rule validation, CRUD against the hosted Elastic Cloud traffic-filter API (`cloud-sdk-go` `trafficfilterapi`), create/update-then-read, unconfigured-client guard, and mapping between Terraform state and a traffic filter ruleset.
+Define schema and behavior for the Elastic Cloud traffic filter **resource** `ec_deployment_traffic_filter` (capability id `deployment-traffic-filter`): ruleset identity and import, type-gated rule validation, CRUD against the hosted Elastic Cloud traffic-filter API, create/update-then-read, unconfigured-client guard, and mapping between Terraform state and a traffic filter ruleset.
 
 **In scope:** this resource only — attributes, `rule` blocks, validation, lifecycle, and import-by-id.
 
@@ -19,7 +19,7 @@ Define schema and behavior for the Elastic Cloud traffic filter **resource** `ec
 
 ```hcl
 resource "ec_deployment_traffic_filter" "example" {
-  id                 = <computed, string>  # Elastic Cloud ruleset id; UseStateForUnknown
+  id                 = <computed, string>  # Elastic Cloud ruleset id; kept from state on later plans
   name               = <required, string>
   type               = <required, string>  # ip | vpce | azure_private_endpoint | gcp_private_service_connect_endpoint | remote_cluster
   region             = <required, string>
@@ -33,7 +33,7 @@ resource "ec_deployment_traffic_filter" "example" {
     azure_endpoint_guid   = <optional, string>  # only when type is azure_private_endpoint
     remote_cluster_id     = <optional, string>  # required when type is remote_cluster
     remote_cluster_org_id = <optional, string>  # required when type is remote_cluster
-    id                    = <computed, string>  # API rule id; unknown when rules change; do not UseStateForUnknown
+    id                    = <computed, string>  # API rule id; unknown in the plan when rules change
   }
 }
 ```
@@ -65,7 +65,7 @@ Every Create, Read, Update, and Delete call SHALL require a non-nil API client. 
 
 ### Requirement: Ruleset identity
 
-The Terraform `id` SHALL be the Elastic Cloud traffic filter ruleset identifier returned by the create API. The attribute SHALL be computed and SHALL use `UseStateForUnknown` so the ruleset id is not shown as unknown on later plans.
+The Terraform `id` SHALL be the Elastic Cloud traffic filter ruleset identifier returned by the create API. The attribute SHALL be computed. After create, later plans SHALL keep the existing ruleset `id` rather than showing it as unknown.
 
 #### Scenario: Id after create
 
@@ -93,7 +93,7 @@ The Terraform `id` SHALL be the Elastic Cloud traffic filter ruleset identifier 
 
 ### Requirement: At least one rule
 
-The `rule` block SHALL be a set of nested objects. The resource SHALL require at least one rule (`setvalidator.SizeAtLeast(1)`).
+The `rule` block SHALL be a set of nested objects. The resource SHALL require at least one rule.
 
 #### Scenario: No rule blocks
 
@@ -109,7 +109,7 @@ The `rule` block SHALL be a set of nested objects. The resource SHALL require at
 
 ### Requirement: Computed rule id
 
-Each rule's `id` SHALL be computed from the API (the Elastic Cloud rule identifier). The attribute SHALL NOT use `UseStateForUnknown`. When the planned set of rules differs from state, each rule `id` SHALL be unknown in the plan (`StringIsUnknownIfRulesChange`).
+Each rule's `id` SHALL be computed from the API (the Elastic Cloud rule identifier). When the planned set of rules differs from state, each rule `id` SHALL be unknown in the plan (the ruleset `id` is not treated this way).
 
 Because unknown rule ids are omitted from the update payload, an apply that changes rules MAY receive new rule ids from the API.
 
@@ -128,7 +128,7 @@ Because unknown rule ids are omitted from the update payload, an apply that chan
 
 ### Requirement: Type-gated rule validation
 
-`ValidateConfig` SHALL type-gate rule attributes. It SHALL skip that gating when `type` or `rule` is unknown (for example when those values come from variables that are not yet known).
+Config validation SHALL type-gate rule attributes. It SHALL skip that gating when `type` or `rule` is unknown (for example when those values come from variables that are not yet known).
 
 When `type` is not `remote_cluster`, a rule SHALL NOT set `remote_cluster_id` or `remote_cluster_org_id`. When `type` is `remote_cluster` and both values are known, both `remote_cluster_id` and `remote_cluster_org_id` SHALL be set; otherwise the resource SHALL add a `Missing Required Attributes` error.
 
@@ -139,7 +139,7 @@ The resource SHALL NOT Terraform-validate that `source` is present or absent for
 #### Scenario: Skip gating while type is unknown
 
 - GIVEN `type` is unknown at validate time
-- WHEN `ValidateConfig` runs
+- WHEN config is validated
 - THEN the provider SHALL NOT emit type-gating diagnostics for rule attributes
 
 #### Scenario: Remote cluster fields on an IP ruleset
@@ -179,15 +179,15 @@ The resource SHALL NOT Terraform-validate that `source` is present or absent for
 
 ### Requirement: Create then read
 
-Create SHALL expand the plan into a `TrafficFilterRulesetRequest` and call `trafficfilterapi.Create`. On API error, the resource SHALL surface the error and SHALL NOT persist state.
+Create SHALL send the planned ruleset to the Elastic Cloud traffic-filter create API. On API error, the resource SHALL surface the error and SHALL NOT persist state.
 
-On success, the resource SHALL set `id` from the create response, then SHALL read the ruleset back (`trafficfilterapi.Get` with `include_associations=false`) and persist state from that read. If the ruleset is not found after create, the resource SHALL add the error `Failed to read deployment traffic filter ruleset after create.`, SHALL remove the resource from state, and SHALL NOT leave a partial resource.
+On success, the resource SHALL set `id` from the create response, then SHALL GET the ruleset (without associations) and persist state from that read. If the ruleset is not found after create, the resource SHALL add the error `Failed to read deployment traffic filter ruleset after create.`, SHALL remove the resource from state, and SHALL NOT leave a partial resource.
 
 #### Scenario: Create IP ruleset
 
 - GIVEN a plan with `type = "ip"`, a name, a region, and one or more `rule` blocks with `source` set
 - WHEN Create is called
-- THEN the provider SHALL call `trafficfilterapi.Create` with that name, type, region, and rules
+- THEN the provider SHALL create the ruleset with that name, type, region, and rules
 - AND SHALL GET the ruleset by the returned id
 - AND SHALL persist attributes from the GET response
 
@@ -220,7 +220,7 @@ On success, the resource SHALL set `id` from the create response, then SHALL rea
 
 ### Requirement: Read
 
-Read SHALL call `trafficfilterapi.Get` with the state `id` and `include_associations=false`.
+Read SHALL GET the ruleset by the state `id` without requesting associations.
 
 When the API reports the ruleset as not found, the resource SHALL be removed from state with no error. Any other API error SHALL be surfaced and state SHALL be left unchanged.
 
@@ -245,16 +245,16 @@ When the API reports the ruleset as not found, the resource SHALL be removed fro
 
 ### Requirement: Update then read
 
-Update SHALL expand the plan into a `TrafficFilterRulesetRequest` and call `trafficfilterapi.Update` with the existing ruleset `id`. Known (non-null, non-unknown) rule `id` values SHALL be included on the corresponding rules in the request.
+Update SHALL send the planned ruleset to the Elastic Cloud traffic-filter update API using the existing ruleset `id`. Known (non-null, non-unknown) rule `id` values SHALL be included on the corresponding rules in the request.
 
-On API error, the resource SHALL surface the error. On success, the resource SHALL read the ruleset back and persist state from that read. If the ruleset is not found after update, the resource SHALL add the error `Failed to read deployment traffic filter ruleset after update.` and SHALL remove the resource from state.
+On API error, the resource SHALL surface the error. On success, the resource SHALL GET the ruleset and persist state from that read. If the ruleset is not found after update, the resource SHALL add the error `Failed to read deployment traffic filter ruleset after update.` and SHALL remove the resource from state.
 
 #### Scenario: Update include_by_default
 
 - GIVEN a ruleset exists
 - AND the plan changes `include_by_default`
 - WHEN Update is called
-- THEN the provider SHALL call `trafficfilterapi.Update` with the planned ruleset
+- THEN the provider SHALL update the ruleset with the planned attributes
 - AND SHALL GET the ruleset
 - AND SHALL persist attributes from the GET response
 
@@ -275,18 +275,18 @@ On API error, the resource SHALL surface the error. On success, the resource SHA
 
 ### Requirement: Delete disassociates then deletes
 
-Delete SHALL GET the ruleset with `include_associations=true`. If that GET reports not found, delete SHALL succeed without further API calls.
+Delete SHALL GET the ruleset including associations. If that GET reports not found, delete SHALL succeed without further API calls.
 
-For each association on the ruleset, Delete SHALL call `trafficfilterapi.DeleteAssociation`. A not-found error on an association SHALL be ignored; any other association-delete error SHALL be surfaced and SHALL stop deletion.
+For each association on the ruleset, Delete SHALL delete the association. A not-found error on an association SHALL be ignored; any other association-delete error SHALL be surfaced and SHALL stop deletion.
 
-After associations are cleared, Delete SHALL call `trafficfilterapi.Delete`. A not-found error on the ruleset delete SHALL be treated as success. Any other delete error SHALL be surfaced.
+After associations are cleared, Delete SHALL delete the ruleset. A not-found error on the ruleset delete SHALL be treated as success. Any other delete error SHALL be surfaced.
 
 #### Scenario: Delete ruleset with no associations
 
 - GIVEN a ruleset exists with no associations
 - WHEN Destroy is called
 - THEN the provider SHALL GET the ruleset with associations
-- AND SHALL call `trafficfilterapi.Delete`
+- AND SHALL delete the ruleset
 - AND SHALL remove the resource from state
 
 #### Scenario: Delete ruleset with associations
@@ -311,7 +311,7 @@ After associations are cleared, Delete SHALL call `trafficfilterapi.Delete`. A n
 #### Scenario: Ruleset already gone on DELETE
 
 - GIVEN GET succeeds
-- AND `trafficfilterapi.Delete` reports not found
+- AND the ruleset delete reports not found
 - WHEN Destroy is called
 - THEN the provider SHALL treat delete as success with no error
 

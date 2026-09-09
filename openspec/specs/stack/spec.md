@@ -9,9 +9,10 @@ Capture the **current** behavior of the Terraform data source `ec_stack`, which 
 **In scope**
 
 - Data source `ec_stack` only (Plugin Framework; stateful Elastic Cloud API).
-- Lookup of a single stack from the region list: literal `latest`, optional `lock` pin, or a Go `version_regex`.
+- Lookup of a single stack from the region list: literal `latest` or a Go `version_regex`.
+- The optional `lock` attribute as it actually behaves on Read (it does not pin a previously selected version).
 - Flatten of computed stack metadata and per-kind config (denylist, capacity constraints, docker image, Elasticsearch plugins).
-- Unconfigured-client guard and error diagnostics for list failure, no match, and invalid regex.
+- Unconfigured-client guard and error diagnostics for list failure, no-match (regex path), and invalid regex.
 
 **Out of scope**
 
@@ -25,7 +26,7 @@ Capture the **current** behavior of the Terraform data source `ec_stack`, which 
 data "ec_stack" "example" {
   version_regex = <required, string>  # Go regexp, or the literal "latest"
   region        = <required, string>  # ESS region; ECE installations use "ece-region"
-  lock          = <optional, bool>    # when true, pin "latest" to an already-selected version
+  lock          = <optional, bool>    # accepted in config; does not change lookup (see Requirements)
 
   # Computed
   id                  = <computed, string>         # same as version
@@ -87,7 +88,7 @@ On read, if the stateful Elastic Cloud API client has not been configured, the d
 
 ### Requirement: List stacks for the configured region
 
-The data source SHALL list stack packs for the configured `region` through the Elastic Cloud stack list API (`stackapi.List`). The provider SHALL pass `region` through unchanged (Elastic Cloud Enterprise installations use `ece-region`) and SHALL NOT re-sort the returned list (the API returns latest-first). When the list call fails, the data source SHALL return an error diagnostic and SHALL NOT apply version filters.
+The data source SHALL list stack packs for the configured `region` through the Elastic Cloud stack list API. The provider SHALL pass `region` through unchanged (Elastic Cloud Enterprise installations use `ece-region`) and SHALL NOT re-sort the returned list (the API returns latest-first). When the list call fails, the data source SHALL return an error diagnostic and SHALL NOT apply version filters.
 
 #### Scenario: Successful list
 
@@ -109,36 +110,35 @@ The data source SHALL list stack packs for the configured `region` through the E
 
 ### Requirement: `latest` selects the first listed stack
 
-When `version_regex` is the literal string `latest` and the lookup is not pinned by `lock` (see below), the data source SHALL return the first stack in the list (`stacks[0]`).
+When `version_regex` is the literal string `latest`, the data source SHALL return the first stack in the list. This path SHALL NOT use the no-match diagnostic used for regex lookup. An empty list is unhandled: the data source does not check length before selecting the first stack.
 
-#### Scenario: Unlocked latest
+#### Scenario: latest
 
 - GIVEN the list `[7.9.1, 7.9.0, 7.8.1, 7.8.0]` (latest-first)
 - AND `version_regex = "latest"`
-- AND `lock` is false or unset
 - WHEN the data source resolves a stack
 - THEN the provider SHALL select version `7.9.1`
 
-### Requirement: `lock` pins `latest` to an already-selected version
+#### Scenario: latest with an empty list
 
-When `version_regex` is `latest`, `lock` is true, and a stack `version` is already set on the data source, the provider SHALL treat the lookup expression as that version (pin) instead of taking the first listed stack. `lock` SHALL have no effect when `version_regex` is not `latest`, or when `lock` is true but no version has been selected yet (first read SHALL behave as unlocked `latest`).
+- GIVEN the stack list is empty
+- AND `version_regex = "latest"`
+- WHEN the data source resolves a stack
+- THEN the provider SHALL NOT return the no-match diagnostic used for regex lookup
 
-#### Scenario: latest plus lock pins existing version
+### Requirement: `lock` does not change lookup on Read
+
+`lock` SHALL be an optional configuration attribute. Read SHALL load **configuration only** (`version` is computed and is not in config), so a previously selected version is not available on a later Read. Therefore `lock = true` with `version_regex = "latest"` SHALL still select the first listed stack, the same as unlocked `latest`. `lock` SHALL NOT change lookup when `version_regex` is not `latest`.
+
+Schema copy describes `lock` as pinning `latest` so a new stack release does not cascade. That advertised pin is **not** Terraform-observable on Read.
+
+#### Scenario: locked latest still takes the first stack
 
 - GIVEN the list `[7.9.1, 7.9.0, 7.8.1, 7.8.0]`
 - AND `version_regex = "latest"`
 - AND `lock` is true
-- AND `version` is already `7.8.1`
-- WHEN the data source resolves a stack
-- THEN the provider SHALL select version `7.8.1`
-
-#### Scenario: First locked latest has no version yet
-
-- GIVEN the list `[7.9.1, 7.9.0, 7.8.1, 7.8.0]`
-- AND `version_regex = "latest"`
-- AND `lock` is true
-- AND `version` is not set
-- WHEN the data source resolves a stack
+- AND a previous Read stored `version` `7.8.1` in state
+- WHEN the data source is read again
 - THEN the provider SHALL select version `7.9.1`
 
 #### Scenario: lock ignored for a non-latest regex
@@ -146,13 +146,12 @@ When `version_regex` is `latest`, `lock` is true, and a stack `version` is alrea
 - GIVEN the list `[7.9.1, 7.9.0, 7.8.1, 7.8.0]`
 - AND `version_regex = "7.8.?"`
 - AND `lock` is true
-- AND `version` is `7.9.1`
 - WHEN the data source resolves a stack
 - THEN the provider SHALL select version `7.8.1`
 
 ### Requirement: `version_regex` selects the first matching stack
 
-When `version_regex` is not the literal `latest` (including after a lock pin rewrites `latest` to a version string), the provider SHALL compile `version_regex` as a Go regular expression and return the **first** stack whose `version` matches, in list order. Because the list is latest-first, the first match is the newest matching stack.
+When `version_regex` is not the literal `latest`, the provider SHALL compile `version_regex` as a Go regular expression and return the **first** stack whose `version` matches, in list order. Because the list is latest-first, the first match is the newest matching stack.
 
 #### Scenario: Exact version string
 
@@ -170,7 +169,7 @@ When `version_regex` is not the literal `latest` (including after a lock pin rew
 
 ### Requirement: Lookup diagnostics
 
-If `version_regex` is not valid Go regexp syntax, the data source SHALL return an error diagnostic that it failed to compile `version_regex`. If no listed stack matches, the data source SHALL return an error diagnostic asking for a valid `version_regex`. Data sources SHALL error on a missing match rather than producing empty state.
+If `version_regex` is not valid Go regexp syntax, the data source SHALL return an error diagnostic that it failed to compile `version_regex`. If `version_regex` is not `latest` and no listed stack matches, the data source SHALL return an error diagnostic asking for a valid `version_regex` rather than producing empty state. These diagnostics do not apply to the `latest` path (see above).
 
 #### Scenario: Invalid regex
 
