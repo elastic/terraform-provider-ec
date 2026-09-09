@@ -23,7 +23,8 @@ and related resources through the Elastic Cloud API.
 - Acceptance tests (`make testacc`, and anything gated by `TF_ACC=1`) create and destroy **real
   deployments** against the live Elastic Cloud API (`EC_API_KEY`) and cost real money. **Never run
   acceptance tests from an agentic workflow** — no live-cloud credentials are exposed to agents. The
-  full suite runs on Buildkite per PR (a human reviews the result); a human working on a change
+  full suite runs on Buildkite per PR and is a **required** status check on `master`
+  (`buildkite/terraform-provider-ec-acceptance`); a human working on a change
   should run the targeted `TestAcc…` case(s) locally first. See [`testing.md`](./dev-docs/high-level/testing.md).
 - There is **no local Docker stack** for this provider (unlike the Elastic Stack provider). Unit
   tests (`make unit`) need no credentials and are always safe to run.

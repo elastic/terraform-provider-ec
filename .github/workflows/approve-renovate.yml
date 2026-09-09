@@ -1,0 +1,43 @@
+name: Auto-approve Renovate
+
+# github-actions[bot] approves Renovate PRs that already have auto-merge on
+# (Renovate cannot approve its own PRs). Majors never enable auto-merge.
+# synchronize re-approves after the NOTICE follow-up commit.
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [auto_merge_enabled, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  approve:
+    name: Approve
+    runs-on: ubuntu-latest
+    if: |
+      (github.event.pull_request.user.login == 'elastic-renovate-prod[bot]' ||
+       github.event.pull_request.user.login == 'elastic-renovate-dev[bot]') &&
+      github.event.pull_request.auto_merge != null
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            try {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: 'APPROVE',
+              })
+            } catch (error) {
+              // Duplicate approve on the same commit.
+              if (error.status === 422) {
+                core.info(`Skipping approve: ${error.message}`)
+                return
+              }
+              throw error
+            }
