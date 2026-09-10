@@ -19,10 +19,12 @@ package trafficfilterresource
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
@@ -58,11 +60,23 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 }
 
 func (r Resource) read(ctx context.Context, id string, state *modelV0) (found bool, diags diag.Diagnostics) {
+	return r.readIfMissing(ctx, id, state, util.TrafficFilterNotFound)
+}
+
+func (r Resource) readRetryable(ctx context.Context, id string, state *modelV0) (found bool, diags diag.Diagnostics) {
+	return r.readIfMissing(ctx, id, state, util.TrafficFilterRetryableMiss)
+}
+
+func (r Resource) readIfMissing(ctx context.Context, id string, state *modelV0, missing func(error) bool) (found bool, diags diag.Diagnostics) {
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
 		API: r.client, ID: id, IncludeAssociations: false,
 	})
 	if err != nil {
-		if util.TrafficFilterNotFound(err) {
+		if missing(err) {
+			return false, diags
+		}
+		if apierror.IsRuntimeStatusCode(err, http.StatusForbidden) {
+			diags.AddError("forbidden", "forbidden")
 			return false, diags
 		}
 		diags.AddError(err.Error(), err.Error())
@@ -71,4 +85,16 @@ func (r Resource) read(ctx context.Context, id string, state *modelV0) (found bo
 
 	diags.Append(modelToState(ctx, res, state)...)
 	return true, diags
+}
+
+func missingIfForbidden(found bool, diags diag.Diagnostics) (bool, diag.Diagnostics) {
+	if found || !diags.HasError() {
+		return found, diags
+	}
+	for _, d := range diags {
+		if d.Summary() == context.Canceled.Error() {
+			return found, diags
+		}
+	}
+	return false, nil
 }
