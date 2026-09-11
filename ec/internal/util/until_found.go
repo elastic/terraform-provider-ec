@@ -102,16 +102,16 @@ func UntilFound(
 	}
 
 	for {
-		if found, diags, stop := stoppedByContext(ctx); stop {
-			return found, diags
+		if diags, stop := stoppedByContext(ctx); stop {
+			return false, diags
 		}
 		found, diags = get(ctx)
 		if diags.HasError() {
 			return found, diags
 		}
 		if found {
-			if found, diags, stop := stoppedByContext(ctx); stop {
-				return found, diags
+			if diags, stop := stoppedByContext(ctx); stop {
+				return false, diags
 			}
 			return true, diags
 		}
@@ -122,15 +122,15 @@ func UntilFound(
 	}
 }
 
-func stoppedByContext(ctx context.Context) (found bool, diags diag.Diagnostics, stop bool) {
+func stoppedByContext(ctx context.Context) (diags diag.Diagnostics, stop bool) {
 	err := ctx.Err()
 	if err == nil {
-		return false, nil, false
+		return nil, false
 	}
 	if errors.Is(err, context.Canceled) {
 		var d diag.Diagnostics
 		d.AddError(err.Error(), err.Error())
-		return false, d, true
+		return d, true
 	}
-	return false, nil, true
+	return nil, true
 }
