@@ -119,9 +119,6 @@ func UntilFound(
 			return false, diags
 		}
 		wait(ctx, interval)
-		if found, diags, stop := stoppedByContext(ctx); stop {
-			return found, diags
-		}
 	}
 }
 
