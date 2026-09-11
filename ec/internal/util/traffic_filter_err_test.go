@@ -73,3 +73,38 @@ func TestTrafficFilterNotFound(t *testing.T) {
 		})
 	}
 }
+
+func TestTrafficFilterRetryableMiss(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{name: "empty"},
+		{
+			name: "403 is not retryable",
+			err:  &apierror.Error{Err: &runtime.APIError{Code: 403}},
+		},
+		{
+			name: "500 is not retryable",
+			err:  &apierror.Error{Err: &runtime.APIError{Code: 500}},
+		},
+		{
+			name: "typed 404 is retryable",
+			err:  &apierror.Error{Err: &deployments_traffic_filter.GetTrafficFilterRulesetNotFound{}},
+			want: true,
+		},
+		{
+			name: "runtime 404 is retryable",
+			err:  &apierror.Error{Err: &runtime.APIError{Code: 404}},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := TrafficFilterRetryableMiss(tt.err); got != tt.want {
+				t.Errorf("TrafficFilterRetryableMiss() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
