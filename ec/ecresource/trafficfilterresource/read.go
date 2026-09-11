@@ -19,6 +19,7 @@ package trafficfilterresource
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -29,6 +30,8 @@ import (
 
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
+
+var errForbidden = errors.New("forbidden")
 
 // Read queries the remote deployment traffic filter ruleset state and updates
 // the local state.
@@ -76,11 +79,11 @@ func (r Resource) readIfMissing(ctx context.Context, id string, state *modelV0, 
 			return false, diags
 		}
 		if apierror.IsRuntimeStatusCode(err, http.StatusForbidden) {
-			diags.AddError("forbidden", "forbidden")
+			diags.AddError(errForbidden.Error(), errForbidden.Error())
 			return false, diags
 		}
 		diags.AddError(err.Error(), err.Error())
-		return true, diags
+		return false, diags
 	}
 
 	diags.Append(modelToState(ctx, res, state)...)
@@ -88,13 +91,10 @@ func (r Resource) readIfMissing(ctx context.Context, id string, state *modelV0, 
 }
 
 func missingIfForbidden(found bool, diags diag.Diagnostics) (bool, diag.Diagnostics) {
-	if found || !diags.HasError() {
-		return found, diags
-	}
 	for _, d := range diags {
-		if d.Summary() == context.Canceled.Error() {
-			return found, diags
+		if d.Summary() == errForbidden.Error() {
+			return false, nil
 		}
 	}
-	return false, nil
+	return found, diags
 }
