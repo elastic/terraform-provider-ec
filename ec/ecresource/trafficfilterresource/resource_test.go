@@ -125,6 +125,24 @@ func TestResourceTrafficFilter_failedRead1(t *testing.T) {
 	})
 }
 
+func TestResourceTrafficFilter_serverErrorAfterCreate(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				failedReadResponse("false"),
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{
+				Config:      trafficFilter,
+				ExpectError: regexp.MustCompile(`internal.server.error: There was an internal server error`),
+			},
+		},
+	})
+}
+
 func TestResourceTrafficFilter_forbiddenAfterCreateIsNotRetried(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
