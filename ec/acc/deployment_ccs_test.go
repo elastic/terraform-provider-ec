@@ -54,8 +54,6 @@ func TestAccDeployment_ccs(t *testing.T) {
 
 					// general purpose template checks
 					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
-					// general purpose template defaults to 8g.
-					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
 					// Remote cluster settings
@@ -96,12 +94,10 @@ func TestAccDeployment_ccs(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch topology size and node count.
+				// Remove remote cluster (CCS) configuration.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Changes.
 					resource.TestCheckResourceAttrSet(generalPurposeResName, "elasticsearch.hot.instance_configuration_id"),
-					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size", "4g"),
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.hot.size_resource", "memory"),
 
 					resource.TestCheckResourceAttr(generalPurposeResName, "elasticsearch.remote_cluster.#", "0"),

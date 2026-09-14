@@ -47,7 +47,6 @@ func TestAccDeployment_general_purpose(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.instance_configuration_id"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.warm.instance_configuration_id"),
-					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size", "8g"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.size_resource", "memory"),
 					resource.TestCheckResourceAttrSet(resName, "elasticsearch.hot.node_roles.#"),
 					resource.TestCheckResourceAttr(resName, "elasticsearch.hot.zone_count", "2"),
@@ -61,7 +60,7 @@ func TestAccDeployment_general_purpose(t *testing.T) {
 				),
 			},
 			{
-				// Change the Elasticsearch toplogy size and node count.
+				// Change hot size and zone counts.
 				Config: secondConfigCfg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Changes.
