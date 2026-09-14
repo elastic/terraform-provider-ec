@@ -31,11 +31,12 @@ and destroying real deployments and serverless projects. All test wiring lives i
 > it gives faster feedback and costs far less than triggering the full suite on every push. Clean up
 > with `make sweep` afterwards.
 >
-> 🚫 **Don't run the _full_ suite locally for routine iteration, and agents never run acceptance
-> tests at all** — no `TF_ACC` in agentic workflows and no live-cloud credentials are exposed to
-> agents. The full suite runs automatically for every PR on the dedicated **Buildkite acceptance
-> pipeline** (the GitHub Actions `go.yml` CI runs unit/lint/docs only), and a human reviews the
-> result.
+> 🚫 **Don't run the _full_ suite locally for routine iteration.** Agents **never auto-run**
+> acceptance tests — no `TF_ACC` unless the user explicitly said yes to named cases in the
+> implementation loop (default skip). Implementors, `openspec-verify-change`, and CI reuse never
+> set `TF_ACC`. No live-cloud credentials are exposed to agents by default. The full suite runs
+> automatically for every PR on the dedicated **Buildkite acceptance pipeline** (the GitHub Actions
+> `go.yml` CI runs unit/lint/docs only), and a human reviews the result.
 
 Gating and recipe (from `build/Makefile.test`):
 

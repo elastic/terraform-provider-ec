@@ -15,8 +15,10 @@ fragments are the source of truth for exact behavior.
 > **Before opening a PR, run the _targeted_ test(s) covering your change locally** —
 > `make testacc TEST_NAME='TestAccMyThing'` — for fast feedback, then `make sweep` any leftovers.
 > Don't run the **full** suite locally for routine iteration (~2 hours); the Buildkite acceptance
-> pipeline runs the full suite for every PR and a human reviews the result. **Agents never run
-> acceptance tests** — no live-cloud credentials are exposed to agentic workflows. See
+> pipeline runs the full suite for every PR and a human reviews the result. **Agents never auto-run
+> acceptance tests.** The implementation loop may ask once to run named `TestAcc…` cases after an
+> explicit yes (default skip). Implementors, `openspec-verify-change`, and CI reuse never set
+> `TF_ACC`. No live-cloud credentials are exposed to agentic workflows by default. See
 > [`testing.md`](./testing.md). `make unit` needs no credentials and is always safe. There is **no
 > local Docker stack** for this provider.
 

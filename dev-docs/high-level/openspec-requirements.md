@@ -114,9 +114,11 @@ These apply to every spec in this repo and to any later change that implements o
 - The provider is 100% [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) (no SDKv2).
 - There is **no local Docker stack**. Hosted ESS calls go through `cloud-sdk-go`; serverless calls
   go through the generated client under `ec/internal/gen/serverless/`.
-- **Agents never run acceptance tests** (`TF_ACC`). Acc hits the real, paid Elastic Cloud API and
-  runs out-of-band on Buildkite. Specs may mention acc coverage as a *human* verification step; they
-  MUST NOT require an agent to execute `make testacc`.
+- **Agents never auto-run acceptance tests** (`TF_ACC`). Acc hits the real, paid Elastic Cloud API
+  and runs out-of-band on Buildkite. Specs may mention acc coverage as a *human* verification step;
+  they MUST NOT require an agent to execute `make testacc`. The implementation loop may ask once to
+  run named `TestAcc…` cases after an explicit yes; apply, verify-change, and CI reuse never set
+  `TF_ACC`.
 - User-facing implementation PRs add `.changelog/{PR}.txt` (not a PR-body changelog block). Spec /
   docs-only PRs skip it. See [`contributing.md`](./contributing.md).
 - `make check-openspec` is **not** part of `make lint`. CI runs it in

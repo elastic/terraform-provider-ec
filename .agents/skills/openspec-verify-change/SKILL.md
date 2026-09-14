@@ -19,7 +19,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 - If a scenario is covered **only** by an acceptance test under `ec/acc/`, record a WARNING that names the `TestAcc…` case and that acc is out-of-band — not a CRITICAL "unimplemented" finding.
 - Requirements describe Terraform / API-contract behavior, not a line-by-line Go transcription.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -50,11 +50,16 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    openspec instructions apply --change "<name>" --json
    ```
 
-   This returns the change directory, `contextFiles` (artifact ID -> array of concrete file paths), optional `context`, and optional `operationGuidance`.
+   This returns the change directory, `contextFiles` (artifact ID -> array of concrete file paths), optional `context`, optional `operationGuidance`, and `state`.
 
    Read all available artifacts from `contextFiles`.
 
-   Treat `context` as required prompt-level input (the same contract as `openspec-apply-change`). Read it and apply relevant project facts, conventions, and constraints while verifying — for example changelog rules, Plugin Framework vs SDKv2, and the no-`TF_ACC` constraint. Treat `operationGuidance` as optional additive advice; follow entries that apply. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value.
+   Treat `context` as required prompt-level input (the same contract as `openspec-apply-change`). Read it and apply relevant project facts, conventions, and constraints while verifying — for example changelog rules, Plugin Framework vs SDKv2, and the no-auto-run-`TF_ACC` constraint. Treat `operationGuidance` as optional additive advice; follow entries that apply. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value.
+
+   **Handle states:**
+   - If `state: "blocked"`: stop. Report the missing required artifact. Do **not** fall through to graceful degradation or produce an archivable report.
+   - If `state: "all_done"`: proceed with verification (tasks should already be complete).
+   - Otherwise: proceed.
 
 4. **Initialize verification report structure**
 
@@ -73,6 +78,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - Count complete vs total tasks
    - If incomplete tasks exist:
      - Do **not** add a CRITICAL issue for a task whose only remaining action is to archive the change (`openspec-archive-change`, `openspec archive`, or equivalent). Note it as skipped: archiving is a later step, not this skill.
+     - Do **not** add a CRITICAL issue for an incomplete task that is explicitly out-of-band Human/Buildkite acceptance (`TestAcc…`, `make testacc`, or equivalent). Record a WARNING that names the case; this skill never runs acc.
      - Add CRITICAL issue for each other incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
 
@@ -143,7 +149,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    **Issues by Priority**:
 
    1. **CRITICAL** (Must fix before archive):
-      - Incomplete tasks other than archive-only steps
+      - Incomplete tasks other than archive-only or out-of-band Human/Buildkite acc steps
       - Missing requirement implementations
       - Each with specific, actionable recommendation
 
@@ -151,6 +157,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
       - Spec/design divergences
       - Missing scenario coverage
       - Acc-only scenario coverage (out-of-band)
+      - Incomplete Human/Buildkite `TestAcc…` tasks (out-of-band; not push-blocking)
       - Each with specific recommendation
 
    3. **SUGGESTION** (Nice to fix):

@@ -99,9 +99,10 @@ The loop **always** runs:
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
 The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, it may **ask once** to run
-one or two named `TestAcc…` cases (`make testacc TEST_NAME='…'`), calling out live-cloud cost.
-Default is skip (human / Buildkite). It never runs the full suite, never retries acc on failure,
-and never runs acc from `openspec-verify-change`. See [`testing.md`](./testing.md).
+one or two named `TestAcc…` cases (`make testacc TEST_NAME='TestAccMyThing'` — the name or regex
+only; the Makefile already adds `-run`), calling out live-cloud cost. Default is skip (human /
+Buildkite). It never runs the full suite, never retries acc on failure, and never runs acc from
+`openspec-verify-change`. See [`testing.md`](./testing.md).
 
 **Commit-only vs PR checks.** GitHub Actions `Go` runs on branch pushes. `OpenSpec CI` runs on
 `master` and on **pull requests**, not on an arbitrary feature branch. In commit-only mode the
