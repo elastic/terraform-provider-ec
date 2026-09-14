@@ -1,3 +1,17 @@
+# 0.13.1 (September 14, 2026)
+
+FEATURES:
+
+* resource/ec_project: Add `linked` block for cross-project search linking (elasticsearch, observability, security projects) with a `projects` map and read-only `statuses` output ([#1008](https://github.com/elastic/terraform-provider-ec/issues/1008))
+
+ENHANCEMENTS:
+
+* resource/ec_deployment: Add `rolling_zone` strategy for AZ-aware rolling restarts of Elasticsearch clusters. ([#1017](https://github.com/elastic/terraform-provider-ec/issues/1017))
+
+BUG FIXES:
+
+* resource/ec_deployment: Validate that `user_settings_json`, `user_settings_override_json`, `user_settings_yaml`, and `user_settings_override_yaml` values are non-empty strings. Configuring these attributes as `""` previously caused a "Provider produced inconsistent result after apply" error; they now fail during planning with a clear validation error. ([#700](https://github.com/elastic/terraform-provider-ec/issues/700))
+
 # 0.13.0 (May 20, 2026)
 
 FEATURES:

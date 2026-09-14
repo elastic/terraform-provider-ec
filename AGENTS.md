@@ -16,6 +16,8 @@ and related resources through the Elastic Cloud API.
 - Testing (unit + acceptance) and required env: [`testing.md`](./dev-docs/high-level/testing.md)
 - Generated clients (serverless OpenAPI) and regeneration: [`generated-clients.md`](./dev-docs/high-level/generated-clients.md)
 - Documentation generation (`tfplugindocs`): [`documentation.md`](./dev-docs/high-level/documentation.md)
+- OpenSpec authoring (Purpose / SHALL-MUST / Scenarios): [`openspec-requirements.md`](./dev-docs/high-level/openspec-requirements.md)
+- OpenSpec change loop (explore / propose / apply / sync / archive): [`openspec-workflows.md`](./dev-docs/high-level/openspec-workflows.md)
 
 ## Testing note — acceptance tests hit the real, paid Elastic Cloud API
 
@@ -41,5 +43,8 @@ and related resources through the Elastic Cloud API.
 - Add a `.changelog/{PR}.txt` entry for user-facing changes (see [`contributing.md`](./dev-docs/high-level/contributing.md)).
 
 > The OpenSpec CLI is installed via `make setup-openspec` (Node.js 24, `npm ci`) and validated by
-> `make check-openspec` / `.github/workflows/openspec.yml`. Spec authoring conventions, lifecycle
-> skills, and GitHub Agentic Workflows land in later Phase 1–4 issues of the LLM-driven SDLC epic.
+> `make check-openspec` / `.github/workflows/openspec.yml`. Author specs per
+> [`openspec-requirements.md`](./dev-docs/high-level/openspec-requirements.md). Drive a change with
+> the skills under [`.agents/skills/`](./.agents/skills/) — see
+> [`openspec-workflows.md`](./dev-docs/high-level/openspec-workflows.md). GitHub Agentic Workflows
+> land in later phases of the LLM-driven SDLC epic.
