@@ -1,0 +1,32 @@
+# -------------------------------------------------------------
+# Add Elastic Agent + k8s integration to all existing EKS clusters
+# -------------------------------------------------------------
+
+data "aws_eks_cluster" "elastic" {
+  name = var.eks_cluster
+}
+
+data "aws_eks_cluster_auth" "elastic" {
+  name = var.eks_cluster
+}
+
+provider "kubectl" {
+  host                   = data.aws_eks_cluster.elastic.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.elastic.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.elastic.token
+}
+
+resource "kubectl_manifest" "deploy_agent" {
+  yaml_body = templatefile("${path.module}/../json_templates/k8s_agent.yaml", 
+  {
+    "fleet_url": ec_deployment.elastic_deployment.integrations_server[0].https_endpoint,
+    "enrollment_token": "xxx"
+  }
+  )
+  depends_on = [
+    ec_deployment.elastic_deployment,
+    data.external.elastic_add_endpoint_integration,
+    data.aws_eks_cluster.elastic,
+    data.aws_eks_cluster_auth.elastic
+  ]
+}

@@ -1,0 +1,61 @@
+{
+    "name": "cloud_security_posture",
+    "description": "Terraformed k8s integration",
+    "namespace": "default",
+    "policy_id": "${policy_id}",
+    "enabled": true,
+    "output_id": "",
+    "inputs": [
+      {
+        "type": "cloudbeat/vanilla",
+        "policy_template": "kspm",
+        "enabled": false,
+        "streams": [
+          {
+            "enabled": false,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "cloud_security_posture.findings"
+            }
+          }
+        ]
+      },
+      {
+        "type": "cloudbeat/eks",
+        "policy_template": "kspm",
+        "enabled": true,
+        "streams": [
+          {
+            "enabled": true,
+            "data_stream": {
+              "type": "logs",
+              "dataset": "cloud_security_posture.findings"
+            },
+            "vars": {
+              "access_key_id": {
+                "type": "text",
+                "value": "${access_key}"
+              },
+              "secret_access_key": {
+                "type": "text",
+                "value": "${access_secret}"
+              },
+              "session_token": {
+                "type": "text"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "package": {
+      "name": "cloud_security_posture",
+      "title": "Kubernetes Security Posture Management",
+      "version": "0.0.26"
+    },
+    "vars": {
+      "dataYaml": {
+        "type": "yaml"
+      }
+    }
+  }
