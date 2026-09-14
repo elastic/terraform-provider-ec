@@ -95,10 +95,16 @@ The loop **always** runs:
 - `make lint`
 - `make build`
 - `make unit`
+- `make check-openspec` when `openspec/` changed (it is not part of `make lint`)
+- `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
 **Never** `make testacc` / `TF_ACC` from the agent. Acceptance tests hit the paid Elastic Cloud API
 and run on Buildkite; the loop only **names** relevant `TestAcc…` cases as a human/Buildkite step.
 See [`testing.md`](./testing.md).
+
+**Commit-only vs PR checks.** GitHub Actions `Go` runs on branch pushes. `OpenSpec CI` runs on
+`master` and on **pull requests**, not on an arbitrary feature branch. In commit-only mode the
+loop does not wait for `OpenSpec CI`; the local `make check-openspec` is the structural check.
 
 ### What the loop never does
 
@@ -114,11 +120,12 @@ If the implementor blocks or the loop stalls, it pauses and asks rather than gue
 
 | Skill | When to use |
 |-------|-------------|
-| [`openspec-verify-change`](../../.agents/skills/openspec-verify-change/SKILL.md) | Run during the implementation loop and before archiving; checks completeness, correctness, and coherence and produces a CRITICAL / WARNING / SUGGESTION report |
+| [`openspec-verify-change`](../../.agents/skills/openspec-verify-change/SKILL.md) | Run during the implementation loop (every strategy; per-task waits until all tasks are done) and before archiving; checks completeness, correctness, and coherence and produces a CRITICAL / WARNING / SUGGESTION report |
 
 `openspec-verify-change` is also the skill the later `verify-openspec` CI gate will follow. It does
 not archive. Unit tests and code paths are enough evidence; acc-only scenario coverage is a WARNING
-that names the out-of-band `TestAcc…` case.
+that names the out-of-band `TestAcc…` case. The implementation loop treats verify **CRITICAL**
+issues as push-blocking and **WARNINGs** as reported, not looped.
 
 ## Land specs
 

@@ -25,8 +25,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 7. Run validation and review at the cadence determined by the strategy
 8. Aggregate findings and fix; repeat until clean
 9. Push the branch to `origin`
-10. **Commit mode**: Watch GitHub Actions on the pushed branch/commit (`Go`, and `OpenSpec CI` when `openspec/` changed). Surface Buildkite acceptance as out-of-band; never run or auto-fix it.
-    **PR mode**: Create a PR, then monitor GitHub Actions, reviews, and comments. Delegate to `pr-monitoring-loop` when that skill is installed; otherwise watch with `gh` as described in step 11.
+10. **Commit mode**: Watch GitHub Actions that run on a branch push (typically `Go`). Do not wait for `OpenSpec CI` — that workflow does not run on arbitrary branches. Surface Buildkite acceptance as out-of-band; never run or auto-fix it.
+    **PR mode**: Create a PR, then monitor GitHub Actions (including `OpenSpec CI` when present), reviews, and comments. Delegate to `pr-monitoring-loop` when that skill is installed; otherwise watch with `gh` as described in step 11.
 11. Report final outcome
 
 **Steps**
@@ -77,7 +77,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **Handle states**:
    - If `state: "blocked"`: stop and explain what artifact is missing; suggest continuing the change artifacts first
-   - If `state: "all_done"`: skip directly to the push / CI stage because all top-level tasks are already complete
+   - If `state: "all_done"`: skip triage and implementation (steps 4–6). Continue at step 7: run 7a, 7b, and the 7d battery **once** (including `openspec-verify-change`). Do not use 7c or 7e. Then continue at step 8.
    - Otherwise: proceed to triage and implementation
 
 4. **Triage: determine execution strategy**
@@ -98,9 +98,9 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    | Strategy | When to use | Implementation | Review |
    |----------|-------------|----------------|--------|
-   | **Inline** | ≤2 top-level tasks AND ≤~10 subtasks AND single area AND straightforward changes | Orchestrator implements directly, no implementor subagent | Run validation commands directly; spawn review subagents only if the change touches non-trivial logic |
+   | **Inline** | ≤2 top-level tasks AND ≤~10 subtasks AND single area AND straightforward changes | Orchestrator implements directly, no implementor subagent | Run validation and `openspec-verify-change` directly; spawn other review subagents only if the change touches non-trivial logic |
    | **Single-implementor** | ≤4 top-level tasks OR ≤~15 subtasks, with coherent scope | One implementor subagent handles all remaining tasks | One round of parallel review after all tasks complete |
-   | **Per-task** | >4 top-level tasks, OR >15 subtasks, OR multi-area scope, OR tasks are largely independent across different packages | Fresh implementor per top-level task | Full parallel review after each top-level task |
+   | **Per-task** | >4 top-level tasks, OR >15 subtasks, OR multi-area scope, OR tasks are largely independent across different packages | Fresh implementor per top-level task | Task-scoped review after each task; `openspec-verify-change` only after the last |
 
    These thresholds are guidelines, not rigid rules. Use judgment:
    - A 3-task change where each task is in a different package might warrant **per-task**
@@ -127,11 +127,11 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    The orchestrator implements all tasks directly without spawning an implementor subagent:
    - follow the `openspec-apply-change` skill/process for the change
    - sync delta specs when implementation requires spec synchronization, but never archive the change
-   - ignore any task that asks for the change to be archived; this loop never archives. After a clean `openspec-verify-change`, archive with `openspec-archive-change` (or the later `verify-openspec` label when that workflow exists)
+   - ignore any task that asks for the change to be archived. This loop never archives. After this skill returns, the user may run `openspec-archive-change` (or apply the later `verify-openspec` label when that workflow exists)
    - keep changes minimal and focused
    - create small, focused git commits as coherent pieces of work are completed
    - run targeted validation while implementing (`make unit` scoped to touched packages is fine; never `TF_ACC`)
-   - never push to remote
+   - do not push; the orchestrator pushes in step 9
 
    **Single-implementor strategy:**
 
@@ -139,12 +139,12 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - instruct it to implement all remaining top-level tasks in sequence, completing all nested subtasks within each before moving to the next
    - follow the `openspec-apply-change` skill/process for the change
    - sync delta specs when implementation requires spec synchronization, but never archive the change
-   - ignore any task that asks for the change to be archived; this loop never archives. After a clean `openspec-verify-change`, archive with `openspec-archive-change` (or the later `verify-openspec` label when that workflow exists)
+   - ignore any task that asks for the change to be archived. This loop never archives. After this skill returns, the user may run `openspec-archive-change` (or apply the later `verify-openspec` label when that workflow exists)
    - read the OpenSpec context files before editing
    - keep changes minimal and focused
    - create small, focused git commits as coherent pieces of work are completed
    - run targeted validation while implementing (`make unit` scoped to touched packages is fine; never `TF_ACC`)
-   - never push to remote
+   - do not push; the orchestrator pushes in step 9
 
    Ask the implementor to report back with:
    - top-level tasks completed
@@ -162,12 +162,12 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - focus only on the current top-level task and complete all of its nested subtasks before stopping
    - follow the `openspec-apply-change` skill/process for the change
    - sync delta specs when implementation requires spec synchronization, but never archive the change
-   - ignore any task that asks for the change to be archived; this loop never archives. After a clean `openspec-verify-change`, archive with `openspec-archive-change` (or the later `verify-openspec` label when that workflow exists)
+   - ignore any task that asks for the change to be archived. This loop never archives. After this skill returns, the user may run `openspec-archive-change` (or apply the later `verify-openspec` label when that workflow exists)
    - read the OpenSpec context files before editing
    - keep changes minimal and focused
    - create small, focused git commits as coherent pieces of work are completed
    - run targeted validation while implementing (`make unit` scoped to touched packages is fine; never `TF_ACC`)
-   - never push to remote
+   - do not push; the orchestrator pushes in step 9
 
    Ask the implementor to report back with:
    - the top-level task completed
@@ -181,6 +181,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 7. **Run validation and review**
 
    The validation and review cadence depends on the execution strategy.
+
+   If this invocation skipped triage because `state` was `all_done`, run 7a, 7b, and the 7d battery once, then go to step 8.
 
    **7a. Determine the review type**
 
@@ -196,6 +198,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `make lint`
    - `make build`
    - `make unit`
+   - `make check-openspec` when the work touched `openspec/` (it is **not** part of `make lint`). If `openspec/` did not change, skip it and say so.
 
    **Acceptance tests are out-of-band. This loop MUST NOT run them:**
    - Do **not** set `TF_ACC`. Do **not** run `make testacc`. Do **not** run `go test` with `TF_ACC=1`.
@@ -206,24 +209,25 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **7c. Inline strategy: lightweight review**
 
-   The orchestrator runs validation commands (`make lint`, `make build`, `make unit`) directly rather than spawning a validation subagent.
+   The orchestrator runs the validation commands from step 7b directly rather than spawning a validation subagent.
 
-   For straightforward changes (config, docs, Makefile, CI, spec-only), a self-review by the orchestrator is sufficient. Do not spawn review subagents.
+   Always run `openspec-verify-change` for the same change. The orchestrator may run it itself; do not skip it on "straightforward" changes.
 
-   For changes that touch non-trivial logic (custom types, plan modifiers, complex CRUD, error handling), spawn a minimal set of review subagents:
+   For straightforward changes (config, docs, Makefile, CI, spec-only), that plus a self-review is sufficient. Do not spawn other review subagents.
+
+   For changes that touch non-trivial logic (custom types, plan modifiers, complex CRUD, error handling), also spawn:
    - **Critical code review**: review for coding standards, idiomatic patterns, logic issues, error handling gaps
-   - **Proposal compliance review**: run the `openspec-verify-change` skill/process
    - Add coverage review only if the change involves a Terraform entity (see 7d.d)
 
    **7d. Single-implementor strategy: one review round**
 
    After all tasks are complete, launch the full parallel review battery **once**:
 
-   a. **Validation runner** - launch a dedicated validation subagent to run the validation requirements from step 7b (`make lint`, `make build`, `make unit` only). Use a subagent so these checks do not consume the orchestrator's working context.
+   a. **Validation runner** - launch a dedicated validation subagent to run the validation requirements from step 7b (`make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed). Use a subagent so these checks do not consume the orchestrator's working context.
 
    b. **Critical code review** - review for coding standards, idiomatic Go/Terraform Plugin Framework patterns, obvious logic issues, error handling gaps, and risky regressions. Return prioritized findings only.
 
-   c. **Proposal compliance review** - run the `openspec-verify-change` skill/process for the same change. Return only actionable mismatches, missing work, or notable warnings.
+   c. **Proposal compliance review** - run the `openspec-verify-change` skill/process for the same change. Return CRITICAL mismatches and missing work. Include WARNINGs and SUGGESTIONs in the report; they are not push-blocking (see step 8).
 
    d. **Coverage review for Terraform entities** - if this is a Terraform entity change and `.agents/skills/schema-coverage/SKILL.md` exists, run that skill. Focus on untested or weakly tested high-risk attributes and behaviors. If that skill is not installed, fall back to `go test -cover` on the touched packages (same as 7d.e) and say so.
 
@@ -233,7 +237,9 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **7e. Per-task strategy: review after each top-level task**
 
-   After each top-level task's implementor reports completion, launch the same full parallel review battery described in 7d (validation runner, critical code review, proposal compliance review, and the appropriate coverage review).
+   After each top-level task's implementor reports completion, launch validation runner, critical code review, and the appropriate coverage review for **that task's** diff.
+
+   Do **not** run `openspec-verify-change` until every top-level task is complete. That skill treats remaining `- [ ]` tasks as CRITICAL, which would block advancing to the next task. After the **last** top-level task passes its task-scoped review, run the full battery from 7d once, including proposal compliance (`openspec-verify-change`).
 
    Run the validation runner in parallel with the other review subagents for the same top-level task.
 
@@ -245,19 +251,29 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
 8. **Aggregate findings and decide whether to loop**
 
-   Combine the validation results and review outputs into a single actionable list.
+   Combine the validation results and review outputs.
 
-   If there are no actionable findings:
-   - **Inline / single-implementor**: proceed to push
+   **Push-blocking** (must fix before advancing):
+   - Failed step 7b commands (`make lint` / `build` / `unit` / `check-openspec`)
+   - `openspec-verify-change` CRITICAL issues
+   - Critical code-review findings that are actual defects
+
+   **Not push-blocking** (report in the final summary; do not loop):
+   - `openspec-verify-change` WARNINGs, including acc-only scenario coverage (this loop cannot run `TF_ACC` to "fix" them)
+   - SUGGESTIONs
+   - Coverage-gap notes that do not claim a missing requirement
+
+   If there are no push-blocking findings:
+   - **Inline / single-implementor / `all_done`**: proceed to push
    - **Per-task**: mark the current top-level task as locally complete; start a fresh implementor for the next incomplete top-level task, or proceed to push if none remain
 
-   If there are actionable findings:
-   - **Inline**: the orchestrator fixes the issues directly with minimal diffs and additional small focused commits
-   - **Single-implementor**: resume the implementor subagent, give it the aggregated findings, and ask it to fix them with minimal diffs and additional small focused commits
-   - **Per-task**: resume the current top-level task's implementor subagent, give it the aggregated findings, and ask it to fix them with minimal diffs and additional small focused commits
+   If there are push-blocking findings:
+   - **Inline / `all_done`**: the orchestrator fixes the issues directly with minimal diffs and additional small focused commits
+   - **Single-implementor**: resume the implementor subagent, give it the aggregated **push-blocking** findings, and ask it to fix them with minimal diffs and additional small focused commits
+   - **Per-task**: resume the current top-level task's implementor subagent, give it the aggregated **push-blocking** findings, and ask it to fix them with minimal diffs and additional small focused commits
 
    After fixes, rerun validation and relevant reviews before advancing:
-   - **Inline / single-implementor**: rerun before proceeding to push
+   - **Inline / single-implementor / `all_done`**: rerun before proceeding to push
    - **Per-task**: rerun before moving to the next top-level task
 
    Repeat until:
@@ -289,7 +305,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
     After pushing:
     - inspect workflow runs for the current branch and the **commits** you pushed (for example with `gh run list` filtered by branch, or `gh` against the latest commit SHA)
-    - watch **GitHub Actions** until they complete: typically `Go` (unit/lint/docs/NOTICE) and, when `openspec/` changed, `OpenSpec CI`
+    - watch **GitHub Actions** that actually run on a branch push until they complete: typically `Go` (unit/lint/docs/NOTICE)
+    - do **not** wait for `OpenSpec CI` in commit-only mode. That workflow's `push` trigger is `master` only; pull requests get it via `pull_request`. Structural spec validation is the local `make check-openspec` from step 7
     - **Do not** treat Buildkite acceptance as a blocking auto-fix loop. If an acceptance check is visible, report pass/fail to the user. Never re-run acc, never auto-fix acc failures (they create paid Elastic Cloud deployments)
 
     If GitHub Actions succeeds:
@@ -299,8 +316,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - collect the failing workflow, job, and relevant log details
     - launch a fresh write-capable implementor subagent scoped only to resolving those **Actions** failures
     - ask it to fix the issues and commit the changes
-    - push again
-    - continue watching GitHub Actions
+    - rerun step 7 validation (and relevant reviews from step 8) before pushing again
+    - then push and continue watching GitHub Actions
 
     Repeat until:
     - GitHub Actions is green, or
@@ -319,7 +336,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     **Otherwise** (skill not installed yet), monitor with `gh` from this agent or a single watcher subagent:
     - poll GitHub Actions on the PR (`gh pr checks`, `gh run list`) until `Go` / `OpenSpec CI` complete
     - poll reviews, PR comments, and review comments at a coarse cadence
-    - fix **simple** GitHub Actions failures (lint/unit/docs) the same way as commit mode: small commits, push, re-watch Actions
+    - fix **simple** GitHub Actions failures (lint/unit/docs) the same way as commit mode: small commits, **rerun step 7–8**, then push and re-watch Actions
     - **surface** Buildkite acceptance as out-of-band: report status if visible; never auto-fix acc failures; never re-trigger acc
     - do **not** apply a `verify-openspec` label unless that workflow exists in this repo
     - stop and ask the user when review feedback needs judgment, the branch is in merge conflict, or the loop stalls
@@ -336,7 +353,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - implementation/review/CI loop status
     - top-level tasks completed in the loop
     - commits created during the loop
-    - local validation run during the loop (`make lint`, `make build`, `make unit`) and the out-of-band acc cases named (or an explicit note that acc does not apply)
+    - local validation run during the loop (`make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed) and the out-of-band acc cases named (or an explicit note that acc does not apply)
     - tests or coverage checks used
     - final GitHub Actions state (and PR link if PR mode); Buildkite acc status if known
     - PR review handling summary if PR mode
@@ -347,32 +364,35 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 Subagent usage scales with the chosen strategy:
 
 - **Implementor** (single-implementor and per-task strategies): makes code changes, updates tasks, runs targeted unit validation, and creates small focused commits. Per-task uses one fresh implementor per top-level task; single-implementor uses one for the entire change.
-- **Validation runner** (single-implementor and per-task strategies): a subagent that runs `make lint`, `make build`, and `make unit`, then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`.
+- **Validation runner** (single-implementor and per-task strategies): a subagent that runs `make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed, then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`.
 - **Critical reviewer**: reviews code quality and logic
 - **Spec reviewer**: checks the implementation against the approved OpenSpec change
 - **Coverage reviewer**: checks test coverage quality using the appropriate strategy
 - **PR watcher**: when `pr-monitoring-loop` is installed, a fresh subagent using that skill; otherwise a watcher that polls `gh` as in step 11
 
-For the **inline** strategy, the orchestrator fills the implementor and validation runner roles directly. Review subagents are spawned only when the change touches non-trivial logic.
+For the **inline** strategy, the orchestrator fills the implementor and validation runner roles directly. It still runs `openspec-verify-change`. Other review subagents are spawned only when the change touches non-trivial logic.
 
 **Guardrails**
 
 - Operate on one change only
 - Ask **commit vs PR** at the **start** (step 2), not when implementation is finished
-- Always triage the change and announce the execution strategy before implementation
+- Always triage the change and announce the execution strategy before implementation, **except** when `state` is `all_done` (then skip 4–6 and run 7b + 7d once)
 - The user can override the chosen strategy at the triage step
 - Always read the OpenSpec context before implementation
-- **Per-task strategy**: create a fresh implementor subagent for each top-level task; do not reuse one implementor across top-level tasks. Do not advance to the next top-level task until the current task has passed local review.
+- **Per-task strategy**: create a fresh implementor subagent for each top-level task; do not reuse one implementor across top-level tasks. Do not advance to the next top-level task until the current task has passed local review. Run `openspec-verify-change` only after the last top-level task.
 - **Single-implementor strategy**: use one implementor for all tasks; run one review round after all tasks complete
-- **Inline strategy**: the orchestrator implements directly; spawn review subagents only for non-trivial logic changes
-- Never archive a change in this workflow; only sync delta specs when needed
+- **Inline strategy**: the orchestrator implements directly and still runs `openspec-verify-change`; spawn other review subagents only for non-trivial logic changes
+- Never archive a change in this workflow; only sync delta specs when needed. Archiving happens after this skill returns.
 - Ignore tasks that request archiving the change proposal
 - **Never run acceptance tests.** No `TF_ACC`, no `make testacc`, no `go test` with `TF_ACC=1`. Acc is a surfaced human/Buildkite step only.
+- Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
 - For single-implementor and per-task strategies, run local validation in a dedicated subagent so the orchestrator does not spend its own context on lint/build/test execution
 - Run the validation subagent in parallel with the other review subagents, not as a separate serial phase
-- All strategies must include `make lint`, `make build`, and `make unit`
+- All strategies must include `make lint`, `make build`, and `make unit`, plus `make check-openspec` when `openspec/` changed
+- After a GitHub Actions failure, rerun steps 7–8 before the next push
 - Run reviewers in parallel whenever possible
 - Prefer actionable findings over style nitpicks
+- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push; only CRITICALs and failed 7b commands do
 - Feed local review and commit-mode **GitHub Actions** failures back into the loop instead of fixing them ad hoc outside the loop. Do not feed Buildkite acc failures into an auto-fix loop.
 - Keep commit sizes small and purpose-specific
 - Stop and ask the user if the process becomes ambiguous or stuck

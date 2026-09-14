@@ -50,7 +50,11 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    openspec instructions apply --change "<name>" --json
    ```
 
-   This returns the change directory and `contextFiles` (artifact ID -> array of concrete file paths). Read all available artifacts from `contextFiles`.
+   This returns the change directory, `contextFiles` (artifact ID -> array of concrete file paths), optional `context`, and optional `operationGuidance`.
+
+   Read all available artifacts from `contextFiles`.
+
+   Treat `context` as required prompt-level input (the same contract as `openspec-apply-change`). Read it and apply relevant project facts, conventions, and constraints while verifying — for example changelog rules, Plugin Framework vs SDKv2, and the no-`TF_ACC` constraint. Treat `operationGuidance` as optional additive advice; follow entries that apply. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value.
 
 4. **Initialize verification report structure**
 
@@ -68,7 +72,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - Parse checkboxes: `- [ ]` (incomplete) vs `- [x]` (complete)
    - Count complete vs total tasks
    - If incomplete tasks exist:
-     - Add CRITICAL issue for each incomplete task
+     - Do **not** add a CRITICAL issue for a task whose only remaining action is to archive the change (`openspec-archive-change`, `openspec archive`, or equivalent). Note it as skipped: archiving is a later step, not this skill.
+     - Add CRITICAL issue for each other incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
 
    **Spec Coverage**:
@@ -138,7 +143,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    **Issues by Priority**:
 
    1. **CRITICAL** (Must fix before archive):
-      - Incomplete tasks
+      - Incomplete tasks other than archive-only steps
       - Missing requirement implementations
       - Each with specific, actionable recommendation
 
