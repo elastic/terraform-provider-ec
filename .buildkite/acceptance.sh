@@ -13,7 +13,8 @@ docs_only_pr() {
   local files
   files=$(git diff --name-only "origin/${base}...HEAD") || return 1
   [[ -n "$files" ]] || return 1
-  ! echo "$files" | grep -qvE '^(docs/|dev-docs/)'
+  # Here-string: grep -q would SIGPIPE echo under pipefail and invert to a false skip.
+  ! grep -qvE '^(docs/|dev-docs/)' <<< "$files"
 }
 
 if docs_only_pr; then
