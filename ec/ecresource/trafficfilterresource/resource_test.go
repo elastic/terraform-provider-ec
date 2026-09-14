@@ -699,6 +699,126 @@ func failedDeletionResponse() mock.Response {
 	)
 }
 
+// TestResourceTrafficFilter_nameRename validates that renaming an
+// ec_deployment_traffic_filter resource (name-only change, rules unchanged)
+// succeeds even though the Elastic Cloud API re-assigns new IDs to all rules
+// on rename. Without the fix in StringIsUnknownIfRulesChange the provider
+// raises "Provider produced inconsistent result after apply" because it plans
+// with the old rule IDs and the API returns new ones.
+func TestResourceTrafficFilter_nameRename(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
+			api.NewMock(
+				createResponse("true"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				renameUpdateResponse("true"),
+				readResponseAfterRename("false", "true"),
+				readResponseAfterRename("false", "true"),
+				readResponseAfterRename("false", "true"),
+				readResponseAfterRename("true", "true"),
+				deleteResponse(),
+			),
+		),
+		Steps: []r.TestStep{
+			{ // Create resource with original name
+				Config: trafficFilter,
+				Check:  checkResource("true"),
+			},
+			{ // Rename the filter — rules unchanged, but API re-assigns rule IDs
+				Config: trafficFilterRenamed,
+				Check:  checkResourceAfterRename("true"),
+			},
+			{ // Delete resource
+				Destroy: true,
+				Config:  trafficFilterRenamed,
+			},
+		},
+	})
+}
+
+const trafficFilterRenamed = `
+	resource "ec_deployment_traffic_filter" "test1" {
+	  name   = "my traffic filter renamed"
+      description = "Allow access from 1.1.1.1 and 1.1.1.0/16"
+	  region = "us-east-1"
+	  type   = "ip"
+
+	  include_by_default = true
+
+	  rule {
+		source = "1.1.1.1"
+	  }
+	  rule {
+		source = "1.1.1.0/16"
+	  }
+	}
+`
+
+func renameUpdateResponse(includeByDefault string) mock.Response {
+	return mock.New200ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultWriteMockHeaders,
+			Method: "PUT",
+			Path:   "/api/v1/deployments/traffic-filter/rulesets/some-random-id",
+			Query:  url.Values{},
+			// Rule IDs are omitted because the plan modifier marks them as unknown
+			// on rename — the expander skips unknown IDs (see expanders.go).
+			Body: mock.NewStringBody(`{"description":"Allow access from 1.1.1.1 and 1.1.1.0/16","include_by_default":` + includeByDefault + `,"name":"my traffic filter renamed","region":"us-east-1","rules":[{"source":"1.1.1.0/16"},{"source":"1.1.1.1"}],"type":"ip"}` + "\n"),
+		},
+		mock.NewStringBody(`{"id" : "some-random-id"}`),
+	)
+}
+
+func readResponseAfterRename(includeAssociations string, includeByDefault string) mock.Response {
+	return mock.New200ResponseAssertion(
+		&mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultReadMockHeaders,
+			Method: "GET",
+			Path:   "/api/v1/deployments/traffic-filter/rulesets/some-random-id",
+			Query: url.Values{
+				"include_associations": []string{includeAssociations},
+			},
+		},
+		mock.NewStringBody(`{
+							  "id" : "some-random-id",
+							  "name" : "my traffic filter renamed",
+							  "description" : "Allow access from 1.1.1.1 and 1.1.1.0/16",
+							  "type": "ip",
+							  "include_by_default": `+includeByDefault+`,
+							  "region": "us-east-1",
+                              "rules": [
+								{
+								  "id" : "some-random-rule-id-3",
+								  "source" : "1.1.1.1"
+								},
+								{
+								  "id" : "some-random-rule-id-4",
+								  "source" : "1.1.1.0/16"
+								}
+							  ]
+							}`),
+	)
+}
+
+func checkResourceAfterRename(includeByDefault string) r.TestCheckFunc {
+	resource := "ec_deployment_traffic_filter.test1"
+	return r.ComposeAggregateTestCheckFunc(
+		r.TestCheckResourceAttr(resource, "id", "some-random-id"),
+		r.TestCheckResourceAttr(resource, "name", "my traffic filter renamed"),
+		r.TestCheckResourceAttr(resource, "region", "us-east-1"),
+		r.TestCheckResourceAttr(resource, "type", "ip"),
+		r.TestCheckResourceAttr(resource, "include_by_default", includeByDefault),
+		r.TestCheckResourceAttr(resource, "rule.0.id", "some-random-rule-id-3"),
+		r.TestCheckResourceAttr(resource, "rule.0.source", "1.1.1.1"),
+		r.TestCheckResourceAttr(resource, "rule.1.id", "some-random-rule-id-4"),
+		r.TestCheckResourceAttr(resource, "rule.1.source", "1.1.1.0/16"),
+	)
+}
+
 func protoV6ProviderFactoriesWithMockClient(client *api.API) map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		"ec": func() (tfprotov6.ProviderServer, error) {

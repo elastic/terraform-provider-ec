@@ -271,11 +271,24 @@ func (m *stringIsUnknownIfRulesChange) Description(ctx context.Context) string {
 }
 
 func (m *stringIsUnknownIfRulesChange) MarkdownDescription(ctx context.Context) string {
-	return "Sets the plan to unknown if there are rule changes"
+	return "Sets the plan to unknown if there are rule or name changes"
 }
 
 func (m *stringIsUnknownIfRulesChange) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.ConfigValue.IsNull() {
+		return
+	}
+
+	// If the filter name changed, the API re-assigns new IDs to all existing rules.
+	// Mark as unknown so Terraform doesn't plan with stale rule IDs.
+	var stateName, planName types.String
+	resp.Diagnostics = append(resp.Diagnostics, req.State.GetAttribute(ctx, path.Root("name"), &stateName)...)
+	resp.Diagnostics = append(resp.Diagnostics, req.Plan.GetAttribute(ctx, path.Root("name"), &planName)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !stateName.Equal(planName) {
+		resp.PlanValue = types.StringUnknown()
 		return
 	}
 
