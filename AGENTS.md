@@ -17,7 +17,7 @@ and related resources through the Elastic Cloud API.
 - Generated clients (serverless OpenAPI) and regeneration: [`generated-clients.md`](./dev-docs/high-level/generated-clients.md)
 - Documentation generation (`tfplugindocs`): [`documentation.md`](./dev-docs/high-level/documentation.md)
 - OpenSpec authoring (Purpose / SHALL-MUST / Scenarios): [`openspec-requirements.md`](./dev-docs/high-level/openspec-requirements.md)
-- OpenSpec change loop (explore / propose / apply / sync / archive): [`openspec-workflows.md`](./dev-docs/high-level/openspec-workflows.md)
+- OpenSpec change loop (explore / propose / apply / loop / verify / sync / archive): [`openspec-workflows.md`](./dev-docs/high-level/openspec-workflows.md)
 
 ## Testing note — acceptance tests hit the real, paid Elastic Cloud API
 
