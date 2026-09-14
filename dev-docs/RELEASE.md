@@ -86,7 +86,10 @@ make tag
 configured). Pushing the tag triggers the Buildkite
 [release pipeline](https://buildkite.com/elastic/terraform-provider-ec-release), which runs
 [`.buildkite/release.sh`](../.buildkite/release.sh) → `make release` (GoReleaser) to build, sign,
-and publish the artifacts.
+and publish the artifacts. `make release` extracts this version's section from
+[`CHANGELOG.md`](../CHANGELOG.md) via [`scripts/extract-release-notes.sh`](../scripts/extract-release-notes.sh)
+and passes it to GoReleaser as `--release-notes` (GoReleaser's git changelog is disabled, so without
+that the GitHub release body would be empty).
 
 Confirm the new version is listed in the
 [Terraform registry](https://registry.terraform.io/providers/elastic/ec/latest/docs).

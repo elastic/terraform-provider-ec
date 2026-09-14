@@ -24,15 +24,25 @@ endif
 snapshot:
 	@ go tool goreleaser release --clean --snapshot
 
+# GitHub release body is this version's CHANGELOG.md section. GoReleaser's own
+# changelog is disabled (.goreleaser.yml); without --release-notes the GitHub
+# release is published empty. extract-release-notes.sh fails if the section is
+# missing, so we never tag-publish a blank body.
+RELEASE_VERSION = $(subst -dev,,$(VERSION))
+
 ## Releases a new version of the terraform provider with a matching tag.
 release:
-	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ go tool goreleaser release --clean --skip=validate --parallelism=4
+	@ $(MAKE) gen VERSION=$(RELEASE_VERSION)
+	@ notes=$$(mktemp) && \
+		./scripts/extract-release-notes.sh $(RELEASE_VERSION) > $$notes && \
+		go tool goreleaser release --clean --skip=validate --parallelism=4 --release-notes $$notes
 
 ## Builds a new version of the terraform provider with a matching tag without publishing it.
 release-no-publish:
-	@ $(MAKE) gen VERSION=$(subst -dev,,$(VERSION))
-	@ go tool goreleaser release --clean --skip=publish,validate --parallelism=4
+	@ $(MAKE) gen VERSION=$(RELEASE_VERSION)
+	@ notes=$$(mktemp) && \
+		./scripts/extract-release-notes.sh $(RELEASE_VERSION) > $$notes && \
+		go tool goreleaser release --clean --skip=publish,validate --parallelism=4 --release-notes $$notes
 
 .PHONY: changelog
 changelog:

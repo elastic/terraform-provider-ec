@@ -21,6 +21,8 @@ _report_path:
 unit: _report_path
 	@ echo "-> Running unit tests for $(BINARY)..."
 	@ go test $(TEST) $(TESTARGS) $(TESTUNITARGS)
+	@ echo "-> Running script tests..."
+	@ ./scripts/extract-release-notes_test.sh
 
 ## Alias to "unit".
 tests: unit
