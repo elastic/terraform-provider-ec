@@ -16,5 +16,7 @@ resource "ec_deployment" "cpu_optimized" {
     }
   }
 
-  kibana = {}
+  kibana = {
+    size = "2g"
+  }
 }
