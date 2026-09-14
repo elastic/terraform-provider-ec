@@ -80,7 +80,7 @@ func (kibana KibanaTF) payload(ctx context.Context, payload models.KibanaPayload
 		ZoneCount:                    kibana.ZoneCount,
 	}
 
-	topologyPayload, ds := kibanaTopologyPayload(ctx, topologyTF, defaultKibanaTopology(payload.Plan.ClusterTopology)[0])
+	topologyPayload, ds := kibanaTopologyPayload(ctx, topologyTF, payload.Plan.ClusterTopology[0])
 
 	diags.Append(ds...)
 
