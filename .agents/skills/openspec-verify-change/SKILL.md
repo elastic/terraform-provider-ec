@@ -14,7 +14,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
 **Cloud-provider constraints**
 
-- Do **not** run `make testacc` or set `TF_ACC` as part of verification. Acc hits the paid Elastic Cloud API and is out-of-band (human / Buildkite). See `dev-docs/high-level/testing.md`.
+- Do **not** run `make testacc` or set `TF_ACC` as part of verification. This skill is also the later CI `verify-openspec` gate; acc stays out-of-band. The local implementation loop may ask the user to run a named `TestAcc…` separately. See `dev-docs/high-level/testing.md`.
 - Treat unit tests (`make unit`, package `*_test.go`) and code paths as sufficient implementation evidence.
 - If a scenario is covered **only** by an acceptance test under `ec/acc/`, record a WARNING that names the `TestAcc…` case and that acc is out-of-band — not a CRITICAL "unimplemented" finding.
 - Requirements describe Terraform / API-contract behavior, not a line-by-line Go transcription.

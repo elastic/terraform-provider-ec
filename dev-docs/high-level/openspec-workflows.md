@@ -98,9 +98,10 @@ The loop **always** runs:
 - `make check-openspec` when `openspec/` changed (it is not part of `make lint`)
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
-**Never** `make testacc` / `TF_ACC` from the agent. Acceptance tests hit the paid Elastic Cloud API
-and run on Buildkite; the loop only **names** relevant `TestAcc…` cases as a human/Buildkite step.
-See [`testing.md`](./testing.md).
+The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, it may **ask once** to run
+one or two named `TestAcc…` cases (`make testacc TEST_NAME='…'`), calling out live-cloud cost.
+Default is skip (human / Buildkite). It never runs the full suite, never retries acc on failure,
+and never runs acc from `openspec-verify-change`. See [`testing.md`](./testing.md).
 
 **Commit-only vs PR checks.** GitHub Actions `Go` runs on branch pushes. `OpenSpec CI` runs on
 `master` and on **pull requests**, not on an arbitrary feature branch. In commit-only mode the
@@ -112,7 +113,8 @@ loop does not wait for `OpenSpec CI`; the local `make check-openspec` is the str
   `verify-openspec` label).
 - It never force-pushes unless you ask.
 - It never starts a second change in the same run.
-- It never runs acceptance tests.
+- It never **auto-runs** acceptance tests, never runs the full acc suite, and never retries acc
+  on failure. Targeted `TestAcc…` is opt-in only.
 
 If the implementor blocks or the loop stalls, it pauses and asks rather than guessing.
 

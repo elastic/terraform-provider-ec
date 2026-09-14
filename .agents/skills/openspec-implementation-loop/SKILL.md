@@ -1,6 +1,6 @@
 ---
 name: "openspec-implementation-loop"
-description: "Orchestrates an end-to-end implementation loop for a single OpenSpec change: select a change, ask commit-only vs PR delivery, triage (inline, single-implementor, or per-task), implement, run review and validation (make lint/build/unit only — never TF_ACC), push, then either watch GitHub Actions (commit mode) or create a PR and monitor it (PR mode). Use when the user wants to implement an approved OpenSpec proposal/change with iterative review and CI feedback."
+description: "Orchestrates an end-to-end implementation loop for a single OpenSpec change: select a change, ask commit-only vs PR delivery, triage (inline, single-implementor, or per-task), implement, run review and validation (make lint/build/unit always; targeted acc only after an explicit yes), push, then either watch GitHub Actions (commit mode) or create a PR and monitor it (PR mode). Use when the user wants to implement an approved OpenSpec proposal/change with iterative review and CI feedback."
 license: "MIT"
 compatibility: "Requires openspec CLI, git, and GitHub CLI."
 metadata:
@@ -200,12 +200,17 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `make unit`
    - `make check-openspec` when the work touched `openspec/` (it is **not** part of `make lint`). If `openspec/` did not change, skip it and say so.
 
-   **Acceptance tests are out-of-band. This loop MUST NOT run them:**
-   - Do **not** set `TF_ACC`. Do **not** run `make testacc`. Do **not** run `go test` with `TF_ACC=1`.
-   - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API (`EC_API_KEY`), creates real deployments, and runs on **Buildkite** per PR. Agents are not given live-cloud credentials. See `dev-docs/high-level/testing.md`.
-   - After local validation, **surface** acc as a human/Buildkite step: name any `TestAcc…` cases that cover the change so a human can run them locally or wait for Buildkite. Do not execute them.
-
-   If the change has no runtime behavior (docs, skills, Makefile, spec-only), say so and skip naming acc cases.
+   **Acceptance tests — never auto-run. Ask once, named cases only:**
+   - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API (`EC_API_KEY`), creates real deployments, and costs money. The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
+   - Implementors and the validation runner MUST NOT set `TF_ACC` or run `make testacc`.
+   - If the change has no runtime behavior (docs, skills, Makefile, spec-only), say so and skip acc.
+   - Otherwise the **orchestrator** (not a subagent), **once per loop** (after the first complete 7b, and for per-task only with the final 7d battery — not after every task):
+     1. Name the one or two `TestAcc…` cases that cover the change.
+     2. Ask explicitly (AskUserQuestion or equivalent). Call out that this creates real Elastic Cloud resources and costs money. Default option: **skip** (human/Buildkite will run them). Other option: run those named cases.
+     3. On skip, or if `EC_API_KEY` is unset: do not run acc; surface the names as a human/Buildkite step.
+     4. On yes: run only `make testacc TEST_NAME='<exact TestAcc name or -run regex>'`. Never `make testacc` without `TEST_NAME`. Never the full suite.
+     5. Do **not** retry acc on failure. Do **not** re-ask on later step 7–8 reruns (lint/unit only). If the opted-in run failed, that is push-blocking; after a code fix, ask again before running acc a second time.
+     6. After an opted-in run, remind the user that leaked `terraform_acc_` resources need `make sweep`. Do not run sweep yourself (it is interactive and destructive).
 
    **7c. Inline strategy: lightweight review**
 
@@ -255,13 +260,15 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **Push-blocking** (must fix before advancing):
    - Failed step 7b commands (`make lint` / `build` / `unit` / `check-openspec`)
+   - A **user-approved** targeted acc run that failed (do not retry acc; fix code, then ask again)
    - `openspec-verify-change` CRITICAL issues
    - Critical code-review findings that are actual defects
 
    **Not push-blocking** (report in the final summary; do not loop):
-   - `openspec-verify-change` WARNINGs, including acc-only scenario coverage (this loop cannot run `TF_ACC` to "fix" them)
+   - `openspec-verify-change` WARNINGs, including acc-only scenario coverage when the user skipped or was not asked
    - SUGGESTIONs
    - Coverage-gap notes that do not claim a missing requirement
+   - Buildkite acc status (never auto-fix, never re-trigger)
 
    If there are no push-blocking findings:
    - **Inline / single-implementor / `all_done`**: proceed to push
@@ -353,7 +360,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - implementation/review/CI loop status
     - top-level tasks completed in the loop
     - commits created during the loop
-    - local validation run during the loop (`make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed) and the out-of-band acc cases named (or an explicit note that acc does not apply)
+    - local validation run during the loop (`make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed)
+    - targeted acc: skipped (no runtime / user declined / no `EC_API_KEY`) or `TEST_NAME=…` result; never imply the full suite ran
     - tests or coverage checks used
     - final GitHub Actions state (and PR link if PR mode); Buildkite acc status if known
     - PR review handling summary if PR mode
@@ -364,7 +372,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 Subagent usage scales with the chosen strategy:
 
 - **Implementor** (single-implementor and per-task strategies): makes code changes, updates tasks, runs targeted unit validation, and creates small focused commits. Per-task uses one fresh implementor per top-level task; single-implementor uses one for the entire change.
-- **Validation runner** (single-implementor and per-task strategies): a subagent that runs `make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed, then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`.
+- **Validation runner** (single-implementor and per-task strategies): a subagent that runs `make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed, then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC` or run `make testacc`. Targeted acc is orchestrator-only after an explicit yes.
 - **Critical reviewer**: reviews code quality and logic
 - **Spec reviewer**: checks the implementation against the approved OpenSpec change
 - **Coverage reviewer**: checks test coverage quality using the appropriate strategy
@@ -384,7 +392,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - **Inline strategy**: the orchestrator implements directly and still runs `openspec-verify-change`; spawn other review subagents only for non-trivial logic changes
 - Never archive a change in this workflow; only sync delta specs when needed. Archiving happens after this skill returns.
 - Ignore tasks that request archiving the change proposal
-- **Never run acceptance tests.** No `TF_ACC`, no `make testacc`, no `go test` with `TF_ACC=1`. Acc is a surfaced human/Buildkite step only.
+- **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME=…` only after an explicit yes, once per loop, never retried on failure. `openspec-verify-change` never runs acc.
 - Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
 - For single-implementor and per-task strategies, run local validation in a dedicated subagent so the orchestrator does not spend its own context on lint/build/test execution
 - Run the validation subagent in parallel with the other review subagents, not as a separate serial phase
