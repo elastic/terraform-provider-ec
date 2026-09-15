@@ -101,8 +101,9 @@ The loop **always** runs:
 - `env -u TF_ACC make install validate-examples` when examples or provider schemas changed
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
-The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, if one or two existing
-`TestAcc…` names cover the change, the orchestrator may **ask once** to run them
+The loop **never auto-runs** `make testacc` / `TF_ACC`. After the **full** 7b make battery **and**
+that cadence's verify/review pass, if one or two existing `TestAcc…` names cover the change, the
+orchestrator may **ask once** to run them
 (`make testacc TEST_NAME='^TestAccMyThing$'` — anchored; `go test -run` is otherwise an unanchored
 regexp. `TEST_NAME=TestAcc` is the full suite). If none exist, skip without asking. Default is skip
 (human / Buildkite). It never

@@ -65,7 +65,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    **Baseline (before any commit or push):**
    - If `git branch --show-current` is empty (detached HEAD), or the current branch is `master` or `main`, stop and ask the user for a feature branch. Do not commit or push to the default branch or a detached checkout.
    - If the working tree has unrelated dirty or untracked files (paths outside this change), stop and ask rather than mixing them into this change's commits or push.
-   - Record `BASELINE=$(git rev-parse HEAD)` for the pre-push scope check in step 9 when the branch has no remote tracking ref. If it already tracks a remote (`git rev-parse --abbrev-ref @{u}`), step 9 uses that unpushed range, not `BASELINE` — the branch may already be ahead.
+   - Record a **fork point** for the pre-push scope check: `git merge-base HEAD origin/master` or `upstream/master` (or `main`). Do **not** use the current `HEAD` as the baseline — that misses pre-existing local commits. If `git rev-parse --abbrev-ref @{u}` succeeds, step 9 uses `@{u}...HEAD` instead. If neither a tracking ref nor a merge-base with the default branch exists, stop and ask.
 
 3. **Load OpenSpec status and context**
 
@@ -220,7 +220,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `env -u TF_ACC make lint`
    - `env -u TF_ACC make build`
    - `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'` (pin `TEST`/`TESTARGS`/`TESTUNITARGS`; they are `?=` so inherited env can shrink the suite). Implementor-local scoped `TEST=./ec/…` is fine outside this battery.
-   - `env -u TF_ACC make check-openspec` when the work touched `openspec/` (it is **not** part of `make lint`). If `openspec/` did not change, skip it and say so.
+   - `env -u TF_ACC make check-openspec` when the work touched **this repo's** `openspec/` (it is **not** part of `make lint`). If a `--store` id is sticky, do **not** use `make check-openspec` (it runs `validate --all` without `--store`). Run `OPENSPEC_TELEMETRY=0 ./node_modules/.bin/openspec validate --all --store <id>` instead. If neither this repo's `openspec/` nor the selected store changed, skip it and say so.
    - `env -u TF_ACC make install validate-examples` when examples or provider schemas changed. If those inputs did not change, skip it and say so.
 
    The validation runner runs **only these make targets** (including conditional `check-openspec`, `docs-generate`, `vendor`, and `validate-examples`). Implementors may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
@@ -293,11 +293,11 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    Combine the validation results and review outputs.
 
    **Push-blocking** (must fix before advancing):
-   - Failed step 7b commands (`make docs-generate` when required, including a dirty `docs/` tree, `make vendor` / `validate-examples` when required, `make lint` / `build` / `unit` / `check-openspec`)
+   - Failed step 7b commands (`make docs-generate` when required, including a dirty `docs/` tree, `make vendor` / `validate-examples` when required, `make lint` / `build` / `unit` / `check-openspec` or store-aware `openspec validate --all --store`)
    - A **user-approved** targeted acc run that failed because of an **implementation** defect (do not retry acc; fix code, then ask again). Credential, quota, and outage failures are not push-blocking (report them).
    - `openspec-verify-change` CRITICAL issues
    - Critical code-review findings that are actual defects
-   - In **PR mode**, a user-facing change with no `.changelog/{PR}.txt` after the PR number is known (docs/spec/skills/Makefile/CI-only are exempt)
+   - A user-facing change with no `.changelog/{PR}.txt` after the PR number is known (PR mode, or commit-only when the branch already has an open PR). Docs/spec/skills/Makefile/CI-only are exempt.
 
    **Not push-blocking** (report in the final summary; do not loop):
    - `openspec-verify-change` WARNINGs, including acc-only scenario coverage when the user skipped or was not asked
@@ -331,9 +331,9 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    After every remaining **in-scope** top-level task (not archive/sync/execute-acc-only) has been implemented and passed local review:
    - `git status` must be clean. If files belonging to this change are still dirty (including generated output from `make gen` / `make build`), commit them and rerun the affected 7b targets first. If dirty paths are unrelated, stop and ask. Do not push an incomplete tree.
-   - Inspect the **unpushed** path set. If `git rev-parse --abbrev-ref @{u}` succeeds, use `git diff --name-only @{u}...HEAD` (covers commits already ahead of the remote before this invocation). Otherwise use `git diff --name-only ${BASELINE}...HEAD`. Stop and ask if that range includes paths that are clearly outside this change's scope.
+   - Inspect the **unpushed** path set. If `git rev-parse --abbrev-ref @{u}` succeeds, use `git diff --name-only @{u}...HEAD`. Otherwise use `git diff --name-only ${FORK}...HEAD` (fork point from step 2). Stop and ask if that range includes paths that are clearly outside this change's scope.
    - verify the branch is still not `master`, `main`, or detached
-   - **Changelog:** skip `.changelog/{PR}.txt` for docs/spec/skills/Makefile/CI-only (not user-facing). For user-facing work in **commit-only** mode, note that the file is required once a PR number exists; do not invent a PR number. PR mode handles the file in step 11.
+   - **Changelog:** skip `.changelog/{PR}.txt` for docs/spec/skills/Makefile/CI-only (not user-facing). If the current branch already has an open PR (`gh pr view --json number`), apply the same `.changelog/{PR}.txt` gate as step 11 even in **commit-only** mode. Otherwise, for user-facing work in commit-only mode, note that the file is required once a PR number exists; do not invent a PR number.
    - push the current branch to `origin`
    - use upstream tracking if needed
 
