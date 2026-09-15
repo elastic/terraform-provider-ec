@@ -24,11 +24,13 @@ import (
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/terraform-provider-ec/ec/internal/gen/serverless"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 type ProviderClients struct {
-	Stateful   *api.API
-	Serverless serverless.ClientWithResponsesInterface
+	Stateful        *api.API
+	Serverless      serverless.ClientWithResponsesInterface
+	ReadAfterMutate util.ReadAfterMutate
 }
 
 // ConvertProviderData is a helper function for DataSource.Configure and Resource.Configure implementations
