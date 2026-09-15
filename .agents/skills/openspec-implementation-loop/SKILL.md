@@ -125,7 +125,9 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Interpret a top-level task as the parent task number such as `1`, `2`, or `3`. Each top-level task includes all of its nested subtasks such as `1.1`, `1.2`, `1.3`.
 
-   For each incomplete top-level task:
+   Omit a top-level task from this queue (and from step 9 completion) when its remaining work is only archive and/or sync-to-canonical-specs (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`). Those run after this loop. If every remaining top-level task is archive/sync-only, the implementation queue is empty; continue at step 7.
+
+   For each remaining incomplete top-level task:
    - gather the subtasks that belong to it
    - understand the intended scope from the proposal/design/specs
    - process the top-level tasks sequentially unless the user explicitly asks for a different strategy
@@ -212,8 +214,9 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `env -u TF_ACC make build`
    - `env -u TF_ACC make unit`
    - `env -u TF_ACC make check-openspec` when the work touched `openspec/` (it is **not** part of `make lint`). If `openspec/` did not change, skip it and say so.
+   - `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed. `make lint` does not regenerate docs; Go CI rejects a dirty `docs/` tree. If those inputs did not change, skip it and say so.
 
-   The validation runner runs **only these make targets**. If the change touched resource/data-source schemas, templates, or examples, implementors **must** run `env -u TF_ACC make docs-generate` before local review is done (`make lint` does not regenerate docs; Go CI rejects a dirty `docs/` tree). They may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
+   The validation runner runs **only these make targets** (including conditional `check-openspec` and `docs-generate`). Implementors may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
 
    `make build` runs `make gen` first. After this battery, run `git status`. If generated files belonging to the change are dirty, commit them and rerun the affected 7b targets before treating the battery as done.
 
@@ -247,7 +250,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    After all tasks are complete, launch the full parallel review battery **once**:
 
-   a. **Validation runner** - launch a dedicated validation subagent to run **only** the make targets from step 7b (`env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, and `env -u TF_ACC make check-openspec` when `openspec/` changed). Do not ask it to run 7b.1 or `make testacc`. Use a subagent so these checks do not consume the orchestrator's working context.
+   a. **Validation runner** - launch a dedicated validation subagent to run **only** the make targets from step 7b (`env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, `env -u TF_ACC make check-openspec` when `openspec/` changed, and `env -u TF_ACC make docs-generate` when schemas/templates/examples changed). Do not ask it to run 7b.1 or `make testacc`. Use a subagent so these checks do not consume the orchestrator's working context.
 
    b. **Critical code review** - review for coding standards, idiomatic Go/Terraform Plugin Framework patterns, obvious logic issues, error handling gaps, and risky regressions. Return prioritized findings only.
 
@@ -311,7 +314,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
 9. **Push the branch**
 
-   After every incomplete top-level task has been implemented and passed local review:
+   After every remaining **in-scope** top-level task (not archive/sync-only) has been implemented and passed local review:
    - `git status` must be clean. If files belonging to this change are still dirty (including generated output from `make gen` / `make build`), commit them and rerun the affected 7b targets first. If dirty paths are unrelated, stop and ask. Do not push an incomplete tree.
    - Inspect `git diff --name-only ${BASELINE}...HEAD` (baseline from step 2). Stop and ask if commits include paths that are clearly outside this change's scope.
    - verify the branch is still not `master`, `main`, or detached
@@ -396,7 +399,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 Subagent usage scales with the chosen strategy:
 
 - **Implementor** (single-implementor and per-task strategies): makes code changes, updates tasks, runs targeted unit validation (`env -u TF_ACC make unit`; `env -u TF_ACC make docs-generate` when schema/examples changed), and creates small focused commits. Per-task uses one fresh implementor per top-level task; single-implementor uses one for the entire change.
-- **Validation runner** (single-implementor and per-task strategies): a subagent that runs `env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, and `env -u TF_ACC make check-openspec` when `openspec/` changed, then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done. Targeted acc is orchestrator-only (7b.1) after an explicit yes.
+- **Validation runner** (single-implementor and per-task strategies): a subagent that runs the make targets from step 7b (`env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, `env -u TF_ACC make check-openspec` when `openspec/` changed, `env -u TF_ACC make docs-generate` when schemas/templates/examples changed), then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done. Targeted acc is orchestrator-only (7b.1) after an explicit yes.
 - **Critical reviewer**: reviews code quality and logic
 - **Spec reviewer**: checks the implementation against the approved OpenSpec change
 - **Coverage reviewer**: checks test coverage quality using the appropriate strategy
@@ -420,7 +423,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
 - For single-implementor and per-task strategies, run local validation in a dedicated subagent so the orchestrator does not spend its own context on lint/build/test execution
 - Run the validation runner to completion **before** other review subagents (it may write generated files via `make gen` / license headers). Then run the remaining reviewers in parallel.
-- All strategies must include `make lint`, `make build`, and `make unit`, plus `make check-openspec` when `openspec/` changed
+- All strategies must include `make lint`, `make build`, and `make unit`, plus `make check-openspec` when `openspec/` changed, plus `make docs-generate` when schemas/templates/examples changed
 - After a GitHub Actions failure, rerun steps 7–8 before the next push
 - Run reviewers in parallel whenever possible
 - Prefer actionable findings over style nitpicks
