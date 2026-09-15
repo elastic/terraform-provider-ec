@@ -125,7 +125,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Interpret a top-level task as the parent task number such as `1`, `2`, or `3`. Each top-level task includes all of its nested subtasks such as `1.1`, `1.2`, `1.3`.
 
-   Omit a top-level task from this queue (and from step 9 completion) when its remaining work is only archive and/or sync-to-canonical-specs (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`). Those run after this loop. If every remaining top-level task is archive/sync-only, the implementation queue is empty; continue at step 7.
+   Omit a top-level task from this queue (and from step 9 completion) when its remaining work is only archive, sync-to-canonical-specs (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`), and/or execute-acc (`make testacc`, `TF_ACC=1`, Human/Buildkite runs a named `TestAcc…`). Those run after this loop (or out-of-band). If every remaining top-level task is archive/sync/execute-acc only, the implementation queue is empty; continue at step 7.
 
    For each remaining incomplete top-level task:
    - gather the subtasks that belong to it
@@ -314,7 +314,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
 9. **Push the branch**
 
-   After every remaining **in-scope** top-level task (not archive/sync-only) has been implemented and passed local review:
+   After every remaining **in-scope** top-level task (not archive/sync/execute-acc-only) has been implemented and passed local review:
    - `git status` must be clean. If files belonging to this change are still dirty (including generated output from `make gen` / `make build`), commit them and rerun the affected 7b targets first. If dirty paths are unrelated, stop and ask. Do not push an incomplete tree.
    - Inspect `git diff --name-only ${BASELINE}...HEAD` (baseline from step 2). Stop and ask if commits include paths that are clearly outside this change's scope.
    - verify the branch is still not `master`, `main`, or detached

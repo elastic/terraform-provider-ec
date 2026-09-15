@@ -43,6 +43,7 @@ Gating and recipe (from `build/Makefile.test`):
 
 ```make
 testacc:
+	test -n "$(strip $(value TEST_NAME))" || { echo "TEST_NAME must be non-empty"; exit 1; }
 	TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) \
 	  $(TESTARGS) -timeout 120m -run '$(value TEST_NAME)'
 ```
