@@ -31,16 +31,16 @@ and related resources through the Elastic Cloud API.
   `master` (`buildkite/terraform-provider-ec-acceptance`); a human working on a change should run
   the targeted `TestAcc…` case(s) locally first. See [`testing.md`](./dev-docs/high-level/testing.md).
 - There is **no local Docker stack** for this provider (unlike the Elastic Stack provider). Unit
-  tests (`make unit`) need no credentials and are always safe to run.
+  tests (`env -u TF_ACC make unit`) need no credentials and are always safe to run.
 
 ## After making changes
 
 - Build: `env -u TF_ACC make build`
+- If you changed resource/data-source schemas or examples, regenerate docs with `env -u TF_ACC make docs-generate`
+  and verify with `make tfproviderdocs`. See [`documentation.md`](./dev-docs/high-level/documentation.md).
 - Lint: `env -u TF_ACC make lint`
 - If you changed `openspec/`: `env -u TF_ACC make check-openspec`
 - Unit tests (no cloud, always safe): `env -u TF_ACC make unit`
-- If you changed resource/data-source schemas or examples, regenerate docs with `env -u TF_ACC make docs-generate`
-  and verify with `make tfproviderdocs`. See [`documentation.md`](./dev-docs/high-level/documentation.md).
 - If you changed the serverless client inputs, regenerate with `env -u TF_ACC make gen`. See
   [`generated-clients.md`](./dev-docs/high-level/generated-clients.md).
 - Add a `.changelog/{PR}.txt` entry for user-facing changes (see [`contributing.md`](./dev-docs/high-level/contributing.md)).

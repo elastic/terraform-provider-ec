@@ -112,7 +112,7 @@ and archived into `openspec/specs/` after the implementation lands.
 - Write **table-driven unit tests** with `t.Run()` subtests, using
   [`testify`](https://github.com/stretchr/testify) (`assert`/`require`) for assertions. Tests are
   colocated with the code they cover (e.g. `ec/internal/converters/convert_tags_test.go`).
-- Unit tests (`make unit`) need no credentials and are always safe to run.
+- Unit tests (`env -u TF_ACC make unit`) need no credentials and are always safe to run.
 - **Acceptance tests hit the real, paid Elastic Cloud API** and cost money. Run the **targeted**
   `TestAcc…` case(s) for your change locally before a PR; the **full** suite runs on Buildkite per
   PR. Agents never **auto-run** acceptance tests; the implementation loop may ask once after an

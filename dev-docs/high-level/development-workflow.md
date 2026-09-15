@@ -19,7 +19,8 @@ fragments are the source of truth for exact behavior.
 > never auto-run acceptance tests.** The implementation loop may ask once to run named `TestAcc…`
 > cases after an explicit yes (default skip; after a code fix, one new ask, still default skip). Implementors, `openspec-verify-change`, and CI reuse
 > never set `TF_ACC`. No live-cloud credentials are exposed to agentic workflows by default. See
-> [`testing.md`](./testing.md). `make unit` needs no credentials and is always safe. There is **no
+> [`testing.md`](./testing.md). `env -u TF_ACC make unit` needs no credentials and is always safe
+> (plain `make unit` with inherited `TF_ACC=1` runs `ec/acc`). There is **no
 > local Docker stack** for this provider.
 
 ## Worth knowing (beyond `make help`)
@@ -46,8 +47,8 @@ fragments are the source of truth for exact behavior.
   [`generated-clients.md`](./generated-clients.md).
 - **`make docs-generate`** whenever you change a resource/data-source schema or `examples/`; it's
   validated by `make tfproviderdocs` (part of `make lint`). See [`documentation.md`](./documentation.md).
-- **`make unit`** (alias `make tests`) is the safe, credential-free test target; scope it with
-  `TEST=./ec/...` and `TESTARGS=...`.
+- **`make unit`** (alias `make tests`) is the safe, credential-free test target when `TF_ACC` is
+  unset; agents use `env -u TF_ACC make unit`. Scope it with `TEST=./ec/...` and `TESTARGS=...`.
 - **`make sweep`** is a cleanup tool for *leaked* cloud resources (it prompts for confirmation), not
   part of the normal loop — see [`testing.md`](./testing.md).
 - **`make vendor`** also regenerates `NOTICE` (via `make notice`) after tidying modules.
@@ -62,13 +63,14 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 ## Recommended pre-PR local loop
 
 1. `make build` — regenerates code and compiles.
-2. `make lint` — Go + provider linters, license headers, docs check, `.tf` formatting.
-3. `make unit` — safe unit tests, no credentials.
-4. `make check-openspec` — only if you changed `openspec/` (CI also runs this in `openspec.yml`).
-5. Run the **targeted** acceptance test(s) covering your change —
+2. `make docs-generate` — only if you changed resource/data-source schemas or `examples/` (before
+   lint so new entity docs exist for `tfproviderdocs`; then commit a dirty `docs/` tree).
+3. `make lint` — Go + provider linters, license headers, docs check, `.tf` formatting.
+4. `env -u TF_ACC make unit` — unit tests; unset `TF_ACC` so `ec/acc` does not run.
+5. `make check-openspec` — only if you changed `openspec/` (CI also runs this in `openspec.yml`).
+6. Run the **targeted** acceptance test(s) covering your change —
    `make testacc TEST_NAME='^TestAcc…$'` — then `make sweep` any leftovers. Skip if the change has no
    runtime behavior (docs/config only).
-6. `make docs-generate` — only if you changed resource/data-source schemas or `examples/`.
 7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
    [`contributing.md`](./contributing.md)).
 

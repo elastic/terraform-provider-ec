@@ -92,7 +92,7 @@ Strategy thresholds and review cadence are defined in the
 
 The loop **always** runs:
 
-- `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed (before lint; `make lint` fails on a stale `docs/` tree)
+- `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed (before lint so new entity docs exist for `tfproviderdocs`, and before the generated-docs `git status`/commit check; `tfproviderdocs` does not fail merely because existing generated markdown is stale)
 - `env -u TF_ACC make lint`
 - `env -u TF_ACC make build`
 - `env -u TF_ACC make unit`
