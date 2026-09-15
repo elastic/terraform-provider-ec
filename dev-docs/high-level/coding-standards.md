@@ -115,8 +115,8 @@ and archived into `openspec/specs/` after the implementation lands.
 - Unit tests (`env -u TF_ACC make unit`) need no credentials and are always safe to run.
 - **Acceptance tests hit the real, paid Elastic Cloud API** and cost money. Run the **targeted**
   `TestAcc…` case(s) for your change locally before a PR; the **full** suite runs on Buildkite per
-  PR. Agents never **auto-run** acceptance tests; the implementation loop may ask once after an
-  explicit yes (default skip). There is no local Docker stack. See [`./testing.md`](./testing.md)
+  PR. Agents never **auto-run** acceptance tests; the implementation loop may ask at most twice
+  (initial + post-fix) after an explicit yes (default skip). There is no local Docker stack. See [`./testing.md`](./testing.md)
   for the full contract.
 
 ## Changelog

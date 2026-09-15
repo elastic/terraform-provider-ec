@@ -16,8 +16,8 @@ fragments are the source of truth for exact behavior.
 > `make testacc TEST_NAME='^TestAccMyThing$'` — for fast feedback, then `make sweep` any leftovers.
 > Don't run the **full** suite locally for routine iteration (~2 hours); the Buildkite acceptance
 > pipeline runs the full suite for every PR and is a required status check on `master`. **Agents
-> never auto-run acceptance tests.** The implementation loop may ask once to run named `TestAcc…`
-> cases after an explicit yes (default skip; after a code fix, one new ask, still default skip). Implementors, `openspec-verify-change`, and CI reuse
+> never auto-run acceptance tests.** The implementation loop may ask at most twice (initial + post-fix)
+> to run named `TestAcc…` cases after an explicit yes (default skip). Implementors, `openspec-verify-change`, and CI reuse
 > never set `TF_ACC`. No live-cloud credentials are exposed to agentic workflows by default. See
 > [`testing.md`](./testing.md). `env -u TF_ACC make unit` needs no credentials and is always safe
 > (plain `make unit` with inherited `TF_ACC=1` runs `ec/acc`). There is **no
@@ -76,4 +76,4 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 
 The **full** acceptance suite runs on Buildkite for every PR and must pass before merge; run only
 the targeted cases locally. Agents never **auto-run** acceptance tests. The implementation loop
-may ask once to run named `TestAcc…` cases after an explicit yes (default skip; after a code fix, one new ask, still default skip).
+may ask at most twice (initial + post-fix) to run named `TestAcc…` cases after an explicit yes (default skip).

@@ -116,9 +116,9 @@ These apply to every spec in this repo and to any later change that implements o
   go through the generated client under `ec/internal/gen/serverless/`.
 - **Agents never auto-run acceptance tests** (`TF_ACC`). Acc hits the real, paid Elastic Cloud API
   and runs out-of-band on Buildkite. Specs may mention acc coverage as a *human* verification step;
-  they MUST NOT require an agent to execute `make testacc`. The implementation loop may ask once to
-  run named `TestAcc…` cases after an explicit yes; apply, verify-change, and CI reuse never set
-  `TF_ACC`.
+  they MUST NOT require an agent to execute `make testacc`. The implementation loop may ask at most
+  twice (initial + post-fix) to run named `TestAcc…` cases after an explicit yes (default skip);
+  apply, verify-change, and CI reuse never set `TF_ACC`.
 - User-facing implementation PRs add `.changelog/{PR}.txt` (not a PR-body changelog block). Spec /
   docs-only PRs skip it. See [`contributing.md`](./contributing.md).
 - `make check-openspec` is **not** part of `make lint`. CI runs it in

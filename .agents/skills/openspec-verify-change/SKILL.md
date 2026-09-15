@@ -14,12 +14,12 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
 **Cloud-provider constraints**
 
-- Do **not** run `make testacc` or set `TF_ACC` as part of verification. This skill is also the later CI `verify-openspec` gate; acc stays out-of-band. The local implementation loop may ask the user to run a named `TestAcc…` separately. See `dev-docs/high-level/testing.md`.
+- Do **not** run `make testacc` or set `TF_ACC` as part of verification. This skill is also the later CI `verify-openspec` gate; acc stays out-of-band. The local implementation loop may ask at most twice (initial + post-fix) to run a named `TestAcc…` separately (default skip). See `dev-docs/high-level/testing.md`.
 - Treat unit tests (`env -u TF_ACC make unit`, package `*_test.go` via `env -u TF_ACC go test`) and code paths as sufficient implementation evidence. Never run those without unsetting `TF_ACC`.
 - If a scenario is covered **only** by an acceptance test under `ec/acc/`, record a WARNING that names the `TestAcc…` case and that acc is out-of-band — not a CRITICAL "unimplemented" finding. Do **not** name a function that unconditionally `t.Skip`s (for example `TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1`); that is not coverage.
 - Requirements describe Terraform / API-contract behavior, not a line-by-line Go transcription.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** Only if the **user names** a store, run `openspec store list --json`, pick that id, and pass `--store <id>` on CLI commands that take it. Treat that id as sticky for the rest of this run. Do **not** auto-discover a store because one is registered on the machine. Default for this repo: unscoped CLI against the nearest local `openspec/`.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 

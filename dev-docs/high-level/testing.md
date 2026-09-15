@@ -33,7 +33,7 @@ and destroying real deployments and serverless projects. All test wiring lives i
 >
 > 🚫 **Don't run the _full_ suite locally for routine iteration.** Agents **never auto-run**
 > acceptance tests — no `TF_ACC` unless the user explicitly said yes to named cases in the
-> implementation loop (default skip). Implementors, `openspec-verify-change`, and CI reuse never
+> implementation loop (at most two asks: initial + post-fix, default skip). Implementors, `openspec-verify-change`, and CI reuse never
 > set `TF_ACC`. No live-cloud credentials are exposed to agents by default. The full suite runs
 > automatically for every PR on the dedicated **Buildkite acceptance pipeline** (the GitHub Actions
 > `go.yml` CI runs unit/lint/docs only). That Buildkite status is a **required** check on `master`,

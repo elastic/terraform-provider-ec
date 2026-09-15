@@ -94,21 +94,21 @@ The loop **always** runs:
 
 - `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed (before lint so new entity docs exist for `tfproviderdocs`, and before the generated-docs `git status`/commit check; `tfproviderdocs` does not fail merely because existing generated markdown is stale)
 - `env -u TF_ACC make vendor` when `go.mod`/`go.sum` changed
+- `env -u TF_ACC make notice` (fail/commit if `NOTICE` is dirty)
 - `env -u TF_ACC make lint`
 - `env -u TF_ACC make build`
 - `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'`
 - `env -u TF_ACC make check-openspec` when `openspec/` changed (it is not part of `make lint`)
-- `env -u TF_ACC make install validate-examples` when examples or provider schemas changed
+- `env -u TF_ACC make install validate-examples` when this is a Terraform entity change **or** examples/provider schemas changed
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
 The loop **never auto-runs** `make testacc` / `TF_ACC`. After the **full** 7b make battery **and**
 that cadence's verify/review pass, if one or two existing `TestAcc…` names cover the change, the
-orchestrator may **ask once** to run them
+orchestrator may ask **at most twice** (initial + post-fix) to run them
 (`make testacc TEST_NAME='^TestAccMyThing$'` — anchored; `go test -run` is otherwise an unanchored
 regexp. `TEST_NAME=TestAcc` is the full suite). If none exist, skip without asking. Default is skip
 (human / Buildkite). It never
-runs the full suite, never **auto-retries** acc on failure (after a code fix, one new ask, still
-default skip), and never runs acc from `openspec-verify-change`. See [`testing.md`](./testing.md).
+runs the full suite, never **auto-retries** acc on failure, and never runs acc from `openspec-verify-change`. See [`testing.md`](./testing.md).
 
 **Commit-only vs PR checks.** GitHub Actions `Go` runs on branch pushes. `OpenSpec CI` runs on
 `master` and on **pull requests**, not on an arbitrary feature branch. In commit-only mode the
@@ -121,7 +121,7 @@ loop does not wait for `OpenSpec CI`; the local `make check-openspec` is the str
 - It never force-pushes unless you ask.
 - It never starts a second change in the same run.
 - It never **auto-runs** acceptance tests, never runs the full acc suite, and never auto-retries
-  acc on failure. Targeted `TestAcc…` is opt-in only (one new ask after a code fix, default skip).
+  acc on failure. Targeted `TestAcc…` is opt-in only (at most two asks: initial + post-fix, default skip).
 
 If the implementor blocks or the loop stalls, it pauses and asks rather than guessing.
 

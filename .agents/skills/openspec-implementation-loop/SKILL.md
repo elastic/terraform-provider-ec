@@ -14,7 +14,7 @@ Orchestrate an implementation loop around a single OpenSpec change.
 
 This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). Keep its directory name in `scripts/gen-openspec-skills.mjs` so regeneration does not delete it.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** Only if the **user names** a store, run `openspec store list --json`, pick that id, and pass `--store <id>` on CLI commands that take it (`status`, `instructions`, `list`, `show`, `validate`, …). Treat that id as sticky for the rest of this run. Do **not** auto-discover a store because one is registered on the machine. Default for this repo: unscoped CLI and `make check-openspec` against the nearest local `openspec/`.
 
 **Input**: Optionally specify a change name. If omitted, you MUST ask the user which change to implement.
 
@@ -84,7 +84,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - optional prompt-level `context` and `operationGuidance` (same contract as `openspec-apply-change`)
    - the ordered list of top-level tasks (for example `1`, `2`, `3`) and which of them are still incomplete
 
-   Read every file listed in `contextFiles`. Treat `context` as required prompt-level input: apply relevant project facts, conventions, and constraints (changelog, Plugin Framework vs SDKv2, no auto-run `TF_ACC`) before triage and implementation. Treat `operationGuidance` as optional additive advice; follow entries that apply. `make lint` / `make build` / `make unit` from guidance are invalid unless they include `env -u TF_ACC` — never run those targets without it. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value. This skill's orchestrator acc-ask (7b.1) overrides apply `operationGuidance` that says never run `make testacc`.
+   Read every file listed in `contextFiles`. Treat `context` as required prompt-level input: apply relevant project facts, conventions, and constraints (changelog, Plugin Framework vs SDKv2, no auto-run `TF_ACC`) before triage and implementation. Treat `operationGuidance` as optional additive advice; follow entries that apply. `make lint` / `make build` / `make unit` from guidance are invalid unless they include `env -u TF_ACC` — never run those targets without it. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value. Apply `operationGuidance` that says never run `make testacc` still binds implementors, verify-change, and the validation runner. Only this skill's orchestrator may **ask** (7b.1); nobody else sets `TF_ACC`.
 
    **Handle states**:
    - If `state: "blocked"`: stop and explain what artifact is missing; suggest continuing the change artifacts first
@@ -131,7 +131,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Interpret a top-level task as the parent task number such as `1`, `2`, or `3`. Each top-level task includes all of its nested subtasks such as `1.1`, `1.2`, `1.3`.
 
-   Omit a top-level task from this queue (and from step 9 completion) when its remaining work is only archive, sync-to-canonical-specs (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`), execute-acc (`make testacc`, `TF_ACC=1`, Human/Buildkite runs a named `TestAcc…`), and/or the remaining **run** portion of a combined write/run `TestAcc…` task whose file/`func TestAcc…` already exists. Those run after this loop (or out-of-band). If the implementation queue is empty, skip step 6. Continue at step 7: 7a, then **one 7d battery** (including `openspec-verify-change`) even when the strategy is per-task — there is no last implementor. Then 7b.1 if 7b succeeded, then step 8.
+   Omit a top-level task from this queue (and from step 9 completion) when its remaining work is only archive, sync-to-canonical-specs (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`), execute-acc (`make testacc`, `TF_ACC=1`, Human/Buildkite runs a named `TestAcc…`), and/or the remaining **run** portion of a combined write/run `TestAcc…` task whose file/`func TestAcc…` already exists. Those run after this loop (or out-of-band). If the implementation queue is empty, skip step 6. At step 7 treat it like `all_done`: 7a and the **7d battery once** (that battery already runs 7b, reviews, and 7b.1 once). Do **not** use 7c or 7e. Do **not** run 7b.1 separately.
 
    For each remaining incomplete top-level task:
    - gather the subtasks that belong to it
@@ -143,7 +143,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    **Inline strategy:**
 
    The orchestrator implements all tasks directly without spawning an implementor subagent:
-   - use `openspec-apply-change` for checkbox/context/CRUD mechanics only. Do not follow its archive, auto-select, or run-all-tasks rules. Do not invoke `openspec-archive-change` or `openspec-sync-specs`.
+   - Do not open `openspec-apply-change` as a workflow. Tick `- [ ]` → `- [x]` yourself after each in-scope subtask. Do not follow apply's archive, auto-select, or run-all-tasks rules. Do not invoke `openspec-archive-change` or `openspec-sync-specs`.
    - do not run `openspec-sync-specs` or write delta requirements into canonical `openspec/specs/`; that is the later Land specs phase after verify. Never archive the change
    - ignore archive tasks, sync-to-canonical-specs tasks (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`), execute-acc-only subtasks (Human/Buildkite runs a named `TestAcc…`, `make testacc`, or `TF_ACC=1` with no write/add), and the remaining **run** portion of a combined write/run `TestAcc…` task once the file/`func TestAcc…` already exists. Leave those checkboxes. 7b.1 is the only acc path. This loop never archives or syncs. After this skill returns, the user may run those skills (or apply the later `verify-openspec` label when that workflow exists)
    - refuse to commit if the branch is `master`, `main`, or detached (`git branch --show-current` empty); stop and ask for a feature branch
@@ -156,7 +156,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Launch one write-capable subagent for all remaining tasks:
    - instruct it to implement all remaining top-level tasks in sequence, completing all nested subtasks within each before moving to the next
-   - use `openspec-apply-change` for checkbox/context/CRUD mechanics only. Do not follow its archive, auto-select, or run-all-tasks rules. Do not invoke `openspec-archive-change` or `openspec-sync-specs`.
+   - Do not open `openspec-apply-change` as a workflow. Tick `- [ ]` → `- [x]` yourself after each in-scope subtask. Do not follow apply's archive, auto-select, or run-all-tasks rules. Do not invoke `openspec-archive-change` or `openspec-sync-specs`.
    - do not run `openspec-sync-specs` or write delta requirements into canonical `openspec/specs/`; that is the later Land specs phase after verify. Never archive the change
    - ignore archive tasks, sync-to-canonical-specs tasks (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`), execute-acc-only subtasks (Human/Buildkite runs a named `TestAcc…`, `make testacc`, or `TF_ACC=1` with no write/add), and the remaining **run** portion of a combined write/run `TestAcc…` task once the file/`func TestAcc…` already exists. Leave those checkboxes. 7b.1 is the only acc path. This loop never archives or syncs. After this skill returns, the user may run those skills (or apply the later `verify-openspec` label when that workflow exists)
    - refuse to commit if the branch is `master`, `main`, or detached (`git branch --show-current` empty); stop and ask for a feature branch
@@ -180,7 +180,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    The implementor prompt should instruct it to:
    - implement only the selected change
    - focus only on the current top-level task and complete all of its nested subtasks before stopping
-   - use `openspec-apply-change` for checkbox/context/CRUD mechanics only. Do not follow its archive, auto-select, or run-all-tasks rules. Do not invoke `openspec-archive-change` or `openspec-sync-specs`.
+   - Do not open `openspec-apply-change` as a workflow. Tick `- [ ]` → `- [x]` yourself after each in-scope subtask. Do not follow apply's archive, auto-select, or run-all-tasks rules. Do not invoke `openspec-archive-change` or `openspec-sync-specs`.
    - do not run `openspec-sync-specs` or write delta requirements into canonical `openspec/specs/`; that is the later Land specs phase after verify. Never archive the change
    - ignore archive tasks, sync-to-canonical-specs tasks (`openspec-archive-change`, `openspec-sync-specs`, merge delta specs into `openspec/specs/`), execute-acc-only subtasks (Human/Buildkite runs a named `TestAcc…`, `make testacc`, or `TF_ACC=1` with no write/add), and the remaining **run** portion of a combined write/run `TestAcc…` task once the file/`func TestAcc…` already exists. Leave those checkboxes. 7b.1 is the only acc path. This loop never archives or syncs. After this skill returns, the user may run those skills (or apply the later `verify-openspec` label when that workflow exists)
    - refuse to commit if the branch is `master`, `main`, or detached (`git branch --show-current` empty); stop and ask for a feature branch
@@ -203,7 +203,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    The validation and review cadence depends on the execution strategy.
 
-   If this invocation skipped triage because `state` was `all_done`, run 7a and the 7d battery once (do not also run 7b/7b.1 separately), then go to step 8.
+   If this invocation skipped triage because `state` was `all_done` **or the implementation queue is empty**, run 7a and the 7d battery once (do not also run 7b/7b.1 separately; do not use 7c or 7e), then go to step 8.
 
    **7a. Determine the review type**
 
@@ -221,21 +221,22 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `env -u TF_ACC make lint`
    - `env -u TF_ACC make build`
    - `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'` (pin `TEST`/`TESTARGS`/`TESTUNITARGS`; they are `?=` so inherited env can shrink the suite). Implementor-local scoped `TEST=./ec/…` is fine outside this battery.
-   - `env -u TF_ACC make check-openspec` when the work touched **this repo's** `openspec/` (it is **not** part of `make lint`). If a `--store` id is sticky, do **not** use `make check-openspec` (it runs `validate --all` without `--store`). Run `env -u TF_ACC make setup-openspec` first (creates `./node_modules/.bin/openspec`), then `OPENSPEC_TELEMETRY=0 ./node_modules/.bin/openspec validate --all --store <id>`. If neither this repo's `openspec/` nor the selected store changed, skip it and say so.
-   - `env -u TF_ACC make install validate-examples` when examples or provider schemas changed. If those inputs did not change, skip it and say so.
+   - `env -u TF_ACC make check-openspec` when the work touched **this repo's** `openspec/` (it is **not** part of `make lint`). If the **user named** a `--store` id, do **not** use `make check-openspec` (it runs `validate --all` without `--store`). Run `env -u TF_ACC make setup-openspec` first, then `OPENSPEC_TELEMETRY=0 ./node_modules/.bin/openspec validate --all --store <id>`. Otherwise always use `make check-openspec` for this repo. If `openspec/` did not change (and no named store changed), skip it and say so.
+   - `env -u TF_ACC make notice`. If `NOTICE` is dirty, commit it (same as Go CI `git diff --exit-code NOTICE`).
+   - `env -u TF_ACC make install validate-examples` when this is a Terraform entity change (see 7a) **or** examples/provider schemas changed. If neither, skip it and say so.
 
-   The validation runner runs **only these make targets** (including conditional `check-openspec`, `docs-generate`, `vendor`, and `validate-examples`). Implementors may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
+   The validation runner runs **only these make targets** (including conditional `check-openspec`, `docs-generate`, `vendor`, `notice`, and `validate-examples`). Implementors may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
 
    `make build` runs `make gen` first. After this battery, run `git status`. If generated files belonging to the change are dirty, commit them and rerun the affected 7b targets before treating the battery as done.
 
-   **7b.1 Acceptance tests — orchestrator only. Never auto-run. Ask once, named cases only.**
+   **7b.1 Acceptance tests — orchestrator only. Never auto-run. At most two asks (initial + post-fix), named cases only.**
 
    Do **not** fold this into the validation-runner prompt. The runner's 7b is the make battery only.
 
    - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API, creates real deployments, and costs money. Credentials — **exactly one** mode: `EC_API_KEY` with no username/password vars, **or** `EC_USER`/`EC_USERNAME` plus **`EC_PASSWORD`**. `testAccPreCheck` reads `EC_PASS`/`EC_PASSWORD`; `newAPIConfig` reads `EC_UPASS`/`EC_PASSWORD`. Only `EC_PASSWORD` is in both. `EC_PASS` or `EC_UPASS` alone is unusable. The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
    - If the change has no runtime behavior (docs, skills, Makefile, spec-only), say so and skip acc. Do not ask.
    - If the change has runtime behavior but **no existing** `func TestAcc…` covers it (and this loop did not add one), skip 7b.1: say so, do **not** ask, do **not** invent a name. Note it as a human/Buildkite follow-up if a new acc case should exist later.
-   - Otherwise the **orchestrator** (not a subagent), after the make battery in 7b **and** after verify/reviews for that cadence (inline: after 7c; single-implementor/`all_done`: after the 7d battery; per-task: only with the final 7d battery — not after every task). **One initial ask** plus **at most one new ask** after a failed opted-in **implementation** failure and a code fix (still default skip). Do not describe this as a single ask if the retry path is in play:
+   - Otherwise the **orchestrator** (not a subagent), after the make battery in 7b **and** after verify/reviews for that cadence (inline: after 7c; single-implementor/`all_done`/empty queue: after the 7d battery; per-task: only with the final 7d battery — not after every task). **At most two asks** in a loop: one initial ask, plus at most one new ask after a failed opted-in **implementation** failure and a code fix (still default skip). Do not describe this as a single ask if the retry path is in play:
      1. Name the one or two `TestAcc…` **function names** that cover the change. Do **not** name a function that unconditionally `t.Skip`s (for example `TestAccDeploymentTrafficFilter_UpgradeFrom0_4_1`).
      2. Ask explicitly (AskUserQuestion or equivalent). Call out that this creates real Elastic Cloud resources and costs money. Default option: **skip** (human/Buildkite will run them). Other option: run those named cases.
      3. On skip, or if credentials are missing or mixed: do not run acc; surface the names as a human/Buildkite step. Usable means **exactly one** of: (a) `EC_API_KEY` set and `EC_USER`/`EC_USERNAME`/`EC_PASSWORD`/`EC_UPASS`/`EC_PASS` unset, or (b) `EC_API_KEY` unset, a username (`EC_USER`/`EC_USERNAME`), and `EC_PASSWORD` (not `EC_PASS` or `EC_UPASS` alone). Mixed key + user/pass is unusable (`testAccPreCheck` fatals).
@@ -275,7 +276,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **7e. Per-task strategy: review after each top-level task**
 
-   If the implementation queue was empty at step 5, skip 7e. Use the one 7d battery (including `openspec-verify-change`) already required there, then 7b.1 if 7b succeeded and reviews are not push-blocking.
+   If the implementation queue was empty at step 5, skip 7e (the step 7 `all_done`/empty-queue short-circuit already ran one 7d battery).
 
    After each **intermediate** top-level task's implementor reports completion, launch validation runner, critical code review, and the appropriate coverage review for **that task's** diff. Do **not** run 7b.1 after intermediate tasks. Do **not** run `openspec-verify-change` on intermediate tasks.
 
@@ -294,7 +295,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    Combine the validation results and review outputs.
 
    **Push-blocking** (must fix before advancing):
-   - Failed step 7b commands (`make docs-generate` when required, including a dirty `docs/` tree, `make vendor` / `validate-examples` when required, `make lint` / `build` / `unit` / `check-openspec` or store-aware `openspec validate --all --store`)
+   - Failed step 7b commands (`make docs-generate` when required, including a dirty `docs/` tree, `make vendor` / `notice` / `validate-examples` when required, `make lint` / `build` / `unit` / `check-openspec` or user-named-store `openspec validate --all --store`)
    - A **user-approved** targeted acc run that failed because of an **implementation** defect (do not retry acc; fix code, then ask again). Credential, quota, and outage failures are not push-blocking (report them).
    - `openspec-verify-change` CRITICAL issues
    - Critical code-review findings that are actual defects
@@ -406,7 +407,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - implementation/review/CI loop status
     - top-level tasks completed in the loop
     - commits created during the loop
-    - local validation run during the loop (`make docs-generate` when schemas/templates/examples changed, `make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed)
+    - local validation run during the loop (`make docs-generate` when schemas/templates/examples changed, `make notice`, `make lint`, `make build`, `make unit`, `make check-openspec` when `openspec/` changed, and `make install validate-examples` when a Terraform entity or examples/schemas changed)
     - changelog: `.changelog/{PR}.txt` present, skipped (not user-facing), or deferred (commit-only, no PR number yet)
     - targeted acc: skipped (no runtime / user declined / no usable credentials) or `TEST_NAME=…` result; never imply the full suite ran
     - tests or coverage checks used
@@ -431,7 +432,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 
 - Operate on one change only
 - Ask **commit vs PR** at the **start** (step 2), not when implementation is finished
-- Always triage the change and announce the execution strategy before implementation, **except** when `state` is `all_done` (then skip 4–6 and run 7a + one 7d battery, which includes 7b, reviews, and a single 7b.1)
+- Always triage the change and announce the execution strategy before implementation, **except** when `state` is `all_done` or the implementation queue is empty (then skip 4–6 as applicable and run 7a + one 7d battery, which includes 7b, reviews, and a single 7b.1)
 - The user can override the chosen strategy at the triage step
 - Always read the OpenSpec context files, plus apply `context` / `operationGuidance`, before implementation
 - **Per-task strategy**: create a fresh implementor subagent for each top-level task; do not reuse one implementor across top-level tasks. Do not advance to the next top-level task until the current task has passed local review. Run `openspec-verify-change` and 7b.1 only after the last top-level task.
@@ -439,15 +440,15 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - **Inline strategy**: the orchestrator implements directly, runs `openspec-verify-change` **before** 7b.1, and spawn other review subagents only for non-trivial logic changes
 - Never archive a change in this workflow. Never sync delta specs into `openspec/specs/` during this loop; that is `openspec-sync-specs` after verify. Archiving happens after this skill returns. Ignore archive/sync recommendations from `openspec-verify-change` or `openspec-apply-change`.
 - Ignore tasks that request archiving the change, merging delta specs into canonical `openspec/specs/`, or execute-acc-only work (`make testacc` / `TF_ACC=1` / Human/Buildkite `TestAcc…`). 7b.1 is the only acc path.
-- **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME='^Name$'` only after an explicit yes (7b.1). Never auto-retry a failed acc run. After a code fix, one new ask (still default skip). `openspec-verify-change` never runs acc.
+- **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME='^Name$'` only after an explicit yes (7b.1). At most two asks (initial + post-fix), default skip. Never auto-retry a failed acc run. `openspec-verify-change` never runs acc.
 - Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
 - For single-implementor and per-task strategies, run local validation in a dedicated subagent so the orchestrator does not spend its own context on lint/build/test execution
 - Run the validation runner to completion **before** other review subagents (it may write generated files via `make gen` / license headers). Then run the remaining reviewers in parallel.
-- All strategies must include `make docs-generate` when schemas/templates/examples changed (before lint), then `make lint`, `make build`, and `make unit`, plus `make check-openspec` when `openspec/` changed
+- All strategies must include `make docs-generate` when schemas/templates/examples changed (before lint), `make notice` (commit if dirty), then `make lint`, `make build`, and `make unit`, plus `make check-openspec` when `openspec/` changed, and `make install validate-examples` when a Terraform entity or examples/schemas changed
 - After a GitHub Actions failure, rerun steps 7–8 before the next push
 - Run reviewers in parallel whenever possible
 - Prefer actionable findings over style nitpicks
-- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push; only CRITICALs, failed 7b commands, and a failed user-approved 7b.1 acc run do
+- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push. Push-blocking is the step 8 list: failed 7b (including dirty generated docs/`NOTICE`), failed user-approved **implementation** acc, verify CRITICALs, critical code-review defects, and a missing `.changelog/{PR}.txt` when a PR number is known on a user-facing change.
 - Feed local review and commit-mode **GitHub Actions** failures back into the loop instead of fixing them ad hoc outside the loop. Do not feed Buildkite acc failures into an auto-fix loop.
 - Keep commit sizes small and purpose-specific
 - Stop and ask the user if the process becomes ambiguous or stuck

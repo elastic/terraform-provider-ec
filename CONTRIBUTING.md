@@ -42,7 +42,10 @@ For the benefit of all and to maintain consistency, we have come up with some si
 
   - Run `make notice` to update the NOTICE file if you've added new dependencies.
   
-  - Ensure that [unit](#unit) and [acceptance](#acceptance) tests succeed with `make unit testacc`.
+  - Ensure [unit](#unit) tests succeed with `make unit`. For [acceptance](#acceptance), run the
+    **targeted** cases that cover your change (`make testacc TEST_NAME='^TestAcc…$'`). The **full**
+    suite runs on Buildkite for every PR (`buildkite/terraform-provider-ec-acceptance`); do not use
+    `make unit testacc` as a local default (that is the full acc suite).
 
   - After you've opened your Pull request and have a PR number, add a changelog entry for any user-facing change — see [Changelog](#changelog) below.
   
