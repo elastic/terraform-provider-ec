@@ -140,7 +140,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - refuse to commit if the branch is `master`, `main`, or detached (`git branch --show-current` empty); stop and ask for a feature branch
    - keep changes minimal and focused
    - create small, focused git commits as coherent pieces of work are completed
-   - run targeted validation while implementing (`env -u TF_ACC make unit` scoped to touched packages is fine; never set `TF_ACC`)
+   - run targeted validation while implementing (`env -u TF_ACC make unit` scoped to touched packages is fine; `env -u TF_ACC make docs-generate` when schema/examples changed; never set `TF_ACC`)
    - do not push; the orchestrator pushes in step 9
 
    **Single-implementor strategy:**
@@ -154,7 +154,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - read the OpenSpec context files before editing
    - keep changes minimal and focused
    - create small, focused git commits as coherent pieces of work are completed
-   - run targeted validation while implementing (`env -u TF_ACC make unit` scoped to touched packages is fine; never set `TF_ACC`)
+   - run targeted validation while implementing (`env -u TF_ACC make unit` scoped to touched packages is fine; `env -u TF_ACC make docs-generate` when schema/examples changed; never set `TF_ACC`)
    - do not push; the orchestrator pushes in step 9
 
    Ask the implementor to report back with:
@@ -178,7 +178,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - read the OpenSpec context files before editing
    - keep changes minimal and focused
    - create small, focused git commits as coherent pieces of work are completed
-   - run targeted validation while implementing (`env -u TF_ACC make unit` scoped to touched packages is fine; never set `TF_ACC`)
+   - run targeted validation while implementing (`env -u TF_ACC make unit` scoped to touched packages is fine; `env -u TF_ACC make docs-generate` when schema/examples changed; never set `TF_ACC`)
    - do not push; the orchestrator pushes in step 9
 
    Ask the implementor to report back with:
@@ -212,19 +212,21 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `env -u TF_ACC make unit`
    - `env -u TF_ACC make check-openspec` when the work touched `openspec/` (it is **not** part of `make lint`). If `openspec/` did not change, skip it and say so.
 
-   The validation runner (and implementors) run **only these make targets**. They MUST NOT set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
+   The validation runner runs **only these make targets**. Implementors may also run `env -u TF_ACC make docs-generate` (schema/examples) and `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
+
+   `make build` runs `make gen` first. After this battery, run `git status`. If generated files belonging to the change are dirty, commit them and rerun the affected 7b targets before treating the battery as done.
 
    **7b.1 Acceptance tests — orchestrator only. Never auto-run. Ask once, named cases only.**
 
    Do **not** fold this into the validation-runner prompt. The runner's 7b is the make battery only.
 
-   - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API (`EC_API_KEY`), creates real deployments, and costs money. The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
+   - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API, creates real deployments, and costs money. Credentials: `EC_API_KEY`, or `EC_USER`/`EC_USERNAME` plus `EC_PASS`/`EC_PASSWORD` (not both kinds). The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
    - If the change has no runtime behavior (docs, skills, Makefile, spec-only), say so and skip acc. Do not ask.
    - Otherwise the **orchestrator** (not a subagent), **once per loop** after the make battery in 7b (and for per-task only with the final 7d battery — not after every task):
      1. Name the one or two `TestAcc…` **function names** that cover the change.
      2. Ask explicitly (AskUserQuestion or equivalent). Call out that this creates real Elastic Cloud resources and costs money. Default option: **skip** (human/Buildkite will run them). Other option: run those named cases.
-     3. On skip, or if `EC_API_KEY` is unset: do not run acc; surface the names as a human/Buildkite step.
-     4. On yes: run only `make testacc TEST_NAME='<exact TestAcc function name>'`. `build/Makefile.test` already passes `-run $(TEST_NAME)` and defaults `TEST_NAME` to `TestAcc` (the **full suite**). Reject empty, `TestAcc`, `.*`, prefix-only values (`TestAccDeployment`), and any regex that would match more than those named cases. Extra flags belong in `TESTARGS`. Never `make testacc` without a specific `TEST_NAME`. Never the full suite.
+     3. On skip, or if there are no usable credentials (`EC_API_KEY` unset **and** not both a username (`EC_USER`/`EC_USERNAME`) and a password (`EC_PASS`/`EC_PASSWORD`)): do not run acc; surface the names as a human/Buildkite step.
+     4. On yes: run only `make testacc TEST_NAME='^<exact TestAcc function name>$'`. `go test -run` is an **unanchored** regexp (`build/Makefile.test` already passes `-run $(TEST_NAME)`). A bare `TestAcc_SecurityProject` also matches `TestAcc_SecurityProjectImport` and other siblings. Anchor every name (`^TestAccFoo$`); two names: `^Foo$|^Bar$`. Reject empty, `TestAcc`, `.*`, unanchored names, and prefix-only values. Makefile default `TEST_NAME=TestAcc` is the **full suite**. Extra flags belong in `TESTARGS`. Never `make testacc` without a specific anchored `TEST_NAME`. Never the full suite.
      5. Run 7b.1 after the **first** 7b return (pass or fail), unless the change has no runtime behavior. Do **not** retry the same failed acc run. Do **not** skip 7b.1 because 7b failed. Do **not** re-ask on later step 7–8 reruns that are lint/unit only **after** that first ask has happened. If the opted-in run failed, that is push-blocking; after a code fix, **one new ask** (still default skip) before running acc a second time.
      6. After an opted-in run, remind the user that leaked `terraform_acc_` resources need `make sweep`. Do not run sweep yourself (it is interactive and destructive). Humans may retry after sweep; this loop never retries on its own.
 
@@ -309,7 +311,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 9. **Push the branch**
 
    After every incomplete top-level task has been implemented and passed local review:
-   - verify the branch state is ready to push
+   - `git status` must be clean. If files belonging to this change are still dirty (including generated output from `make gen` / `make build`), commit them and rerun the affected 7b targets first. If dirty paths are unrelated, stop and ask. Do not push an incomplete tree.
+   - verify the branch is still not `master`, `main`, or detached
    - push the current branch to `origin`
    - use upstream tracking if needed
 
@@ -322,7 +325,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - Never force-push unless the user explicitly asks
    - Do not push before local review passes
    - Do not push `master`, `main`, or a detached HEAD (`git branch --show-current` empty)
-   - Do not push a checkout that still has unrelated dirty or untracked files; stop and ask
+   - Do not push a dirty working tree. Commit in-scope changes first (then rerun affected 7b); unrelated dirty files: stop and ask
 
 10. **Commit-only mode: watch GitHub Actions (branch / commits)**
 
@@ -389,7 +392,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
 Subagent usage scales with the chosen strategy:
 
-- **Implementor** (single-implementor and per-task strategies): makes code changes, updates tasks, runs targeted unit validation, and creates small focused commits. Per-task uses one fresh implementor per top-level task; single-implementor uses one for the entire change.
+- **Implementor** (single-implementor and per-task strategies): makes code changes, updates tasks, runs targeted unit validation (`env -u TF_ACC make unit`; `env -u TF_ACC make docs-generate` when schema/examples changed), and creates small focused commits. Per-task uses one fresh implementor per top-level task; single-implementor uses one for the entire change.
 - **Validation runner** (single-implementor and per-task strategies): a subagent that runs `env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, and `env -u TF_ACC make check-openspec` when `openspec/` changed, then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done. Targeted acc is orchestrator-only (7b.1) after an explicit yes.
 - **Critical reviewer**: reviews code quality and logic
 - **Spec reviewer**: checks the implementation against the approved OpenSpec change
@@ -410,7 +413,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - **Inline strategy**: the orchestrator implements directly and still runs `openspec-verify-change`; spawn other review subagents only for non-trivial logic changes
 - Never archive a change in this workflow. Never sync delta specs into `openspec/specs/` during this loop; that is `openspec-sync-specs` after verify. Archiving happens after this skill returns. Ignore archive/sync recommendations from `openspec-verify-change` or `openspec-apply-change`.
 - Ignore tasks that request archiving the change or merging delta specs into canonical `openspec/specs/`
-- **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME=<exact function name>` only after an explicit yes (7b.1). After a failed opted-in run and a code fix, one new ask (still default skip). `openspec-verify-change` never runs acc.
+- **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME='^Name$'` only after an explicit yes (7b.1). Never auto-retry a failed acc run. After a code fix, one new ask (still default skip). `openspec-verify-change` never runs acc.
 - Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
 - For single-implementor and per-task strategies, run local validation in a dedicated subagent so the orchestrator does not spend its own context on lint/build/test execution
 - Run the validation subagent in parallel with the other review subagents, not as a separate serial phase

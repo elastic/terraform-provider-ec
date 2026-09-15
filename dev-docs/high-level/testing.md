@@ -69,10 +69,11 @@ sweepers can find them.
 
 Use `TEST_NAME` (matched by `go test -run`) to narrow a run to one `TestAcc…`, and `TESTARGS` for
 any extra `go test` flags. Omitting `TEST_NAME` (or setting it to `TestAcc`) runs the **full**
-suite — that is the Makefile default.
+suite — that is the Makefile default. `go test -run` is an unanchored regexp: use `^Name$` so
+sibling tests with the same prefix do not run.
 
 ```sh
-make testacc TEST_NAME='TestAccDeployment_basic'
+make testacc TEST_NAME='^TestAccDeployment_basic$'
 ```
 
 ## Buildkite (per-PR acceptance)

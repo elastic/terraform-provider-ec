@@ -13,7 +13,7 @@ fragments are the source of truth for exact behavior.
 > **Acceptance tests hit the real, paid Elastic Cloud API.** `make testacc` (anything gated by
 > `TF_ACC=1`) provisions and destroys real deployments/projects via `EC_API_KEY` and costs money.
 > **Before opening a PR, run the _targeted_ test(s) covering your change locally** —
-> `make testacc TEST_NAME='TestAccMyThing'` — for fast feedback, then `make sweep` any leftovers.
+> `make testacc TEST_NAME='^TestAccMyThing$'` — for fast feedback, then `make sweep` any leftovers.
 > Don't run the **full** suite locally for routine iteration (~2 hours); the Buildkite acceptance
 > pipeline runs the full suite for every PR and is a required status check on `master`. **Agents
 > never auto-run acceptance tests.** The implementation loop may ask once to run named `TestAcc…`
@@ -66,7 +66,7 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 3. `make unit` — safe unit tests, no credentials.
 4. `make check-openspec` — only if you changed `openspec/` (CI also runs this in `openspec.yml`).
 5. Run the **targeted** acceptance test(s) covering your change —
-   `make testacc TEST_NAME='TestAcc…'` — then `make sweep` any leftovers. Skip if the change has no
+   `make testacc TEST_NAME='^TestAcc…$'` — then `make sweep` any leftovers. Skip if the change has no
    runtime behavior (docs/config only).
 6. `make docs-generate` — only if you changed resource/data-source schemas or `examples/`.
 7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
