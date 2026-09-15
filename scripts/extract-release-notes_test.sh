@@ -41,7 +41,7 @@ assert_eq "fixture 0.13.0 strips v prefix" "$got" "$want"
 
 got="$("$extract" 0.13.10 "$fixture")"
 want=$'FEATURES:\n\n* should not leak into 0.13.1'
-assert_eq "fixture 0.13.10 is not a prefix of 0.13.1" "$got" "$want"
+assert_eq "fixture 0.13.10 matches its own heading, not 0.13.1" "$got" "$want"
 
 got="$("$extract" 0x13y1 "$fixture")"
 want=$'FEATURES:\n\n* must not match 0.13.1 via regex dots'
