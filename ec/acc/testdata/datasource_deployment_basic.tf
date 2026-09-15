@@ -34,9 +34,7 @@ resource "ec_deployment" "basic_datasource" {
     }
   }
 
-  kibana = {
-    size = "2g"
-  }
+  kibana = {}
 
   apm = {}
 

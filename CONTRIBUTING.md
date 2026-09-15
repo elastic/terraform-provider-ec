@@ -112,8 +112,9 @@ At release time these per-PR files are consolidated into `CHANGELOG.md` via `mak
 
 - [Terraform](https://www.terraform.io/downloads.html) At least 1.2.7
 - [Go](https://golang.org/doc/install) 1.21
+- [Node.js](https://nodejs.org/) 24.x (for the OpenSpec CLI; `make setup-openspec` / `make check-openspec`)
 
-This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). Running `make vendor` will download all the required dependencies.
+This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). Running `make vendor` will download the Go modules. For OpenSpec (`make check-openspec`), run `make setup-openspec` (requires Node.js 24).
 
 ## Development
 
