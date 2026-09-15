@@ -67,7 +67,8 @@ sweepers can find them.
 ## Targeting a single test
 
 Use `TEST_NAME` (matched by `go test -run`) to narrow a run to one `TestAcc…`, and `TESTARGS` for
-any extra `go test` flags:
+any extra `go test` flags. Omitting `TEST_NAME` (or setting it to `TestAcc`) runs the **full**
+suite — that is the Makefile default.
 
 ```sh
 make testacc TEST_NAME='TestAccDeployment_basic'
@@ -124,7 +125,8 @@ Serverless-project acceptance tests can intermittently fail with an HTTP `403` r
 `project limit [100]` reached. This is an **environmental serverless-quota** condition (too many
 leftover projects in the shared org), **not a defect in the change under test**. Do not "fix" the
 code to work around it — instead **run the sweepers** (`make sweep` filtered to
-`ec_serverless_projects`) to reclaim quota and **retry** the acceptance run.
+`ec_serverless_projects`) to reclaim quota and **retry** the acceptance run. Humans may retry
+after sweep; the implementation loop never retries acc on its own.
 
 ## See also
 

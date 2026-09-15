@@ -19,17 +19,17 @@ rules:
     - Each requirement uses SHALL or MUST (RFC 2119).
     - Each requirement has Given / When / Then scenarios.
     - Requirements describe Terraform / API-contract behavior, not a line-by-line Go transcription.
-    - Agents never run TF_ACC; do not require make testacc in a scenario.
+    - Agents never auto-run TF_ACC; do not require make testacc in a scenario.
   design:
     - Call out Plugin Framework (not SDKv2) and which client (cloud-sdk-go vs generated serverless).
   tasks:
     - Separate unit-test tasks from out-of-band human/Buildkite acceptance tests.
-    - Never instruct an agent to run make testacc or TF_ACC=1.
+    - Never instruct apply or verify-change to run make testacc or TF_ACC=1. The implementation loop may ask once to run named TestAcc cases after an explicit yes.
 
 operations:
   apply:
     guidance:
-      - Run make lint, make build, and make unit. Never run make testacc or set TF_ACC.
+      - Run make lint, make build, and make unit. Never run make testacc or set TF_ACC during apply. The implementation-loop orchestrator may ask once to run named TestAcc cases after an explicit yes; apply, verify-change, and CI reuse never set TF_ACC.
       - User-facing implementation needs .changelog/{PR}.txt; spec/docs-only PRs skip it.
   archive:
     guidance:

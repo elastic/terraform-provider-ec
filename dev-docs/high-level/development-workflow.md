@@ -72,5 +72,6 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
    [`contributing.md`](./contributing.md)).
 
-The **full** acceptance suite runs on Buildkite for every PR; run only the targeted cases locally,
-and note that **agents never run acceptance tests** at all.
+The **full** acceptance suite runs on Buildkite for every PR; run only the targeted cases locally.
+Agents never **auto-run** acceptance tests. The implementation loop may ask once to run named
+`TestAcc…` cases after an explicit yes (default skip).

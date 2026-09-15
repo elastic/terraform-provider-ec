@@ -78,7 +78,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - Count complete vs total tasks
    - If incomplete tasks exist:
      - Do **not** add a CRITICAL issue for a task whose only remaining action is to archive the change (`openspec-archive-change`, `openspec archive`, or equivalent). Note it as skipped: archiving is a later step, not this skill.
-     - Do **not** add a CRITICAL issue for an incomplete task that is explicitly out-of-band Human/Buildkite acceptance (`TestAcc…`, `make testacc`, or equivalent). Record a WARNING that names the case; this skill never runs acc.
+     - Do **not** add a CRITICAL issue for an incomplete task that is explicitly **execute** acc: Human/Buildkite *runs* a named case, `make testacc`, or `TF_ACC=1`. Record a WARNING that names the case; this skill never runs acc.
+     - Incomplete tasks to **write** or **add** a `TestAcc…` test file stay CRITICAL until that file exists.
      - Add CRITICAL issue for each other incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
 
@@ -149,7 +150,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    **Issues by Priority**:
 
    1. **CRITICAL** (Must fix before archive):
-      - Incomplete tasks other than archive-only or out-of-band Human/Buildkite acc steps
+      - Incomplete tasks other than archive-only or execute-acc Human/Buildkite steps
+      - Incomplete tasks to write/add a `TestAcc…` file
       - Missing requirement implementations
       - Each with specific, actionable recommendation
 
@@ -157,7 +159,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
       - Spec/design divergences
       - Missing scenario coverage
       - Acc-only scenario coverage (out-of-band)
-      - Incomplete Human/Buildkite `TestAcc…` tasks (out-of-band; not push-blocking)
+      - Incomplete execute-acc Human/Buildkite tasks (out-of-band; not push-blocking)
       - Each with specific recommendation
 
    3. **SUGGESTION** (Nice to fix):
