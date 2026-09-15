@@ -36,7 +36,7 @@ and related resources through the Elastic Cloud API.
 ## After making changes
 
 - Build: `env -u TF_ACC make build`
-- If you changed resource/data-source schemas or examples, regenerate docs with `env -u TF_ACC make docs-generate`
+- If you changed resource/data-source schemas, templates, or examples, regenerate docs with `env -u TF_ACC make docs-generate`
   and verify with `make tfproviderdocs`. See [`documentation.md`](./dev-docs/high-level/documentation.md).
 - Lint: `env -u TF_ACC make lint`
 - If you changed `openspec/`: `env -u TF_ACC make check-openspec`

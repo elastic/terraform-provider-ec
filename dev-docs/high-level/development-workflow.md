@@ -45,7 +45,7 @@ fragments are the source of truth for exact behavior.
 - **`make gen`** (alias `make generate`) regenerates the serverless client *and* `ec/version.go`. To
   refresh the vendored serverless OpenAPI spec, use `scripts/update-serverless-spec.sh` — see
   [`generated-clients.md`](./generated-clients.md).
-- **`make docs-generate`** whenever you change a resource/data-source schema or `examples/`; it's
+- **`make docs-generate`** whenever you change a resource/data-source schema, a template, or `examples/`; it's
   validated by `make tfproviderdocs` (part of `make lint`). See [`documentation.md`](./documentation.md).
 - **`make unit`** (alias `make tests`) is the safe, credential-free test target when `TF_ACC` is
   unset; agents use `env -u TF_ACC make unit`. Scope it with `TEST=./ec/...` and `TESTARGS=...`.
@@ -63,7 +63,7 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 ## Recommended pre-PR local loop
 
 1. `make build` — regenerates code and compiles.
-2. `make docs-generate` — only if you changed resource/data-source schemas or `examples/` (before
+2. `make docs-generate` — only if you changed resource/data-source schemas, templates, or `examples/` (before
    lint so new entity docs exist for `tfproviderdocs`; then commit a dirty `docs/` tree).
 3. `make lint` — Go + provider linters, license headers, docs check, `.tf` formatting.
 4. `env -u TF_ACC make unit` — unit tests; unset `TF_ACC` so `ec/acc` does not run.
