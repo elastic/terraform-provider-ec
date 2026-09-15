@@ -18,8 +18,18 @@
 package acc
 
 import (
+	"errors"
+	"net/http"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/go-openapi/runtime"
+
+	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
+	"github.com/elastic/cloud-sdk-go/pkg/api/mock"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 )
 
 func Test_staleDeployment(t *testing.T) {
@@ -57,5 +67,76 @@ func Test_staleDeployment(t *testing.T) {
 				t.Errorf("staleDeployment() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Test_alreadyDestroyed(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{
+			name: "nil is not destroyed",
+		},
+		{
+			name: "shutdown 404 is destroyed",
+			err:  &deployments.ShutdownDeploymentNotFound{},
+			want: true,
+		},
+		{
+			name: "wrapped shutdown 404 is destroyed",
+			err:  apierror.Wrap(&deployments.ShutdownDeploymentNotFound{}),
+			want: true,
+		},
+		{
+			name: "get 404 is destroyed",
+			err:  &deployments.GetDeploymentNotFound{},
+			want: true,
+		},
+		{
+			name: "generic 404 is destroyed",
+			err:  &runtime.APIError{Code: http.StatusNotFound},
+			want: true,
+		},
+		{
+			name: "403 is not destroyed",
+			err:  &runtime.APIError{Code: http.StatusForbidden},
+		},
+		{
+			name: "500 is not destroyed",
+			err:  &runtime.APIError{Code: http.StatusInternalServerError},
+		},
+		{
+			name: "unrelated error is not destroyed",
+			err:  errors.New("boom"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := alreadyDestroyed(tt.err); got != tt.want {
+				t.Errorf("alreadyDestroyed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_shutdownDeployment_notFound(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	err := shutdownDeployment(api.NewMock(mock.SampleNotFoundError()), mock.ValidClusterID, &wg)
+	wg.Wait()
+	if err != nil {
+		t.Errorf("shutdownDeployment() not-found error = %v, want nil", err)
+	}
+}
+
+func Test_shutdownDeployment_serverError(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	err := shutdownDeployment(api.NewMock(mock.SampleInternalError()), mock.ValidClusterID, &wg)
+	wg.Wait()
+	if err == nil {
+		t.Fatal("shutdownDeployment() 500 error = nil, want error")
 	}
 }
