@@ -41,6 +41,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Otherwise:
    - Run `openspec list --json`
+   - Filter to **active** changes (not archived). Exclude entries already under `openspec/changes/archive/` or marked archived. Drop changes with no remaining implementation work (archive/sync/execute-acc-only).
    - Use **AskUserQuestion** (or an equivalent explicit user prompt) to let the user choose a single active change
    - Show the change name, schema if available, and status
 
@@ -220,7 +221,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `env -u TF_ACC make lint`
    - `env -u TF_ACC make build`
    - `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'` (pin `TEST`/`TESTARGS`/`TESTUNITARGS`; they are `?=` so inherited env can shrink the suite). Implementor-local scoped `TEST=./ec/…` is fine outside this battery.
-   - `env -u TF_ACC make check-openspec` when the work touched **this repo's** `openspec/` (it is **not** part of `make lint`). If a `--store` id is sticky, do **not** use `make check-openspec` (it runs `validate --all` without `--store`). Run `OPENSPEC_TELEMETRY=0 ./node_modules/.bin/openspec validate --all --store <id>` instead. If neither this repo's `openspec/` nor the selected store changed, skip it and say so.
+   - `env -u TF_ACC make check-openspec` when the work touched **this repo's** `openspec/` (it is **not** part of `make lint`). If a `--store` id is sticky, do **not** use `make check-openspec` (it runs `validate --all` without `--store`). Run `env -u TF_ACC make setup-openspec` first (creates `./node_modules/.bin/openspec`), then `OPENSPEC_TELEMETRY=0 ./node_modules/.bin/openspec validate --all --store <id>`. If neither this repo's `openspec/` nor the selected store changed, skip it and say so.
    - `env -u TF_ACC make install validate-examples` when examples or provider schemas changed. If those inputs did not change, skip it and say so.
 
    The validation runner runs **only these make targets** (including conditional `check-openspec`, `docs-generate`, `vendor`, and `validate-examples`). Implementors may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.

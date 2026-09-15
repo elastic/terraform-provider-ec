@@ -132,7 +132,7 @@ There are three variables that can be passed to the `unit` make target:
 
 Before running the acceptance tests make sure you have exported your API key to the `EC_API_KEY` environment variable. There are three variables that can be passed to the `testacc` make target:
 
-- `TEST_NAME` controls which test names `go test -run` matches. Defaults to `TestAcc` (the **full** suite). Omitting it is the full suite; use an anchored name such as `^TestAccDeployment_basic$` for one case.
+- `TEST_NAME` controls which test names `go test -run` matches. Defaults to `TestAcc` (the **full** suite). Omitting it is the full suite; use an anchored name such as `^TestAccDeployment_basic_tf$` for one case.
 - `TESTARGS` controls any additional flags you may want to pass to `go test`.
 - `TEST_COUNT` controls how many times each test is run. Defaults to 1.
 

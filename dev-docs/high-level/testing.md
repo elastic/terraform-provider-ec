@@ -76,7 +76,7 @@ suite — that is the Makefile default. `go test -run` is an unanchored regexp: 
 sibling tests with the same prefix do not run.
 
 ```sh
-make testacc TEST_NAME='^TestAccDeployment_basic$'
+make testacc TEST_NAME='^TestAccDeployment_basic_tf$'
 ```
 
 ## Buildkite (per-PR acceptance)
