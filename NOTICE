@@ -26358,10 +26358,10 @@ Contents of probable licence file $GOMODCACHE/github.com/go-git/go-git-fixtures/
 --------------------------------------------------------------------------------
 
 Dependency : github.com/go-git/go-git/v5
-Version: v5.19.0
+Version: v5.19.2
 Licence type (autodetected): Apache-2.0
 
-Contents of probable licence file $GOMODCACHE/github.com/go-git/go-git/v5@v5.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/go-git/go-git/v5@v5.19.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -37580,12 +37580,12 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
 --------------------------------------------------------------------------------
 
 Dependency : github.com/hashicorp/go-changelog
-Version: v0.0.0-20260618104510-8d5140f40227
+Version: v0.0.0-20260907110944-10b1aebc564c
 Licence type (autodetected): MPL-2.0
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-changelog@v0.0.0-20260618104510-8d5140f40227/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-changelog@v0.0.0-20260907110944-10b1aebc564c/LICENSE:
 
-Copyright IBM Corp. 2020, 2025
+Copyright IBM Corp. 2020, 2026
 
 Mozilla Public License, version 2.0
 
