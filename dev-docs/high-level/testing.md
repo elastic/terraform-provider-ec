@@ -4,7 +4,7 @@ The cloud provider has two test tiers with very different cost and safety profil
 
 | Tier | Command | Credentials | Cost / duration | Safe to run locally? |
 |------|---------|-------------|-----------------|----------------------|
-| Unit | `env -u TF_ACC make unit` (alias `make tests`) | none | seconds, free | Yes, always |
+| Unit | `env -u TF_ACC make unit` (alias `env -u TF_ACC make tests`) | none | seconds, free | Yes, always |
 | Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | **real money**; full suite ~2h | Targeted cases: yes (encouraged pre-PR); full suite: no (CI) |
 
 Unlike the stack provider (`terraform-provider-elasticstack`), the cloud provider has
@@ -14,7 +14,7 @@ and destroying real deployments and serverless projects. All test wiring lives i
 
 ## Unit tests
 
-- Run: `env -u TF_ACC make unit` (or its alias `make tests`). Agents must unset `TF_ACC`; a plain `make unit` with inherited `TF_ACC=1` executes `ec/acc` against the paid API.
+- Run: `env -u TF_ACC make unit` (or its alias `env -u TF_ACC make tests`). Agents must unset `TF_ACC`; a plain `make unit`/`make tests` with inherited `TF_ACC=1` executes `ec/acc` against the paid API.
 - No credentials, no network to Elastic Cloud, always safe and fast when `TF_ACC` is unset.
 - Recipe: `go test $(TEST) $(TESTARGS) $(TESTUNITARGS)`, where `TEST ?= ./...` and
   `TESTUNITARGS ?= -timeout 10m -race -cover -coverprofile=reports/c.out`.

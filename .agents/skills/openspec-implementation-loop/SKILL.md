@@ -289,6 +289,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - A **user-approved** targeted acc run that failed (do not retry acc; fix code, then ask again)
    - `openspec-verify-change` CRITICAL issues
    - Critical code-review findings that are actual defects
+   - In **PR mode**, a user-facing change with no `.changelog/{PR}.txt` after the PR number is known (docs/spec/skills/Makefile/CI-only are exempt)
 
    **Not push-blocking** (report in the final summary; do not loop):
    - `openspec-verify-change` WARNINGs, including acc-only scenario coverage when the user skipped or was not asked
@@ -322,6 +323,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `git status` must be clean. If files belonging to this change are still dirty (including generated output from `make gen` / `make build`), commit them and rerun the affected 7b targets first. If dirty paths are unrelated, stop and ask. Do not push an incomplete tree.
    - Inspect the **unpushed** path set. If `git rev-parse --abbrev-ref @{u}` succeeds, use `git diff --name-only @{u}...HEAD` (covers commits already ahead of the remote before this invocation). Otherwise use `git diff --name-only ${BASELINE}...HEAD`. Stop and ask if that range includes paths that are clearly outside this change's scope.
    - verify the branch is still not `master`, `main`, or detached
+   - **Changelog:** skip `.changelog/{PR}.txt` for docs/spec/skills/Makefile/CI-only (not user-facing). For user-facing work in **commit-only** mode, note that the file is required once a PR number exists; do not invent a PR number. PR mode handles the file in step 11.
    - push the current branch to `origin`
    - use upstream tracking if needed
 
@@ -368,6 +370,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     **Create the PR after the initial push** (step 9), if it does not already exist:
     - use `gh pr create` (or equivalent) with an appropriate title and body tied to the OpenSpec change
     - record the PR number or URL
+    - **Changelog (user-facing only):** after the PR number is known, require `.changelog/{PR}.txt` per `CONTRIBUTING.md` (go-changelog fenced `release-note:…` block). Skip for docs/spec/skills/Makefile/CI-only. If missing, write it, commit, and push. Missing changelog on a user-facing PR is push-blocking for this step.
 
     **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Do not restate those rules here.
 
@@ -392,6 +395,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - top-level tasks completed in the loop
     - commits created during the loop
     - local validation run during the loop (`make docs-generate` when schemas/templates/examples changed, `make lint`, `make build`, `make unit`, and `make check-openspec` when `openspec/` changed)
+    - changelog: `.changelog/{PR}.txt` present, skipped (not user-facing), or deferred (commit-only, no PR number yet)
     - targeted acc: skipped (no runtime / user declined / no usable credentials) or `TEST_NAME=…` result; never imply the full suite ran
     - tests or coverage checks used
     - final GitHub Actions state (and PR link if PR mode); Buildkite acc status if known
