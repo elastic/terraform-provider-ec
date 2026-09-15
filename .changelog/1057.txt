@@ -1,3 +1,3 @@
-```release-note:enhancement
+```release-note:bug
 resource/ec_deployment: Use the deployment template Kibana size and zone count when `kibana` is set without those attributes, instead of clamping to 1g and 1 zone.
 ```
