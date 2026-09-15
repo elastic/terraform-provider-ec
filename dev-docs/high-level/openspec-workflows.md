@@ -95,14 +95,15 @@ The loop **always** runs:
 - `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed (before lint so new entity docs exist for `tfproviderdocs`, and before the generated-docs `git status`/commit check; `tfproviderdocs` does not fail merely because existing generated markdown is stale)
 - `env -u TF_ACC make lint`
 - `env -u TF_ACC make build`
-- `env -u TF_ACC make unit`
+- `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'`
 - `env -u TF_ACC make check-openspec` when `openspec/` changed (it is not part of `make lint`)
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
-The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, the orchestrator may
-**ask once** to run one or two named `TestAcc…` function names
+The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, if one or two existing
+`TestAcc…` names cover the change, the orchestrator may **ask once** to run them
 (`make testacc TEST_NAME='^TestAccMyThing$'` — anchored; `go test -run` is otherwise an unanchored
-regexp. `TEST_NAME=TestAcc` is the full suite). Default is skip (human / Buildkite). It never
+regexp. `TEST_NAME=TestAcc` is the full suite). If none exist, skip without asking. Default is skip
+(human / Buildkite). It never
 runs the full suite, never **auto-retries** acc on failure (after a code fix, one new ask, still
 default skip), and never runs acc from `openspec-verify-change`. See [`testing.md`](./testing.md).
 

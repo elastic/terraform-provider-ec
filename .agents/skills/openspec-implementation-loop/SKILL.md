@@ -112,7 +112,12 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    | **Single-implementor** | ≤4 top-level tasks **AND** ≤~15 subtasks, with coherent scope | One implementor subagent handles all remaining tasks | One round of parallel review after all tasks complete |
    | **Per-task** | >4 top-level tasks, OR >15 subtasks, OR multi-area scope, OR tasks are largely independent across different packages | Fresh implementor per top-level task | Task-scoped review after each task; `openspec-verify-change` only after the last |
 
-   These thresholds are guidelines, not rigid rules. If more than one row could apply, use **per-task**. Use judgment:
+   These thresholds are guidelines, not rigid rules. Evaluate in this order (user can still override):
+   1. If a **per-task** condition matches (>4 top-level tasks, >~15 subtasks, multi-area scope, or largely independent packages), use **per-task**.
+   2. Else if **inline** matches, use **inline**. Inline is a subset of single-implementor; do **not** pick single-implementor or per-task only because both size rows match.
+   3. Else if **single-implementor** matches, use **single-implementor**.
+   4. Else use **per-task**.
+   Judgment still applies:
    - A 3-task change where each task is in a different package might warrant **per-task**
    - A 5-task change that is all in one file might be fine as **single-implementor**
    - A 2-task change with complex custom type logic might benefit from **single-implementor** over **inline** for the review coverage
@@ -213,7 +218,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed. If those inputs did not change, skip it and say so.
    - `env -u TF_ACC make lint`
    - `env -u TF_ACC make build`
-   - `env -u TF_ACC make unit`
+   - `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'` (pin `TEST`/`TESTARGS`/`TESTUNITARGS`; they are `?=` so inherited env can shrink the suite). Implementor-local scoped `TEST=./ec/…` is fine outside this battery.
    - `env -u TF_ACC make check-openspec` when the work touched `openspec/` (it is **not** part of `make lint`). If `openspec/` did not change, skip it and say so.
 
    The validation runner runs **only these make targets** (including conditional `check-openspec` and `docs-generate`). Implementors may also run `env -u TF_ACC make format` when lint requires it. Neither may set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done.
@@ -226,12 +231,13 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API, creates real deployments, and costs money. Credentials — **exactly one** mode: `EC_API_KEY` with no username/password vars, **or** `EC_USER`/`EC_USERNAME` plus **`EC_PASSWORD`**. `testAccPreCheck` reads `EC_PASS`/`EC_PASSWORD`; `newAPIConfig` reads `EC_UPASS`/`EC_PASSWORD`. Only `EC_PASSWORD` is in both. `EC_PASS` or `EC_UPASS` alone is unusable. The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
    - If the change has no runtime behavior (docs, skills, Makefile, spec-only), say so and skip acc. Do not ask.
-   - Otherwise the **orchestrator** (not a subagent), after the make battery in 7b **and** after verify/reviews for that cadence (inline: after 7c; single-implementor/`all_done`: after the 7d battery; per-task: only with the final 7d battery — not after every task). **One initial ask** plus **at most one new ask** after a failed opted-in run and a code fix (still default skip). Do not describe this as a single ask if the retry path is in play:
+   - If the change has runtime behavior but **no existing** `func TestAcc…` covers it (and this loop did not add one), skip 7b.1: say so, do **not** ask, do **not** invent a name. Note it as a human/Buildkite follow-up if a new acc case should exist later.
+   - Otherwise the **orchestrator** (not a subagent), after the make battery in 7b **and** after verify/reviews for that cadence (inline: after 7c; single-implementor/`all_done`: after the 7d battery; per-task: only with the final 7d battery — not after every task). **One initial ask** plus **at most one new ask** after a failed opted-in **implementation** failure and a code fix (still default skip). Do not describe this as a single ask if the retry path is in play:
      1. Name the one or two `TestAcc…` **function names** that cover the change.
      2. Ask explicitly (AskUserQuestion or equivalent). Call out that this creates real Elastic Cloud resources and costs money. Default option: **skip** (human/Buildkite will run them). Other option: run those named cases.
      3. On skip, or if credentials are missing or mixed: do not run acc; surface the names as a human/Buildkite step. Usable means **exactly one** of: (a) `EC_API_KEY` set and `EC_USER`/`EC_USERNAME`/`EC_PASSWORD`/`EC_UPASS`/`EC_PASS` unset, or (b) `EC_API_KEY` unset, a username (`EC_USER`/`EC_USERNAME`), and `EC_PASSWORD` (not `EC_PASS` or `EC_UPASS` alone). Mixed key + user/pass is unusable (`testAccPreCheck` fatals).
      4. On yes: run only `make testacc TEST_ACC=github.com/elastic/terraform-provider-ec/ec/acc TEST_COUNT=1 TESTARGS= TEST_NAME='^<exact TestAcc function name>$'`. Pin `TEST_ACC`, `TEST_COUNT`, and empty `TESTARGS` on the command (Makefile uses `?=`, so inherited `TESTARGS=-count 100` would otherwise override `-count`/`-parallel` and multiply paid runs). `go test -run` is an **unanchored** regexp. The recipe uses `-run '$(value TEST_NAME)'` so GNU make does not eat `$` anchors (`$(TEST_NAME)` treats `$` before `"` or `|` as a Make variable). A bare `TestAcc_SecurityProject` also matches `TestAcc_SecurityProjectImport` and other siblings. Anchor every name (`^TestAccFoo$`); two names in one run: `TEST_NAME='^Foo$|^Bar$'`. Reject empty, `TestAcc`, `.*`, unanchored names, and prefix-only values. Makefile default `TEST_NAME=TestAcc` is the **full suite**. Never `make testacc` without a specific anchored `TEST_NAME`. Never the full suite. Do not pass extra `TESTARGS` on this opt-in command unless the user explicitly asked for them. Before running, confirm each function exists under `ec/acc` (`func TestAcc…`). After the run, if the output is `[no tests to run]` or lacks `--- PASS:` / `--- FAIL:` for each named test, treat the opted-in run as **failed** (push-blocking) — `go test` exits 0 when the regexp matches nothing.
-     5. Run 7b.1 only after the first **successful** 7b battery **and** after that cadence's verify/reviews with no remaining push-blocking review findings, unless the change has no runtime behavior. If 7b failed, or verify/critical review is still blocking, fix and rerun those first — do not ask or run acc against a red battery or a known-broken implementation. Do **not** retry the same failed acc run. Do **not** re-ask on later step 7–8 reruns that are lint/unit only **after** that first ask has happened. If the opted-in run failed, that is push-blocking; after a code fix, **one new ask** (still default skip) before running acc a second time, and only after 7b and reviews are green again. The same one-new-ask rule applies after a review-driven code fix if acc already ran successfully against the previous tree.
+     5. Run 7b.1 only after the first **successful** 7b battery **and** after that cadence's verify/reviews with no remaining push-blocking review findings, unless the change has no runtime behavior or no covering `TestAcc…`. If 7b failed, or verify/critical review is still blocking, fix and rerun those first — do not ask or run acc against a red battery or a known-broken implementation. Do **not** retry the same failed acc run. Do **not** re-ask on later step 7–8 reruns that are lint/unit only **after** that first ask has happened. Classify an opted-in failure: **implementation** (assertion, Terraform error, `[no tests to run]`, unexpected miss of the named test) is push-blocking; after a code fix, **one new ask** (still default skip) before running acc a second time, and only after 7b and reviews are green again. **Environmental** (`testAccPreCheck` credential fatal, serverless quota HTTP 403, API outage) is **not** push-blocking: report it, do not patch product code, do not treat it as a code-fix/re-ask loop. Humans may sweep/retry; this loop never retries on its own. The same one-new-ask rule applies after a review-driven code fix if acc already ran successfully against the previous tree.
      6. After an opted-in run, remind the user that leaked `terraform_acc_` resources need `make sweep`. Do not run sweep yourself (it is interactive and destructive). Humans may retry after sweep; this loop never retries on its own.
 
    **7c. Inline strategy: lightweight review**
@@ -252,7 +258,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    After all tasks are complete, launch the full parallel review battery **once**:
 
-   a. **Validation runner** - launch a dedicated validation subagent to run **only** the make targets from step 7b in that order (`env -u TF_ACC make docs-generate` when schemas/templates/examples changed, then `env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, `env -u TF_ACC make check-openspec` when `openspec/` changed). Do not ask it to run 7b.1 or `make testacc`. Use a subagent so these checks do not consume the orchestrator's working context.
+   a. **Validation runner** - launch a dedicated validation subagent to run **only** the make targets from step 7b in that order (`env -u TF_ACC make docs-generate` when schemas/templates/examples changed, then `env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'`, `env -u TF_ACC make check-openspec` when `openspec/` changed). Do not ask it to run 7b.1 or `make testacc`. Use a subagent so these checks do not consume the orchestrator's working context.
 
    b. **Critical code review** - review for coding standards, idiomatic Go/Terraform Plugin Framework patterns, obvious logic issues, error handling gaps, and risky regressions. Return prioritized findings only.
 
@@ -286,7 +292,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **Push-blocking** (must fix before advancing):
    - Failed step 7b commands (`make docs-generate` when required, including a dirty `docs/` tree, `make lint` / `build` / `unit` / `check-openspec`)
-   - A **user-approved** targeted acc run that failed (do not retry acc; fix code, then ask again)
+   - A **user-approved** targeted acc run that failed because of an **implementation** defect (do not retry acc; fix code, then ask again). Credential, quota, and outage failures are not push-blocking (report them).
    - `openspec-verify-change` CRITICAL issues
    - Critical code-review findings that are actual defects
    - In **PR mode**, a user-facing change with no `.changelog/{PR}.txt` after the PR number is known (docs/spec/skills/Makefile/CI-only are exempt)
@@ -295,6 +301,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `openspec-verify-change` WARNINGs, including acc-only scenario coverage when the user skipped or was not asked
    - SUGGESTIONs
    - Coverage-gap notes that do not claim a missing requirement
+   - Environmental opted-in acc failures (credentials, quota, outage)
    - Buildkite acc status (never auto-fix, never re-trigger)
 
    If there are no push-blocking findings:
@@ -408,7 +415,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 Subagent usage scales with the chosen strategy:
 
 - **Implementor** (single-implementor and per-task strategies): makes code changes, updates tasks, runs targeted unit validation (`env -u TF_ACC make unit`; `env -u TF_ACC make docs-generate` when schema/examples changed), and creates small focused commits. Per-task uses one fresh implementor per top-level task; single-implementor uses one for the entire change.
-- **Validation runner** (single-implementor and per-task strategies): a subagent that runs the make targets from step 7b **in that order** (`env -u TF_ACC make docs-generate` when schemas/templates/examples changed, then lint, build, unit, and `env -u TF_ACC make check-openspec` when `openspec/` changed), then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done. Targeted acc is orchestrator-only (7b.1) after an explicit yes.
+- **Validation runner** (single-implementor and per-task strategies): a subagent that runs the make targets from step 7b **in that order** (`env -u TF_ACC make docs-generate` when schemas/templates/examples changed, then lint, build, pinned `make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'`, and `env -u TF_ACC make check-openspec` when `openspec/` changed), then reports a concise validation summary. Use a subagent so validation does not consume the orchestrator's context. It MUST NOT set `TF_ACC`, run `make testacc`, ask about acc, or report acc as done. Targeted acc is orchestrator-only (7b.1) after an explicit yes.
 - **Critical reviewer**: reviews code quality and logic
 - **Spec reviewer**: checks the implementation against the approved OpenSpec change
 - **Coverage reviewer**: checks test coverage quality using the appropriate strategy
