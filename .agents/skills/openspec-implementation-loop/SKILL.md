@@ -86,7 +86,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    **Handle states**:
    - If `state: "blocked"`: stop and explain what artifact is missing; suggest continuing the change artifacts first
-   - If `state: "all_done"`: skip triage and implementation (steps 4–6). Continue at step 7: run 7a, 7b, **7b.1**, and the 7d battery **once** (including `openspec-verify-change`). Do not use 7c or 7e. Then continue at step 8.
+   - If `state: "all_done"`: skip triage and implementation (steps 4–6). Continue at step 7: run 7a and the **7d battery once** (that battery already runs 7b via the validation runner, then 7b.1 once). Do **not** also run 7b/7b.1 separately. Do not use 7c or 7e. Then continue at step 8.
    - Otherwise: proceed to triage and implementation
 
 4. **Triage: determine execution strategy**
@@ -194,7 +194,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    The validation and review cadence depends on the execution strategy.
 
-   If this invocation skipped triage because `state` was `all_done`, run 7a, 7b, **7b.1**, and the 7d battery once, then go to step 8.
+   If this invocation skipped triage because `state` was `all_done`, run 7a and the 7d battery once (do not also run 7b/7b.1 separately), then go to step 8.
 
    **7a. Determine the review type**
 
@@ -220,13 +220,13 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Do **not** fold this into the validation-runner prompt. The runner's 7b is the make battery only.
 
-   - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API, creates real deployments, and costs money. Credentials: `EC_API_KEY`, or `EC_USER`/`EC_USERNAME` plus `EC_PASS`/`EC_PASSWORD` (not both kinds). The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
+   - There is **no local Docker stack**. Acc hits the paid Elastic Cloud API, creates real deployments, and costs money. Credentials — **exactly one** mode: `EC_API_KEY` with no username/password vars, **or** `EC_USER`/`EC_USERNAME` plus `EC_PASSWORD`/`EC_UPASS` (the API client does not read `EC_PASS`). The full suite is Buildkite-only. See `dev-docs/high-level/testing.md`.
    - If the change has no runtime behavior (docs, skills, Makefile, spec-only), say so and skip acc. Do not ask.
    - Otherwise the **orchestrator** (not a subagent), **once per loop** after the make battery in 7b (and for per-task only with the final 7d battery — not after every task):
      1. Name the one or two `TestAcc…` **function names** that cover the change.
      2. Ask explicitly (AskUserQuestion or equivalent). Call out that this creates real Elastic Cloud resources and costs money. Default option: **skip** (human/Buildkite will run them). Other option: run those named cases.
-     3. On skip, or if there are no usable credentials (`EC_API_KEY` unset **and** not both a username (`EC_USER`/`EC_USERNAME`) and a password (`EC_PASS`/`EC_PASSWORD`)): do not run acc; surface the names as a human/Buildkite step.
-     4. On yes: run only `make testacc TEST_NAME='^<exact TestAcc function name>$'`. `go test -run` is an **unanchored** regexp (`build/Makefile.test` already passes `-run $(TEST_NAME)`). A bare `TestAcc_SecurityProject` also matches `TestAcc_SecurityProjectImport` and other siblings. Anchor every name (`^TestAccFoo$`); two names: `^Foo$|^Bar$`. Reject empty, `TestAcc`, `.*`, unanchored names, and prefix-only values. Makefile default `TEST_NAME=TestAcc` is the **full suite**. Extra flags belong in `TESTARGS`. Never `make testacc` without a specific anchored `TEST_NAME`. Never the full suite.
+     3. On skip, or if credentials are missing or mixed: do not run acc; surface the names as a human/Buildkite step. Usable means **exactly one** of: (a) `EC_API_KEY` set and `EC_USER`/`EC_USERNAME`/`EC_PASSWORD`/`EC_UPASS`/`EC_PASS` unset, or (b) `EC_API_KEY` unset, a username (`EC_USER`/`EC_USERNAME`), and a password the API client reads (`EC_PASSWORD` or `EC_UPASS` — not `EC_PASS` alone). Mixed key + user/pass is unusable (`testAccPreCheck` fatals).
+     4. On yes: run only `make testacc TEST_NAME='^<exact TestAcc function name>$'`. `go test -run` is an **unanchored** regexp (`build/Makefile.test` already passes `-run $(TEST_NAME)`). A bare `TestAcc_SecurityProject` also matches `TestAcc_SecurityProjectImport` and other siblings. Anchor every name (`^TestAccFoo$`); two names: `^Foo$|^Bar$`. Reject empty, `TestAcc`, `.*`, unanchored names, and prefix-only values. Makefile default `TEST_NAME=TestAcc` is the **full suite**. Extra flags belong in `TESTARGS`. Never `make testacc` without a specific anchored `TEST_NAME`. Never the full suite. Before running, confirm each function exists under `ec/acc` (`func TestAcc…`). After the run, if the output is `[no tests to run]` or lacks `--- PASS:` / `--- FAIL:` for each named test, treat the opted-in run as **failed** (push-blocking) — `go test` exits 0 when the regexp matches nothing.
      5. Run 7b.1 after the **first** 7b return (pass or fail), unless the change has no runtime behavior. Do **not** retry the same failed acc run. Do **not** skip 7b.1 because 7b failed. Do **not** re-ask on later step 7–8 reruns that are lint/unit only **after** that first ask has happened. If the opted-in run failed, that is push-blocking; after a code fix, **one new ask** (still default skip) before running acc a second time.
      6. After an opted-in run, remind the user that leaked `terraform_acc_` resources need `make sweep`. Do not run sweep yourself (it is interactive and destructive). Humans may retry after sweep; this loop never retries on its own.
 
@@ -256,7 +256,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    e. **Coverage review for non-entity changes** - if this is not a Terraform entity change, run a thorough test analysis instead. Prefer explicit coverage tooling where possible, for example `env -u TF_ACC go test -cover`. Identify high-risk code paths that lack direct test coverage. Same `ec/acc` rule as 7d.d.
 
-   Run the validation runner in parallel with the other review subagents, not as a separate serial phase. After that battery returns, the orchestrator runs 7b.1.
+   Run the validation runner **to completion first** (it may write generated files via `make gen` / license headers). Then run the other review subagents in parallel. After that battery returns, the orchestrator runs 7b.1.
 
    **7e. Per-task strategy: review after each top-level task**
 
@@ -264,7 +264,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    Do **not** run `openspec-verify-change` until every top-level task is complete. That skill treats remaining `- [ ]` tasks as CRITICAL, which would block advancing to the next task. After the **last** top-level task passes its task-scoped review, run the full battery from 7d once, including proposal compliance (`openspec-verify-change`), then run 7b.1.
 
-   Run the validation runner in parallel with the other review subagents for the same top-level task.
+   Run the validation runner **to completion first** for that task (it may write generated files). Then run the other review subagents for the same top-level task in parallel.
 
    **For all review subagents**, ask them to return:
    - severity
@@ -405,7 +405,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 
 - Operate on one change only
 - Ask **commit vs PR** at the **start** (step 2), not when implementation is finished
-- Always triage the change and announce the execution strategy before implementation, **except** when `state` is `all_done` (then skip 4–6 and run 7b + 7b.1 + 7d once)
+- Always triage the change and announce the execution strategy before implementation, **except** when `state` is `all_done` (then skip 4–6 and run 7a + one 7d battery, which includes 7b and a single 7b.1)
 - The user can override the chosen strategy at the triage step
 - Always read the OpenSpec context files, plus apply `context` / `operationGuidance`, before implementation
 - **Per-task strategy**: create a fresh implementor subagent for each top-level task; do not reuse one implementor across top-level tasks. Do not advance to the next top-level task until the current task has passed local review. Run `openspec-verify-change` and 7b.1 only after the last top-level task.
@@ -416,7 +416,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME='^Name$'` only after an explicit yes (7b.1). Never auto-retry a failed acc run. After a code fix, one new ask (still default skip). `openspec-verify-change` never runs acc.
 - Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
 - For single-implementor and per-task strategies, run local validation in a dedicated subagent so the orchestrator does not spend its own context on lint/build/test execution
-- Run the validation subagent in parallel with the other review subagents, not as a separate serial phase
+- Run the validation runner to completion **before** other review subagents (it may write generated files via `make gen` / license headers). Then run the remaining reviewers in parallel.
 - All strategies must include `make lint`, `make build`, and `make unit`, plus `make check-openspec` when `openspec/` changed
 - After a GitHub Actions failure, rerun steps 7–8 before the next push
 - Run reviewers in parallel whenever possible

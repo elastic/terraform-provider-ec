@@ -78,7 +78,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - Count complete vs total tasks
    - If incomplete tasks exist:
      - Do **not** add a CRITICAL issue for a task whose only remaining action is to archive the change (`openspec-archive-change`, `openspec archive`, or equivalent). Note it as skipped: archiving is a later step, not this skill.
-     - Incomplete tasks to **write** or **add** a `TestAcc…` test file (including combined "add and run on Buildkite" tasks) stay CRITICAL until that file exists.
+     - Incomplete tasks to **write** or **add** a `TestAcc…` test file (including combined "add and run on Buildkite" tasks) stay CRITICAL until the file exists **and** the checkbox is `- [x]`. A present file with a still-open checkbox is still CRITICAL ("Mark as done if already implemented").
      - Do **not** add a CRITICAL issue for an incomplete task that is **execute-acc only** (Human/Buildkite *runs* a named case, `make testacc`, or `TF_ACC=1`, with no write/add). Record a WARNING that names the case; this skill never runs acc.
      - Add CRITICAL issue for each other incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
@@ -151,7 +151,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    1. **CRITICAL** (Must fix before archive):
       - Incomplete tasks other than archive-only or execute-acc Human/Buildkite steps
-      - Incomplete tasks to write/add a `TestAcc…` file
+      - Incomplete tasks to write/add a `TestAcc…` file (until the file exists **and** the checkbox is `- [x]`)
       - Missing requirement implementations
       - Each with specific, actionable recommendation
 

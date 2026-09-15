@@ -92,10 +92,10 @@ Strategy thresholds and review cadence are defined in the
 
 The loop **always** runs:
 
-- `make lint`
-- `make build`
-- `make unit`
-- `make check-openspec` when `openspec/` changed (it is not part of `make lint`)
+- `env -u TF_ACC make lint`
+- `env -u TF_ACC make build`
+- `env -u TF_ACC make unit`
+- `env -u TF_ACC make check-openspec` when `openspec/` changed (it is not part of `make lint`)
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
 The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, the orchestrator may

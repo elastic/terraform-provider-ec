@@ -25,8 +25,9 @@ and related resources through the Elastic Cloud API.
   deployments** against the live Elastic Cloud API (`EC_API_KEY`) and cost real money. **Never
   auto-run** acceptance tests from an agentic workflow — no live-cloud credentials are exposed to
   agents by default. The `openspec-implementation-loop` may **ask once** to run named `TestAcc…`
-  cases after an explicit yes (default skip); implementors, `openspec-verify-change`, and CI reuse
-  stay acc-free. The full suite runs on Buildkite per PR and is a **required** status check on
+  cases after an explicit yes (default skip; after a code fix, one new ask, still default skip);
+  implementors, `openspec-verify-change`, and CI reuse stay acc-free. The full suite runs on
+  Buildkite per PR and is a **required** status check on
   `master` (`buildkite/terraform-provider-ec-acceptance`); a human working on a change should run
   the targeted `TestAcc…` case(s) locally first. See [`testing.md`](./dev-docs/high-level/testing.md).
 - There is **no local Docker stack** for this provider (unlike the Elastic Stack provider). Unit
