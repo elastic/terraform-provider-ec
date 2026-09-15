@@ -15,8 +15,8 @@ fragments are the source of truth for exact behavior.
 > **Before opening a PR, run the _targeted_ test(s) covering your change locally** —
 > `make testacc TEST_NAME='TestAccMyThing'` — for fast feedback, then `make sweep` any leftovers.
 > Don't run the **full** suite locally for routine iteration (~2 hours); the Buildkite acceptance
-> pipeline runs the full suite for every PR and a human reviews the result. **Agents never run
-> acceptance tests** — no live-cloud credentials are exposed to agentic workflows. See
+> pipeline runs the full suite for every PR and is a required status check on `master`. **Agents
+> never run acceptance tests** — no live-cloud credentials are exposed to agentic workflows. See
 > [`testing.md`](./testing.md). `make unit` needs no credentials and is always safe. There is **no
 > local Docker stack** for this provider.
 
@@ -33,7 +33,10 @@ fragments are the source of truth for exact behavior.
 - **`make check-openspec`** structurally validates `openspec/` (`openspec validate --all`). It is
   not part of `make lint`; CI runs it in `.github/workflows/openspec.yml`. Run it locally when you
   change specs. It installs the CLI via `setup-openspec` if needed. Authoring conventions:
-  [`openspec-requirements.md`](./openspec-requirements.md).
+  [`openspec-requirements.md`](./openspec-requirements.md). Which skill to use for a change:
+  [`openspec-workflows.md`](./openspec-workflows.md). After an OpenSpec CLI bump, regenerate those
+  skills with **`make gen-openspec-skills`** — not `openspec init` or `openspec update`. Until 1.9,
+  call the pinned CLI as `npx openspec` or `./node_modules/.bin/openspec`.
 - **`make gen`** (alias `make generate`) regenerates the serverless client *and* `ec/version.go`. To
   refresh the vendored serverless OpenAPI spec, use `scripts/update-serverless-spec.sh` — see
   [`generated-clients.md`](./generated-clients.md).
@@ -65,5 +68,5 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
    [`contributing.md`](./contributing.md)).
 
-The **full** acceptance suite runs on Buildkite for every PR; run only the targeted cases locally,
-and note that **agents never run acceptance tests** at all.
+The **full** acceptance suite runs on Buildkite for every PR and must pass before merge; run only
+the targeted cases locally, and note that **agents never run acceptance tests** at all.

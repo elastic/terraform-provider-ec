@@ -71,6 +71,7 @@ Only when the user explicitly asks to tag (typically after the PR is merged):
 1. Ensure you're on `master` with the merge commit
 2. Run `make tag` — it creates the `vX.Y.Z` tag (the `VERSION` minus its `-dev` suffix) and pushes it to the remote pointing at `elastic/terraform-provider-ec`, which triggers the Buildkite release pipeline.
 3. Equivalently, tag and push by hand: `git tag vX.Y.Z` then `git push <remote> vX.Y.Z`, where `<remote>` is the one pointing at `elastic/terraform-provider-ec` (often `upstream`).
+4. Do **not** `gh release edit`. `make release` (Buildkite) fills the GitHub release body from this version's `CHANGELOG.md` section (`scripts/extract-release-notes.sh` → GoReleaser `--release-notes`; `changelog.disable` in `.goreleaser.yml` would ignore that file). After the pipeline finishes, confirm `gh release view vX.Y.Z --repo elastic/terraform-provider-ec` shows that section (not an empty body).
 
 ## Important rules
 
@@ -79,3 +80,4 @@ Only when the user explicitly asks to tag (typically after the PR is merged):
 - **Keep `-dev` suffix in `Makefile` and `ec/version.go`.**
 - **Verify `.changelog/` file contents against upstream.**
 - **Check all merged PRs, not just those with `.changelog/` entries.**
+- **Do not `gh release edit` for notes.** `make release` copies `CHANGELOG.md` into the GitHub release via `--release-notes` (requires the GoReleaser changelog pipe to stay enabled).

@@ -92,9 +92,10 @@ Run `make format` before committing and `make lint` to gate. Both are thin wrapp
 
 OpenSpec structural validation is **`make check-openspec`**, not part of `make lint`. CI runs it in
 `.github/workflows/openspec.yml`. Author specs per [`openspec-requirements.md`](./openspec-requirements.md)
-(Purpose / SHALL-MUST requirements / Given-When-Then scenarios). Canonical specs live in
-`openspec/specs/`; new or changed behavior is proposed under `openspec/changes/` and archived into
-`openspec/specs/` after the implementation lands.
+(Purpose / SHALL-MUST requirements / Given-When-Then scenarios). Drive a change with the skills in
+[`.agents/skills/`](../../.agents/skills/) — see [`openspec-workflows.md`](./openspec-workflows.md).
+Canonical specs live in `openspec/specs/`; new or changed behavior is proposed under `openspec/changes/`
+and archived into `openspec/specs/` after the implementation lands.
 
 ## Error handling
 

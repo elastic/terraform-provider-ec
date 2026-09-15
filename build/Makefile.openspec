@@ -15,3 +15,9 @@ node_modules/.openspec-stamp: package-lock.json package.json
 check-openspec: setup-openspec
 	@ test -x $(OPENSPEC_BIN) || { echo "OpenSpec CLI missing; run 'make setup-openspec'" >&2; exit 1; }
 	@ OPENSPEC_TELEMETRY=0 $(OPENSPEC_BIN) validate --all
+
+## Regenerate OpenSpec lifecycle skills from the pinned CLI (does not use global profile)
+.PHONY: gen-openspec-skills
+gen-openspec-skills: setup-openspec
+	@ test -d $(CURDIR)/node_modules/@fission-ai/openspec || { echo "OpenSpec CLI missing; run 'make setup-openspec'" >&2; exit 1; }
+	OPENSPEC_TELEMETRY=0 node $(CURDIR)/scripts/gen-openspec-skills.mjs

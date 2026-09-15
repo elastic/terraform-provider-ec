@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment_traffic_filter: Retry GET after create/update when the ruleset is not immediately visible.
+```
