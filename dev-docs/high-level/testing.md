@@ -44,7 +44,7 @@ Gating and recipe (from `build/Makefile.test`):
 ```make
 testacc:
 	TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) \
-	  $(TESTARGS) -timeout 120m -run $(TEST_NAME)
+	  $(TESTARGS) -timeout 120m -run "$(TEST_NAME)"
 ```
 
 Defaults: `TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc`, `TEST_NAME ?= TestAcc`,

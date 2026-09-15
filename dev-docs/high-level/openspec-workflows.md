@@ -100,7 +100,7 @@ The loop **always** runs:
 
 The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, the orchestrator may
 **ask once** to run one or two named `TestAcc…` function names
-(`make testacc TEST_NAME='^TestAccMyThing$'` — anchored; `go test -run` is otherwise a prefix
+(`make testacc TEST_NAME='^TestAccMyThing$'` — anchored; `go test -run` is otherwise an unanchored
 regexp. `TEST_NAME=TestAcc` is the full suite). Default is skip (human / Buildkite). It never
 runs the full suite, never **auto-retries** acc on failure (after a code fix, one new ask, still
 default skip), and never runs acc from `openspec-verify-change`. See [`testing.md`](./testing.md).
