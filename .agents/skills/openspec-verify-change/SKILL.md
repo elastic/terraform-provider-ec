@@ -78,8 +78,8 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - Count complete vs total tasks
    - If incomplete tasks exist:
      - Do **not** add a CRITICAL issue for a task whose only remaining action is to archive the change (`openspec-archive-change`, `openspec archive`, or equivalent). Note it as skipped: archiving is a later step, not this skill.
-     - Do **not** add a CRITICAL issue for an incomplete task that is explicitly **execute** acc: Human/Buildkite *runs* a named case, `make testacc`, or `TF_ACC=1`. Record a WARNING that names the case; this skill never runs acc.
-     - Incomplete tasks to **write** or **add** a `TestAcc…` test file stay CRITICAL until that file exists.
+     - Incomplete tasks to **write** or **add** a `TestAcc…` test file (including combined "add and run on Buildkite" tasks) stay CRITICAL until that file exists.
+     - Do **not** add a CRITICAL issue for an incomplete task that is **execute-acc only** (Human/Buildkite *runs* a named case, `make testacc`, or `TF_ACC=1`, with no write/add). Record a WARNING that names the case; this skill never runs acc.
      - Add CRITICAL issue for each other incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
 
@@ -168,9 +168,10 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
       - Each with specific recommendation
 
    **Final Assessment**:
+   - This skill never archives or syncs. If invoked from the implementation loop, do **not** tell the caller to run `openspec-archive-change` or `openspec-sync-specs`.
    - If CRITICAL issues: "X critical issue(s) found. Fix before archiving."
-   - If only warnings: "No critical issues. Y warning(s) to consider. Ready for archive (with noted improvements)."
-   - If all clear: "All checks passed. Ready for archive."
+   - If only warnings: "No critical issues. Y warning(s) to consider. Ready for archive (with noted improvements)." Standalone only; the loop ignores the archive sentence.
+   - If all clear: "All checks passed. Ready for archive." Standalone only; the loop ignores the archive sentence.
 
 **Verification Heuristics**
 

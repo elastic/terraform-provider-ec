@@ -29,7 +29,7 @@ rules:
 operations:
   apply:
     guidance:
-      - Run make lint, make build, and make unit. Never run make testacc or set TF_ACC during apply. The implementation-loop orchestrator may ask once to run named TestAcc cases after an explicit yes; apply, verify-change, and CI reuse never set TF_ACC.
+      - Run `env -u TF_ACC make lint`, `env -u TF_ACC make build`, and `env -u TF_ACC make unit`. Never run make unit/lint/build without unsetting TF_ACC. Never run make testacc or set TF_ACC during apply. The implementation-loop orchestrator may ask once to run named TestAcc cases after an explicit yes; apply, verify-change, and CI reuse never set TF_ACC.
       - User-facing implementation needs .changelog/{PR}.txt; spec/docs-only PRs skip it.
   archive:
     guidance:

@@ -82,7 +82,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - optional prompt-level `context` and `operationGuidance` (same contract as `openspec-apply-change`)
    - the ordered list of top-level tasks (for example `1`, `2`, `3`) and which of them are still incomplete
 
-   Read every file listed in `contextFiles`. Treat `context` as required prompt-level input: apply relevant project facts, conventions, and constraints (changelog, Plugin Framework vs SDKv2, no auto-run `TF_ACC`) before triage and implementation. Treat `operationGuidance` as optional additive advice; follow entries that apply. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value. This skill's orchestrator acc-ask (7b.1) overrides apply `operationGuidance` that says never run `make testacc`.
+   Read every file listed in `contextFiles`. Treat `context` as required prompt-level input: apply relevant project facts, conventions, and constraints (changelog, Plugin Framework vs SDKv2, no auto-run `TF_ACC`) before triage and implementation. Treat `operationGuidance` as optional additive advice; follow entries that apply. `make lint` / `make build` / `make unit` from guidance are invalid unless they include `env -u TF_ACC` — never run those targets without it. If `context` conflicts with this skill, an explicit user choice, or a CLI-controlled value, report the conflict and preserve the controlling value. This skill's orchestrator acc-ask (7b.1) overrides apply `operationGuidance` that says never run `make testacc`.
 
    **Handle states**:
    - If `state: "blocked"`: stop and explain what artifact is missing; suggest continuing the change artifacts first
@@ -225,14 +225,14 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
      2. Ask explicitly (AskUserQuestion or equivalent). Call out that this creates real Elastic Cloud resources and costs money. Default option: **skip** (human/Buildkite will run them). Other option: run those named cases.
      3. On skip, or if `EC_API_KEY` is unset: do not run acc; surface the names as a human/Buildkite step.
      4. On yes: run only `make testacc TEST_NAME='<exact TestAcc function name>'`. `build/Makefile.test` already passes `-run $(TEST_NAME)` and defaults `TEST_NAME` to `TestAcc` (the **full suite**). Reject empty, `TestAcc`, `.*`, prefix-only values (`TestAccDeployment`), and any regex that would match more than those named cases. Extra flags belong in `TESTARGS`. Never `make testacc` without a specific `TEST_NAME`. Never the full suite.
-     5. Do **not** retry the same failed acc run. Do **not** re-ask on later step 7–8 reruns that are lint/unit only. If the opted-in run failed, that is push-blocking; after a code fix, **one new ask** (still default skip) before running acc a second time.
+     5. Run 7b.1 after the **first** 7b return (pass or fail), unless the change has no runtime behavior. Do **not** retry the same failed acc run. Do **not** skip 7b.1 because 7b failed. Do **not** re-ask on later step 7–8 reruns that are lint/unit only **after** that first ask has happened. If the opted-in run failed, that is push-blocking; after a code fix, **one new ask** (still default skip) before running acc a second time.
      6. After an opted-in run, remind the user that leaked `terraform_acc_` resources need `make sweep`. Do not run sweep yourself (it is interactive and destructive). Humans may retry after sweep; this loop never retries on its own.
 
    **7c. Inline strategy: lightweight review**
 
    The orchestrator runs the validation commands from step 7b directly rather than spawning a validation subagent. Then the orchestrator runs 7b.1 (acc ask) itself.
 
-   Always run `openspec-verify-change` for the same change. The orchestrator may run it itself; do not skip it on "straightforward" changes.
+   Always run `openspec-verify-change` for the same change (pass the change name; do not let it infer). The orchestrator may run it itself; do not skip it on "straightforward" changes. Ignore any archive/sync recommendation in its report; this loop never archives or syncs.
 
    For straightforward changes (config, docs, Makefile, CI, spec-only), that plus a self-review is sufficient. Do not spawn other review subagents.
 
@@ -248,7 +248,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    b. **Critical code review** - review for coding standards, idiomatic Go/Terraform Plugin Framework patterns, obvious logic issues, error handling gaps, and risky regressions. Return prioritized findings only.
 
-   c. **Proposal compliance review** - run the `openspec-verify-change` skill/process for the same change (pass the change name; do not let it infer). Return CRITICAL mismatches and missing work. Include WARNINGs and SUGGESTIONs in the report; they are not push-blocking (see step 8).
+   c. **Proposal compliance review** - run the `openspec-verify-change` skill/process for the same change (pass the change name; do not let it infer). Return CRITICAL mismatches and missing work. Include WARNINGs and SUGGESTIONs in the report; they are not push-blocking (see step 8). Ignore archive/sync language in the report; never invoke `openspec-archive-change` or `openspec-sync-specs`.
 
    d. **Coverage review for Terraform entities** - if this is a Terraform entity change and `.agents/skills/schema-coverage/SKILL.md` exists, run that skill. Focus on untested or weakly tested high-risk attributes and behaviors. If that skill is not installed, fall back to `env -u TF_ACC go test -cover` on the touched packages (same as 7d.e) and say so. Do not include `ec/acc` in that package list.
 
@@ -359,10 +359,10 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Do not restate those rules here.
 
     **Otherwise** (skill not installed yet), monitor with `gh` from this agent or a single watcher subagent:
-    - poll GitHub Actions on the PR (`gh pr checks`, `gh run list`) until `Go` / `OpenSpec CI` complete
+    - poll **GitHub Actions** only: `Go` and `OpenSpec CI` (for example `gh run list` / `gh run watch` on those workflow names). Do **not** `gh pr checks --watch`, and do not wait for `buildkite/terraform-provider-ec-acceptance`. That check is required for merge; it does **not** block this loop.
     - poll reviews, PR comments, and review comments at a coarse cadence
     - fix **simple** GitHub Actions failures (lint/unit/docs) the same way as commit mode: small commits, **rerun step 7–8**, then push and re-watch Actions
-    - **surface** Buildkite acceptance as out-of-band: report status if visible; never auto-fix acc failures; never re-trigger acc
+    - **surface** Buildkite acceptance as out-of-band: report status if visible; never wait for it; never auto-fix acc failures; never re-trigger acc
     - do **not** apply a `verify-openspec` label unless that workflow exists in this repo
     - stop and ask the user when review feedback needs judgment, the branch is in merge conflict, or the loop stalls
 
@@ -408,7 +408,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - **Per-task strategy**: create a fresh implementor subagent for each top-level task; do not reuse one implementor across top-level tasks. Do not advance to the next top-level task until the current task has passed local review. Run `openspec-verify-change` and 7b.1 only after the last top-level task.
 - **Single-implementor strategy**: use one implementor for all tasks; run one review round after all tasks complete
 - **Inline strategy**: the orchestrator implements directly and still runs `openspec-verify-change`; spawn other review subagents only for non-trivial logic changes
-- Never archive a change in this workflow. Never sync delta specs into `openspec/specs/` during this loop; that is `openspec-sync-specs` after verify. Archiving happens after this skill returns.
+- Never archive a change in this workflow. Never sync delta specs into `openspec/specs/` during this loop; that is `openspec-sync-specs` after verify. Archiving happens after this skill returns. Ignore archive/sync recommendations from `openspec-verify-change` or `openspec-apply-change`.
 - Ignore tasks that request archiving the change or merging delta specs into canonical `openspec/specs/`
 - **Never auto-run acceptance tests.** No `TF_ACC` from implementors or the validation runner. No full `make testacc`. Targeted `TEST_NAME=<exact function name>` only after an explicit yes (7b.1). After a failed opted-in run and a code fix, one new ask (still default skip). `openspec-verify-change` never runs acc.
 - Implementor subagents (and step 6 work, including inline) never push; the orchestrator pushes in step 9 after local review passes
@@ -418,7 +418,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - After a GitHub Actions failure, rerun steps 7–8 before the next push
 - Run reviewers in parallel whenever possible
 - Prefer actionable findings over style nitpicks
-- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push; only CRITICALs and failed 7b commands do
+- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push; only CRITICALs, failed 7b commands, and a failed user-approved 7b.1 acc run do
 - Feed local review and commit-mode **GitHub Actions** failures back into the loop instead of fixing them ad hoc outside the loop. Do not feed Buildkite acc failures into an auto-fix loop.
 - Keep commit sizes small and purpose-specific
 - Stop and ask the user if the process becomes ambiguous or stuck
