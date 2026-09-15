@@ -64,7 +64,7 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 
 1. `make build` — regenerates code and compiles.
 2. `make docs-generate` — only if you changed resource/data-source schemas, templates, or `examples/` (before
-   lint so new entity docs exist for `tfproviderdocs`; then commit a dirty `docs/` tree).
+   lint so new entity docs exist for `tfproviderdocs`; then commit the generated `docs/` so the tree is clean).
 3. `make lint` — Go + provider linters, license headers, docs check, `.tf` formatting.
 4. `env -u TF_ACC make unit` — unit tests; unset `TF_ACC` so `ec/acc` does not run.
 5. `make check-openspec` — only if you changed `openspec/` (CI also runs this in `openspec.yml`).

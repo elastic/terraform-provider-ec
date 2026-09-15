@@ -93,10 +93,12 @@ Strategy thresholds and review cadence are defined in the
 The loop **always** runs:
 
 - `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed (before lint so new entity docs exist for `tfproviderdocs`, and before the generated-docs `git status`/commit check; `tfproviderdocs` does not fail merely because existing generated markdown is stale)
+- `env -u TF_ACC make vendor` when `go.mod`/`go.sum` changed
 - `env -u TF_ACC make lint`
 - `env -u TF_ACC make build`
 - `env -u TF_ACC make unit TEST=./... TESTARGS= TESTUNITARGS='-timeout 10m -race -cover -coverprofile=reports/c.out'`
 - `env -u TF_ACC make check-openspec` when `openspec/` changed (it is not part of `make lint`)
+- `env -u TF_ACC make install validate-examples` when examples or provider schemas changed
 - `openspec-verify-change` (the orchestrator may run it inline; per-task defers it until every top-level task is complete)
 
 The loop **never auto-runs** `make testacc` / `TF_ACC`. After `make unit`, if one or two existing
