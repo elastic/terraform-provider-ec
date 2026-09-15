@@ -25,6 +25,15 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments_traffic_filter"
 )
 
+// TrafficFilterRetryableMiss is HTTP 404 only (not 403).
+func TrafficFilterRetryableMiss(err error) bool {
+	var notFound *deployments_traffic_filter.GetTrafficFilterRulesetNotFound
+	if errors.As(err, &notFound) {
+		return true
+	}
+	return apierror.IsRuntimeStatusCode(err, http.StatusNotFound)
+}
+
 // TrafficFilterNotFound returns true when the error is a 404 or 403.
 func TrafficFilterNotFound(err error) bool {
 	// We're using the As() call since we do not care about the error value
