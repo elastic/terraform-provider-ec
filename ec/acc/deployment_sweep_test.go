@@ -18,7 +18,9 @@
 package acc
 
 import (
+	"errors"
 	"log"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +28,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
+	"github.com/elastic/cloud-sdk-go/pkg/api/apierror"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
+	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 	"github.com/elastic/cloud-sdk-go/pkg/multierror"
 	"github.com/elastic/cloud-sdk-go/pkg/plan"
@@ -105,12 +109,33 @@ func shutdownDeployment(c *api.API, dep string, wg *sync.WaitGroup) error {
 		API: c, DeploymentID: dep,
 	})
 	if err != nil {
+		if alreadyDestroyed(err) {
+			return nil
+		}
 		return err
 	}
 
-	return planutil.Wait(plan.TrackChangeParams{
+	if err := planutil.Wait(plan.TrackChangeParams{
 		API: c, DeploymentID: dep,
-	})
+	}); err != nil && !alreadyDestroyed(err) {
+		return err
+	}
+	return nil
+}
+
+func alreadyDestroyed(err error) bool {
+	if err == nil {
+		return false
+	}
+	var shutdownNF *deployments.ShutdownDeploymentNotFound
+	if errors.As(err, &shutdownNF) {
+		return true
+	}
+	var getNF *deployments.GetDeploymentNotFound
+	if errors.As(err, &getNF) {
+		return true
+	}
+	return apierror.IsRuntimeStatusCode(err, http.StatusNotFound)
 }
 
 func staleDeployment(lastModified time.Time) bool {
