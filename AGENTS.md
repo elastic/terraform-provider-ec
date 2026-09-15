@@ -35,13 +35,13 @@ and related resources through the Elastic Cloud API.
 
 ## After making changes
 
-- Build: `make build`
-- Lint: `make lint`
-- If you changed `openspec/`: `make check-openspec`
-- Unit tests (no cloud, always safe): `make unit`
-- If you changed resource/data-source schemas or examples, regenerate docs with `make docs-generate`
+- Build: `env -u TF_ACC make build`
+- Lint: `env -u TF_ACC make lint`
+- If you changed `openspec/`: `env -u TF_ACC make check-openspec`
+- Unit tests (no cloud, always safe): `env -u TF_ACC make unit`
+- If you changed resource/data-source schemas or examples, regenerate docs with `env -u TF_ACC make docs-generate`
   and verify with `make tfproviderdocs`. See [`documentation.md`](./dev-docs/high-level/documentation.md).
-- If you changed the serverless client inputs, regenerate with `make gen`. See
+- If you changed the serverless client inputs, regenerate with `env -u TF_ACC make gen`. See
   [`generated-clients.md`](./dev-docs/high-level/generated-clients.md).
 - Add a `.changelog/{PR}.txt` entry for user-facing changes (see [`contributing.md`](./dev-docs/high-level/contributing.md)).
 
