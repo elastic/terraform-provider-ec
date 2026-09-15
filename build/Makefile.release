@@ -34,6 +34,7 @@ RELEASE_VERSION = $(subst -dev,,$(VERSION))
 release:
 	@ $(MAKE) gen VERSION=$(RELEASE_VERSION)
 	@ notes=$$(mktemp) && \
+		trap 'rm -f "$$notes"' EXIT && \
 		./scripts/extract-release-notes.sh $(RELEASE_VERSION) > $$notes && \
 		go tool goreleaser release --clean --skip=validate --parallelism=4 --release-notes $$notes
 
@@ -41,6 +42,7 @@ release:
 release-no-publish:
 	@ $(MAKE) gen VERSION=$(RELEASE_VERSION)
 	@ notes=$$(mktemp) && \
+		trap 'rm -f "$$notes"' EXIT && \
 		./scripts/extract-release-notes.sh $(RELEASE_VERSION) > $$notes && \
 		go tool goreleaser release --clean --skip=publish,validate --parallelism=4 --release-notes $$notes
 

@@ -21,8 +21,10 @@ if [[ ! -f "$changelog" ]]; then
 fi
 
 awk -v ver="$version" '
-	$0 ~ "^# " ver "( |$)" { found = 1; next }
-	found && /^# / { exit }
+	$1 == "#" {
+		if ($2 == ver) { found = 1; next }
+		if (found) exit
+	}
 	found {
 		if (!started) {
 			if ($0 ~ /^[[:space:]]*$/) next

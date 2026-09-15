@@ -43,6 +43,10 @@ got="$("$extract" 0.13.10 "$fixture")"
 want=$'FEATURES:\n\n* should not leak into 0.13.1'
 assert_eq "fixture 0.13.10 is not a prefix of 0.13.1" "$got" "$want"
 
+got="$("$extract" 0x13y1 "$fixture")"
+want=$'FEATURES:\n\n* must not match 0.13.1 via regex dots'
+assert_eq "fixture 0x13y1 is not 0.13.1 (dots are not regex)" "$got" "$want"
+
 assert_fails "missing version" "$extract" 9.9.9 "$fixture"
 assert_fails "empty section" "$extract" 0.0.1 "$fixture"
 assert_fails "usage: no args" "$extract"
