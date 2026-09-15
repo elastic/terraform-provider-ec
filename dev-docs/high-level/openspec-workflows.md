@@ -92,6 +92,7 @@ Strategy thresholds and review cadence are defined in the
 
 The loop **always** runs:
 
+- `env -u TF_ACC make docs-generate` when resource/data-source schemas, templates, or examples changed (before lint; `make lint` fails on a stale `docs/` tree)
 - `env -u TF_ACC make lint`
 - `env -u TF_ACC make build`
 - `env -u TF_ACC make unit`

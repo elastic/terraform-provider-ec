@@ -4,7 +4,7 @@ The cloud provider has two test tiers with very different cost and safety profil
 
 | Tier | Command | Credentials | Cost / duration | Safe to run locally? |
 |------|---------|-------------|-----------------|----------------------|
-| Unit | `make unit` (alias `make tests`) | none | seconds, free | Yes, always |
+| Unit | `env -u TF_ACC make unit` (alias `make tests`) | none | seconds, free | Yes, always |
 | Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | **real money**; full suite ~2h | Targeted cases: yes (encouraged pre-PR); full suite: no (CI) |
 
 Unlike the stack provider (`terraform-provider-elasticstack`), the cloud provider has
@@ -14,8 +14,8 @@ and destroying real deployments and serverless projects. All test wiring lives i
 
 ## Unit tests
 
-- Run: `make unit` (or its alias `make tests`).
-- No credentials, no network to Elastic Cloud, always safe and fast.
+- Run: `env -u TF_ACC make unit` (or its alias `make tests`). Agents must unset `TF_ACC`; a plain `make unit` with inherited `TF_ACC=1` executes `ec/acc` against the paid API.
+- No credentials, no network to Elastic Cloud, always safe and fast when `TF_ACC` is unset.
 - Recipe: `go test $(TEST) $(TESTARGS) $(TESTUNITARGS)`, where `TEST ?= ./...` and
   `TESTUNITARGS ?= -timeout 10m -race -cover -coverprofile=reports/c.out`.
 - Tests are co-located with the code as `*_test.go` files throughout `ec/…`.
@@ -56,7 +56,9 @@ Defaults: `TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc`, `TEST_N
 
 - `EC_API_KEY` — Elastic Cloud API key (the standard credential; see the "Generating an API Key"
   section of the top-level [`README.md`](../../README.md)). API-key vs. username/password is
-  validated by `testAccPreCheck`.
+  validated by `testAccPreCheck`. Username/password needs `EC_USER`/`EC_USERNAME` plus
+  **`EC_PASSWORD`**: the precheck also accepts `EC_PASS`, the API client also accepts `EC_UPASS`,
+  but only `EC_PASSWORD` is in both helpers.
 - `EC_HOST` (optional) — override the API endpoint to target a non-prod / QA region. When unset it
   defaults to the production Elastic Cloud endpoint; setting a custom host also skips TLS
   verification. (`EC_ENDPOINT` is accepted as an alias.)

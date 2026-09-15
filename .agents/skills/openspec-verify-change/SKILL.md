@@ -79,7 +79,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - If incomplete tasks exist:
      - Do **not** add a CRITICAL issue for a task whose only remaining action is to archive the change (`openspec-archive-change`, `openspec archive`, or equivalent). Note it as skipped: archiving is a later step, not this skill.
      - Do **not** add a CRITICAL issue for a task whose only remaining action is to sync/merge delta specs into canonical `openspec/specs/` (`openspec-sync-specs` or equivalent). Note it as deferred: sync is a later Land-specs step, not this skill. The implementation loop also ignores those tasks.
-     - Incomplete tasks to **write** or **add** a `TestAcc…` test file (including combined "add and run on Buildkite" tasks) stay CRITICAL until the file exists **and** the checkbox is `- [x]`. A present file with a still-open checkbox is still CRITICAL ("Mark as done if already implemented").
+     - Incomplete tasks to **write** or **add** a `TestAcc…` test file stay CRITICAL until the file exists. Combined "add and run on Buildkite" tasks: CRITICAL until the file exists; once it exists, the remaining execute-acc portion is a WARNING (this skill never runs acc). Do not keep CRITICAL solely because the combined checkbox is still `- [ ]` after the file is present.
      - Do **not** add a CRITICAL issue for an incomplete task that is **execute-acc only** (Human/Buildkite *runs* a named case, `make testacc`, or `TF_ACC=1`, with no write/add). Record a WARNING that names the case; this skill never runs acc.
      - Add CRITICAL issue for each other incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
@@ -152,7 +152,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 
    1. **CRITICAL** (Must fix before archive):
       - Incomplete tasks other than archive-only, sync-to-canonical-specs, or execute-acc Human/Buildkite steps
-      - Incomplete tasks to write/add a `TestAcc…` file (until the file exists **and** the checkbox is `- [x]`)
+      - Incomplete tasks to write/add a `TestAcc…` file (until the file exists; remaining execute-acc on a combined write/run task is WARNING)
       - Missing requirement implementations
       - Each with specific, actionable recommendation
 
@@ -160,7 +160,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
       - Spec/design divergences
       - Missing scenario coverage
       - Acc-only scenario coverage (out-of-band)
-      - Incomplete execute-acc Human/Buildkite tasks (out-of-band; not push-blocking)
+      - Incomplete execute-acc Human/Buildkite tasks (out-of-band; not push-blocking), including the remaining run portion of a combined write/run `TestAcc…` task after the file exists
       - Each with specific recommendation
 
    3. **SUGGESTION** (Nice to fix):
