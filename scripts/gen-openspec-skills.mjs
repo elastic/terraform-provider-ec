@@ -40,6 +40,10 @@ const skillsRoot = join(root, '.agents/skills');
 const keep = new Set(templates.map((t) => t.dirName));
 
 mkdirSync(skillsRoot, { recursive: true });
+// Only leftover openspec-* dirs not in `keep` are removed. Hand-written skills
+// that do not use that prefix (new-entity-requirements, existing-entity-requirements,
+// requirements-verification, release) are never deleted. Do not rename them to
+// openspec-* unless you add the directory to `keep`.
 for (const name of readdirSync(skillsRoot)) {
   if (!name.startsWith('openspec-') || keep.has(name)) continue;
   rmSync(join(skillsRoot, name), { recursive: true, force: true });

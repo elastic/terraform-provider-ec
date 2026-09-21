@@ -7,8 +7,11 @@ implementation is archived into `openspec/specs/`.
 
 This page is the authoring contract: file layout, requirement phrasing, and when to write a spec.
 Create, apply, and archive a change with the skills in [`.agents/skills/`](../../.agents/skills/)
-— which to reach for is in [`openspec-workflows.md`](./openspec-workflows.md). GitHub Agentic
-Workflows (`change-factory`, `verify-openspec`) land in later phases.
+— which to reach for is in [`openspec-workflows.md`](./openspec-workflows.md). For a **new** Terraform
+type use [`new-entity-requirements`](../../.agents/skills/new-entity-requirements/SKILL.md); for an
+**existing** type that is about to change and has no spec yet, use
+[`existing-entity-requirements`](../../.agents/skills/existing-entity-requirements/SKILL.md). GitHub
+Agentic Workflows (`change-factory`, `verify-openspec`) land in later phases.
 
 ## Layout
 
@@ -18,6 +21,8 @@ Workflows (`change-factory`, `verify-openspec`) land in later phases.
     not a substitute for the Go schema.
   - **`## Requirements`** — `### Requirement: …` blocks using **SHALL** / **MUST** (RFC 2119).
   - **`#### Scenario: …`** — Given / When / Then checks reviewers and agents can trace to code or tests.
+  - A `Resource implementation:` or `Data source implementation:` line naming the Go package
+    (used by [`requirements-verification`](../../.agents/skills/requirements-verification/SKILL.md)).
 - **`openspec/changes/<name>/`** — An in-progress **change**: proposal, design, tasks, and **delta
   specs**. This is the default path for any work that adds or updates requirements. After the code
   matches the change, **openspec-sync-specs** / **openspec-archive-change** fold the deltas into
@@ -53,7 +58,10 @@ Do not retro-spec existing CI; only new or changed automation needs a spec.
 
 **Going forward, only new or changed behavior needs a spec.** Do not backfill the rest of the
 provider. The two seed specs above exist so authors have something to copy; they are not a mandate
-to spec every existing resource.
+to spec every existing resource. If an existing type is **about to change** and has no spec yet,
+capture its current behavior first with
+[`existing-entity-requirements`](../../.agents/skills/existing-entity-requirements/SKILL.md) (one
+named type, not a sweep) so the change can express a delta.
 
 Write a spec (via a change) when any of these is true:
 
@@ -71,6 +79,7 @@ refresh, changelog-only).
 | --- | --- |
 | New or changed behavior (the default) | `openspec/changes/<id>/` — delta specs plus proposal / design / tasks. After implement, archive into `openspec/specs/`. |
 | Behavior already in the product, captured as a copyable example (this seed) | `openspec/specs/<capability>/spec.md` directly. |
+| Current behavior of **one** existing type, captured on demand because a change is about to land and there is no spec yet | `openspec/specs/<capability>/spec.md` directly (`existing-entity-requirements`). Not a surface-wide backfill. Review headings before the follow-up change — deltas match on heading text. |
 | Tiny follow-up on an existing canonical spec (typo, link, wording) | Edit `openspec/specs/` directly. |
 
 Do **not** put unimplemented behavior into `openspec/specs/`. If the code does not do it yet, it
@@ -126,9 +135,10 @@ These apply to every spec in this repo and to any later change that implements o
 
 `make check-openspec` installs the pinned OpenSpec CLI (`make setup-openspec`, Node.js 24) and runs
 `openspec validate --all`. That checks structure and normative keywords. It does **not** prove the
-Go implementation matches every requirement — that is code review (and, later, the
-`openspec-verify-change` skill / `verify-openspec` label). Operational loop:
-[`openspec-workflows.md`](./openspec-workflows.md).
+Go implementation matches every requirement — use
+[`requirements-verification`](../../.agents/skills/requirements-verification/SKILL.md) and code
+review for that (and, later, the `openspec-verify-change` skill / `verify-openspec` label).
+Operational loop: [`openspec-workflows.md`](./openspec-workflows.md).
 
 Run it locally whenever you touch `openspec/`.
 

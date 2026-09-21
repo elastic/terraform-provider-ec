@@ -3,12 +3,29 @@
 How to move an OpenSpec **change** through its states in this repo. For file layout, SHALL/MUST
 phrasing, and when a spec is required, see [`openspec-requirements.md`](./openspec-requirements.md).
 
-The step-by-step procedures live in the generated skills under [`.agents/skills/`](../../.agents/skills/).
-This page is **which skill to use and when**. Do not hand-edit those `SKILL.md` files — they are
-generated from the pinned OpenSpec CLI (`generatedBy` in the frontmatter). Cloud-provider conventions
-are injected via [`openspec/config.yaml`](../../openspec/config.yaml). After a CLI bump, regenerate with
-`make gen-openspec-skills`. That writes exactly the seven skills below as `--tools agents` and does
-**not** consult the global OpenSpec profile.
+The step-by-step procedures live in the skills under [`.agents/skills/`](../../.agents/skills/).
+This page is **which skill to use and when**.
+
+## Generated vs hand-written skills
+
+The seven lifecycle skills (`explore`, `propose`, `new-change`, `continue-change`, `apply-change`,
+`sync-specs`, `archive-change`) are **generated** from the pinned OpenSpec CLI (`generatedBy` in
+the frontmatter). Do not hand-edit those `SKILL.md` files. Cloud-provider conventions are injected
+via [`openspec/config.yaml`](../../openspec/config.yaml). After a CLI bump, regenerate with
+`make gen-openspec-skills`. That writes those seven skills as `--tools agents` and does **not**
+consult the global OpenSpec profile.
+
+Hand-written skills live in the same tree and **are** edited by hand:
+
+- [`new-entity-requirements`](../../.agents/skills/new-entity-requirements/SKILL.md)
+- [`existing-entity-requirements`](../../.agents/skills/existing-entity-requirements/SKILL.md)
+- [`requirements-verification`](../../.agents/skills/requirements-verification/SKILL.md)
+- [`/release`](../../.agents/skills/release/SKILL.md)
+
+`make gen-openspec-skills` only deletes leftover directories whose names start with `openspec-`
+and are not in its keep-list (see `scripts/gen-openspec-skills.mjs`). The skills above do not use
+that prefix, so regeneration does not remove them. Do not rename a hand-written skill to
+`openspec-*` unless you add it to the keep-list.
 
 Do **not** run `openspec init` or `openspec update` in this repo (any `--tools` value). Both use
 the global *core* profile (propose/explore/apply/update/sync/archive) and would delete
@@ -51,6 +68,8 @@ Goal: an apply-ready change under `openspec/changes/<id>/` with proposal, design
 | [`openspec-propose`](../../.agents/skills/openspec-propose/SKILL.md) | You can describe the outcome in one pass and want all artifacts generated together |
 | [`openspec-new-change`](../../.agents/skills/openspec-new-change/SKILL.md) | Scaffold the change directory first, then add artifacts incrementally |
 | [`openspec-continue-change`](../../.agents/skills/openspec-continue-change/SKILL.md) | A change exists but is not yet apply-ready; create the next artifact in sequence |
+| [`new-entity-requirements`](../../.agents/skills/new-entity-requirements/SKILL.md) | Brand-new resource or data source from an API; writes an OpenSpec **change**, not `openspec/specs/` |
+| [`existing-entity-requirements`](../../.agents/skills/existing-entity-requirements/SKILL.md) | On-demand baseline for **one** existing type that is about to change and has no spec yet |
 
 Send the OpenSpec artifacts for review **before** implementation when the change has spec impact. The
 proposal can be a PR that contains only `openspec/changes/<id>/`.
@@ -83,3 +102,7 @@ will check that the implementation matches the artifacts before archive.
 
 `make check-openspec` (`openspec validate --all`) checks structure and normative keywords. It does not
 prove the Go code matches every requirement — that is review (and, later, verify).
+
+| Skill | When to use |
+|-------|-------------|
+| [`requirements-verification`](../../.agents/skills/requirements-verification/SKILL.md) | Semantic review of **one** spec vs its Go package (consistency, compliance, test gaps). Never runs `TF_ACC`. Gating a whole change before archive is `openspec-verify-change` (Phase 1.5 / PR #1056). |
