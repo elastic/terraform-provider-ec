@@ -4,7 +4,7 @@ The cloud provider has two test tiers with very different cost and safety profil
 
 | Tier | Command | Credentials | Cost / duration | Safe to run locally? |
 |------|---------|-------------|-----------------|----------------------|
-| Unit | `make unit` (alias `make tests`) | none | seconds, free | Yes, always |
+| Unit | `env -u TF_ACC make unit` (alias `env -u TF_ACC make tests`) | none | seconds, free | Yes, always |
 | Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | **real money**; full suite ~2h | Targeted cases: yes (encouraged pre-PR); full suite: no (CI) |
 
 Unlike the stack provider (`terraform-provider-elasticstack`), the cloud provider has
@@ -14,8 +14,8 @@ and destroying real deployments and serverless projects. All test wiring lives i
 
 ## Unit tests
 
-- Run: `make unit` (or its alias `make tests`).
-- No credentials, no network to Elastic Cloud, always safe and fast.
+- Run: `env -u TF_ACC make unit` (or its alias `env -u TF_ACC make tests`). Agents must unset `TF_ACC`; a plain `make unit`/`make tests` with inherited `TF_ACC=1` executes `ec/acc` against the paid API.
+- No credentials, no network to Elastic Cloud, always safe and fast when `TF_ACC` is unset.
 - Recipe: `go test $(TEST) $(TESTARGS) $(TESTUNITARGS)`, where `TEST ?= ./...` and
   `TESTUNITARGS ?= -timeout 10m -race -cover -coverprofile=reports/c.out`.
 - Tests are co-located with the code as `*_test.go` files throughout `ec/…`.
@@ -31,19 +31,21 @@ and destroying real deployments and serverless projects. All test wiring lives i
 > it gives faster feedback and costs far less than triggering the full suite on every push. Clean up
 > with `make sweep` afterwards.
 >
-> 🚫 **Don't run the _full_ suite locally for routine iteration, and agents never run acceptance
-> tests at all** — no `TF_ACC` in agentic workflows and no live-cloud credentials are exposed to
-> agents. The full suite runs automatically for every PR on the dedicated **Buildkite acceptance
-> pipeline** (the GitHub Actions `go.yml` CI runs unit/lint/docs only). That Buildkite status is a
-> **required** check on `master`, so a PR cannot merge — including Renovate automerge — until it is
-> green.
+> 🚫 **Don't run the _full_ suite locally for routine iteration.** Agents **never** run
+> acceptance tests (`TF_ACC`). The implementation loop never sets `TF_ACC`; in PR mode it
+> recommends named local cases and confirms before `gh pr create` (skip = wait on Buildkite). Implementors, `openspec-verify-change`, and CI reuse never
+> set `TF_ACC`. No live-cloud credentials are exposed to agents by default. The full suite runs
+> automatically for every PR on the dedicated **Buildkite acceptance pipeline** (the GitHub Actions
+> `go.yml` CI runs unit/lint/docs only). That Buildkite status is a **required** check on `master`,
+> so a PR cannot merge — including Renovate automerge — until it is green.
 
 Gating and recipe (from `build/Makefile.test`):
 
 ```make
 testacc:
+	test -n "$(strip $(value TEST_NAME))" || { echo "TEST_NAME must be non-empty"; exit 1; }
 	TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) \
-	  $(TESTARGS) -timeout 120m -run $(TEST_NAME)
+	  $(TESTARGS) -timeout 120m -run '$(value TEST_NAME)'
 ```
 
 Defaults: `TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc`, `TEST_NAME ?= TestAcc`,
@@ -54,7 +56,9 @@ Defaults: `TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc`, `TEST_N
 
 - `EC_API_KEY` — Elastic Cloud API key (the standard credential; see the "Generating an API Key"
   section of the top-level [`README.md`](../../README.md)). API-key vs. username/password is
-  validated by `testAccPreCheck`.
+  validated by `testAccPreCheck`. Username/password needs `EC_USER`/`EC_USERNAME` plus
+  **`EC_PASSWORD`**: the precheck also accepts `EC_PASS`, the API client also accepts `EC_UPASS`,
+  but only `EC_PASSWORD` is in both helpers.
 - `EC_HOST` (optional) — override the API endpoint to target a non-prod / QA region. When unset it
   defaults to the production Elastic Cloud endpoint; setting a custom host also skips TLS
   verification. (`EC_ENDPOINT` is accepted as an alias.)
@@ -67,10 +71,12 @@ sweepers can find them.
 ## Targeting a single test
 
 Use `TEST_NAME` (matched by `go test -run`) to narrow a run to one `TestAcc…`, and `TESTARGS` for
-any extra `go test` flags:
+any extra `go test` flags. Omitting `TEST_NAME` (or setting it to `TestAcc`) runs the **full**
+suite — that is the Makefile default. `go test -run` is an unanchored regexp: use `^Name$` so
+sibling tests with the same prefix do not run.
 
 ```sh
-make testacc TEST_NAME='TestAccDeployment_basic'
+make testacc TEST_NAME='^TestAccDeployment_basic_tf$'
 ```
 
 ## Buildkite (per-PR acceptance)
@@ -134,7 +140,8 @@ Serverless-project acceptance tests can intermittently fail with an HTTP `403` r
 `project limit [100]` reached. This is an **environmental serverless-quota** condition (too many
 leftover projects in the shared org), **not a defect in the change under test**. Do not "fix" the
 code to work around it — instead **run the sweepers** (`make sweep` filtered to
-`ec_serverless_projects`) to reclaim quota and **retry** the acceptance run.
+`ec_serverless_projects`) to reclaim quota and **retry** the acceptance run. Humans may retry
+after sweep; the implementation loop never retries acc on its own.
 
 ## See also
 

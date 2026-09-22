@@ -19,7 +19,7 @@ the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugi
 | `gen/` | `gen.go`, a small `go:generate` program that writes `ec/version.go` from the `Makefile` `VERSION`. |
 | `Makefile` + `build/` | The root `Makefile` `include`s the split fragments under `build/` (`Makefile.build`, `.test`, `.dev`, `.openspec`, `.deps`, `.lint`, `.format`, `.release`, `.version`) plus `scripts/Makefile.help`. |
 | `openspec/` | OpenSpec requirements tree (`specs/`, `changes/`, `config.yaml`). Structural validation via `make check-openspec`. Authoring conventions: [`openspec-requirements.md`](./openspec-requirements.md). Change loop: [`openspec-workflows.md`](./openspec-workflows.md). |
-| `.agents/` | Canonical agent assets (`.claude` is a symlink here). Skills under `.agents/skills/` — `/release` plus generated `openspec-*` lifecycle skills. |
+| `.agents/` | Canonical agent assets (`.claude` is a symlink here). Skills under `.agents/skills/` — `/release`, generated OpenSpec lifecycle skills, plus hand-written `openspec-implementation-loop` and `openspec-verify-change`. |
 | `package.json` | Pins the OpenSpec CLI (`@fission-ai/openspec`); install with `make setup-openspec`. |
 | `scripts/` | Helper scripts (changelog, version bump, `Makefile.help`, etc.). |
 | `templates/` + `docs/` | Doc **sources** (`templates/`) and the **generated** registry docs (`docs/`). See [`documentation.md`](./documentation.md). |
@@ -70,8 +70,9 @@ Each resource and data-source package follows the same Schema / Model / CRUD spl
 
 ### Acceptance tests — `ec/acc/`
 
-Live-cloud acceptance tests plus `ec/acc/testdata/`. These provision real deployments and are
-**not** run locally or by agents — see [`testing.md`](./testing.md).
+Live-cloud acceptance tests plus `ec/acc/testdata/`. These provision real deployments. Humans run
+targeted cases locally; agents never run them. The implementation loop never sets `TF_ACC`;
+in PR mode it recommends named local cases and confirms before `gh pr create`. See [`testing.md`](./testing.md).
 
 ## Two API clients (don't confuse them)
 
