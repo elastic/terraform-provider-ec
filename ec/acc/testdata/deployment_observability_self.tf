@@ -24,7 +24,6 @@ resource "ec_deployment" "observability" {
   }
 
   kibana = {
-    size       = "2g"
     zone_count = 1
   }
 }

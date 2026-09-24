@@ -20,6 +20,7 @@ package trafficfilterresource
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -56,17 +57,20 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 
 	newState.ID = types.StringValue(*res.ID)
 
-	found, diags := r.read(ctx, newState.ID.ValueString(), &newState)
+	found, diags := r.readAfterMutate.UntilFound(ctx, func(ctx context.Context) (bool, diag.Diagnostics) {
+		return r.readRetryable(ctx, newState.ID.ValueString(), &newState)
+	})
+	found, diags = missingIfForbidden(found, diags)
 	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 	if !found {
 		response.Diagnostics.AddError(
 			"Failed to read deployment traffic filter ruleset after create.",
 			"Failed to read deployment traffic filter ruleset after create.",
 		)
 		response.State.RemoveResource(ctx)
-		return
-	}
-	if response.Diagnostics.HasError() {
 		return
 	}
 

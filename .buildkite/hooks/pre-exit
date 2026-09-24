@@ -3,6 +3,10 @@
 set -euo pipefail
 
 if  [[ "$BUILDKITE_STEP_KEY" == "acceptance-tests" ]]; then
+  if [[ -f .buildkite/.skip-acceptance-sweep ]]; then
+    echo "--- Skip sweep (docs/dev-docs only)"
+    exit 0
+  fi
   echo "--- Sweeps any deployments and serverless projects older than 3h."
   EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET SWEEPARGS='-sweep-run=ec_deployments,ec_serverless_projects' make sweep
   rm -rf reports bin

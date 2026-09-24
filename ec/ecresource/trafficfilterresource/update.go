@@ -20,6 +20,7 @@ package trafficfilterresource
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi/trafficfilterapi"
@@ -50,7 +51,10 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 		return
 	}
 
-	found, diags := r.read(ctx, newState.ID.ValueString(), &newState)
+	found, diags := r.readAfterMutate.UntilFound(ctx, func(ctx context.Context) (bool, diag.Diagnostics) {
+		return r.readRetryable(ctx, newState.ID.ValueString(), &newState)
+	})
+	found, diags = missingIfForbidden(found, diags)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

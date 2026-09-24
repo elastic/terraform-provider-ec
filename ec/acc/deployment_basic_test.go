@@ -240,7 +240,7 @@ func checkBasicDeploymentResource(resName, randomDeploymentName, deploymentVersi
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch.http_endpoint"),
 		resource.TestCheckResourceAttrSet(resName, "elasticsearch.https_endpoint"),
 		resource.TestCheckResourceAttr(resName, "kibana.region", getRegion()),
-		resource.TestCheckResourceAttr(resName, "kibana.size", "1g"),
+		resource.TestCheckResourceAttr(resName, "kibana.size", "2g"),
 		resource.TestCheckResourceAttr(resName, "kibana.size_resource", "memory"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.http_endpoint"),
 		resource.TestCheckResourceAttrSet(resName, "kibana.https_endpoint"),

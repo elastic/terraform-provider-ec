@@ -10,6 +10,11 @@ examples/*/*.tfstate.backup
 .apikey
 dist
 .terraform.lock.hcl
+node_modules/
+
+# CI sentinel: docs-only acc jobs write this so pre-exit skips make sweep
+.buildkite/.skip-acceptance-sweep
 
 # agent local overrides (not committed)
 .agents/settings.local.json
+.agents/worktrees

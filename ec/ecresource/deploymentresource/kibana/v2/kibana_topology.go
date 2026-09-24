@@ -21,17 +21,10 @@ import (
 	"context"
 
 	"github.com/elastic/cloud-sdk-go/pkg/models"
-	"github.com/elastic/cloud-sdk-go/pkg/util/ec"
 	topologyv1 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/topology/v1"
 	"github.com/elastic/terraform-provider-ec/ec/internal/converters"
 	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-
-	"github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/utils"
-)
-
-const (
-	minimumKibanaSize = 1024
 )
 
 func readKibanaTopology(in *models.KibanaClusterTopologyElement) (*topologyv1.Topology, error) {
@@ -77,22 +70,6 @@ func readKibanaTopologies(in []*models.KibanaClusterTopologyElement) (topologyv1
 	}
 
 	return tops, nil
-}
-
-// defaultKibnaTopology iterates over all the templated topology elements and
-// sets the size to the default when the template size is greater than the
-// local terraform default, the same is done on the ZoneCount.
-func defaultKibanaTopology(topology []*models.KibanaClusterTopologyElement) []*models.KibanaClusterTopologyElement {
-	for _, t := range topology {
-		if *t.Size.Value > minimumKibanaSize {
-			t.Size.Value = ec.Int32(minimumKibanaSize)
-		}
-		if t.ZoneCount > utils.MinimumZoneCount {
-			t.ZoneCount = utils.MinimumZoneCount
-		}
-	}
-
-	return topology
 }
 
 func kibanaTopologyPayload(ctx context.Context, topology topologyv1.TopologyTF, model *models.KibanaClusterTopologyElement) (*models.KibanaClusterTopologyElement, diag.Diagnostics) {

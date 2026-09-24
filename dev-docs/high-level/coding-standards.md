@@ -90,6 +90,13 @@ Run `make format` before committing and `make lint` to gate. Both are thin wrapp
 - **`tfproviderdocs`** — generated-docs consistency (see [`./documentation.md`](./documentation.md)).
 - **`terraform fmt -check`** — formatting of `.tf` example/test files.
 
+OpenSpec structural validation is **`make check-openspec`**, not part of `make lint`. CI runs it in
+`.github/workflows/openspec.yml`. Author specs per [`openspec-requirements.md`](./openspec-requirements.md)
+(Purpose / SHALL-MUST requirements / Given-When-Then scenarios). Drive a change with the skills in
+[`.agents/skills/`](../../.agents/skills/) — see [`openspec-workflows.md`](./openspec-workflows.md).
+Canonical specs live in `openspec/specs/`; new or changed behavior is proposed under `openspec/changes/`
+and archived into `openspec/specs/` after the implementation lands.
+
 ## Error handling
 
 - Surface errors through `diag.Diagnostics`: call `resp.Diagnostics.AddError(...)` and bail early when
@@ -105,11 +112,12 @@ Run `make format` before committing and `make lint` to gate. Both are thin wrapp
 - Write **table-driven unit tests** with `t.Run()` subtests, using
   [`testify`](https://github.com/stretchr/testify) (`assert`/`require`) for assertions. Tests are
   colocated with the code they cover (e.g. `ec/internal/converters/convert_tags_test.go`).
-- Unit tests (`make unit`) need no credentials and are always safe to run.
+- Unit tests (`env -u TF_ACC make unit`) need no credentials and are always safe to run.
 - **Acceptance tests hit the real, paid Elastic Cloud API** and cost money. Run the **targeted**
   `TestAcc…` case(s) for your change locally before a PR; the **full** suite runs on Buildkite per
-  PR, and **agents never run acceptance tests**. There is no local Docker stack. See
-  [`./testing.md`](./testing.md) for the full contract.
+  PR. Agents never run acceptance tests. The implementation loop never sets `TF_ACC`; in PR mode it
+  recommends named local `TestAcc…` cases and confirms before `gh pr create` (skip = wait on Buildkite). There is no local Docker stack. See [`./testing.md`](./testing.md)
+  for the full contract.
 
 ## Changelog
 
