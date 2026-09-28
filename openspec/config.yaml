@@ -6,7 +6,7 @@ context: |
   Requirements: Canonical specs live in openspec/specs/. Authoring conventions: dev-docs/high-level/openspec-requirements.md.
   Constraints:
   - No local Docker stack. Hosted ESS via cloud-sdk-go; serverless via the generated client under ec/internal/gen/serverless/.
-  - Agents never run acceptance tests (TF_ACC). Acc hits the paid Elastic Cloud API and runs on Buildkite. Specs may mention acc as a human step; they MUST NOT require make testacc.
+  - Agents never run acceptance tests (TF_ACC). Acc hits the paid Elastic Cloud API. Specs may mention acc as a human step; they MUST NOT require make testacc. The implementation loop never sets TF_ACC; in PR mode it recommends the human run named TestAcc cases locally and confirms before gh pr create (skip = wait on Buildkite). apply, verify-change, and CI reuse never set TF_ACC.
   - User-facing implementation PRs add .changelog/{PR}.txt. Spec/docs-only PRs skip it.
   - Capability ids are kebab-case without the ec_ Terraform type prefix (e.g. deployment-traffic-filter).
   - Do not put unimplemented behavior into openspec/specs/. New or changed behavior goes in openspec/changes/ and is archived after it lands.
@@ -24,12 +24,12 @@ rules:
     - Call out Plugin Framework (not SDKv2) and which client (cloud-sdk-go vs generated serverless).
   tasks:
     - Separate unit-test tasks from out-of-band human/Buildkite acceptance tests.
-    - Never instruct an agent to run make testacc or TF_ACC=1.
+    - Never instruct an agent to run make testacc or TF_ACC=1. Acc is out-of-band human/Buildkite work. The implementation loop may print a named make testacc command for a human and, in PR mode, ask whether they ran it; it must not run it.
 
 operations:
   apply:
     guidance:
-      - Run make lint, make build, and make unit. Never run make testacc or set TF_ACC.
+      - Run `env -u TF_ACC make lint`, `env -u TF_ACC make build`, and `env -u TF_ACC make unit`. Never run make unit/lint/build without unsetting TF_ACC. Never run make testacc or set TF_ACC during apply. The implementation loop never sets TF_ACC; in PR mode it recommends the human run named TestAcc cases locally and confirms before gh pr create. apply, verify-change, and CI reuse never set TF_ACC.
       - User-facing implementation needs .changelog/{PR}.txt; spec/docs-only PRs skip it.
   archive:
     guidance:

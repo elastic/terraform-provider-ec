@@ -42,7 +42,10 @@ For the benefit of all and to maintain consistency, we have come up with some si
 
   - Run `make notice` to update the NOTICE file if you've added new dependencies.
   
-  - Ensure that [unit](#unit) and [acceptance](#acceptance) tests succeed with `make unit testacc`.
+  - Ensure [unit](#unit) tests succeed with `make unit`. For [acceptance](#acceptance), run the
+    **targeted** cases that cover your change (`make testacc TEST_NAME='^TestAcc…$'`). The **full**
+    suite runs on Buildkite for every PR (`buildkite/terraform-provider-ec-acceptance`); do not use
+    `make unit testacc` as a local default (that is the full acc suite).
 
   - After you've opened your Pull request and have a PR number, add a changelog entry for any user-facing change — see [Changelog](#changelog) below.
   
@@ -132,7 +135,7 @@ There are three variables that can be passed to the `unit` make target:
 
 Before running the acceptance tests make sure you have exported your API key to the `EC_API_KEY` environment variable. There are three variables that can be passed to the `testacc` make target:
 
-- `TEST_NAME` controls which test names to test. Defaults to `./...` which means all.
+- `TEST_NAME` controls which test names `go test -run` matches. Defaults to `TestAcc` (the **full** suite). Omitting it is the full suite; use an anchored name such as `^TestAccDeployment_basic_tf$` for one case.
 - `TESTARGS` controls any additional flags you may want to pass to `go test`.
 - `TEST_COUNT` controls how many times each test is run. Defaults to 1.
 

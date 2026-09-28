@@ -16,7 +16,8 @@ check-openspec: setup-openspec
 	@ test -x $(OPENSPEC_BIN) || { echo "OpenSpec CLI missing; run 'make setup-openspec'" >&2; exit 1; }
 	@ OPENSPEC_TELEMETRY=0 $(OPENSPEC_BIN) validate --all
 
-## Regenerate OpenSpec lifecycle skills from the pinned CLI (does not use global profile)
+## Regenerate OpenSpec lifecycle skills from the pinned CLI (does not use global profile).
+## Leaves hand-written openspec-implementation-loop and openspec-verify-change in place.
 .PHONY: gen-openspec-skills
 gen-openspec-skills: setup-openspec
 	@ test -d $(CURDIR)/node_modules/@fission-ai/openspec || { echo "OpenSpec CLI missing; run 'make setup-openspec'" >&2; exit 1; }

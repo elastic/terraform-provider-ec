@@ -31,7 +31,8 @@ tests: unit
 ## Runs the Terraform acceptance tests. Use TEST_NAME, TESTARGS, TEST_COUNT to control execution.
 testacc:
 	@ echo "-> Running terraform acceptance tests..."
-	@ TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) $(TESTARGS) -timeout 120m -run $(TEST_NAME)
+	@ test -n "$(strip $(value TEST_NAME))" || { echo "TEST_NAME must be non-empty (omit it to use default TestAcc)"; exit 1; }
+	@ TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) $(TESTARGS) -timeout 120m -run '$(value TEST_NAME)'
 
 .PHONY: sweep
 ## Destroys any dangling infrastructure created by the acceptance tests (terraform_acc_ prefix).

@@ -17,28 +17,34 @@ and related resources through the Elastic Cloud API.
 - Generated clients (serverless OpenAPI) and regeneration: [`generated-clients.md`](./dev-docs/high-level/generated-clients.md)
 - Documentation generation (`tfplugindocs`): [`documentation.md`](./dev-docs/high-level/documentation.md)
 - OpenSpec authoring (Purpose / SHALL-MUST / Scenarios): [`openspec-requirements.md`](./dev-docs/high-level/openspec-requirements.md)
-- OpenSpec change loop (explore / propose / apply / sync / archive): [`openspec-workflows.md`](./dev-docs/high-level/openspec-workflows.md)
+- OpenSpec change loop (explore / propose / apply / loop / verify / sync / archive): [`openspec-workflows.md`](./dev-docs/high-level/openspec-workflows.md)
 
 ## Testing note — acceptance tests hit the real, paid Elastic Cloud API
 
 - Acceptance tests (`make testacc`, and anything gated by `TF_ACC=1`) create and destroy **real
-  deployments** against the live Elastic Cloud API (`EC_API_KEY`) and cost real money. **Never run
-  acceptance tests from an agentic workflow** — no live-cloud credentials are exposed to agents. The
-  full suite runs on Buildkite per PR and is a **required** status check on `master`
-  (`buildkite/terraform-provider-ec-acceptance`); a human working on a change
-  should run the targeted `TestAcc…` case(s) locally first. See [`testing.md`](./dev-docs/high-level/testing.md).
+  deployments** against the live Elastic Cloud API (`EC_API_KEY`) and cost real money. **Never
+  auto-run** acceptance tests from an agentic workflow — no live-cloud credentials are exposed to
+  agents by default. The `openspec-implementation-loop` **never** sets `TF_ACC`. In PR mode it
+  recommends the human run named `TestAcc…` cases locally and confirms before `gh pr create`
+  (skip = wait on Buildkite);
+  implementors, `openspec-verify-change`, and CI reuse stay acc-free. The full suite runs on
+  Buildkite per PR and is a **required** status check on
+  `master` (`buildkite/terraform-provider-ec-acceptance`); a human working on a change should run
+  the targeted `TestAcc…` case(s) locally first. See [`testing.md`](./dev-docs/high-level/testing.md).
 - There is **no local Docker stack** for this provider (unlike the Elastic Stack provider). Unit
-  tests (`make unit`) need no credentials and are always safe to run.
+  tests (`env -u TF_ACC make unit`) need no credentials and are always safe to run.
 
 ## After making changes
 
-- Build: `make build`
-- Lint: `make lint`
-- If you changed `openspec/`: `make check-openspec`
-- Unit tests (no cloud, always safe): `make unit`
-- If you changed resource/data-source schemas or examples, regenerate docs with `make docs-generate`
+- Build: `env -u TF_ACC make build`
+- If you changed resource/data-source schemas, templates, or examples, regenerate docs with `env -u TF_ACC make docs-generate`
   and verify with `make tfproviderdocs`. See [`documentation.md`](./dev-docs/high-level/documentation.md).
-- If you changed the serverless client inputs, regenerate with `make gen`. See
+- Lint: `env -u TF_ACC make lint`
+- `env -u TF_ACC make notice` (commit if `NOTICE` is dirty; Go CI fails on a dirty NOTICE)
+- If you changed `openspec/`: `env -u TF_ACC make check-openspec`
+- Unit tests (no cloud, always safe): `env -u TF_ACC make unit`
+- If this is a Terraform entity change, or examples/provider schemas changed: `env -u TF_ACC make install validate-examples`
+- If you changed the serverless client inputs, regenerate with `env -u TF_ACC make gen`. See
   [`generated-clients.md`](./dev-docs/high-level/generated-clients.md).
 - Add a `.changelog/{PR}.txt` entry for user-facing changes (see [`contributing.md`](./dev-docs/high-level/contributing.md)).
 

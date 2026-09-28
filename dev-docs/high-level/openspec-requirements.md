@@ -114,9 +114,11 @@ These apply to every spec in this repo and to any later change that implements o
 - The provider is 100% [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) (no SDKv2).
 - There is **no local Docker stack**. Hosted ESS calls go through `cloud-sdk-go`; serverless calls
   go through the generated client under `ec/internal/gen/serverless/`.
-- **Agents never run acceptance tests** (`TF_ACC`). Acc hits the real, paid Elastic Cloud API and
-  runs out-of-band on Buildkite. Specs may mention acc coverage as a *human* verification step; they
-  MUST NOT require an agent to execute `make testacc`.
+- **Agents never run acceptance tests** (`TF_ACC`). Acc hits the real, paid Elastic Cloud API
+  and runs out-of-band on Buildkite. Specs may mention acc coverage as a *human* verification step;
+  they MUST NOT require an agent to execute `make testacc`. The implementation loop never sets
+  `TF_ACC`; in PR mode it recommends the human run named `TestAcc…` cases locally and confirms
+  before `gh pr create`. apply, verify-change, and CI reuse never set `TF_ACC`.
 - User-facing implementation PRs add `.changelog/{PR}.txt` (not a PR-body changelog block). Spec /
   docs-only PRs skip it. See [`contributing.md`](./contributing.md).
 - `make check-openspec` is **not** part of `make lint`. CI runs it in
@@ -126,8 +128,8 @@ These apply to every spec in this repo and to any later change that implements o
 
 `make check-openspec` installs the pinned OpenSpec CLI (`make setup-openspec`, Node.js 24) and runs
 `openspec validate --all`. That checks structure and normative keywords. It does **not** prove the
-Go implementation matches every requirement — that is code review (and, later, the
-`openspec-verify-change` skill / `verify-openspec` label). Operational loop:
+Go implementation matches every requirement — that is code review, the local
+`openspec-verify-change` skill, and (later) the `verify-openspec` label. Operational loop:
 [`openspec-workflows.md`](./openspec-workflows.md).
 
 Run it locally whenever you touch `openspec/`.
