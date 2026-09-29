@@ -27,7 +27,7 @@ Current schema is **v2**. Entry point: `ec/ecresource/deploymentresource/resourc
 Scope a run to **one** of:
 
 - `root` — the top-level attributes on `DeploymentSchema()` (`id`, `alias`, `version`, `region`, `deployment_template_id`, `name`, `request_id`, credentials, `traffic_filter`, `tags`, …). These belong to no component subtree.
-- one nested component: `elasticsearch`, `kibana`, `apm`, `integrations_server` (prefer these over `observability`, which is a small nested object whose name collides with the serverless project).
+- one nested component: `elasticsearch`, `kibana`, `apm`, `integrations_server`, `enterprise_search` (prefer these over `observability`, which is a small nested object whose name collides with the serverless project).
 
 ## Schema extraction (Plugin Framework)
 

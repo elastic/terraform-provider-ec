@@ -21,7 +21,7 @@ Read [reference.md](reference.md) before extracting schema or matching tests. Fo
 - Do not execute tests to "see what is covered". Coverage is inferred from source (`ec/acc/` Go + testdata, plus colocated unit tests as an annotation only).
 - For `ec_deployment`, analyze **one scope per run** unless the user asks for the whole resource:
   - `root` — top-level attributes on `DeploymentSchema()` (`name`, `region`, `version`, `traffic_filter`, credentials, …)
-  - one component subtree: `elasticsearch`, `kibana`, `apm`, or `integrations_server`
+  - one component subtree: `elasticsearch`, `kibana`, `apm`, `integrations_server`, or `enterprise_search`
 
 ## Inputs (infer if not provided)
 
