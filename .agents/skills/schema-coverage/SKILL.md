@@ -19,7 +19,7 @@ Read [reference.md](reference.md) before extracting schema or matching tests. Fo
 
 - **Never** set `TF_ACC` or run `make testacc`. Acc hits the real, paid Elastic Cloud API.
 - Do not execute tests to "see what is covered". Coverage is inferred from source (`ec/acc/` Go + testdata, plus colocated unit tests as an annotation only).
-- For `ec_deployment`, analyze **one scope per run** unless the user asks for the whole resource:
+- For the `ec_deployment` **resource**, analyze **one scope per run** unless the user asks for the whole resource:
   - `root` — top-level attributes on `DeploymentSchema()` (`name`, `region`, `version`, `traffic_filter`, credentials, …)
   - one component subtree: `elasticsearch`, `kibana`, `apm`, `integrations_server`, or `enterprise_search`
 
@@ -27,11 +27,13 @@ Read [reference.md](reference.md) before extracting schema or matching tests. Fo
 
 Primary contract: **one entity**. Do not enumerate the whole provider unless the user asked for that.
 
-- Entity name (e.g. `ec_deployment_traffic_filter`, `ec_stack`)
+- Entity name (e.g. `ec_deployment_traffic_filter`, `ec_stack`) **and kind** (`resource` or `data_source`)
 - Or a schema file / package path
 - Or an open acc test — infer from `resName := "ec_..."` / `resource.ParallelTest`
 
-If the user did not name an entity, ask. Fallback only: locate TypeNames via `ec/provider.go` `Resources()` / `DataSources()` (see reference for the suffix-grep recipe), then ask which one.
+`ec_deployment` is registered as **both** a resource and a data source (`ec/provider.go`). They have different packages, schemas, and state paths. If the user names `ec_deployment` without a kind, **ask**. Never merge their acc files into one report.
+
+If the user did not name an entity, ask. Fallback only: locate TypeNames via `ec/provider.go` `Resources()` / `DataSources()` (see reference for the suffix-grep recipe), then ask which one (and which kind when the name is on both lists).
 
 ## Workflow
 
@@ -41,7 +43,7 @@ Find the owning package (reference: suffix-grep `response.TypeName`). Parse the 
 
 For each attribute/block, record:
 
-- Path (see reference path normalization — `ec_deployment` v2 is mostly `elasticsearch.hot.size`, not `elasticsearch.0.hot.0.size`)
+- Path (see reference path normalization — `ec_deployment` **resource** v2 is `elasticsearch.hot.size`; the **data source** uses indexed paths like `elasticsearch.0.…`. Do not mix them.)
 - Required / Optional / Computed
 - Type (String, Bool, Int64, List, Set, Map, SingleNested, …)
 - Validators, plan modifiers, defaults
@@ -51,14 +53,14 @@ Exclude `timeouts` unless it is declared in that entity's `Attributes` or `Block
 
 ### 2) Locate acceptance tests and collect usage
 
-Acc lives in `ec/acc/`, not next to the entity package. Match the type name in test files, testdata HCL, and helpers (`ec_deployment_traffic_filter` appears in acc/docs; schema packages set `request.ProviderTypeName + "_suffix"`).
+Acc lives in `ec/acc/`, not next to the entity package. Match the type name **and kind** in test files, testdata HCL, and helpers (`ec_deployment_traffic_filter` appears in acc/docs; schema packages set `request.ProviderTypeName + "_suffix"`). For `ec_deployment`, keep resource tests (`deployment_*.go`) separate from data-source tests (`datasource_deployment_*.go`).
 
 Follow **both** `Config:` and `Check:` helpers to their definitions (they may live in another file in `ec/acc/`). Dominant config pattern is `Config:` + Go helper + `os.ReadFile` + `fmt.Sprintf`; `ConfigDirectory` is rare.
 
 Collect two signals from **included** steps only:
 
 - **Configured**: set in that step's HCL (including nested blocks). Import steps have no `Config` of their own — they inherit the previous included step's config.
-- **Asserted**: `TestCheckResourceAttr`, `TestCheckResourceAttrPair`, `TestCheckResourceAttrSet`, `TestCheckNoResourceAttr`, `TestMatchResourceAttr`, type-set helpers, `"block.#"` / `"tags.%"` — including those inside `Check:` helpers.
+- **Asserted**: `TestCheckResourceAttr`, `TestCheckResourceAttrPair`, `TestCheckResourceAttrWith`, `TestCheckResourceAttrSet`, `TestCheckNoResourceAttr`, `TestMatchResourceAttr`, type-set helpers, `"block.#"` / `"tags.%"` — including those inside `Check:` helpers.
 
 Also record **import** (see reference). `ImportStateVerify: true` is **not** "every schema path is asserted". It only supports paths that were non-null in the imported state (i.e. configured in the inherited config, or computed-and-present). It **never** lifts a never-configured attribute out of no-coverage.
 
@@ -78,9 +80,9 @@ For each schema path:
 
 ### 4) Classify and rank
 
-**No coverage:** never configured in an included step **and** never referenced by an included check (`TestCheckResourceAttr`, `…Pair`, `…Set`, `TestCheckNoResourceAttr`, `…Match…`, type-set, `#`/`%`). Import-verify of a null/absent path does not count as a check. An omit + `TestCheckNoResourceAttr` is **not** no coverage (that is the optional-unset case; it may still be poor if the attribute is never set to a value).
+**No coverage:** never configured in an included step **and** never referenced by an included check (`TestCheckResourceAttr`, `…Pair`, `…With`, `…Set`, `TestCheckNoResourceAttr`, `…Match…`, type-set, `#`/`%`). Import-verify of a null/absent path does not count as a check. An omit + `TestCheckNoResourceAttr` is **not** no coverage (that is the optional-unset case; it may still be poor if the attribute is never set to a value).
 
-**Poor coverage:** configured and/or asserted, but weak (configured-never-asserted, set-only where a value is deterministic, single value only, optional never unset, collection never empty, no update coverage on a resource, import-ignored).
+**Poor coverage:** configured and/or asserted, but weak (configured-never-asserted, set-only where a value is deterministic, single value only, optional never unset, collection never empty **only if empty is schema-valid**, no in-place update on a resource **except** `RequiresReplace` fields, import-ignored).
 
 Rank **high-risk first**. Do not assign numeric scores. Sort using the tags in the reference. Computed-only ids/endpoints sort last unless they have validators or plan modifiers.
 
@@ -99,7 +101,7 @@ Use the templates below. Markdown is the 4.4-shaped deliverable (stable headings
 
 ### Entity
 - **Name**: <ec_…>
-- **Kind**: resource | data_source
+- **Kind**: resource | data_source   (required; `ec_deployment` is both)
 - **Implementation directory**: <path from repo root>
 - **Schema**: <file(s) or function(s)>
 - **Acceptance tests**: <file(s), or "none">
@@ -160,8 +162,8 @@ Append after the markdown, same analysis:
 
 - Prefer **value-specific** assertions over “is set”.
 - Optional: at least one included step that **omits** the attribute, plus absence/default assertion.
-- Collections: empty (or omitted) case + `.#` / `.%` assertion.
-- Resources: at least one multi-step update with a post-update value assertion. Data sources: skip update.
+- Collections: empty (or omitted) case + `.#` / `.%` assertion **only if empty is valid** (no `SizeAtLeast(1)` / equivalent). `ec_deployment_traffic_filter.rule` cannot be empty — do not suggest that case.
+- Resources: at least one multi-step **in-place** update with a post-update value assertion. Skip `no-update` when the attribute has `RequiresReplace()`. Data sources: skip update.
 - Computed-only: set-only is acceptable when the value is non-deterministic.
 - Configured-but-never-asserted is **poor**, not good.
 - Unit tests never mark an acc gap as covered.

@@ -4,23 +4,23 @@ This repo is 100% Terraform Plugin Framework. If you see `map[string]*schema.Sch
 
 ## Entity discovery
 
-Do not hardcode the resource/data-source list. Canonical registry: `Resources()` and `DataSources()` in `ec/provider.go`.
+Do not hardcode the resource/data-source list. Canonical registry: `Resources()` and `DataSources()` in `ec/provider.go`. Look up **kind** first (`Resources()` vs `DataSources()`), then TypeName. `ec_deployment` is on **both** lists (`deploymentresource` vs `deploymentdatasource`) with different schemas and path conventions. A report must pick one kind and one acc population.
 
-Schema packages almost never contain the literal `ec_…` string. They set `response.TypeName = request.ProviderTypeName + "_suffix"` (or `fmt.Sprintf("%s_%s_…", request.ProviderTypeName, …)`). To find the owning package, grep the **suffix**:
+Schema packages almost never contain the literal `ec_…` string. They set `response.TypeName = request.ProviderTypeName + "_suffix"` (or `fmt.Sprintf("%s_%s_…", request.ProviderTypeName, …)`). To find the owning package, grep the **suffix** in the matching tree (`ec/ecresource` or `ec/ecdatasource`):
 
 ```
 rg 'TypeName' ec/ecresource ec/ecdatasource
 rg '"_deployment_traffic_filter"' ec/
 ```
 
-Grep the full type name (`ec_deployment_traffic_filter`) under `ec/acc/` and `docs/` / testdata.
+Grep the full type name (`ec_deployment_traffic_filter`) under `ec/acc/` and `docs/` / testdata, **filtered by kind**. For `ec_deployment` resource use `deployment_*.go` / `testdata/deployment_*.tf` (not `datasource_*`). For the data source use `datasource_deployment_*.go` / `testdata/datasource_deployment_*.tf`.
 
 Two packages register **three** TypeNames each:
 
 - `ec/ecresource/projectresource` — `ec_{elasticsearch,observability,security}_project`. Shared `Resource[T].Schema` delegates to `elasticsearch.go` / `security.go` / `observability.go`.
 - `ec/ecdatasource/privatelinkdatasource` — `ec_aws_privatelink_endpoint`, `ec_gcp_private_service_connect_endpoint`, `ec_azure_privatelink_endpoint`. One generic implementation; CSP + name come from `d.csp` / `d.privateLinkName` in `aws_datasource.go` / `gcp_datasource.go` / `azure_datasource.go`.
 
-### `ec_deployment` schema graph
+### `ec_deployment` **resource** schema graph
 
 Current schema is **v2**. Entry point: `ec/ecresource/deploymentresource/resource.go` assigns `v2.DeploymentSchema()`, defined in `ec/ecresource/deploymentresource/deployment/v2/schema.go`. That composes `elasticsearch/v2`, `kibana/v2`, `apm/v2`, `integrationsserver/v2`, `enterprisesearch/v2`, `observability/v2`. Ignore sibling `*/v1/` packages (state upgrade only).
 
@@ -63,7 +63,7 @@ Do **not** flag `timeouts` unless it appears in that entity's `Attributes` or `B
 
 ## Acceptance tests (`ec/acc/`)
 
-Not under the entity package. Search `ec/acc/` for the type name in `*_test.go` and `testdata/`.
+Not under the entity package. Search `ec/acc/` for the type name **and kind** in `*_test.go` and `testdata/`. Do not mix resource and data-source tests when the TypeName is shared.
 
 ### Config shapes (follow the helper)
 
@@ -85,6 +85,7 @@ Baseline assertions are often wrapped in a package-level helper invoked from man
 
 - `resource.TestCheckResourceAttr(name, "path", "value")` — value-specific
 - `resource.TestCheckResourceAttrPair(nameA, "pathA", nameB, "pathB")` — value-specific equality (counts as asserted for **both** paths; this is how `ec_deployment` data-source checks and `observability.deployment_id` work)
+- `resource.TestCheckResourceAttrWith(name, "path", func)` — value-specific predicate (e.g. `ec/acc/deployment_add_dedicated_master_test.go`)
 - `resource.TestCheckResourceAttrSet(name, "path")` — set-only
 - `resource.TestCheckNoResourceAttr(name, "path")` — absence
 - `resource.TestMatchResourceAttr(name, "path", regexp)`
@@ -107,8 +108,11 @@ It does **not** mean every schema path is asserted:
 
 ### Update coverage (resources only)
 
-An attribute has update coverage only if:
+Skip `no-update` when the attribute has `RequiresReplace()` (or equivalent). Those fields cannot change in place — `snapshot_repository.name`, keystore setting name/value, traffic-filter association ids, `encryption_key_path`. Do not suggest an update step for them.
 
+An attribute has in-place update coverage only if:
+
+- It is **not** replacement-only, AND
 - Multiple **included** steps apply different configs for the same resource, AND
 - The attribute's value meaningfully differs, AND
 - A post-update check asserts the new value (prefer exact match over set-only).
@@ -137,7 +141,8 @@ If an attribute is configured **only** in excluded steps, classify it as none (i
 State paths in this repo:
 
 - Top-level: `name`
-- **Single nested attributes** (the `ec_deployment` v2 default): `elasticsearch.hot.size`, `kibana.region`, `apm.config.%` — **no** `.0.` index. Do not emit `elasticsearch.0.hot.0.size`.
+- **`ec_deployment` resource** (v2, single nested): `elasticsearch.hot.size`, `kibana.region`, `apm.config.%` — **no** `.0.` index. Do not emit `elasticsearch.0.hot.0.size`.
+- **`ec_deployment` data source**: indexed paths (`elasticsearch.0.ref_id`, `kibana.0.topology.0.size`). Do not apply the resource convention here.
 - List/set **blocks** or set attributes: `rule.0.source`, `rule.#`, `rule.*`, `traffic_filter.#`
 - Map: `tags.%` / `tags.key`
 
@@ -149,7 +154,7 @@ Match schema children of lists/sets as `block[*].attr`. For sets, prefer `TypeSe
 
 ### No coverage
 
-Path never configured in an **included** step and never referenced by an **included** check (`TestCheckResourceAttr`, `…Pair`, `…Set`, `TestCheckNoResourceAttr`, `…Match…`, type-set, `#`/`%`). Import-verify of a null path does not count. Omit + `TestCheckNoResourceAttr` is the optional-unset case, not no coverage (it may still be **poor** if the attribute is never set to a value).
+Path never configured in an **included** step and never referenced by an **included** check (`TestCheckResourceAttr`, `…Pair`, `…With`, `…Set`, `TestCheckNoResourceAttr`, `…Match…`, type-set, `#`/`%`). Import-verify of a null path does not count. Omit + `TestCheckNoResourceAttr` is the optional-unset case, not no coverage (it may still be **poor** if the attribute is never set to a value).
 
 ### Poor coverage
 
@@ -159,8 +164,8 @@ Any of:
 - Set-only where a deterministic value assertion is feasible
 - Single value only (except env-derived values above)
 - Optional never unset (no omit + absence/default assert)
-- Collection never empty
-- Resource attribute never updated (or updated but not asserted post-update)
+- Collection never empty **and** empty is schema-valid (no `setvalidator.SizeAtLeast(1)` / equivalent — `trafficFilterRuleSchema` cannot be empty; do not tag `rule` `no-empty-collection` or suggest an empty case)
+- Resource attribute never updated in place (skip when `RequiresReplace()`; skip on data sources)
 - `import-ignored`
 - `excluded-step-only` (configured only in a skipped/error/plan-only/old-provider step)
 
@@ -173,15 +178,15 @@ Use these in `Tags:` / JSON `reasons`. Do **not** invent numeric scores.
 | `no-coverage` | Class is none |
 | `required` | `Required: true` |
 | `writable` | Optional or required, not computed-only |
-| `has-validators` | Schema, block, or resource `ConfigValidators` present |
+| `has-validators` | Schema, block, resource `ConfigValidators`, or `ValidateConfig` (`ResourceWithValidateConfig`) |
 | `has-plan-modifiers` | Any plan modifier, including custom defaults |
 | `has-defaults` | Default via plan modifier or framework default |
 | `nested` | Nesting depth ≥ 1 |
 | `set-only` | Only `TestCheckResourceAttrSet` (and value is deterministic) |
 | `single-value` | Only one distinct configured/asserted value (not env-derived) |
 | `no-unset` | Optional never omitted + asserted |
-| `no-empty-collection` | Collection never empty |
-| `no-update` | Resource; no qualifying update (omit on data sources) |
+| `no-empty-collection` | Collection never empty **and** empty is allowed by validators |
+| `no-update` | Resource; no in-place update (omit on data sources and on `RequiresReplace`) |
 | `import-ignored` | In `ImportStateVerifyIgnore` |
 | `excluded-step-only` | Only appears in excluded steps |
 | `computed-only` | Computed, not optional/required — sort these **down** |
@@ -210,11 +215,13 @@ Known today (verify with grep; do not treat this list as source of truth): `ec_o
 ## Report checklist
 
 - Headings from `SKILL.md` (entity / no coverage / poor coverage / top 5 / concrete test additions)
+- Kind filled; `ec_deployment` resource and data source not mixed
 - Implementation directory filled
 - Excluded steps not counted as coverage; TF_ACC gate skips still counted
-- Data sources: no `no-update` tag
+- Data sources and `RequiresReplace` fields: no `no-update` tag
+- Empty-collection gap omitted when `SizeAtLeast(1)` (or equivalent) forbids empty
 - `timeouts` omitted unless in the schema map
 - Import-verify did not empty the no-coverage list
 - `close_via` on every gap
-- `ec_deployment` paths use single-nested form
+- `ec_deployment` **resource** paths use single-nested form; **data source** paths stay indexed
 - JSON fence matches the markdown list (no extra fields)
