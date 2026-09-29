@@ -84,6 +84,7 @@ Baseline assertions are often wrapped in a package-level helper invoked from man
 ### Assertions
 
 - `resource.TestCheckResourceAttr(name, "path", "value")` — value-specific
+- `resource.TestCheckResourceAttrPair(nameA, "pathA", nameB, "pathB")` — value-specific equality (counts as asserted for **both** paths; this is how `ec_deployment` data-source checks and `observability.deployment_id` work)
 - `resource.TestCheckResourceAttrSet(name, "path")` — set-only
 - `resource.TestCheckNoResourceAttr(name, "path")` — absence
 - `resource.TestMatchResourceAttr(name, "path", regexp)`

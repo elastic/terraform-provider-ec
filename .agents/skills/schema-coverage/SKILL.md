@@ -58,7 +58,7 @@ Follow **both** `Config:` and `Check:` helpers to their definitions (they may li
 Collect two signals from **included** steps only:
 
 - **Configured**: set in that step's HCL (including nested blocks). Import steps have no `Config` of their own — they inherit the previous included step's config.
-- **Asserted**: `TestCheckResourceAttr`, `TestCheckResourceAttrSet`, `TestCheckNoResourceAttr`, `TestMatchResourceAttr`, type-set helpers, `"block.#"` / `"tags.%"` — including those inside `Check:` helpers.
+- **Asserted**: `TestCheckResourceAttr`, `TestCheckResourceAttrPair`, `TestCheckResourceAttrSet`, `TestCheckNoResourceAttr`, `TestMatchResourceAttr`, type-set helpers, `"block.#"` / `"tags.%"` — including those inside `Check:` helpers.
 
 Also record **import** (see reference). `ImportStateVerify: true` is **not** "every schema path is asserted". It only supports paths that were non-null in the imported state (i.e. configured in the inherited config, or computed-and-present). It **never** lifts a never-configured attribute out of no-coverage.
 
