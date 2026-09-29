@@ -387,7 +387,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - record the PR number or URL
     - **Changelog (user-facing only):** after the PR number is known, require `.changelog/{PR}.txt` per `CONTRIBUTING.md` (go-changelog fenced `release-note:…` block). Skip for docs/spec/skills/Makefile/CI-only. If missing, write it, commit, and push. Missing changelog on a user-facing PR is push-blocking for this step.
 
-    **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Do not restate those rules here.
+    **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Pass `--openspec-change <id>` only for the OpenSpec change this loop is driving. Do not restate those rules here.
 
     **Otherwise** (skill not installed yet), monitor with `gh` from this agent or a single watcher subagent:
     - poll **GitHub Actions** only: `Go` and `OpenSpec CI` (for example `gh run list` / `gh run watch` on those workflow names). Do **not** `gh pr checks --watch`, and do not wait for `buildkite/terraform-provider-ec-acceptance`. That check is required for merge; it does **not** block this loop.

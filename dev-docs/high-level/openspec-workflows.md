@@ -84,7 +84,7 @@ The implementation loop triages the change into one of three execution strategie
 single-implementor, per-task) and asks up front for a **delivery mode**:
 
 - **Commit-only**: push to origin, watch GitHub Actions on the branch.
-- **Pull request**: create a PR after the initial push, then monitor checks and reviews.
+- **Pull request**: create a PR after the initial push, then monitor checks and reviews. PR mode delegates that monitoring to [`pr-monitoring-loop`](../../.agents/skills/pr-monitoring-loop/SKILL.md). Pass `--openspec-change` only for the change the loop is driving. Buildkite acceptance is reported and never auto-fixed.
 
 Strategy thresholds and review cadence are defined in the
 [`openspec-implementation-loop`](../../.agents/skills/openspec-implementation-loop/SKILL.md) skill.
