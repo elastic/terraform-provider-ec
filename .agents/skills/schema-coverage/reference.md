@@ -149,7 +149,7 @@ Match schema children of lists/sets as `block[*].attr`. For sets, prefer `TypeSe
 
 ### No coverage
 
-Path never configured in an **included** step and never value-asserted in an **included** check. Import-verify of a null path does not count.
+Path never configured in an **included** step and never referenced by an **included** check (`TestCheckResourceAttr`, `…Pair`, `…Set`, `TestCheckNoResourceAttr`, `…Match…`, type-set, `#`/`%`). Import-verify of a null path does not count. Omit + `TestCheckNoResourceAttr` is the optional-unset case, not no coverage (it may still be **poor** if the attribute is never set to a value).
 
 ### Poor coverage
 

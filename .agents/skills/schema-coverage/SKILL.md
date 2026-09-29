@@ -78,7 +78,7 @@ For each schema path:
 
 ### 4) Classify and rank
 
-**No coverage:** never configured in an included step **and** never value-asserted in an included check. Import-verify of a null/absent path does not count as a check.
+**No coverage:** never configured in an included step **and** never referenced by an included check (`TestCheckResourceAttr`, `…Pair`, `…Set`, `TestCheckNoResourceAttr`, `…Match…`, type-set, `#`/`%`). Import-verify of a null/absent path does not count as a check. An omit + `TestCheckNoResourceAttr` is **not** no coverage (that is the optional-unset case; it may still be poor if the attribute is never set to a value).
 
 **Poor coverage:** configured and/or asserted, but weak (configured-never-asserted, set-only where a value is deterministic, single value only, optional never unset, collection never empty, no update coverage on a resource, import-ignored).
 
