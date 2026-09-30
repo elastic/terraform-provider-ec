@@ -9,7 +9,7 @@ Serverless projects can send audit logs to another project (`monitoring.logging.
 - The provider reads back `destination.project_type` and computed `destination.status`.
 - Removing the audit configuration clears that category by sending JSON `null` for `audit` only. Other monitoring fields stay as they are.
 
-No breaking change to the schema of existing arguments, other than dropping `workplaceai` from the `linked.projects[].type` validator; the API no longer accepts that value, so the change only moves the rejection from apply to plan. Omitting `monitoring` on a new project leaves audit logging unconfigured. A project that already has audit logging in the API, for example from the console, will plan to remove it on the next apply unless the configuration includes the block.
+This change adds no breaking change to existing arguments. Omitting `monitoring` on a new project leaves audit logging unconfigured. A project that already has audit logging in the API, for example from the console, will plan to remove it on the next apply unless the configuration includes the block.
 
 ## Capabilities
 
@@ -25,5 +25,5 @@ No breaking change to the schema of existing arguments, other than dropping `wor
 
 - Hand-written create, patch, and read mapping in `ec/ecresource/projectresource` for the elasticsearch, observability, and security project resources. Clearing `audit` or `ignore_filters` sends JSON `null` on the wire, which the generated `omitempty` pointers cannot express. `modify_spec.sh` replaces the generated `ignore_filters` object list with a set, `ignore_filter_ids`, the same kind of attribute as `traffic_filter_ids`.
 - Generated serverless client and Plugin Framework models under `ec/internal/gen/serverless/`, after the vendored public project API bundle actually contains `monitoring.logging.audit`. That bundle currently strips these schemas (`x-exclude-from-documentation: true` on the raw project API). Implementation cannot regenerate the client until the fields are present in the file this provider vendors.
-- Registry docs for the three project resources, plus a `.changelog/{PR}.txt` entry on the implementation PR. The spec ref bump that brings in `monitoring` also drops `workplaceai` from the `linked.projects[].type` validator; the changelog notes that.
+- Registry docs for the three project resources, plus a `.changelog/{PR}.txt` entry on the implementation PR. The ref bump regenerates the whole client and the three resource schemas, so unrelated upstream drift since the pinned ref comes with it; the implementation PR's changelog covers that drift, not this proposal.
 - Out of scope: hosted `ec_deployment`, a VectorDB project resource, reading the ignore-filter catalog (the monitoring API's list/get endpoints), and log categories other than `audit`.
