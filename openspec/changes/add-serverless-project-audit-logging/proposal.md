@@ -6,7 +6,7 @@ Serverless projects can send audit logs to another project (`monitoring.logging.
 
 - Add an optional `monitoring.logging.audit` configuration to `ec_elasticsearch_project`, `ec_observability_project`, and `ec_security_project`.
 - Practitioners set `enabled`, a destination project id and type, and `ignore_filter_ids` (a set of ignore-filter ids). The API stores those ids as `ignore_filters[].id`. Null and an empty set both mean no filters.
-- The provider reads back `destination.project_type` and computed `destination.status`.
+- `destination.project_type` is required and limited to `observability` or `security`, the only types the API accepts as logging destinations. The provider reads back computed `destination.status`.
 - Removing the audit configuration clears that category by sending JSON `null` for `audit` only. Other monitoring fields stay as they are.
 
 This change adds no breaking change to existing arguments. Omitting `monitoring` on a new project leaves audit logging unconfigured. A project that already has audit logging in the API, for example from the console, will plan to remove it on the next apply unless the configuration includes the block.

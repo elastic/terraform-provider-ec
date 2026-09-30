@@ -22,7 +22,7 @@ resource "ec_elasticsearch_project" "example" {
         enabled = <optional+computed, bool> # default true when audit is set
         destination = { # required when audit is set
           project_id   = <required, string>
-          project_type = <optional+computed, string> # elasticsearch | observability | security | vectordb
+          project_type = <required, string> # observability | security
           status       = <computed, string> # enabled | suspended | deleted; not sent on write
         }
         ignore_filter_ids = <optional, set of string> # at most 10; null and empty are both absence
@@ -53,13 +53,20 @@ resource "ec_elasticsearch_project" "example" {
 
 ### Requirement: Audit attributes
 
-When `monitoring.logging.audit` is set, `destination.project_id` SHALL be required. `enabled` SHALL be optional and computed, and SHALL default to `true` when `audit` is set and `enabled` is omitted. `destination.project_type` SHALL be optional and computed. When a practitioner sets it, `project_type` SHALL be one of `elasticsearch`, `observability`, `security`, or `vectordb`. `destination` SHALL be required when `audit` is set. `ignore_filter_ids` SHALL be an optional set of ignore-filter id strings. Null and an empty set SHALL both mean no filters. The project API limits `ignore_filters` to 10 items (`maxItems`); the provider SHALL reject a longer set. The API field is an array of objects with an `id`; the provider SHALL map each Terraform string to one object and SHALL NOT expose that object as a nested attribute. `destination.status` SHALL be computed. The provider SHALL NOT send `destination.status` on create or update.
+When `monitoring.logging.audit` is set, `destination.project_id` and `destination.project_type` SHALL be required. `enabled` SHALL be optional and computed, and SHALL default to `true` when `audit` is set and `enabled` is omitted. `project_type` SHALL be one of `observability` or `security`; the project API marks it optional in the schema but rejects a request without it, and accepts only those two types as logging destinations. `destination` SHALL be required when `audit` is set. `ignore_filter_ids` SHALL be an optional set of ignore-filter id strings. Null and an empty set SHALL both mean no filters. The project API limits `ignore_filters` to 10 items (`maxItems`); the provider SHALL reject a longer set. The API field is an array of objects with an `id`; the provider SHALL map each Terraform string to one object and SHALL NOT expose that object as a nested attribute. `destination.status` SHALL be computed. The provider SHALL NOT send `destination.status` on create or update.
 
 #### Scenario: Defaults inside audit
 
 - GIVEN `monitoring.logging.audit` with `destination.project_id` set and `enabled` omitted
 - WHEN the plan is built
 - THEN the provider SHALL plan `enabled` as `true`
+
+#### Scenario: Invalid destination type
+
+- GIVEN `destination.project_type` `elasticsearch`
+- WHEN the plan is validated
+- THEN the provider SHALL return an error diagnostic
+- AND SHALL NOT call the project API
 
 #### Scenario: Too many ignore filters
 
@@ -70,7 +77,7 @@ When `monitoring.logging.audit` is set, `destination.project_id` SHALL be requir
 
 ### Requirement: Create sends the audit category
 
-When `audit` is set, create SHALL send `monitoring.logging.audit` with the configured destination project id, `enabled`, and `project_type` only when the planned value is known. When `audit` is null, including `monitoring = {}` and `monitoring = { logging = {} }`, create SHALL omit `monitoring`. Each `ignore_filter_ids` entry SHALL be sent as an `ignore_filters` object `{ "id": "<id>" }`. When `ignore_filter_ids` is null or empty, create SHALL omit `ignore_filters`. Create SHALL NOT send `destination.status`.
+When `audit` is set, create SHALL send `monitoring.logging.audit` with the configured `enabled`, destination project id, and project type. When `audit` is null, including `monitoring = {}` and `monitoring = { logging = {} }`, create SHALL omit `monitoring`. Each `ignore_filter_ids` entry SHALL be sent as an `ignore_filters` object `{ "id": "<id>" }`. When `ignore_filter_ids` is null or empty, create SHALL omit `ignore_filters`. Create SHALL NOT send `destination.status`.
 
 #### Scenario: Create with destination and filters
 
@@ -96,13 +103,6 @@ After a successful read, when the API returns `monitoring.logging.audit`, state 
 - GIVEN an existing project whose API audit destination status is `suspended`
 - WHEN the resource is read
 - THEN the provider SHALL set `destination.status` to `suspended`
-
-#### Scenario: Read stores project type from the API
-
-- GIVEN configuration that omits `destination.project_type`
-- AND the API read returns `destination.project_type` `elasticsearch`
-- WHEN the resource is read
-- THEN the provider SHALL set `destination.project_type` to `elasticsearch`
 
 #### Scenario: Read with no monitoring in plan or state
 
@@ -165,7 +165,7 @@ After a successful read, when the API returns `monitoring.logging.audit`, state 
 
 ### Requirement: Update patches the audit category
 
-When `audit` is set in the plan, including when it is added to a project that had none, update SHALL patch `monitoring.logging.audit` with the configured `enabled`, destination project id, `project_type` only when that planned value is known, and ignore-filter ids. Replacing a non-empty `ignore_filter_ids` with null or an empty set SHALL send `ignore_filters` as JSON null, which is how the project API removes all filters for the category. When `ignore_filter_ids` is null or empty in both the plan and the state, update SHALL omit `ignore_filters`. Update SHALL NOT send `destination.status`. `enabled` false SHALL pause delivery and SHALL keep the destination and filters that are still configured. When `audit` is unset in both configuration and state, update SHALL NOT send `monitoring`.
+When `audit` is set in the plan, including when it is added to a project that had none, update SHALL patch `monitoring.logging.audit` with the configured `enabled`, destination project id, project type, and ignore-filter ids. Replacing a non-empty `ignore_filter_ids` with null or an empty set SHALL send `ignore_filters` as JSON null, which is how the project API removes all filters for the category. When `ignore_filter_ids` is null or empty in both the plan and the state, update SHALL omit `ignore_filters`. Update SHALL NOT send `destination.status`. `enabled` false SHALL pause delivery and SHALL keep the destination and filters that are still configured. When `audit` is unset in both configuration and state, update SHALL NOT send `monitoring`.
 
 #### Scenario: Pause delivery
 
@@ -192,12 +192,6 @@ When `audit` is set in the plan, including when it is added to a project that ha
 - WHEN `audit` is set in the plan
 - THEN the patch JSON SHALL contain `monitoring.logging.audit` with the configured destination project id
 - AND SHALL NOT contain `"audit":null`
-
-#### Scenario: Unknown project type is omitted
-
-- GIVEN an update whose planned `destination.project_type` is unknown
-- WHEN the patch is built
-- THEN the patch JSON SHALL omit `destination.project_type`
 
 #### Scenario: Update with audit never configured
 
