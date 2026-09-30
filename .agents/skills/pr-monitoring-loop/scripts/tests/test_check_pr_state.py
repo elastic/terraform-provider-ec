@@ -470,25 +470,112 @@ def test_unresolved_new_thread_is_actionable_first_time(cps):
     assert threads["unresolved"] == 1
     assert threads["unresolvedNew"] == 1
     assert "unresolved_review_threads" in payload["summary"]["actionable"]
-    assert "thread1" in new_state["seenReviewThreadIds"]
+    assert "thread1" not in new_state["seenReviewThreadIds"]
 
 
-def test_known_unresolved_thread_no_longer_actionable(cps):
+def test_known_unresolved_thread_keeps_firing_until_resolved(cps):
     thread = _thread(
         "thread1",
         [_thread_comment("c1node", 555, "human-dev")],
     )
     kwargs = _empty_kwargs()
     kwargs["thread_data"] = [thread]
+    kwargs["head_sha_override"] = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     kwargs["state"] = {
         "seenReviewThreadIds": ["thread1"],
+        "lastHeadSha": HEAD_SHA,
         "lastPolledAt": "2026-05-07T05:00:00Z",
     }
-    payload, _ = cps.compute_payload(**kwargs)
+    payload, new_state = cps.compute_payload(**kwargs)
     threads = payload["summary"]["threads"]
     assert threads["unresolved"] == 1
-    assert threads["unresolvedNew"] == 0
-    assert "unresolved_review_threads" not in payload["summary"]["actionable"]
+    assert threads["unresolvedNew"] == 1
+    assert "unresolved_review_threads" in payload["summary"]["actionable"]
+    assert "thread1" not in new_state["seenReviewThreadIds"]
+
+
+def test_unseen_comment_older_than_watermark_is_still_new(cps):
+    now = datetime.now(timezone.utc)
+    created = (now - timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    last_polled = (now - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    kwargs = _empty_kwargs()
+    kwargs["issue_comment_data"] = [_comment(9, "human-dev", created=created)]
+    kwargs["state"] = {"lastPolledAt": last_polled, "seenIssueCommentIds": []}
+    payload, _ = cps.compute_payload(**kwargs)
+    assert payload["summary"]["comments"]["newIssueComments"] == 1
+    assert "issue_comments" in payload["summary"]["actionable"]
+
+
+def test_explicit_since_hides_an_unseen_older_comment(cps):
+    kwargs = _empty_kwargs()
+    kwargs["issue_comment_data"] = [_comment(9, "human-dev", created="2026-05-07T01:00:00Z")]
+    payload, _ = cps.compute_payload(**kwargs, since_override="2026-05-07T05:00:00Z")
+    assert payload["summary"]["comments"]["newIssueComments"] == 0
+
+
+def test_verify_approval_for_another_change_does_not_count(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_data"] = [_verify_review(7, "APPROVED")]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="add-widget")
+    vo = payload["summary"]["reviews"]["verifyOpenspec"]
+    assert vo["runState"] == "none"
+    assert vo["lastApprovalAt"] is None
+
+
+def test_verify_approval_matches_the_requested_change(cps):
+    kwargs = _empty_kwargs()
+    review = _verify_review(7, "APPROVED")
+    review["body"] = review["body"].replace("`some-change`", "`add-widget`")
+    kwargs["review_data"] = [review]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="add-widget")
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "approved"
+
+
+def test_lone_pending_acceptance_does_not_request_verify(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_status_data"] = {
+        "statuses": [
+            _status(
+                "buildkite/terraform-provider-ec-acceptance",
+                "pending",
+                "https://bk/acc",
+            )
+        ]
+    }
+    payload, _ = cps.compute_payload(
+        **kwargs,
+        openspec_change="add-widget",
+        verify_workflow_present=True,
+    )
+    assert payload["summary"]["checks"]["total"] == 1
+    assert (
+        payload["summary"]["reviews"]["verifyOpenspec"]["requiresOpenspecVerification"]
+        is False
+    )
+
+
+def test_required_fetches_propagate_gh_failure(cps, monkeypatch):
+    def boom(*_args, **kwargs):
+        if kwargs.get("allow_failure"):
+            return kwargs.get("default")
+        raise cps.TransientGhError("github unavailable")
+
+    monkeypatch.setattr(cps, "gh_json", boom)
+    with pytest.raises(cps.TransientGhError):
+        cps.commit_check_runs("o", "r", "abc")
+    with pytest.raises(cps.TransientGhError):
+        cps.commit_combined_status("o", "r", "abc")
+    with pytest.raises(cps.TransientGhError):
+        cps.issue_comments("o", "r", 1)
+    with pytest.raises(cps.TransientGhError):
+        cps.review_comments("o", "r", 1)
+    with pytest.raises(cps.TransientGhError):
+        cps.reviews("o", "r", 1)
+    with pytest.raises(cps.TransientGhError):
+        cps.issue_events("o", "r", 1)
+    with pytest.raises(cps.TransientGhError):
+        cps.review_threads("o", "r", 1)
+    assert cps.pr_checks("1") == []
 
 
 # ---------------------------------------------------------------------------
@@ -1075,9 +1162,9 @@ def test_acceptance_watch_keeps_a_stale_thread_reply(cps):
     }
     wiped, _ = cps.compute_payload(**kwargs)
     kept, _ = cps.compute_payload(**kwargs, retain_stale_since=True)
-    assert cps.format_focused(wiped)["threadDetails"] == {}
-    details = cps.format_focused(kept)["threadDetails"]["T1"]["comments"]
-    assert any(comment["body"] == "follow up" for comment in details)
+    for payload in (wiped, kept):
+        details = cps.format_focused(payload)["threadDetails"]["T1"]["comments"]
+        assert any(comment["body"] == "follow up" for comment in details)
 
 
 def test_watch_acceptance_waits_through_other_actionable_signals(cps, monkeypatch, capsys, tmp_path):

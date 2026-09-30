@@ -291,7 +291,6 @@ def commit_check_runs(owner: str, repo: str, sha: str) -> list[dict[str, Any]]:
             "--paginate",
         ],
         default={},
-        allow_failure=True,
     )
     return check_runs_from_payload(data)
 
@@ -302,7 +301,6 @@ def commit_combined_status(owner: str, repo: str, sha: str) -> dict[str, Any]:
     return gh_json(
         ["api", f"repos/{owner}/{repo}/commits/{sha}/status"],
         default={},
-        allow_failure=True,
     )
 
 
@@ -310,7 +308,6 @@ def issue_comments(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
     data = gh_json(
         ["api", f"repos/{owner}/{repo}/issues/{number}/comments", "--paginate"],
         default=[],
-        allow_failure=True,
     )
     return flatten_item_pages(data)
 
@@ -319,7 +316,6 @@ def review_comments(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
     data = gh_json(
         ["api", f"repos/{owner}/{repo}/pulls/{number}/comments", "--paginate"],
         default=[],
-        allow_failure=True,
     )
     return flatten_item_pages(data)
 
@@ -328,7 +324,6 @@ def reviews(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
     data = gh_json(
         ["api", f"repos/{owner}/{repo}/pulls/{number}/reviews", "--paginate"],
         default=[],
-        allow_failure=True,
     )
     return flatten_item_pages(data)
 
@@ -337,7 +332,6 @@ def issue_events(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
     data = gh_json(
         ["api", f"repos/{owner}/{repo}/issues/{number}/events", "--paginate"],
         default=[],
-        allow_failure=True,
     )
     return flatten_item_pages(data)
 
@@ -395,7 +389,7 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
         ]
         if cursor:
             api_args.extend(["-f", f"cursor={cursor}"])
-        data = gh_json(api_args, default={}, allow_failure=True)
+        data = gh_json(api_args, default={})
         threads = (
             data.get("data", {})
             .get("repository", {})
@@ -741,6 +735,7 @@ def derive_verify_openspec(
     review_data: list[dict[str, Any]],
     event_data: list[dict[str, Any]],
     head_sha: str,
+    openspec_change: Optional[str] = None,
 ) -> dict[str, Any]:
     """Compute verify-openspec workflow state.
 
@@ -757,7 +752,13 @@ def derive_verify_openspec(
         if login not in {a.lower() for a in VERIFY_OPENSPEC_REVIEW_AUTHORS}:
             return False
         body = review.get("body") or ""
-        return any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS)
+        if not any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS):
+            return False
+        # An approval for a different change on this PR must not count.
+        change_id = (openspec_change or "").strip()
+        if change_id:
+            return f"`{change_id}`" in body
+        return True
 
     label_applied_at: Optional[str] = None
     label_removed_at: Optional[str] = None
@@ -1049,32 +1050,38 @@ def compute_payload(
         last_head_sha_in_state is not None and last_head_sha_in_state != head_sha
     )
 
+    # The state watermark must not hide an id this poll has never recorded.
+    # `--since` is the only timestamp cutoff for comments and reviews.
+    explicit_since = parse_iso(since_override) if since_override else None
     new_issue_comments = select_new(
         issue_comment_data,
         id_key="id",
         seen_ids=seen_issue_ids,
         timestamp_keys=["created_at", "updated_at"],
-        since_dt=since_dt,
+        since_dt=explicit_since,
     )
     new_review_comments = select_new(
         review_comment_data,
         id_key="id",
         seen_ids=seen_review_comment_ids,
         timestamp_keys=["created_at", "updated_at"],
-        since_dt=since_dt,
+        since_dt=explicit_since,
     )
     new_reviews = select_new(
         review_data,
         id_key="id",
         seen_ids=seen_review_ids,
         timestamp_keys=["submitted_at"],
-        since_dt=since_dt,
+        since_dt=explicit_since,
     )
 
     # --- threads ----------------------------------------------------------
+    # An unresolved thread stays actionable until it is resolved or outdated,
+    # including after a push that clears lastPolledAt.
     unresolved_threads = [
         t for t in thread_data if not t.get("isResolved") and not t.get("isOutdated")
     ]
+    seen_thread_ids -= {t.get("id") for t in unresolved_threads}
     unresolved_new = []
     unresolved_updated_since_head = []
     for thread in unresolved_threads:
@@ -1093,7 +1100,9 @@ def compute_payload(
     # --- reviews ---------------------------------------------------------
     latest_by_reviewer = derive_latest_by_reviewer(review_data)
     effective_decision = derive_effective_decision(latest_by_reviewer)
-    verify_openspec = derive_verify_openspec(review_data, event_data, head_sha)
+    verify_openspec = derive_verify_openspec(
+        review_data, event_data, head_sha, openspec_change=openspec_change
+    )
 
     # --- merge state -----------------------------------------------------
     merge_state = pr.get("mergeStateStatus")
@@ -1241,11 +1250,19 @@ def compute_payload(
         str(openspec_change).strip() if change_named else None
     )
     summary["reviews"]["verifyOpenspec"]["verifyWorkflowPresent"] = verify_workflow_present
+    # A passed in-band GitHub Actions check is required. checks.total counts
+    # out-of-band statuses, so a lone pending acceptance run is not enough.
+    # Pending acceptance still does not clear the flag once an in-band check
+    # has passed.
+    in_band_passed = any(
+        c.get("class") == "auto-fixable" and c["derived"]["passed"]
+        for c in counted_checks
+    )
     summary["reviews"]["verifyOpenspec"]["requiresOpenspecVerification"] = (
         change_named
         and verify_workflow_present
         and verify_openspec["runState"] == "none"
-        and summary["checks"]["total"] > 0
+        and in_band_passed
         and summary["checks"]["failed"] == 0
         and summary["checks"]["pending"] == 0
         and not actionable
@@ -1296,7 +1313,12 @@ def compute_payload(
         ),
         "seenReviewThreadIds": cap_seen_ids(
             list(seen_thread_ids)
-            + [t.get("id") for t in thread_data if t.get("id") is not None]
+            + [
+                t.get("id")
+                for t in thread_data
+                if t.get("id") is not None
+                and (t.get("isResolved") or t.get("isOutdated"))
+            ]
         ),
         "lastVerifyOpenspecLabelAppliedAt": verify_openspec.get("lastLabelAppliedAt"),
         "lastVerifyOpenspecLabelRemovedAt": verify_openspec.get("lastLabelRemovedAt"),
