@@ -30,7 +30,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 8. Aggregate findings and fix; repeat until clean
 9. Push the branch to `origin`
 10. **Commit mode**: Watch GitHub Actions that run on a branch push (typically `Go`). Do not wait for `OpenSpec CI` — that workflow does not run on arbitrary branches. Surface Buildkite acceptance as out-of-band; never run or auto-fix it.
-    **PR mode**: Create a PR, then monitor GitHub Actions (including `OpenSpec CI` when present), reviews, and comments. Delegate to `pr-monitoring-loop` when that skill is installed; otherwise watch with `gh` as described in **PR mode** (body step 11).
+    **PR mode**: Create a PR, then monitor GitHub Actions (including `OpenSpec CI` when present), reviews, and comments. Delegate to `pr-monitoring-loop` when that skill is installed; that skill keeps a read-only watch until Buildkite acceptance finishes and never auto-fixes it. Otherwise watch with `gh` as described in **PR mode** (body step 11).
 11. Report final outcome
 
 **Steps**

@@ -17,6 +17,7 @@ import io
 import json
 import sys
 from contextlib import redirect_stdout
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -923,3 +924,211 @@ def test_paginated_fetches_do_not_pass_slurp(cps, monkeypatch):
     for args in seen:
         assert "--paginate" in args
         assert "--slurp" not in args
+
+
+def test_out_of_band_settled_waits_for_a_terminal_acceptance_status(cps):
+    acceptance = "buildkite/terraform-provider-ec-acceptance"
+    release = "buildkite/terraform-provider-ec-release"
+    assert cps.out_of_band_settled([]) is False
+    assert cps.out_of_band_settled([{"name": acceptance, "state": "pending"}]) is False
+    assert (
+        cps.out_of_band_settled(
+            [
+                {"name": acceptance, "state": "passed"},
+                {"name": release, "state": "pending"},
+            ]
+        )
+        is False
+    )
+    assert cps.out_of_band_settled([{"name": release, "state": "passed"}]) is False
+    assert cps.out_of_band_settled([{"name": acceptance, "state": "failed"}]) is True
+    assert (
+        cps.out_of_band_settled(
+            [
+                {"name": acceptance, "state": "passed"},
+                {"name": release, "state": "passed"},
+            ]
+        )
+        is True
+    )
+
+
+def test_watch_acceptance_defaults_to_a_slow_long_poll(cps):
+    args = cps.parse_args(["42", "--watch-acceptance"])
+    cps._resolve_watch_timing(args)
+    assert args.interval == cps.ACCEPTANCE_INTERVAL_SECONDS
+    assert args.max_duration == cps.ACCEPTANCE_MAX_DURATION_SECONDS
+    explicit = cps.parse_args(
+        [
+            "42",
+            "--watch-acceptance",
+            "--interval",
+            "60",
+            "--max-duration",
+            "1800",
+        ]
+    )
+    cps._resolve_watch_timing(explicit)
+    assert explicit.interval == 60
+    assert explicit.max_duration == 1800
+
+
+def test_watch_flags_are_mutually_exclusive(cps):
+    with pytest.raises(SystemExit):
+        cps.parse_args(["42", "--watch", "--watch-acceptance"])
+
+
+def test_watch_exits_on_first_actionable_tick(cps, monkeypatch, capsys):
+    def fake_fetch(_pr):
+        return {"pr": {"number": 42}}
+
+    def fake_compute(**kwargs):
+        payload = {
+            "summary": {
+                "hasActionable": True,
+                "actionable": ["failed_checks"],
+                "checks": {"outOfBand": []},
+                "pr": {"number": 42},
+            }
+        }
+        return payload, {"pr": 42}
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps, "compute_payload", fake_compute)
+    monkeypatch.setattr(cps.time, "sleep", lambda _seconds: None)
+    rc = cps.main(["42", "--watch", "--no-state", "--interval", "1", "--max-duration", "30"])
+    assert rc == cps.EXIT_OK
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
+    assert lines[-1]["outcome"] == "actionable"
+
+
+def test_watch_acceptance_timeout_does_not_save_state(cps, monkeypatch, capsys, tmp_path):
+    saves: list[dict] = []
+
+    def fake_fetch(_pr):
+        return {"pr": {"number": 42}}
+
+    def fake_compute(**kwargs):
+        payload = {
+            "summary": {
+                "hasActionable": False,
+                "actionable": [],
+                "checks": {
+                    "outOfBand": [
+                        {
+                            "name": "buildkite/terraform-provider-ec-acceptance",
+                            "state": "pending",
+                            "url": "https://bk/acc",
+                        }
+                    ]
+                },
+                "pr": {"number": 42},
+            }
+        }
+        return payload, {"pr": 42}
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps, "compute_payload", fake_compute)
+    monkeypatch.setattr(cps, "save_state", lambda path, state: saves.append(state))
+    monkeypatch.setattr(cps.time, "sleep", lambda _seconds: None)
+    rc = cps.main(
+        [
+            "42",
+            "--watch-acceptance",
+            "--state-file",
+            str(tmp_path / "state.json"),
+            "--interval",
+            "1",
+            "--max-duration",
+            "0",
+        ]
+    )
+    assert rc == cps.EXIT_TIMEOUT
+    assert saves == []
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
+    assert lines[-1]["outcome"] == "timeout"
+    assert lines[-1]["lastSummary"]["checks"]["outOfBand"][0]["state"] == "pending"
+
+
+def test_acceptance_watch_keeps_a_stale_thread_reply(cps):
+    now = datetime.now(timezone.utc)
+    last_polled = (now - timedelta(minutes=150)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    replied = (now - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    thread = _thread(
+        "T1",
+        [
+            _thread_comment("c1", 1, "human-dev", created="2026-05-07T01:00:00Z"),
+            _thread_comment("c2", 999, "human-dev", created=replied),
+        ],
+    )
+    thread["comments"]["nodes"][1]["body"] = "follow up"
+    kwargs = _empty_kwargs()
+    kwargs["thread_data"] = [thread]
+    kwargs["review_comment_data"] = [
+        _review_comment(999, "human-dev", body="follow up", created=replied)
+    ]
+    kwargs["state"] = {
+        "seenReviewThreadIds": ["T1"],
+        "seenReviewCommentIds": [1],
+        "lastPolledAt": last_polled,
+        "lastHeadSha": HEAD_SHA,
+    }
+    wiped, _ = cps.compute_payload(**kwargs)
+    kept, _ = cps.compute_payload(**kwargs, retain_stale_since=True)
+    assert cps.format_focused(wiped)["threadDetails"] == {}
+    details = cps.format_focused(kept)["threadDetails"]["T1"]["comments"]
+    assert any(comment["body"] == "follow up" for comment in details)
+
+
+def test_watch_acceptance_waits_through_other_actionable_signals(cps, monkeypatch, capsys, tmp_path):
+    states = iter(["pending", "failed"])
+    saves: list[dict] = []
+
+    def fake_fetch(_pr):
+        return {"pr": {"number": 42}}
+
+    def fake_compute(**kwargs):
+        state = next(states)
+        actionable = (
+            ["merge_or_branch_state"] if state == "pending" else ["acceptance_failed"]
+        )
+        payload = {
+            "summary": {
+                "hasActionable": True,
+                "actionable": actionable,
+                "checks": {
+                    "outOfBand": [
+                        {
+                            "name": "buildkite/terraform-provider-ec-acceptance",
+                            "state": state,
+                            "url": "https://bk/acc",
+                        }
+                    ]
+                },
+                "pr": {"number": 42},
+            }
+        }
+        return payload, {"pr": 42, "seen": state}
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps, "compute_payload", fake_compute)
+    monkeypatch.setattr(cps, "save_state", lambda path, state: saves.append(state))
+    monkeypatch.setattr(cps.time, "sleep", lambda _seconds: None)
+
+    rc = cps.main(
+        [
+            "42",
+            "--watch-acceptance",
+            "--state-file",
+            str(tmp_path / "state.json"),
+            "--interval",
+            "1",
+            "--max-duration",
+            "30",
+        ]
+    )
+    assert rc == cps.EXIT_OK
+    assert saves == [{"pr": 42, "seen": "failed"}]
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
+    assert lines[-1]["outcome"] == "acceptance_settled"
+    assert lines[-1]["payload"]["actionable"] == ["acceptance_failed"]

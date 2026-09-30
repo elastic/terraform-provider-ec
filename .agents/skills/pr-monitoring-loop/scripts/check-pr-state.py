@@ -82,8 +82,9 @@ VERIFY_OPENSPEC_REVIEW_BODY_MARKERS = (
 # them and escalate failures. Never auto-fix and never re-trigger acceptance
 # (each run creates paid Elastic Cloud deployments).
 AUTO_FIXABLE_CHECK_NAMES = {"Unit", "Validate OpenSpecs"}
+ACCEPTANCE_CHECK_NAME = "buildkite/terraform-provider-ec-acceptance"
 OUT_OF_BAND_CHECK_NAMES = {
-    "buildkite/terraform-provider-ec-acceptance",
+    ACCEPTANCE_CHECK_NAME,
     "buildkite/terraform-provider-ec-release",
 }
 
@@ -97,6 +98,10 @@ EXIT_TIMEOUT = 124
 
 DEFAULT_INTERVAL_SECONDS = 60
 DEFAULT_MAX_DURATION_SECONDS = 1800
+# Acceptance runs about 120 minutes, plus queue time. Poll slowly and stop
+# after 3 hours so a run that never posts still returns to a human.
+ACCEPTANCE_INTERVAL_SECONDS = 300
+ACCEPTANCE_MAX_DURATION_SECONDS = 3 * 60 * 60
 SEEN_ID_CAP = 1000
 
 # Maximum age of lastPolledAt before we treat it as stale and reset
@@ -686,6 +691,22 @@ def out_of_band_state(check: dict[str, Any]) -> str:
     return "skipped"
 
 
+def out_of_band_settled(out_of_band: list[dict[str, Any]]) -> bool:
+    """True once acceptance has a non-pending state and no out-of-band check is pending.
+
+    A missing acceptance status is not settled: Buildkite may not have posted it
+    yet. Release is waited on only when its status is already present.
+    """
+
+    saw_acceptance = False
+    for item in out_of_band:
+        if item.get("state") == "pending":
+            return False
+        if item.get("name") == ACCEPTANCE_CHECK_NAME:
+            saw_acceptance = True
+    return saw_acceptance
+
+
 def check_timestamp(check: dict[str, Any]) -> Optional[datetime]:
     for key in ("started_at", "startedAt", "updated_at", "created_at"):
         ts = parse_iso(check.get(key))
@@ -940,6 +961,7 @@ def compute_payload(
     since_override: Optional[str] = None,
     openspec_change: Optional[str] = None,
     verify_workflow_present: bool = False,
+    retain_stale_since: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build the JSON payload and the next-state-file content."""
 
@@ -956,9 +978,11 @@ def compute_payload(
     # Also reset lastPolledAt if it is older than the TTL. This handles the
     # case where a watcher was killed and restarted hours later — old
     # timestamp discrimination would hide updates that happened in between.
+    # --watch-acceptance freezes lastPolledAt on purpose for the whole run
+    # (up to 3 hours), so that reset must not apply there.
     since_str = since_override or state.get("lastPolledAt")
     since_dt = parse_iso(since_str)
-    if since_dt is not None:
+    if since_dt is not None and not retain_stale_since:
         age_seconds = (datetime.now(timezone.utc) - since_dt).total_seconds()
         if age_seconds > STATE_LAST_POLLED_TTL_SECONDS:
             state = {**state, "lastPolledAt": None}
@@ -1574,22 +1598,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Emit the full raw payload instead of the default focused output.",
     )
-    parser.add_argument(
+    watch_mode = parser.add_mutually_exclusive_group()
+    watch_mode.add_argument(
         "--watch",
         action="store_true",
         help="Poll until actionable state appears or --max-duration elapses.",
     )
+    watch_mode.add_argument(
+        "--watch-acceptance",
+        action="store_true",
+        help=(
+            "Poll until Buildkite acceptance (and release, if already posted) "
+            "leaves pending, or --max-duration elapses. Ignores other actionable "
+            f"signals. Defaults: interval {ACCEPTANCE_INTERVAL_SECONDS}s, "
+            f"max {ACCEPTANCE_MAX_DURATION_SECONDS}s."
+        ),
+    )
     parser.add_argument(
         "--interval",
         type=int,
-        default=DEFAULT_INTERVAL_SECONDS,
-        help=f"Seconds between polls in --watch mode (default {DEFAULT_INTERVAL_SECONDS}).",
+        default=None,
+        help=(
+            "Seconds between polls. Default "
+            f"{DEFAULT_INTERVAL_SECONDS} for --watch, "
+            f"{ACCEPTANCE_INTERVAL_SECONDS} for --watch-acceptance."
+        ),
     )
     parser.add_argument(
         "--max-duration",
         type=int,
-        default=DEFAULT_MAX_DURATION_SECONDS,
-        help=f"Maximum total seconds in --watch mode (default {DEFAULT_MAX_DURATION_SECONDS}).",
+        default=None,
+        help=(
+            "Maximum total seconds. Default "
+            f"{DEFAULT_MAX_DURATION_SECONDS} for --watch, "
+            f"{ACCEPTANCE_MAX_DURATION_SECONDS} for --watch-acceptance."
+        ),
     )
     return parser.parse_args(argv)
 
@@ -1617,9 +1660,23 @@ def main(argv: list[str] | None = None) -> int:
 
     state_path = resolve_state_path(args)
 
-    if args.watch:
+    if args.watch or args.watch_acceptance:
+        _resolve_watch_timing(args)
         return _run_watch(args, state_path)
     return _run_single(args, state_path)
+
+
+def _resolve_watch_timing(args: argparse.Namespace) -> None:
+    if args.watch_acceptance:
+        if args.interval is None:
+            args.interval = ACCEPTANCE_INTERVAL_SECONDS
+        if args.max_duration is None:
+            args.max_duration = ACCEPTANCE_MAX_DURATION_SECONDS
+        return
+    if args.interval is None:
+        args.interval = DEFAULT_INTERVAL_SECONDS
+    if args.max_duration is None:
+        args.max_duration = DEFAULT_MAX_DURATION_SECONDS
 
 
 def _ensure_state_path(
@@ -1674,10 +1731,16 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                 since_override=args.since,
                 openspec_change=args.openspec_change,
                 verify_workflow_present=detect_verify_workflow(),
+                retain_stale_since=args.watch_acceptance,
             )
-            save_state(state_path_resolved, new_state)
             last_payload = payload
             focused = format_focused(payload) if not args.full_payload else payload
+            out_of_band = payload["summary"]["checks"].get("outOfBand", [])
+            settled = args.watch_acceptance and out_of_band_settled(out_of_band)
+            # Intermediate acceptance ticks must not mark comments as seen.
+            # The final payload is the one the watcher reports.
+            if not args.watch_acceptance or settled:
+                save_state(state_path_resolved, new_state)
             tick_line = json.dumps(
                 {
                     "tick": tick,
@@ -1687,7 +1750,20 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                 sort_keys=True,
             )
             print(tick_line, flush=True)
-            if payload["summary"]["hasActionable"]:
+            if settled:
+                print(
+                    json.dumps(
+                        {
+                            "final": True,
+                            "outcome": "acceptance_settled",
+                            "payload": focused,
+                        },
+                        sort_keys=True,
+                    ),
+                    flush=True,
+                )
+                return EXIT_OK
+            if not args.watch_acceptance and payload["summary"]["hasActionable"]:
                 print(
                     json.dumps(
                         {"final": True, "outcome": "actionable", "payload": focused},
