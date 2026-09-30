@@ -9,7 +9,7 @@ Serverless projects can send audit logs to another project (`monitoring.logging.
 - The provider reads back `destination.project_type` and computed `destination.status`.
 - Removing the audit configuration clears that category by sending JSON `null` for `audit` only. Other monitoring fields stay as they are.
 
-No breaking change to the schema of existing arguments. Omitting `monitoring` on a new project leaves audit logging unconfigured. A project that already has audit logging in the API, for example from the console, will plan to remove it on the next apply unless the configuration includes the block.
+No breaking change to the schema of existing arguments, other than dropping `workplaceai` from the `linked.projects[].type` validator; the API no longer accepts that value, so the change only moves the rejection from apply to plan. Omitting `monitoring` on a new project leaves audit logging unconfigured. A project that already has audit logging in the API, for example from the console, will plan to remove it on the next apply unless the configuration includes the block.
 
 ## Capabilities
 
