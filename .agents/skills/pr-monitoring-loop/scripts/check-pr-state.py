@@ -168,6 +168,60 @@ def run_git(
     )
 
 
+def loads_gh_output(output: str) -> Any:
+    """Parse `gh` stdout, including one JSON value per `--paginate` page.
+
+    A single page, including an array that `gh --paginate` already merged, is
+    returned as that value. Object pages such as check-runs are concatenated
+    and come back as a list of pages.
+    """
+
+    decoder = json.JSONDecoder()
+    pages: list[Any] = []
+    idx = 0
+    length = len(output)
+    while idx < length:
+        while idx < length and output[idx].isspace():
+            idx += 1
+        if idx >= length:
+            break
+        value, end = decoder.raw_decode(output, idx)
+        pages.append(value)
+        idx = end
+    if len(pages) == 1:
+        return pages[0]
+    if not pages:
+        raise json.JSONDecodeError("no JSON value", output, 0)
+    return pages
+
+
+def flatten_item_pages(data: Any) -> list[Any]:
+    """Flatten a list endpoint that may be one page or many.
+
+    One page is a list of items. A list of page-lists is flattened.
+    """
+
+    if not isinstance(data, list):
+        return []
+    if data and all(isinstance(page, list) for page in data):
+        flat: list[Any] = []
+        for page in data:
+            flat.extend(page)
+        return flat
+    return data
+
+
+def check_runs_from_payload(data: Any) -> list[dict[str, Any]]:
+    """Collect `check_runs` from one status object or a list of page objects."""
+
+    pages = [data] if isinstance(data, dict) else data if isinstance(data, list) else []
+    runs: list[dict[str, Any]] = []
+    for page in pages:
+        if isinstance(page, dict):
+            runs.extend(page.get("check_runs") or [])
+    return runs
+
+
 def gh_json(
     args: list[str],
     *,
@@ -179,7 +233,7 @@ def gh_json(
     if not output.strip():
         return default
     try:
-        return json.loads(output)
+        return loads_gh_output(output)
     except json.JSONDecodeError:
         if allow_failure:
             return default
@@ -234,15 +288,7 @@ def commit_check_runs(owner: str, repo: str, sha: str) -> list[dict[str, Any]]:
         default={},
         allow_failure=True,
     )
-    if isinstance(data, list):
-        runs: list[dict[str, Any]] = []
-        for page in data:
-            if isinstance(page, dict):
-                runs.extend(page.get("check_runs", []))
-        return runs
-    if isinstance(data, dict):
-        return data.get("check_runs", [])
-    return []
+    return check_runs_from_payload(data)
 
 
 def commit_combined_status(owner: str, repo: str, sha: str) -> dict[str, Any]:
@@ -256,35 +302,39 @@ def commit_combined_status(owner: str, repo: str, sha: str) -> dict[str, Any]:
 
 
 def issue_comments(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
-    return gh_json(
+    data = gh_json(
         ["api", f"repos/{owner}/{repo}/issues/{number}/comments", "--paginate"],
         default=[],
         allow_failure=True,
     )
+    return flatten_item_pages(data)
 
 
 def review_comments(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
-    return gh_json(
+    data = gh_json(
         ["api", f"repos/{owner}/{repo}/pulls/{number}/comments", "--paginate"],
         default=[],
         allow_failure=True,
     )
+    return flatten_item_pages(data)
 
 
 def reviews(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
-    return gh_json(
+    data = gh_json(
         ["api", f"repos/{owner}/{repo}/pulls/{number}/reviews", "--paginate"],
         default=[],
         allow_failure=True,
     )
+    return flatten_item_pages(data)
 
 
 def issue_events(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
-    return gh_json(
+    data = gh_json(
         ["api", f"repos/{owner}/{repo}/issues/{number}/events", "--paginate"],
         default=[],
         allow_failure=True,
     )
+    return flatten_item_pages(data)
 
 
 def review_threads(owner: str, repo: str, number: int) -> list[dict[str, Any]]:

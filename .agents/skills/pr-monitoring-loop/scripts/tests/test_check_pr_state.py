@@ -867,3 +867,59 @@ def test_detect_verify_workflow_globs_and_env_override(cps, tmp_path, monkeypatc
     assert cps.detect_verify_workflow(root=str(tmp_path)) is False
     monkeypatch.setenv("CHECK_PR_STATE_VERIFY_WORKFLOW", "1")
     assert cps.detect_verify_workflow(root=str(tmp_path)) is True
+
+
+def test_two_concatenated_comment_pages_flatten(cps):
+    raw = '[{"id": 1, "body": "first"}]\n[{"id": 2, "body": "second"}]'
+    parsed = cps.loads_gh_output(raw)
+    assert cps.flatten_item_pages(parsed) == [
+        {"id": 1, "body": "first"},
+        {"id": 2, "body": "second"},
+    ]
+
+
+def test_slurped_comment_pages_flatten(cps):
+    raw = '[[{"id": 1}], [{"id": 2}, {"id": 3}]]'
+    parsed = cps.loads_gh_output(raw)
+    assert cps.flatten_item_pages(parsed) == [{"id": 1}, {"id": 2}, {"id": 3}]
+
+
+def test_single_comment_page_stays_a_flat_list(cps):
+    raw = '[{"id": 1}, {"id": 2}]'
+    parsed = cps.loads_gh_output(raw)
+    assert cps.flatten_item_pages(parsed) == [{"id": 1}, {"id": 2}]
+
+
+def test_two_check_run_pages_merge(cps):
+    concatenated = (
+        '{"check_runs": [{"name": "Unit"}]}\n'
+        '{"check_runs": [{"name": "Validate OpenSpecs"}]}'
+    )
+    slurped = (
+        '[{"check_runs": [{"name": "Unit"}]}, '
+        '{"check_runs": [{"name": "Validate OpenSpecs"}]}]'
+    )
+    expected = [{"name": "Unit"}, {"name": "Validate OpenSpecs"}]
+    assert cps.check_runs_from_payload(cps.loads_gh_output(concatenated)) == expected
+    assert cps.check_runs_from_payload(cps.loads_gh_output(slurped)) == expected
+
+
+def test_paginated_fetches_do_not_pass_slurp(cps, monkeypatch):
+    seen: list[list[str]] = []
+
+    def fake_gh_json(args, **kwargs):
+        seen.append(list(args))
+        if any("check-runs" in part for part in args):
+            return {"check_runs": [{"name": "Unit"}]}
+        return [{"id": 1}]
+
+    monkeypatch.setattr(cps, "gh_json", fake_gh_json)
+    assert cps.issue_comments("o", "r", 1) == [{"id": 1}]
+    assert cps.review_comments("o", "r", 1) == [{"id": 1}]
+    assert cps.reviews("o", "r", 1) == [{"id": 1}]
+    assert cps.issue_events("o", "r", 1) == [{"id": 1}]
+    assert cps.commit_check_runs("o", "r", "abc") == [{"name": "Unit"}]
+    assert len(seen) == 5
+    for args in seen:
+        assert "--paginate" in args
+        assert "--slurp" not in args
