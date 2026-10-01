@@ -1239,7 +1239,7 @@ def compute_payload(
     actionable: list[str] = []
     if failed_checks:
         actionable.append("failed_checks")
-    if any(c["derived"]["failed"] for c in out_of_band_checks):
+    if any(out_of_band_state(c) not in {"passed", "pending"} for c in out_of_band_checks):
         actionable.append("acceptance_failed")
     if new_issue_comments:
         actionable.append("issue_comments")

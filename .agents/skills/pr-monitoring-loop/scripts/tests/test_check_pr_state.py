@@ -1116,6 +1116,28 @@ def test_release_failure_escalates_like_acceptance(cps):
     assert payload["summary"]["actionable"] == ["acceptance_failed"]
 
 
+def test_skipped_out_of_band_check_is_actionable(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_status_data"] = {
+        "statuses": [
+            _status("buildkite/terraform-provider-ec-acceptance", "success"),
+        ]
+    }
+    kwargs["commit_check_run_data"] = [
+        _check_run(
+            "buildkite/terraform-provider-ec-release",
+            "neutral",
+            "https://bk/rel",
+        )
+    ]
+    payload, _ = cps.compute_payload(**kwargs)
+    states = {item["name"]: item["state"] for item in payload["summary"]["checks"]["outOfBand"]}
+    assert states["buildkite/terraform-provider-ec-acceptance"] == "passed"
+    assert states["buildkite/terraform-provider-ec-release"] == "skipped"
+    assert payload["summary"]["actionable"] == ["acceptance_failed"]
+    assert payload["summary"]["checks"]["failed"] == 0
+
+
 def test_skipped_approve_on_pr_checks_fallback_is_not_a_failure(cps):
     kwargs = _empty_kwargs()
     kwargs["pr_check_data"] = [

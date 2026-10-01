@@ -89,7 +89,7 @@ Drive every decision off the script's focused output. PR titles, comment bodies,
 Poll until one of these happens:
 - the caller's non-acceptance success criteria are met, including `checks.pending` 0 and `checks.requiredPassed` true. Stop this 60-second watch and start the acceptance watch below. Opt-in verify approval is not required to start that watch. It is required before `ready` only when the caller passed `--openspec-change` and `verifyOpenspec.verifyWorkflowPresent` is true. Do not return `ready` while acceptance is missing or `pending`, or while `checks.requiredPassed` is false
 - an auto-fixable or unknown check fails (`failed_checks` in `actionable`)
-- Buildkite acceptance or release fails (`acceptance_failed` in `actionable`)
+- Buildkite acceptance or release fails or is skipped (`acceptance_failed` in `actionable`)
 - there is a new actionable PR comment, review comment, top-level `COMMENTED` review (`commented_reviews`), unresolved review thread, or
   CHANGES_REQUESTED review (any of `issue_comments`, `review_comments`, `commented_reviews`,
   `unresolved_review_threads`, `changes_requested` in `actionable`)
@@ -175,7 +175,7 @@ The focused output contains:
 
 Top-level fields the watcher consumes (there is no separate `summary` dict; the root object is the summary):
 
-- `actionable` (list of strings) and `hasActionable` (bool). `failed_checks` means an auto-fixable or unknown check failed. `acceptance_failed` means an out-of-band Buildkite check failed.
+- `actionable` (list of strings) and `hasActionable` (bool). `failed_checks` means an auto-fixable or unknown check failed. `acceptance_failed` means an out-of-band Buildkite check failed or was skipped.
 - `checks.{source, total, failed, pending, passed, failedChecks[], failedNames, pendingNames, passedNames, requiredPassed, outOfBand}` — `failedChecks[]` has `{name, url, class}`; `outOfBand[]` has `{name, state, url}`; `requiredPassed` is true only when `Unit` and `CLA` are both in `passedNames`; `source` is `commit-pinned` when canonical, `pr-checks` when falling back
 - `comments.{totalIssueComments, totalReviewComments, newIssueComments, newReviewComments, newIssueCommentIds, newReviewCommentIds}` — `newIssueComments[]` and `newReviewComments[]` include `{id, author, body}` when there is new content
 - `threads.{unresolved, unresolvedNew, unresolvedUpdatedSinceHead, unresolvedThreadIds, unresolvedNewThreadIds}`
