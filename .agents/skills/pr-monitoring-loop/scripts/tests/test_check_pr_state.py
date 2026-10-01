@@ -1360,6 +1360,64 @@ def test_watch_timeout_after_a_transient_tick_is_marked_stale(cps, monkeypatch, 
     assert lines[-1]["lastSummary"] is None
 
 
+def test_requested_check_run_is_pending(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [
+        _check_run("Validate OpenSpecs", "", status="requested")
+    ]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert payload["summary"]["checks"]["pending"] == 1
+    assert payload["summary"]["checks"]["pendingNames"] == ["Validate OpenSpecs"]
+
+
+def test_commented_review_with_a_body_is_actionable(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_data"] = [_review(1, "alice", "COMMENTED", body="please rename this")]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert "commented_reviews" in payload["summary"]["actionable"]
+    focused = cps.format_focused(payload)
+    assert focused["reviews"]["newReviews"][0]["body"] == "please rename this"
+
+
+def test_empty_commented_review_is_not_actionable(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_data"] = [_review(1, "alice", "COMMENTED", body="  ")]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert "commented_reviews" not in payload["summary"]["actionable"]
+
+
+def test_watch_sleep_does_not_overshoot_max_duration(cps, monkeypatch, capsys):
+    slept: list[float] = []
+    clock = {"t": 0.0}
+
+    def fake_fetch(_pr, _head_sha=None):
+        return {"pr": {"number": 42}}
+
+    def fake_compute(**kwargs):
+        return {
+            "summary": {
+                "hasActionable": False,
+                "actionable": [],
+                "checks": {"outOfBand": []},
+                "pr": {"number": 42},
+            }
+        }, {"pr": 42}
+
+    def fake_sleep(seconds):
+        slept.append(seconds)
+        clock["t"] += seconds
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps, "compute_payload", fake_compute)
+    monkeypatch.setattr(cps.time, "monotonic", lambda: clock["t"])
+    monkeypatch.setattr(cps.time, "sleep", fake_sleep)
+    rc = cps.main(
+        ["42", "--watch", "--no-state", "--interval", "60", "--max-duration", "10"]
+    )
+    assert rc == cps.EXIT_TIMEOUT
+    assert slept == [10]
+
+
 def test_focused_output_includes_pr_state_and_draft(cps):
     payload, _ = cps.compute_payload(**_empty_kwargs())
     focused = cps.format_focused(payload)

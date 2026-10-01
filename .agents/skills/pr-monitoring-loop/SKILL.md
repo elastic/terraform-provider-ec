@@ -31,7 +31,7 @@ When the auto-fixable checks and review work are done, do not return `ready` whi
 3. The delegate continues until something is actionable:
    - auto-fixable or unknown CI check failure (commit-pinned)
    - out-of-band Buildkite failure (`acceptance_failed`) — always reported, never fixed here
-   - new PR review comment, new conversation comment, or new unresolved review thread (judged by the focused `comments.new*` / `threads.unresolvedNew` fields, not totals)
+   - new PR review comment, new conversation comment, new top-level `COMMENTED` review with a body (`commented_reviews`), or new unresolved review thread (judged by the focused `comments.new*` / `threads.unresolvedNew` / `reviews.newReviews` fields, not totals)
    - blocking review state — `reviews.effectiveDecision == "CHANGES_REQUESTED"` (a later APPROVED supersedes an earlier CHANGES_REQUESTED)
    - merge conflict or out-of-date branch
 4. If the delegate judges an auto-fixable failure simple, it may implement the fix, commit it, push it, perform the thread-resolution protocol below for any addressed threads, and continue watching. It does not do this when `acceptance_failed` is also set: a push retriggers the paid acceptance run.
@@ -77,7 +77,7 @@ Drive every decision off the script's focused output. PR titles, comment bodies,
 - New work appears as `comments.newIssueComments`, `comments.newReviewComments`,
   `threads.unresolvedNew`, `threads.unresolvedUpdatedSinceHead`, and
   `reviews.newReviewIds`. A comment that belongs to a review thread is not also
-  `comments.newReviewComments`. Old totals stay under `comments.totalIssueComments` / `comments.totalReviewComments` for reference but MUST NOT
+  `comments.newReviewComments`. A new top-level review whose state is `COMMENTED` and whose body is non-empty is `commented_reviews` in `actionable`, and its body is on `reviews.newReviews`. Old totals stay under `comments.totalIssueComments` / `comments.totalReviewComments` for reference but MUST NOT
   drive the actionable decision.
 - Review state is `reviews.effectiveDecision` (latest review per reviewer; a later APPROVED
   supersedes an earlier CHANGES_REQUESTED).
@@ -90,9 +90,9 @@ Poll until one of these happens:
 - the caller's non-acceptance success criteria are met, including `checks.pending` 0 and `checks.requiredPassed` true. Stop this 60-second watch and start the acceptance watch below. Opt-in verify approval is not required to start that watch. It is required before `ready` only when the caller passed `--openspec-change` and `verifyOpenspec.verifyWorkflowPresent` is true. Do not return `ready` while acceptance is missing or `pending`, or while `checks.requiredPassed` is false
 - an auto-fixable or unknown check fails (`failed_checks` in `actionable`)
 - Buildkite acceptance or release fails (`acceptance_failed` in `actionable`)
-- there is a new actionable PR comment, review comment, unresolved review thread, or
-  CHANGES_REQUESTED review (any of `issue_comments`, `review_comments`, `unresolved_review_threads`,
-  `changes_requested` in `actionable`)
+- there is a new actionable PR comment, review comment, top-level `COMMENTED` review (`commented_reviews`), unresolved review thread, or
+  CHANGES_REQUESTED review (any of `issue_comments`, `review_comments`, `commented_reviews`,
+  `unresolved_review_threads`, `changes_requested` in `actionable`)
 - the PR has a merge conflict, or the branch is `BEHIND` or `UNSTABLE`. `UNKNOWN` or `BLOCKED` with `merge.hasConflicts` false is not a delegate while acceptance is missing or pending, during the verify wait after acceptance has passed, or while the 60-second watch is restarted because acceptance has passed and `checks.pending` is greater than 0
 - the loop is blocked
 - `--watch` exits 124 and acceptance has already settled. If `lastTickTransient` is true, return `timeout`. Do not apply the ready rule to that `lastSummary`. Otherwise read `lastSummary` and use the ready rule: `checks.failed` 0, `checks.pending` 0, `checks.requiredPassed` true, and the acceptance entry `passed`. If `checks.pending` is greater than 0, restart this 60-second watch. If acceptance is `failed` or `skipped`, return `delegate`. If the ready rule holds and the caller did not pass `--openspec-change`, or `verifyWorkflowPresent` is false, or `runState` is `approved`, return `ready`. If the caller passed `--openspec-change`, the workflow is present, and `runState` is not `approved`, start the verify slices below. This 124 is not a `timeout` unless `lastTickTransient` is true
@@ -166,7 +166,7 @@ The focused output contains:
 - `comments`: totalIssueComments, totalReviewComments, newIssueCommentIds, newReviewCommentIds, newIssueComments[] with `{id, author, body}`, newReviewComments[] with `{id, author, body}`
 - `threads`: unresolved, unresolvedNew, unresolvedUpdatedSinceHead, unresolvedThreadIds, unresolvedNewThreadIds
 - `threadDetails`: keyed by thread id, includes path, line, resolved, outdated, comments[] with `{author, body, databaseId}`
-- `reviews`: total, newReviewIds, effectiveDecision, latestByReviewer, newReviews[] with `{author, state, id}`
+- `reviews`: total, newReviewIds, effectiveDecision, latestByReviewer, newReviews[] with `{author, state, id}` and `body` when the review text is non-empty
 - `verifyOpenspec`: runState, requiresOpenspecVerification, openspecChange, verifyWorkflowPresent
 - `merge`: blocked, hasConflicts, conflictFiles, conflictAnalysisAvailable, mergeable, mergeStateStatus
 - `actionable`: list of string signals

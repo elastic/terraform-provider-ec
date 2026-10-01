@@ -691,7 +691,7 @@ def normalize_check_run(run: dict[str, Any]) -> dict[str, Any]:
         "TIMED_OUT",
         "STALE",
     }
-    pending = status in {"QUEUED", "IN_PROGRESS", "PENDING", "WAITING"}
+    pending = status in {"QUEUED", "IN_PROGRESS", "PENDING", "REQUESTED", "WAITING"}
     passed = conclusion == "SUCCESS"
     return {
         **run,
@@ -1249,6 +1249,12 @@ def compute_payload(
         actionable.append("unresolved_review_threads")
     if effective_decision == "CHANGES_REQUESTED":
         actionable.append("changes_requested")
+    if any(
+        (review.get("state") or "").upper() == "COMMENTED"
+        and (review.get("body") or "").strip()
+        for review in new_reviews
+    ):
+        actionable.append("commented_reviews")
     if has_merge_conflicts:
         actionable.append("merge_conflicts")
     elif merge_state in {"BEHIND", "UNKNOWN", "UNSTABLE"}:
@@ -1593,8 +1599,8 @@ def format_focused(payload: dict[str, Any]) -> dict[str, Any]:
                 "submittedAt": r.get("submitted_at"),
                 "id": r.get("id"),
             }
-            if (r.get("state") or "").upper() == "CHANGES_REQUESTED":
-                entry["body"] = r.get("body") or ""
+            if (review_body := (r.get("body") or "").strip()):
+                entry["body"] = review_body
             new_reviews.append(entry)
 
     focused_reviews = {
@@ -1961,7 +1967,7 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                 flush=True,
             )
             return EXIT_TIMEOUT
-        time.sleep(max(1, args.interval))
+        time.sleep(min(max(1, args.interval), args.max_duration - elapsed))
 
 
 if __name__ == "__main__":
