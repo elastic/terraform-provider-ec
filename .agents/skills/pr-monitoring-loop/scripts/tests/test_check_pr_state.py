@@ -387,6 +387,61 @@ def test_verify_openspec_runstate_changes_requested(cps):
     assert vo["requiresOpenspecVerification"] is False
 
 
+def test_verify_changes_requested_on_an_older_head_can_start_again(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    kwargs["review_data"] = [
+        _verify_review(7, "CHANGES_REQUESTED", commit_id=OLD_SHA),
+    ]
+    payload, _ = cps.compute_payload(
+        **kwargs,
+        openspec_change="some-change",
+        verify_workflow_present=True,
+    )
+    vo = payload["summary"]["reviews"]["verifyOpenspec"]
+    assert vo["runState"] == "none"
+    assert vo["requiresOpenspecVerification"] is True
+    assert "changes_requested" not in payload["summary"]["actionable"]
+
+
+def test_human_changes_requested_survives_a_stale_verify_report(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_data"] = [
+        _verify_review(7, "CHANGES_REQUESTED", commit_id=OLD_SHA),
+        _review(8, "alice", "CHANGES_REQUESTED"),
+    ]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="some-change")
+    assert "changes_requested" in payload["summary"]["actionable"]
+
+
+def test_verify_report_for_another_change_does_not_set_the_decision(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    kwargs["review_data"] = [_verify_review(7, "CHANGES_REQUESTED")]
+    payload, _ = cps.compute_payload(
+        **kwargs,
+        openspec_change="add-widget",
+        verify_workflow_present=True,
+    )
+    vo = payload["summary"]["reviews"]["verifyOpenspec"]
+    assert vo["runState"] == "none"
+    assert "changes_requested" not in payload["summary"]["actionable"]
+    assert vo["requiresOpenspecVerification"] is True
+
+
+def test_stale_verify_request_does_not_restore_an_older_approval(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_data"] = [
+        _verify_review(6, "APPROVED", commit_id=OLD_SHA, submitted="2026-05-06T00:00:00Z"),
+        _verify_review(
+            7, "CHANGES_REQUESTED", commit_id=OLD_SHA, submitted="2026-05-06T01:00:00Z"
+        ),
+    ]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="some-change")
+    assert payload["summary"]["reviews"]["effectiveDecision"] == "REVIEW_REQUIRED"
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "none"
+
+
 def test_verify_openspec_ignores_unrelated_github_actions_reviews(cps):
     """A review from github-actions[bot] WITHOUT the verify report body must
     not count as a verify-openspec approval. Verify-openspec runs as

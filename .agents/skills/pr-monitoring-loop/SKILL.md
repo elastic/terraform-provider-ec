@@ -238,7 +238,7 @@ Only when the caller explicitly requires `verify-openspec` approval:
    - `pending-pickup` — `verify-openspec` label is currently applied but the workflow has not started
    - `in-progress` — workflow has picked up the label and removed it, but no review has arrived yet
    - `approved` — the verify-openspec workflow submitted APPROVED. Approvals are permanent; they do not go stale.
-   - `changes-requested` — the verify-openspec workflow submitted CHANGES_REQUESTED; fix needed first.
+   - `changes-requested` — the verify-openspec workflow submitted CHANGES_REQUESTED on the current head; fix needed first. A request for an older head leaves `runState` `none`, so the label can be applied again. A report for a different change id does not set the generic review decision. A human `CHANGES_REQUESTED` review still does.
 
    The verify-openspec workflow runs as `github-actions[bot]` (the standard GITHUB_TOKEN identity), not as a dedicated `verify-openspec[bot]` user. The script identifies its reviews by the body containing `OpenSpec verify` or `Verification Report` so other workflows that also post as `github-actions[bot]` are not confused with it.
 2. **Label state clarification** — the `verify-openspec` workflow REMOVES its own label as soon as it picks up the PR. Therefore label absence on `pr.labels` is NOT a signal that verify "was never requested". Always read `verifyOpenspec.runState`, never `pr.labels`, when deciding whether to re-trigger.

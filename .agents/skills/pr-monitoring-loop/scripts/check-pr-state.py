@@ -811,6 +811,27 @@ def detect_verify_workflow(root: Optional[str] = None) -> bool:
     return any(Path(root).glob(VERIFY_WORKFLOW_GLOB))
 
 
+def is_verify_openspec_review(review: dict[str, Any]) -> bool:
+    login = ((review.get("user") or {}).get("login") or "").lower()
+    if login not in {author.lower() for author in VERIFY_OPENSPEC_REVIEW_AUTHORS}:
+        return False
+    body = review.get("body") or ""
+    return any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS)
+
+
+def counts_toward_review_decision(
+    review: dict[str, Any], openspec_change: Optional[str]
+) -> bool:
+    """Human reviews always count. A verify report for another change id does not."""
+
+    if not is_verify_openspec_review(review):
+        return True
+    change_id = (openspec_change or "").strip()
+    if change_id and f"`{change_id}`" not in (review.get("body") or ""):
+        return False
+    return True
+
+
 def derive_verify_openspec(
     review_data: list[dict[str, Any]],
     event_data: list[dict[str, Any]],
@@ -828,11 +849,7 @@ def derive_verify_openspec(
     """
 
     def is_verify_review(review: dict[str, Any]) -> bool:
-        login = ((review.get("user") or {}).get("login") or "").lower()
-        if login not in {a.lower() for a in VERIFY_OPENSPEC_REVIEW_AUTHORS}:
-            return False
-        body = review.get("body") or ""
-        return any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS)
+        return is_verify_openspec_review(review)
 
     label_applied_at: Optional[str] = None
     label_removed_at: Optional[str] = None
@@ -934,7 +951,13 @@ def derive_verify_openspec(
         if last_state == "APPROVED":
             run_state = "approved"
         elif last_state == "CHANGES_REQUESTED":
-            run_state = "changes-requested"
+            requested = (last_verify_review or {}).get("commit_id") or ""
+            # A request for an older head does not block the next label cycle.
+            # An approval stays approved across pushes.
+            if requested and head_sha and requested != head_sha:
+                run_state = "none"
+            else:
+                run_state = "changes-requested"
         else:
             run_state = "none"
     elif label_active:
@@ -1219,7 +1242,25 @@ def compute_payload(
         ]
 
     # --- reviews ---------------------------------------------------------
-    latest_by_reviewer = derive_latest_by_reviewer(review_data)
+    latest_by_reviewer = derive_latest_by_reviewer(
+        [
+            review
+            for review in review_data
+            if counts_toward_review_decision(review, openspec_change)
+        ]
+    )
+    # A stale verify change request must not fall back to an older approval.
+    for login, entry in list(latest_by_reviewer.items()):
+        requested = entry.get("commitId") or ""
+        if entry.get("state") != "CHANGES_REQUESTED":
+            continue
+        if not (requested and head_sha and requested != head_sha):
+            continue
+        if any(
+            is_verify_openspec_review(review) and review.get("id") == entry.get("id")
+            for review in review_data
+        ):
+            del latest_by_reviewer[login]
     effective_decision = derive_effective_decision(latest_by_reviewer)
     verify_openspec = derive_verify_openspec(
         review_data, event_data, head_sha, openspec_change=openspec_change
