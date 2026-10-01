@@ -82,6 +82,8 @@ VERIFY_OPENSPEC_REVIEW_BODY_MARKERS = (
 # them and escalate failures. Never auto-fix and never re-trigger acceptance
 # (each run creates paid Elastic Cloud deployments).
 AUTO_FIXABLE_CHECK_NAMES = {"Unit", "Validate OpenSpecs"}
+# Branch protection on master requires these in addition to Buildkite acceptance.
+REQUIRED_PASSED_CHECK_NAMES = ("Unit", "CLA")
 ACCEPTANCE_CHECK_NAME = "buildkite/terraform-provider-ec-acceptance"
 OUT_OF_BAND_CHECK_NAMES = {
     ACCEPTANCE_CHECK_NAME,
@@ -355,22 +357,7 @@ def issue_events(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
     return flatten_item_pages(data)
 
 
-def review_threads(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
-    query = """
-query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
-  repository(owner: $owner, name: $repo) {
-    pullRequest(number: $number) {
-      reviewThreads(first: 100, after: $cursor) {
-        pageInfo { hasNextPage endCursor }
-        nodes {
-          id
-          isResolved
-          isOutdated
-          path
-          line
-          originalLine
-          comments(first: 50) {
-            nodes {
+THREAD_COMMENT_FIELDS = """
               id
               databaseId
               author { login }
@@ -383,13 +370,34 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
               originalLine
               outdated
               url
-            }
-          }
-        }
-      }
-    }
-  }
-}
+"""
+
+
+def review_threads(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
+    query = f"""
+query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {{
+  repository(owner: $owner, name: $repo) {{
+    pullRequest(number: $number) {{
+      reviewThreads(first: 100, after: $cursor) {{
+        pageInfo {{ hasNextPage endCursor }}
+        nodes {{
+          id
+          isResolved
+          isOutdated
+          path
+          line
+          originalLine
+          comments(first: 100) {{
+            pageInfo {{ hasNextPage endCursor }}
+            nodes {{
+{THREAD_COMMENT_FIELDS}
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}}
 """
     nodes: list[dict[str, Any]] = []
     cursor = ""
@@ -415,13 +423,61 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
             .get("pullRequest", {})
             .get("reviewThreads", {})
         )
-        nodes.extend(threads.get("nodes", []))
-        page_info = threads.get("pageInfo", {})
+        nodes.extend(threads.get("nodes") or [])
+        page_info = threads.get("pageInfo") or {}
         if not page_info.get("hasNextPage"):
-            return nodes
-        cursor = page_info.get("endCursor", "")
+            break
+        cursor = page_info.get("endCursor") or ""
         if not cursor:
-            return nodes
+            break
+    for thread in nodes:
+        extend_thread_comments(thread)
+    return nodes
+
+
+def extend_thread_comments(thread: dict[str, Any]) -> None:
+    """Fetch comment pages after the first 100 on one review thread."""
+
+    comments = thread.setdefault("comments", {})
+    nodes = comments.setdefault("nodes", [])
+    page = comments.get("pageInfo") or {}
+    cursor = page.get("endCursor") or ""
+    thread_id = thread.get("id")
+    seen_cursors: set[str] = set()
+    query = f"""
+query($id: ID!, $cursor: String!) {{
+  node(id: $id) {{
+    ... on PullRequestReviewThread {{
+      comments(first: 100, after: $cursor) {{
+        pageInfo {{ hasNextPage endCursor }}
+        nodes {{
+{THREAD_COMMENT_FIELDS}
+        }}
+      }}
+    }}
+  }}
+}}
+"""
+    while page.get("hasNextPage") and cursor and thread_id and cursor not in seen_cursors:
+        seen_cursors.add(cursor)
+        data = gh_json(
+            [
+                "api",
+                "graphql",
+                "-f",
+                f"id={thread_id}",
+                "-f",
+                f"cursor={cursor}",
+                "-f",
+                f"query={query}",
+            ],
+            default={},
+        )
+        more = ((data.get("data") or {}).get("node") or {}).get("comments") or {}
+        nodes.extend(more.get("nodes") or [])
+        page = more.get("pageInfo") or {}
+        cursor = page.get("endCursor") or ""
+    comments["pageInfo"] = page
 
 
 def fetch_pr_merge_refs(pr: dict[str, Any]) -> dict[str, str]:
@@ -1042,10 +1098,12 @@ def compute_payload(
         for s in (commit_status_data.get("statuses") or [])
     ]
 
-    # Decide the canonical set of checks for actionable detection. Prefer
-    # commit-pinned data when available; fall back to gh pr checks otherwise.
+    # Prefer commit-pinned data. Fall back to gh pr checks only when the
+    # caller did not pin a SHA. An override with no statuses must stay empty
+    # rather than borrow the current head's rollup.
     pinned_combined = pinned_check_runs + pinned_statuses
-    canonical_checks = pinned_combined if pinned_combined else raw_pr_checks
+    pinned_to_commit = bool(pinned_combined or head_sha_override)
+    canonical_checks = pinned_combined if pinned_to_commit else raw_pr_checks
 
     # Deduplicate check runs by name, preferring the most recent one.
     # This handles re-runs for the same commit where old runs remain in the API.
@@ -1070,7 +1128,7 @@ def compute_payload(
     # Fallback: if deduplication left us with nothing (e.g. every check
     # entry lacked a name), fall back to the raw pr-checks list so we
     # never report null/empty counts when check data is available.
-    if not canonical_checks:
+    if not canonical_checks and not pinned_to_commit:
         canonical_checks = raw_pr_checks
     canonical_checks = [
         {**c, "class": classify_check_name(check_name(c))} for c in canonical_checks
@@ -1225,7 +1283,7 @@ def compute_payload(
             ],
         },
         "checks": {
-            "source": "commit-pinned" if pinned_combined else "pr-checks",
+            "source": "commit-pinned" if pinned_to_commit else "pr-checks",
             "headSha": head_sha,
             "total": len(canonical_checks),
             "failed": len(failed_checks),
@@ -1241,6 +1299,11 @@ def compute_payload(
             ],
             "failedNames": [check_name(c) for c in failed_checks],
             "pendingNames": [check_name(c) for c in pending_checks],
+            "passedNames": [check_name(c) for c in passed_checks],
+            "requiredPassed": all(
+                name in {check_name(c) for c in passed_checks}
+                for name in REQUIRED_PASSED_CHECK_NAMES
+            ),
             "outOfBand": [
                 {
                     "name": check_name(c),
@@ -1428,6 +1491,8 @@ def format_focused(payload: dict[str, Any]) -> dict[str, Any]:
         "failedChecks": checks_summary.get("failedChecks", []),
         "failedNames": checks_summary.get("failedNames", []),
         "pendingNames": checks_summary.get("pendingNames", []),
+        "passedNames": checks_summary.get("passedNames", []),
+        "requiredPassed": checks_summary.get("requiredPassed", False),
         "outOfBand": checks_summary.get("outOfBand", []),
     }
 
@@ -1580,7 +1645,9 @@ def format_focused(payload: dict[str, Any]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def fetch_all(pr_arg: str) -> dict[str, Any]:
+def fetch_all(
+    pr_arg: str, head_sha_override: Optional[str] = None
+) -> dict[str, Any]:
     """Fetch every piece of remote state once. Raises TransientGhError."""
 
     repo = repo_info()
@@ -1597,7 +1664,7 @@ def fetch_all(pr_arg: str) -> dict[str, Any]:
         )
 
     number = int(pr["number"])
-    head_sha = pr.get("headRefOid") or ""
+    head_sha = head_sha_override or pr.get("headRefOid") or ""
 
     return {
         "repo": repo,
@@ -1621,7 +1688,7 @@ def fetch_all(pr_arg: str) -> dict[str, Any]:
 def run_once(
     args: argparse.Namespace, state_path: Optional[str]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    raw = fetch_all(args.pr)
+    raw = fetch_all(args.pr, args.head_sha)
     state = load_state(state_path)
     payload, new_state = compute_payload(
         **raw,
@@ -1774,7 +1841,7 @@ def _ensure_state_path(
 
 def _run_single(args: argparse.Namespace, state_path: Optional[str]) -> int:
     try:
-        raw = fetch_all(args.pr)
+        raw = fetch_all(args.pr, args.head_sha)
     except TransientGhError as exc:
         emit_transient(exc)
         return EXIT_TRANSIENT
@@ -1802,7 +1869,7 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
     while True:
         tick += 1
         try:
-            raw = fetch_all(args.pr)
+            raw = fetch_all(args.pr, args.head_sha)
             state_path_resolved = _ensure_state_path(
                 args, state_path, int(raw["pr"]["number"])
             )

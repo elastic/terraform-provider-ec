@@ -771,6 +771,117 @@ def _check_run(name, conclusion, url="https://runs.example/1", status="completed
     }
 
 
+def test_required_passed_needs_unit_and_cla(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    kwargs["commit_status_data"] = {
+        "statuses": [
+            _status("buildkite/terraform-provider-ec-acceptance", "success", "https://bk/acc")
+        ]
+    }
+    missing_cla, _ = cps.compute_payload(**kwargs)
+    checks = missing_cla["summary"]["checks"]
+    assert checks["passedNames"] == ["Unit"]
+    assert checks["requiredPassed"] is False
+    assert cps.format_focused(missing_cla)["checks"]["requiredPassed"] is False
+
+    kwargs["commit_status_data"]["statuses"].append(_status("CLA", "success", "https://cla"))
+    both, _ = cps.compute_payload(**kwargs)
+    assert both["summary"]["checks"]["requiredPassed"] is True
+    assert "CLA" in both["summary"]["checks"]["passedNames"]
+
+
+def test_head_sha_override_pins_commit_fetches(cps, monkeypatch):
+    seen = {}
+
+    monkeypatch.setattr(cps, "repo_info", lambda: {"owner": "o", "name": "r"})
+    monkeypatch.setattr(
+        cps,
+        "pr_view",
+        lambda _pr: {"number": 1, "headRefOid": "current-head", "baseRefName": "master"},
+    )
+    monkeypatch.setattr(cps, "pr_checks", lambda _pr: [])
+    monkeypatch.setattr(cps, "issue_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "reviews", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_threads", lambda *_args: [])
+    monkeypatch.setattr(cps, "issue_events", lambda *_args: [])
+    monkeypatch.setattr(cps, "merge_conflicts", lambda _pr: {})
+
+    def runs(_owner, _repo, sha):
+        seen["runs"] = sha
+        return []
+
+    def status(_owner, _repo, sha):
+        seen["status"] = sha
+        return {}
+
+    monkeypatch.setattr(cps, "commit_check_runs", runs)
+    monkeypatch.setattr(cps, "commit_combined_status", status)
+    cps.fetch_all("1", "older-sha")
+    assert seen == {"runs": "older-sha", "status": "older-sha"}
+
+
+def test_head_sha_override_does_not_borrow_current_head_checks(cps):
+    kwargs = _empty_kwargs()
+    kwargs["pr_check_data"] = [{"name": "Unit", "state": "SUCCESS", "bucket": "pass"}]
+    payload, _ = cps.compute_payload(**kwargs, head_sha_override="older-sha")
+    checks = payload["summary"]["checks"]
+    assert checks["source"] == "commit-pinned"
+    assert checks["headSha"] == "older-sha"
+    assert checks["passed"] == 0
+    assert checks["requiredPassed"] is False
+
+
+def test_review_thread_comments_past_the_first_page_are_kept(cps, monkeypatch):
+    first_page = [{"id": f"n{i}", "databaseId": i} for i in range(50)]
+
+    def fake_gh_json(args, **_kwargs):
+        query = " ".join(args)
+        if "reviewThreads" in query:
+            return {
+                "data": {
+                    "repository": {
+                        "pullRequest": {
+                            "reviewThreads": {
+                                "pageInfo": {"hasNextPage": False},
+                                "nodes": [
+                                    {
+                                        "id": "T1",
+                                        "isResolved": True,
+                                        "isOutdated": False,
+                                        "comments": {
+                                            "pageInfo": {
+                                                "hasNextPage": True,
+                                                "endCursor": "c1",
+                                            },
+                                            "nodes": first_page,
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                }
+            }
+        return {
+            "data": {
+                "node": {
+                    "comments": {
+                        "pageInfo": {"hasNextPage": False, "endCursor": None},
+                        "nodes": [{"id": "n50", "databaseId": 50, "body": "later reply"}],
+                    }
+                }
+            }
+        }
+
+    monkeypatch.setattr(cps, "gh_json", fake_gh_json)
+    threads = cps.review_threads("o", "r", 1)
+    nodes = threads[0]["comments"]["nodes"]
+    assert len(nodes) == 51
+    assert nodes[-1]["body"] == "later reply"
+
+
 def test_combined_status_context_is_the_check_name(cps):
     kwargs = _empty_kwargs()
     kwargs["commit_status_data"] = {
@@ -1161,7 +1272,7 @@ def test_watch_flags_are_mutually_exclusive(cps):
 
 
 def test_watch_exits_on_first_actionable_tick(cps, monkeypatch, capsys):
-    def fake_fetch(_pr):
+    def fake_fetch(_pr, _head_sha=None):
         return {"pr": {"number": 42}}
 
     def fake_compute(**kwargs):
@@ -1187,7 +1298,7 @@ def test_watch_exits_on_first_actionable_tick(cps, monkeypatch, capsys):
 def test_watch_acceptance_timeout_does_not_save_state(cps, monkeypatch, capsys, tmp_path):
     saves: list[dict] = []
 
-    def fake_fetch(_pr):
+    def fake_fetch(_pr, _head_sha=None):
         return {"pr": {"number": 42}}
 
     def fake_compute(**kwargs):
@@ -1266,7 +1377,7 @@ def test_watch_acceptance_waits_through_other_actionable_signals(cps, monkeypatc
     states = iter(["pending", "failed"])
     saves: list[dict] = []
 
-    def fake_fetch(_pr):
+    def fake_fetch(_pr, _head_sha=None):
         return {"pr": {"number": 42}}
 
     def fake_compute(**kwargs):

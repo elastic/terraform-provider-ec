@@ -306,7 +306,7 @@ def test_focused_output_total_issue_comments_naming(cps):
 
 
 def test_full_payload_flag_restores_all_data(cps, monkeypatch, capsys):
-    def fake_fetch_all(pr_arg):
+    def fake_fetch_all(pr_arg, _head_sha=None):
         return {
             "repo": {"owner": "o", "name": "r"},
             "pr": _pr(),
