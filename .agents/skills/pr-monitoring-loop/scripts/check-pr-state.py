@@ -994,9 +994,15 @@ def derive_latest_by_reviewer(
         existing = latest.get(login)
         existing_dt = parse_iso((existing or {}).get("submittedAt"))
         candidate_dt = parse_iso(review.get("submitted_at"))
+        existing_id = int((existing or {}).get("id") or 0)
+        candidate_id = int(review.get("id") or 0)
         if existing is None or (
             candidate_dt is not None
-            and (existing_dt is None or candidate_dt > existing_dt)
+            and (
+                existing_dt is None
+                or candidate_dt > existing_dt
+                or (candidate_dt == existing_dt and candidate_id > existing_id)
+            )
         ):
             latest[login] = {
                 "state": state,

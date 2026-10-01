@@ -296,6 +296,17 @@ def test_effective_decision_later_approved_supersedes_earlier_changes_requested(
     assert "changes_requested" not in payload["summary"]["actionable"]
 
 
+def test_same_second_later_review_id_supersedes(cps):
+    kwargs = _empty_kwargs()
+    submitted = "2026-05-07T05:00:00Z"
+    kwargs["review_data"] = [
+        _review(1, "alice", "CHANGES_REQUESTED", submitted=submitted),
+        _review(2, "alice", "APPROVED", submitted=submitted),
+    ]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert payload["summary"]["reviews"]["effectiveDecision"] == "APPROVED"
+
+
 def test_effective_decision_one_reviewer_changes_requested_blocks(cps):
     kwargs = _empty_kwargs()
     kwargs["review_data"] = [
