@@ -1476,6 +1476,8 @@ def format_focused(payload: dict[str, Any]) -> dict[str, Any]:
         "headRefOid": pr_summary.get("headRefOid"),
         "mergeable": pr_summary.get("mergeable"),
         "mergeStateStatus": pr_summary.get("mergeStateStatus"),
+        "state": pr_summary.get("state"),
+        "isDraft": pr_summary.get("isDraft"),
         "labels": pr_summary.get("labels"),
     }
 
@@ -1866,8 +1868,10 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
     started = time.monotonic()
     tick = 0
     last_payload: Optional[dict[str, Any]] = None
+    last_tick_transient = False
     while True:
         tick += 1
+        last_tick_transient = False
         try:
             raw = fetch_all(args.pr, args.head_sha)
             state_path_resolved = _ensure_state_path(
@@ -1935,6 +1939,7 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                 flush=True,
             )
             # On transient errors, sleep and try again until max-duration.
+            last_tick_transient = True
         elapsed = time.monotonic() - started
         if elapsed >= args.max_duration:
             last_summary = (
@@ -1949,6 +1954,7 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                         "outcome": "timeout",
                         "elapsedSeconds": int(elapsed),
                         "lastSummary": last_summary,
+                        "lastTickTransient": last_tick_transient,
                     },
                     sort_keys=True,
                 ),

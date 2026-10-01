@@ -1340,7 +1340,31 @@ def test_watch_acceptance_timeout_does_not_save_state(cps, monkeypatch, capsys, 
     assert saves == []
     lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
     assert lines[-1]["outcome"] == "timeout"
+    assert lines[-1]["lastTickTransient"] is False
     assert lines[-1]["lastSummary"]["checks"]["outOfBand"][0]["state"] == "pending"
+
+
+def test_watch_timeout_after_a_transient_tick_is_marked_stale(cps, monkeypatch, capsys):
+    def fake_fetch(_pr, _head_sha=None):
+        raise cps.TransientGhError('{"error":"down","transient":true}')
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps.time, "sleep", lambda _seconds: None)
+    rc = cps.main(
+        ["42", "--watch", "--no-state", "--interval", "1", "--max-duration", "0"]
+    )
+    assert rc == cps.EXIT_TIMEOUT
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
+    assert lines[-1]["outcome"] == "timeout"
+    assert lines[-1]["lastTickTransient"] is True
+    assert lines[-1]["lastSummary"] is None
+
+
+def test_focused_output_includes_pr_state_and_draft(cps):
+    payload, _ = cps.compute_payload(**_empty_kwargs())
+    focused = cps.format_focused(payload)
+    assert focused["pr"]["state"] == "OPEN"
+    assert focused["pr"]["isDraft"] is False
 
 
 def test_acceptance_watch_keeps_a_stale_thread_reply(cps):
