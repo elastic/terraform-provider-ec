@@ -227,6 +227,24 @@ def check_runs_from_payload(data: Any) -> list[dict[str, Any]]:
     return runs
 
 
+def combined_status_from_payload(data: Any) -> dict[str, Any]:
+    """Merge `statuses` from one combined-status object or a list of pages."""
+
+    pages = [data] if isinstance(data, dict) else data if isinstance(data, list) else []
+    statuses: list[dict[str, Any]] = []
+    combined: dict[str, Any] = {}
+    for page in pages:
+        if not isinstance(page, dict):
+            continue
+        if not combined:
+            combined = dict(page)
+        statuses.extend(page.get("statuses") or [])
+    if not combined:
+        return {}
+    combined["statuses"] = statuses
+    return combined
+
+
 def gh_json(
     args: list[str],
     *,
@@ -298,10 +316,11 @@ def commit_check_runs(owner: str, repo: str, sha: str) -> list[dict[str, Any]]:
 def commit_combined_status(owner: str, repo: str, sha: str) -> dict[str, Any]:
     if not (owner and repo and sha):
         return {}
-    return gh_json(
-        ["api", f"repos/{owner}/{repo}/commits/{sha}/status"],
+    data = gh_json(
+        ["api", f"repos/{owner}/{repo}/commits/{sha}/status", "--paginate"],
         default={},
     )
+    return combined_status_from_payload(data)
 
 
 def issue_comments(owner: str, repo: str, number: int) -> list[dict[str, Any]]:
@@ -410,7 +429,7 @@ def fetch_pr_merge_refs(pr: dict[str, Any]) -> dict[str, str]:
     base_ref = pr["baseRefName"]
     local_base_ref = f"refs/remotes/origin/{base_ref}"
     local_pr_ref = f"refs/remotes/origin/pr-{number}-head"
-    run_git(
+    fetched = run_git(
         [
             "fetch",
             "--quiet",
@@ -420,6 +439,8 @@ def fetch_pr_merge_refs(pr: dict[str, Any]) -> dict[str, str]:
         ],
         allow_failure=True,
     )
+    if fetched.returncode != 0:
+        raise RuntimeError(fetched.stderr.strip() or "git fetch failed")
     base_sha = run_git(["rev-parse", local_base_ref], allow_failure=True).stdout.strip()
     head_sha = run_git(["rev-parse", local_pr_ref], allow_failure=True).stdout.strip()
     return {"base": base_sha, "head": head_sha}
@@ -431,7 +452,8 @@ def parse_merge_tree_conflicts(output: str) -> list[str]:
         if "\t" in line:
             metadata, path = line.split("\t", 1)
             parts = metadata.split()
-            if len(parts) == 4 and parts[2] in {"1", "2", "3"}:
+            # `merge-tree --write-tree` emits `<mode> <object> <stage>`.
+            if len(parts) in {3, 4} and parts[2] in {"1", "2", "3"}:
                 files.add(path)
                 continue
         marker = " Merge conflict in "
@@ -752,13 +774,7 @@ def derive_verify_openspec(
         if login not in {a.lower() for a in VERIFY_OPENSPEC_REVIEW_AUTHORS}:
             return False
         body = review.get("body") or ""
-        if not any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS):
-            return False
-        # An approval for a different change on this PR must not count.
-        change_id = (openspec_change or "").strip()
-        if change_id:
-            return f"`{change_id}`" in body
-        return True
+        return any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS)
 
     label_applied_at: Optional[str] = None
     label_removed_at: Optional[str] = None
@@ -783,13 +799,19 @@ def derive_verify_openspec(
             ):
                 label_removed_at = created
 
-    verify_reviews = sorted(
+    all_verify_reviews = sorted(
         [r for r in review_data if is_verify_review(r)],
         key=lambda r: (
             parse_iso(r.get("submitted_at"))
             or datetime.min.replace(tzinfo=timezone.utc)
         ),
     )
+    change_id = (openspec_change or "").strip()
+    verify_reviews = [
+        review
+        for review in all_verify_reviews
+        if not change_id or f"`{change_id}`" in (review.get("body") or "")
+    ]
 
     last_verify_review = verify_reviews[-1] if verify_reviews else None
     last_verify_review_at = (
@@ -817,6 +839,29 @@ def derive_verify_openspec(
         and label_removed_dt is not None
         and label_removed_dt >= label_applied_dt
     )
+
+    # A finished label cycle whose report names a different change does not
+    # keep this change in-progress.
+    if (
+        change_id
+        and label_consumed
+        and label_applied_dt is not None
+        and not verify_reviews
+        and any(
+            (
+                parse_iso(review.get("submitted_at"))
+                or datetime.min.replace(tzinfo=timezone.utc)
+            )
+            >= label_applied_dt
+            for review in all_verify_reviews
+        )
+    ):
+        label_applied_at = None
+        label_removed_at = None
+        label_applied_dt = None
+        label_removed_dt = None
+        label_active = False
+        label_consumed = False
 
     # If a label was applied after the most recent verify review, the
     # workflow has been re-requested.
@@ -1096,6 +1141,22 @@ def compute_payload(
         ):
             if thread not in unresolved_new:
                 unresolved_updated_since_head.append(thread)
+
+    # A comment on a review thread is reported with that thread. Counting it
+    # again as a standalone review comment leaves an empty actionable signal
+    # after the thread is resolved.
+    thread_comment_ids: set[Any] = set()
+    for thread in thread_data:
+        for comment in (thread.get("comments") or {}).get("nodes") or []:
+            comment_id = comment.get("databaseId")
+            if comment_id is not None:
+                thread_comment_ids.add(comment_id)
+    if thread_comment_ids:
+        new_review_comments = [
+            comment
+            for comment in new_review_comments
+            if comment.get("id") not in thread_comment_ids
+        ]
 
     # --- reviews ---------------------------------------------------------
     latest_by_reviewer = derive_latest_by_reviewer(review_data)

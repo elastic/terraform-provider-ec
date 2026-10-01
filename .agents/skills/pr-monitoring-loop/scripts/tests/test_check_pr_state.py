@@ -531,6 +531,56 @@ def test_verify_approval_matches_the_requested_change(cps):
     assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "approved"
 
 
+def test_consumed_label_for_another_change_does_not_block_this_one(cps):
+    kwargs = _empty_kwargs()
+    kwargs["event_data"] = [
+        _label_event("labeled", "2026-05-07T01:00:00Z"),
+        _label_event("unlabeled", "2026-05-07T01:00:30Z"),
+    ]
+    kwargs["review_data"] = [_verify_review(7, "APPROVED", submitted="2026-05-07T01:01:00Z")]
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    payload, _ = cps.compute_payload(
+        **kwargs,
+        openspec_change="add-widget",
+        verify_workflow_present=True,
+    )
+    vo = payload["summary"]["reviews"]["verifyOpenspec"]
+    assert vo["runState"] == "none"
+    assert vo["requiresOpenspecVerification"] is True
+
+
+def test_in_progress_label_without_a_report_stays_in_progress(cps):
+    kwargs = _empty_kwargs()
+    kwargs["event_data"] = [
+        _label_event("labeled", "2026-05-07T01:00:00Z"),
+        _label_event("unlabeled", "2026-05-07T01:00:30Z"),
+    ]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="add-widget")
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "in-progress"
+
+
+def test_resolved_thread_reply_is_not_a_standalone_review_comment(cps):
+    thread = _thread(
+        "thread1",
+        [_thread_comment("c1", 555, "human-dev")],
+        resolved=True,
+    )
+    kwargs = _empty_kwargs()
+    kwargs["thread_data"] = [thread]
+    kwargs["review_comment_data"] = [_review_comment(555, "human-dev", body="addressed in abc")]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert "review_comments" not in payload["summary"]["actionable"]
+    assert "unresolved_review_threads" not in payload["summary"]["actionable"]
+    assert payload["summary"]["hasActionable"] is False
+
+
+def test_standalone_review_comment_stays_actionable(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_comment_data"] = [_review_comment(10, "human-dev")]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert "review_comments" in payload["summary"]["actionable"]
+
+
 def test_lone_pending_acceptance_does_not_request_verify(cps):
     kwargs = _empty_kwargs()
     kwargs["commit_status_data"] = {
@@ -992,6 +1042,46 @@ def test_two_check_run_pages_merge(cps):
     assert cps.check_runs_from_payload(cps.loads_gh_output(slurped)) == expected
 
 
+def test_two_combined_status_pages_merge(cps):
+    concatenated = (
+        '{"state":"pending","statuses":[{"context":"cla"}]}\n'
+        '{"state":"pending","statuses":[{"context":"buildkite/terraform-provider-ec-acceptance"}]}'
+    )
+    merged = cps.combined_status_from_payload(cps.loads_gh_output(concatenated))
+    assert [status["context"] for status in merged["statuses"]] == [
+        "cla",
+        "buildkite/terraform-provider-ec-acceptance",
+    ]
+
+
+def test_merge_tree_stage_line_records_the_path(cps):
+    output = "100644 abcdef 1\tsrc/foo.go\nCONFLICT (modify/delete): src/bar.go deleted in ours"
+    assert cps.parse_merge_tree_conflicts(output) == ["src/foo.go"]
+
+
+def test_failed_fetch_falls_back_to_github_mergeability(cps, monkeypatch):
+    def fake_run(args, **_kwargs):
+        completed = type("Completed", (), {})()
+        completed.returncode = 1
+        completed.stdout = ""
+        completed.stderr = "fetch failed"
+        return completed
+
+    monkeypatch.setattr(cps, "run_git", fake_run)
+    result = cps.merge_conflicts(
+        {
+            "number": 1,
+            "baseRefName": "master",
+            "mergeable": "CONFLICTING",
+            "mergeStateStatus": "DIRTY",
+        }
+    )
+    assert result["source"] == "github-mergeability-fallback"
+    assert result["analysisAvailable"] is False
+    assert result["hasConflicts"] is True
+    assert result["files"] == []
+
+
 def test_paginated_fetches_do_not_pass_slurp(cps, monkeypatch):
     seen: list[list[str]] = []
 
@@ -999,6 +1089,8 @@ def test_paginated_fetches_do_not_pass_slurp(cps, monkeypatch):
         seen.append(list(args))
         if any("check-runs" in part for part in args):
             return {"check_runs": [{"name": "Unit"}]}
+        if any(part.endswith("/status") for part in args):
+            return {"statuses": [{"context": "cla"}]}
         return [{"id": 1}]
 
     monkeypatch.setattr(cps, "gh_json", fake_gh_json)
@@ -1007,7 +1099,10 @@ def test_paginated_fetches_do_not_pass_slurp(cps, monkeypatch):
     assert cps.reviews("o", "r", 1) == [{"id": 1}]
     assert cps.issue_events("o", "r", 1) == [{"id": 1}]
     assert cps.commit_check_runs("o", "r", "abc") == [{"name": "Unit"}]
-    assert len(seen) == 5
+    assert cps.commit_combined_status("o", "r", "abc") == {
+        "statuses": [{"context": "cla"}]
+    }
+    assert len(seen) == 6
     for args in seen:
         assert "--paginate" in args
         assert "--slurp" not in args
