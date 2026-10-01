@@ -1171,6 +1171,15 @@ def test_release_failure_escalates_like_acceptance(cps):
     assert payload["summary"]["actionable"] == ["acceptance_failed"]
 
 
+def test_naive_since_is_utc_and_does_not_crash(cps):
+    parsed = cps.parse_iso("2026-05-07T05:00:00")
+    assert parsed is not None and parsed.tzinfo is not None
+    payload, _ = cps.compute_payload(
+        **_empty_kwargs(), since_override="2026-05-07T05:00:00"
+    )
+    assert payload["summary"]["pr"]["number"] == 42
+
+
 def test_startup_failure_is_a_failed_check(cps):
     kwargs = _empty_kwargs()
     kwargs["commit_check_run_data"] = [_check_run("Unit", "startup_failure")]

@@ -626,7 +626,10 @@ def parse_iso(ts: str | None) -> Optional[datetime]:
     try:
         if ts.endswith("Z"):
             ts = ts[:-1] + "+00:00"
-        return datetime.fromisoformat(ts)
+        parsed = datetime.fromisoformat(ts)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
     except (TypeError, ValueError):
         return None
 
