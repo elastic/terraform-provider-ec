@@ -1957,7 +1957,34 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
     tick = 0
     last_payload: Optional[dict[str, Any]] = None
     last_tick_transient = False
+
+    def emit_timeout(elapsed: float) -> int:
+        last_summary = (
+            format_focused(last_payload)
+            if last_payload and not args.full_payload
+            else last_payload
+        )
+        print(
+            json.dumps(
+                {
+                    "final": True,
+                    "outcome": "timeout",
+                    "elapsedSeconds": int(elapsed),
+                    "lastSummary": last_summary,
+                    "lastTickTransient": last_tick_transient,
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        return EXIT_TIMEOUT
+
     while True:
+        elapsed = time.monotonic() - started
+        # The previous sleep may have landed exactly on the deadline.
+        # Do not start another fetch after the budget is gone.
+        if tick > 0 and elapsed >= args.max_duration:
+            return emit_timeout(elapsed)
         tick += 1
         last_tick_transient = False
         try:
@@ -2030,25 +2057,7 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
             last_tick_transient = True
         elapsed = time.monotonic() - started
         if elapsed >= args.max_duration:
-            last_summary = (
-                format_focused(last_payload)
-                if last_payload and not args.full_payload
-                else last_payload
-            )
-            print(
-                json.dumps(
-                    {
-                        "final": True,
-                        "outcome": "timeout",
-                        "elapsedSeconds": int(elapsed),
-                        "lastSummary": last_summary,
-                        "lastTickTransient": last_tick_transient,
-                    },
-                    sort_keys=True,
-                ),
-                flush=True,
-            )
-            return EXIT_TIMEOUT
+            return emit_timeout(elapsed)
         time.sleep(min(max(1, args.interval), args.max_duration - elapsed))
 
 

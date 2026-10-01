@@ -1561,8 +1561,10 @@ def test_empty_commented_review_is_not_actionable(cps):
 def test_watch_sleep_does_not_overshoot_max_duration(cps, monkeypatch, capsys):
     slept: list[float] = []
     clock = {"t": 0.0}
+    fetches = {"n": 0}
 
     def fake_fetch(_pr, _head_sha=None):
+        fetches["n"] += 1
         return {"pr": {"number": 42}}
 
     def fake_compute(**kwargs):
@@ -1588,6 +1590,7 @@ def test_watch_sleep_does_not_overshoot_max_duration(cps, monkeypatch, capsys):
     )
     assert rc == cps.EXIT_TIMEOUT
     assert slept == [10]
+    assert fetches["n"] == 1
 
 
 def test_focused_output_includes_pr_state_and_draft(cps):
