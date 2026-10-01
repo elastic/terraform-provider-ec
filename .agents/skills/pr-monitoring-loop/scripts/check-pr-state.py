@@ -1653,7 +1653,7 @@ def format_focused(payload: dict[str, Any]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def fetch_all(
+def _fetch_snapshot(
     pr_arg: str, head_sha_override: Optional[str] = None
 ) -> dict[str, Any]:
     """Fetch every piece of remote state once. Raises TransientGhError."""
@@ -1691,6 +1691,36 @@ def fetch_all(
         "event_data": issue_events(repo["owner"], repo["name"], number),
         "merge_conflict_data": merge_conflicts(pr),
     }
+
+
+def fetch_all(
+    pr_arg: str, head_sha_override: Optional[str] = None
+) -> dict[str, Any]:
+    """Fetch a snapshot whose checks match the PR head.
+
+    An explicit ``--head-sha`` is the caller's pin and is not revalidated.
+    Otherwise the head is read again after the snapshot. A push during the
+    fetch retries once; a second mismatch is transient so the old SHA is
+    not reported as the current head.
+    """
+
+    if head_sha_override:
+        return _fetch_snapshot(pr_arg, head_sha_override)
+
+    for _ in range(2):
+        raw = _fetch_snapshot(pr_arg)
+        current = pr_view(pr_arg)
+        if (current.get("headRefOid") or "") == (raw["pr"].get("headRefOid") or ""):
+            return raw
+    raise TransientGhError(
+        json.dumps(
+            {
+                "error": "pr head changed during fetch",
+                "pr": pr_arg,
+                "transient": True,
+            }
+        )
+    )
 
 
 def run_once(

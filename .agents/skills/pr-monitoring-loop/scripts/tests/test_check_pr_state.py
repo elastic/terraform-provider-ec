@@ -822,6 +822,61 @@ def test_head_sha_override_pins_commit_fetches(cps, monkeypatch):
     assert seen == {"runs": "older-sha", "status": "older-sha"}
 
 
+def test_fetch_retries_once_when_the_head_moves(cps, monkeypatch):
+    views = iter(
+        [
+            {"number": 1, "headRefOid": "sha-a"},
+            {"number": 1, "headRefOid": "sha-b"},
+            {"number": 1, "headRefOid": "sha-b"},
+            {"number": 1, "headRefOid": "sha-b"},
+        ]
+    )
+    pinned: list[str] = []
+
+    monkeypatch.setattr(cps, "repo_info", lambda: {"owner": "o", "name": "r"})
+    monkeypatch.setattr(cps, "pr_view", lambda _pr: next(views))
+    monkeypatch.setattr(cps, "pr_checks", lambda _pr: [])
+    monkeypatch.setattr(cps, "issue_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "reviews", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_threads", lambda *_args: [])
+    monkeypatch.setattr(cps, "issue_events", lambda *_args: [])
+    monkeypatch.setattr(cps, "merge_conflicts", lambda _pr: {})
+    monkeypatch.setattr(
+        cps, "commit_check_runs", lambda _o, _r, sha: pinned.append(sha) or []
+    )
+    monkeypatch.setattr(cps, "commit_combined_status", lambda _o, _r, sha: {})
+
+    raw = cps.fetch_all("1")
+    assert raw["pr"]["headRefOid"] == "sha-b"
+    assert pinned == ["sha-a", "sha-b"]
+
+
+def test_fetch_is_transient_when_the_head_keeps_moving(cps, monkeypatch):
+    views = iter(
+        [
+            {"number": 1, "headRefOid": "sha-a"},
+            {"number": 1, "headRefOid": "sha-b"},
+            {"number": 1, "headRefOid": "sha-b"},
+            {"number": 1, "headRefOid": "sha-c"},
+        ]
+    )
+    monkeypatch.setattr(cps, "repo_info", lambda: {"owner": "o", "name": "r"})
+    monkeypatch.setattr(cps, "pr_view", lambda _pr: next(views))
+    monkeypatch.setattr(cps, "pr_checks", lambda _pr: [])
+    monkeypatch.setattr(cps, "issue_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "reviews", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_threads", lambda *_args: [])
+    monkeypatch.setattr(cps, "issue_events", lambda *_args: [])
+    monkeypatch.setattr(cps, "merge_conflicts", lambda _pr: {})
+    monkeypatch.setattr(cps, "commit_check_runs", lambda *_args: [])
+    monkeypatch.setattr(cps, "commit_combined_status", lambda *_args: {})
+
+    with pytest.raises(cps.TransientGhError, match="pr head changed during fetch"):
+        cps.fetch_all("1")
+
+
 def test_head_sha_override_does_not_borrow_current_head_checks(cps):
     kwargs = _empty_kwargs()
     kwargs["pr_check_data"] = [{"name": "Unit", "state": "SUCCESS", "bucket": "pass"}]

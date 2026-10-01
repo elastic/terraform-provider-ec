@@ -146,7 +146,7 @@ Prefer `--watch` over hand-rolled sleep loops:
 
 `--watch` exits with code `0` on the first actionable tick (and prints a `{"final": true, "outcome": "actionable", ...}` line) and `124` on timeout. A transient `gh` failure prints a tick with `"transient": true` and the watch keeps polling until `--max-duration`, then exits `124`. A one-shot run exits `2` after its retry is exhausted. Each tick is one NDJSON line; the watcher should stream and react to those.
 
-After every push, restart the watch cycle for the new PR head SHA. The state file is updated automatically each tick.
+After every push, restart the watch cycle for the new PR head SHA. The state file is updated automatically each tick. Without `--head-sha`, the script re-reads the PR head after the fetch. If that head changed, it fetches once more; if it changed again, the tick is transient and is not a ready snapshot of the old SHA.
 
 ## Deterministic PR state
 
