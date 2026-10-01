@@ -1699,9 +1699,12 @@ def fetch_all(
     """Fetch a snapshot whose checks match the PR head.
 
     An explicit ``--head-sha`` is the caller's pin and is not revalidated.
-    Otherwise the head is read again after the snapshot. A push during the
-    fetch retries once; a second mismatch is transient so the old SHA is
-    not reported as the current head.
+    Otherwise the head is read again after the snapshot. When it still
+    matches, that view's state and draft flag replace the snapshot's, so a
+    close or a draft conversion during the fetch is visible. Merge
+    metadata stays with the snapshot that merge_conflicts analyzed. A push
+    retries once; a second mismatch is transient so the old SHA is not
+    reported as the current head.
     """
 
     if head_sha_override:
@@ -1711,6 +1714,12 @@ def fetch_all(
         raw = _fetch_snapshot(pr_arg)
         current = pr_view(pr_arg)
         if (current.get("headRefOid") or "") == (raw["pr"].get("headRefOid") or ""):
+            if current.get("number"):
+                raw["pr"] = {
+                    **raw["pr"],
+                    "state": current.get("state"),
+                    "isDraft": current.get("isDraft"),
+                }
             return raw
     raise TransientGhError(
         json.dumps(

@@ -877,6 +877,38 @@ def test_fetch_is_transient_when_the_head_keeps_moving(cps, monkeypatch):
         cps.fetch_all("1")
 
 
+def test_matching_head_uses_the_fresh_pr_metadata(cps, monkeypatch):
+    views = iter(
+        [
+            {"number": 1, "headRefOid": "sha-a", "state": "OPEN", "isDraft": False, "mergeStateStatus": "CLEAN"},
+            {
+                "number": 1,
+                "headRefOid": "sha-a",
+                "state": "CLOSED",
+                "isDraft": True,
+                "mergeStateStatus": "DIRTY",
+            },
+        ]
+    )
+    monkeypatch.setattr(cps, "repo_info", lambda: {"owner": "o", "name": "r"})
+    monkeypatch.setattr(cps, "pr_view", lambda _pr: next(views))
+    monkeypatch.setattr(cps, "pr_checks", lambda _pr: [])
+    monkeypatch.setattr(cps, "issue_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_comments", lambda *_args: [])
+    monkeypatch.setattr(cps, "reviews", lambda *_args: [])
+    monkeypatch.setattr(cps, "review_threads", lambda *_args: [])
+    monkeypatch.setattr(cps, "issue_events", lambda *_args: [])
+    monkeypatch.setattr(cps, "merge_conflicts", lambda _pr: {})
+    monkeypatch.setattr(cps, "commit_check_runs", lambda *_args: [])
+    monkeypatch.setattr(cps, "commit_combined_status", lambda *_args: {})
+
+    raw = cps.fetch_all("1")
+    assert raw["pr"]["state"] == "CLOSED"
+    assert raw["pr"]["isDraft"] is True
+    assert raw["pr"]["headRefOid"] == "sha-a"
+    assert raw["pr"]["mergeStateStatus"] == "CLEAN"
+
+
 def test_head_sha_override_does_not_borrow_current_head_checks(cps):
     kwargs = _empty_kwargs()
     kwargs["pr_check_data"] = [{"name": "Unit", "state": "SUCCESS", "bucket": "pass"}]
