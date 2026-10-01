@@ -652,6 +652,7 @@ def normalize_check(check: dict[str, Any]) -> dict[str, Any]:
             "CANCELLED",
             "FAILURE",
             "STALE",
+            "STARTUP_FAILURE",
             "TIMED_OUT",
         }
     )
@@ -688,8 +689,9 @@ def normalize_check_run(run: dict[str, Any]) -> dict[str, Any]:
         "ACTION_REQUIRED",
         "CANCELLED",
         "FAILURE",
-        "TIMED_OUT",
         "STALE",
+        "STARTUP_FAILURE",
+        "TIMED_OUT",
     }
     pending = status in {"QUEUED", "IN_PROGRESS", "PENDING", "REQUESTED", "WAITING"}
     passed = conclusion == "SUCCESS"

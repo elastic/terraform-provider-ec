@@ -1116,6 +1116,14 @@ def test_release_failure_escalates_like_acceptance(cps):
     assert payload["summary"]["actionable"] == ["acceptance_failed"]
 
 
+def test_startup_failure_is_a_failed_check(cps):
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "startup_failure")]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert payload["summary"]["checks"]["failed"] == 1
+    assert payload["summary"]["actionable"] == ["failed_checks"]
+
+
 def test_skipped_out_of_band_check_is_actionable(cps):
     kwargs = _empty_kwargs()
     kwargs["commit_status_data"] = {
