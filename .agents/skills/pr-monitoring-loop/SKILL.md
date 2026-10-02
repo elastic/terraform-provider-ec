@@ -147,7 +147,7 @@ Prefer `--watch` over hand-rolled sleep loops:
 
 `--watch` exits with code `0` on the first actionable tick (and prints a `{"final": true, "outcome": "actionable", ...}` line) and `124` on timeout. A transient `gh` failure prints a tick with `"transient": true` and the watch keeps polling until `--max-duration`, then exits `124`. A one-shot run exits `2` after its retry is exhausted. Each tick is one NDJSON line; the watcher should stream and react to those.
 
-After every push, restart the watch cycle for the new PR head SHA. The state file is updated automatically each tick. Without `--head-sha`, the script re-reads the PR head after the fetch. If that head changed, it fetches once more; if it changed again, the tick is transient and is not a ready snapshot of the old SHA. When the head still matches, that view's `state` and `isDraft` replace the snapshot's, so a close or a draft conversion during the fetch is what the watcher sees. Merge metadata stays with the snapshot that the conflict check analyzed.
+After every push, restart the watch cycle for the new PR head SHA. The state file is updated automatically each tick. Without `--head-sha`, the script re-reads the PR head and base after the fetch. If either changed, it fetches once more; if either changed again, the tick is transient and is not a ready snapshot of the old merge. When the head and base still match, that view's `state` and `isDraft` replace the snapshot's, so a close or a draft conversion during the fetch is what the watcher sees. Merge metadata stays with the snapshot that the conflict check analyzed.
 
 ## Deterministic PR state
 

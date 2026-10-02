@@ -918,22 +918,26 @@ def derive_verify_openspec(
         and label_removed_dt >= label_applied_dt
     )
 
-    # A finished label cycle whose report names a different change does not
-    # keep this change in-progress.
-    if (
-        change_id
-        and label_consumed
-        and label_applied_dt is not None
-        and not verify_reviews
-        and any(
-            (
+    # A finished label cycle counts for this change only when a report
+    # submitted at or after the label names it. An earlier approval stays
+    # approved when the later report is for a different change.
+    reports_after_label = []
+    if label_applied_dt is not None:
+        reports_after_label = [
+            review
+            for review in all_verify_reviews
+            if (
                 parse_iso(review.get("submitted_at"))
                 or datetime.min.replace(tzinfo=timezone.utc)
             )
             >= label_applied_dt
-            for review in all_verify_reviews
-        )
-    ):
+        ]
+    matching_after_label = [
+        review
+        for review in reports_after_label
+        if change_id and f"`{change_id}`" in (review.get("body") or "")
+    ]
+    if change_id and label_consumed and reports_after_label and not matching_after_label:
         label_applied_at = None
         label_removed_at = None
         label_applied_dt = None
@@ -1751,21 +1755,24 @@ def fetch_all(
     """Fetch a snapshot whose checks match the PR head.
 
     An explicit ``--head-sha`` is the caller's pin and is not revalidated.
-    Otherwise the head is read again after the snapshot. When it still
-    matches, that view's state and draft flag replace the snapshot's, so a
-    close or a draft conversion during the fetch is visible. Merge
-    metadata stays with the snapshot that merge_conflicts analyzed. A push
-    retries once; a second mismatch is transient so the old SHA is not
-    reported as the current head.
+    Otherwise the head and base are read again after the snapshot. When
+    both still match, that view's state and draft flag replace the
+    snapshot's, so a close or a draft conversion during the fetch is
+    visible. Merge metadata stays with the snapshot that merge_conflicts
+    analyzed. A move of either side retries once; a second mismatch is
+    transient so the old merge is not reported as current.
     """
 
     if head_sha_override:
         return _fetch_snapshot(pr_arg, head_sha_override)
 
+    def endpoints(pr: dict[str, Any]) -> tuple[str, str]:
+        return (pr.get("headRefOid") or "", pr.get("baseRefOid") or "")
+
     for _ in range(2):
         raw = _fetch_snapshot(pr_arg)
         current = pr_view(pr_arg)
-        if (current.get("headRefOid") or "") == (raw["pr"].get("headRefOid") or ""):
+        if endpoints(current) == endpoints(raw["pr"]):
             if current.get("number"):
                 raw["pr"] = {
                     **raw["pr"],
@@ -1776,7 +1783,7 @@ def fetch_all(
     raise TransientGhError(
         json.dumps(
             {
-                "error": "pr head changed during fetch",
+                "error": "pr head or base changed during fetch",
                 "pr": pr_arg,
                 "transient": True,
             }
