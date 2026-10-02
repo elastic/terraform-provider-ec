@@ -889,6 +889,47 @@ def test_required_passed_needs_unit_and_cla(cps):
     assert "CLA" in both["summary"]["checks"]["passedNames"]
 
 
+def test_unit_runs_from_two_suites_both_count(cps):
+    failed = _check_run("Unit", "failure")
+    failed["check_suite"] = {"id": 1}
+    failed["started_at"] = "2026-05-07T01:00:00Z"
+    pending = _check_run("Unit", None, status="in_progress")
+    pending["check_suite"] = {"id": 2}
+    pending["started_at"] = "2026-05-07T01:05:00Z"
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [failed, pending]
+    checks = cps.compute_payload(**kwargs)[0]["summary"]["checks"]
+    assert checks["failed"] == 1
+    assert checks["pending"] == 1
+
+
+def test_rerun_in_the_same_suite_keeps_the_newer_run(cps):
+    older = _check_run("Unit", "failure")
+    older["check_suite"] = {"id": 1}
+    older["started_at"] = "2026-05-07T01:00:00Z"
+    newer = _check_run("Unit", "success")
+    newer["check_suite"] = {"id": 1}
+    newer["started_at"] = "2026-05-07T01:10:00Z"
+    kwargs = _empty_kwargs()
+    kwargs["commit_check_run_data"] = [older, newer]
+    checks = cps.compute_payload(**kwargs)[0]["summary"]["checks"]
+    assert checks["failed"] == 0
+    assert checks["passedNames"] == ["Unit"]
+
+
+def test_repeated_status_context_keeps_the_newer(cps):
+    older = _status("CLA", "failure", "https://cla/old")
+    older["updated_at"] = "2026-05-07T01:00:00Z"
+    newer = _status("CLA", "success", "https://cla/new")
+    newer["updated_at"] = "2026-05-07T01:10:00Z"
+    kwargs = _empty_kwargs()
+    kwargs["commit_status_data"] = {"statuses": [older, newer]}
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    checks = cps.compute_payload(**kwargs)[0]["summary"]["checks"]
+    assert checks["failed"] == 0
+    assert checks["requiredPassed"] is True
+
+
 def test_head_sha_override_pins_commit_fetches(cps, monkeypatch):
     seen = {}
 

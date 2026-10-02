@@ -1160,23 +1160,32 @@ def compute_payload(
     pinned_to_commit = bool(pinned_combined or head_sha_override)
     canonical_checks = pinned_combined if pinned_to_commit else raw_pr_checks
 
-    # Deduplicate check runs by name, preferring the most recent one.
-    # This handles re-runs for the same commit where old runs remain in the API.
+    # Collapse reruns inside one check suite, and repeated status contexts
+    # by name. push and pull_request can both post Unit; keep each suite so
+    # a failing or pending run is not hidden by a newer sibling.
+    def dedup_key(check: dict[str, Any]) -> tuple[str, str]:
+        name = check_name(check) or ""
+        suite = check.get("check_suite")
+        suite_id = suite.get("id") if isinstance(suite, dict) else None
+        if suite_id is not None:
+            return (name, f"suite:{suite_id}")
+        return (name, "name")
+
     def deduplicate_checks(checks):
-        by_name = {}
+        by_key: dict[tuple[str, str], dict[str, Any]] = {}
         for c in checks:
-            name = check_name(c)
-            if name is None:
+            if check_name(c) is None:
                 continue
-            existing = by_name.get(name)
+            key = dedup_key(c)
+            existing = by_key.get(key)
             existing_ts = check_timestamp(existing) if existing else None
             candidate_ts = check_timestamp(c)
             if existing is None or (
                 candidate_ts is not None
                 and (existing_ts is None or candidate_ts > existing_ts)
             ):
-                by_name[name] = c
-        return list(by_name.values())
+                by_key[key] = c
+        return list(by_key.values())
 
     canonical_checks = deduplicate_checks(canonical_checks)
 

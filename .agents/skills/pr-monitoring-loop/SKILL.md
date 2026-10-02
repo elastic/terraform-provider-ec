@@ -18,7 +18,7 @@ The state file is optional. If you do not pass `--state-file`, the script auto-c
 
 This repo's CI is split:
 
-- **Auto-fixable** GitHub Actions jobs: `Unit` (`go.yml`: lint, docs, NOTICE, unit tests, example validation) and `Validate OpenSpecs`. A watcher may fix and push these when the fix is simple.
+- **Auto-fixable** GitHub Actions jobs: `Unit` (`go.yml`: lint, docs, NOTICE, unit tests, example validation) and `Validate OpenSpecs`. A watcher may fix and push these when the fix is simple. `go.yml` runs on both `push` and `pull_request`, so the same job name can come from two check suites. Each suite counts. A rerun inside one suite replaces that suite's older run. A failing or pending suite is not hidden by a newer sibling. Status contexts such as CLA and Buildkite still collapse to the newest entry for that name.
 - **Out of band** Buildkite commit statuses: `buildkite/terraform-provider-ec-acceptance` and, if it appears, `buildkite/terraform-provider-ec-release`. Report them on `checks.outOfBand`. On failure (`acceptance_failed`) return the item to the main agent for a human. Never edit code, never push, and never comment `buildkite test this` or `buildkite build this` — that retriggers a paid Elastic Cloud acceptance run.
 - **Unknown** failures (including `CLA`) go back to a human. Do not auto-fix them.
 
