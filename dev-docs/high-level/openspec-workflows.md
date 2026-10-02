@@ -26,9 +26,12 @@ the global *core* profile (propose/explore/apply/update/sync/archive) and would 
 `new-change` / `continue-change`. `.claude` is a symlink to `.agents`; `--tools claude` would
 write through that link and fight the `agents` tree.
 
-Until the `use_npx_openspec` hook (Phase 1.9), invoke the pinned CLI as `npx openspec` or
-`./node_modules/.bin/openspec` (after `make setup-openspec`). A bare `openspec` on PATH may be a
-different version than `package.json`.
+The `use_npx_openspec` hook (`.cursor/hooks.json`) rewrites a bare `openspec` in Cursor agent shell
+calls to `npx openspec`. Claude Code loads the same script from `.agents/settings.json`; the script
+rewrites only `tool_name` `Shell`, so a Claude `Bash` call is left unchanged. Human shells and CI
+keep invoking the pinned CLI as `npx openspec` or `./node_modules/.bin/openspec` (after
+`make setup-openspec`), or via `make check-openspec`. A bare `openspec` on PATH may be a different
+version than `package.json`.
 
 GitHub Agentic Workflows (`change-factory`, `verify-openspec`) land in later Phase 3–4 issues.
 The local loop and verify skills below are the implementation/verify layer those workflows reuse.

@@ -27,6 +27,11 @@ unit: _report_path
 ## Alias to "unit".
 tests: unit
 
+## Run hook JavaScript unit tests.
+.PHONY: hook-test
+hook-test:
+	@ node --test .agents/hooks/*.test.mjs
+
 .PHONY: testacc
 ## Runs the Terraform acceptance tests. Use TEST_NAME, TESTARGS, TEST_COUNT to control execution.
 testacc:
