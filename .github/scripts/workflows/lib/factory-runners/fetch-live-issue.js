@@ -2,15 +2,24 @@
  * Fetches the live issue title and body from the GitHub API (not the webhook payload).
  *
  * Outputs issue_number, issue_title, issue_body, and fetch_error are the raw API values.
- * This module does not sanitize them. Callers pass title and body through the sanitize
- * and write runners before an agent reads them, and do not expand issue_title or
- * issue_body inside a shell `run:` step.
+ * This module does not sanitize them. Callers pass the body through the sanitize and
+ * write runners before an agent reads it. The title is not written to disk here.
+ * Do not expand issue_title or issue_body inside a shell `run:` step.
  */
+
+// The whole string must be a safe positive integer.
+function positiveIssueNumber(raw) {
+  if (typeof raw !== 'string' || !/^[1-9][0-9]*$/.test(raw)) return 0;
+  const issueNumber = Number(raw);
+  if (!Number.isSafeInteger(issueNumber)) return 0;
+  return issueNumber;
+}
+
 module.exports = async function ({ github, context, core }) {
   const { owner, repo } = context.repo;
-  const issueNumber = parseInt(process.env.INPUT_ISSUE_NUMBER, 10);
+  const issueNumber = positiveIssueNumber(process.env.INPUT_ISSUE_NUMBER);
 
-  if (!issueNumber || issueNumber <= 0) {
+  if (!issueNumber) {
     core.setOutput('issue_number', '');
     core.setOutput('issue_title', '');
     core.setOutput('issue_body', '');

@@ -104,7 +104,7 @@ describe('fetch-live-issue', { concurrency: false }, () => {
   });
 
   test('rejects issue numbers that are not a positive integer', async () => {
-    const cases = [undefined, '', '0', '-3', 'nope'];
+    const cases = [undefined, '', '0', '-3', 'nope', '15oops', '15.9', '01', '1e2', ' 15', '9007199254740993'];
     for (const issueNumber of cases) {
       const { context, payloadReads } = contextWithUnreadPayload();
       const { outputs, failed, core } = mockCore();
