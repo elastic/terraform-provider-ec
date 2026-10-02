@@ -1594,6 +1594,64 @@ def test_watch_flags_are_mutually_exclusive(cps):
         cps.parse_args(["42", "--watch", "--watch-acceptance"])
 
 
+def test_watch_exits_blocked_when_the_pr_is_closed(cps, monkeypatch, capsys):
+    sleeps: list[float] = []
+
+    def fake_fetch(_pr, _head_sha=None):
+        return {"pr": {"number": 42}}
+
+    def fake_compute(**kwargs):
+        payload = {
+            "summary": {
+                "hasActionable": False,
+                "actionable": [],
+                "checks": {"outOfBand": []},
+                "pr": {"number": 42, "state": "CLOSED", "isDraft": False},
+            }
+        }
+        return payload, {"pr": 42}
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps, "compute_payload", fake_compute)
+    monkeypatch.setattr(cps.time, "sleep", lambda seconds: sleeps.append(seconds))
+    rc = cps.main(["42", "--watch", "--no-state", "--interval", "1", "--max-duration", "30"])
+    assert rc == cps.EXIT_OK
+    assert sleeps == []
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
+    assert lines[-1]["outcome"] == "blocked"
+
+
+def test_acceptance_watch_exits_blocked_when_the_pr_is_draft(cps, monkeypatch, capsys):
+    def fake_fetch(_pr, _head_sha=None):
+        return {"pr": {"number": 42}}
+
+    def fake_compute(**kwargs):
+        payload = {
+            "summary": {
+                "hasActionable": False,
+                "actionable": [],
+                "checks": {
+                    "outOfBand": [
+                        {
+                            "name": "buildkite/terraform-provider-ec-acceptance",
+                            "state": "pending",
+                        }
+                    ]
+                },
+                "pr": {"number": 42, "state": "OPEN", "isDraft": True},
+            }
+        }
+        return payload, {"pr": 42}
+
+    monkeypatch.setattr(cps, "fetch_all", fake_fetch)
+    monkeypatch.setattr(cps, "compute_payload", fake_compute)
+    monkeypatch.setattr(cps.time, "sleep", lambda _seconds: None)
+    rc = cps.main(["42", "--watch-acceptance", "--no-state", "--interval", "1", "--max-duration", "30"])
+    assert rc == cps.EXIT_OK
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line]
+    assert lines[-1]["outcome"] == "blocked"
+
+
 def test_watch_exits_on_first_actionable_tick(cps, monkeypatch, capsys):
     def fake_fetch(_pr, _head_sha=None):
         return {"pr": {"number": 42}}

@@ -2,7 +2,7 @@
 name: "pr-monitoring-loop"
 description: "Monitor GitHub pull requests through a subagent-based loop that watches CI checks, review comments, PR comments, review state, merge conflicts, and branch freshness. Use when a workflow reaches PR monitoring, CI polling, review feedback handling, or asks to keep a PR merge-ready."
 license: "MIT"
-compatibility: "Requires git, GitHub CLI, and permission to push fixes to the PR branch."
+compatibility: "Requires git, GitHub CLI, Python 3.10 or newer, and permission to push fixes to the PR branch."
 metadata:
   author: openspec
   version: "2.0"
@@ -148,7 +148,7 @@ Prefer `--watch` over hand-rolled sleep loops:
 - `--watch-acceptance` defaults to `--interval 300` and `--max-duration 10800`.
 - Always set `--max-duration` on the 60-second watch so the subagent can't run unbounded; size it to the expected window.
 
-`--watch` exits with code `0` on the first actionable tick (and prints a `{"final": true, "outcome": "actionable", ...}` line) and `124` on timeout. A transient `gh` failure prints a tick with `"transient": true` and the watch keeps polling until `--max-duration`, then exits `124`. A one-shot run exits `2` after its retry is exhausted. Each tick is one NDJSON line; the watcher should stream and react to those.
+`--watch` exits with code `0` on the first actionable tick (and prints a `{"final": true, "outcome": "actionable", ...}` line) and `124` on timeout. `--watch` and `--watch-acceptance` also exit `0` with `outcome` `blocked` on the first tick whose `pr.state` is not `OPEN` or whose `pr.isDraft` is true. Do not wait out the timeout after that. A transient `gh` failure prints a tick with `"transient": true` and the watch keeps polling until `--max-duration`, then exits `124`. A one-shot run exits `2` after its retry is exhausted. Each tick is one NDJSON line; the watcher should stream and react to those.
 
 After every push, restart the watch cycle for the new PR head SHA. The state file is updated automatically each tick. Without `--head-sha`, the script re-reads the PR head and base after the fetch. If either changed, it fetches once more; if either changed again, the tick is transient and is not a ready snapshot of the old merge. When the head and base still match, that view's `state` and `isDraft` replace the snapshot's, so a close or a draft conversion during the fetch is what the watcher sees. Merge metadata stays with the snapshot that the conflict check analyzed.
 

@@ -2068,6 +2068,23 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                 sort_keys=True,
             )
             print(tick_line, flush=True)
+            pr_summary = (payload.get("summary") or {}).get("pr") or {}
+            pr_state = pr_summary.get("state")
+            if pr_summary.get("isDraft") is True or (
+                pr_state and str(pr_state).upper() != "OPEN"
+            ):
+                print(
+                    json.dumps(
+                        {
+                            "final": True,
+                            "outcome": "blocked",
+                            "payload": focused,
+                        },
+                        sort_keys=True,
+                    ),
+                    flush=True,
+                )
+                return EXIT_OK
             if settled:
                 print(
                     json.dumps(
