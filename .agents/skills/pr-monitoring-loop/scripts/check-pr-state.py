@@ -1444,6 +1444,13 @@ def compute_payload(
         c.get("class") == "auto-fixable" and c["derived"]["passed"]
         for c in counted_checks
     )
+    # UNKNOWN/BLOCKED with no conflict is not a delegate during the verify
+    # wait. BEHIND, UNSTABLE, and a real conflict still block the label.
+    exempt_merge = (
+        actionable == ["merge_or_branch_state"]
+        and not has_merge_conflicts
+        and merge_state in {"UNKNOWN", "BLOCKED"}
+    )
     summary["reviews"]["verifyOpenspec"]["requiresOpenspecVerification"] = (
         change_named
         and verify_workflow_present
@@ -1451,7 +1458,7 @@ def compute_payload(
         and in_band_passed
         and summary["checks"]["failed"] == 0
         and summary["checks"]["pending"] == 0
-        and not actionable
+        and (not actionable or exempt_merge)
         and effective_decision != "CHANGES_REQUESTED"
     )
 

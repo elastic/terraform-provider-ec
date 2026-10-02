@@ -1322,6 +1322,32 @@ def test_verify_requires_change_workflow_and_visible_checks(cps):
     assert ready["summary"]["reviews"]["verifyOpenspec"]["requiresOpenspecVerification"] is True
 
 
+def test_unknown_merge_state_still_allows_verify(cps):
+    kwargs = _empty_kwargs()
+    kwargs["pr"] = _pr(mergeStateStatus="UNKNOWN")
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    payload, _ = cps.compute_payload(
+        **kwargs,
+        openspec_change="add-widget",
+        verify_workflow_present=True,
+    )
+    assert payload["summary"]["actionable"] == ["merge_or_branch_state"]
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["requiresOpenspecVerification"] is True
+
+
+def test_behind_branch_blocks_verify(cps):
+    kwargs = _empty_kwargs()
+    kwargs["pr"] = _pr(mergeStateStatus="BEHIND")
+    kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
+    payload, _ = cps.compute_payload(
+        **kwargs,
+        openspec_change="add-widget",
+        verify_workflow_present=True,
+    )
+    assert "merge_or_branch_state" in payload["summary"]["actionable"]
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["requiresOpenspecVerification"] is False
+
+
 def test_pr_checks_fallback_uses_bucket_and_link(cps):
     """`gh pr checks --json` has no conclusion or detailsUrl. Bucket and link are enough."""
 
