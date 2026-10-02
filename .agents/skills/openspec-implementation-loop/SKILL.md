@@ -30,7 +30,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
 8. Aggregate findings and fix; repeat until clean
 9. Push the branch to `origin`
 10. **Commit mode**: Watch GitHub Actions that run on a branch push (typically `Go`). Do not wait for `OpenSpec CI` — that workflow does not run on arbitrary branches. Surface Buildkite acceptance as out-of-band; never run or auto-fix it.
-    **PR mode**: Create a PR, then monitor GitHub Actions (including `OpenSpec CI` when present), reviews, and comments. Delegate to `pr-monitoring-loop` when that skill is installed; otherwise watch with `gh` as described in **PR mode** (body step 11).
+    **PR mode**: Create a PR, then monitor GitHub Actions (including `OpenSpec CI` when present), reviews, and comments. Delegate to `pr-monitoring-loop` when that skill is installed; that skill keeps a read-only watch until Buildkite acceptance finishes and never auto-fixes it. Otherwise watch with `gh` as described in **PR mode** (body step 11).
 11. Report final outcome
 
 **Steps**
@@ -387,7 +387,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - record the PR number or URL
     - **Changelog (user-facing only):** after the PR number is known, require `.changelog/{PR}.txt` per `CONTRIBUTING.md` (go-changelog fenced `release-note:…` block). Skip for docs/spec/skills/Makefile/CI-only. If missing, write it, commit, and push. Missing changelog on a user-facing PR is push-blocking for this step.
 
-    **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Do not restate those rules here.
+    **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Pass `--openspec-change <id>` only for the OpenSpec change this loop is driving. Do not restate those rules here.
 
     **Otherwise** (skill not installed yet), monitor with `gh` from this agent or a single watcher subagent:
     - poll **GitHub Actions** only: `Go` and `OpenSpec CI` (for example `gh run list` / `gh run watch` on those workflow names). Do **not** `gh pr checks --watch`, and do not wait for `buildkite/terraform-provider-ec-acceptance`. That check is required for merge; it does **not** block this loop.

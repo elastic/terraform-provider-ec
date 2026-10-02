@@ -55,6 +55,11 @@ jobs:
       run: make unit
       id: unit
 
+    - name: PR monitor script tests
+      run: |
+        python3 -m pip install --break-system-packages pytest
+        python3 -m pytest .agents/skills/pr-monitoring-loop/scripts/tests
+
     - name: Validate the examples
       run: make install validate-examples
       id: validate-examples
