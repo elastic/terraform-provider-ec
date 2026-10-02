@@ -122,6 +122,10 @@ class TransientGhError(RuntimeError):
     """Raised when a `gh` invocation fails after retries."""
 
 
+class UsageError(RuntimeError):
+    """Raised when the invocation cannot succeed by retrying."""
+
+
 def run_gh(
     args: list[str],
     *,
@@ -282,6 +286,27 @@ def repo_info() -> dict[str, str]:
     data = gh_json(["repo", "view", "--json", "owner,name"], default={})
     owner = data.get("owner", {})
     return {"owner": owner.get("login", ""), "name": data.get("name", "")}
+
+
+def require_checkout_repo(pr: dict[str, Any], repo: dict[str, str]) -> None:
+    """Reject a PR URL that points at a different repository.
+
+    `gh pr view <url>` follows a foreign URL, but the other fetches use this
+    checkout. A bare PR number is always this checkout.
+    """
+
+    parts = [part for part in (pr.get("url") or "").split("/") if part not in {"", "https:", "http:"}]
+    try:
+        host = parts.index("github.com")
+        owner, name = parts[host + 1], parts[host + 2]
+    except (ValueError, IndexError):
+        return
+    if owner.lower() == repo.get("owner", "").lower() and name.lower() == repo.get("name", "").lower():
+        return
+    raise UsageError(
+        f"PR {pr.get('url')} is in {owner}/{name}, but this checkout is "
+        f"{repo.get('owner')}/{repo.get('name')}. Pass a PR number or a URL for this repository."
+    )
 
 
 def pr_view(pr: str) -> dict[str, Any]:
@@ -842,14 +867,14 @@ def report_names_change(body: str, change_id: str) -> bool:
 def counts_toward_review_decision(
     review: dict[str, Any], openspec_change: Optional[str]
 ) -> bool:
-    """Human reviews always count. A verify report for another change id does not."""
+    """Human reviews always count. Verify reviews count only for the opted-in change."""
 
     if not is_verify_openspec_review(review):
         return True
     change_id = (openspec_change or "").strip()
-    if change_id and not report_names_change(review.get("body") or "", change_id):
+    if not change_id:
         return False
-    return True
+    return report_names_change(review.get("body") or "", change_id)
 
 
 def derive_verify_openspec(
@@ -1759,6 +1784,7 @@ def _fetch_snapshot(
                 }
             )
         )
+    require_checkout_repo(pr, repo)
 
     number = int(pr["number"])
     head_sha = head_sha_override or pr.get("headRefOid") or ""
@@ -1981,6 +2007,9 @@ def _ensure_state_path(
 def _run_single(args: argparse.Namespace, state_path: Optional[str]) -> int:
     try:
         raw = fetch_all(args.pr, args.head_sha)
+    except UsageError as exc:
+        print(json.dumps({"error": str(exc), "transient": False}, indent=2, sort_keys=True))
+        return 1
     except TransientGhError as exc:
         emit_transient(exc)
         return EXIT_TRANSIENT
@@ -2107,6 +2136,12 @@ def _run_watch(args: argparse.Namespace, state_path: Optional[str]) -> int:
                     flush=True,
                 )
                 return EXIT_OK
+        except UsageError as exc:
+            print(
+                json.dumps({"error": str(exc), "transient": False}, indent=2, sort_keys=True),
+                flush=True,
+            )
+            return 1
         except TransientGhError as exc:
             try:
                 err = json.loads(str(exc))

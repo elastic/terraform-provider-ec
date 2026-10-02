@@ -10,11 +10,11 @@ metadata:
 
 Run a reusable PR monitoring loop while keeping the main agent's context small.
 
-**Input**: A PR number or URL, plus any workflow-specific readiness criteria such as required labels, required approving bot, or timeout rules.
+**Input**: A PR number or URL for this checkout, plus any workflow-specific readiness criteria such as required labels, required approving bot, or timeout rules. A URL for another repository is rejected. The other fetches use this checkout, so a foreign URL would mix that PR's number with this repo.
 
 The state file is optional. If you do not pass `--state-file`, the script auto-creates one at `.agents/skills/pr-monitoring-loop/scripts/state/.pr-monitor-<pr>.json` (gitignored) on first run and reuses it on every subsequent call for the same PR. You can call the script directly with just a PR number and "new vs old" detection still works across invocations. Override `--state-file <path>` only when you need an isolated state file (for example, parallel watchers on different branches but the same PR number, or tests). Pass `--no-state` to disable persistence entirely (every comment will be reported as new every poll).
 
-`verify-openspec` behavior is opt-in. Do not add the `verify-openspec` label, wait for a verify approval review, or apply any OpenSpec-specific completion rule unless the caller explicitly asks for that behavior. When the caller does opt in, pass `--openspec-change <id>` for the single in-progress change. `requiresOpenspecVerification` stays false unless that flag is set and a verify-openspec workflow file exists under `.github/workflows/` (cp-hosted-team#4386). Do not apply the label when the boolean is false.
+`verify-openspec` behavior is opt-in. Do not add the `verify-openspec` label, wait for a verify approval review, or apply any OpenSpec-specific completion rule unless the caller explicitly asks for that behavior. Without `--openspec-change`, a verify review does not set `reviews.effectiveDecision`. When the caller does opt in, pass `--openspec-change <id>` for the single in-progress change. `requiresOpenspecVerification` stays false unless that flag is set and a verify-openspec workflow file exists under `.github/workflows/` (cp-hosted-team#4386). Do not apply the label when the boolean is false.
 
 This repo's CI is split:
 
@@ -257,7 +257,7 @@ Only when the caller explicitly requires `verify-openspec` approval:
 
 ## Resilience
 
-A one-shot run retries transient `gh` failures once with backoff, then exits with code `2` and prints a JSON body containing `"transient": true`. Treat that exit `2` as a retry only when the body has `"transient": true`. Any other exit `2` is an invocation error: return `blocked`. `--watch` and `--watch-acceptance` do not exit `2` on a transient failure. They print a transient tick and keep polling until `--max-duration`, then exit `124`. Escalate to `blocked` when a one-shot transient exit repeats. After acceptance has settled, a 124 with `lastTickTransient` true is a `timeout`, not `ready`. A 124 from the 60-second watch while acceptance is still missing or pending still starts `--watch-acceptance`.
+A one-shot run retries transient `gh` failures once with backoff, then exits with code `2` and prints a JSON body containing `"transient": true`. Treat that exit `2` as a retry only when the body has `"transient": true`. Any other exit `2` is an invocation error: return `blocked`. Exit `1` with `"transient": false` cannot succeed by retrying (a PR URL for another repository is one case): return `blocked`. `--watch` and `--watch-acceptance` return that same exit `1` immediately. `--watch` and `--watch-acceptance` do not exit `2` on a transient failure. They print a transient tick and keep polling until `--max-duration`, then exit `124`. Escalate to `blocked` when a one-shot transient exit repeats. After acceptance has settled, a 124 with `lastTickTransient` true is a `timeout`, not `ready`. A 124 from the 60-second watch while acceptance is still missing or pending still starts `--watch-acceptance`.
 
 ## Guardrails
 

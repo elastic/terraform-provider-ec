@@ -425,6 +425,83 @@ def test_human_changes_requested_survives_a_stale_verify_report(cps):
     assert "changes_requested" in payload["summary"]["actionable"]
 
 
+def test_verify_review_without_opt_in_does_not_set_the_decision(cps):
+    kwargs = _empty_kwargs()
+    kwargs["review_data"] = [_verify_review(7, "CHANGES_REQUESTED")]
+    payload, _ = cps.compute_payload(**kwargs)
+    assert payload["summary"]["reviews"]["effectiveDecision"] == "REVIEW_REQUIRED"
+    assert "changes_requested" not in payload["summary"]["actionable"]
+
+
+def test_foreign_pr_url_is_rejected(cps, monkeypatch, capsys):
+    def fail(*_args, **_kwargs):
+        raise AssertionError("fetched after a foreign url")
+
+    monkeypatch.setattr(
+        cps, "repo_info", lambda: {"owner": "elastic", "name": "terraform-provider-ec"}
+    )
+    monkeypatch.setattr(
+        cps,
+        "pr_view",
+        lambda _pr: {
+            "number": 9,
+            "url": "https://github.com/other/repo/pull/9",
+            "headRefOid": "abc",
+            "baseRefOid": "def",
+            "state": "OPEN",
+            "isDraft": False,
+        },
+    )
+    monkeypatch.setattr(cps, "pr_checks", fail)
+    monkeypatch.setattr(cps, "commit_check_runs", fail)
+    rc = cps.main(["https://github.com/other/repo/pull/9", "--no-state"])
+    assert rc == 1
+    err = json.loads(capsys.readouterr().out)
+    assert err["transient"] is False
+    assert "other/repo" in err["error"]
+
+
+def test_watch_rejects_a_foreign_pr_url_without_retrying(cps, monkeypatch):
+    sleeps: list[float] = []
+
+    monkeypatch.setattr(
+        cps, "repo_info", lambda: {"owner": "elastic", "name": "terraform-provider-ec"}
+    )
+    monkeypatch.setattr(
+        cps,
+        "pr_view",
+        lambda _pr: {
+            "number": 9,
+            "url": "https://github.com/other/repo/pull/9",
+            "headRefOid": "abc",
+            "baseRefOid": "def",
+            "state": "OPEN",
+            "isDraft": False,
+        },
+    )
+    monkeypatch.setattr(cps.time, "sleep", lambda seconds: sleeps.append(seconds))
+    rc = cps.main(
+        [
+            "https://github.com/other/repo/pull/9",
+            "--watch",
+            "--no-state",
+            "--interval",
+            "1",
+            "--max-duration",
+            "30",
+        ]
+    )
+    assert rc == 1
+    assert sleeps == []
+
+
+def test_checkout_pr_url_is_accepted(cps):
+    cps.require_checkout_repo(
+        {"url": "https://github.com/elastic/terraform-provider-ec/pull/1069"},
+        {"owner": "elastic", "name": "terraform-provider-ec"},
+    )
+
+
 def test_verify_report_for_another_change_does_not_set_the_decision(cps):
     kwargs = _empty_kwargs()
     kwargs["commit_check_run_data"] = [_check_run("Unit", "success")]
