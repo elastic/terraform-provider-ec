@@ -822,6 +822,23 @@ def is_verify_openspec_review(review: dict[str, Any]) -> bool:
     return any(marker in body for marker in VERIFY_OPENSPEC_REVIEW_BODY_MARKERS)
 
 
+def report_names_change(body: str, change_id: str) -> bool:
+    """True when a verify report is for this change.
+
+    openspec-verify-change posts `## Verification Report: <change-name>` with
+    no backticks. A backtick-wrapped id still counts.
+    """
+
+    if f"`{change_id}`" in body:
+        return True
+    prefix = "## Verification Report:"
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(prefix) and stripped[len(prefix) :].strip() == change_id:
+            return True
+    return False
+
+
 def counts_toward_review_decision(
     review: dict[str, Any], openspec_change: Optional[str]
 ) -> bool:
@@ -830,7 +847,7 @@ def counts_toward_review_decision(
     if not is_verify_openspec_review(review):
         return True
     change_id = (openspec_change or "").strip()
-    if change_id and f"`{change_id}`" not in (review.get("body") or ""):
+    if change_id and not report_names_change(review.get("body") or "", change_id):
         return False
     return True
 
@@ -888,7 +905,7 @@ def derive_verify_openspec(
     verify_reviews = [
         review
         for review in all_verify_reviews
-        if not change_id or f"`{change_id}`" in (review.get("body") or "")
+        if not change_id or report_names_change(review.get("body") or "", change_id)
     ]
 
     last_verify_review = verify_reviews[-1] if verify_reviews else None
@@ -935,7 +952,7 @@ def derive_verify_openspec(
     matching_after_label = [
         review
         for review in reports_after_label
-        if change_id and f"`{change_id}`" in (review.get("body") or "")
+        if change_id and report_names_change(review.get("body") or "", change_id)
     ]
     if change_id and label_consumed and reports_after_label and not matching_after_label:
         label_applied_at = None

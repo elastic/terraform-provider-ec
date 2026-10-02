@@ -597,6 +597,24 @@ def test_verify_approval_matches_the_requested_change(cps):
     assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "approved"
 
 
+def test_verify_approval_matches_the_documented_heading(cps):
+    kwargs = _empty_kwargs()
+    review = _verify_review(7, "APPROVED")
+    review["body"] = "## Verification Report: add-widget\n\n### Summary\n"
+    kwargs["review_data"] = [review]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="add-widget")
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "approved"
+
+
+def test_verify_heading_for_a_longer_name_does_not_match(cps):
+    kwargs = _empty_kwargs()
+    review = _verify_review(7, "APPROVED")
+    review["body"] = "## Verification Report: add-widget-extra\n\n### Summary\n"
+    kwargs["review_data"] = [review]
+    payload, _ = cps.compute_payload(**kwargs, openspec_change="add-widget")
+    assert payload["summary"]["reviews"]["verifyOpenspec"]["runState"] == "none"
+
+
 def test_consumed_label_for_another_change_does_not_block_this_one(cps):
     kwargs = _empty_kwargs()
     kwargs["event_data"] = [
