@@ -13,6 +13,7 @@ function validateDispatchInputs({ dispatchIssueNumber, currentRepository }) {
     !dispatchIssueNumber ||
     Number.isNaN(num) ||
     num <= 0 ||
+    !Number.isSafeInteger(num) ||
     String(num) !== String(dispatchIssueNumber).trim()
   ) {
     return {

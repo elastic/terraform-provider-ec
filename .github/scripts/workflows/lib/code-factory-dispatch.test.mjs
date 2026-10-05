@@ -66,6 +66,28 @@ test('validateDispatchInputs rejects decimal issue number', () => {
   assert.match(result.event_eligible_reason, /not a valid positive integer/);
 });
 
+test('validateDispatchInputs accepts the maximum safe integer', () => {
+  const issueNumber = String(Number.MAX_SAFE_INTEGER);
+  const result = validateDispatchInputs({
+    dispatchIssueNumber: issueNumber,
+    currentRepository: 'elastic/terraform-provider-ec',
+  });
+
+  assert.equal(result.event_eligible, true);
+  assert.equal(result.issue_number, Number.MAX_SAFE_INTEGER);
+});
+
+test('validateDispatchInputs rejects an issue number above the safe integer range', () => {
+  const result = validateDispatchInputs({
+    dispatchIssueNumber: '9007199254740992',
+    currentRepository: 'elastic/terraform-provider-ec',
+  });
+
+  assert.equal(result.event_eligible, false);
+  assert.equal(result.issue_number, undefined);
+  assert.match(result.event_eligible_reason, /not a valid positive integer/);
+});
+
 test('validateDispatchInputs rejects issue number with leading zeros mismatch', () => {
   const result = validateDispatchInputs({
     dispatchIssueNumber: '007',

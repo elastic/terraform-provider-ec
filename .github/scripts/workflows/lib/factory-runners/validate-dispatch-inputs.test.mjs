@@ -40,6 +40,13 @@ describe('validate-dispatch-inputs', () => {
     assert.match(outputs.event_eligible_reason, /elastic\/terraform-provider-ec/);
   });
 
+  test('rejects an issue number above the safe integer range', async () => {
+    const outputs = await run('9007199254740992');
+    assert.equal(outputs.event_eligible, 'false');
+    assert.equal(outputs.issue_number, undefined);
+    assert.match(outputs.event_eligible_reason, /not a valid positive integer/);
+  });
+
   for (const issueNumber of ['', '0', '-1', 'abc', '3.14', '007']) {
     test(`rejects issue_number ${JSON.stringify(issueNumber)}`, async () => {
       const outputs = await run(issueNumber);
