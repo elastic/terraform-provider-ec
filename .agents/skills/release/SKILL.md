@@ -30,7 +30,9 @@ If the user provided an explicit version like `X.Y.Z`, use that. Otherwise deter
    gh pr list --repo elastic/terraform-provider-ec --state merged --search "merged:>YYYY-MM-DD" --json number,title,mergedAt --limit 100
    ```
 4. Filter out dependency updates (`fix(deps):`, `chore(deps):`), CI changes (`chore:` actions/checkout, actions/setup-go, etc.), and the previous release prep PR.
-5. For each remaining PR, check if it has a `.changelog/` entry. Flag PRs that look user-facing but have no changelog entry.
+5. For each remaining PR, check its `.changelog/` entry. Flag PRs that look user-facing but have
+   only `release-note:none` (or no entry at all — pre-check PRs). `release-note:none` is the
+   correct signal for non-user-facing work; it must not appear under FEATURES/ENHANCEMENTS/BUG FIXES.
 
 ## Step 2: Build changelog
 
@@ -56,7 +58,9 @@ After the user approves the changelog:
    - All files under `examples/` that declare the `ec` provider
    You can use `./scripts/update-provider-version.sh X.Y.Z` for this.
 4. Write the new changelog section to `CHANGELOG.md` (prepend before the previous release)
-5. Delete the `.changelog/*.txt` files that were consolidated
+5. Delete **all** `.changelog/*.txt` files, including `release-note:none` fragments (they are not
+   rendered into `CHANGELOG.md` but would otherwise accumulate on `master`). Release-prep PRs also
+   need their own `.changelog/{PR}.txt` with `release-note:none`.
 6. Commit with message: `Prepare X.Y.Z release`
 
 ## Step 4: Create PR

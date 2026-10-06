@@ -1,0 +1,76 @@
+# PR Changelog Check
+#
+# Enforces the cloud provider's per-PR changelog contract:
+#   .changelog/{PR}.txt with a fenced ```release-note:<type>``` block.
+#
+# PR-number timing: the filename is the pull request number, which is unknown
+# until the PR is opened. Authors (and agents) add the file in a follow-up
+# commit after the number exists — see CONTRIBUTING.md. The first `opened`
+# run is therefore expected to fail until that commit lands. Draft PRs are
+# not exempt: with types limited to opened/synchronize/reopened, a
+# draft-exempt job would never re-report when the draft is marked ready.
+#
+# Renovate bots are skipped (they automerge and cannot know the PR number at
+# commit time). Keep the login list in sync with approve-renovate.yml.
+#
+# Trust model: this job compiles and runs PR-provided source via
+# `go run ./scripts/changelogcheck`, the same model as `make unit` in go.yml.
+# A fork can edit the checker; do not switch to pull_request_target to "fix"
+# that — write access on a fork PR is worse. Do not add a `paths:` filter:
+# a required check that never reports blocks merge forever. The
+# `branches: [master]` filter has the same failure mode if this check is made
+# required on any other target branch — keep the filter and the ruleset in sync.
+name: PR Changelog Check
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-changelog-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-changelog:
+    name: Check PR changelog
+    runs-on: ubuntu-latest
+    # Match pull_request.user.login (PR author), not sender: renovate-notice.yml
+    # may push a NOTICE commit as a different bot without changing user.login.
+    # Login list must stay aligned with approve-renovate.yml.
+    if: |
+      github.event.pull_request.user.login != 'elastic-renovate-prod[bot]' &&
+      github.event.pull_request.user.login != 'elastic-renovate-dev[bot]'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Validate .changelog/{PR}.txt
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # pull_request checkout is the merge of the PR into the base; both
+          # parents must exist (fetch-depth: 2). HEAD^2 asserts that shape so a
+          # non-merge checkout cannot silently shrink the added-path set.
+          if ! git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+            echo "::error::expected a two-parent merge commit (HEAD^2 missing); checkout needs fetch-depth: 2 on pull_request"
+            exit 1
+          fi
+          # --no-renames: a git mv into .changelog/ must still count as an add.
+          # -c core.quotePath=false: keep non-ASCII paths unquoted for the checker.
+          git -c core.quotePath=false diff --name-only --no-renames --diff-filter=A HEAD^1 HEAD \
+            | go run ./scripts/changelogcheck -pr "${PR_NUMBER}"

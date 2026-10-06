@@ -47,7 +47,10 @@ For the benefit of all and to maintain consistency, we have come up with some si
     suite runs on Buildkite for every PR (`buildkite/terraform-provider-ec-acceptance`); do not use
     `make unit testacc` as a local default (that is the full acc suite).
 
-  - After you've opened your Pull request and have a PR number, add a changelog entry for any user-facing change — see [Changelog](#changelog) below.
+  - After you've opened your Pull request and have a PR number, add a changelog entry at
+    `.changelog/{PR}.txt` — see [Changelog](#changelog) below. The `PR Changelog Check` workflow
+    requires this file on every non-Renovate PR (use `release-note:none` when the change is not
+    user-facing). The first `opened` run fails until the follow-up commit lands.
   
   - Use the provided PR template, and assign any labels which may fit your PR.
   
@@ -84,7 +87,11 @@ Closes #1234
 
 ### Changelog
 
-Every user-facing change needs a changelog entry in its PR. Add one file per PR at `.changelog/{PR}.txt`, where `{PR}` is the pull request number; this repo uses HashiCorp's [go-changelog](https://github.com/hashicorp/go-changelog) format. Each file holds one or more fenced blocks tagged with a category, for example:
+Every PR needs a changelog entry at `.changelog/{PR}.txt`, where `{PR}` is the pull request
+number (unknown until the PR is opened — add the file in a **follow-up commit** after you have
+the number; do not invent a placeholder filename). This repo uses HashiCorp's
+[go-changelog](https://github.com/hashicorp/go-changelog) format. Each file holds one or more
+fenced blocks tagged with a category, for example:
 
 ````
 ```release-note:bug
@@ -92,9 +99,20 @@ resource/ec_deployment_traffic_filter: Fix "Provider produced inconsistent resul
 ```
 ````
 
-Skip the file for changes that aren't user-facing (CI-only tweaks, dependency bumps, internal refactors).
+For changes that aren't user-facing (CI-only tweaks, dependency bumps, internal refactors, docs /
+OpenSpec / skills), use an empty `release-note:none` block:
 
-The categories recognized by `scripts/changelog.tmpl` are:
+````
+```release-note:none
+```
+````
+
+The `PR Changelog Check` GitHub Actions workflow enforces the file and a recognized tag on every
+non-Renovate PR. Renovate bots are exempt (they automerge and cannot know the PR number at commit
+time). Draft PRs are not exempt. The check goes red on the initial `opened` event until the
+follow-up commit adds the file.
+
+The categories recognized by `scripts/changelog.tmpl` (and by the CI check) are:
 
 | Category | Consolidated heading |
 | --- | --- |
@@ -106,8 +124,12 @@ The categories recognized by `scripts/changelog.tmpl` are:
 | `release-note:new-guide` | FEATURES |
 | `release-note:enhancement` | ENHANCEMENTS |
 | `release-note:bug` | BUG FIXES |
+| `release-note:none` | _(omitted from `CHANGELOG.md`)_ |
 
-At release time these per-PR files are consolidated into `CHANGELOG.md` via `make changelog` (`scripts/generate-changelog.sh`); the consolidated fragment files are then removed as part of release prep.
+At release time user-facing per-PR files are consolidated into `CHANGELOG.md` via `make changelog`
+(`scripts/generate-changelog.sh`). Delete **all** `.changelog/*.txt` fragments during release prep,
+including `release-note:none` ones — they are not rendered into `CHANGELOG.md` but would otherwise
+accumulate on `master`.
 
 ## Setting up a dev environment
 

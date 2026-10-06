@@ -75,8 +75,9 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 6. Run the **targeted** acceptance test(s) covering your change —
    `make testacc TEST_NAME='^TestAcc…$'` — then `make sweep` any leftovers. Skip if the change has no
    runtime behavior (docs/config only).
-7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
-   [`contributing.md`](./contributing.md)).
+7. After the PR number is known, add `.changelog/{PR}.txt` (one file per PR; user-facing
+   `release-note:…`, or `release-note:none` for non-user-facing). See
+   [`contributing.md`](./contributing.md).
 
 The **full** acceptance suite runs on Buildkite for every PR and must pass before merge; run only
 the targeted cases locally. Agents never run acceptance tests. The implementation loop never sets

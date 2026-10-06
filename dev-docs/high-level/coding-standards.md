@@ -121,8 +121,9 @@ and archived into `openspec/specs/` after the implementation lands.
 
 ## Changelog
 
-User-facing changes require a per-PR entry at `.changelog/{PR}.txt` (the PR number, not a shared
-CHANGELOG file). See [`./contributing.md`](./contributing.md) for the entry format.
+Every PR requires a per-PR entry at `.changelog/{PR}.txt` (the PR number, not a shared CHANGELOG
+file) after the PR is opened. Use a user-facing `release-note:…` tag, or `release-note:none` when
+the change is not user-facing. See [`./contributing.md`](./contributing.md) for the entry format.
 
 ## GitHub Agentic Workflow authoring (`imports:`)
 

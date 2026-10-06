@@ -13,14 +13,14 @@ This change does not touch Plugin Framework resource implementations, `cloud-sdk
 
 **Non-Goals:**
 
-- Schema, CRUD, examples, changelog, or canonical `openspec/specs/`.
+- Schema, CRUD, examples, or canonical `openspec/specs/`.
 - A Terraform resource-behavior spec (`Resource implementation:`). Specs are skipped (`skip_specs: true`).
 
 ## Decisions
 
 - **Edit templates, then `env -u TF_ACC make docs-generate`**, not `docs/` by hand. Alternative: patch generated markdown only — rejected because CI regenerates and fails on a dirty `docs/` tree, and `dev-docs/high-level/documentation.md` forbids hand-edits.
 - **No Go / schema change.** Alternative: also drop preview language from schema `Description` fields — not needed; the heading lives only in the templates.
-- **Skip `.changelog/`.** Docs-only PRs skip it per `openspec/config.yaml` and this change's delivery is commit-only with no PR number.
+- **`.changelog/` with `release-note:none`.** Docs-only PRs still need the fragment once a PR number exists (`openspec/config.yaml`). Commit-only delivery without a PR number can defer it.
 
 ## Risks / Trade-offs
 
