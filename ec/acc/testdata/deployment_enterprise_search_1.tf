@@ -11,6 +11,7 @@ resource "ec_deployment" "enterprise_search" {
 
   elasticsearch = {
     hot = {
+      size        = "2g"
       autoscaling = {}
     }
   }

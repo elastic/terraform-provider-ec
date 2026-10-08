@@ -11,6 +11,7 @@ resource "ec_deployment" "defaults" {
 
   elasticsearch = {
     hot = {
+      size        = "2g"
       autoscaling = {}
     }
   }
