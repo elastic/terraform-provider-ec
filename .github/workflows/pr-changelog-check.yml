@@ -70,11 +70,11 @@ jobs:
             echo "::error::expected a two-parent merge commit (HEAD^2 missing); checkout needs fetch-depth: 2 on pull_request"
             exit 1
           fi
-          # name-status with rename detection (-M): expected fragment must be
-          # status A, or R/C onto {PR}.txt only when the new body is solely
+          # name-status -z -M: NUL-delimited fields so paths with tabs/newlines
+          # are not C-quoted past the checker. Expected fragment must be status
+          # A, or R/C onto {PR}.txt only when the new body is solely
           # release-note:none (release-prep pairs a deleted none with the new
           # none as R100). Renaming a user-facing note onto {PR}.txt fails.
           # Stray R/A under .changelog/ fails. Deletions are ignored.
-          # -c core.quotePath=false keeps non-ASCII paths unquoted.
-          git -c core.quotePath=false diff --name-status -M HEAD^1 HEAD \
+          git diff --name-status -z -M HEAD^1 HEAD \
             | go run ./scripts/changelogcheck -pr "${PR_NUMBER}"

@@ -22,17 +22,16 @@
 //
 //	changelogcheck -pr <number> [-entry <path>]
 //
-// Stdin is `git diff --name-status` output (TAB-separated status lines). Exit
-// status is 1 when validation fails.
+// Stdin is `git diff --name-status -z` output (NUL-delimited status/path
+// fields). Exit status is 1 when validation fails.
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -97,35 +96,44 @@ func readEntry(path string) (string, bool, error) {
 	return string(b), true, nil
 }
 
-// readNameStatus parses `git diff --name-status` lines.
-// Formats: "A\tpath", "M\tpath", "D\tpath", "R100\told\tnew", "C100\told\tnew".
+// readNameStatus parses `git diff --name-status -z` NUL-delimited fields.
+// Records are: status\0path\0 or, for renames/copies, status\0old\0new\0.
 func readNameStatus(r io.Reader) ([]Change, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) == 0 {
+		return nil, nil
+	}
+	raw := bytes.Split(data, []byte{0})
+	fields := make([]string, 0, len(raw))
+	for _, p := range raw {
+		if len(p) == 0 {
+			continue // trailing NUL produces a final empty field
+		}
+		fields = append(fields, string(p))
+	}
+
 	var changes []Change
-	sc := bufio.NewScanner(r)
-	sc.Buffer(make([]byte, 0, 64*1024), 1024*1024)
-	for sc.Scan() {
-		line := strings.TrimSpace(sc.Text())
-		if line == "" {
-			continue
-		}
-		fields := strings.Split(line, "\t")
-		if len(fields) < 2 {
-			return nil, fmt.Errorf("invalid name-status line %q", line)
-		}
-		statusField := fields[0]
-		if statusField == "" {
-			return nil, fmt.Errorf("invalid name-status line %q", line)
-		}
+	for i := 0; i < len(fields); {
+		statusField := fields[i]
+		i++
 		status := statusField[0]
 		switch status {
 		case 'R', 'C':
-			if len(fields) < 3 {
-				return nil, fmt.Errorf("invalid rename/copy name-status line %q", line)
+			if i+1 >= len(fields) {
+				return nil, fmt.Errorf("invalid rename/copy name-status near %q", statusField)
 			}
-			changes = append(changes, Change{Status: status, From: fields[1], Path: fields[2]})
+			changes = append(changes, Change{Status: status, From: fields[i], Path: fields[i+1]})
+			i += 2
 		default:
-			changes = append(changes, Change{Status: status, Path: fields[1]})
+			if i >= len(fields) {
+				return nil, fmt.Errorf("invalid name-status near %q: missing path", statusField)
+			}
+			changes = append(changes, Change{Status: status, Path: fields[i]})
+			i++
 		}
 	}
-	return changes, sc.Err()
+	return changes, nil
 }

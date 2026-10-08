@@ -28,6 +28,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func nulStatus(parts ...string) string {
+	return strings.Join(parts, "\x00") + "\x00"
+}
+
 func TestRun(t *testing.T) {
 	dir := t.TempDir()
 	entry := filepath.Join(dir, "42.txt")
@@ -37,7 +41,7 @@ func TestRun(t *testing.T) {
 		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
 		code := run(
 			[]string{"-pr", "42", "-entry", entry},
-			strings.NewReader("A\t.changelog/42.txt\n"),
+			strings.NewReader(nulStatus("A", ".changelog/42.txt")),
 			stdout,
 			stderr,
 		)
@@ -62,7 +66,7 @@ func TestRun(t *testing.T) {
 		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
 		code := run(
 			[]string{"-pr", "42", "-entry", entry},
-			strings.NewReader("R100\t.changelog/1052.txt\t.changelog/42.txt\n"),
+			strings.NewReader(nulStatus("R100", ".changelog/1052.txt", ".changelog/42.txt")),
 			stdout,
 			stderr,
 		)
@@ -76,12 +80,24 @@ func TestRun(t *testing.T) {
 		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
 		code := run(
 			[]string{"-pr", "42", "-entry", bugEntry},
-			strings.NewReader("R100\t.changelog/1057.txt\t.changelog/42.txt\n"),
+			strings.NewReader(nulStatus("R100", ".changelog/1057.txt", ".changelog/42.txt")),
 			stdout,
 			stderr,
 		)
 		assert.Equal(t, 1, code)
 		assert.Contains(t, stderr.String(), "not a rename/copy")
+	})
+
+	t.Run("path with tab under .changelog is checked", func(t *testing.T) {
+		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
+		code := run(
+			[]string{"-pr", "42", "-entry", entry},
+			strings.NewReader(nulStatus("A", ".changelog/42.txt", "A", ".changelog/extra\tfile")),
+			stdout,
+			stderr,
+		)
+		assert.Equal(t, 1, code)
+		assert.Contains(t, stderr.String(), "unexpected path added under .changelog/: .changelog/extra\tfile")
 	})
 
 	t.Run("bad pr flag", func(t *testing.T) {
@@ -93,7 +109,9 @@ func TestRun(t *testing.T) {
 }
 
 func TestReadNameStatus(t *testing.T) {
-	changes, err := readNameStatus(strings.NewReader("A\t.changelog/1.txt\nR100\told.txt\t.changelog/2.txt\nD\t.changelog/3.txt\n"))
+	changes, err := readNameStatus(strings.NewReader(
+		nulStatus("A", ".changelog/1.txt", "R100", "old.txt", ".changelog/2.txt", "D", ".changelog/3.txt"),
+	))
 	require.NoError(t, err)
 	require.Len(t, changes, 3)
 	assert.Equal(t, Change{Status: 'A', Path: ".changelog/1.txt"}, changes[0])

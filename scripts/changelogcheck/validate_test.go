@@ -146,6 +146,16 @@ func TestValidate(t *testing.T) {
 			wantOK: true,
 		},
 		{
+			name: "none with non-empty body rejected",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: "```release-note:none\naccidentally user-facing\n```\n",
+				Changes:   []Change{pr42},
+			},
+			wantErr: []string{"release-note:none must have an empty body"},
+		},
+		{
 			name: "realistic bug fragment",
 			opts: Options{
 				PRNumber:  1057,

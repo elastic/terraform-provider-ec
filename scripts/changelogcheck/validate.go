@@ -142,7 +142,13 @@ func Validate(opts Options) []string {
 			errs = append(errs, fmt.Sprintf("%s: unknown release-note type %q (allowed: %s)", expected, typ, allowedTypeList()))
 			continue
 		}
-		if typ != "none" && strings.TrimSpace(note.Body) == "" {
+		body := strings.TrimSpace(note.Body)
+		switch {
+		case typ == "none" && body != "":
+			// none is an empty marker (CONTRIBUTING.md); a non-empty body would
+			// pass CI then vanish from CHANGELOG.md because the template omits it.
+			errs = append(errs, fmt.Sprintf("%s: release-note:none must have an empty body", expected))
+		case typ != "none" && body == "":
 			errs = append(errs, fmt.Sprintf("%s: release-note:%s block has an empty body", expected, typ))
 		}
 	}
