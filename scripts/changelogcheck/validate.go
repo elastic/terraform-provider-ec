@@ -46,15 +46,23 @@ var allowedTypes = map[string]struct{}{
 	"none":            {},
 }
 
-// Options configures Validate.
-type Options struct {
-	PRNumber   int
-	EntryBody  string
-	HasEntry   bool
-	AddedPaths []string
+// Change is one path change from `git diff --name-status`.
+// For renames/copies, Path is the destination and From is the source.
+type Change struct {
+	Status byte // A, C, D, M, R, …
+	Path   string
+	From   string
 }
 
-// Validate checks the PR changelog fragment and any paths added under .changelog/.
+// Options configures Validate.
+type Options struct {
+	PRNumber  int
+	EntryBody string
+	HasEntry  bool
+	Changes   []Change
+}
+
+// Validate checks the PR changelog fragment and .changelog/ path changes.
 // It returns human-readable error messages; an empty slice means pass.
 func Validate(opts Options) []string {
 	var errs []string
@@ -65,20 +73,40 @@ func Validate(opts Options) []string {
 
 	expected := fmt.Sprintf(".changelog/%d.txt", opts.PRNumber)
 
+	// Git's default rename detection pairs a deleted blob with an identical
+	// added blob as R100. Release-prep deletes pending release-note:none
+	// fragments and adds a new none for the prep PR — that looks like a
+	// rename. Allow R/C onto the expected path only when the new fragment is
+	// solely release-note:none. Renaming a user-facing note onto {PR}.txt
+	// (stealing another PR's release note) still fails.
+	onlyNone := opts.HasEntry && entryIsOnlyNone(opts.EntryBody)
+
+	expectedIntroduced := false
 	var unexpected []string
-	for _, p := range opts.AddedPaths {
-		p = strings.TrimSpace(p)
-		if p == "" {
+	for _, ch := range opts.Changes {
+		path := normalizePath(ch.Path)
+		if path == "" || !strings.HasPrefix(path, ".changelog/") {
 			continue
 		}
-		p = strings.TrimPrefix(p, "./")
-		if !strings.HasPrefix(p, ".changelog/") {
-			continue
+		switch ch.Status {
+		case 'A':
+			if path == expected {
+				expectedIntroduced = true
+				continue
+			}
+			unexpected = append(unexpected, path)
+		case 'R', 'C':
+			if path == expected {
+				if onlyNone {
+					expectedIntroduced = true
+					continue
+				}
+				from := normalizePath(ch.From)
+				errs = append(errs, fmt.Sprintf("%s must be a new file (git status A), not a rename/copy from %s", expected, from))
+				continue
+			}
+			unexpected = append(unexpected, path)
 		}
-		if p == expected {
-			continue
-		}
-		unexpected = append(unexpected, p)
 	}
 	sort.Strings(unexpected)
 	for _, p := range unexpected {
@@ -87,6 +115,10 @@ func Validate(opts Options) []string {
 
 	if !opts.HasEntry {
 		errs = append(errs, fmt.Sprintf("missing %s — add it in a follow-up commit after the PR number is known (see CONTRIBUTING.md)", expected))
+		return errs
+	}
+	if !expectedIntroduced {
+		errs = append(errs, fmt.Sprintf("%s must be newly added in this PR (git status A), or a rename/copy of a release-note:none fragment during release prep", expected))
 		return errs
 	}
 
@@ -116,6 +148,27 @@ func Validate(opts Options) []string {
 	}
 
 	return errs
+}
+
+func normalizePath(p string) string {
+	p = strings.TrimSpace(p)
+	p = strings.TrimPrefix(p, "./")
+	return p
+}
+
+// entryIsOnlyNone reports whether every parsed release-note block is type none
+// (the release-prep / non-user-facing marker).
+func entryIsOnlyNone(body string) bool {
+	notes := changelog.NotesFromEntry(changelog.Entry{Body: body})
+	if len(notes) == 0 {
+		return false
+	}
+	for _, note := range notes {
+		if strings.TrimSpace(note.Type) != "none" {
+			return false
+		}
+	}
+	return true
 }
 
 func allowedTypeList() string {

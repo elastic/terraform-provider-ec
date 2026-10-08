@@ -70,7 +70,11 @@ jobs:
             echo "::error::expected a two-parent merge commit (HEAD^2 missing); checkout needs fetch-depth: 2 on pull_request"
             exit 1
           fi
-          # --no-renames: a git mv into .changelog/ must still count as an add.
-          # -c core.quotePath=false: keep non-ASCII paths unquoted for the checker.
-          git -c core.quotePath=false diff --name-only --no-renames --diff-filter=A HEAD^1 HEAD \
+          # name-status with rename detection (-M): expected fragment must be
+          # status A, or R/C onto {PR}.txt only when the new body is solely
+          # release-note:none (release-prep pairs a deleted none with the new
+          # none as R100). Renaming a user-facing note onto {PR}.txt fails.
+          # Stray R/A under .changelog/ fails. Deletions are ignored.
+          # -c core.quotePath=false keeps non-ASCII paths unquoted.
+          git -c core.quotePath=false diff --name-status -M HEAD^1 HEAD \
             | go run ./scripts/changelogcheck -pr "${PR_NUMBER}"

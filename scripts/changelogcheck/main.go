@@ -22,9 +22,8 @@
 //
 //	changelogcheck -pr <number> [-entry <path>]
 //
-// Added paths under .changelog/ are read from stdin (one path per line), typically
-// from `git diff --name-only --diff-filter=A HEAD^1 HEAD`. Exit status is 1 when
-// validation fails.
+// Stdin is `git diff --name-status` output (TAB-separated status lines). Exit
+// status is 1 when validation fails.
 package main
 
 import (
@@ -58,9 +57,9 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		entryPath = fmt.Sprintf(".changelog/%d.txt", *pr)
 	}
 
-	added, err := readLines(stdin)
+	changes, err := readNameStatus(stdin)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "changelogcheck: read added paths: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "changelogcheck: read name-status: %v\n", err)
 		return 2
 	}
 
@@ -71,10 +70,10 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	errs := Validate(Options{
-		PRNumber:   *pr,
-		EntryBody:  body,
-		HasEntry:   hasEntry,
-		AddedPaths: added,
+		PRNumber:  *pr,
+		EntryBody: body,
+		HasEntry:  hasEntry,
+		Changes:   changes,
 	})
 	if len(errs) == 0 {
 		_, _ = fmt.Fprintf(stdout, "changelogcheck: %s ok\n", entryPath)
@@ -98,16 +97,35 @@ func readEntry(path string) (string, bool, error) {
 	return string(b), true, nil
 }
 
-func readLines(r io.Reader) ([]string, error) {
-	var lines []string
+// readNameStatus parses `git diff --name-status` lines.
+// Formats: "A\tpath", "M\tpath", "D\tpath", "R100\told\tnew", "C100\told\tnew".
+func readNameStatus(r io.Reader) ([]Change, error) {
+	var changes []Change
 	sc := bufio.NewScanner(r)
-	// git path lists are short; 1 MiB per line is plenty.
 	sc.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for sc.Scan() {
 		line := strings.TrimSpace(sc.Text())
-		if line != "" {
-			lines = append(lines, line)
+		if line == "" {
+			continue
+		}
+		fields := strings.Split(line, "\t")
+		if len(fields) < 2 {
+			return nil, fmt.Errorf("invalid name-status line %q", line)
+		}
+		statusField := fields[0]
+		if statusField == "" {
+			return nil, fmt.Errorf("invalid name-status line %q", line)
+		}
+		status := statusField[0]
+		switch status {
+		case 'R', 'C':
+			if len(fields) < 3 {
+				return nil, fmt.Errorf("invalid rename/copy name-status line %q", line)
+			}
+			changes = append(changes, Change{Status: status, From: fields[1], Path: fields[2]})
+		default:
+			changes = append(changes, Change{Status: status, Path: fields[1]})
 		}
 	}
-	return lines, sc.Err()
+	return changes, sc.Err()
 }

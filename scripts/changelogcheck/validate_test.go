@@ -29,6 +29,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func add(path string) Change { return Change{Status: 'A', Path: path} }
+
 func TestValidate(t *testing.T) {
 	// Inline sample matching a real historical fragment shape. Do not read
 	// .changelog/*.txt from disk: release prep deletes those files and would
@@ -36,6 +38,8 @@ func TestValidate(t *testing.T) {
 	goldenBug := "```release-note:bug\n" +
 		"resource/ec_deployment: Use the deployment template Kibana size and zone count when `kibana` is set without those attributes, instead of clamping to 1g and 1 zone.\n" +
 		"```\n"
+	noneBody := "```release-note:none\n```\n"
+	pr42 := add(".changelog/42.txt")
 
 	tests := []struct {
 		name    string
@@ -66,6 +70,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "just some text\n",
+				Changes:   []Change{pr42},
 			},
 			wantErr: []string{"no ```release-note:<type> fenced block found"},
 		},
@@ -75,6 +80,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note:\nbody\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantErr: []string{"missing a type"},
 		},
@@ -84,6 +90,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note\nbody\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantErr: []string{"missing a type"},
 		},
@@ -93,6 +100,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```releasenote:bug\nfix it\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantErr: []string{"hyphenated"},
 		},
@@ -103,6 +111,7 @@ func TestValidate(t *testing.T) {
 				HasEntry: true,
 				EntryBody: "Do not use the unhyphenated releasenote spelling.\n" +
 					"```release-note:bug\nfix it\n```\n",
+				Changes: []Change{pr42},
 			},
 			wantOK: true,
 		},
@@ -112,16 +121,17 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note:bug\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantErr: []string{"empty body"},
 		},
 		{
 			name: "none with empty body ok",
 			opts: Options{
-				PRNumber:   42,
-				HasEntry:   true,
-				EntryBody:  "```release-note:none\n```\n",
-				AddedPaths: []string{".changelog/42.txt"},
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes:   []Change{pr42},
 			},
 			wantOK: true,
 		},
@@ -131,16 +141,17 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note:none\n\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantOK: true,
 		},
 		{
 			name: "realistic bug fragment",
 			opts: Options{
-				PRNumber:   1057,
-				HasEntry:   true,
-				EntryBody:  goldenBug,
-				AddedPaths: []string{".changelog/1057.txt"},
+				PRNumber:  1057,
+				HasEntry:  true,
+				EntryBody: goldenBug,
+				Changes:   []Change{add(".changelog/1057.txt")},
 			},
 			wantOK: true,
 		},
@@ -150,6 +161,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note:enhancement\r\nresource/ec_deployment: Add thing\r\n```\r\n",
+				Changes:   []Change{pr42},
 			},
 			wantOK: true,
 		},
@@ -160,50 +172,124 @@ func TestValidate(t *testing.T) {
 				HasEntry: true,
 				EntryBody: "```release-note:bug\nfix a\n```\n" +
 					"```release-note:enhancement\nadd b\n```\n",
+				Changes: []Change{pr42},
 			},
 			wantOK: true,
 		},
 		{
 			name: "extra added path any extension",
 			opts: Options{
-				PRNumber:   42,
-				HasEntry:   true,
-				EntryBody:  "```release-note:none\n```\n",
-				AddedPaths: []string{".changelog/42.txt", ".changelog/notes.md"},
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes:   []Change{pr42, add(".changelog/notes.md")},
 			},
 			wantErr: []string{"unexpected path added under .changelog/: .changelog/notes.md"},
 		},
 		{
 			name: "wrong filename added",
 			opts: Options{
-				PRNumber:   42,
-				HasEntry:   true,
-				EntryBody:  "```release-note:none\n```\n",
-				AddedPaths: []string{".changelog/999.txt"},
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes:   []Change{add(".changelog/999.txt")},
 			},
-			wantErr: []string{"unexpected path added under .changelog/: .changelog/999.txt"},
+			wantErr: []string{
+				"unexpected path added under .changelog/: .changelog/999.txt",
+				"must be newly added",
+			},
 		},
 		{
 			name: "non-changelog added paths ignored",
 			opts: Options{
-				PRNumber:   42,
-				HasEntry:   true,
-				EntryBody:  "```release-note:none\n```\n",
-				AddedPaths: []string{"README.md", "scripts/changelogcheck/main.go"},
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					add("README.md"),
+					add("scripts/changelogcheck/main.go"),
+				},
 			},
 			wantOK: true,
 		},
 		{
 			name: "missing entry still reports unexpected paths",
 			opts: Options{
-				PRNumber:   42,
-				HasEntry:   false,
-				AddedPaths: []string{".changelog/notes.md"},
+				PRNumber: 42,
+				HasEntry: false,
+				Changes:  []Change{add(".changelog/notes.md")},
 			},
 			wantErr: []string{
 				"unexpected path added under .changelog/: .changelog/notes.md",
 				"missing .changelog/42.txt",
 			},
+		},
+		{
+			name: "rename of user-facing fragment to expected fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: "```release-note:bug\nstolen note\n```\n",
+				Changes: []Change{{
+					Status: 'R',
+					From:   ".changelog/1057.txt",
+					Path:   ".changelog/42.txt",
+				}},
+			},
+			wantErr: []string{"not a rename/copy from .changelog/1057.txt"},
+		},
+		{
+			name: "rename into .changelog stray path fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					{Status: 'R', From: "docs/evil.md", Path: ".changelog/evil.md"},
+				},
+			},
+			wantErr: []string{"unexpected path added under .changelog/: .changelog/evil.md"},
+		},
+		{
+			// Real git diff --name-status for release-prep: exact-rename detection
+			// pairs a deleted release-note:none blob with the new identical none.
+			name: "release-prep none rename from deleted none ok",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					{Status: 'D', Path: ".changelog/1057.txt"},
+					{Status: 'R', From: ".changelog/1052.txt", Path: ".changelog/42.txt"},
+				},
+			},
+			wantOK: true,
+		},
+		{
+			name: "release-prep pure add of none with deletions ok",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					{Status: 'D', Path: ".changelog/1052.txt"},
+					{Status: 'D', Path: ".changelog/1057.txt"},
+					pr42,
+				},
+			},
+			wantOK: true,
+		},
+		{
+			name: "file present but not in diff fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes:   nil,
+			},
+			wantErr: []string{"must be newly added"},
 		},
 	}
 
@@ -228,6 +314,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note:" + typ + "\nbody\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantErr: []string{`unknown release-note type "` + typ + `"`},
 		})
@@ -246,6 +333,7 @@ func TestValidate(t *testing.T) {
 				PRNumber:  42,
 				HasEntry:  true,
 				EntryBody: "```release-note:" + typ + "\nsome note body\n```\n",
+				Changes:   []Change{pr42},
 			},
 			wantOK: true,
 		})

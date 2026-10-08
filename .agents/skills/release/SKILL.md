@@ -68,6 +68,15 @@ After the user approves the changelog:
 Ask the user before creating the PR. When approved:
 - Push the branch
 - Create PR with title `Prepare X.Y.Z release` targeting `master`
+- **Changelog follow-up (required):** after the PR number is known, write
+  `.changelog/{PR}.txt` with a `release-note:none` fence, commit it, and push.
+  Step 3 deletes every fragment before the number exists, so without this
+  follow-up commit `Check PR changelog` stays red. Example body:
+
+  ````
+  ```release-note:none
+  ```
+  ````
 
 ## Step 5: Tag (after merge)
 
