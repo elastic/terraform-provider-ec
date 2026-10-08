@@ -137,7 +137,54 @@ EOF
 assert_fails "missing required name fails" \
 	"${tmpdir}/scripts/check-label-taxonomy.sh"
 
-# Live repo check (real files).
+# Pipe in a table field must fail (would break the generated Markdown table).
+write_fixture_manifest
+jq '.labels[0].applied_by = "bot|classifier"' \
+	"${tmpdir}/.github/label-taxonomy.json" >"${tmpdir}/pipe.json"
+mv "${tmpdir}/pipe.json" "${tmpdir}/.github/label-taxonomy.json"
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+<!-- END LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "pipe in applied_by fails" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+assert_fails "write refused when manifest invalid" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
+
+# Newline in a table field must fail (internal).
+write_fixture_manifest
+jq '.labels[0].category = "a\nb"' \
+	"${tmpdir}/.github/label-taxonomy.json" >"${tmpdir}/nl.json"
+mv "${tmpdir}/nl.json" "${tmpdir}/.github/label-taxonomy.json"
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+<!-- END LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "newline in category fails" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+
+# Trailing newline must also fail — $(jq -r) would strip it in a shell-side check.
+write_fixture_manifest
+jq '.labels[0].category = ("routing" + "\n")' \
+	"${tmpdir}/.github/label-taxonomy.json" >"${tmpdir}/trail.json"
+mv "${tmpdir}/trail.json" "${tmpdir}/.github/label-taxonomy.json"
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+<!-- END LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "trailing newline in category fails check" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+assert_fails "trailing newline refuses --write" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
+
+# Live repo check (real files). Do not call `make check-label-taxonomy` here —
+# that target also runs this self-test and would recurse.
 assert_ok "live repository check" "${check}"
 
 if [[ "${fail}" -ne 0 ]]; then

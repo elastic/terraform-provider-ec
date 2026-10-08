@@ -4,6 +4,7 @@
 .PHONY: check-label-taxonomy
 check-label-taxonomy:
 	@ ./scripts/check-label-taxonomy.sh
+	@ ./scripts/check-label-taxonomy_test.sh
 
 ## Regenerate the label table in dev-docs/high-level/label-taxonomy.md from the manifest
 .PHONY: gen-label-taxonomy

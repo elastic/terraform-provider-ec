@@ -49,6 +49,25 @@ if ! jq -e . "${MANIFEST}" >/dev/null 2>&1; then
 	exit 1
 fi
 
+# Fields interpolated into the Markdown table must not break cells.
+# Test in jq (not via $(...)): command substitution strips trailing newlines and
+# would let values like "routing\n" pass a shell-side check.
+bad_md="$(jq -r '
+  .labels[]
+  | . as $l
+  | ["name","category","applied_by","lifecycle","description"][]
+  | . as $f
+  | ($l[$f] // "")
+  | select(type == "string" and test("[\n|]"))
+  | "\($l.name // "(missing name)"): \($f) must not contain newlines or \"|\""
+' "${MANIFEST}")"
+if [[ -n "${bad_md}" ]]; then
+	while IFS= read -r msg; do
+		[[ -z "${msg}" ]] && continue
+		err "label ${msg}"
+	done <<<"${bad_md}"
+fi
+
 # Required field presence and description length (GitHub limit is 100 characters).
 while IFS= read -r row; do
 	name="$(jq -r '.name // empty' <<<"${row}")"
@@ -78,8 +97,6 @@ while IFS= read -r row; do
 		err "label ${name}: missing description"
 	elif ((${#desc} > 100)); then
 		err "label ${name}: description is ${#desc} characters (GitHub limit 100)"
-	elif [[ "${desc}" == *$'\n'* || "${desc}" == *'|'* ]]; then
-		err "label ${name}: description must not contain newlines or '|'"
 	fi
 done < <(jq -c '.labels[]' "${MANIFEST}")
 
@@ -124,6 +141,10 @@ actual="$(awk -v b="${BEGIN_MARKER}" -v e="${END_MARKER}" '
 ' "${DOC}")"
 
 if [[ "${WRITE}" -eq 1 ]]; then
+	if [[ "${fail}" -ne 0 ]]; then
+		echo "error: refusing --write because the manifest failed validation" >&2
+		exit 1
+	fi
 	tmp="$(mktemp)"
 	table_file="$(mktemp)"
 	printf '%s\n' "${expected}" >"${table_file}"
@@ -132,6 +153,13 @@ if [[ "${WRITE}" -eq 1 ]]; then
 		$0 == e {skip=0; print; next}
 		!skip {print}
 	' "${DOC}" >"${tmp}"
+	# Preserve the doc's mode bits (mktemp files are often 0600).
+	# Prefer GNU `stat -c` first so Linux CI/devs get a real octal mode; macOS
+	# rejects -c and falls through to BSD `stat -f '%Lp'`.
+	mode="$(stat -c '%a' "${DOC}" 2>/dev/null || stat -f '%Lp' "${DOC}" 2>/dev/null || true)"
+	if [[ -n "${mode}" && "${mode}" =~ ^[0-7]{3,4}$ ]]; then
+		chmod "${mode}" "${tmp}" || true
+	fi
 	mv "${tmp}" "${DOC}"
 	rm -f "${table_file}"
 	echo "-> Wrote label table into ${DOC}"
