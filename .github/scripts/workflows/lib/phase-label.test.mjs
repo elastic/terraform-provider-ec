@@ -37,6 +37,41 @@ test('setPhaseLabel returns phase_label_set false when phaseLabelName is empty',
   );
 });
 
+test('setPhaseLabel rejects labels that are not phase-*', async () => {
+  let addCalled = false;
+  const mockGithub = {
+    rest: {
+      issues: {
+        addLabels: async () => {
+          addCalled = true;
+          return {};
+        },
+      },
+    },
+  };
+  const result = await setPhaseLabel({
+    github: mockGithub,
+    context: { repo: { owner: 'owner', repo: 'repo' } },
+    issueNumber: 42,
+    phaseLabelName: 'bug',
+  });
+  assert.equal(result.phase_label_set, false);
+  assert.equal(result.phase_label_name, 'bug');
+  assert.equal(addCalled, false);
+  assert.ok(result.reason.includes('phase-'));
+});
+
+test('setPhaseLabel rejects bare phase- prefix without a suffix', async () => {
+  const result = await setPhaseLabel({
+    github: {},
+    context: { repo: { owner: 'owner', repo: 'repo' } },
+    issueNumber: 42,
+    phaseLabelName: 'phase-',
+  });
+  assert.equal(result.phase_label_set, false);
+  assert.ok(result.reason.includes('phase-'));
+});
+
 test('setPhaseLabel adds label and returns true when no stale labels exist', async () => {
   const addedLabels = [];
   const mockGithub = {

@@ -127,6 +127,30 @@ test('parseTemporaryIdMap throws for entry with decimal number', () => {
   cleanup();
 });
 
+test('parseTemporaryIdMap throws for issue numbers outside the safe integer range', () => {
+  // JSON.parse rounds 9007199254740993 → 9007199254740992; require safe integers
+  // so we do not silently dispatch the wrong issue.
+  const { path, cleanup } = withTempFile(
+    'map.json',
+    '{"issue-1":{"repo":"elastic/terraform-provider-ec","number":9007199254740993}}'
+  );
+  assert.throws(() => parseTemporaryIdMap(path), /invalid number/);
+  cleanup();
+});
+
+test('parseTemporaryIdMap accepts Number.MAX_SAFE_INTEGER', () => {
+  const { path, cleanup } = withTempFile(
+    'map.json',
+    JSON.stringify({
+      'issue-1': { repo: 'elastic/terraform-provider-ec', number: Number.MAX_SAFE_INTEGER },
+    })
+  );
+  const entries = parseTemporaryIdMap(path);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].number, Number.MAX_SAFE_INTEGER);
+  cleanup();
+});
+
 test('parseTemporaryIdMap throws for entry that is a primitive', () => {
   const { path, cleanup } = withTempFile(
     'map.json',

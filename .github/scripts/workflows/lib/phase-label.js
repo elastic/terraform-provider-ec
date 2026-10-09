@@ -24,6 +24,14 @@ async function setPhaseLabel({ github, context, issueNumber, phaseLabelName, cor
       reason: 'No phase label name provided',
     };
   }
+  if (!label.startsWith('phase-') || label === 'phase-') {
+    return {
+      phase_label_set: false,
+      phase_label_name: label,
+      stale_labels_removed: [],
+      reason: `Phase label name must start with "phase-" and include a suffix, got: ${label}`,
+    };
+  }
 
   try {
     await github.rest.issues.addLabels({

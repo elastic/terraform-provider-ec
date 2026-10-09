@@ -47,6 +47,24 @@ test('computeIssueSlots rejects invalid label', () => {
   );
 });
 
+test('computeIssueSlots rejects non-string label (undefined must not coerce to "undefined")', () => {
+  assert.throws(
+    () => computeIssueSlots({ label: undefined, issueCap: 3, openIssueCount: 0 }),
+    /non-empty string/,
+  );
+});
+
+test('computeIssueSlots rejects empty or null issueCap (must not coerce to 0)', () => {
+  assert.throws(
+    () => computeIssueSlots({ label: 'schema-coverage', issueCap: '', openIssueCount: 0 }),
+    /non-negative integer/,
+  );
+  assert.throws(
+    () => computeIssueSlots({ label: 'schema-coverage', issueCap: null, openIssueCount: 0 }),
+    /non-negative integer/,
+  );
+});
+
 test('computeIssueSlots works for semantic-refactor bucket', () => {
   const result = computeIssueSlots({
     label: 'semantic-refactor',
