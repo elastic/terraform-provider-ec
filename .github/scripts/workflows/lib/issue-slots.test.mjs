@@ -65,6 +65,17 @@ test('computeIssueSlots rejects empty or null issueCap (must not coerce to 0)', 
   );
 });
 
+test('computeIssueSlots rejects boolean and whitespace-only issueCap', () => {
+  assert.throws(
+    () => computeIssueSlots({ label: 'schema-coverage', issueCap: true, openIssueCount: 0 }),
+    /non-negative integer/,
+  );
+  assert.throws(
+    () => computeIssueSlots({ label: 'schema-coverage', issueCap: '   ', openIssueCount: 0 }),
+    /non-negative integer/,
+  );
+});
+
 test('computeIssueSlots works for semantic-refactor bucket', () => {
   const result = computeIssueSlots({
     label: 'semantic-refactor',

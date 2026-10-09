@@ -12,9 +12,13 @@ function computeIssueSlots({ label, issueCap, openIssueCount }) {
     throw new Error('issue slot label must be a non-empty string');
   }
 
-  // Reject empty/null/undefined before Number(): Number('') and Number(null)
-  // are 0, which would look like a valid zero-slot result.
-  if (issueCap === '' || issueCap === null || issueCap === undefined) {
+  // Only number | non-blank string. Number(true) === 1 and Number('  ') === 0
+  // would otherwise look like valid caps.
+  if (typeof issueCap === 'string') {
+    if (issueCap.trim() === '') {
+      throw new Error(`issue cap must be a non-negative integer, got: ${issueCap}`);
+    }
+  } else if (typeof issueCap !== 'number') {
     throw new Error(`issue cap must be a non-negative integer, got: ${issueCap}`);
   }
   const cap = Number(issueCap);
