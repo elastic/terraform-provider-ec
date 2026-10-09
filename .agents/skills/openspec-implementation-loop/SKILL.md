@@ -301,7 +301,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - The human reported that the named local `TestAcc…` cases **failed** (fix code; do not open a PR on a known-red targeted run). Credential, quota, and outage reports are not push-blocking.
    - `openspec-verify-change` CRITICAL issues
    - Critical code-review findings that are actual defects
-   - A user-facing change with no `.changelog/{PR}.txt` after the PR number is known (PR mode, or commit-only when the branch already has an open PR). Docs/spec/skills/Makefile/CI-only are exempt.
+   - No `.changelog/{PR}.txt` after the PR number is known (PR mode, or commit-only when the branch already has an open PR). Non-user-facing work must still add the file with `release-note:none`.
 
    **Not push-blocking** (report in the final summary; do not loop):
    - `openspec-verify-change` WARNINGs, including acc-only scenario coverage when no covering `TestAcc…` exists or the human skipped the PR-create confirm
@@ -336,7 +336,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
    - `git status` must be clean. If files belonging to this change are still dirty (including generated output from `make gen` / `make build`), commit them and rerun the affected 7b targets first. If dirty paths are unrelated, stop and ask. Do not push an incomplete tree.
    - Inspect the **unpushed** path set. If `git rev-parse --abbrev-ref @{u}` succeeds, use `git diff --name-only @{u}...HEAD`. Otherwise use `git diff --name-only ${FORK}...HEAD` (fork point from step 2). Stop and ask if that range includes paths that are clearly outside this change's scope.
    - verify the branch is still not `master`, `main`, or detached
-   - **Changelog:** skip `.changelog/{PR}.txt` for docs/spec/skills/Makefile/CI-only (not user-facing). If the current branch already has an open PR (`gh pr view --json number`), apply the same `.changelog/{PR}.txt` gate as step 11 even in **commit-only** mode. Otherwise, for user-facing work in commit-only mode, note that the file is required once a PR number exists; do not invent a PR number.
+   - **Changelog:** every PR needs `.changelog/{PR}.txt` after the number is known — a rendered `release-note:…` for user-facing work, or `release-note:none` for docs/spec/skills/Makefile/CI-only. If the current branch already has an open PR (`gh pr view --json number`), apply the same `.changelog/{PR}.txt` gate as step 11 even in **commit-only** mode. Otherwise note that the file is required once a PR number exists; do not invent a PR number.
    - push the current branch to `origin`
    - use upstream tracking if needed
 
@@ -385,7 +385,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - **Targeted acc confirm (covering `TestAcc…` names from 7b.1 only).** AskUserQuestion (or equivalent) **before** `gh pr create`. Recommended option: **I ran the named cases locally and they passed.** Other option: **skip — I will wait on Buildkite.** Call out that skip means the next check is the ~2h paid suite. Do **not** run `make testacc`. Do not parse their terminal; take their word. If they say the cases **failed**, do not create the PR (step 8: fix first, or they may skip). If 7b.1 printed no names, do not ask.
     - use `gh pr create` (or equivalent) with an appropriate title and body tied to the OpenSpec change
     - record the PR number or URL
-    - **Changelog (user-facing only):** after the PR number is known, require `.changelog/{PR}.txt` per `CONTRIBUTING.md` (go-changelog fenced `release-note:…` block). Skip for docs/spec/skills/Makefile/CI-only. If missing, write it, commit, and push. Missing changelog on a user-facing PR is push-blocking for this step.
+    - **Changelog:** after the PR number is known, require `.changelog/{PR}.txt` per `CONTRIBUTING.md` (go-changelog fenced `release-note:…` block, or `release-note:none` for docs/spec/skills/Makefile/CI-only). If missing, write it, commit, and push. Missing changelog is push-blocking for this step.
 
     **If `.agents/skills/pr-monitoring-loop/SKILL.md` exists**, delegate PR monitoring to that skill for the rest of this step (watcher/delegate subagents, state file, `verify-openspec` opt-in). Pass `--openspec-change <id>` only for the OpenSpec change this loop is driving. Do not restate those rules here.
 
@@ -410,7 +410,7 @@ This skill is **hand-maintained** (not emitted by `make gen-openspec-skills`). K
     - top-level tasks completed in the loop
     - commits created during the loop
     - local validation run during the loop (`make docs-generate` when schemas/templates/examples changed, `make notice`, `make lint`, `make build`, `make unit`, `make check-openspec` when `openspec/` changed, and `make install validate-examples` when a Terraform entity or examples/schemas changed)
-    - changelog: `.changelog/{PR}.txt` present, skipped (not user-facing), or deferred (commit-only, no PR number yet)
+    - changelog: `.changelog/{PR}.txt` present (user-facing tag or `release-note:none`), or deferred (commit-only, no PR number yet)
     - targeted acc: n/a (no runtime / no covering `TestAcc…`), human confirmed local named run, or human skipped (Buildkite); never imply the loop ran acc or the full suite
     - tests or coverage checks used
     - final GitHub Actions state (and PR link if PR mode); Buildkite acc status if known
@@ -450,7 +450,7 @@ For the **inline** strategy, the orchestrator fills the implementor and validati
 - After a GitHub Actions failure, rerun steps 7–8 before the next push
 - Run reviewers in parallel whenever possible
 - Prefer actionable findings over style nitpicks
-- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push. Push-blocking is the step 8 list: failed 7b (including dirty generated docs/`NOTICE`), a human-reported failed local targeted acc run, verify CRITICALs, critical code-review defects, and a missing `.changelog/{PR}.txt` when a PR number is known on a user-facing change.
+- `openspec-verify-change` WARNINGs and SUGGESTIONs do not block push. Push-blocking is the step 8 list: failed 7b (including dirty generated docs/`NOTICE`), a human-reported failed local targeted acc run, verify CRITICALs, critical code-review defects, and a missing `.changelog/{PR}.txt` when a PR number is known (user-facing tag or `release-note:none`).
 - Feed local review and commit-mode **GitHub Actions** failures back into the loop instead of fixing them ad hoc outside the loop. Do not feed Buildkite acc failures into an auto-fix loop.
 - Keep commit sizes small and purpose-specific
 - Stop and ask the user if the process becomes ambiguous or stuck

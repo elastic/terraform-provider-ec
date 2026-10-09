@@ -36,3 +36,4 @@
 - [ ] I have updated the documentation accordingly
 - [ ] I have added tests to cover my changes
 - [ ] All new and existing tests passed
+- [ ] I added `.changelog/{PR}.txt` after the PR number was known (`release-note:…` or `release-note:none`)

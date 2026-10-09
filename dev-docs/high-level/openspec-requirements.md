@@ -119,8 +119,9 @@ These apply to every spec in this repo and to any later change that implements o
   they MUST NOT require an agent to execute `make testacc`. The implementation loop never sets
   `TF_ACC`; in PR mode it recommends the human run named `TestAcc…` cases locally and confirms
   before `gh pr create`. apply, verify-change, and CI reuse never set `TF_ACC`.
-- User-facing implementation PRs add `.changelog/{PR}.txt` (not a PR-body changelog block). Spec /
-  docs-only PRs skip it. See [`contributing.md`](./contributing.md).
+- Every PR adds `.changelog/{PR}.txt` after the PR number is known (not a PR-body changelog block).
+  User-facing work uses a rendered `release-note:…` tag; spec / docs / CI-only PRs use
+  `release-note:none`. See [`contributing.md`](./contributing.md).
 - `make check-openspec` is **not** part of `make lint`. CI runs it in
   [`.github/workflows/openspec.yml`](../../.github/workflows/openspec.yml).
 

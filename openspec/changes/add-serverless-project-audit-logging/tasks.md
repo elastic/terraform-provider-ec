@@ -15,7 +15,7 @@
 ## 4. Docs and changelog
 
 - [ ] 4.1 Run `env -u TF_ACC make docs-generate` and `make tfproviderdocs`. Verify `docs/resources/elasticsearch_project.md`, `docs/resources/observability_project.md`, and `docs/resources/security_project.md` document `monitoring.logging.audit`, including `ignore_filter_ids` and computed `destination.status`.
-- [ ] 4.2 Add `.changelog/{PR}.txt` for the user-facing audit configuration, using the implementation PR number. State that audit logging configured outside Terraform is removed on the next apply unless the configuration includes `monitoring.logging.audit`, and list any user-visible schema drift the ref bump in 1.2 regenerated (compare the generated `*_resource_gen.go` files before and after). Verify the file exists and follows `dev-docs/high-level/contributing.md`. Skip this file on a spec-only review PR.
+- [ ] 4.2 Add `.changelog/{PR}.txt` using the PR number. For the user-facing implementation PR, use a rendered `release-note:…` tag: state that audit logging configured outside Terraform is removed on the next apply unless the configuration includes `monitoring.logging.audit`, and list any user-visible schema drift the ref bump in 1.2 regenerated (compare the generated `*_resource_gen.go` files before and after). A spec-only review PR still needs the file, with `release-note:none`. Verify the file exists and follows `dev-docs/high-level/contributing.md`.
 - [ ] 4.3 Run `env -u TF_ACC make lint`, `env -u TF_ACC make build`, `env -u TF_ACC make unit`, `env -u TF_ACC make notice`, `env -u TF_ACC make install validate-examples`, and `env -u TF_ACC make check-openspec`. Verify each exits 0. Do not set `TF_ACC` and do not run `make testacc`.
 
 ## 5. Human acceptance

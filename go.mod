@@ -7,6 +7,7 @@ require (
 	github.com/elastic/cloud-sdk-go v1.25.0
 	github.com/go-openapi/runtime v0.32.5
 	github.com/go-openapi/strfmt v0.27.0
+	github.com/hashicorp/go-changelog v0.0.0-20260618104510-8d5140f40227
 	github.com/hashicorp/terraform-plugin-codegen-framework v0.4.1
 	github.com/hashicorp/terraform-plugin-codegen-openapi v0.3.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
@@ -232,7 +233,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
 	github.com/hashicorp/cli v1.1.7 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-changelog v0.0.0-20260618104510-8d5140f40227 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-cty v1.5.0 // indirect
