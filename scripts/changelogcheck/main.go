@@ -28,6 +28,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -64,6 +65,11 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	body, hasEntry, err := readEntry(entryPath)
 	if err != nil {
+		var nr errNonRegular
+		if errors.As(err, &nr) {
+			_, _ = fmt.Fprintf(stderr, "::error::%s\n", nr.Error())
+			return 1
+		}
 		_, _ = fmt.Fprintf(stderr, "changelogcheck: read %s: %v\n", entryPath, err)
 		return 2
 	}
@@ -85,12 +91,25 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return 1
 }
 
+type errNonRegular struct{ path string }
+
+func (e errNonRegular) Error() string {
+	return fmt.Sprintf("%s must be a regular file (not a symlink or other special file)", e.path)
+}
+
 func readEntry(path string) (string, bool, error) {
-	b, err := os.ReadFile(path)
+	fi, err := os.Lstat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", false, nil
 		}
+		return "", false, err
+	}
+	if !fi.Mode().IsRegular() {
+		return "", false, errNonRegular{path: path}
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
 		return "", false, err
 	}
 	return string(b), true, nil

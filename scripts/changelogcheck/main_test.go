@@ -114,6 +114,24 @@ func TestRun(t *testing.T) {
 		assert.Contains(t, stderr.String(), "unexpected path added under .changelog/: .changelog/extra\tfile")
 	})
 
+	t.Run("symlink entry is rejected", func(t *testing.T) {
+		target := filepath.Join(dir, "real.txt")
+		require.NoError(t, os.WriteFile(target, []byte("```release-note:none\n```\n"), 0o644))
+		link := filepath.Join(dir, "link.txt")
+		require.NoError(t, os.Symlink(target, link))
+
+		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
+		code := run(
+			[]string{"-pr", "42", "-entry", link},
+			strings.NewReader(nulStatus("A", ".changelog/42.txt")),
+			stdout,
+			stderr,
+		)
+		assert.Equal(t, 1, code)
+		assert.Contains(t, stderr.String(), "::error::")
+		assert.Contains(t, stderr.String(), "must be a regular file")
+	})
+
 	t.Run("bad pr flag", func(t *testing.T) {
 		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
 		code := run([]string{"-pr", "0"}, strings.NewReader(""), stdout, stderr)
