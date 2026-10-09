@@ -115,6 +115,27 @@ test('selectChangeFromFiles rejects renamed status under active changes', () => 
   );
 });
 
+test('selectChangeFromFiles rejects rename out of an active change via previous_filename', () => {
+  assert.deepEqual(
+    selectChangeFromFiles([
+      {
+        filename: 'docs/moved.md',
+        previous_filename: 'openspec/changes/example/tasks.md',
+        status: 'renamed',
+      },
+      {
+        filename: 'openspec/changes/example/proposal.md',
+        status: 'modified',
+      },
+    ]),
+    {
+      ...ineligibleBase,
+      selection_reason:
+        'Unsupported file status under openspec/changes/: docs/moved.md (renamed)',
+    }
+  );
+});
+
 test('selectChangeFromFiles rejects removed status under active changes', () => {
   assert.deepEqual(
     selectChangeFromFiles([

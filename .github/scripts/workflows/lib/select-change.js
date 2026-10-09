@@ -13,10 +13,24 @@ function ineligible(selection_reason) {
   };
 }
 
-function selectChangeFromFiles(files) {
-  const relevantFiles = files.filter(
-    file => CHANGE_PATTERN.test(file.filename) && !ARCHIVE_PATTERN.test(file.filename)
+/**
+ * Paths on a PR file that can place it under an active (non-archive) change.
+ * Includes previous_filename so a rename out of openspec/changes/<id>/ is not missed.
+ * @param {{ filename: string, previous_filename?: string }} file
+ * @returns {string[]}
+ */
+function activeChangePaths(file) {
+  const paths = [file.filename];
+  if (typeof file.previous_filename === 'string' && file.previous_filename) {
+    paths.push(file.previous_filename);
+  }
+  return paths.filter(
+    (path) => CHANGE_PATTERN.test(path) && !ARCHIVE_PATTERN.test(path),
   );
+}
+
+function selectChangeFromFiles(files) {
+  const relevantFiles = files.filter((file) => activeChangePaths(file).length > 0);
 
   if (relevantFiles.length === 0) {
     return ineligible('No files under openspec/changes/ (non-archive) found in this PR');
@@ -31,7 +45,12 @@ function selectChangeFromFiles(files) {
     );
   }
 
-  const changeIds = new Set(relevantFiles.map(file => file.filename.match(CHANGE_PATTERN)[1]));
+  const changeIds = new Set();
+  for (const file of relevantFiles) {
+    for (const path of activeChangePaths(file)) {
+      changeIds.add(path.match(CHANGE_PATTERN)[1]);
+    }
+  }
 
   if (changeIds.size > 1) {
     return ineligible(`Multiple active change ids: ${Array.from(changeIds).sort().join(', ')}`);
