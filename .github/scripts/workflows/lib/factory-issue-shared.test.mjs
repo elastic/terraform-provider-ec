@@ -327,6 +327,19 @@ test('factoryCheckDuplicatePR closes-literal matches Closes #42 but not Related 
   });
   assert.equal(closes.duplicate_pr_found, true);
 
+  const afterWord = factoryCheckDuplicatePR({
+    ...base,
+    pullRequests: [{
+      number: 5,
+      state: 'open',
+      head_branch: 'code-factory/issue-42',
+      labels: ['code-factory'],
+      body: 'See Closes #42',
+      html_url: 'https://example.com/pr/5',
+    }],
+  });
+  assert.equal(afterWord.duplicate_pr_found, true);
+
   const related = factoryCheckDuplicatePR({
     ...base,
     pullRequests: [{
@@ -340,7 +353,7 @@ test('factoryCheckDuplicatePR closes-literal matches Closes #42 but not Related 
   });
   assert.equal(related.duplicate_pr_found, false);
 
-  for (const body of ['closes #42', 'Closes #420']) {
+  for (const body of ['closes #42', 'Closes #420', 'DisCloses #42']) {
     const miss = factoryCheckDuplicatePR({
       ...base,
       pullRequests: [{

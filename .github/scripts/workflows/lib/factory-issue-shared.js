@@ -97,7 +97,7 @@ function factoryCheckDuplicatePR({
 
   let bodyPattern;
   if (duplicateLinkageMode === 'closes-literal') {
-    bodyPattern = new RegExp(`Closes #${issueNumber}(?![0-9])`);
+    bodyPattern = new RegExp(`\\bCloses #${issueNumber}(?![0-9])`);
   } else if (duplicateLinkageMode === 'related-literal') {
     bodyPattern = new RegExp(`\\bRelated to #${issueNumber}(?![0-9])`);
   } else {
