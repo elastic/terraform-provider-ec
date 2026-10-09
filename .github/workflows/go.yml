@@ -55,6 +55,16 @@ jobs:
         make notice
         git diff --exit-code NOTICE || (echo "::error::NOTICE is out of date. Run 'make notice' and commit the changes." && exit 1)
 
+    # After "Linters": make gen -> license-header -> deps curls golangci-lint
+    # unless bin/golangci-lint is already installed. jq is on ubuntu-latest.
+    - name: Check serverless client is up-to-date
+      run: |
+        make gen
+        # intent-to-add so new untracked generated files show up in git diff
+        git add --intent-to-add -- ec/internal/gen/serverless
+        git diff --exit-code -- ec/internal/gen/serverless \
+          || (echo "::error::Generated serverless client is out of date. Run 'make gen' and commit the changes." && exit 1)
+
     - name: Run unit tests
       run: make unit
       id: unit
