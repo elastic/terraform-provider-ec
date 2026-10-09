@@ -37,6 +37,10 @@ jobs:
       run: make vendor
       id: modules
 
+    - name: Check SDLC label taxonomy
+      run: make check-label-taxonomy
+      id: label-taxonomy
+
     - name: Linters
       run: make lint
       id: lint
