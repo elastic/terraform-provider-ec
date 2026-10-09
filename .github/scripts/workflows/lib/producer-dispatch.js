@@ -50,11 +50,11 @@ function parseTemporaryIdMap(filePath) {
         `Entry "${tempId}" has invalid repo: ${value.repo}`
       );
     }
-    const num = Number(value.number);
-    // Number.isSafeInteger rejects values JSON.parse rounds outside the safe
-    // integer range (e.g. 9007199254740993 → 9007199254740992), which would
-    // otherwise silently dispatch the wrong issue.
-    if (!Number.isSafeInteger(num) || num <= 0) {
+    // Require a real JSON number (not true/false/"42"): Number(true) === 1.
+    // Number.isSafeInteger also rejects values JSON.parse rounds outside the
+    // safe integer range (e.g. 9007199254740993 → 9007199254740992).
+    const num = value.number;
+    if (typeof num !== 'number' || !Number.isSafeInteger(num) || num <= 0) {
       throw new Error(
         `Entry "${tempId}" has invalid number: ${value.number}`
       );

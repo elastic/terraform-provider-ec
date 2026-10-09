@@ -94,6 +94,28 @@ test('parseTemporaryIdMap throws for entry with non-numeric number', () => {
   cleanup();
 });
 
+test('parseTemporaryIdMap throws for boolean number (Number(true) must not become 1)', () => {
+  const { path, cleanup } = withTempFile(
+    'map.json',
+    JSON.stringify({
+      'issue-1': { repo: 'elastic/terraform-provider-ec', number: true },
+    })
+  );
+  assert.throws(() => parseTemporaryIdMap(path), /invalid number/);
+  cleanup();
+});
+
+test('parseTemporaryIdMap throws for stringified issue number', () => {
+  const { path, cleanup } = withTempFile(
+    'map.json',
+    JSON.stringify({
+      'issue-1': { repo: 'elastic/terraform-provider-ec', number: '42' },
+    })
+  );
+  assert.throws(() => parseTemporaryIdMap(path), /invalid number/);
+  cleanup();
+});
+
 test('parseTemporaryIdMap throws for entry with zero number', () => {
   const { path, cleanup } = withTempFile(
     'map.json',
