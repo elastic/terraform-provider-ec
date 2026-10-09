@@ -332,6 +332,85 @@ func TestValidate(t *testing.T) {
 			},
 			wantErr: []string{"must be newly added"},
 		},
+		{
+			name: "modify existing fragment fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					{Status: 'M', Path: ".changelog/1057.txt"},
+				},
+			},
+			wantErr: []string{"unexpected modification of .changelog/1057.txt"},
+		},
+		{
+			name: "typechange under .changelog fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					{Status: 'T', Path: ".changelog/1057.txt"},
+				},
+			},
+			wantErr: []string{"unexpected modification of .changelog/1057.txt"},
+		},
+		{
+			name: "deletion without none marker fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: "```release-note:bug\nfix\n```\n",
+				Changes: []Change{
+					pr42,
+					{Status: 'D', Path: ".changelog/1057.txt"},
+				},
+			},
+			wantErr: []string{"unexpected deletion under .changelog/: .changelog/1057.txt"},
+		},
+		{
+			name: "trailing-space path is distinct unexpected fragment",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					add(".changelog/42.txt "),
+				},
+			},
+			wantErr: []string{"unexpected path added under .changelog/: .changelog/42.txt "},
+		},
+		{
+			name: "rename fragment out of .changelog fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					{Status: 'R', From: ".changelog/1057.txt", Path: "docs/stolen.md"},
+				},
+			},
+			wantErr: []string{"unexpected move of .changelog/1057.txt out of .changelog/"},
+		},
+		{
+			// C leaves the source in place; destination outside .changelog/ is ignored.
+			name: "copy fragment content outside .changelog ok",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{
+					pr42,
+					{Status: 'C', From: ".changelog/1057.txt", Path: "docs/dup.md"},
+				},
+			},
+			wantOK: true,
+		},
 	}
 
 	droppedTypes := []string{

@@ -86,6 +86,18 @@ func Validate(opts Options) []string {
 	var unexpected []string
 	for _, ch := range opts.Changes {
 		path := normalizePath(ch.Path)
+		from := normalizePath(ch.From)
+
+		// Renames whose destination is outside .changelog/ skip the prefix
+		// guard below; still reject moving a fragment out of the tree. Copies
+		// (C) leave the source in place, so they are not a removal.
+		if ch.Status == 'R' &&
+			strings.HasPrefix(from, ".changelog/") &&
+			!strings.HasPrefix(path, ".changelog/") {
+			errs = append(errs, fmt.Sprintf("unexpected move of %s out of .changelog/", from))
+			continue
+		}
+
 		if path == "" || !strings.HasPrefix(path, ".changelog/") {
 			continue
 		}
@@ -102,11 +114,22 @@ func Validate(opts Options) []string {
 					expectedIntroduced = true
 					continue
 				}
-				from := normalizePath(ch.From)
 				errs = append(errs, fmt.Sprintf("%s must be a new file (git status A), not a rename/copy from %s", expected, from))
 				continue
 			}
 			unexpected = append(unexpected, path)
+		case 'D':
+			// Release-prep deletes pending fragments while adding release-note:none.
+			// Other PRs must not remove someone else's note. Any none-marker PR
+			// can delete (name-status cannot distinguish release-prep).
+			if onlyNone {
+				continue
+			}
+			errs = append(errs, fmt.Sprintf("unexpected deletion under .changelog/: %s (only release-prep with release-note:none may delete fragments)", path))
+		case 'M', 'T':
+			errs = append(errs, fmt.Sprintf("unexpected modification of %s under .changelog/ (fragments are write-once; open a new PR number instead)", path))
+		default:
+			errs = append(errs, fmt.Sprintf("unexpected git status %c for %s under .changelog/", ch.Status, path))
 		}
 	}
 	sort.Strings(unexpected)
@@ -157,10 +180,11 @@ func Validate(opts Options) []string {
 	return errs
 }
 
+// normalizePath strips an optional "./" prefix only. Do not TrimSpace: git
+// diff -z paths are exact, and trimming would hide a distinct trailing-space
+// filename under .changelog/.
 func normalizePath(p string) string {
-	p = strings.TrimSpace(p)
-	p = strings.TrimPrefix(p, "./")
-	return p
+	return strings.TrimPrefix(p, "./")
 }
 
 // entryIsOnlyNone reports whether every parsed release-note block is type none

@@ -78,6 +78,7 @@ jobs:
           # shared release-note fences). Expected fragment must be status A, or
           # R/C onto {PR}.txt only when the new body is solely release-note:none
           # (release-prep). Copying/renaming a user-facing note onto {PR}.txt
-          # fails. Stray R/A/C under .changelog/ fails. Deletions are ignored.
+          # fails. Stray R/A/C under .changelog/ fails. M/T under .changelog/
+          # fail. Deletions are allowed only with release-note:none (release-prep).
           git diff --name-status -z -M -C100% --find-copies-harder HEAD^1 HEAD \
             | go run ./scripts/changelogcheck -pr "${PR_NUMBER}"
