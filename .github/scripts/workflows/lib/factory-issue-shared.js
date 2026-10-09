@@ -191,10 +191,13 @@ function factoryComputeGateReason({
  * @returns {boolean | null}
  */
 function factoryParseOptionalTriStateFromEnv(raw) {
-  if (raw == null || raw === '') {
-    return null;
+  if (raw === 'true') {
+    return true;
   }
-  return raw === 'true';
+  if (raw === 'false') {
+    return false;
+  }
+  return null;
 }
 
 /**

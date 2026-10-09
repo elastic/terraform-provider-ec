@@ -130,6 +130,17 @@ describe('finalize-gate', { concurrency: false }, () => {
     assert.match(outputs.gate_reason, /Duplicate PR check did not complete/);
   });
 
+  test('fails closed when the duplicate-PR output is not exactly true or false', async () => {
+    const outputs = await run({
+      FACTORY_NAME: 'code-factory',
+      ...eligibleTrusted,
+      DUPLICATE_PR_FOUND: 'garbage',
+      DUPLICATE_GATE_REASON: 'No open linked code-factory PR found.',
+    });
+    assert.match(outputs.gate_reason, /Duplicate PR check did not complete/);
+    assert.doesNotMatch(outputs.gate_reason, /All deterministic gates passed/);
+  });
+
   test('research-factory forces the duplicate result off', async () => {
     const outputs = await run({
       FACTORY_NAME: 'research-factory',

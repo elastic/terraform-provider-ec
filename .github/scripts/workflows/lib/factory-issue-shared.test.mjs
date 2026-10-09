@@ -18,10 +18,11 @@ test('factoryParseOptionalTriStateFromEnv treats missing and empty as null', () 
   assert.equal(factoryParseOptionalTriStateFromEnv(''), null);
 });
 
-test('factoryParseOptionalTriStateFromEnv parses true only for exact true string', () => {
+test('factoryParseOptionalTriStateFromEnv accepts only exact true and false', () => {
   assert.equal(factoryParseOptionalTriStateFromEnv('true'), true);
   assert.equal(factoryParseOptionalTriStateFromEnv('false'), false);
-  assert.equal(factoryParseOptionalTriStateFromEnv('TRUE'), false);
+  assert.equal(factoryParseOptionalTriStateFromEnv('TRUE'), null);
+  assert.equal(factoryParseOptionalTriStateFromEnv('garbage'), null);
 });
 
 test('factoryParseFinalizeGateEnv matches finalize_gate env semantics', () => {
