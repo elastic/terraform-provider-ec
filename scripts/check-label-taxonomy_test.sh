@@ -183,6 +183,62 @@ assert_fails "trailing newline in category fails check" \
 assert_fails "trailing newline refuses --write" \
 	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
 
+# Duplicate / reversed markers must fail (and refuse --write).
+write_fixture_manifest
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+<!-- END LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "duplicate begin marker fails" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+assert_fails "duplicate begin marker refuses --write" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
+
+write_fixture_manifest
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+<!-- END LABEL TAXONOMY TABLE -->
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "reversed markers fail" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+assert_fails "reversed markers refuse --write" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
+
+# Indented markers are not exact lines — must fail (awk rewrite would miss them).
+write_fixture_manifest
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+  <!-- BEGIN LABEL TAXONOMY TABLE -->
+  <!-- END LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "indented markers fail" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+assert_fails "indented markers refuse --write" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
+
+# sync-sdlc-labels: malformed / empty labels must fail before any API call.
+sync="${dir}/sync-sdlc-labels.sh"
+cp "${sync}" "${tmpdir}/scripts/sync-sdlc-labels.sh"
+chmod +x "${tmpdir}/scripts/sync-sdlc-labels.sh"
+
+echo 'not-json' >"${tmpdir}/.github/label-taxonomy.json"
+assert_fails "sync rejects malformed JSON" \
+	"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+
+echo '{"labels":[]}' >"${tmpdir}/.github/label-taxonomy.json"
+assert_fails "sync rejects empty labels array" \
+	"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+
+echo '{}' >"${tmpdir}/.github/label-taxonomy.json"
+assert_fails "sync rejects missing labels array" \
+	"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+
 # Live repo check (real files). Do not call `make check-label-taxonomy` here —
 # that target also runs this self-test and would recurse.
 assert_ok "live repository check" "${check}"

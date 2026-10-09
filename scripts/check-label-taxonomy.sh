@@ -128,8 +128,21 @@ render_table() {
 	jq -r '.labels[] | "| `\(.name)` | \(.category) | \(.applied_by) | \(.lifecycle) | `#\(.color)` | \(.description) |"' "${MANIFEST}"
 }
 
-if ! grep -qF "${BEGIN_MARKER}" "${DOC}" || ! grep -qF "${END_MARKER}" "${DOC}"; then
-	err "doc ${DOC} must contain ${BEGIN_MARKER} and ${END_MARKER}"
+# Require exactly one begin marker followed by exactly one end marker.
+# Match whole lines (-x) so the count agrees with awk's `$0 == marker` rewrite;
+# substring matches would accept indented markers that --write silently skips.
+# A mere "each marker appears somewhere" check also lets reversed/duplicate
+# markers through; --write would then inject multiple tables or truncate the doc.
+begin_count="$(grep -cxF "${BEGIN_MARKER}" "${DOC}" || true)"
+end_count="$(grep -cxF "${END_MARKER}" "${DOC}" || true)"
+if [[ "${begin_count}" -ne 1 || "${end_count}" -ne 1 ]]; then
+	err "doc ${DOC} must contain exactly one begin and one end marker (begin=${begin_count} end=${end_count})"
+else
+	begin_line="$(grep -nxF "${BEGIN_MARKER}" "${DOC}" | cut -d: -f1)"
+	end_line="$(grep -nxF "${END_MARKER}" "${DOC}" | cut -d: -f1)"
+	if [[ "${begin_line}" -ge "${end_line}" ]]; then
+		err "doc ${DOC}: begin marker (line ${begin_line}) must precede end marker (line ${end_line})"
+	fi
 fi
 
 expected="$(render_table)"
@@ -142,7 +155,7 @@ actual="$(awk -v b="${BEGIN_MARKER}" -v e="${END_MARKER}" '
 
 if [[ "${WRITE}" -eq 1 ]]; then
 	if [[ "${fail}" -ne 0 ]]; then
-		echo "error: refusing --write because the manifest failed validation" >&2
+		echo "error: refusing --write because validation failed" >&2
 		exit 1
 	fi
 	tmp="$(mktemp)"

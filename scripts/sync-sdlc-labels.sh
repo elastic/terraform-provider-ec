@@ -49,6 +49,50 @@ if [[ ! -f "${MANIFEST}" ]]; then
 	exit 1
 fi
 
+# Materialize and validate rows synchronously before auth or any API call.
+# Process substitution would hide jq failures from `set -e` and let a missing
+# `labels` array report a successful no-op (created=0 updated=0 unchanged=0).
+rows_file="$(mktemp)"
+current_json="$(mktemp)"
+trap 'rm -f "${rows_file}" "${current_json}"' EXIT
+
+if ! jq -e 'type == "object" and (.labels | type == "array")' "${MANIFEST}" >/dev/null; then
+	echo "error: ${MANIFEST} must be a JSON object with a labels array" >&2
+	exit 1
+fi
+
+if ! jq -c '.labels[]' "${MANIFEST}" >"${rows_file}"; then
+	echo "error: failed to read labels from ${MANIFEST}" >&2
+	exit 1
+fi
+
+if [[ ! -s "${rows_file}" ]]; then
+	echo "error: ${MANIFEST} labels array is empty" >&2
+	exit 1
+fi
+
+while IFS= read -r row; do
+	name="$(jq -r '.name // empty' <<<"${row}")"
+	desc="$(jq -r '.description // empty' <<<"${row}")"
+	color="$(jq -r '.color // empty' <<<"${row}")"
+	if [[ -z "${name}" ]]; then
+		echo "error: label entry missing name" >&2
+		exit 1
+	fi
+	if [[ -z "${color}" || ! "${color}" =~ ^[0-9A-Fa-f]{6}$ ]]; then
+		echo "error: label ${name}: color must be 6 hex digits" >&2
+		exit 1
+	fi
+	if [[ -z "${desc}" ]]; then
+		echo "error: label ${name}: missing description" >&2
+		exit 1
+	fi
+	if ((${#desc} > 100)); then
+		echo "error: label ${name}: description is ${#desc} characters (GitHub limit 100)" >&2
+		exit 1
+	fi
+done <"${rows_file}"
+
 # Prefer GITHUB_TOKEN; otherwise require an authenticated gh session.
 if [[ -z "${GITHUB_TOKEN:-}" ]]; then
 	if ! gh auth status >/dev/null 2>&1; then
@@ -57,20 +101,8 @@ if [[ -z "${GITHUB_TOKEN:-}" ]]; then
 	fi
 fi
 
-# Fail fast on over-long descriptions before any API call.
-while IFS= read -r row; do
-	name="$(jq -r '.name' <<<"${row}")"
-	desc="$(jq -r '.description' <<<"${row}")"
-	if ((${#desc} > 100)); then
-		echo "error: label ${name}: description is ${#desc} characters (GitHub limit 100)" >&2
-		exit 1
-	fi
-done < <(jq -c '.labels[]' "${MANIFEST}")
-
 echo "-> Syncing labels to ${REPO} (dry-run=${DRY_RUN})"
 
-current_json="$(mktemp)"
-trap 'rm -f "${current_json}"' EXIT
 gh label list --repo "${REPO}" --limit 1000 --json name,color,description >"${current_json}"
 
 created=0
@@ -110,7 +142,7 @@ while IFS= read -r row; do
 			--description "${desc}" \
 			--force >/dev/null
 	fi
-done < <(jq -c '.labels[]' "${MANIFEST}")
+done <"${rows_file}"
 
 echo "-> Done. created=${created} updated=${updated} unchanged=${unchanged} dry-run=${DRY_RUN}"
 if [[ "${DRY_RUN}" -eq 1 ]]; then
