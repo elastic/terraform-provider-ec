@@ -73,12 +73,13 @@ func Validate(opts Options) []string {
 
 	expected := fmt.Sprintf(".changelog/%d.txt", opts.PRNumber)
 
-	// Git's default rename detection pairs a deleted blob with an identical
-	// added blob as R100. Release-prep deletes pending release-note:none
-	// fragments and adds a new none for the prep PR — that looks like a
+	// Git rename detection pairs a deleted blob with an identical added blob
+	// as R100. Copy detection (--find-copies-harder) reports an unmodified
+	// source copied onto {PR}.txt as C100. Release-prep deletes pending
+	// release-note:none fragments and adds a new none — that looks like a
 	// rename. Allow R/C onto the expected path only when the new fragment is
-	// solely release-note:none. Renaming a user-facing note onto {PR}.txt
-	// (stealing another PR's release note) still fails.
+	// solely release-note:none. Renaming/copying a user-facing note onto
+	// {PR}.txt (stealing another PR's release note) still fails.
 	onlyNone := opts.HasEntry && entryIsOnlyNone(opts.EntryBody)
 
 	expectedIntroduced := false

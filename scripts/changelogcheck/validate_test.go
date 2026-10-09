@@ -250,6 +250,37 @@ func TestValidate(t *testing.T) {
 			wantErr: []string{"not a rename/copy from .changelog/1057.txt"},
 		},
 		{
+			// cp of an unmodified user-facing fragment: --find-copies-harder
+			// reports C100 (plain -M would show A and incorrectly pass).
+			name: "copy of user-facing fragment to expected fails",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: "```release-note:bug\nstolen note\n```\n",
+				Changes: []Change{{
+					Status: 'C',
+					From:   ".changelog/1057.txt",
+					Path:   ".changelog/42.txt",
+				}},
+			},
+			wantErr: []string{"not a rename/copy from .changelog/1057.txt"},
+		},
+		{
+			name: "copy of none fragment to expected ok",
+			opts: Options{
+				PRNumber:  42,
+				HasEntry:  true,
+				EntryBody: noneBody,
+				Changes: []Change{{
+					Status: 'C',
+					From:   ".changelog/999.txt",
+					Path:   ".changelog/42.txt",
+				}},
+			},
+			wantOK: true,
+		},
+
+		{
 			name: "rename into .changelog stray path fails",
 			opts: Options{
 				PRNumber:  42,

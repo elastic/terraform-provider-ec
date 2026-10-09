@@ -88,6 +88,20 @@ func TestRun(t *testing.T) {
 		assert.Contains(t, stderr.String(), "not a rename/copy")
 	})
 
+	t.Run("copy of bug content to expected fails", func(t *testing.T) {
+		bugEntry := filepath.Join(dir, "bug-copy.txt")
+		require.NoError(t, os.WriteFile(bugEntry, []byte("```release-note:bug\nstolen\n```\n"), 0o644))
+		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
+		code := run(
+			[]string{"-pr", "42", "-entry", bugEntry},
+			strings.NewReader(nulStatus("C100", ".changelog/1057.txt", ".changelog/42.txt")),
+			stdout,
+			stderr,
+		)
+		assert.Equal(t, 1, code)
+		assert.Contains(t, stderr.String(), "not a rename/copy")
+	})
+
 	t.Run("path with tab under .changelog is checked", func(t *testing.T) {
 		stdout, stderr := &bytes.Buffer{}, &bytes.Buffer{}
 		code := run(

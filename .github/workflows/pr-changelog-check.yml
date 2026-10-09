@@ -70,11 +70,14 @@ jobs:
             echo "::error::expected a two-parent merge commit (HEAD^2 missing); checkout needs fetch-depth: 2 on pull_request"
             exit 1
           fi
-          # name-status -z -M: NUL-delimited fields so paths with tabs/newlines
-          # are not C-quoted past the checker. Expected fragment must be status
-          # A, or R/C onto {PR}.txt only when the new body is solely
-          # release-note:none (release-prep pairs a deleted none with the new
-          # none as R100). Renaming a user-facing note onto {PR}.txt fails.
-          # Stray R/A under .changelog/ fails. Deletions are ignored.
-          git diff --name-status -z -M HEAD^1 HEAD \
+          # name-status -z -M -C100% --find-copies-harder: NUL-delimited fields
+          # so paths with tabs/newlines are not C-quoted past the checker.
+          # --find-copies-harder searches unmodified files as copy sources so a
+          # verbatim `cp` of an existing fragment is C100, not A. -C100% keeps
+          # similar-but-new notes as A (default 50% would false-positive on
+          # shared release-note fences). Expected fragment must be status A, or
+          # R/C onto {PR}.txt only when the new body is solely release-note:none
+          # (release-prep). Copying/renaming a user-facing note onto {PR}.txt
+          # fails. Stray R/A/C under .changelog/ fails. Deletions are ignored.
+          git diff --name-status -z -M -C100% --find-copies-harder HEAD^1 HEAD \
             | go run ./scripts/changelogcheck -pr "${PR_NUMBER}"
