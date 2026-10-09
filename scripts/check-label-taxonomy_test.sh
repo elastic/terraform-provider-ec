@@ -223,21 +223,76 @@ assert_fails "indented markers refuse --write" \
 	"${tmpdir}/scripts/check-label-taxonomy.sh" --write
 
 # sync-sdlc-labels: malformed / empty labels must fail before any API call.
+# Use a recording gh stub so a missing real `gh` (or auth failure) cannot
+# make these tests pass for the wrong reason.
 sync="${dir}/sync-sdlc-labels.sh"
 cp "${sync}" "${tmpdir}/scripts/sync-sdlc-labels.sh"
 chmod +x "${tmpdir}/scripts/sync-sdlc-labels.sh"
 
+stub_bin="${tmpdir}/stub-bin"
+mkdir -p "${stub_bin}"
+cat >"${stub_bin}/gh" <<'EOF'
+#!/usr/bin/env bash
+echo "gh-invoked:$*" >>"${GH_STUB_LOG:?GH_STUB_LOG unset}"
+exit 99
+EOF
+chmod +x "${stub_bin}/gh"
+
+run_sync_with_stub() {
+	: >"${stub_bin}/gh.log"
+	# GH_STUB_LOG must be in the env prefix so the stub grandchild can append.
+	GH_STUB_LOG="${stub_bin}/gh.log" PATH="${stub_bin}:${PATH}" GITHUB_TOKEN=test-token \
+		"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+}
+
+assert_sync_fails_without_gh() {
+	local name="$1"
+	if run_sync_with_stub >/dev/null 2>&1; then
+		echo "FAIL: ${name} (expected non-zero exit)" >&2
+		fail=1
+		return
+	fi
+	if [[ -s "${stub_bin}/gh.log" ]]; then
+		echo "FAIL: ${name} (gh was invoked: $(cat "${stub_bin}/gh.log"))" >&2
+		fail=1
+		return
+	fi
+	echo "ok: ${name}"
+}
+
+# Control: a valid manifest must reach gh (proves the stub records when invoked).
+write_fixture_manifest
+run_sync_with_stub >/dev/null 2>&1 || true
+if [[ ! -s "${stub_bin}/gh.log" ]]; then
+	echo "FAIL: valid sync fixture did not invoke recording gh stub" >&2
+	fail=1
+else
+	echo "ok: recording gh stub captures invocations"
+fi
+
 echo 'not-json' >"${tmpdir}/.github/label-taxonomy.json"
-assert_fails "sync rejects malformed JSON" \
-	"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+assert_sync_fails_without_gh "sync rejects malformed JSON before gh"
 
 echo '{"labels":[]}' >"${tmpdir}/.github/label-taxonomy.json"
-assert_fails "sync rejects empty labels array" \
-	"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+assert_sync_fails_without_gh "sync rejects empty labels array before gh"
 
 echo '{}' >"${tmpdir}/.github/label-taxonomy.json"
-assert_fails "sync rejects missing labels array" \
-	"${tmpdir}/scripts/sync-sdlc-labels.sh" --dry-run
+assert_sync_fails_without_gh "sync rejects missing labels array before gh"
+
+# Non-string fields must fail (jq -r would otherwise coerce them).
+write_fixture_manifest
+jq '.labels[0].name = 123' \
+	"${tmpdir}/.github/label-taxonomy.json" >"${tmpdir}/num.json"
+mv "${tmpdir}/num.json" "${tmpdir}/.github/label-taxonomy.json"
+cat >"${tmpdir}/dev-docs/high-level/label-taxonomy.md" <<'EOF'
+# fixture
+
+<!-- BEGIN LABEL TAXONOMY TABLE -->
+<!-- END LABEL TAXONOMY TABLE -->
+EOF
+assert_fails "non-string name fails check" \
+	"${tmpdir}/scripts/check-label-taxonomy.sh"
+assert_sync_fails_without_gh "sync rejects non-string name before gh"
 
 # Live repo check (real files). Do not call `make check-label-taxonomy` here —
 # that target also runs this self-test and would recurse.

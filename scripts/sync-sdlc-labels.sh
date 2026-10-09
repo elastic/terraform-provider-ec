@@ -71,6 +71,21 @@ if [[ ! -s "${rows_file}" ]]; then
 	exit 1
 fi
 
+# Reject non-string fields before jq -r coercion (numbers/bools would otherwise pass).
+bad_types="$(jq -r '
+  .labels
+  | to_entries[]
+  | . as $e
+  | ["name","color","description"][]
+  | . as $f
+  | select(($e.value[$f] | type) != "string")
+  | "labels[\($e.key)].\($f) must be a string (got \(($e.value[$f] | type)))"
+' "${MANIFEST}")"
+if [[ -n "${bad_types}" ]]; then
+	echo "error: ${bad_types}" >&2
+	exit 1
+fi
+
 while IFS= read -r row; do
 	name="$(jq -r '.name // empty' <<<"${row}")"
 	desc="$(jq -r '.description // empty' <<<"${row}")"

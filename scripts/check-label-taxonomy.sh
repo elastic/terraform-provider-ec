@@ -68,6 +68,23 @@ if [[ -n "${bad_md}" ]]; then
 	done <<<"${bad_md}"
 fi
 
+# Reject non-string fields before jq -r coercion (numbers/bools would otherwise pass).
+bad_types="$(jq -r '
+  .labels
+  | to_entries[]
+  | . as $e
+  | ["name","color","description","category","applied_by","lifecycle"][]
+  | . as $f
+  | select(($e.value[$f] | type) != "string")
+  | "labels[\($e.key)].\($f) must be a string (got \(($e.value[$f] | type)))"
+' "${MANIFEST}")"
+if [[ -n "${bad_types}" ]]; then
+	while IFS= read -r msg; do
+		[[ -z "${msg}" ]] && continue
+		err "${msg}"
+	done <<<"${bad_types}"
+fi
+
 # Required field presence and description length (GitHub limit is 100 characters).
 while IFS= read -r row; do
 	name="$(jq -r '.name // empty' <<<"${row}")"
