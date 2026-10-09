@@ -74,6 +74,22 @@ test('computeIssueSlots rejects boolean and whitespace-only issueCap', () => {
     () => computeIssueSlots({ label: 'schema-coverage', issueCap: '   ', openIssueCount: 0 }),
     /non-negative integer/,
   );
+  assert.throws(
+    () => computeIssueSlots({ label: 'schema-coverage', issueCap: [], openIssueCount: 0 }),
+    /non-negative integer/,
+  );
+});
+
+test('computeIssueSlots rejects caps outside the safe integer range', () => {
+  assert.throws(
+    () =>
+      computeIssueSlots({
+        label: 'schema-coverage',
+        issueCap: Number.MAX_SAFE_INTEGER + 1,
+        openIssueCount: 0,
+      }),
+    /non-negative integer/,
+  );
 });
 
 test('computeIssueSlots works for semantic-refactor bucket', () => {

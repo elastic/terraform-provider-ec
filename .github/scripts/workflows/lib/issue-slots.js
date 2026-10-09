@@ -22,11 +22,15 @@ function computeIssueSlots({ label, issueCap, openIssueCount }) {
     throw new Error(`issue cap must be a non-negative integer, got: ${issueCap}`);
   }
   const cap = Number(issueCap);
-  if (!Number.isInteger(cap) || cap < 0) {
+  if (!Number.isSafeInteger(cap) || cap < 0) {
     throw new Error(`issue cap must be a non-negative integer, got: ${issueCap}`);
   }
 
-  if (typeof openIssueCount !== 'number' || !Number.isInteger(openIssueCount) || openIssueCount < 0) {
+  if (
+    typeof openIssueCount !== 'number' ||
+    !Number.isSafeInteger(openIssueCount) ||
+    openIssueCount < 0
+  ) {
     throw new Error(`open issue count must be a non-negative integer, got: ${openIssueCount}`);
   }
 
