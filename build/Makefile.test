@@ -48,7 +48,8 @@ workflow-test:
 .PHONY: workflow-generate
 workflow-generate:
 	@ if [ -n "$$(find .github/workflows -maxdepth 1 -name '*.md' -print -quit)" ]; then \
-		gh aw compile; \
+		# --purge deletes .lock.yml not regenerated this run (orphan after source delete). \
+		gh aw compile --purge; \
 	elif [ -n "$$(find .github/workflows -maxdepth 1 -name '*.lock.yml' -print -quit)" ]; then \
 		echo "-> Stale .lock.yml under .github/workflows with no .md sources. Remove the lock files or restore the markdown sources, then re-run."; \
 		exit 1; \

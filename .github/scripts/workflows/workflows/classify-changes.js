@@ -9,7 +9,12 @@ module.exports = async function ({ github, context, core }) {
         pull_number: context.payload.pull_request.number,
         per_page: 100,
       });
-      changedFiles = files.map((f) => f.filename);
+      // Renames expose the destination in filename and the source in
+      // previous_filename; keep both so a move out of a watched path still
+      // triggers workflow CI.
+      changedFiles = files.flatMap((f) =>
+        [f.filename, f.previous_filename].filter((p) => typeof p === 'string' && p.length > 0),
+      );
     } catch (err) {
       core.warning(`Failed to list PR files: ${err.message}; defaulting to workflow_changes=true.`);
       core.setOutput('workflow_changes', 'true');
@@ -26,6 +31,10 @@ module.exports = async function ({ github, context, core }) {
     return;
   }
 
-  const workflowChanges = changedFiles.length === 0 || changedFiles.some((f) => f.startsWith('.github/'));
+  const workflowChanges =
+    changedFiles.length === 0 ||
+    changedFiles.some(
+      (f) => f.startsWith('.github/') || f === 'build/Makefile.test',
+    );
   core.setOutput('workflow_changes', workflowChanges ? 'true' : 'false');
 };

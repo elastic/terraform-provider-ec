@@ -140,3 +140,35 @@ test('pull_request mixed paths including .github/scripts → workflow_changes=tr
   });
   assert.equal(outputs.workflow_changes, 'true');
 });
+
+test('pull_request rename out of .github/ via previous_filename → workflow_changes=true', async () => {
+  const { outputs, core } = mockCore();
+  await classifyChanges({
+    github: {
+      paginate: async () => [
+        {
+          filename: 'docs/moved-workflow.yml',
+          previous_filename: '.github/workflows/old-workflow.yml',
+          status: 'renamed',
+        },
+      ],
+      rest: { pulls: { listFiles: {} } },
+    },
+    context: baseContext('pull_request'),
+    core,
+  });
+  assert.equal(outputs.workflow_changes, 'true');
+});
+
+test('pull_request with only build/Makefile.test → workflow_changes=true', async () => {
+  const { outputs, core } = mockCore();
+  await classifyChanges({
+    github: {
+      paginate: async () => [{ filename: 'build/Makefile.test' }],
+      rest: { pulls: { listFiles: {} } },
+    },
+    context: baseContext('pull_request'),
+    core,
+  });
+  assert.equal(outputs.workflow_changes, 'true');
+});
