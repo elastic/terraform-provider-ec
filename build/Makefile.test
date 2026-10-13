@@ -32,6 +32,23 @@ tests: unit
 hook-test:
 	@ node --test .agents/hooks/*.test.mjs
 
+## Run unit tests for workflow helpers (Go changelogcheck + node workflow lib).
+## The node glob is quoted so Node expands ** (bash without globstar would drop top-level suites).
+.PHONY: workflow-test
+workflow-test:
+	@ go test ./scripts/changelogcheck/... -count=1
+	@ node --test '.github/scripts/workflows/lib/**/*.test.mjs'
+
+## Compile gh-aw markdown workflow sources into committed *.lock.yml artifacts.
+## Skip when no .md sources exist yet (gh aw compile exits 1 on an empty tree).
+.PHONY: workflow-generate
+workflow-generate:
+	@ if [ -n "$$(find .github/workflows -maxdepth 1 -name '*.md' -print -quit)" ]; then \
+		gh aw compile; \
+	else \
+		echo "-> No gh-aw markdown sources under .github/workflows; skipping compile."; \
+	fi
+
 .PHONY: testacc
 ## Runs the Terraform acceptance tests. Use TEST_NAME, TESTARGS, TEST_COUNT to control execution.
 testacc:
