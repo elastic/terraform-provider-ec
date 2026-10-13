@@ -33,18 +33,25 @@ hook-test:
 	@ node --test .agents/hooks/*.test.mjs
 
 ## Run unit tests for workflow helpers (Go changelogcheck + node workflow lib).
-## The node glob is quoted so Node expands ** (bash without globstar would drop top-level suites).
+## The node globs are quoted so Node expands ** (bash without globstar would drop top-level suites).
 .PHONY: workflow-test
 workflow-test:
 	@ go test ./scripts/changelogcheck/... -count=1
-	@ node --test '.github/scripts/workflows/lib/**/*.test.mjs'
+	@ node --test \
+		'.github/scripts/workflows/lib/**/*.test.mjs' \
+		'.github/scripts/workflows/workflows/**/*.test.mjs'
 
 ## Compile gh-aw markdown workflow sources into committed *.lock.yml artifacts.
-## Skip when no .md sources exist yet (gh aw compile exits 1 on an empty tree).
+## Skip only when both .md sources and .lock.yml artifacts are absent (gh aw compile
+## exits 1 on an empty tree). Fail if locks remain without sources so stale
+## generated workflows cannot pass CI silently.
 .PHONY: workflow-generate
 workflow-generate:
 	@ if [ -n "$$(find .github/workflows -maxdepth 1 -name '*.md' -print -quit)" ]; then \
 		gh aw compile; \
+	elif [ -n "$$(find .github/workflows -maxdepth 1 -name '*.lock.yml' -print -quit)" ]; then \
+		echo "-> Stale .lock.yml under .github/workflows with no .md sources. Remove the lock files or restore the markdown sources, then re-run."; \
+		exit 1; \
 	else \
 		echo "-> No gh-aw markdown sources under .github/workflows; skipping compile."; \
 	fi
