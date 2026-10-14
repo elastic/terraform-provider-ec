@@ -1,0 +1,87 @@
+---
+name: Workflows CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    name: Change Classification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      workflow_changes: ${{ steps.classify.outputs.workflow_changes }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - id: classify
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const classify = require('${{ github.workspace }}/.github/scripts/workflows/workflows/classify-changes.js');
+            await classify({ github, context, core });
+
+  test:
+    name: Test
+    needs: classify
+    if: needs.classify.outputs.workflow_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - name: Get dependencies
+        run: make vendor
+      - name: Workflow tests
+        run: make workflow-test
+      - name: Install gh-aw
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh extension install githubnext/gh-aw --pin v0.89.21
+      - name: Check workflow lock files are up-to-date
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          make workflow-generate
+          # intent-to-add so new untracked generated files show up in git diff
+          git add --intent-to-add -- .github/workflows
+          git diff --exit-code -- .github/workflows \
+            || (echo "::error::Workflow artifacts under .github/workflows are out of date. Run 'make workflow-generate' and commit the changes." && exit 1)
+
+  gate:
+    name: Workflows Gate
+    needs: [classify, test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - id: gate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GATE_NAME: workflows
+          WORKFLOWS_GATE_CLASSIFY_RESULT: ${{ needs.classify.outputs.workflow_changes }}
+          WORKFLOWS_GATE_TEST_RESULT: ${{ needs.test.result }}
+        with:
+          script: |
+            const gate = require('${{ github.workspace }}/.github/scripts/workflows/lib/runners/gate.js');
+            await gate({ github, context, core });
