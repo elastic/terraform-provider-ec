@@ -59,11 +59,15 @@ safe-outputs:
   add-labels:
     max: 5
     target: "*"
+    issues: true
+    pull-requests: false
     allowed: [triaged, needs-research, needs-reproduction, needs-spec, needs-human]
     blocked: ["~*", "*[bot]"]
   add-comment:
     max: 5
     target: "*"
+    issues: true
+    pull-requests: false
     hide-older-comments: true
     footer: false
   noop:
