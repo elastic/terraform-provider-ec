@@ -74,6 +74,10 @@ safe-outputs:
           required: true
           type: choice
           options: [needs-research, needs-reproduction, needs-spec, needs-human]
+        comment:
+          description: Classification comment. Posted only after the routing labels are applied.
+          required: true
+          type: string
       steps:
         - name: Apply the routing pair
           env:
@@ -103,12 +107,20 @@ safe-outputs:
                 console.error(`invalid category for #${num}: ${item.category}`);
                 process.exit(1);
               }
-              const previous = byIssue.get(num);
-              if (previous && previous !== item.category) {
-                console.error(`conflicting categories for #${num}: ${previous} and ${item.category}`);
+              let comment = typeof item.comment === 'string' ? item.comment.trim() : '';
+              if (!comment || comment.length > 65000) {
+                console.error(`invalid comment for #${num}`);
                 process.exit(1);
               }
-              byIssue.set(num, item.category);
+              if (!comment.startsWith('<!-- gha-issue-classifier -->')) {
+                comment = `<!-- gha-issue-classifier -->\n${comment}`;
+              }
+              const previous = byIssue.get(num);
+              if (previous && (previous.category !== item.category || previous.comment !== comment)) {
+                console.error(`conflicting routing calls for #${num}`);
+                process.exit(1);
+              }
+              byIssue.set(num, { category: item.category, comment });
             }
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
             function gh(args, input) {
@@ -132,7 +144,8 @@ safe-outputs:
                 }
               }
             }
-            for (const [num, category] of byIssue) {
+            for (const [num, routing] of byIssue) {
+              const { category, comment } = routing;
               const stale = listLabels(num).filter((name) => allowed.has(name) && name !== category);
               for (const name of stale) {
                 removeLabel(num, name);
@@ -147,15 +160,13 @@ safe-outputs:
                 `repos/${owner}/${repo}/issues/${num}/labels`,
                 '--input', '-',
               ], JSON.stringify({ labels: [category, 'triaged'] }));
+              gh([
+                '--method', 'POST',
+                `repos/${owner}/${repo}/issues/${num}/comments`,
+                '--input', '-',
+              ], JSON.stringify({ body: comment }));
             }
             EOF
-  add-comment:
-    max: 5
-    target: "*"
-    issues: true
-    pull-requests: false
-    hide-older-comments: true
-    footer: false
   noop:
     max: 1
     report-as-issue: false
@@ -232,12 +243,10 @@ For each issue in `issues_json`:
    - If the GitHub MCP call fails, skip that issue. Do not apply labels or a comment. Note the skip in your noop reason if no other issues were classified.
    - An empty body is valid. Classify from the title and any body text that is present. Do not skip an issue only because its body is empty.
 2. Classify using the rubric above. Assign **exactly one** category.
-3. Apply the routing pair by calling `apply_routing` once for that issue:
-   - Pass the issue number and exactly one `category`: `needs-research`, `needs-reproduction`, `needs-spec`, or `needs-human`.
-   - Do not pass `triaged`. The handler applies `triaged` together with that category.
+3. Call `apply_routing` once for that issue. Pass the issue number, exactly one `category` (`needs-research`, `needs-reproduction`, `needs-spec`, or `needs-human`), and the classification `comment`.
+   - Do not pass `triaged`. The handler applies `triaged` together with that category, then posts the comment.
    - Never request `research-factory`, `change-factory`, `code-factory`, or `reproducer-factory`. Those are human promotion labels.
-4. Post a classification comment using `add_comment`:
-   - Start the comment body with `<!-- gha-issue-classifier -->` on the first line.
+   - The comment must start with `<!-- gha-issue-classifier -->` on the first line.
    - Explain which routing label was applied and what it means in plain, friendly language.
    - Say what happens next: a maintainer promotes the issue by applying the matching factory label. The factory does not start automatically. For `needs-human`, say a maintainer will review it and that it is not promoted to a factory automatically.
    - Invite the reporter to comment if they believe the classification is wrong.
@@ -295,15 +304,15 @@ If I've misclassified this, please leave a comment and a maintainer can adjust t
 
 Call `noop` only when this run classified no issues — for example every issue fetch failed. Provide a brief reason such as `"No issues could be classified in this run."`.
 
-Do **not** call `noop` after a run in which you successfully called `apply_routing` and `add_comment` for one or more issues. Those safe-output calls are the completion signal.
+Do **not** call `noop` after a run in which you successfully called `apply_routing` for one or more issues. That call is the completion signal.
 
 The pre-activation step already skips this job when there is nothing to classify, so you will not see an empty `issues_json` in the normal case.
 
 ## Guardrails
 
 - Do not query for additional issues beyond the `issues_json` list. Pre-activation has already selected them.
-- Call `apply_routing` once per issue with exactly one category. The handler applies that category and `triaged`. Do not call it twice for the same issue.
+- Call `apply_routing` once per issue. It applies the category and `triaged`, then posts the comment. Do not call it twice for the same issue.
 - Never apply a factory trigger label: `research-factory`, `change-factory`, `code-factory`, `reproducer-factory`.
-- Post exactly **one** `add_comment` per issue per run. Do not post multiple comments on the same issue.
+- Do not post a separate comment. The comment goes in the `apply_routing` call.
 - Do not close, reopen, or modify issues in any other way.
 - Do not create or modify pull requests. This workflow only labels and comments.
