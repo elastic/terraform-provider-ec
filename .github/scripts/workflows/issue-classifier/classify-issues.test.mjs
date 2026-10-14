@@ -87,12 +87,14 @@ describe('classify-issues', () => {
   });
 
   test('fails dispatch when issue_number is not a positive integer', async () => {
-    const { failures, outputs } = await run({
-      eventName: 'workflow_dispatch',
-      payload: { inputs: { issue_number: '0' } },
-    });
-    assert.deepEqual(failures, ['Invalid issue_number input: "0"']);
-    assert.equal(outputs.issue_count, undefined);
+    for (const issueNumber of ['0', '1.5', '007', '-3', 'abc', '1e2']) {
+      const { failures, outputs } = await run({
+        eventName: 'workflow_dispatch',
+        payload: { inputs: { issue_number: issueNumber } },
+      });
+      assert.deepEqual(failures, [`Invalid issue_number input: "${issueNumber}"`]);
+      assert.equal(outputs.issue_count, undefined);
+    }
   });
 
   test('skips a dispatched issue that is already triaged', async () => {

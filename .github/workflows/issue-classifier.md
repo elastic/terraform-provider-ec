@@ -3,6 +3,15 @@ name: Issue Classifier
 description: >-
   Classifies new and untriaged issues into one of four categories and applies routing labels.
 on:
+  # Default gh-aw roles are admin/maintainer/write, which skips issues opened
+  # by external reporters. Any authenticated user may open an issue; writes stay
+  # inside the safe-output allowlist.
+  roles: all
+  # pre-activation does not inherit the agent job's permissions. Checkout needs
+  # contents: read; the issue list and issue get calls need issues: read.
+  permissions:
+    contents: read
+    issues: read
   issues:
     types: [opened]
   schedule:

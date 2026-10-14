@@ -40,8 +40,8 @@ module.exports = async function ({ github, context, core }) {
     const inputIssueNumber = context.payload.inputs?.issue_number;
 
     if (inputIssueNumber != null && inputIssueNumber !== '') {
-      const issueNum = parseInt(inputIssueNumber, 10);
-      if (!Number.isInteger(issueNum) || issueNum <= 0) {
+      const issueNum = parseIssueNumber(inputIssueNumber);
+      if (issueNum == null) {
         core.setFailed(`Invalid issue_number input: "${inputIssueNumber}"`);
         return;
       }
@@ -102,6 +102,17 @@ module.exports = async function ({ github, context, core }) {
   core.info(`Gate reason: ${gate_reason}`);
   core.info(`Issue count: ${issue_count}`);
 };
+
+function parseIssueNumber(input) {
+  const raw = typeof input === 'number' ? String(input) : String(input).trim();
+  const num = parseInt(raw, 10);
+  // Reject prefixes and truncation ("1.5" -> 1, "007" -> 7) by requiring the
+  // canonical decimal form of a safe positive integer.
+  if (!Number.isSafeInteger(num) || num <= 0 || String(num) !== raw) {
+    return null;
+  }
+  return num;
+}
 
 function labelNames(issue) {
   return (issue.labels ?? []).map((label) => label.name);
