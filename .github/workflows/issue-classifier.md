@@ -131,8 +131,16 @@ safe-outputs:
               });
             }
             function listLabels(num) {
-              const data = JSON.parse(gh(['--paginate', `repos/${owner}/${repo}/issues/${num}/labels`]) || '[]');
-              return data.map((label) => label.name);
+              const parsed = JSON.parse(gh(['--paginate', '--slurp', `repos/${owner}/${repo}/issues/${num}/labels`]) || '[]');
+              const labels = Array.isArray(parsed[0]) ? parsed.flat() : parsed;
+              return labels.map((label) => label.name);
+            }
+            function assertIssue(num) {
+              const data = JSON.parse(gh([`repos/${owner}/${repo}/issues/${num}`]));
+              if (data.pull_request) {
+                console.error(`#${num} is a pull request`);
+                process.exit(1);
+              }
             }
             function removeLabel(num, name) {
               try {
@@ -143,6 +151,9 @@ safe-outputs:
                   process.exit(1);
                 }
               }
+            }
+            for (const num of byIssue.keys()) {
+              assertIssue(num);
             }
             for (const [num, routing] of byIssue) {
               const { category, comment } = routing;
