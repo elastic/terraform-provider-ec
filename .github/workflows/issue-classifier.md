@@ -62,6 +62,7 @@ safe-outputs:
       description: Apply exactly one routing category plus triaged to one issue
       max: 5
       permissions:
+        contents: read
         issues: write
       if: needs.detection.result == 'success' && needs.detection.outputs.detection_conclusion != 'warning'
       inputs:
@@ -79,105 +80,21 @@ safe-outputs:
           required: true
           type: string
       steps:
+        - name: Checkout repository
+          uses: actions/checkout@v7
+          with:
+            fetch-depth: 1
+            persist-credentials: false
         - name: Apply the routing pair
           env:
             GH_TOKEN: ${{ github.token }}
             DETECTION_RESULT: ${{ needs.detection.result }}
             GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
-          run: |
-            node <<'EOF'
-            const fs = require('fs');
-            const { execFileSync } = require('child_process');
-            const allowed = new Set(['needs-research', 'needs-reproduction', 'needs-spec', 'needs-human']);
-            if (process.env.DETECTION_RESULT !== 'success' || process.env.GH_AW_DETECTION_CONCLUSION === 'warning') {
-              console.error(`refusing to apply labels: detection result=${process.env.DETECTION_RESULT} conclusion=${process.env.GH_AW_DETECTION_CONCLUSION}`);
-              process.exit(1);
-            }
-            const raw = JSON.parse(fs.readFileSync(process.env.GH_AW_AGENT_OUTPUT, 'utf8'));
-            const items = (raw.items || []).filter((item) => item.type === 'apply_routing');
-            const byIssue = new Map();
-            for (const item of items) {
-              const text = typeof item.issue_number === 'number' ? String(item.issue_number) : String(item.issue_number).trim();
-              const num = Number(text);
-              if (!Number.isSafeInteger(num) || num <= 0 || String(num) !== text) {
-                console.error(`invalid issue number: ${text}`);
-                process.exit(1);
-              }
-              if (!allowed.has(item.category)) {
-                console.error(`invalid category for #${num}: ${item.category}`);
-                process.exit(1);
-              }
-              let comment = typeof item.comment === 'string' ? item.comment.trim() : '';
-              if (!comment || comment.length > 65000) {
-                console.error(`invalid comment for #${num}`);
-                process.exit(1);
-              }
-              if (!comment.startsWith('<!-- gha-issue-classifier -->')) {
-                comment = `<!-- gha-issue-classifier -->\n${comment}`;
-              }
-              const previous = byIssue.get(num);
-              if (previous && (previous.category !== item.category || previous.comment !== comment)) {
-                console.error(`conflicting routing calls for #${num}`);
-                process.exit(1);
-              }
-              byIssue.set(num, { category: item.category, comment });
-            }
-            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-            function gh(args, input) {
-              return execFileSync('gh', ['api', ...args], {
-                input,
-                encoding: 'utf8',
-                stdio: ['pipe', 'pipe', 'inherit'],
-              });
-            }
-            function listLabels(num) {
-              const parsed = JSON.parse(gh(['--paginate', '--slurp', `repos/${owner}/${repo}/issues/${num}/labels`]) || '[]');
-              const labels = Array.isArray(parsed[0]) ? parsed.flat() : parsed;
-              return labels.map((label) => label.name);
-            }
-            function assertIssue(num) {
-              const data = JSON.parse(gh([`repos/${owner}/${repo}/issues/${num}`]));
-              if (data.pull_request) {
-                console.error(`#${num} is a pull request`);
-                process.exit(1);
-              }
-            }
-            function removeLabel(num, name) {
-              try {
-                gh(['--method', 'DELETE', `repos/${owner}/${repo}/issues/${num}/labels/${encodeURIComponent(name)}`]);
-              } catch (err) {
-                if (listLabels(num).includes(name)) {
-                  console.error(`failed to remove ${name} from #${num}`);
-                  process.exit(1);
-                }
-              }
-            }
-            for (const num of byIssue.keys()) {
-              assertIssue(num);
-            }
-            for (const [num, routing] of byIssue) {
-              const { category, comment } = routing;
-              const stale = listLabels(num).filter((name) => allowed.has(name) && name !== category);
-              for (const name of stale) {
-                removeLabel(num, name);
-              }
-              const remaining = listLabels(num).filter((name) => allowed.has(name) && name !== category);
-              if (remaining.length > 0) {
-                console.error(`routing labels still present on #${num}: ${remaining.join(', ')}`);
-                process.exit(1);
-              }
-              gh([
-                '--method', 'POST',
-                `repos/${owner}/${repo}/issues/${num}/labels`,
-                '--input', '-',
-              ], JSON.stringify({ labels: [category, 'triaged'] }));
-              gh([
-                '--method', 'POST',
-                `repos/${owner}/${repo}/issues/${num}/comments`,
-                '--input', '-',
-              ], JSON.stringify({ body: comment }));
-            }
-            EOF
+          run: node .github/scripts/workflows/issue-classifier/apply-routing.js
+  missing-tool: false
+  missing-data: false
+  report-incomplete: false
+  report-failure-as-issue: false
   noop:
     max: 1
     report-as-issue: false
