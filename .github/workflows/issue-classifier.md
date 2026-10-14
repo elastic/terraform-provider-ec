@@ -56,13 +56,65 @@ tools:
     toolsets: [issues]
     min-integrity: unapproved
 safe-outputs:
-  add-labels:
-    max: 5
-    target: "*"
-    issues: true
-    pull-requests: false
-    allowed: [triaged, needs-research, needs-reproduction, needs-spec, needs-human]
-    blocked: ["~*", "*[bot]"]
+  jobs:
+    apply-routing:
+      name: Apply routing labels
+      description: Apply exactly one routing category plus triaged to one issue
+      max: 5
+      permissions:
+        issues: write
+      inputs:
+        issue_number:
+          description: Issue number from issues_json
+          required: true
+          type: number
+        category:
+          description: The single routing category. The handler also applies triaged.
+          required: true
+          type: choice
+          options: [needs-research, needs-reproduction, needs-spec, needs-human]
+      steps:
+        - name: Apply the routing pair
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            node <<'EOF'
+            const fs = require('fs');
+            const { execFileSync } = require('child_process');
+            const allowed = new Set(['needs-research', 'needs-reproduction', 'needs-spec', 'needs-human']);
+            const raw = JSON.parse(fs.readFileSync(process.env.GH_AW_AGENT_OUTPUT, 'utf8'));
+            const items = (raw.items || []).filter((item) => item.type === 'apply_routing');
+            const byIssue = new Map();
+            for (const item of items) {
+              const text = typeof item.issue_number === 'number' ? String(item.issue_number) : String(item.issue_number).trim();
+              const num = Number(text);
+              if (!Number.isSafeInteger(num) || num <= 0 || String(num) !== text) {
+                console.error(`invalid issue number: ${text}`);
+                process.exit(1);
+              }
+              if (!allowed.has(item.category)) {
+                console.error(`invalid category for #${num}: ${item.category}`);
+                process.exit(1);
+              }
+              const previous = byIssue.get(num);
+              if (previous && previous !== item.category) {
+                console.error(`conflicting categories for #${num}: ${previous} and ${item.category}`);
+                process.exit(1);
+              }
+              byIssue.set(num, item.category);
+            }
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            for (const [num, category] of byIssue) {
+              execFileSync('gh', [
+                'api', '--method', 'POST',
+                `repos/${owner}/${repo}/issues/${num}/labels`,
+                '--input', '-',
+              ], {
+                input: JSON.stringify({ labels: [category, 'triaged'] }),
+                stdio: ['pipe', 'inherit', 'inherit'],
+              });
+            }
+            EOF
   add-comment:
     max: 5
     target: "*"
@@ -146,10 +198,10 @@ For each issue in `issues_json`:
    - If the GitHub MCP call fails, skip that issue. Do not apply labels or a comment. Note the skip in your noop reason if no other issues were classified.
    - An empty body is valid. Classify from the title and any body text that is present. Do not skip an issue only because its body is empty.
 2. Classify using the rubric above. Assign **exactly one** category.
-3. Apply labels using `add_labels`:
-   - Always apply **both** `triaged` and the chosen `needs-*` label in a single call.
-   - Use the issue number as the target.
-   - Never apply `research-factory`, `change-factory`, `code-factory`, or `reproducer-factory`. Those are human promotion labels.
+3. Apply the routing pair by calling `apply_routing` once for that issue:
+   - Pass the issue number and exactly one `category`: `needs-research`, `needs-reproduction`, `needs-spec`, or `needs-human`.
+   - Do not pass `triaged`. The handler applies `triaged` together with that category.
+   - Never request `research-factory`, `change-factory`, `code-factory`, or `reproducer-factory`. Those are human promotion labels.
 4. Post a classification comment using `add_comment`:
    - Start the comment body with `<!-- gha-issue-classifier -->` on the first line.
    - Explain which routing label was applied and what it means in plain, friendly language.
@@ -209,15 +261,14 @@ If I've misclassified this, please leave a comment and a maintainer can adjust t
 
 Call `noop` only when this run classified no issues — for example every issue fetch failed. Provide a brief reason such as `"No issues could be classified in this run."`.
 
-Do **not** call `noop` after a run in which you successfully applied `add_labels` and `add_comment` to one or more issues. Those safe-output calls are the completion signal.
+Do **not** call `noop` after a run in which you successfully called `apply_routing` and `add_comment` for one or more issues. Those safe-output calls are the completion signal.
 
 The pre-activation step already skips this job when there is nothing to classify, so you will not see an empty `issues_json` in the normal case.
 
 ## Guardrails
 
 - Do not query for additional issues beyond the `issues_json` list. Pre-activation has already selected them.
-- Apply **both** `triaged` and exactly **one** `needs-*` label per issue. Never apply only one. Never apply any other label.
-- The only allowed labels are: `triaged`, `needs-research`, `needs-reproduction`, `needs-spec`, `needs-human`.
+- Call `apply_routing` once per issue with exactly one category. The handler applies that category and `triaged`. Do not call it twice for the same issue.
 - Never apply a factory trigger label: `research-factory`, `change-factory`, `code-factory`, `reproducer-factory`.
 - Post exactly **one** `add_comment` per issue per run. Do not post multiple comments on the same issue.
 - Do not close, reopen, or modify issues in any other way.
