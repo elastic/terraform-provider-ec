@@ -63,6 +63,7 @@ safe-outputs:
       max: 5
       permissions:
         issues: write
+      if: needs.detection.result == 'success' && needs.detection.outputs.detection_conclusion != 'warning'
       inputs:
         issue_number:
           description: Issue number from issues_json
@@ -77,11 +78,17 @@ safe-outputs:
         - name: Apply the routing pair
           env:
             GH_TOKEN: ${{ github.token }}
+            DETECTION_RESULT: ${{ needs.detection.result }}
+            GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
           run: |
             node <<'EOF'
             const fs = require('fs');
             const { execFileSync } = require('child_process');
             const allowed = new Set(['needs-research', 'needs-reproduction', 'needs-spec', 'needs-human']);
+            if (process.env.DETECTION_RESULT !== 'success' || process.env.GH_AW_DETECTION_CONCLUSION === 'warning') {
+              console.error(`refusing to apply labels: detection result=${process.env.DETECTION_RESULT} conclusion=${process.env.GH_AW_DETECTION_CONCLUSION}`);
+              process.exit(1);
+            }
             const raw = JSON.parse(fs.readFileSync(process.env.GH_AW_AGENT_OUTPUT, 'utf8'));
             const items = (raw.items || []).filter((item) => item.type === 'apply_routing');
             const byIssue = new Map();
@@ -104,15 +111,42 @@ safe-outputs:
               byIssue.set(num, item.category);
             }
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            function gh(args, input) {
+              return execFileSync('gh', ['api', ...args], {
+                input,
+                encoding: 'utf8',
+                stdio: ['pipe', 'pipe', 'inherit'],
+              });
+            }
+            function listLabels(num) {
+              const data = JSON.parse(gh([`repos/${owner}/${repo}/issues/${num}/labels`]) || '[]');
+              return data.map((label) => label.name);
+            }
+            function removeLabel(num, name) {
+              try {
+                gh(['--method', 'DELETE', `repos/${owner}/${repo}/issues/${num}/labels/${encodeURIComponent(name)}`]);
+              } catch (err) {
+                if (listLabels(num).includes(name)) {
+                  console.error(`failed to remove ${name} from #${num}`);
+                  process.exit(1);
+                }
+              }
+            }
             for (const [num, category] of byIssue) {
-              execFileSync('gh', [
-                'api', '--method', 'POST',
+              const stale = listLabels(num).filter((name) => allowed.has(name) && name !== category);
+              for (const name of stale) {
+                removeLabel(num, name);
+              }
+              const remaining = listLabels(num).filter((name) => allowed.has(name) && name !== category);
+              if (remaining.length > 0) {
+                console.error(`routing labels still present on #${num}: ${remaining.join(', ')}`);
+                process.exit(1);
+              }
+              gh([
+                '--method', 'POST',
                 `repos/${owner}/${repo}/issues/${num}/labels`,
                 '--input', '-',
-              ], {
-                input: JSON.stringify({ labels: [category, 'triaged'] }),
-                stdio: ['pipe', 'inherit', 'inherit'],
-              });
+              ], JSON.stringify({ labels: [category, 'triaged'] }));
             }
             EOF
   add-comment:
