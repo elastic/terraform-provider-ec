@@ -78,7 +78,12 @@ function applyRouting({ env, execFile }) {
   }
   for (const [num, routing] of byIssue) {
     const { category, comment } = routing;
-    const stale = listLabels(num).filter((name) => allowed.has(name) && name !== category);
+    const current = listLabels(num);
+    if (current.includes('triaged')) {
+      console.error(`skipping #${num}: already triaged`);
+      continue;
+    }
+    const stale = current.filter((name) => allowed.has(name) && name !== category);
     for (const name of stale) {
       removeLabel(num, name);
     }

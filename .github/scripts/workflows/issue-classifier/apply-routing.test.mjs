@@ -123,6 +123,13 @@ test('stale routing labels on a later page are removed before the comment', () =
   ]);
 });
 
+test('an issue that already has triaged is left unchanged', () => {
+  const result = run({ labels: { 15: ['triaged', 'needs-human'] } }, [item]);
+  assert.equal(result.thrown, undefined);
+  assert.equal(result.calls.some((call) => call.includes('DELETE') || call.includes('POST')), false);
+  assert.deepEqual(result.labels[15], ['triaged', 'needs-human']);
+});
+
 test('a failed delete does not post labels or a comment', () => {
   const result = run({
     labels: { 15: ['needs-human'] },
