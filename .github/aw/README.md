@@ -47,9 +47,12 @@ output and **deletes any entry nothing references**. Consequences:
   `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR. For
   example, `hashicorp/setup-terraform` is intentionally **absent**: gh-aw will add it — in that PR —
   when a workflow that runs `make validate-examples` (or otherwise uses the Terraform CLI) lands.
-- The set is **self-healing**: if a workflow stops referencing a scaffolding Action (e.g. sets
-  `checkout: false`), the next regenerate drops it and the drift check surfaces it in that workflow's
-  PR, not silently.
+- gh-aw's scaffolding Actions are emitted into **every** compiled workflow regardless of frontmatter —
+  e.g. `gh aw compile` still injects an `actions/checkout` step even when a workflow sets
+  `checkout: false` — so those pins are retained unconditionally. `--purge` prunes only a
+  **non-scaffolding** entry (like `hashicorp/setup-terraform`) once nothing references it. A clean
+  drift check therefore confirms the committed set matches the compiled output, but does not by itself
+  prove every retained entry is individually needed.
 
 ### Container image digests
 
@@ -59,9 +62,16 @@ output and **deletes any entry nothing references**. Consequences:
 
 These committed digests are **authoritative**: `gh aw compile` reads them and pins them **verbatim**
 into every generated `*.lock.yml` — the exact image the firewall / node / MCP containers pull at
-runtime, fleet-wide. (Change a digest here and the generated `*.lock.yml` pulls that image — this is
-how the images are pinned. Only when an image is *not yet* listed here does compile resolve its digest
-freshly, per-architecture, into the `*.lock.yml`, without writing it back.)
+runtime, fleet-wide. Change a digest here and the generated `*.lock.yml` pulls that image — this is how
+the images are pinned.
+
+For an image **not yet listed here**, compile pins a digest **only if gh-aw's embedded pin catalog
+knows it** (it does for the firewall / `gh-aw-mcpg` / `github-mcp-server` / `gh-aw-node` images, so a
+clean compile still pins those, per-architecture, into the `*.lock.yml` without writing them back). An
+image absent from **both** this file **and** the embedded catalog is emitted with its **original,
+possibly mutable tag** — compile does **not** fetch a digest for it. So any new image must be added
+here with an explicitly reviewed digest; never rely on compile to pin an image gh-aw does not already
+know.
 
 Compile **preserves** this block across `--purge` and never auto-rewrites or auto-corrects it. Two
 consequences follow, both security-relevant:
@@ -103,9 +113,18 @@ a second workflow needs the same block, factor it into a shared fragment.
 | `defaults` | ✅ | gh-aw baseline: GitHub API, TLS CA/OCSP/CRL endpoints, Ubuntu apt mirrors. Required by any runner. This set is itself broad (e.g. `storage.googleapis.com`, package registries), so "least-egress" below is **relative to this baseline**. |
 | `node` | ✅ | npm registry + Node toolchain — the `.github/scripts/workflows` JS helpers and their tests. |
 | `go` | ✅ | Go module proxy / checksum DB — building and testing the provider and the `scripts/changelogcheck` helper. |
-| `registry.terraform.io` | ✅ | Terraform provider/schema metadata for `make validate-examples`. Pinned as a **single host** rather than gh-aw's `terraform` domain set (which also opens `releases.hashicorp.com` / checkpoint), because the examples use the locally-built provider via dev overrides and do not download a released provider. gh-aw emits a non-fatal advisory suggesting the `terraform` set; we keep the single host deliberately, for least-egress. |
+| `registry.terraform.io` | ✅ | Terraform registry metadata for provider/schema lookups during `terraform init`. Pinned as a **single host** rather than gh-aw's `terraform` domain set (which also opens `releases.hashicorp.com` / checkpoint) for least-egress. **Not sufficient on its own for a full `make validate-examples`** — see the caveat below. gh-aw emits a non-fatal advisory suggesting the `terraform` set; we keep the single host deliberately. |
 | `www.elastic.co` | ✅ (conditional) | Egress host for the **Elastic docs MCP** (`https://www.elastic.co/docs/_mcp/`). Required **only** by a workflow that declares the `elastic-docs` MCP server (the research/change/code/reproducer factories consult Elastic Cloud / provider docs while drafting). Omit it from any workflow that does not wire up that MCP. |
 | `openrouter.ai` | ✅ | The inference endpoint. Agentic workflows call **OpenRouter** (`ANTHROPIC_BASE_URL=https://openrouter.ai/api`, model `anthropic/claude-sonnet-5`); the only inference secret is the repository secret `OPENROUTER_API_KEY`. |
+
+> **`make validate-examples` caveat.** `registry.terraform.io` alone does **not** let a sandboxed
+> `make validate-examples` finish. `scripts/validate_examples.sh` configures a Terraform
+> `filesystem_mirror` for `elastic/ec` (not dev overrides) and installs every other provider via
+> `direct`; `examples/deployment_ec2_instance` requires `hashicorp/aws`, whose provider binary is
+> fetched from `releases.hashicorp.com` — a host deliberately **not** in this menu. A workflow that
+> must validate examples inside the firewall therefore has to pre-install providers, or add
+> `releases.hashicorp.com` to its own `network.allowed` with explicit review. Do not assume the local
+> `elastic/ec` mirror removes all released-provider downloads.
 
 ### Excluded on purpose (least-egress, cloud-provider-specific)
 
