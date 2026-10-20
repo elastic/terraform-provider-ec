@@ -45,6 +45,10 @@ function applyRouting({ env, execFile }) {
   }
 
   const [owner, repo] = env.GITHUB_REPOSITORY.split('/');
+  // The safe-output job posts as this identity (GH_TOKEN = github.token). Only a
+  // comment authored by it counts as our own, so a marker-bearing comment from a
+  // reporter cannot suppress the real classification explanation.
+  const botLogin = env.GH_AW_BOT_LOGIN || 'github-actions[bot]';
   function gh(args, input) {
     return execFile('gh', ['api', ...args], {
       input,
@@ -57,10 +61,14 @@ function applyRouting({ env, execFile }) {
     const labels = Array.isArray(parsed[0]) ? parsed.flat() : parsed;
     return labels.map((label) => label.name);
   }
-  function hasClassifierComment(num) {
+  function botClassifierComment(num) {
     const parsed = JSON.parse(gh(['--paginate', '--slurp', `repos/${owner}/${repo}/issues/${num}/comments`]) || '[]');
     const comments = Array.isArray(parsed[0]) ? parsed.flat() : parsed;
-    return comments.some((c) => typeof c.body === 'string' && c.body.startsWith('<!-- gha-issue-classifier -->'));
+    return comments.find((c) =>
+      c?.user?.login === botLogin &&
+      typeof c.body === 'string' &&
+      c.body.startsWith('<!-- gha-issue-classifier -->'),
+    ) || null;
   }
   function assertIssue(num) {
     const data = JSON.parse(gh([`repos/${owner}/${repo}/issues/${num}`]));
@@ -109,12 +117,21 @@ function applyRouting({ env, execFile }) {
         '--input', '-',
       ], JSON.stringify({ labels: [category] }));
     }
-    // Post the classification comment at most once; a rerun after a partial
-    // failure must not duplicate it.
-    if (!hasClassifierComment(num)) {
+    // Post the classification comment, or reconcile the bot's existing one. A
+    // clean rerun (identical comment) is a no-op, so the comment is never
+    // duplicated; a rerun that reclassified to a different category edits the
+    // existing comment so the explanation always matches the final routing label.
+    const existingComment = botClassifierComment(num);
+    if (!existingComment) {
       gh([
         '--method', 'POST',
         `repos/${owner}/${repo}/issues/${num}/comments`,
+        '--input', '-',
+      ], JSON.stringify({ body: comment }));
+    } else if (existingComment.body !== comment) {
+      gh([
+        '--method', 'PATCH',
+        `repos/${owner}/${repo}/issues/comments/${existingComment.id}`,
         '--input', '-',
       ], JSON.stringify({ body: comment }));
     }

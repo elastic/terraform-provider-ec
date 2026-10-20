@@ -102,6 +102,10 @@ safe-outputs:
         - name: Apply the routing pair
           env:
             GH_TOKEN: ${{ github.token }}
+            # Author of this job's writes (github.token -> github-actions[bot]).
+            # apply-routing.js recognises the bot's own prior comment on a retry
+            # by this login; keep it in sync if the token above ever changes.
+            GH_AW_BOT_LOGIN: github-actions[bot]
             DETECTION_RESULT: ${{ needs.detection.result }}
             GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
           run: node .github/scripts/workflows/issue-classifier/apply-routing.js

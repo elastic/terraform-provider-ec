@@ -30,6 +30,14 @@ function run(state, items, env = {}) {
       }
       if (!rest[i].startsWith('-') && !apiPath) apiPath = rest[i];
     }
+    if (method === 'PATCH') {
+      // Issue comment edit: repos/.../issues/comments/{id}
+      if (state.failPatch) {
+        throw new Error('comment edit failed');
+      }
+      calls.push(options.input);
+      return '';
+    }
     const issue = apiPath.match(/issues\/(\d+)(?:\/(labels|comments)(?:\/([^/]+))?)?$/);
     const num = issue[1];
     const kind = issue[2];
@@ -42,7 +50,10 @@ function run(state, items, env = {}) {
     }
     if (kind === 'comments' && method === 'GET') {
       const existing = state.comments?.[num] ?? [];
-      return JSON.stringify([existing.map((body) => ({ body }))]);
+      return JSON.stringify([existing.map((c, idx) =>
+        typeof c === 'string'
+          ? { id: 1000 + idx, body: c, user: { login: 'github-actions[bot]' } }
+          : { id: c.id ?? 1000 + idx, body: c.body, user: { login: c.login } })]);
     }
     if (kind === 'labels' && method === 'DELETE') {
       const name = decodeURIComponent(issue[3]);
@@ -145,14 +156,69 @@ test('triaged is written after the category label and comment', () => {
   assert.deepEqual(result.labels[15], ['needs-research', 'triaged']);
 });
 
-test('an existing classifier comment is not reposted but triaged still completes', () => {
+test('an existing identical bot comment is neither reposted nor edited', () => {
   const result = run({
     labels: { 15: ['needs-research'] },
     comments: { 15: ['<!-- gha-issue-classifier -->\nThanks'] },
   }, [item]);
   assert.equal(result.thrown, undefined);
-  assert.equal(result.calls.some((call) => call.includes('/comments --input')), false);
+  assert.equal(result.calls.some((call) => call.includes('/comments --input') || call.includes('/issues/comments/')), false);
   assert.deepEqual(result.labels[15], ['needs-research', 'triaged']);
+});
+
+test('a marker comment from a non-bot author does not suppress the bot explanation', () => {
+  const result = run({
+    labels: { 15: [] },
+    comments: { 15: [{ body: '<!-- gha-issue-classifier -->\nfake', login: 'reporter' }] },
+  }, [item]);
+  assert.equal(result.thrown, undefined);
+  // The reporter's marker comment is ignored; the real explanation is still posted.
+  assert.equal(result.calls.some((call) => call.includes('--method POST') && call.includes('/comments --input')), true);
+  assert.equal(result.calls.some((call) => call.includes('--method PATCH')), false);
+  assert.deepEqual(result.labels[15], ['needs-research', 'triaged']);
+});
+
+test('a retry that reclassified to a different category reconciles the existing comment', () => {
+  const result = run({
+    labels: { 15: ['needs-research'] },
+    comments: { 15: [{ id: 42, body: '<!-- gha-issue-classifier -->\nResearch', login: 'github-actions[bot]' }] },
+  }, [{ ...item, category: 'needs-spec', comment: 'Spec' }]);
+  assert.equal(result.thrown, undefined);
+  // Old label removed, new category applied, triaged last.
+  assert.deepEqual(result.labels[15], ['needs-spec', 'triaged']);
+  // The bot comment is edited (not reposted) so the explanation matches the new label.
+  assert.equal(result.calls.some((call) => call.includes('--method PATCH') && call.includes('/issues/comments/42')), true);
+  assert.equal(result.calls.some((call) => call.includes('--method POST') && call.includes('/comments --input')), false);
+  const patched = result.calls.filter((call) => call.startsWith('{')).map((call) => JSON.parse(call)).find((obj) => obj.body);
+  assert.equal(patched.body, '<!-- gha-issue-classifier -->\nSpec');
+});
+
+test('a failed comment edit on a changed category leaves the issue untriaged', () => {
+  const result = run({
+    labels: { 15: ['needs-research'] },
+    comments: { 15: [{ id: 42, body: '<!-- gha-issue-classifier -->\nResearch', login: 'github-actions[bot]' }] },
+    failPatch: true,
+  }, [{ ...item, category: 'needs-spec', comment: 'Spec' }]);
+  assert.notEqual(result.thrown, undefined);
+  assert.equal(result.labels[15].includes('triaged'), false);
+});
+
+test('GH_AW_BOT_LOGIN overrides the recognised comment author', () => {
+  // Under the override, a comment by custom[bot] is the bot's own -> idempotent skip.
+  const recognised = run({
+    labels: { 15: ['needs-research'] },
+    comments: { 15: [{ body: '<!-- gha-issue-classifier -->\nThanks', login: 'custom[bot]' }] },
+  }, [item], { GH_AW_BOT_LOGIN: 'custom[bot]' });
+  assert.equal(recognised.thrown, undefined);
+  assert.equal(recognised.calls.some((call) => call.includes('/comments --input') || call.includes('/issues/comments/')), false);
+
+  // A default-login comment is NOT the bot's own under the override -> real comment is posted.
+  const ignored = run({
+    labels: { 15: ['needs-research'] },
+    comments: { 15: [{ body: '<!-- gha-issue-classifier -->\nThanks', login: 'github-actions[bot]' }] },
+  }, [item], { GH_AW_BOT_LOGIN: 'custom[bot]' });
+  assert.equal(ignored.thrown, undefined);
+  assert.equal(ignored.calls.some((call) => call.includes('--method POST') && call.includes('/comments --input')), true);
 });
 
 test('an issue that already has triaged is left unchanged', () => {
