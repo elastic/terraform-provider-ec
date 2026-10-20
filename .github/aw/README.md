@@ -12,9 +12,9 @@ any of those float on a mutable tag or reach an un-vetted host, a supply-chain c
 data-exfiltration path opens across the fleet. This policy pins every dependency to an immutable
 digest and constrains each workflow to a minimal allowlist.
 
-> **gh-aw version is pinned to `v0.89.21`** in
+> **gh-aw version is pinned to `v0.92.0`** in
 > [`.github/workflows/workflows.yml`](../workflows/workflows.yml) (`gh extension install
-> githubnext/gh-aw --pin v0.89.21`). Every pin below corresponds to that compiler version. On a gh-aw
+> githubnext/gh-aw --pin v0.92.0`). Every pin below corresponds to that compiler version. On a gh-aw
 > bump, re-generate (see *Regenerating* / *Updating on a gh-aw bump*) and review the diff.
 
 ## `actions-lock.json`
@@ -58,7 +58,7 @@ output and **deletes any entry nothing references**. Consequences:
 
 `containers` records the agentic container images pinned to a digest — the firewall sandbox
 (`gh-aw-firewall/{squid,agent,api-proxy,cli-proxy}`), the MCP gateway (`gh-aw-mcpg`), the Node base
-(`gh-aw-node`), and `github-mcp-server` — all at the versions shipped by gh-aw **v0.89.21**.
+(`gh-aw-node`), and `github-mcp-server` — all at the versions shipped by gh-aw **v0.92.0**.
 
 These committed digests are **authoritative**: `gh aw compile` reads them and pins them **verbatim**
 into every generated `*.lock.yml` — the exact image the firewall / node / MCP containers pull at
