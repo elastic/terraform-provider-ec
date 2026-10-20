@@ -78,7 +78,7 @@ safe-outputs:
       permissions:
         contents: read
         issues: write
-      if: needs.detection.result == 'success' && needs.detection.outputs.detection_conclusion != 'warning'
+      if: needs.detection.result == 'success' && (needs.detection.outputs.detection_conclusion == 'success' || needs.detection.outputs.detection_conclusion == 'skipped')
       inputs:
         issue_number:
           description: Issue number from issues_json

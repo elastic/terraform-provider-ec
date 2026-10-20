@@ -84,7 +84,7 @@ function run(state, items, env = {}) {
     applyRouting({
       env: {
         DETECTION_RESULT: 'success',
-        GH_AW_DETECTION_CONCLUSION: '',
+        GH_AW_DETECTION_CONCLUSION: 'success',
         GITHUB_REPOSITORY: 'elastic/terraform-provider-ec',
         GH_AW_AGENT_OUTPUT: output,
         ...env,
@@ -109,6 +109,28 @@ test('a detection warning writes nothing', () => {
   assert.equal(result.thrown.routingFailure, true);
   assert.deepEqual(result.calls, []);
   assert.deepEqual(result.labels[15], ['needs-human']);
+});
+
+test('a detection failure conclusion writes nothing', () => {
+  const result = run({ labels: { 15: ['needs-human'] } }, [item], { GH_AW_DETECTION_CONCLUSION: 'failure' });
+  assert.equal(result.thrown.routingFailure, true);
+  assert.deepEqual(result.calls, []);
+  assert.deepEqual(result.labels[15], ['needs-human']);
+});
+
+test('an empty or unknown detection conclusion writes nothing (fails closed)', () => {
+  for (const conclusion of ['', 'bogus']) {
+    const result = run({ labels: { 15: ['needs-human'] } }, [item], { GH_AW_DETECTION_CONCLUSION: conclusion });
+    assert.equal(result.thrown.routingFailure, true, `conclusion=${JSON.stringify(conclusion)} must refuse`);
+    assert.deepEqual(result.calls, []);
+    assert.deepEqual(result.labels[15], ['needs-human']);
+  }
+});
+
+test('a skipped detection conclusion proceeds', () => {
+  const result = run({ labels: { 15: [] } }, [item], { GH_AW_DETECTION_CONCLUSION: 'skipped' });
+  assert.equal(result.thrown, undefined);
+  assert.deepEqual(result.labels[15], ['needs-research', 'triaged']);
 });
 
 test('a pull request number is rejected before any label write', () => {
@@ -255,6 +277,20 @@ test('a non-classifier comment does not suppress the classification comment', ()
   }, [item]);
   assert.equal(result.thrown, undefined);
   assert.equal(result.calls.filter((call) => call.includes('/comments --input')).length, 1);
+  assert.deepEqual(result.labels[15], ['needs-research', 'triaged']);
+});
+
+test('the bot comment is found among a large comment history', () => {
+  const many = [];
+  for (let i = 0; i < 40; i++) many.push({ body: `user comment ${i}`, login: 'reporter' });
+  many.push({ id: 77, body: '<!-- gha-issue-classifier -->\nThanks', login: 'github-actions[bot]' });
+  const result = run({
+    labels: { 15: ['needs-research'] },
+    comments: { 15: many },
+  }, [item]);
+  assert.equal(result.thrown, undefined);
+  // The identical bot comment is located among the history: no repost, no edit.
+  assert.equal(result.calls.some((call) => call.includes('/comments --input') || call.includes('/issues/comments/')), false);
   assert.deepEqual(result.labels[15], ['needs-research', 'triaged']);
 });
 

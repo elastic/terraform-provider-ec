@@ -9,7 +9,13 @@ function applyRouting({ env, execFile }) {
     error.routingFailure = true;
     throw error;
   }
-  if (env.DETECTION_RESULT !== 'success' || env.GH_AW_DETECTION_CONCLUSION === 'warning') {
+  // Detection steps run with continue-on-error, so the job can report
+  // result=success while the detector warned (threat), failed (engine/parse
+  // error), or emitted nothing. threat-detect concludes `success` on a clean run
+  // and `skipped` when detection was not required; allowlist exactly those two so
+  // warning, failure, an empty conclusion, or any unknown value fails closed.
+  // Never write labels or a comment without an explicit clean verdict.
+  if (env.DETECTION_RESULT !== 'success' || !['success', 'skipped'].includes(env.GH_AW_DETECTION_CONCLUSION)) {
     fail(`refusing to apply labels: detection result=${env.DETECTION_RESULT} conclusion=${env.GH_AW_DETECTION_CONCLUSION}`);
     return;
   }
@@ -53,6 +59,10 @@ function applyRouting({ env, execFile }) {
     return execFile('gh', ['api', ...args], {
       input,
       encoding: 'utf8',
+      // A large paginated label/comment history can exceed execFileSync's 1 MiB
+      // default stdout limit and abort routing after the label is applied; allow
+      // a generous ceiling so a busy issue still completes.
+      maxBuffer: 64 * 1024 * 1024,
       stdio: ['pipe', 'pipe', 'inherit'],
     });
   }
