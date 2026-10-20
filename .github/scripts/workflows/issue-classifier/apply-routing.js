@@ -57,6 +57,11 @@ function applyRouting({ env, execFile }) {
     const labels = Array.isArray(parsed[0]) ? parsed.flat() : parsed;
     return labels.map((label) => label.name);
   }
+  function hasClassifierComment(num) {
+    const parsed = JSON.parse(gh(['--paginate', '--slurp', `repos/${owner}/${repo}/issues/${num}/comments`]) || '[]');
+    const comments = Array.isArray(parsed[0]) ? parsed.flat() : parsed;
+    return comments.some((c) => typeof c.body === 'string' && c.body.startsWith('<!-- gha-issue-classifier -->'));
+  }
   function assertIssue(num) {
     const data = JSON.parse(gh([`repos/${owner}/${repo}/issues/${num}`]));
     if (data.pull_request) {
@@ -87,21 +92,37 @@ function applyRouting({ env, execFile }) {
     for (const name of stale) {
       removeLabel(num, name);
     }
-    const remaining = listLabels(num).filter((name) => allowed.has(name) && name !== category);
+    const afterRemoval = listLabels(num);
+    const remaining = afterRemoval.filter((name) => allowed.has(name) && name !== category);
     if (remaining.length > 0) {
       fail(`routing labels still present on #${num}: ${remaining.join(', ')}`);
       return;
+    }
+    // Apply the category label, post the comment, then `triaged` LAST. `triaged`
+    // is the completion marker that makes both pre-activation and this handler
+    // skip the issue, so writing it last keeps a partial run recoverable: if the
+    // comment POST fails, the issue stays untriaged and a rerun retries cleanly.
+    if (!afterRemoval.includes(category)) {
+      gh([
+        '--method', 'POST',
+        `repos/${owner}/${repo}/issues/${num}/labels`,
+        '--input', '-',
+      ], JSON.stringify({ labels: [category] }));
+    }
+    // Post the classification comment at most once; a rerun after a partial
+    // failure must not duplicate it.
+    if (!hasClassifierComment(num)) {
+      gh([
+        '--method', 'POST',
+        `repos/${owner}/${repo}/issues/${num}/comments`,
+        '--input', '-',
+      ], JSON.stringify({ body: comment }));
     }
     gh([
       '--method', 'POST',
       `repos/${owner}/${repo}/issues/${num}/labels`,
       '--input', '-',
-    ], JSON.stringify({ labels: [category, 'triaged'] }));
-    gh([
-      '--method', 'POST',
-      `repos/${owner}/${repo}/issues/${num}/comments`,
-      '--input', '-',
-    ], JSON.stringify({ body: comment }));
+    ], JSON.stringify({ labels: ['triaged'] }));
   }
 }
 
