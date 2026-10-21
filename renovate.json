@@ -12,6 +12,21 @@
   "automergeType": "pr",
   "packageRules": [
     {
+      "description": "gh-aw compiled lock files. Pins come from `make workflow-generate` at the compiler version in workflows.yml, not from Renovate.",
+      "matchFileNames": [
+        ".github/workflows/*.lock.yml"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "gh-aw-actions is compiled in with the gh-aw pin; bump them together via make workflow-generate, never independently.",
+      "matchPackageNames": [
+        "github/gh-aw-actions",
+        "github/gh-aw-actions/**"
+      ],
+      "enabled": false
+    },
+    {
       "groupName": "github.com/oapi-codegen dependencies",
       "matchPackageNames": [
         "github.com/oapi-codegen/*"

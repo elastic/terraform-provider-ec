@@ -94,9 +94,13 @@ Acceptance runs are wired through Buildkite, not run inline by contributors:
 - `acceptance.sh` exits 0 without `make testacc` when the PR only touches `docs/` or `dev-docs/`
   (and writes `.buildkite/.skip-acceptance-sweep` so `pre-exit` does not sweep); otherwise it
   runs `make vendor` then `EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET make testacc`.
-- Branch protection on `master` requires **CLA**, **Unit**, and
-  `buildkite/terraform-provider-ec-acceptance`. GitHub auto-merge (used by Renovate) waits on those
-  checks. Non-major Renovate PRs are auto-approved as `github-actions[bot]` by
+- Branch protection on `master` requires **CLA**, **Unit**, **Validate OpenSpecs**,
+  and `buildkite/terraform-provider-ec-acceptance`. The repository ruleset
+  [Require Workflows Gate](https://github.com/elastic/terraform-provider-ec/rules/25594481)
+  additionally requires **Workflows Gate**. GitHub auto-merge (used by Renovate) waits on
+  those checks. **Workflows Gate** always reports: it passes when the Workflows CI Test
+  job succeeds or is legitimately skipped, and fails when Test fails, so a red Test cannot
+  merge. Non-major Renovate PRs are auto-approved as `github-actions[bot]` by
   [`.github/workflows/approve-renovate.yml`](../../.github/workflows/approve-renovate.yml) once
   Renovate enables auto-merge.
 - The [`pre-command`](../../.buildkite/hooks/pre-command) hook loads the API key from Vault and
