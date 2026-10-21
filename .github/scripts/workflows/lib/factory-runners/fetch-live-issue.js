@@ -7,13 +7,7 @@
  * Do not expand issue_title or issue_body inside a shell `run:` step.
  */
 
-// The whole string must be a safe positive integer.
-function positiveIssueNumber(raw) {
-  if (typeof raw !== 'string' || !/^[1-9][0-9]*$/.test(raw)) return 0;
-  const issueNumber = Number(raw);
-  if (!Number.isSafeInteger(issueNumber)) return 0;
-  return issueNumber;
-}
+const { positiveIssueNumber } = require('../issue-number.js');
 
 module.exports = async function ({ github, context, core }) {
   const { owner, repo } = context.repo;
