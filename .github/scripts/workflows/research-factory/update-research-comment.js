@@ -64,9 +64,12 @@ const MAX_COMMENT_CHARS = 60000;
  *
  * Anchored at the start of the line on purpose: unanchored it would also match prose such as
  * "see the **Outcome:** line below", which since the stray-line check would force an outcome on a
- * draft that never stated one.
+ * draft that never stated one. Up to three leading spaces are allowed, matching `HEADING_LINE` and
+ * CommonMark — they render identically, so a one-space indent must not read as "no outcome stated",
+ * which published the forced verdict *alongside* the untouched claim instead of replacing it.
+ * (Four or more spaces is an indented code block, which is not a live outcome line.)
  */
-const OUTCOME_LINE = /^\*\*Outcome:\*\* .*$/;
+const OUTCOME_LINE = /^ {0,3}\*\*Outcome:\*\* .*$/;
 const QUALITY_GATE_HEADING = 'Quality gate';
 const APPROACHES_HEADING = 'Approaches considered';
 const RECOMMENDATION_HEADING = 'Recommendation';
@@ -226,7 +229,7 @@ function fatalContractViolations(body) {
  * @param {string[]} causes
  * @returns {string}
  */
-function annotateQualityGate(section, causes, { compact = false, minimal = false } = {}) {
+function annotateQualityGate(section, causes, { compact = false, minimal = false, insert = true } = {}) {
   // The minimal form carries no causes at all — just the corrected verdict. It is 35 characters and
   // usually *shorter* than the line it replaces, so it fits wherever the draft itself fits. Without
   // it, a draft near the size ceiling made both richer forms unaffordable, the edit was skipped,
@@ -239,8 +242,13 @@ function annotateQualityGate(section, causes, { compact = false, minimal = false
   const lines = outcomeLines(section);
 
   let rewritten;
-  if (lines.length === 0) {
-    // No outcome line to correct: state the forced outcome right under the heading.
+  if (lines.length === 0 && !insert) {
+    // Something in the section reads as a verdict but did not parse. Say so in the annotation;
+    // do not add a second one beside it.
+    rewritten = section;
+  } else if (lines.length === 0) {
+    // No outcome line to correct, and nothing that looks like one: state the forced outcome right
+    // under the heading.
     const firstBreak = section.indexOf('\n');
     rewritten = firstBreak === -1 ? `${section}\n\n${forced}\n` : `${section.slice(0, firstBreak + 1)}\n${forced}\n${section.slice(firstBreak + 1)}`;
   } else {
@@ -338,6 +346,32 @@ function outcomeLines(section) {
     }
   }
   return found;
+}
+
+/**
+ * True when the section mentions an outcome somewhere this parser did not recognise as a line.
+ *
+ * `OUTCOME_LINE` deliberately matches one exact shape. Markdown has many renderings that a human
+ * reads as the same verdict and this parser does not: a list bullet (`- **Outcome:** …`), a block
+ * quote, `__Outcome:__`, a tab after the colon, a non-breaking space, a lazy paragraph
+ * continuation. Widening the regex to chase each one is a losing game — the dangerous move is not
+ * failing to *replace* such a line, it is **inserting a second verdict beside it**, which on an
+ * honest draft published a false `research-needs-human` next to the agent's own live claim.
+ *
+ * So when nothing parsed but something is evidently there, the handler annotates and does not
+ * insert. A false positive here (prose that merely says "outcome:") costs an inserted line we
+ * would rather not have inserted anyway.
+ *
+ * @param {string} section
+ * @returns {boolean}
+ */
+function mentionsOutcome(section) {
+  for (const { line } of linesOutsideFences(section)) {
+    if (/outcome:/i.test(line)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -579,6 +613,8 @@ function preparePublishedBody(draft) {
       if (lines.length === 1 && prose !== FORCED_OUTCOME) {
         gateCause = `The ### ${QUALITY_GATE_HEADING} section states an outcome but the pipeline metadata could not be read, so nothing supports it.`;
       }
+    } else if (lines.length === 0 && mentionsOutcome(section)) {
+      gateCause = `The ### ${QUALITY_GATE_HEADING} section states an outcome this job could not read: it must be a plain \`**Outcome:** \`<outcome>\`\` line, not a bullet, quote or other styling.`;
     } else if (lines.length === 0 || prose === null) {
       gateCause = `The ### ${QUALITY_GATE_HEADING} section states no machine-readable outcome.`;
     } else {
@@ -603,13 +639,20 @@ function preparePublishedBody(draft) {
     // One edit over one range for every cause, so the forced outcome and the annotation can never
     // be applied half-way. The compact variant is the fallback when the full one does not fit.
     const section = body.slice(gateRange.start, gateRange.end);
+    // When there is nothing to correct and nothing may be inserted, the annotation *is* the edit —
+    // the shorter rungs would be no-ops, so they are not offered.
+    const insert = outcomeLines(section).length > 0 || !mentionsOutcome(section);
     candidates.unshift({
       name: 'annotate quality gate',
       start: gateRange.start,
       end: gateRange.end,
-      text: annotateQualityGate(section, causes),
-      fallbackText: annotateQualityGate(section, causes, { compact: true }),
-      minimalText: annotateQualityGate(section, causes, { minimal: true }),
+      text: annotateQualityGate(section, causes, { insert }),
+      ...(insert
+        ? {
+            fallbackText: annotateQualityGate(section, causes, { compact: true, insert }),
+            minimalText: annotateQualityGate(section, causes, { minimal: true, insert }),
+          }
+        : {}),
     });
   } else if (!gateRange && (readinessCause || strayCause)) {
     // F3: no section to annotate, but the body still carries a machine-readable verdict a reader

@@ -671,6 +671,86 @@ describe('preparePublishedBody — the outcome line is read outside code fences'
     assert.match(warnings.join('\n'), /disagrees with the machine-readable gate/);
   });
 
+  for (const indent of ['', ' ', '  ', '   ']) {
+    test(`replaces an outcome line indented by ${indent.length} space(s)`, () => {
+      // A leading space renders identically but used to read as "no outcome stated", so the handler
+      // inserted a forced verdict and left the readiness claim standing beside it — two
+      // contradictory outcomes in one published comment.
+      const draft = gateSection([`${indent}**Outcome:** \`ready-for-change-factory\` - all checklist items pass.`], 'research-needs-human');
+      const { body, fatals } = preparePublishedBody(draft);
+
+      assert.deepEqual(fatals, []);
+      assert.ok(!/^ {0,3}\*\*Outcome:\*\* `ready-for-change-factory`/m.test(body), 'the claim was replaced, not duplicated');
+      assert.equal((body.match(/^ {0,3}\*\*Outcome:\*\*/gm) || []).length, 1, 'exactly one live outcome line');
+    });
+  }
+
+  for (const [label, line] of [
+    ['a list bullet', '- **Outcome:** `ready-for-change-factory` - all checklist items pass.'],
+    ['a block quote', '> **Outcome:** `ready-for-change-factory` - all checklist items pass.'],
+    ['underscore emphasis', '__Outcome:__ `ready-for-change-factory` - all checklist items pass.'],
+    ['a tab after the colon', '**Outcome:**\t`ready-for-change-factory` - all checklist items pass.'],
+    ['a non-breaking space indent', '\u00a0**Outcome:** `ready-for-change-factory` - all checklist items pass.'],
+    ['a lazy paragraph continuation', 'Gate notes follow.\n    **Outcome:** `ready-for-change-factory` - all pass.'],
+  ]) {
+    test(`never publishes a second verdict beside an outcome written as ${label}`, () => {
+      // Every one of these renders as a live verdict on GitHub and none parses as an outcome line.
+      // Inserting a forced verdict beside one published a *false* `research-needs-human` next to
+      // the agent's own correct claim — on an otherwise honest draft. Annotate, never insert.
+      const metadata = validMetadata();
+      const draft = makeDraft({ metadata }).replace(
+        '**Outcome:** `ready-for-change-factory` - all checklist items pass.',
+        () => line,
+      );
+      const { body, fatals } = preparePublishedBody(draft);
+
+      assert.deepEqual(fatals, []);
+      assert.ok(!body.includes('- forced by the comment handler'), 'no verdict was inserted');
+      assert.ok(body.includes('⚠️'), 'but the reader is told it could not be read');
+      assert.match(body, /could not read: it must be a plain/);
+    });
+  }
+
+  test('still states a verdict when the section truly has no outcome at all', () => {
+    // The insert path must survive: with nothing that reads as a verdict, there is nothing to
+    // contradict, and the reader needs the handler's conclusion.
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'research-needs-human';
+    const draft = makeDraft({ metadata, proseOutcome: null });
+    const { body, fatals } = preparePublishedBody(draft);
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+  });
+
+  test('a tab-indented outcome line is a code block, not a live verdict', () => {
+    // Pins "spaces only": relaxing the matcher to `\s{0,3}` would make the handler rewrite outcome
+    // lines inside indented code blocks — the fenced-decoy class this file exists to prevent.
+    const metadata = validMetadata();
+    const draft = makeDraft({ metadata }).replace(
+      '**Outcome:** `ready-for-change-factory` - all checklist items pass.',
+      () => '\t**Outcome:** `ready-for-change-factory` - an example.',
+    );
+    const { body, fatals } = preparePublishedBody(draft);
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('\t**Outcome:** `ready-for-change-factory`'), 'the code block is untouched');
+    assert.ok(!body.includes('- forced by the comment handler'), 'and no verdict is inserted beside it');
+  });
+
+  test('leaves a four-space outcome line alone: that is an indented code block', () => {
+    // Not matched as a live outcome (four spaces is a code block), and not insertable either: the
+    // section still mentions an outcome, so a verdict added beside it could read as contradicting
+    // the example. Annotate only — the conservative side of a parser/renderer disagreement.
+    const draft = gateSection(['    **Outcome:** `ready-for-change-factory` - an example, not a verdict.'], 'research-needs-human');
+    const { body, fatals } = preparePublishedBody(draft);
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('    **Outcome:** `ready-for-change-factory`'), 'code block untouched');
+    assert.ok(!body.includes('- forced by the comment handler'), 'no verdict inserted beside it');
+    assert.ok(body.includes('⚠️'));
+  });
+
   test('every live outcome line is corrected, not just the first', () => {
     const draft = gateSection(
       ['**Outcome:** `ready-for-change-factory` - all checklist items pass.', '', '**Outcome:** `definitely-ship-it` - stray.'],
