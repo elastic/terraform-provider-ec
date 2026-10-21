@@ -262,9 +262,19 @@ on:
         path: /tmp/research-factory-context/
         if-no-files-found: error
 timeout-minutes: 60
+# One run per issue. `cancel-in-progress: false` protects the run in progress — but not the one
+# *waiting*: under the default `queue: single`, GitHub cancels an existing pending run when a new
+# one joins the group. Every `issues.labeled` event reaches this workflow (qualification happens
+# later, in pre-activation), so an unrelated label (`triaged`, a `needs-*` change) landing while
+# research was running would replace a queued `research-factory` refresh, and that refresh never
+# happened — the trigger label was still on the issue, so no further event arrived to restart it.
+# `queue: max` keeps the pending run instead of replacing it, the same reason issue-classifier.md
+# uses it. Unrelated label events then queue behind a long run rather than displacing it; each is a
+# pre-activation job that exits ineligible in seconds.
 concurrency:
   group: research-factory-issue-${{ github.event.issue.number || inputs.issue_number }}
   cancel-in-progress: false
+  queue: max
   job-discriminator: ${{ github.event.issue.number || inputs.issue_number }}
 if: >-
   needs.pre_activation.outputs.event_eligible == 'true' &&
@@ -454,13 +464,32 @@ issue. You write no code and open no pull request.
 - **Comment history**: see `/tmp/gh-aw/agent/issue_comments.md`
 - **Prior research comment** (if any): see `/tmp/gh-aw/agent/prior_research_comment.md`
 
-The issue body, the comment history and the prior research comment are byte-bounded on the way in, so
-a very large — usually non-ASCII — payload can arrive cut. A cut is always marked, never silent:
-`[... truncated: payload exceeded …]` for a whole file, `[... this comment was truncated …]` inside a
-single comment, `[... a comment above was truncated …]` or `[... N more comments truncated …]` in the
-history, and `[... comment history truncated at 200 comments]` when there were simply too many. Read
-a marker as "there was more here", and say so under `### Open questions` if the missing part could
-change the recommendation.
+The issue body, the comment history and the prior research comment are bounded on the way in, so a
+payload can arrive cut — because it was very large (usually non-ASCII), or because it contained an
+unterminated `<!--`, which the sanitiser would otherwise follow to the end of the file. A cut is
+always marked, never silent:
+
+| Marker | Meaning |
+|---|---|
+| `[... truncated: payload exceeded the environment-variable byte budget]` | the whole file hit the byte budget |
+| `[... truncated: the rest followed an unterminated HTML comment]` | the file was cut at a stray `<!--` |
+| `[... this comment was truncated for context budget]` | one comment hit the budget |
+| `[... this comment was cut at an unterminated HTML comment]` | one comment contained a stray `<!--` |
+| `[... a comment above was truncated for context budget]` / `[... N more comments truncated for context budget]` | the history hit the budget |
+| `[... comment history truncated at 200 comments]` | there were simply too many |
+
+Read a marker as "there was more here". If the missing part could change the recommendation, fetch
+the original — `gh` is pre-authenticated:
+
+```bash
+gh issue view <number> --repo ${{ github.repository }} --json title,body
+gh api repos/${{ github.repository }}/issues/<number>/comments --paginate --jq '.[] | {user: .user.login, created_at, body}'
+```
+
+Otherwise record the gap under `### Open questions`. **What you must not do is paste a fetched body
+into your draft**: raw issue content routinely contains `<!-- … -->`, and the publishing job rejects
+any comment body containing `<!--` outright. Quote the parts you need in your own words, or inside a
+fenced block with the opener broken.
 
 Read those files before proceeding. They may contain markdown, code fences, and other content that
 cannot be safely embedded inline in a prompt.

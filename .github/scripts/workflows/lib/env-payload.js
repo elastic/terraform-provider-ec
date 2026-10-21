@@ -19,6 +19,18 @@
 const MAX_ENV_PAYLOAD_BYTES = 100 * 1024;
 
 const TRUNCATION_NOTICE = '\n\n[... truncated: payload exceeded the environment-variable byte budget]';
+/**
+ * Appended when the payload is cut at an unterminated `<!--`.
+ *
+ * `write-context-files.js` runs `sanitizeUserContent` over every payload, and its
+ * `stripHtmlComments` deletes from an orphaned opener to the end of the *string*. An issue body is
+ * raw user input and this repository's own bug-report template carries 27 HTML comments, so a
+ * reporter deleting one `-->` while filling it in is ordinary: measured on that template, the body
+ * the agent received went from 782 characters to 559 — losing the whole environment-and-version
+ * section — with nothing to show it had happened. (782, not the template's 2 413: the terminated
+ * comments are stripped either way. The loss is the content *after* the orphan.)
+ */
+const OPENER_NOTICE = '\n\n[... truncated: the rest followed an unterminated HTML comment]';
 
 /**
  * UTF-8 byte length of a string.
@@ -68,14 +80,23 @@ function sliceToBytes(text, maxBytes) {
  * @returns {string}
  */
 function boundEnvPayload(text, maxBytes = MAX_ENV_PAYLOAD_BYTES) {
-  const value = String(text ?? '');
+  const raw = String(text ?? '');
+
+  // Always, not only when the budget truncates: an orphaned opener anywhere in the payload makes
+  // the downstream sanitiser delete from there to the end of the file, and a payload well under
+  // budget never reached the truncation branch at all.
+  const whole = dropOrphanedCommentOpener(raw);
+  const value = whole === raw ? raw : `${whole}${OPENER_NOTICE}`;
+
   if (byteLength(value) <= maxBytes) {
     return value;
   }
   if (maxBytes <= byteLength(TRUNCATION_NOTICE)) {
     // Smaller than the notice itself: honour the budget rather than overshoot it announcing that
-    // we cut. Unreachable from the production call sites, which all use the 100 KiB default.
-    return sliceToBytes(value, maxBytes);
+    // we cut. Unreachable from the production call sites, which all use the 100 KiB default — but
+    // still drop an opener the slice orphans, so this branch cannot be the one place that hands
+    // the sanitiser a payload it will silently eat.
+    return dropOrphanedCommentOpener(sliceToBytes(value, maxBytes));
   }
   const room = maxBytes - byteLength(TRUNCATION_NOTICE);
   return `${dropOrphanedCommentOpener(sliceToBytes(value, room))}${TRUNCATION_NOTICE}`;
@@ -112,6 +133,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     MAX_ENV_PAYLOAD_BYTES,
     TRUNCATION_NOTICE,
+    OPENER_NOTICE,
     byteLength,
     sliceToBytes,
     boundEnvPayload,

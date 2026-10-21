@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test, { describe } from 'node:test';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
@@ -7,7 +8,11 @@ const {
   factoryFetchIssueComments,
   serializeIssueComments,
   COMMENT_CONTEXT_BUDGET,
+  COMMENT_CONTEXT_MARKER_OVERHEAD,
+  COMMENT_BODY_TRUNCATED_NOTICE,
+  COMMENT_BODY_OPENER_NOTICE,
 } = require('./factory-issue-comments.js');
+const { dropOrphanedCommentOpener, sliceToBytes, OPENER_NOTICE, TRUNCATION_NOTICE } = require('./env-payload.js');
 const { sanitizeUserContent } = require('./sanitize-context.js');
 
 function githubWith(comments) {
@@ -99,6 +104,28 @@ describe('factoryFetchIssueComments', () => {
   });
 });
 
+describe('truncation markers', () => {
+  // The prompt documents these verbatim in its marker table, and the agent is told to read one as
+  // "there was more here". Importing the constants removed the only literal pin, so pin both
+  // directions here: the string, and the prompt that quotes it.
+  const prompt = fs.readFileSync(
+    new URL('../../../workflows/research-factory-issue.md', import.meta.url),
+    'utf8',
+  );
+
+  test('the comment markers read as truncation notices', () => {
+    assert.equal(COMMENT_BODY_TRUNCATED_NOTICE.trim(), '[... this comment was truncated for context budget]');
+    assert.equal(COMMENT_BODY_OPENER_NOTICE.trim(), '[... this comment was cut at an unterminated HTML comment]');
+  });
+
+  test('the prompt documents every marker the code can emit', () => {
+    for (const marker of [COMMENT_BODY_TRUNCATED_NOTICE, COMMENT_BODY_OPENER_NOTICE, OPENER_NOTICE, TRUNCATION_NOTICE]) {
+      assert.ok(prompt.includes(marker.trim()), `undocumented marker: ${marker.trim()}`);
+    }
+    assert.ok(prompt.includes('comment history truncated at 200 comments'));
+  });
+});
+
 describe('serializeIssueComments', () => {
   test('returns an empty string for no comments', () => {
     assert.equal(serializeIssueComments({ comments: [], truncated: false }), '');
@@ -155,22 +182,63 @@ describe('serializeIssueComments', () => {
     assert.match(out, /\[\.\.\. this comment was truncated for context budget\]/);
   });
 
-  test('keeps both truncation markers readable through the downstream sanitiser', () => {
-    // The cut lands inside an HTML comment — routine, since issue templates leave them in bodies.
-    // Without dropping the orphaned opener, sanitizeUserContent deletes from there to the end,
-    // taking the in-block notice and the trailing drop marker with it.
+  test('one comment ending in an unterminated opener cannot erase the comments after it', () => {
+    // The whole serialized history goes through sanitizeUserContent, whose stripHtmlComments
+    // deletes from an orphaned `<!--` to the end of the *string*. Before this, a single reporter
+    // comment reading "Example input: <!--" silently removed every maintainer comment below it.
     const out = serializeIssueComments({
       comments: [
-        { author: 'alice', createdAt: 't', body: `${'q'.repeat(49_000)}<!-- template ${'r'.repeat(5_000)}` },
-        { author: 'bob', createdAt: 't', body: 'second' },
+        { author: 'reporter', createdAt: 't1', body: 'Example input: <!--' },
+        { author: 'maintainer', createdAt: 't2', body: 'IMPORTANT: this must also support ECE.' },
+        { author: 'maintainer', createdAt: 't3', body: 'And the serverless variant.' },
       ],
       truncated: false,
     });
     const sanitized = sanitizeUserContent(out);
 
+    assert.ok(sanitized.includes('must also support ECE'), 'later feedback survives');
+    assert.ok(sanitized.includes('serverless variant'), 'and the comment after that');
+    assert.ok(sanitized.includes(COMMENT_BODY_OPENER_NOTICE.trim()));
+  });
+
+  test('leaves a terminated comment in a body alone', () => {
+    const out = serializeIssueComments({
+      comments: [{ author: 'alice', createdAt: 't', body: 'see <!-- a note --> here' }],
+      truncated: false,
+    });
+
+    assert.ok(out.includes('see <!-- a note --> here'), 'untouched by the orphan drop');
+    assert.ok(!out.includes('cut at an unterminated HTML comment'));
+  });
+
+  test('keeps both truncation markers readable through the downstream sanitiser', () => {
+    // The byte cut must land *inside* a terminated HTML comment — routine, since issue templates
+    // leave them in bodies — which orphans the opener at slice time. Without dropping it,
+    // sanitizeUserContent deletes from there to the end, taking the in-block notice and the
+    // trailing drop marker with it.
+    //
+    // The offset is derived, not guessed: the slice happens at
+    // (budget - marker overhead) - frame - notice, so the comment has to straddle that point. A
+    // fixture whose comment sits earlier leaves this path untested while still passing.
+    const frame = Buffer.byteLength('**@alice** (t):\n\n') + Buffer.byteLength('\n\n---\n');
+    const cut = COMMENT_CONTEXT_BUDGET - COMMENT_CONTEXT_MARKER_OVERHEAD - frame - Buffer.byteLength(COMMENT_BODY_TRUNCATED_NOTICE);
+    const body = `${'q'.repeat(cut - 10)}<!-- a template block that straddles the cut -->${'r'.repeat(5_000)}`;
+    // Non-vacuity: if the arithmetic ever stops straddling the cut, the assertions below would all
+    // pass while testing nothing. Fail here instead.
+    const slice = sliceToBytes(body, cut);
+    assert.notEqual(dropOrphanedCommentOpener(slice), slice, 'fixture must straddle the cut');
+    const out = serializeIssueComments({
+      comments: [
+        { author: 'alice', createdAt: 't', body },
+        { author: 'bob', createdAt: 't', body: 'second' },
+      ],
+      truncated: false,
+    });
+    assert.ok(!out.includes('<!--'), 'the slice orphaned the opener and it was dropped');
+    const sanitized = sanitizeUserContent(out);
+
     assert.match(sanitized, /\[\.\.\. this comment was truncated for context budget\]/);
-    assert.match(sanitized, /\[\.\.\. a comment above was truncated for context budget\]/);
-    assert.ok(sanitized.includes('**@bob**'), 'the later comment survives the orphaned opener');
+    assert.match(sanitized, /\[\.\.\. 1 more comments truncated for context budget\]/);
   });
 
   test('accounts for whole blocks in bytes, not characters', () => {

@@ -58,6 +58,14 @@ const COMMENT_CONTEXT_MARKER_OVERHEAD = 200;
  * comment is the last one.
  */
 const COMMENT_BODY_TRUNCATED_NOTICE = '\n\n[... this comment was truncated for context budget]';
+/**
+ * Appended when a comment body is cut at an unterminated `<!--`. The whole serialized history is
+ * passed through `sanitizeUserContent` downstream, whose `stripHtmlComments` deletes from an
+ * orphaned opener to the end of the *string* — so one comment ending mid-comment silently erases
+ * every comment after it, maintainer feedback included. Trimming the one body that carries the
+ * opener costs that comment's tail; not trimming costs the rest of the history.
+ */
+const COMMENT_BODY_OPENER_NOTICE = '\n\n[... this comment was cut at an unterminated HTML comment]';
 
 /**
  * Serializes captured issue comments into a deterministic markdown string for agent prompts.
@@ -78,7 +86,11 @@ function serializeIssueComments({ comments, truncated }) {
 
   for (const comment of comments) {
     const header = `**@${comment.author || ''}** (${comment.createdAt || ''}):\n\n`;
-    const body = comment.body || '';
+    const raw = comment.body || '';
+    // Applied to every body, not only to the ones the budget slices: an orphaned opener erases the
+    // rest of the history whether or not this comment was truncated.
+    const trimmed = dropOrphanedCommentOpener(raw);
+    const body = trimmed === raw ? raw : `${trimmed}${COMMENT_BODY_OPENER_NOTICE}`;
     const footer = '\n\n---\n';
     const available = bodyBudget - usedBytes;
 
@@ -137,6 +149,8 @@ if (typeof module !== 'undefined') {
     factoryFetchIssueComments,
     serializeIssueComments,
     COMMENT_CONTEXT_BUDGET,
+    COMMENT_CONTEXT_MARKER_OVERHEAD,
     COMMENT_BODY_TRUNCATED_NOTICE,
+    COMMENT_BODY_OPENER_NOTICE,
   };
 }
