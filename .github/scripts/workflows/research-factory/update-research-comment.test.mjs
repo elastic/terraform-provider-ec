@@ -707,9 +707,63 @@ describe('preparePublishedBody — the outcome line is read outside code fences'
       assert.deepEqual(fatals, []);
       assert.ok(!body.includes('- forced by the comment handler'), 'no verdict was inserted');
       assert.ok(body.includes('⚠️'), 'but the reader is told it could not be read');
-      assert.match(body, /could not read: it must be a plain/);
+      assert.match(body, /could not read/, 'the reader is told which part could not be checked');
     });
   }
+
+  test('flags a styled verdict sitting beside one it could parse', () => {
+    // The draft contradicts itself: a conservative line this job reads, and a bullet claiming
+    // readiness that it does not. Previously silent in both the body and the log.
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'research-needs-human';
+    const draft = makeDraft({ metadata, proseOutcome: 'research-needs-human' }).replace(
+      '**Outcome:** `research-needs-human` - all checklist items pass.',
+      () => '**Outcome:** `research-needs-human` - all checklist items pass.\n\n- **Outcome:** `ready-for-change-factory` - actually we are good.',
+    );
+    const { body, fatals } = preparePublishedBody(draft);
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('⚠️'), 'the reader is warned');
+    assert.match(body, /further outcome\(s\) this job could not read/);
+  });
+
+  test('flags a styled verdict outside the quality-gate section', () => {
+    // Same blind spot, one section over: a bulleted readiness claim under ### Recommendation reads
+    // as a verdict, parses as nothing, and used to publish unflagged.
+    // Valid metadata and a clean gate section, so the only thing wrong is the stray — which is
+    // also what makes this fixture able to tell a section-scoped detector from a body-scoped one.
+    const draft = makeDraft({ metadata: validMetadata() }).replace(
+      'Approach A, because it matches the existing schema.',
+      () => '- **Outcome:** `ready-for-change-factory` - ship it.',
+    );
+    const { body, fatals, warnings } = preparePublishedBody(draft);
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('⚠️'));
+    assert.match(warnings.join('\n'), /outcome statement\(s\) outside the ### Quality gate section/);
+    // Scoping matters: the gate-section detector must stay scoped to the section. Pointed at the
+    // whole body it would blame the gate section for a stray that is somewhere else entirely —
+    // and, on a draft whose gate section is fine, fabricate a reason about it.
+    assert.ok(
+      !body.includes('Quality gate section states'),
+      'the stray is reported as a stray, not as a defect of the gate section',
+    );
+  });
+
+  test('prose that merely mentions an outcome is not a verdict', () => {
+    // The detector requires one of the two contract outcomes near the word. Without that, an
+    // approach sketch reading "the likely outcome: a new nested attribute" would have the handler
+    // fabricate a verdict on an otherwise honest draft.
+    const draft = makeDraft({ metadata: validMetadata() }).replace(
+      'Approach A, because it matches the existing schema.',
+      () => 'Approach A. The likely outcome: a new nested attribute on the existing schema.',
+    );
+    const { fatals, warnings, edits } = preparePublishedBody(draft);
+
+    assert.deepEqual(fatals, []);
+    assert.deepEqual(warnings, []);
+    assert.equal(edits, 0);
+  });
 
   test('still states a verdict when the section truly has no outcome at all', () => {
     // The insert path must survive: with nothing that reads as a verdict, there is nothing to
@@ -787,7 +841,7 @@ describe('preparePublishedBody — the outcome line is read outside code fences'
 
     assert.deepEqual(fatals, []);
     assert.equal(edits, 1);
-    assert.match(warnings.join('\n'), /carries 1 \*\*Outcome:\*\* line\(s\) outside the ### Quality gate section/);
+    assert.match(warnings.join('\n'), /carries 1 outcome statement\(s\) outside the ### Quality gate section/);
     assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
     assert.match(body, /> ⚠️ .*sit outside the ### Quality gate section/);
   });
@@ -1264,6 +1318,28 @@ describe('preparePublishedBody — unreadable metadata cannot vouch for a readin
     assert.deepEqual(fatals, []);
     assert.equal(edits, 0);
   });
+
+  for (const [label, line] of [
+    ['a list bullet', '- **Outcome:** `ready-for-change-factory` - all checklist items pass.'],
+    ['a block quote', '> **Outcome:** `ready-for-change-factory` - all checklist items pass.'],
+    ['underscore emphasis', '__Outcome:__ `ready-for-change-factory` - all checklist items pass.'],
+  ]) {
+    test(`warns when the metadata is unreadable and the outcome is styled as ${label}`, () => {
+      // Both halves unreadable: the verdict does not parse *and* nothing supports it. This branch
+      // used to fall through silently, publishing the claim with the metadata problem recorded
+      // only in the run log.
+      const draft = makeDraft({ metadata: 'null' }).replace(
+        '**Outcome:** `ready-for-change-factory` - all checklist items pass.',
+        () => line,
+      );
+      const { body, fatals } = preparePublishedBody(draft);
+
+      assert.deepEqual(fatals, []);
+      assert.ok(body.includes('⚠️'), 'the reader is warned');
+      assert.ok(!body.includes('- forced by the comment handler'), 'and no second verdict appears');
+      assert.match(body, /could not read, and the pipeline metadata could not be read either/);
+    });
+  }
 
   test('leaves a non-readiness outcome alone when the metadata is unreadable', () => {
     // Nothing to deny: the prose already says the research needs a human.

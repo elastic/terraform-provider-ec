@@ -375,6 +375,39 @@ function mentionsOutcome(section) {
 }
 
 /**
+ * Lines outside fences that a reader would take for a verdict, whatever their markdown styling.
+ *
+ * Tighter than `mentionsOutcome` on purpose. That one only ever *suppresses* an insert, where a
+ * false positive is free; this one drives causes that force the published outcome, where a false
+ * positive would fabricate a verdict on an honest draft — "the likely outcome: a new nested
+ * attribute" in an approach sketch must not trip it. So it requires one of the two contract
+ * outcomes near the word, which is what makes a line a verdict rather than prose.
+ *
+ * @param {string} text
+ * @returns {Array<{text: string, start: number}>}
+ */
+function verdictLikeLines(text) {
+  const found = [];
+  for (const { line, index } of linesOutsideFences(text)) {
+    if (/outcome:[^\n]{0,40}?(ready-for-change-factory|research-needs-human)/i.test(line)) {
+      found.push({ text: line.replace(/\r?\n$/, ''), start: index });
+    }
+  }
+  return found;
+}
+
+/**
+ * Verdict-like lines a reader can see that `OUTCOME_LINE` did not parse.
+ *
+ * @param {string} text
+ * @returns {Array<{text: string, start: number}>}
+ */
+function unreadVerdictLines(text) {
+  const parsed = new Set(outcomeLines(text).map((line) => line.start));
+  return verdictLikeLines(text).filter((line) => !parsed.has(line.start));
+}
+
+/**
  * Reads the outcome token out of a `**Outcome:**` line.
  *
  * @param {string} line
@@ -581,12 +614,13 @@ function preparePublishedBody(draft) {
   // published comment wrong, which the plan's own history says is where its defects land. The
   // prompt asks for exactly one outcome line, and the annotation names any stray it finds — except
   // at the minimal rung, where there is only room for the verdict and the causes stay in the log.
-  const strayOutcomes = outcomeLines(body).filter(
-    (line) => !gateRange || line.start < gateRange.start || line.start >= gateRange.end,
-  );
-  if (strayOutcomes.length > 0) {
-    strayCause = `${strayOutcomes.length} **Outcome:** line(s) sit outside the ### ${QUALITY_GATE_HEADING} section.`;
-    warnings.push(`the body carries ${strayOutcomes.length} **Outcome:** line(s) outside the ### ${QUALITY_GATE_HEADING} section`);
+  const outsideGate = (line) => !gateRange || line.start < gateRange.start || line.start >= gateRange.end;
+  // Styled strays count too: a `- **Outcome:** \`ready-for-change-factory\`` under ### Recommendation
+  // reads as a verdict, parses as nothing, and used to publish with nothing said about it.
+  const strayCount = outcomeLines(body).filter(outsideGate).length + unreadVerdictLines(body).filter(outsideGate).length;
+  if (strayCount > 0) {
+    strayCause = `${strayCount} outcome statement(s) sit outside the ### ${QUALITY_GATE_HEADING} section.`;
+    warnings.push(`the body carries ${strayCount} outcome statement(s) outside the ### ${QUALITY_GATE_HEADING} section`);
   }
 
   if (!gateRange) {
@@ -612,7 +646,17 @@ function preparePublishedBody(draft) {
       // there is nothing to correct, and inventing a verdict is not this branch's job.
       if (lines.length === 1 && prose !== FORCED_OUTCOME) {
         gateCause = `The ### ${QUALITY_GATE_HEADING} section states an outcome but the pipeline metadata could not be read, so nothing supports it.`;
+      } else if (unreadVerdictLines(section).length > 0 || (lines.length === 0 && mentionsOutcome(section))) {
+        // A styled verdict — a bullet, a quote, `__Outcome:__` — parses as no outcome line at all.
+        // Without this the branch fell through silently and the claim published unflagged, with the
+        // metadata problem recorded only in a log nobody reads. The insert guard keeps this to an
+        // annotation: the reader is told it could not be read, and no second verdict appears.
+        gateCause = `The ### ${QUALITY_GATE_HEADING} section states an outcome this job could not read, and the pipeline metadata could not be read either, so nothing supports it.`;
       }
+    } else if (unreadVerdictLines(section).length > 0) {
+      // A verdict a reader can see, beside one this job could parse. The draft already contradicts
+      // itself; the parsed line is still corrected, and this says the rest could not be checked.
+      gateCause = `The ### ${QUALITY_GATE_HEADING} section states ${unreadVerdictLines(section).length} further outcome(s) this job could not read: an outcome must be a plain \`**Outcome:** \`<outcome>\`\` line, not a bullet, quote or other styling.`;
     } else if (lines.length === 0 && mentionsOutcome(section)) {
       gateCause = `The ### ${QUALITY_GATE_HEADING} section states an outcome this job could not read: it must be a plain \`**Outcome:** \`<outcome>\`\` line, not a bullet, quote or other styling.`;
     } else if (lines.length === 0 || prose === null) {
@@ -641,7 +685,8 @@ function preparePublishedBody(draft) {
     const section = body.slice(gateRange.start, gateRange.end);
     // When there is nothing to correct and nothing may be inserted, the annotation *is* the edit —
     // the shorter rungs would be no-ops, so they are not offered.
-    const insert = outcomeLines(section).length > 0 || !mentionsOutcome(section);
+    const insert = unreadVerdictLines(section).length === 0
+      && (outcomeLines(section).length > 0 || !mentionsOutcome(section));
     candidates.unshift({
       name: 'annotate quality gate',
       start: gateRange.start,
@@ -652,7 +697,10 @@ function preparePublishedBody(draft) {
             fallbackText: annotateQualityGate(section, causes, { compact: true, insert }),
             minimalText: annotateQualityGate(section, causes, { minimal: true, insert }),
           }
-        : {}),
+        : {
+            // Nothing to correct, but the warning must not be what a full draft drops.
+            minimalText: `${section.replace(/\s*$/, '')}\n\n> ⚠️ Outcome unverified; see the workflow run log.\n\n`,
+          }),
     });
   } else if (!gateRange && (readinessCause || strayCause)) {
     // F3: no section to annotate, but the body still carries a machine-readable verdict a reader
