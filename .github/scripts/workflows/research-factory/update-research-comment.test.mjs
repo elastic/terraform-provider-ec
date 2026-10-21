@@ -275,7 +275,7 @@ describe('preparePublishedBody — fatal rejections', () => {
     assert.match(fatals.join('\n'), /over the 60000 limit/);
   });
 
-  test('skips an annotation that would breach the ceiling rather than discarding the run', () => {
+  test('degrades to the minimal form rather than let a breach drop the correction', () => {
     const metadata = validMetadata();
     metadata.gate.outcome = 'research-needs-human';
     const base = makeDraft({ metadata, proseOutcome: 'ready-for-change-factory' });
@@ -289,9 +289,10 @@ describe('preparePublishedBody — fatal rejections', () => {
 
     const { body, fatals, warnings, edits } = preparePublishedBody(draft);
     assert.deepEqual(fatals, []);
-    assert.equal(edits, 0);
+    assert.equal(edits, 1);
     assert.ok(body.length <= MAX_COMMENT_CHARS);
-    assert.match(warnings.join('\n'), /skipped the "annotate quality gate" edit: applying it would take the body to \d+ characters/);
+    assert.ok(body.includes('**Outcome:** `research-needs-human`'), 'the corrected verdict survives');
+    assert.match(warnings.join('\n'), /used the minimal "annotate quality gate" edit/);
   });
 
   test('skips a schema_version drop that would breach the ceiling — a compact block re-indents much larger', () => {
@@ -397,7 +398,11 @@ describe('preparePublishedBody — metadata that is not an object', () => {
     ['a boolean', 'true'],
   ]) {
     test(`publishes untouched when the metadata fence holds ${label}`, () => {
-      const { body, fatals, warnings, edits } = preparePublishedBody(makeDraft({ metadata: fence }));
+      // A non-readiness prose outcome, so this test is about the metadata handling alone — a
+      // readiness claim with unreadable metadata is forced down, and is covered separately.
+      const { body, fatals, warnings, edits } = preparePublishedBody(
+        makeDraft({ metadata: fence, proseOutcome: 'research-needs-human' }),
+      );
 
       assert.deepEqual(fatals, []);
       assert.equal(edits, 0);
@@ -844,16 +849,79 @@ describe('preparePublishedBody — the annotation degrades instead of disappeari
     assert.ok(!warnings.join('\n').includes('used the compact'));
   });
 
-  test('logs the cause even when neither form fits and the edit is skipped', () => {
-    // ~60 characters left: nothing fits. The comment still publishes, and the log still says what
-    // disagreed — an operator reading only "skipped … characters" would have no cause to act on.
+  test('the minimal form carries the verdict with the causes left to the log', () => {
+    // ~60 characters left: only the bare corrected verdict fits. The causes still reach the log, so
+    // an operator can act on them, and the body no longer asserts something the handler denied.
     const { body, fatals, warnings, edits } = preparePublishedBody(draftWithHeadroom(60));
 
     assert.deepEqual(fatals, []);
-    assert.equal(edits, 0);
+    assert.equal(edits, 1);
     assert.ok(body.length <= MAX_COMMENT_CHARS);
+    assert.ok(body.includes('**Outcome:** `research-needs-human`'));
+    assert.ok(!body.includes('⚠️'), 'no room for the appended block');
+    assert.ok(!body.includes('forced by the comment handler'), 'no room for the causes either');
     assert.match(warnings.join('\n'), /disagrees with the machine-readable gate: .*ready-for-change-factory/);
-    assert.match(warnings.join('\n'), /skipped the "annotate quality gate" edit/);
+    assert.match(warnings.join('\n'), /used the minimal "annotate quality gate" edit/);
+  });
+
+  test('the minimal correction fits where the shortest readiness claim fitted', () => {
+    // The sole reason the prompt can promise a denied claim is never squeezed out. Measured on the
+    // handler's own output, not on a copy of the string: the gate section states nothing but the
+    // bare readiness assertion, and the draft fills the budget exactly, so the correction can only
+    // land if it is no longer than the line it replaces.
+    const bareReady = '**Outcome:** `ready-for-change-factory`';
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'ready-for-change-factory';
+    metadata.gate.critic.status = 'unavailable';
+    const withBareLine = (filler = '') =>
+      makeDraft({ metadata, proseOutcome: 'ready-for-change-factory', filler }).replace(
+        '**Outcome:** `ready-for-change-factory` - all checklist items pass.',
+        () => bareReady,
+      );
+    // The published body is the marker, a newline, then the draft — so this fills to the very edge.
+    const filler = 'x'.repeat(MAX_COMMENT_CHARS - withBareLine().length - RESEARCH_COMMENT_MARKER.length - 1);
+    const { body, fatals } = preparePublishedBody(withBareLine(filler));
+
+    assert.deepEqual(fatals, []);
+    assert.equal(body.length, MAX_COMMENT_CHARS - (bareReady.length - '**Outcome:** `research-needs-human`'.length));
+    assert.ok(body.includes('**Outcome:** `research-needs-human`'), 'the correction fits with zero head-room');
+    assert.ok(!body.includes(bareReady), 'the denied claim is gone');
+  });
+
+  test('an unearned readiness claim survives the tightest budget', () => {
+    // The sharpest case: the handler judged the claim unearned, and the body must not keep
+    // asserting it just because the draft left no room for the explanation.
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'ready-for-change-factory';
+    metadata.gate.critic.status = 'unavailable';
+    const base = makeDraft({ metadata, proseOutcome: 'ready-for-change-factory' });
+    const filler = 'x'.repeat(MAX_COMMENT_CHARS - base.length - RESEARCH_COMMENT_MARKER.length - 40);
+    const { body, fatals } = preparePublishedBody(
+      makeDraft({ metadata, proseOutcome: 'ready-for-change-factory', filler }),
+    );
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('**Outcome:** `research-needs-human`'));
+    assert.ok(!body.includes('**Outcome:** `ready-for-change-factory`'), 'the unearned claim is gone from the prose');
+  });
+
+  test('degrades the appended notice to its minimal form near the ceiling', () => {
+    // The append has two rungs. Without the minimal one, a draft in this window publishes a stray
+    // readiness claim with nothing in the body at all.
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'ready-for-change-factory';
+    metadata.gate.critic.status = 'unavailable';
+    const base = makeDraft({ metadata, qualityGate: false });
+    const filler = 'x'.repeat(MAX_COMMENT_CHARS - base.length - RESEARCH_COMMENT_MARKER.length - 110);
+    const { body, fatals, warnings, edits } = preparePublishedBody(
+      makeDraft({ metadata, qualityGate: false, filler }),
+    );
+
+    assert.deepEqual(fatals, []);
+    assert.equal(edits, 1);
+    assert.ok(body.length <= MAX_COMMENT_CHARS);
+    assert.match(body, /> ⚠️ Outcome unverified; see the workflow run log\./);
+    assert.match(warnings.join('\n'), /used the minimal "append stray-outcome notice" edit/);
   });
 
   test('logs what disagreed when there is no quality-gate section to annotate', () => {
@@ -863,6 +931,283 @@ describe('preparePublishedBody — the annotation degrades instead of disappeari
 
     assert.ok(body);
     assert.match(warnings.join('\n'), /no ### Quality gate section/);
+  });
+});
+
+describe('preparePublishedBody — an unearned readiness claim', () => {
+  function readyBut(mutate) {
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'ready-for-change-factory';
+    mutate(metadata);
+    // Prose agrees with the JSON, so only the readiness check can catch it.
+    return preparePublishedBody(makeDraft({ metadata, proseOutcome: 'ready-for-change-factory' }));
+  }
+
+  for (const [label, mutate, expected] of [
+    ['the critic was unavailable', (m) => { m.gate.critic.status = 'unavailable'; }, /did not report status `ok` \(got `unavailable`\)/],
+    ['no round completed', (m) => { m.gate.rounds = 0; m.gate.scores = []; m.gate.score = null; }, /no critique round is recorded as completed/],
+    ['a checklist item failed', (m) => { m.gate.checklist.grounded = false; }, /checklist item\(s\) grounded did not pass/],
+    ['the loop did not converge', (m) => { m.gate.converged = false; }, /not recorded as converged/],
+    ['the score is below the threshold', (m) => { m.gate.score = 40; m.gate.scores = [40]; }, /not recorded at or above the threshold of 85/],
+    ['an open question blocks', (m) => { m.open_questions = [{ id: 'q1', text: 'Which platform?', blocking: true }]; }, /1 open question\(s\) are not recorded as non-blocking/],
+  ]) {
+    test(`forces the outcome when ${label}`, () => {
+      const { body, fatals, warnings } = readyBut(mutate);
+
+      assert.deepEqual(fatals, []);
+      assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+      assert.ok(!body.includes('**Outcome:** `ready-for-change-factory`'));
+      assert.match(warnings.join('\n'), /readiness claim not earned/);
+      assert.match(body, expected);
+    });
+  }
+
+  test('names a missing critic object as "nothing" rather than "undefined"', () => {
+    const { body } = readyBut((m) => { delete m.gate.critic; });
+    assert.match(body, /did not report status `ok` \(got `nothing`\)/);
+  });
+
+  test('forces the outcome when the critic reported an error, not only when unavailable', () => {
+    const { body, warnings } = readyBut((m) => { m.gate.critic.status = 'error'; });
+
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+    assert.match(warnings.join('\n'), /did not report status/);
+  });
+
+  for (const [label, mutate] of [
+    ['the critic object is absent', (m) => { delete m.gate.critic; }],
+    ['rounds is a string', (m) => { m.gate.rounds = '1'; }],
+    ['converged is absent', (m) => { delete m.gate.converged; }],
+    ['the score is a string', (m) => { m.gate.score = '88'; }],
+    ['blocking is a string', (m) => { m.open_questions = [{ id: 'q', text: 't', blocking: 'false' }]; }],
+    ['the gate carries nothing but an outcome', (m) => { m.gate = { outcome: 'ready-for-change-factory' }; }],
+  ]) {
+    test(`forces the outcome when ${label} — the claim must be earned, not merely un-disproved`, () => {
+      const { body } = readyBut(mutate);
+      assert.ok(
+        body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'),
+        `an unearned claim published: ${label}`,
+      );
+    });
+  }
+
+  for (const [label, value] of [
+    ['an object', { id: 'q1', text: 'Which platform?', blocking: true }],
+    ['a string', 'q1 is blocking'],
+    ['a number', 3],
+  ]) {
+    test(`forces the outcome when open_questions is ${label} rather than a list`, () => {
+      const { body } = readyBut((m) => { m.open_questions = value; });
+      assert.ok(
+        body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'),
+        `a wrong-typed open_questions earned a pass: ${label}`,
+      );
+      assert.match(body, /open questions are not recorded as a list/);
+    });
+  }
+
+  test('forces the outcome on a fractional round count', () => {
+    // `rounds: 1.5` is not a completed-round count; only an integer >= 1 earns the claim.
+    const { body } = readyBut((m) => { m.gate.rounds = 1.5; });
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+    assert.match(body, /no critique round is recorded as completed/);
+  });
+
+  for (const [label, value] of [['a string', 'yes'], ['a number', 1], ['null', null]]) {
+    test(`forces the outcome when a checklist value is ${label} rather than true`, () => {
+      const { body } = readyBut((m) => { m.gate.checklist.grounded = value; });
+      assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+      assert.match(body, /checklist item\(s\) grounded did not pass/);
+    });
+  }
+
+  test('names every checklist item when the checklist is missing entirely', () => {
+    // Asserting *which* reason fired, not merely that something did: an absent checklist must read
+    // as six unproven items, not as nothing to report.
+    const { body } = readyBut((m) => { delete m.gate.checklist; });
+    assert.match(body, /checklist item\(s\) grounded, mapped, compatible, versioned, testable, idiomatic did not pass/);
+  });
+
+  for (const entry of ['q1 is blocking', null, 0, true, []]) {
+    test(`forces the outcome when an open-questions entry is ${JSON.stringify(entry)}`, () => {
+      // The list-type check passes; each entry still has to record `blocking: false`. A `null`
+      // entry also has to not throw — an exception here discards the whole run.
+      const { body } = readyBut((m) => { m.open_questions = [entry]; });
+
+      assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+      assert.match(body, /1 open question\(s\) are not recorded as non-blocking/);
+    });
+  }
+
+  test('forces the outcome when an open-questions entry is not an object', () => {
+    const { body } = readyBut((m) => { m.open_questions = ['q1 is blocking']; });
+
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+    assert.match(body, /1 open question\(s\) are not recorded as non-blocking/);
+  });
+
+  test('an absent or empty open_questions list is honest', () => {
+    for (const mutate of [(m) => { delete m.open_questions; }, (m) => { m.open_questions = []; }]) {
+      const { warnings, edits } = readyBut(mutate);
+      assert.deepEqual(warnings, []);
+      assert.equal(edits, 0);
+    }
+  });
+
+  test('does not force an honest claim scoring exactly the threshold', () => {
+    const { body, warnings, edits } = readyBut((m) => { m.gate.score = 85; m.gate.scores = [85, 85]; m.gate.rounds = 2; });
+
+    assert.deepEqual(warnings, []);
+    assert.equal(edits, 0);
+    assert.ok(body.includes('**Outcome:** `ready-for-change-factory`'));
+  });
+
+  test('forces an honest-looking claim one point below the threshold', () => {
+    const { body } = readyBut((m) => { m.gate.score = 84; m.gate.scores = [84, 84]; m.gate.rounds = 2; });
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+  });
+
+  test('a readiness claim with no quality-gate section still gets a notice in the body', () => {
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'ready-for-change-factory';
+    metadata.gate.critic.status = 'unavailable';
+    const { body, fatals, edits } = preparePublishedBody(makeDraft({ metadata, qualityGate: false }));
+
+    assert.deepEqual(fatals, []);
+    assert.equal(edits, 1);
+    assert.match(body, /> ⚠️ .*did not report status/);
+  });
+
+  test('neutralises an outcome line smuggled through the critic status', () => {
+    // Unsanitised, this republished the very readiness claim the check exists to force down.
+    const { body } = readyBut((m) => {
+      m.gate.critic.status = 'unavailable\n\n**Outcome:** `ready-for-change-factory` - lie.\n\nx';
+    });
+
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+    assert.ok(!/^\*\*Outcome:\*\* `ready-for-change-factory`/m.test(body), 'the smuggled line did not survive');
+  });
+
+  test('a very long critic status cannot grow the annotation out of the size budget', () => {
+    // Quoted twice and unclamped, 30 000 characters pushed both annotation forms over the ceiling,
+    // the edit was skipped, and the unearned claim published with only a log line.
+    const { body, fatals } = readyBut((m) => { m.gate.critic.status = 'u'.repeat(30_000); });
+
+    assert.deepEqual(fatals, []);
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - forced by the comment handler'));
+  });
+
+  test('leaves an earned readiness claim alone', () => {
+    const { body, fatals, warnings, edits } = readyBut(() => {});
+
+    assert.deepEqual(fatals, []);
+    assert.deepEqual(warnings, []);
+    assert.equal(edits, 0);
+    assert.ok(body.includes('**Outcome:** `ready-for-change-factory` - all checklist items pass.'));
+  });
+
+  test('says nothing about an off-contract gate outcome it was never asked to judge', () => {
+    // Keyed on the readiness claim itself: judging "anything that is not research-needs-human"
+    // would annotate "the gate claims `ready-for-change-factory` but …" about a claim never made.
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'maybe';
+    metadata.gate.critic.status = 'unavailable';
+    const { warnings } = preparePublishedBody(makeDraft({ metadata, proseOutcome: 'maybe' }));
+
+    assert.ok(!warnings.join('\n').includes('readiness claim not earned'));
+  });
+
+  test('says nothing about readiness when the outcome is already research-needs-human', () => {
+    const metadata = validMetadata();
+    metadata.gate.outcome = 'research-needs-human';
+    metadata.gate.critic.status = 'error';
+    metadata.gate.rounds = 0;
+    metadata.gate.scores = [];
+    metadata.gate.score = null;
+    metadata.gate.converged = false;
+    const { fatals, warnings, edits } = preparePublishedBody(
+      makeDraft({ metadata, proseOutcome: 'research-needs-human' }),
+    );
+
+    assert.deepEqual(fatals, []);
+    assert.deepEqual(warnings, []);
+    assert.equal(edits, 0, 'degradation to research-needs-human is the documented path, not a defect');
+  });
+});
+
+describe('preparePublishedBody — unreadable metadata cannot vouch for a readiness claim', () => {
+  function withFence(fence, proseOutcome = 'ready-for-change-factory') {
+    return preparePublishedBody(makeDraft({ metadata: fence, proseOutcome }));
+  }
+
+  const honest = JSON.stringify(validMetadata(), null, 2);
+
+  for (const [label, fence] of [
+    ['the JSON does not parse', honest.replace('"schema_version": "1.1",', '"schema_version": "1.1",,')],
+    ['the fence holds an array', '[1, 2]'],
+    ['the fence holds null', 'null'],
+    ['the fence holds a string', '"metadata"'],
+  ]) {
+    test(`forces the outcome when ${label}`, () => {
+      // One stray character used to switch off both the gate check and the readiness check, and a
+      // ready claim published with nothing supporting it and nothing in the body to say so.
+      const { body, fatals } = withFence(fence);
+
+      assert.deepEqual(fatals, []);
+      assert.ok(body.includes('**Outcome:** `research-needs-human`'), `not forced: ${label}`);
+      assert.ok(!body.includes('**Outcome:** `ready-for-change-factory`'));
+      assert.match(body, /pipeline metadata could not be read, so nothing supports it/);
+    });
+  }
+
+  for (const [label, line] of [
+    ['the backticks are missing', '**Outcome:** ready-for-change-factory - all checklist items pass.'],
+    ['the case is wrong', '**Outcome:** `Ready-For-Change-Factory` - all checklist items pass.'],
+    ['the value is something else entirely', '**Outcome:** `mostly-ready` - all checklist items pass.'],
+  ]) {
+    test(`forces the outcome when the metadata is unreadable and ${label}`, () => {
+      // Matching the one canonical bad value would let every near-miss spelling through — the same
+      // one-character evasion the readiness predicates were rewritten to close.
+      const draft = makeDraft({ metadata: 'null' }).replace(
+        '**Outcome:** `ready-for-change-factory` - all checklist items pass.',
+        () => line,
+      );
+      const { body } = preparePublishedBody(draft);
+
+      assert.ok(body.includes('**Outcome:** `research-needs-human`'), `not forced: ${label}`);
+    });
+  }
+
+  test('leaves a draft that states no outcome at all alone', () => {
+    // Nothing to correct, and inventing a verdict is not this branch's job.
+    const { fatals, edits } = preparePublishedBody(makeDraft({ metadata: 'null', proseOutcome: null }));
+    assert.deepEqual(fatals, []);
+    assert.equal(edits, 0);
+  });
+
+  test('leaves a non-readiness outcome alone when the metadata is unreadable', () => {
+    // Nothing to deny: the prose already says the research needs a human.
+    const { body, fatals, edits } = withFence('null', 'research-needs-human');
+
+    assert.deepEqual(fatals, []);
+    assert.equal(edits, 0);
+    assert.ok(body.includes('**Outcome:** `research-needs-human` - all checklist items pass.'));
+  });
+
+  test('still flags two live outcome lines when the metadata is unreadable', () => {
+    const draft = makeDraft({ metadata: 'null' }).replace(
+      '**Outcome:** `ready-for-change-factory` - all checklist items pass.',
+      () => '**Outcome:** `research-needs-human` - one.\n\n**Outcome:** `research-needs-human` - two.',
+    );
+    const { warnings, edits } = preparePublishedBody(draft);
+
+    assert.equal(edits, 1);
+    assert.match(warnings.join('\n'), /states 2 outcomes/);
+  });
+
+  test('a draft with no metadata envelope at all cannot claim readiness either', () => {
+    const { body } = preparePublishedBody(makeDraft({ metadata: null, proseOutcome: 'ready-for-change-factory' }));
+    assert.ok(body.includes('**Outcome:** `research-needs-human`'));
   });
 });
 
@@ -1029,7 +1374,7 @@ describe('update-research-comment runner', { concurrency: false }, () => {
     };
   }
 
-  function mockGithub(existingComments = []) {
+  function mockGithub(existingComments = [], { isPullRequest = false, getThrows = false } = {}) {
     const created = [];
     const updated = [];
     return {
@@ -1039,6 +1384,15 @@ describe('update-research-comment runner', { concurrency: false }, () => {
         rest: {
           issues: {
             listComments: 'listComments',
+            async get({ issue_number: issueNumber }) {
+              if (getThrows) throw new Error('not found');
+              return {
+                data: {
+                  number: issueNumber,
+                  ...(isPullRequest ? { pull_request: { url: 'https://api.github.com/pr' } } : {}),
+                },
+              };
+            },
             async createComment(params) {
               created.push(params);
               return { data: { id: 999 } };
@@ -1134,6 +1488,30 @@ describe('update-research-comment runner', { concurrency: false }, () => {
 
     assert.equal(created.length, 0);
     assert.equal(updated.length, 1);
+  });
+
+  test('refuses to publish on a pull request', async () => {
+    // A dispatch can name any number; the Issues API returns pull requests too, and so do the
+    // comment and label endpoints. This workflow is issue-only.
+    const root = artifactWith(makeDraft());
+    const { core, failed } = mockCore();
+    const { github, created, updated } = mockGithub([], { isPullRequest: true });
+
+    await withEnv(cleanEnv(root), () => handler({ github, context, core }));
+
+    assert.equal(created.length + updated.length, 0);
+    assert.match(failed[0], /#42 is a pull request, not an issue/);
+  });
+
+  test('fails closed when the target cannot be read', async () => {
+    const root = artifactWith(makeDraft());
+    const { core, failed } = mockCore();
+    const { github, created } = mockGithub([], { getThrows: true });
+
+    await withEnv(cleanEnv(root), () => handler({ github, context, core }));
+
+    assert.equal(created.length, 0);
+    assert.match(failed[0], /cannot read #42: not found/);
   });
 
   test('fails closed on a detection warning', async () => {

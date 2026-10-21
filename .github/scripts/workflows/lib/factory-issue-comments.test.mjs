@@ -8,6 +8,7 @@ const {
   serializeIssueComments,
   COMMENT_CONTEXT_BUDGET,
 } = require('./factory-issue-comments.js');
+const { sanitizeUserContent } = require('./sanitize-context.js');
 
 function githubWith(comments) {
   const calls = [];
@@ -125,6 +126,105 @@ describe('serializeIssueComments', () => {
 
     assert.ok(out.length <= COMMENT_CONTEXT_BUDGET, `serialized ${out.length} chars`);
     assert.match(out, /\[\.\.\. \d+ more comments truncated for context budget\]/);
+  });
+
+  test('marks a comment whose body was sliced, even when it is the only one', () => {
+    // Without the notice, a sliced comment is indistinguishable from a complete one: the trailing
+    // "N more comments truncated" marker does not fire when nothing was dropped wholesale.
+    const out = serializeIssueComments({
+      comments: [{ author: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'y'.repeat(COMMENT_CONTEXT_BUDGET * 2) }],
+      truncated: false,
+    });
+
+    assert.ok(Buffer.byteLength(out) <= COMMENT_CONTEXT_BUDGET);
+    assert.match(out, /\[\.\.\. this comment was truncated for context budget\]/);
+    assert.match(out, /\[\.\.\. a comment above was truncated for context budget\]/);
+  });
+
+  test('reserves room for the truncation notice inside the budget', () => {
+    // Without the reservation the sliced block overshoots `available` by the notice length and the
+    // total only stays legal because the marker overhead happens to absorb it.
+    const comments = Array.from({ length: 3 }, (_, i) => ({
+      author: `user${i}`,
+      createdAt: '2026-01-01T00:00:00Z',
+      body: 'z'.repeat(COMMENT_CONTEXT_BUDGET),
+    }));
+    const out = serializeIssueComments({ comments, truncated: false });
+
+    assert.ok(Buffer.byteLength(out) <= COMMENT_CONTEXT_BUDGET - 100, `used ${Buffer.byteLength(out)} of ${COMMENT_CONTEXT_BUDGET}`);
+    assert.match(out, /\[\.\.\. this comment was truncated for context budget\]/);
+  });
+
+  test('keeps both truncation markers readable through the downstream sanitiser', () => {
+    // The cut lands inside an HTML comment — routine, since issue templates leave them in bodies.
+    // Without dropping the orphaned opener, sanitizeUserContent deletes from there to the end,
+    // taking the in-block notice and the trailing drop marker with it.
+    const out = serializeIssueComments({
+      comments: [
+        { author: 'alice', createdAt: 't', body: `${'q'.repeat(49_000)}<!-- template ${'r'.repeat(5_000)}` },
+        { author: 'bob', createdAt: 't', body: 'second' },
+      ],
+      truncated: false,
+    });
+    const sanitized = sanitizeUserContent(out);
+
+    assert.match(sanitized, /\[\.\.\. this comment was truncated for context budget\]/);
+    assert.match(sanitized, /\[\.\.\. a comment above was truncated for context budget\]/);
+    assert.ok(sanitized.includes('**@bob**'), 'the later comment survives the orphaned opener');
+  });
+
+  test('accounts for whole blocks in bytes, not characters', () => {
+    // Twelve comments that each fit whole: measuring the block with `.length` keeps every one of
+    // them and emits ~130 KB — past the kernel limit this whole budget exists to stay under.
+    const comments = Array.from({ length: 12 }, (_, i) => ({
+      author: `user${i}`,
+      createdAt: '2026-01-01T00:00:00Z',
+      body: '漢'.repeat(4_000),
+    }));
+    const out = serializeIssueComments({ comments, truncated: false });
+
+    assert.ok(Buffer.byteLength(out) <= COMMENT_CONTEXT_BUDGET, `${Buffer.byteLength(out)} bytes`);
+    assert.ok(Buffer.byteLength(out) < 128 * 1024);
+  });
+
+  test('accounts for the budget in bytes across several multi-byte comments', () => {
+    // Two comments: tracking `result.length` instead of bytes, or measuring the block with
+    // `.length`, both overshoot here while agreeing on a single-comment fixture.
+    const comments = Array.from({ length: 2 }, (_, i) => ({
+      author: `user${i}`,
+      createdAt: '2026-01-01T00:00:00Z',
+      body: '漢'.repeat(20_000),
+    }));
+    const out = serializeIssueComments({ comments, truncated: false });
+
+    assert.ok(Buffer.byteLength(out) <= COMMENT_CONTEXT_BUDGET, `${Buffer.byteLength(out)} bytes`);
+  });
+
+  test('drops a comment whose frame and notice alone would not fit', () => {
+    // The `room < 0` guard. Sized so the second comment has room for its frame (19 bytes) but not
+    // for frame + notice: without the guard an empty-bodied block is emitted that overshoots
+    // `available`, and the comment is miscounted as included.
+    const bodyBudget = COMMENT_CONTEXT_BUDGET - 200;
+    const frame = '**@a** (t):\n\n'.length + '\n\n---\n'.length;
+    const first = { author: 'a', createdAt: 't', body: 'x'.repeat(bodyBudget - 40 - frame) };
+    const second = { author: 'b', createdAt: 't', body: 'y'.repeat(100) };
+    const out = serializeIssueComments({ comments: [first, second], truncated: false });
+
+    assert.ok(Buffer.byteLength(out) <= COMMENT_CONTEXT_BUDGET);
+    assert.match(out, /\[\.\.\. 1 more comments truncated for context budget\]/);
+    assert.ok(!out.includes('**@b**'), 'the comment that could not fit its own frame is dropped, not stubbed');
+  });
+
+  test('budgets in UTF-8 bytes, not characters', () => {
+    // 50 000 CJK characters are 150 000 bytes. Budgeting by character would hand that to an
+    // environment variable and blow Linux's 128 KiB per-entry limit.
+    const out = serializeIssueComments({
+      comments: [{ author: 'alice', createdAt: '', body: '漢'.repeat(50_000) }],
+      truncated: false,
+    });
+
+    assert.ok(Buffer.byteLength(out) <= COMMENT_CONTEXT_BUDGET, `${Buffer.byteLength(out)} bytes`);
+    assert.ok(out.isWellFormed(), 'no code point was cut in half');
   });
 
   test('appends the 200-comment marker when the fetch truncated', () => {

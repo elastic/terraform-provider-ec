@@ -22,6 +22,7 @@
 const { findResearchComment } = require('../lib/sanitize-context.js');
 const { positiveIssueNumber } = require('../lib/issue-number.js');
 const { RESEARCH_COMMENT_MARKER } = require('../lib/intake/research-factory-constants.js');
+const { boundEnvPayload } = require('../lib/env-payload.js');
 
 module.exports = async function ({ github, context, core }) {
 
@@ -46,7 +47,9 @@ module.exports = async function ({ github, context, core }) {
     const latest = findResearchComment(allComments, RESEARCH_COMMENT_MARKER, botLogin);
 
     if (latest) {
-      core.setOutput('prior_research_comment', latest.body);
+      // Bounded in bytes: the comment contract caps the body at 60 000 *characters*, which is three
+      // times the kernel's per-environment-entry limit once it is written in a multi-byte script.
+      core.setOutput('prior_research_comment', boundEnvPayload(latest.body));
       core.info(`Found prior research comment ${latest.id} for issue #${issueNumber}`);
     } else {
       core.setOutput('prior_research_comment', '');

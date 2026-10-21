@@ -2,6 +2,8 @@
  * Shared comment helpers for research-factory issue intake workflows.
  */
 
+const { byteLength, sliceToBytes, dropOrphanedCommentOpener } = require('./env-payload.js');
+
 /**
  * Fetches human-authored comments for an issue, paginated, with bot filtering and a hard cap.
  *
@@ -40,9 +42,22 @@ async function factoryFetchIssueComments({ github, owner, repo, issueNumber }) {
   };
 }
 
+/**
+ * Budget in **UTF-8 bytes**, not characters. The serialized history is handed between
+ * pre-activation steps as an environment variable, and Linux caps a single entry at 128 KiB — a
+ * 50 000-character budget is 150 000 bytes of CJK, which kills the exporting step with `E2BIG`
+ * after the trigger label has already been consumed. See `lib/env-payload.js`.
+ */
 const COMMENT_CONTEXT_BUDGET = 50_000;
 /** Overhead reserved for truncation markers appended after the loop. */
 const COMMENT_CONTEXT_MARKER_OVERHEAD = 200;
+/**
+ * Appended inside a comment whose body did not fit. Without it a sliced comment is indistinguishable
+ * from a complete one — the agent and the critic would read a half-stated requirement as the whole
+ * requirement — and the trailing "N more comments truncated" marker does not fire when the sliced
+ * comment is the last one.
+ */
+const COMMENT_BODY_TRUNCATED_NOTICE = '\n\n[... this comment was truncated for context budget]';
 
 /**
  * Serializes captured issue comments into a deterministic markdown string for agent prompts.
@@ -57,29 +72,46 @@ function serializeIssueComments({ comments, truncated }) {
 
   const bodyBudget = COMMENT_CONTEXT_BUDGET - COMMENT_CONTEXT_MARKER_OVERHEAD;
   let result = '';
+  let usedBytes = 0;
   let includedCount = 0;
+  let bodyTruncated = false;
 
   for (const comment of comments) {
     const header = `**@${comment.author || ''}** (${comment.createdAt || ''}):\n\n`;
     const body = comment.body || '';
     const footer = '\n\n---\n';
-    const available = bodyBudget - result.length;
+    const available = bodyBudget - usedBytes;
 
     if (available <= 0) {
       break;
     }
 
-    const frameLength = header.length + footer.length;
-    if (frameLength > available) {
+    const frameBytes = byteLength(header) + byteLength(footer);
+    if (frameBytes > available) {
       break;
     }
     const fullBlock = header + body + footer;
-    if (fullBlock.length <= available) {
+    if (byteLength(fullBlock) <= available) {
       result += fullBlock;
+      usedBytes += byteLength(fullBlock);
     } else {
-      // Truncate this comment's body so the output stays within budget
-      const truncatedBody = body.slice(0, available - frameLength);
-      result += header + truncatedBody + footer;
+      // Truncate this comment's body so the output stays within budget, and say so inside the
+      // block: a silently sliced comment reads as a complete one. If the frame plus the notice
+      // alone would not fit, stop instead of emitting a block that overshoots `available` — the
+      // trailing marker below still reports the comment as dropped.
+      const room = available - frameBytes - byteLength(COMMENT_BODY_TRUNCATED_NOTICE);
+      if (room < 0) {
+        break;
+      }
+      // Same hazard as the env payloads: a cut landing inside an HTML comment orphans the opener,
+      // and `sanitizeUserContent` downstream then deletes from there to the end of the string —
+      // taking this notice and the trailing drop marker with it. Issue templates leave such
+      // comments in bodies routinely.
+      const truncatedBody = dropOrphanedCommentOpener(sliceToBytes(body, room));
+      const block = header + truncatedBody + COMMENT_BODY_TRUNCATED_NOTICE + footer;
+      result += block;
+      usedBytes += byteLength(block);
+      bodyTruncated = true;
     }
     includedCount++;
   }
@@ -87,6 +119,10 @@ function serializeIssueComments({ comments, truncated }) {
   const remaining = comments.length - includedCount;
   if (remaining > 0) {
     result += `[... ${remaining} more comments truncated for context budget]\n`;
+  } else if (bodyTruncated) {
+    // "a comment", not "the last comment": the sliced one is not necessarily the final entry — a
+    // short comment after it can still fit whole.
+    result += '[... a comment above was truncated for context budget]\n';
   }
 
   if (truncated) {
@@ -101,5 +137,6 @@ if (typeof module !== 'undefined') {
     factoryFetchIssueComments,
     serializeIssueComments,
     COMMENT_CONTEXT_BUDGET,
+    COMMENT_BODY_TRUNCATED_NOTICE,
   };
 }

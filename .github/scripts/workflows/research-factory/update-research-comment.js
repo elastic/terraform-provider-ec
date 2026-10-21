@@ -43,7 +43,7 @@ const { stripControlChars, stripInvisibleUnicode, findResearchComment } = requir
 const { positiveIssueNumber } = require('../lib/issue-number.js');
 const { RESEARCH_COMMENT_MARKER } = require('../lib/intake/research-factory-constants.js');
 const { locateMetadata, extractMetadata, linesOutsideFences } = require('./locate-metadata.js');
-const { validateMetadata, SCHEMA_VERSION } = require('./validate-metadata.js');
+const { validateMetadata, SCHEMA_VERSION, CHECKLIST_ITEMS } = require('./validate-metadata.js');
 
 /** Exactly what the safe job's `artifacts:` entry names. */
 const RESEARCH_DIR = '/tmp/gh-aw/agent/research/';
@@ -73,7 +73,10 @@ const RECOMMENDATION_HEADING = 'Recommendation';
 const REFERENCES_HEADING = 'References';
 
 const FORCED_OUTCOME = 'research-needs-human';
+const READY_OUTCOME = 'ready-for-change-factory';
 const MIN_APPROACHES = 2;
+/** The rubric's convergence threshold, mirrored here only to judge a readiness claim. */
+const SCORE_THRESHOLD = 85;
 /**
  * Longest agent-authored fragment quoted inside an annotation. Both the forced outcome line and
  * the ⚠️ line quote the prose outcome and the declared gate outcome, so without a clamp the
@@ -223,8 +226,15 @@ function fatalContractViolations(body) {
  * @param {string[]} causes
  * @returns {string}
  */
-function annotateQualityGate(section, causes, { compact = false } = {}) {
-  const forced = `**Outcome:** \`${FORCED_OUTCOME}\` - forced by the comment handler: ${causes.join(' ')}`;
+function annotateQualityGate(section, causes, { compact = false, minimal = false } = {}) {
+  // The minimal form carries no causes at all — just the corrected verdict. It is 35 characters and
+  // usually *shorter* than the line it replaces, so it fits wherever the draft itself fits. Without
+  // it, a draft near the size ceiling made both richer forms unaffordable, the edit was skipped,
+  // and a readiness claim the handler had positively judged unearned published with nothing in the
+  // body to say so.
+  const forced = minimal
+    ? `**Outcome:** \`${FORCED_OUTCOME}\``
+    : `**Outcome:** \`${FORCED_OUTCOME}\` - forced by the comment handler: ${causes.join(' ')}`;
   const annotation = `> ⚠️ ${causes.join(' ')} Treat the outcome above as unverified.`;
   const lines = outcomeLines(section);
 
@@ -247,7 +257,70 @@ function annotateQualityGate(section, causes, { compact = false } = {}) {
   // live outcome line (it swaps each one for a forced line of similar length), so it still fits
   // where the full annotation would breach the ceiling. With many live outcome lines it is not
   // bounded by a constant, and the size filter then degrades it to a skip rather than a lost run.
-  return compact ? rewritten : `${rewritten.replace(/\s*$/, '')}\n\n${annotation}\n\n`;
+  return compact || minimal ? rewritten : `${rewritten.replace(/\s*$/, '')}\n\n${annotation}\n\n`;
+}
+
+/**
+ * Reasons the metadata's own fields contradict a `ready-for-change-factory` claim.
+ *
+ * This is not the upstream deterministic gate — that exists to defend a machine-readable label this
+ * workflow does not apply, and porting it was rejected. This is narrower: the `### Quality gate`
+ * prose is the one thing a human reads to decide whether the research is ready, so a draft claiming
+ * readiness while its own gate object records an unavailable critic, zero rounds, a failed checklist
+ * item or a blocking open question is claiming something it has not earned. Treated exactly like a
+ * prose/JSON disagreement: publish, force the prose outcome, annotate.
+ *
+ * @param {object} metadata
+ * @returns {string[]} Empty when the claim holds, or when no readiness is claimed.
+ */
+function unearnedReadiness(metadata) {
+  const gate = metadata?.gate;
+  if (!isObject(gate) || gate.outcome !== READY_OUTCOME) {
+    return [];
+  }
+
+  // Every predicate makes the claim *earn* its pass rather than looking for a disproof: a field
+  // that is absent, null or written with the wrong JSON type is not evidence of readiness, and
+  // treating it as such let a one-character change (`0` -> `"0"`) defeat the whole check. The
+  // schema validator already rejects those shapes, but a 1.1 violation only drops the claim — it
+  // does not annotate — so the comment would still publish an unqualified readiness claim.
+  const reasons = [];
+
+  const checklist = isObject(gate.checklist) ? gate.checklist : null;
+  const unproven = checklist === null ? CHECKLIST_ITEMS : CHECKLIST_ITEMS.filter((item) => checklist[item] !== true);
+  if (unproven.length > 0) {
+    reasons.push(`checklist item(s) ${unproven.join(', ')} did not pass`);
+  }
+  if (!isObject(gate.critic) || gate.critic.status !== 'ok') {
+    const status = isObject(gate.critic) ? gate.critic.status : undefined;
+    // Agent-authored text: quoted through the same neutraliser as every other fragment the
+    // annotation embeds. Unsanitised, a multi-line status reproduced a live `**Outcome:**` line —
+    // republishing the very claim this check exists to force down — and a long one grew the
+    // annotation past the size ceiling so the edit was skipped entirely.
+    reasons.push(`the critic did not report status \`ok\` (got \`${quoteFragment(status === undefined ? 'nothing' : status)}\`)`);
+  }
+  if (gate.converged !== true) {
+    reasons.push('the critique loop is not recorded as converged');
+  }
+  if (!Number.isInteger(gate.rounds) || gate.rounds < 1) {
+    reasons.push('no critique round is recorded as completed');
+  }
+  if (typeof gate.score !== 'number' || !Number.isFinite(gate.score) || gate.score < SCORE_THRESHOLD) {
+    reasons.push(`the final score is not recorded at or above the threshold of ${SCORE_THRESHOLD}`);
+  }
+  const questions = metadata.open_questions;
+  if (questions !== undefined && !Array.isArray(questions)) {
+    // Present but not a list: the schema validator catches the type, but a 1.1 violation only drops
+    // the claim — it never annotates — so treating this like "absent" would publish the readiness
+    // claim unqualified, which is the whole failure this function exists to stop.
+    reasons.push('the open questions are not recorded as a list');
+  } else if (Array.isArray(questions)) {
+    const blocking = questions.filter((question) => !isObject(question) || question.blocking !== false).length;
+    if (blocking > 0) {
+      reasons.push(`${blocking} open question(s) are not recorded as non-blocking`);
+    }
+  }
+  return reasons;
 }
 
 /**
@@ -424,6 +497,7 @@ function preparePublishedBody(draft) {
   let dropCause = null;
   let gateCause = null;
   let strayCause = null;
+  let readinessCause = null;
 
   if (extracted.error) {
     warnings.push(`pipeline metadata unusable: ${extracted.error} (publishing anyway; nothing consumes it today)`);
@@ -453,13 +527,26 @@ function preparePublishedBody(draft) {
     }
   }
 
+  if (metadataWasParsed) {
+    const unearned = unearnedReadiness(extracted.metadata);
+    if (unearned.length > 0) {
+      readinessCause = `The gate claims \`${READY_OUTCOME}\` but ${unearned.join('; ')}.`;
+      warnings.push(`readiness claim not earned: ${unearned.join('; ')}`);
+    }
+  }
+
   const gateRange = sectionRange(body, QUALITY_GATE_HEADING);
 
   // An `**Outcome:**` line outside the gate section is a machine-readable verdict a human reads as
   // one, sitting where nothing checks it. Same class as a fenced decoy: the published comment would
   // carry a prominent outcome contradicting both the gate section and the gate JSON, with nothing
-  // in the log. It is a cause in its own right, and a conservative over-correction (forcing the
-  // outcome on an innocent stray line) is the cheaper mistake.
+  // in the log. It is therefore a cause in its own right — it forces and annotates the gate
+  // section. The stray line itself is *not* rewritten. That is a risk-budget decision rather than a
+  // structural limit — the edit machinery already rewrites one agent-authored range and would
+  // support more — but every additional rewritten region is somewhere else this handler can get a
+  // published comment wrong, which the plan's own history says is where its defects land. The
+  // prompt asks for exactly one outcome line, and the annotation names any stray it finds — except
+  // at the minimal rung, where there is only room for the verdict and the causes stay in the log.
   const strayOutcomes = outcomeLines(body).filter(
     (line) => !gateRange || line.start < gateRange.start || line.start >= gateRange.end,
   );
@@ -470,19 +557,35 @@ function preparePublishedBody(draft) {
 
   if (!gateRange) {
     warnings.push(`no ### ${QUALITY_GATE_HEADING} section in the draft`);
-  } else if (metadataWasParsed) {
+  } else {
     const section = body.slice(gateRange.start, gateRange.end);
     const lines = outcomeLines(section);
     const prose = lines.length === 1 ? quotedToken(lines[0].text) : null;
-    const declared = extracted.metadata?.gate?.outcome;
-    if (lines.length === 0) {
-      gateCause = `The ### ${QUALITY_GATE_HEADING} section states no machine-readable outcome.`;
-    } else if (lines.length > 1) {
+
+    if (lines.length > 1) {
+      // Structural: two live outcome lines contradict each other whatever the metadata says.
       gateCause = `The ### ${QUALITY_GATE_HEADING} section states ${lines.length} outcomes.`;
-    } else if (prose === null) {
+    } else if (!metadataWasParsed) {
+      // Unreadable metadata is not a reason to trust the prose. Without this, one stray comma in
+      // the JSON fence — or a missing envelope, or a fence holding `null` — switched off both this
+      // check and the readiness check, and a `ready-for-change-factory` claim published with
+      // nothing supporting it and nothing in the body to say so.
+      //
+      // Stated as "anything that is not already the conservative verdict", not as "equals the one
+      // bad value": matching `ready-for-change-factory` exactly would let `Ready-For-Change-Factory`
+      // or an unbackticked line through — the same one-character evasion the predicates above were
+      // rewritten to close, one level up. A draft that states no outcome line at all is left alone:
+      // there is nothing to correct, and inventing a verdict is not this branch's job.
+      if (lines.length === 1 && prose !== FORCED_OUTCOME) {
+        gateCause = `The ### ${QUALITY_GATE_HEADING} section states an outcome but the pipeline metadata could not be read, so nothing supports it.`;
+      }
+    } else if (lines.length === 0 || prose === null) {
       gateCause = `The ### ${QUALITY_GATE_HEADING} section states no machine-readable outcome.`;
-    } else if (typeof declared !== 'string' || prose !== declared) {
-      gateCause = `The ### ${QUALITY_GATE_HEADING} section says \`${quoteFragment(prose)}\` but the machine-readable gate says ${declared === undefined ? 'nothing' : `\`${quoteFragment(declared)}\``}.`;
+    } else {
+      const declared = extracted.metadata?.gate?.outcome;
+      if (typeof declared !== 'string' || prose !== declared) {
+        gateCause = `The ### ${QUALITY_GATE_HEADING} section says \`${quoteFragment(prose)}\` but the machine-readable gate says ${declared === undefined ? 'nothing' : `\`${quoteFragment(declared)}\``}.`;
+      }
     }
   }
 
@@ -494,9 +597,9 @@ function preparePublishedBody(draft) {
 
   // One list, used for the annotation text, its fallback and the log line, so the three cannot
   // drift apart — a log that named a subset of the causes once printed an empty reason.
-  const causes = [gateCause, strayCause, dropCause].filter(Boolean);
+  const causes = [gateCause, readinessCause, strayCause, dropCause].filter(Boolean);
 
-  if (gateRange && (gateCause || strayCause)) {
+  if (gateRange && (gateCause || readinessCause || strayCause)) {
     // One edit over one range for every cause, so the forced outcome and the annotation can never
     // be applied half-way. The compact variant is the fallback when the full one does not fit.
     const section = body.slice(gateRange.start, gateRange.end);
@@ -506,8 +609,9 @@ function preparePublishedBody(draft) {
       end: gateRange.end,
       text: annotateQualityGate(section, causes),
       fallbackText: annotateQualityGate(section, causes, { compact: true }),
+      minimalText: annotateQualityGate(section, causes, { minimal: true }),
     });
-  } else if (!gateRange && strayCause) {
+  } else if (!gateRange && (readinessCause || strayCause)) {
     // F3: no section to annotate, but the body still carries a machine-readable verdict a reader
     // will take at face value. Append the warning at the end rather than leave it only in a log
     // nobody reads. Zero-length range, so it cannot overlap the metadata edit.
@@ -516,6 +620,7 @@ function preparePublishedBody(draft) {
       start: body.length,
       end: body.length,
       text: `\n> ⚠️ ${causes.join(' ')} Treat any outcome above as unverified.\n`,
+      minimalText: '\n> ⚠️ Outcome unverified; see the workflow run log.\n',
     });
   }
 
@@ -535,13 +640,20 @@ function preparePublishedBody(draft) {
     }
     let { text } = edit;
     let delta = text.length - (edit.end - edit.start);
-    if (projected + delta > MAX_COMMENT_CHARS && edit.fallbackText && !edit.fallbackText.includes('<!--')) {
-      // Fall back to the near-length-neutral form rather than lose the correction entirely.
-      const fallbackDelta = edit.fallbackText.length - (edit.end - edit.start);
-      if (projected + fallbackDelta <= MAX_COMMENT_CHARS) {
-        warnings.push(`used the compact "${edit.name}" edit: the full one would have breached the ${MAX_COMMENT_CHARS} limit`);
-        text = edit.fallbackText;
-        delta = fallbackDelta;
+    // Degrade rather than drop: full -> compact (correction, no appended block) -> minimal (the
+    // corrected verdict alone). Each is tried only if the previous one breaches the ceiling.
+    for (const [label, candidate] of [['compact', edit.fallbackText], ['minimal', edit.minimalText]]) {
+      if (projected + delta <= MAX_COMMENT_CHARS) {
+        break;
+      }
+      if (!candidate || candidate.includes('<!--')) {
+        continue;
+      }
+      const candidateDelta = candidate.length - (edit.end - edit.start);
+      if (projected + candidateDelta <= MAX_COMMENT_CHARS) {
+        warnings.push(`used the ${label} "${edit.name}" edit: the fuller form would have breached the ${MAX_COMMENT_CHARS} limit`);
+        text = candidate;
+        delta = candidateDelta;
       }
     }
     if (projected + delta > MAX_COMMENT_CHARS) {
@@ -660,6 +772,21 @@ module.exports = async function ({ github, context, core }) {
 
   const { owner, repo } = context.repo;
   const botLogin = env.GH_AW_BOT_LOGIN || 'github-actions[bot]';
+
+  try {
+    // The number is re-read raw here (a custom safe-output job cannot depend on pre_activation), so
+    // the pull-request check is repeated at the boundary that writes. The comment and label
+    // endpoints accept pull requests, so without this a dispatch naming a PR gets researched and
+    // stamped. Mirrors `issue-classifier/apply-routing.js`'s assertIssue.
+    const { data: target } = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
+    if (target.pull_request) {
+      core.setFailed(`refusing to publish: #${issueNumber} is a pull request, not an issue.`);
+      return;
+    }
+  } catch (err) {
+    core.setFailed(`cannot read #${issueNumber}: ${err.message}`);
+    return;
+  }
 
   let existing = null;
   try {

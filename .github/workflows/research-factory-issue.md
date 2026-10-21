@@ -62,9 +62,17 @@ on:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
+          const { boundEnvPayload } = require('${{ github.workspace }}/.github/scripts/workflows/lib/env-payload.js');
           core.setOutput('issue_number', context.payload.issue?.number ?? '');
-          core.setOutput('issue_title', context.payload.issue?.title ?? '');
-          core.setOutput('issue_body', context.payload.issue?.body ?? '');
+          // Newlines collapsed: normalize_context exports the title with a bare `echo` into
+          // GITHUB_OUTPUT *after* issue_number, and a later assignment wins, so an embedded
+          // newline could overwrite that key. One definition, shared with the dispatch path.
+          const { flattenTitle } = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/fetch-live-issue.js');
+          core.setOutput('issue_title', flattenTitle(context.payload.issue?.title));
+          // Bounded in bytes before it becomes an environment variable: GitHub allows a 65 536
+          // *character* body, which is ~196 KB in a multi-byte script and over the kernel's
+          // 128 KiB per-entry limit, killing normalize_context after the label was consumed.
+          core.setOutput('issue_body', boundEnvPayload(context.payload.issue?.body ?? ''));
     - name: Validate dispatch inputs
       id: validate_dispatch_inputs
       if: steps.determine_intake_mode.outputs.intake_mode == 'dispatch'
@@ -446,6 +454,14 @@ issue. You write no code and open no pull request.
 - **Comment history**: see `/tmp/gh-aw/agent/issue_comments.md`
 - **Prior research comment** (if any): see `/tmp/gh-aw/agent/prior_research_comment.md`
 
+The issue body, the comment history and the prior research comment are byte-bounded on the way in, so
+a very large — usually non-ASCII — payload can arrive cut. A cut is always marked, never silent:
+`[... truncated: payload exceeded …]` for a whole file, `[... this comment was truncated …]` inside a
+single comment, `[... a comment above was truncated …]` or `[... N more comments truncated …]` in the
+history, and `[... comment history truncated at 200 comments]` when there were simply too many. Read
+a marker as "there was more here", and say so under `### Open questions` if the missing part could
+change the recommendation.
+
 Read those files before proceeding. They may contain markdown, code fences, and other content that
 cannot be safely embedded inline in a prompt.
 
@@ -574,7 +590,16 @@ Research iterates **draft → critique → revise** before you emit. Gate consta
    `outstanding_feedback`) and the critic status into the metadata. Report
    `ready-for-change-factory` only if every checklist item passes, the research converged, and no
    open question is blocking; otherwise report `research-needs-human`. Report it honestly: the
-   publishing job annotates the comment when the prose and the metadata disagree.
+   publishing job annotates the comment when the prose and the metadata disagree, **and it forces
+   the outcome to `research-needs-human` unless the gate object positively earns the claim**: all
+   six checklist booleans `true`, `critic.status` exactly `ok`, `converged: true`, an integer
+   `rounds` ≥ 1, a numeric `score` ≥ 85, and every open question `blocking: false`. A field that is
+   absent, null or the wrong JSON type does not earn it — `"rounds": "1"` reads as unearned, and so
+   does an `open_questions` that is present but not a list (omitting it entirely is fine). (With
+   no `### Quality gate` section to correct, the same finding is appended as a ⚠️ notice instead.)
+   The same applies when the metadata cannot be read at all — a malformed fence, a missing envelope,
+   or one holding `null` — and the section still states an outcome: nothing supports it, so it is
+   forced down too. A claim you have not earned costs you the claim, not the comment.
 
 ### Context discipline
 
@@ -629,11 +654,16 @@ node .github/scripts/workflows/research-factory/validate-metadata.js "$D"       
 - The marker `<!-- gha-research-factory -->` is prepended for you. Do not write it yourself.
 - **Size: aim at or under 59 000 characters.** The hard limit of 60 000 applies to the *published*
   comment, which is your draft plus the 29-character marker and the newline after it, so the
-  draft's real ceiling is 59 970 —
-  the pre-flight command measures the right string. The publishing job may also append a forced
-  outcome line and a ⚠️ annotation after your pre-flight has run, and if that would breach the limit
-  it degrades the annotation rather than dropping the comment — so an over-full draft does not lose
-  the run, it loses the warning a human needed to see.
+  draft's real ceiling is 59 970 — the pre-flight command measures the right string. The publishing
+  job may also append a forced outcome line and a ⚠️ annotation after your pre-flight has run. If
+  that would breach the limit it degrades in steps — full, then the correction without the appended
+  block, then the corrected verdict alone — rather than dropping the comment. When your
+  `### Quality gate` states exactly one outcome line naming one of the two contract outcomes, the
+  corrected verdict is shorter than that line, so a claim the job denies is never left standing for
+  want of room. In the rarer shapes — no outcome line to correct, several of them, or no `### Quality gate`
+  section at all — a draft at the very top of the budget can lose the correction too. The causes
+  always stay in the workflow run log. Leaving the margin costs you nothing; spending it can cost a
+  reader the only warning they would have seen.
 
 ## Research comment format
 
@@ -660,7 +690,8 @@ Your comment body SHALL contain these sections, in this order:
      line in the whole comment, outside code fences: the publishing job reads every `**Outcome:**`
      line that is not inside a fence, treats two inside this section as a disagreement and corrects
      all of them, and flags any that sit outside this section without rewriting them — a stray line
-     elsewhere forces this section's outcome too, even if it agreed;
+     elsewhere forces this section's outcome too, even if it agreed, though at the tightest budget
+     the flag itself stays only in the run log;
    - a pass/fail table with a row for each of Grounded, Mapped, Compatible, Versioned, Testable and
      Idiomatic;
    - the final critic score against the threshold of 85, and the number of rounds used;

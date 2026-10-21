@@ -151,6 +151,21 @@ describe('fetch-prior-research-comment', { concurrency: false }, () => {
     assert.match(warnings[0], /Could not fetch prior research comment for issue #42: rate limited/);
   });
 
+  test('bounds the prior comment in bytes before it becomes an environment variable', async () => {
+    // Our own comment contract caps the body at 60 000 *characters*, which is ~180 KB written in a
+    // multi-byte script — over Linux's 128 KiB per-environment-entry limit.
+    const { core, outputs, warnings } = mockCore();
+    const big = `${RESEARCH_COMMENT_MARKER}\n${'漢'.repeat(55_000)}`;
+    const github = githubWith([restComment('github-actions[bot]', big, 1)]);
+
+    await withEnv({ INPUT_ISSUE_NUMBER: '42' }, () => fetchPriorResearchComment({ github, context, core }));
+
+    assert.deepEqual(warnings, []);
+    assert.ok(Buffer.byteLength(outputs.prior_research_comment) < 128 * 1024);
+    assert.ok(outputs.prior_research_comment.startsWith(RESEARCH_COMMENT_MARKER), 'still recognisable as ours');
+    assert.ok(outputs.prior_research_comment.isWellFormed());
+  });
+
   test('a GraphQL-shaped comment list matches nothing, which is why the lookup is REST only', async () => {
     const { core, outputs } = mockCore();
     const graphqlShaped = [{ id: 1, author: { login: 'github-actions[bot]' }, body: `${RESEARCH_COMMENT_MARKER}\nresearch` }];
