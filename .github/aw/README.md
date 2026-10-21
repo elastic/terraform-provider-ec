@@ -35,24 +35,32 @@ make workflow-generate          # → gh aw compile --purge   (build/Makefile.te
 
 ### Do not hand-maintain the entry set
 
-`make workflow-generate` runs `gh aw compile **--purge**` (not `--approve`). `--purge` is
-authoritative: it rewrites `entries` to contain **exactly** the Actions referenced by the compiled
-output and **deletes any entry nothing references**. Consequences:
+`make workflow-generate` runs `gh aw compile **--purge**` (not `--approve`). `--purge` prunes an
+entry for an Action **outside** gh-aw's scaffolding set once nothing references it; a stale
+**scaffolding** entry survives and has to be removed by hand. Measured in a scratch checkout:
+seeding `hashicorp/setup-terraform@v3.1.2` and `actions/setup-go@v6.0.0` with neither referenced,
+`--purge` removed setup-terraform and kept setup-go; repointing every workflow off
+`actions/checkout@v7.0.0` left that entry in place even though the locks then pinned a different
+SHA. Consequences:
 
-- The committed `entries` are gh-aw's **standard scaffolding** Actions, which appear in every
-  compiled workflow and therefore survive `--purge`: `actions/checkout`, `actions/download-artifact`,
-  `actions/github-script`, `actions/setup-go`, `actions/setup-node`, `actions/upload-artifact`, and
-  `github/gh-aw-actions/setup`.
-- **Do not seed an Action no current workflow uses.** It would be stripped by the next
+- **`entries` is smaller than the set of Actions the locks reference, and that is correct.** An
+  Action whose pinned version matches gh-aw's embedded catalog default is pinned into the
+  `*.lock.yml` from that catalog and is **not** written back here; only a pin that *differs* from
+  the default is recorded. Measured: with `actions/github-script@v9.0.0` (the default) nothing is
+  written, and repointing a workflow to `@v8.0.0` makes `actions/github-script@v8.0.0` appear. That
+  is why this file currently holds just `actions/checkout@v7.0.0` (we deliberately pin one patch
+  behind the default) and `github/gh-aw-actions/setup@v0.92.0`, while the compiled locks also
+  reference `actions/download-artifact`, `actions/github-script`, `actions/setup-node` and
+  `actions/upload-artifact`.
+- **Do not seed an Action no current workflow uses.** A non-scaffolding one is stripped by the next
   `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR. For
   example, `hashicorp/setup-terraform` is intentionally **absent**: gh-aw will add it — in that PR —
   when a workflow that runs `make validate-examples` (or otherwise uses the Terraform CLI) lands.
 - gh-aw's scaffolding Actions are emitted into **every** compiled workflow regardless of frontmatter —
   e.g. `gh aw compile` still injects an `actions/checkout` step even when a workflow sets
-  `checkout: false` — so those pins are retained unconditionally. `--purge` prunes only a
-  **non-scaffolding** entry (like `hashicorp/setup-terraform`) once nothing references it. A clean
-  drift check therefore confirms the committed set matches the compiled output, but does not by itself
-  prove every retained entry is individually needed.
+  `checkout: false` — so those pins are retained unconditionally, referenced or not. A clean drift
+  check therefore confirms that re-compiling reproduces the committed output, but does not by itself
+  prove every retained entry is still needed.
 
 ### Container image digests
 
@@ -93,7 +101,23 @@ consequences follow, both security-relevant:
 
 Each workflow declares its egress in frontmatter as `network.allowed`. The firewall sandbox
 (squid/api-proxy/cli-proxy) enforces it; named sets (`defaults`, `node`, `go`, …) expand to concrete
-hosts. Inspect a workflow's effective egress with `gh aw domains <workflow> --json`.
+hosts.
+
+**Do not use `gh aw domains <workflow> --json` to verify egress** — it reports
+`"allowed_domains": []` even for a workflow with a populated allowlist. Assert on the compiled lock
+instead, where the resolved set is the `allowDomains` array of the agent job's firewall config:
+
+```sh
+python3 -c "
+import re, json
+s = open('.github/workflows/<workflow>.lock.yml').read()
+d = sorted(json.loads('[' + re.search(r'\"allowDomains\":\[(.*?)\]', s).group(1) + ']'))
+print(len(d), d)
+"
+```
+
+Assert the host **count** as well as membership: a named set that creeps back into
+`network.allowed` adds tens of hosts at once.
 
 The policy menu for this repo is:
 
@@ -115,7 +139,7 @@ a second workflow needs the same block, factor it into a shared fragment.
 | `go` | ✅ | Go module proxy / checksum DB — building and testing the provider and the `scripts/changelogcheck` helper. |
 | `registry.terraform.io` | ✅ | Terraform registry metadata for provider/schema lookups during `terraform init`. Pinned as a **single host** rather than gh-aw's `terraform` domain set (which also opens `releases.hashicorp.com` / checkpoint) for least-egress. **Not sufficient on its own for a full `make validate-examples`** — see the caveat below. gh-aw emits a non-fatal advisory suggesting the `terraform` set; we keep the single host deliberately. |
 | `www.elastic.co` | ✅ (conditional) | Egress host for the **Elastic docs MCP** (`https://www.elastic.co/docs/_mcp/`). Required **only** by a workflow that declares the `elastic-docs` MCP server (the research/change/code/reproducer factories consult Elastic Cloud / provider docs while drafting). Omit it from any workflow that does not wire up that MCP. |
-| `openrouter.ai` | ✅ | The inference endpoint. Agentic workflows call **OpenRouter** (`ANTHROPIC_BASE_URL=https://openrouter.ai/api`, model `anthropic/claude-sonnet-5`); the only inference secret is the repository secret `OPENROUTER_API_KEY`. |
+| `openrouter.ai` | ✅ | The inference endpoint. Agentic workflows call **OpenRouter** (`ANTHROPIC_BASE_URL=https://openrouter.ai/api`), with `anthropic/claude-sonnet-5` as the authoring model and `openai/gpt-6.1-sol` as the research-factory critic — a different slug on purpose, since a model grading its own output is a weak check. The only inference secret is the repository secret `OPENROUTER_API_KEY`. |
 
 > **`make validate-examples` caveat.** `registry.terraform.io` alone does **not** let a sandboxed
 > `make validate-examples` finish. `scripts/validate_examples.sh` configures a Terraform
@@ -130,16 +154,18 @@ a second workflow needs the same block, factor it into a shared fragment.
 
 | Not allowed | Why it is excluded |
 | --- | --- |
-| `api.elastic.cloud` (and the live Elastic Cloud API generally) | Agents **never** call the live, paid Cloud API. Acceptance tests create/destroy real deployments against `EC_API_KEY` and run **out-of-band on Buildkite** (`buildkite/terraform-provider-ec-acceptance`), never inside an agentic workflow — no live-cloud credentials are exposed to agents. Allowing this host would open a spend / data-exfiltration path. (Verified: it is absent from the compiled firewall egress for the menu above.) |
+| Live Elastic Cloud API **operations** on `api.elastic-cloud.com` | Agents **never** perform an operation that creates, mutates or destroys a deployment, or that spends. Acceptance tests create/destroy real deployments against `EC_API_KEY` and run **out-of-band on Buildkite** (`buildkite/terraform-provider-ec-acceptance`), never inside an agentic workflow — no live-cloud credentials are exposed to agents. The host is therefore kept out of every `network.allowed` list, so the agent sandbox cannot reach any path on it. Reading a **public, unauthenticated specification document** from that host is outside this restriction and is permitted: the research factory fetches `api/v1/api-docs-user/swagger.json` in a **runner-side** step, before the sandbox exists, which grounds the agent while adding **zero** egress hosts. (Verified: `api.elastic-cloud.com` is absent from the compiled firewall egress of every workflow.) |
 | Local-stack ports (Elasticsearch `:9200`, Kibana `:5601`, Docker localstack) | **N/A** — unlike the Elastic Stack provider, the cloud provider has **no** local Docker stack; there is nothing to reach. Recorded here so these are not copied in out of habit when porting a stack-provider workflow. |
 
 ## Verifying / regenerating
 
-- **Reproducibility (AC):** with at least one workflow `.md` present, `make workflow-generate`
-  followed by `git diff --exit-code -- .github/workflows .github/aw` must be clean. With **no** `.md`
-  sources (the current state), `gh aw compile` has nothing to compile, so `make workflow-generate`
-  skips and the committed lock is dormant. CI enforces this in the `Workflows CI` *test* job.
+- **Reproducibility (AC):** `make workflow-generate` followed by
+  `git diff --exit-code -- .github/workflows .github/aw` must be clean. The repository has carried
+  workflow `.md` sources since the issue classifier landed, so compile always runs; the skip branch
+  in `make workflow-generate` only applies to a tree with no `.md` sources at all. CI enforces this
+  in the `Workflows CI` *test* job.
 - **Updating on a gh-aw bump:** change the pin in `workflows.yml`, run `make workflow-generate`,
   refresh the `containers` digests here, and review the diff (new/changed Action SHAs, image digests,
   redirects) as a security review.
-- **Inspect egress:** `gh aw domains <workflow> --json`.
+- **Inspect egress:** assert on the compiled lock's `allowDomains` array (see *Network allowlist
+  policy*). `gh aw domains` does not report it.
