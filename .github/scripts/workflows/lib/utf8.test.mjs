@@ -20,6 +20,25 @@ test('sliceToByteBudget never splits a multi-byte character', () => {
   assert.equal(out, '中中');
 });
 
+test('sliceToByteBudget keeps a character that ends exactly at the budget (no over-truncation)', () => {
+  // '中中' is 6 bytes; a 3-byte budget lands exactly after the first char — keep it.
+  assert.equal(sliceToByteBudget('中中', 3), '中');
+  // Same for a 2-byte char (é = C3 A9) and a 4-byte emoji.
+  assert.equal(sliceToByteBudget('éé', 2), 'é');
+  assert.equal(sliceToByteBudget('\u{1f600}\u{1f600}', 4), '\u{1f600}');
+  // ASCII boundary.
+  assert.equal(sliceToByteBudget('abcd', 2), 'ab');
+});
+
+test('sliceToByteBudget backs up only when the cut splits a character', () => {
+  // 4-byte budget over '中中' (6 bytes): byte 4 is a continuation byte → back up to 1 char.
+  assert.equal(sliceToByteBudget('中中', 4), '中');
+  // 1-byte budget over 'a中': 'a' fits exactly.
+  assert.equal(sliceToByteBudget('a中', 1), 'a');
+  // 2-byte budget over 'a中': byte 2 splits 中 → back up to 'a'.
+  assert.equal(sliceToByteBudget('a中', 2), 'a');
+});
+
 test('sliceToByteBudget handles emoji (4-byte) boundaries', () => {
   const emoji = '\u{1f600}'.repeat(5); // 20 bytes
   const out = sliceToByteBudget(emoji, 10); // 2 whole emoji = 8 bytes

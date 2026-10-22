@@ -24,14 +24,18 @@ function utf8Len(str) {
  */
 function sliceToByteBudget(str, maxBytes) {
   if (maxBytes <= 0) return '';
-  if (utf8Len(str) <= maxBytes) return str;
-  const buf = Buffer.from(str, 'utf8').subarray(0, maxBytes);
-  // Drop any trailing bytes that form an incomplete UTF-8 sequence: continuation bytes
-  // (10xxxxxx), then one leading multi-byte byte (1xxxxxxx) if we stopped mid-sequence.
-  let end = buf.length;
-  while (end > 0 && (buf[end - 1] & 0xc0) === 0x80) end--;
-  if (end > 0 && (buf[end - 1] & 0x80) !== 0) end--;
-  return buf.subarray(0, end).toString('utf8');
+  const full = Buffer.from(str, 'utf8');
+  if (full.length <= maxBytes) return str;
+  // The cut falls between byte maxBytes-1 (last kept) and byte maxBytes (first excluded). Only
+  // back up if that cut splits a character — i.e. the first EXCLUDED byte is a UTF-8 continuation
+  // byte (10xxxxxx). When it is a lead/ASCII byte, maxBytes already lands exactly on a character
+  // boundary and the whole prefix is kept (no over-truncation of a character that fits).
+  let end = maxBytes;
+  if ((full[end] & 0xc0) === 0x80) {
+    while (end > 0 && (full[end - 1] & 0xc0) === 0x80) end--;
+    if (end > 0) end--; // drop the lead byte of the split character
+  }
+  return full.subarray(0, end).toString('utf8');
 }
 
 /**
