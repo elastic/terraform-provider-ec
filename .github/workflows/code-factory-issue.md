@@ -142,12 +142,15 @@ on:
     - name: Set phase label
       id: set_phase_label
       if: >-
+        steps.check_duplicate_pr.outputs.duplicate_pr_found != 'true' &&
         (
-          steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
-          steps.qualify_trigger.outputs.event_eligible == 'true'
-        ) || (
-          steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
-          steps.validate_dispatch_inputs.outputs.event_eligible == 'true'
+          (
+            steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
+            steps.qualify_trigger.outputs.event_eligible == 'true'
+          ) || (
+            steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
+            steps.validate_dispatch_inputs.outputs.event_eligible == 'true'
+          )
         )
       env:
         INPUT_ISSUE_NUMBER: >-
@@ -354,7 +357,7 @@ safe-outputs:
       name: add-changelog
       description: >-
         Commit the .changelog/{PR}.txt fragment for this PR. Call exactly once, after creating the
-        pull request. Pass the triggering issue number and a release-note type.
+        pull request. Pass a release-note type (and a one-line body unless the type is 'none').
       runs-on: ubuntu-latest
       needs: safe_outputs
       if: needs.safe_outputs.result == 'success' && needs.safe_outputs.outputs.created_pr_number != ''
@@ -362,10 +365,6 @@ safe-outputs:
         contents: write
         pull-requests: read
       inputs:
-        issue_number:
-          description: "The triggering issue number (used to assert the PR branch)."
-          required: true
-          type: number
         release_note_type:
           description: "release-note category. Use 'none' for non-user-facing changes."
           required: true
@@ -392,15 +391,19 @@ safe-outputs:
           env:
             GH_TOKEN: ${{ github.token }}
             PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
-            ISSUE_NUMBER: ${{ steps.render.outputs.issue_number }}
           run: |
             set -euo pipefail
-            BRANCH="code-factory/issue-${ISSUE_NUMBER}"
-            # Confine the write to the factory branch: the PR's head ref must be
-            # exactly code-factory/issue-<issue_number>.
-            HEAD_REF=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.ref)
-            if [ "${HEAD_REF}" != "${BRANCH}" ]; then
-              echo "::error::PR #${PR_NUMBER} head ref '${HEAD_REF}' != expected '${BRANCH}'; refusing to write"
+            # Derive the target branch from the TRUSTED created-PR number (not from any
+            # agent-supplied value): commit the changelog onto the PR we just created. Assert it is
+            # a factory branch so we never write elsewhere. (A safe-job cannot read the triggering
+            # issue number from pre-activation, so the branch cannot be bound to the trigger here;
+            # the create-PR allowed-branches glob + the duplicate-PR gate + the agent prompt are the
+            # controls for that.)
+            BRANCH=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.ref)
+            # Match the whole string (bash =~ anchors to the full value), so a crafted multi-line
+            # ref cannot pass on its first line.
+            if [[ ! "${BRANCH}" =~ ^code-factory/issue-[0-9]+$ ]]; then
+              echo "::error::PR #${PR_NUMBER} head ref '${BRANCH}' is not a code-factory/issue-<n> branch; refusing to write"
               exit 1
             fi
             # Create .changelog/{PR}.txt via the Contents API (verified commit). No -f sha:
@@ -409,7 +412,7 @@ safe-outputs:
             # a human nudge (or the later Vault/App-token fix) is needed to green the new HEAD.
             set +e
             OUT=$(gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/.changelog/${PR_NUMBER}.txt" \
-              -f message="Add changelog entry for #${ISSUE_NUMBER}" \
+              -f message="Add changelog entry for PR #${PR_NUMBER}" \
               -f branch="${BRANCH}" \
               -F content=@<(base64 -w0 "$RUNNER_TEMP/fragment.txt") 2>&1)
             STATUS=$?
@@ -529,10 +532,10 @@ The linked pull request must:
 Every PR needs a `.changelog/{PR}.txt` entry. You do not write the file yourself — after the PR
 exists, call the **`add-changelog`** safe-job exactly once:
 
-- `issue_number`: `${{ needs.pre_activation.outputs.issue_number }}`.
 - `release_note_type`: one of `none`, `bug`, `enhancement`, `feature`, `new-resource`,
   `new-data-source`, `new-guide`, `note`, `breaking-change`.
-- `release_note_body`: a one-line user-facing sentence — **omit/empty only when the type is `none`**.
+- `release_note_body`: a **single-line** user-facing sentence with no code fences — **omit/empty only
+  when the type is `none`**.
 
 Pick the type from the nature of the change: refactoring / deduplication / test-coverage / CI /
 docs → `none`; a user-visible bug fix → `bug`; a new attribute or capability → `enhancement` (or

@@ -43,7 +43,7 @@ test('selectChangelogItem returns the single add_changelog item', () => {
   const item = selectChangelogItem({
     items: [
       { type: 'noise' },
-      { type: 'add_changelog', issue_number: 1, release_note_type: 'none' },
+      { type: 'add_changelog', release_note_type: 'none' },
     ],
   });
   assert.equal(item.release_note_type, 'none');
@@ -67,44 +67,45 @@ test('selectChangelogItem throws when items is not an array', () => {
 
 test('validateChangelogItem accepts a valid bug note', () => {
   const v = validateChangelogItem({
-    issue_number: 944, release_note_type: 'bug', release_note_body: 'resource/ec_deployment: fix',
+    release_note_type: 'bug', release_note_body: 'resource/ec_deployment: fix',
   });
-  assert.deepEqual(v, { issueNumber: 944, type: 'bug', body: 'resource/ec_deployment: fix' });
-});
-
-test('validateChangelogItem accepts a digit-string issue_number', () => {
-  const v = validateChangelogItem({
-    issue_number: '944', release_note_type: 'none', release_note_body: '',
-  });
-  assert.equal(v.issueNumber, 944);
-});
-
-test('validateChangelogItem rejects bad issue numbers', () => {
-  for (const bad of [0, -1, '1.5', 'abc', '007', 1.5, '']) {
-    assert.throws(
-      () => validateChangelogItem({ issue_number: bad, release_note_type: 'none' }),
-      /issue_number must be a positive integer/,
-      `expected rejection for ${JSON.stringify(bad)}`,
-    );
-  }
+  assert.deepEqual(v, { type: 'bug', body: 'resource/ec_deployment: fix' });
 });
 
 test('validateChangelogItem rejects unknown types', () => {
   assert.throws(() => validateChangelogItem({
-    issue_number: 1, release_note_type: 'chore', release_note_body: 'x',
+    release_note_type: 'chore', release_note_body: 'x',
   }), /is not one of/);
 });
 
 test('validateChangelogItem enforces none => empty body', () => {
   assert.throws(() => validateChangelogItem({
-    issue_number: 1, release_note_type: 'none', release_note_body: 'should be empty',
+    release_note_type: 'none', release_note_body: 'should be empty',
   }), /none must have an empty body/);
 });
 
 test('validateChangelogItem enforces non-none => non-empty body', () => {
   assert.throws(() => validateChangelogItem({
-    issue_number: 1, release_note_type: 'enhancement', release_note_body: '   ',
+    release_note_type: 'enhancement', release_note_body: '   ',
   }), /must have a non-empty body/);
+});
+
+test('validateChangelogItem rejects a fence-only body that would collapse the block', () => {
+  assert.throws(() => validateChangelogItem({
+    release_note_type: 'bug', release_note_body: '```',
+  }), /must not contain a code fence/);
+});
+
+test('validateChangelogItem rejects a multiline body', () => {
+  assert.throws(() => validateChangelogItem({
+    release_note_type: 'bug', release_note_body: 'line one\nline two',
+  }), /must be a single line/);
+});
+
+test('validateChangelogItem rejects a body embedding an extra release-note fence', () => {
+  assert.throws(() => validateChangelogItem({
+    release_note_type: 'bug', release_note_body: 'ok\n```releasenote\nsneaky\n```',
+  }), /single line|code fence/);
 });
 
 // ---------------------------------------------------------------------------
@@ -143,7 +144,7 @@ function capture() {
 }
 
 test('main --render-only prints the fragment and exits 0', () => {
-  withAgentOutput({ items: [{ type: 'add_changelog', issue_number: 944, release_note_type: 'bug', release_note_body: 'fix a thing' }] }, (path) => {
+  withAgentOutput({ items: [{ type: 'add_changelog', release_note_type: 'bug', release_note_body: 'fix a thing' }] }, (path) => {
     const cap = capture();
     const code = main(['--render-only'], { GH_AW_AGENT_OUTPUT: path }, fs, cap.stdout, cap.stderr);
     assert.equal(code, 0);
@@ -151,24 +152,8 @@ test('main --render-only prints the fragment and exits 0', () => {
   });
 });
 
-test('main --render-only writes issue_number to GITHUB_OUTPUT when set', () => {
-  withAgentOutput({ items: [{ type: 'add_changelog', issue_number: 944, release_note_type: 'none', release_note_body: '' }] }, (path) => {
-    const dir = mkdtempSync(join(tmpdir(), 'cf-out-'));
-    const outFile = join(dir, 'gh_output');
-    writeFileSync(outFile, '');
-    try {
-      const cap = capture();
-      const code = main(['--render-only'], { GH_AW_AGENT_OUTPUT: path, GITHUB_OUTPUT: outFile }, fs, cap.stdout, cap.stderr);
-      assert.equal(code, 0);
-      assert.equal(readFileSync(outFile, 'utf8'), 'issue_number=944\n');
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-});
-
 test('main --render-only exits 1 on a malformed item', () => {
-  withAgentOutput({ items: [{ type: 'add_changelog', issue_number: 1, release_note_type: 'none', release_note_body: 'not empty' }] }, (path) => {
+  withAgentOutput({ items: [{ type: 'add_changelog', release_note_type: 'none', release_note_body: 'not empty' }] }, (path) => {
     const cap = capture();
     const code = main(['--render-only'], { GH_AW_AGENT_OUTPUT: path }, fs, cap.stdout, cap.stderr);
     assert.equal(code, 1);

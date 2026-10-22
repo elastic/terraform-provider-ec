@@ -88,7 +88,7 @@ test('serializeIssueComments appends the 200-cap marker when truncated', () => {
   assert.match(out, /truncated at 200 comments/);
 });
 
-test('serializeIssueComments stays within the context budget and reports remaining', () => {
+test('serializeIssueComments stays within the UTF-8 byte budget and reports remaining', () => {
   const big = 'x'.repeat(40_000);
   const comments = [
     { author: 'a', createdAt: '', body: big },
@@ -96,6 +96,28 @@ test('serializeIssueComments stays within the context budget and reports remaini
     { author: 'c', createdAt: '', body: big },
   ];
   const out = serializeIssueComments({ comments, truncated: false });
-  assert.ok(out.length <= COMMENT_CONTEXT_BUDGET, `budget exceeded: ${out.length}`);
+  assert.ok(Buffer.byteLength(out, 'utf8') <= COMMENT_CONTEXT_BUDGET, `budget exceeded: ${Buffer.byteLength(out, 'utf8')}`);
   assert.match(out, /more comments truncated for context budget/);
+});
+
+test('serializeIssueComments bounds a CJK-heavy thread by bytes (no E2BIG via env var)', () => {
+  // 3 bytes/char in UTF-8; a code-unit budget would let this exceed 128 KB.
+  const cjk = '中'.repeat(30_000);
+  const comments = [
+    { author: 'a', createdAt: '', body: cjk },
+    { author: 'b', createdAt: '', body: cjk },
+    { author: 'c', createdAt: '', body: cjk },
+  ];
+  const out = serializeIssueComments({ comments, truncated: false });
+  const bytes = Buffer.byteLength(out, 'utf8');
+  assert.ok(bytes <= COMMENT_CONTEXT_BUDGET, `byte budget exceeded: ${bytes}`);
+  // And comfortably under Linux MAX_ARG_STRLEN (~128 KB).
+  assert.ok(bytes < 128 * 1024, `env-var transport unsafe: ${bytes} bytes`);
+});
+
+test('serializeIssueComments truncates without splitting a multi-byte character', () => {
+  const cjk = '中'.repeat(60_000);
+  const out = serializeIssueComments({ comments: [{ author: 'a', createdAt: '', body: cjk }], truncated: false });
+  // Round-tripping through UTF-8 must not introduce the replacement char U+FFFD.
+  assert.doesNotMatch(out, /�/);
 });
