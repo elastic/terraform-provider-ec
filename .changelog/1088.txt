@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Redact sensitive user settings from Terraform CLI output
+```

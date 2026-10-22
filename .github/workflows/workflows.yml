@@ -68,6 +68,9 @@ jobs:
           git diff --exit-code -- .github/workflows .github/aw \
             || (echo "::error::Workflow artifacts under .github/workflows or .github/aw are out of date. Run 'make workflow-generate' and commit the changes." && exit 1)
 
+  # Always-on required status check on master (ruleset "Require Workflows Gate").
+  # Test is skipped when there are no workflow changes; this gate maps skip vs
+  # failure so a red Test cannot automerge. Keep the job name stable.
   gate:
     name: Workflows Gate
     needs: [classify, test]

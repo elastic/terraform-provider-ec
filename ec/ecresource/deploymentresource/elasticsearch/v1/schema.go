@@ -115,18 +115,22 @@ func ElasticsearchConfigSchema() schema.Attribute {
 				"user_settings_json": schema.StringAttribute{
 					Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
+					Sensitive:   true,
 				},
 				"user_settings_override_json": schema.StringAttribute{
 					Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
+					Sensitive:   true,
 				},
 				"user_settings_yaml": schema.StringAttribute{
 					Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
+					Sensitive:   true,
 				},
 				"user_settings_override_yaml": schema.StringAttribute{
 					Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Optional:    true,
+					Sensitive:   true,
 				},
 			},
 		},
@@ -385,18 +389,22 @@ func ElasticsearchTopologyConfigSchema() schema.Attribute {
 				"user_settings_json": schema.StringAttribute{
 					Description: `JSON-formatted user level "elasticsearch.yml" setting overrides`,
 					Computed:    true,
+					Sensitive:   true,
 				},
 				"user_settings_override_json": schema.StringAttribute{
 					Description: `JSON-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Computed:    true,
+					Sensitive:   true,
 				},
 				"user_settings_yaml": schema.StringAttribute{
 					Description: `YAML-formatted user level "elasticsearch.yml" setting overrides`,
 					Computed:    true,
+					Sensitive:   true,
 				},
 				"user_settings_override_yaml": schema.StringAttribute{
 					Description: `YAML-formatted admin (ECE) level "elasticsearch.yml" setting overrides`,
 					Computed:    true,
+					Sensitive:   true,
 				},
 			},
 		},
