@@ -141,7 +141,7 @@ a second workflow needs the same block, factor it into a shared fragment.
   skips and the committed lock is dormant. CI enforces this in the `Workflows CI` *test* job.
 - **Updating on a gh-aw bump:** change the pin in `workflows.yml`, run `make workflow-generate`,
   refresh the `containers` digests here, and review the diff (new/changed Action SHAs, image digests,
-  redirects) as a security review. Do not let Renovate bump `github/gh-aw-actions` (or anything else)
-  inside `*.lock.yml` independently — those files are compiled output. `renovate.json` disables
-  updates for both the lock files and the `github/gh-aw-actions` package.
+  redirects) as a security review. Renovate must not edit `*.lock.yml` (compiled output) —
+  `renovate.json` lists those under `ignorePaths`. Bump `github/gh-aw-actions` together with the
+  compiler pin via `make workflow-generate`, not by patching lock files.
 - **Inspect egress:** `gh aw domains <workflow> --json`.
