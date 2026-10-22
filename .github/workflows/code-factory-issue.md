@@ -61,9 +61,14 @@ on:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
+          const { clampUtf8Bytes } = require('${{ github.workspace }}/.github/scripts/workflows/lib/utf8.js');
+          // Clamp the body to a UTF-8 byte budget: it is passed to the normalize/sanitize steps
+          // via environment variables, and a value above ~128 KB (MAX_ARG_STRLEN) would make those
+          // steps fail to launch with E2BIG.
+          const { text: issueBody } = clampUtf8Bytes(context.payload.issue?.body ?? '', 96000);
           core.setOutput('issue_number', context.payload.issue?.number ?? '');
           core.setOutput('issue_title', context.payload.issue?.title ?? '');
-          core.setOutput('issue_body', context.payload.issue?.body ?? '');
+          core.setOutput('issue_body', issueBody);
     - name: Validate dispatch inputs
       id: validate_dispatch_inputs
       if: steps.determine_intake_mode.outputs.intake_mode == 'dispatch'

@@ -5,7 +5,17 @@
  * This module does not sanitize them. Callers pass the body through the sanitize and
  * write runners before an agent reads it. The title is not written to disk here.
  * Do not expand issue_title or issue_body inside a shell `run:` step.
+ *
+ * The body is clamped to a UTF-8 byte budget before it is emitted: downstream steps receive it
+ * through an environment variable, and a single env-var string above Linux's MAX_ARG_STRLEN
+ * (~128 KB) makes the next process launch fail with E2BIG. GitHub issue bodies cap at 65,536
+ * characters, which is up to ~256 KB of UTF-8 for CJK/emoji-heavy text.
  */
+
+const { clampUtf8Bytes } = require('../utf8.js');
+
+// Max UTF-8 bytes for the issue body passed via env to normalize/sanitize steps.
+const ISSUE_BODY_MAX_BYTES = 96_000;
 
 // The whole string must be a safe positive integer.
 function positiveIssueNumber(raw) {
@@ -32,11 +42,15 @@ module.exports = async function ({ github, context, core }) {
         repo,
         issue_number: issueNumber,
       });
+      const { text: body, truncated } = clampUtf8Bytes(data.body ?? '', ISSUE_BODY_MAX_BYTES);
       core.setOutput('issue_number', String(data.number));
       core.setOutput('issue_title', data.title ?? '');
-      core.setOutput('issue_body', data.body ?? '');
+      core.setOutput('issue_body', body);
       core.setOutput('fetch_error', '');
-      core.info(`Fetched live issue #${data.number}: ${data.title}`);
+      core.info(
+        `Fetched live issue #${data.number}: ${data.title}` +
+          (truncated ? ` (body clamped to ${ISSUE_BODY_MAX_BYTES} bytes)` : ''),
+      );
     } catch (err) {
       core.setOutput('issue_number', '');
       core.setOutput('issue_title', '');

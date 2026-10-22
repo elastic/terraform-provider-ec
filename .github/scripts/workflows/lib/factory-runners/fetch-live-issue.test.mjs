@@ -141,4 +141,34 @@ describe('fetch-live-issue', { concurrency: false }, () => {
     assert.equal(outputs.fetch_error, 'Not Found');
     assert.match(failed[0], /Failed to fetch issue #15: Not Found/);
   });
+
+  test('clamps an oversized issue body to the UTF-8 byte budget', async () => {
+    const { context } = contextWithUnreadPayload();
+    const { outputs, core } = mockCore();
+    const huge = '中'.repeat(50_000); // ~150 KB of UTF-8
+    const github = {
+      rest: { issues: { get: async () => ({ data: { number: 7, title: 't', body: huge } }) } },
+    };
+    await withEnv({ INPUT_ISSUE_NUMBER: '7' }, async () => {
+      await fetchLiveIssue({ github, context, core });
+    });
+    assert.ok(
+      Buffer.byteLength(outputs.issue_body, 'utf8') <= 96_000,
+      `body not clamped: ${Buffer.byteLength(outputs.issue_body, 'utf8')} bytes`,
+    );
+    assert.ok(Buffer.byteLength(outputs.issue_body, 'utf8') < 128 * 1024);
+    assert.doesNotMatch(outputs.issue_body, /�/);
+  });
+
+  test('passes a normal-sized body through unchanged', async () => {
+    const { context } = contextWithUnreadPayload();
+    const { outputs, core } = mockCore();
+    const github = {
+      rest: { issues: { get: async () => ({ data: { number: 8, title: 't', body: 'normal body' } }) } },
+    };
+    await withEnv({ INPUT_ISSUE_NUMBER: '8' }, async () => {
+      await fetchLiveIssue({ github, context, core });
+    });
+    assert.equal(outputs.issue_body, 'normal body');
+  });
 });

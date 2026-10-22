@@ -44,6 +44,8 @@ async function factoryFetchIssueComments({ github, owner, repo, issueNumber }) {
   };
 }
 
+const { utf8Len, sliceToByteBudget } = require('./utf8.js');
+
 // Budget is measured in UTF-8 BYTES, not JS string length (UTF-16 code units): the serialized
 // value is transported to the sanitize step through the HUMAN_COMMENTS environment variable, and a
 // single env-var string above Linux's MAX_ARG_STRLEN (~128 KB) makes the next process launch fail
@@ -52,23 +54,6 @@ async function factoryFetchIssueComments({ github, owner, repo, issueNumber }) {
 const COMMENT_CONTEXT_BUDGET = 50_000;
 /** Overhead reserved for truncation markers appended after the loop. */
 const COMMENT_CONTEXT_MARKER_OVERHEAD = 200;
-
-function utf8Len(str) {
-  return Buffer.byteLength(str, 'utf8');
-}
-
-// Returns the longest prefix of `str` whose UTF-8 encoding is <= maxBytes, without splitting a
-// multi-byte character.
-function sliceToByteBudget(str, maxBytes) {
-  if (maxBytes <= 0) return '';
-  if (utf8Len(str) <= maxBytes) return str;
-  const buf = Buffer.from(str, 'utf8').subarray(0, maxBytes);
-  // Drop any trailing bytes that form an incomplete UTF-8 sequence.
-  let end = buf.length;
-  while (end > 0 && (buf[end - 1] & 0xc0) === 0x80) end--;
-  if (end > 0 && (buf[end - 1] & 0x80) !== 0) end--;
-  return buf.subarray(0, end).toString('utf8');
-}
 
 /**
  * Serializes captured issue comments into a deterministic markdown string for agent prompts,
