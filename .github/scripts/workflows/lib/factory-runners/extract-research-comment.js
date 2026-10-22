@@ -2,10 +2,12 @@
  * Reads the staged comment history, extracts the research-factory sticky comment, and writes
  * the sanitized result into the factory context directory the agent artifact is built from.
  *
- * The research comment body is deliberately not an output: the agent reads research_comment.md
- * from the artifact instead, which keeps it out of the GITHUB_OUTPUT budget.
+ * The serialized human comments travel to sanitize-context by PATH, not through a GITHUB_OUTPUT
+ * value, so a large multibyte comment history cannot overflow a step env var and abort intake
+ * with E2BIG. The research comment body is likewise never an output: the agent reads
+ * research_comment.md from the artifact.
  */
-const { getFactoryContextDir } = require('./_factory-context.js');
+const { getFactoryName, getFactoryContextDir } = require('./_factory-context.js');
 const { sanitizeForConcatenation, findResearchComment } = require('../sanitize-context.js');
 const { serializeIssueComments } = require('../factory-issue-comments.js');
 const { RESEARCH_COMMENT_MARKER } = require('../intake/research-factory-constants.js');
@@ -13,7 +15,6 @@ const { RESEARCH_COMMENT_MARKER } = require('../intake/research-factory-constant
 module.exports = async function ({ github, context, core }) {
 
   const fs = require('fs');
-  const crypto = require('crypto');
 
   let comments = [];
   let truncated = false;
@@ -50,8 +51,14 @@ module.exports = async function ({ github, context, core }) {
     truncated,
   });
 
-  const eofDelim = `EOF_${crypto.randomUUID().replace(/-/g, '')}`;
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `human_comments<<${eofDelim}\n${serialized}\n${eofDelim}\n`);
+  // Stage the serialized human comments next to the raw comment JSON (RUNNER_TEMP, not the
+  // uploaded context dir) and hand sanitize-context the path, not the value — byte-safe transport.
+  const runnerTemp = process.env.RUNNER_TEMP || require('os').tmpdir();
+  const rawDir = `${runnerTemp}/${getFactoryName()}-raw`;
+  const humanCommentsPath = `${rawDir}/human_comments.txt`;
+  fs.mkdirSync(rawDir, { recursive: true });
+  fs.writeFileSync(humanCommentsPath, serialized);
+  core.setOutput('human_comments_path', humanCommentsPath);
   core.setOutput('research_comment_found', researchComment ? 'true' : 'false');
 
   // Always write the file, even empty: the artifact upload uses if-no-files-found: error and

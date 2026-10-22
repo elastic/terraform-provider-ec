@@ -46,7 +46,31 @@ describe('serializeIssueComments', () => {
     const serialized = serializeIssueComments({ comments, truncated: false });
     assert.ok(serialized.length <= COMMENT_CONTEXT_BUDGET);
     assert.ok(serialized.length > COMMENT_CONTEXT_BUDGET - COMMENT_CONTEXT_MARKER_OVERHEAD - 2000);
-    assert.match(serialized, /\[\.\.\. 2 more comments truncated for context budget\]\n$/);
+    assert.match(serialized, /\[\.\.\. 2 more comments truncated for context budget\]\n/);
+    // The last included comment is also body-truncated here, so that is flagged too.
+    assert.match(serialized, /\[\.\.\. last included comment truncated for context budget\]\n$/);
+  });
+
+  test('flags partial-body truncation of a single oversized comment', () => {
+    const serialized = serializeIssueComments({
+      comments: [{ author: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'x'.repeat(60_000) }],
+      truncated: false,
+    });
+    assert.ok(serialized.length <= COMMENT_CONTEXT_BUDGET);
+    // Without the fix this reads as a complete comment; the notice is the only signal its tail was cut.
+    assert.match(serialized, /\[\.\.\. last included comment truncated for context budget\]\n$/);
+    assert.doesNotMatch(serialized, /more comments truncated for context budget/);
+  });
+
+  test('does not flag partial truncation when every included comment fits whole', () => {
+    const serialized = serializeIssueComments({
+      comments: [
+        { author: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'short one' },
+        { author: 'bob', createdAt: '2026-01-02T00:00:00Z', body: 'short two' },
+      ],
+      truncated: false,
+    });
+    assert.doesNotMatch(serialized, /last included comment truncated/);
   });
 
   test('appends the history marker when the caller reports truncation', () => {
@@ -66,6 +90,9 @@ describe('serializeIssueComments', () => {
       body: big,
     }));
     const serialized = serializeIssueComments({ comments, truncated: true });
-    assert.match(serialized, /more comments truncated for context budget\]\n\[\.\.\. comment history truncated at 200 comments\]\n$/);
+    // Order: omitted-comments notice, then partial-body notice (the last fit comment is cut),
+    // then the history-cap notice.
+    assert.match(serialized, /more comments truncated for context budget\]\n/);
+    assert.match(serialized, /\[\.\.\. last included comment truncated for context budget\]\n\[\.\.\. comment history truncated at 200 comments\]\n$/);
   });
 });

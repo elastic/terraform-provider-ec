@@ -55,8 +55,16 @@ on:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
+          const fs = require('fs');
+          // The title is short (GitHub-bounded) so it travels by value. The body can be up to
+          // 65536 chars — multibyte that is well over a step env var's ~128 KB limit — so it
+          // travels by path to avoid an E2BIG abort in the sanitize step.
+          const rawDir = `${process.env.RUNNER_TEMP}/change-factory-raw`;
+          fs.mkdirSync(rawDir, { recursive: true });
+          const issueBodyPath = `${rawDir}/issue_body.txt`;
+          fs.writeFileSync(issueBodyPath, context.payload.issue?.body ?? '');
           core.setOutput('issue_title', context.payload.issue?.title ?? '');
-          core.setOutput('issue_body', context.payload.issue?.body ?? '');
+          core.setOutput('issue_body_path', issueBodyPath);
     - name: Fetch issue comments
       id: fetch_issue_comments
       if: steps.qualify_trigger.outputs.event_eligible == 'true'
@@ -116,9 +124,12 @@ on:
       uses: actions/github-script@v9.0.0
       env:
         FACTORY_NAME: change-factory
-        ISSUE_BODY: ${{ steps.capture_issue_context.outputs.issue_body }}
+        # Body and comments arrive by PATH, not value — large multibyte content would otherwise
+        # overflow a step env var (MAX_ARG_STRLEN ~128 KB) and abort this step with E2BIG. The
+        # title is GitHub-bounded to a short line, so it is safe to pass by value.
+        INPUT_ISSUE_BODY_PATH: ${{ steps.capture_issue_context.outputs.issue_body_path }}
         ISSUE_TITLE: ${{ steps.capture_issue_context.outputs.issue_title }}
-        HUMAN_COMMENTS: ${{ steps.extract_research_comment.outputs.human_comments }}
+        INPUT_HUMAN_COMMENTS_PATH: ${{ steps.extract_research_comment.outputs.human_comments_path }}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |

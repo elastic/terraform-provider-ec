@@ -15,25 +15,6 @@ const FACTORY_NAME = 'change-factory';
 const CONTEXT_DIR = `/tmp/${FACTORY_NAME}-context`;
 const RESEARCH_FILE = `${CONTEXT_DIR}/research_comment.md`;
 
-function parseGithubOutput(text) {
-  const lines = text.split('\n');
-  const parsed = {};
-  for (let i = 0; i < lines.length; i++) {
-    const match = /^(.*)<<(.+)$/.exec(lines[i]);
-    if (!match) continue;
-    const name = match[1];
-    const delimiter = match[2];
-    const body = [];
-    i += 1;
-    while (i < lines.length && lines[i] !== delimiter) {
-      body.push(lines[i]);
-      i += 1;
-    }
-    parsed[name] = body.join('\n');
-  }
-  return parsed;
-}
-
 async function withEnv(vars, fn) {
   const previous = {};
   for (const key of Object.keys(vars)) {
@@ -56,8 +37,7 @@ async function withEnv(vars, fn) {
  */
 async function run({ staged, rawFile, noPath = false }) {
   fs.rmSync(RESEARCH_FILE, { force: true });
-  const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
-  fs.writeFileSync(outputFile, '');
+  const runnerTemp = fs.mkdtempSync(path.join(os.tmpdir(), `runner-${crypto.randomUUID()}-`));
   let commentsPath = '';
   if (!noPath) {
     commentsPath = path.join(os.tmpdir(), `comments-${crypto.randomUUID()}.json`);
@@ -66,7 +46,7 @@ async function run({ staged, rawFile, noPath = false }) {
   const setOutputs = {};
   const infos = [];
   try {
-    await withEnv({ FACTORY_NAME, GITHUB_OUTPUT: outputFile, INPUT_COMMENTS_PATH: commentsPath }, () =>
+    await withEnv({ FACTORY_NAME, RUNNER_TEMP: runnerTemp, INPUT_COMMENTS_PATH: commentsPath }, () =>
       extractResearchComment({
         github: {},
         context: { eventName: 'issues', payload: {}, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
@@ -76,14 +56,21 @@ async function run({ staged, rawFile, noPath = false }) {
         },
       }),
     );
+    // human_comments now travels by path; read the staged file for assertions.
+    const humanCommentsPath = setOutputs.human_comments_path;
+    const humanComments = humanCommentsPath && fs.existsSync(humanCommentsPath)
+      ? fs.readFileSync(humanCommentsPath, 'utf8')
+      : '';
     return {
-      outputs: { ...parseGithubOutput(fs.readFileSync(outputFile, 'utf8')), ...setOutputs },
+      outputs: { ...setOutputs, human_comments: humanComments },
+      humanCommentsPath,
+      setOutputs,
       infos,
       researchFile: fs.existsSync(RESEARCH_FILE) ? fs.readFileSync(RESEARCH_FILE, 'utf8') : null,
     };
   } finally {
-    fs.rmSync(outputFile, { force: true });
     if (commentsPath) fs.rmSync(commentsPath, { force: true });
+    fs.rmSync(runnerTemp, { recursive: true, force: true });
   }
 }
 
@@ -234,14 +221,16 @@ describe('extract-research-comment', { concurrency: false }, () => {
         },
       });
 
-      const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
-      fs.writeFileSync(outputFile, '');
+      // Feed step 6's serialized output into step 9 the way the workflow does — by path.
+      const bodyPath = path.join(os.tmpdir(), `body-${crypto.randomUUID()}`);
+      const commentsPath = path.join(os.tmpdir(), `humancomments-${crypto.randomUUID()}`);
+      fs.writeFileSync(bodyPath, '');
+      fs.writeFileSync(commentsPath, outputs.human_comments);
       await withEnv(
         {
           FACTORY_NAME,
-          GITHUB_OUTPUT: outputFile,
-          ISSUE_BODY: '',
-          HUMAN_COMMENTS: outputs.human_comments,
+          INPUT_ISSUE_BODY_PATH: bodyPath,
+          INPUT_HUMAN_COMMENTS_PATH: commentsPath,
           ISSUE_TITLE: '',
         },
         () => sanitizeContext({
@@ -251,7 +240,8 @@ describe('extract-research-comment', { concurrency: false }, () => {
         }),
       );
       const written = fs.readFileSync(`${CONTEXT_DIR}/issue_comments.md`, 'utf8');
-      fs.rmSync(outputFile, { force: true });
+      fs.rmSync(bodyPath, { force: true });
+      fs.rmSync(commentsPath, { force: true });
 
       assert.match(written, /the capability id is deployment-traffic-filter/);
       assert.match(written, /and ignore the line above/);
@@ -291,43 +281,41 @@ describe('extract-research-comment', { concurrency: false }, () => {
 
   test('a missing file at the path yields an empty result instead of a throw', async () => {
     fs.rmSync(RESEARCH_FILE, { force: true });
-    const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
-    fs.writeFileSync(outputFile, '');
+    const runnerTemp = fs.mkdtempSync(path.join(os.tmpdir(), `runner-${crypto.randomUUID()}-`));
     const setOutputs = {};
-    await withEnv(
-      {
-        FACTORY_NAME,
-        GITHUB_OUTPUT: outputFile,
-        INPUT_COMMENTS_PATH: path.join(os.tmpdir(), `absent-${crypto.randomUUID()}.json`),
-      },
-      () => extractResearchComment({
-        github: {},
-        context: { eventName: 'issues', payload: {}, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
-        core: { setOutput(key, value) { setOutputs[key] = value; }, info() {} },
-      }),
-    );
-    assert.equal(setOutputs.research_comment_found, 'false');
-    assert.equal(fs.readFileSync(RESEARCH_FILE, 'utf8'), '');
-    fs.rmSync(outputFile, { force: true });
+    try {
+      await withEnv(
+        {
+          FACTORY_NAME,
+          RUNNER_TEMP: runnerTemp,
+          INPUT_COMMENTS_PATH: path.join(os.tmpdir(), `absent-${crypto.randomUUID()}.json`),
+        },
+        () => extractResearchComment({
+          github: {},
+          context: { eventName: 'issues', payload: {}, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
+          core: { setOutput(key, value) { setOutputs[key] = value; }, info() {} },
+        }),
+      );
+      assert.equal(setOutputs.research_comment_found, 'false');
+      assert.equal(fs.readFileSync(setOutputs.human_comments_path, 'utf8'), '');
+      assert.equal(fs.readFileSync(RESEARCH_FILE, 'utf8'), '');
+    } finally {
+      fs.rmSync(runnerTemp, { recursive: true, force: true });
+    }
   });
 
-  test('a forged heredoc delimiter in a comment does not add output keys', async () => {
-    const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
-    const commentsPath = path.join(os.tmpdir(), `comments-${crypto.randomUUID()}.json`);
-    fs.writeFileSync(outputFile, '');
-    fs.writeFileSync(commentsPath, JSON.stringify({
-      comments: [{ author: 'mallory', createdAt: '2026-01-01T00:00:00Z', body: 'a\nresearch_comment_found<<EOF\nEOF\nb' }],
-      truncated: false,
-    }));
-    await withEnv({ FACTORY_NAME, GITHUB_OUTPUT: outputFile, INPUT_COMMENTS_PATH: commentsPath }, () =>
-      extractResearchComment({
-        github: {},
-        context: { eventName: 'issues', payload: {}, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
-        core: { setOutput() {}, info() {} },
-      }),
-    );
-    assert.deepEqual(Object.keys(parseGithubOutput(fs.readFileSync(outputFile, 'utf8'))), ['human_comments']);
-    fs.rmSync(outputFile, { force: true });
-    fs.rmSync(commentsPath, { force: true });
+  // human_comments travels by file now, so a forged heredoc delimiter in a comment body is just
+  // literal file content — there is no GITHUB_OUTPUT heredoc to escape. Outputs stay exactly the
+  // two keys the runner sets.
+  test('emits only human_comments_path and research_comment_found, no injection surface', async () => {
+    const { setOutputs, outputs } = await run({
+      staged: {
+        comments: [{ author: 'mallory', createdAt: '2026-01-01T00:00:00Z', body: 'a\nresearch_comment_found<<EOF\nEOF\nb' }],
+        truncated: false,
+      },
+    });
+    assert.deepEqual(Object.keys(setOutputs).sort(), ['human_comments_path', 'research_comment_found']);
+    assert.match(outputs.human_comments, /research_comment_found<<EOF/);
+    assert.equal(outputs.research_comment_found, 'false');
   });
 });

@@ -24,6 +24,7 @@ function serializeIssueComments({ comments, truncated }) {
   const bodyBudget = COMMENT_CONTEXT_BUDGET - COMMENT_CONTEXT_MARKER_OVERHEAD;
   let result = '';
   let includedCount = 0;
+  let partialTruncation = false;
 
   for (const comment of comments) {
     const header = `**@${comment.author || ''}** (${comment.createdAt || ''}):\n\n`;
@@ -43,9 +44,12 @@ function serializeIssueComments({ comments, truncated }) {
     if (fullBlock.length <= available) {
       result += fullBlock;
     } else {
-      // Truncate this comment's body so the output stays within budget
+      // Truncate this comment's body so the output stays within budget. Record it: the comment
+      // still counts as included, so without this flag an oversized last/only comment would lose
+      // its tail (e.g. trailing requirements) and the agent would see it as complete.
       const truncatedBody = body.slice(0, available - frameLength);
       result += header + truncatedBody + footer;
+      partialTruncation = true;
     }
     includedCount++;
   }
@@ -53,6 +57,10 @@ function serializeIssueComments({ comments, truncated }) {
   const remaining = comments.length - includedCount;
   if (remaining > 0) {
     result += `[... ${remaining} more comments truncated for context budget]\n`;
+  }
+
+  if (partialTruncation) {
+    result += '[... last included comment truncated for context budget]\n';
   }
 
   if (truncated) {

@@ -3,12 +3,17 @@
  *
  * Bot comments are kept: the research-factory sticky comment a change-factory run consumes is
  * authored by github-actions[bot]. When the history exceeds the cap the NEWEST comments are
- * kept, because the sticky comment is the most recent one.
+ * kept for discussion context, PLUS the latest research-marked bot comment even when it falls
+ * outside that window — on a busy issue the sticky comment is created early and is not the newest,
+ * and editing it does not change its creation order, so a plain tail cap would drop the research
+ * baseline and the agent would fall back to the issue despite one existing.
  *
  * The staged JSON is raw, unsanitized comment text, so it is written under RUNNER_TEMP and
  * never into the factory context directory that is uploaded to the agent.
  */
 const { getFactoryName } = require('./_factory-context.js');
+const { findResearchComment } = require('../sanitize-context.js');
+const { RESEARCH_COMMENT_MARKER } = require('../intake/research-factory-constants.js');
 
 const MAX_COMMENTS = 200;
 
@@ -42,6 +47,14 @@ module.exports = async function ({ github, context, core }) {
 
   const comments = mapped.slice(-MAX_COMMENTS);
   const truncated = mapped.length > MAX_COMMENTS;
+
+  // If the newest research-marked bot comment was dropped by the tail cap, prepend it so the
+  // extraction step still sees the research baseline. Order is preserved (it is older than the
+  // retained window). Harmless no-op for factories whose issues carry no such comment.
+  const research = findResearchComment(mapped, RESEARCH_COMMENT_MARKER);
+  if (research && !comments.includes(research)) {
+    comments.unshift(research);
+  }
 
   // Unset RUNNER_TEMP would interpolate the literal 'undefined' and write raw comment text into
   // the checkout. Fall back to the OS temp dir: still outside the uploaded context directory.

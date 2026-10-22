@@ -113,6 +113,43 @@ describe('fetch-issue-comments', { concurrency: false }, () => {
     assert.deepEqual(staged.comments.map(c => c.author), ['alice', 'github-actions[bot]']);
   });
 
+  // The research sticky comment is created early, so on a busy issue it falls outside the tail
+  // cap. It must still be staged, or the agent loses the research baseline.
+  test('retains the research comment even when the tail cap would drop it', async () => {
+    const research = apiComment({
+      login: 'github-actions[bot]',
+      createdAt: '2026-01-01T00:00:00Z',
+      body: '<!-- gha-research-factory -->\n## Implementation research\nbaseline',
+    });
+    const later = Array.from({ length: 249 }, (_, i) =>
+      apiComment({ login: `user${i}`, createdAt: '2026-02-01T00:00:00Z', body: `c${i}` }));
+    const { outputs, staged } = await run({
+      payload: { issue: { number: 42 } },
+      apiComments: [research, ...later], // research is the oldest, so -200 would drop it
+    });
+    assert.equal(outputs.comments_truncated, 'true');
+    assert.equal(staged.comments.length, 201, 'research comment retained on top of the 200 cap');
+    assert.equal(staged.comments[0].author, 'github-actions[bot]');
+    assert.match(staged.comments[0].body, /gha-research-factory/);
+    assert.equal(staged.comments.filter(c => c.author === 'github-actions[bot]').length, 1);
+  });
+
+  test('does not duplicate the research comment when it is already within the cap', async () => {
+    const older = Array.from({ length: 5 }, (_, i) =>
+      apiComment({ login: `user${i}`, createdAt: '2026-01-01T00:00:00Z', body: `c${i}` }));
+    const research = apiComment({
+      login: 'github-actions[bot]',
+      createdAt: '2026-01-09T00:00:00Z',
+      body: '<!-- gha-research-factory -->\nbaseline',
+    });
+    const { staged } = await run({
+      payload: { issue: { number: 42 } },
+      apiComments: [...older, research],
+    });
+    assert.equal(staged.comments.length, 6);
+    assert.equal(staged.comments.filter(c => c.author === 'github-actions[bot]').length, 1);
+  });
+
   test('tolerates comments with no user, body, or timestamp', async () => {
     const { staged } = await run({
       payload: { issue: { number: 42 } },
