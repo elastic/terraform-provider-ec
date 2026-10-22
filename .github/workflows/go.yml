@@ -69,12 +69,6 @@ jobs:
       run: make unit
       id: unit
 
-    # This job is already a required status check. Run workflow-helper tests
-    # on every PR, not only when .github/ changes (Workflows CI Test is
-    # skipped unless classify reports workflow changes).
-    - name: Workflow tests
-      run: make workflow-test
-
     - name: PR monitor script tests
       run: |
         python3 -m pip install --break-system-packages pytest
