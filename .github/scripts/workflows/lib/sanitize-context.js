@@ -70,14 +70,21 @@ function sanitizeUserContent(text) {
 }
 
 /**
- * Finds the most recently created matching research comment written by
- * <code>github-actions[bot]</code> whose body starts with <code>marker</code>.
+ * Finds the most recently created matching research comment written by the sticky-comment author
+ * (<code>github-actions[bot]</code> by default) whose body starts with <code>marker</code>.
+ *
+ * Only a comment authored by the bot counts, so a marker-bearing comment from a reporter cannot
+ * displace the real sticky comment.
  *
  * @param {Array<{author: string, body: string}>} comments Ordered oldest-first.
  * @param {string} marker
+ * @param {string} [botLogin] Author of the sticky comment. Callers resolve it as
+ *   <code>env.GH_AW_BOT_LOGIN || 'github-actions[bot]'</code> — with <code>||</code>, never by
+ *   relying on this default, because a set-but-empty env propagates <code>''</code>, which the
+ *   default parameter does not replace and which matches no author.
  * @returns {{author: string, body: string} | null}
  */
-function findResearchComment(comments, marker) {
+function findResearchComment(comments, marker, botLogin = 'github-actions[bot]') {
   if (!Array.isArray(comments)) {
     return null;
   }
@@ -85,7 +92,7 @@ function findResearchComment(comments, marker) {
     (c) =>
       c != null &&
       typeof c.body === 'string' &&
-      (c.author ?? c.user?.login) === 'github-actions[bot]' &&
+      (c.author ?? c.user?.login) === botLogin &&
       c.body.trimStart().startsWith(marker),
   );
   return matches.length > 0 ? matches[matches.length - 1] : null;
