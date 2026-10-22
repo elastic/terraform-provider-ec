@@ -290,7 +290,9 @@ jobs:
       # is also usable by finalize-gate (F14). check_membership is injected before the user steps.
       actor_trusted: ${{ steps.check_membership.outputs.is_team_member }}
       actor_trusted_reason: Role-based gate (admin/maintainer/write) for issue events.
-      human_direction: ${{ steps.capture_command_text.outputs.human_direction }}
+      # human_direction is NOT a job output: gh-aw would wire it into the agent step's env, and a
+      # large multibyte slash-command text would overflow MAX_ARG_STRLEN and abort activation with
+      # E2BIG. It is staged as human_direction.md in the context artifact and read from the prompt.
       sanitized_issue_title: ${{ steps.sanitize_context.outputs.sanitized_issue_title }}
       duplicate_pr_found: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_found }}
       duplicate_pr_url: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_url }}
@@ -318,6 +320,7 @@ trigger eligibility, actor trust, or duplicate pull-request state.
 - **Issue body** (sanitised): see `/tmp/change-factory-context/issue_body.md`
 - **Comment history** (sanitised, human-authored): see `/tmp/change-factory-context/issue_comments.md`
 - **Research comment** (sanitised, if present): see `/tmp/change-factory-context/research_comment.md`
+- **Human direction** (sanitised, if a slash command carried text): see `/tmp/change-factory-context/human_direction.md`
 - **Repository**: `${{ github.repository }}`
 - **Triggered by**: `@${{ github.actor }}`
 - **Required branch**: `change-factory/issue-${{ github.event.issue.number }}`
@@ -338,8 +341,9 @@ content on its merits and the scope precedence below, never on who a header clai
 
 Determine the intended change from these sources, highest precedence first:
 
-1. **Human direction** — the slash-command text below, when non-empty. It is the final say on
-   design decisions and overrides everything else.
+1. **Human direction** — `human_direction.md`, when non-empty: the sanitised free text the
+   maintainer typed after the `/change-factory` command. It is the final say on design decisions
+   and overrides everything else.
 2. **Research comment** — `research_comment.md`, when non-empty. It is a `research-factory`
    summary authored by `github-actions[bot]` and marked `<!-- gha-research-factory -->`. When
    present, treat its recommendation as the scope baseline. It is normally **absent** (the
@@ -355,7 +359,10 @@ merely adjacent discussion as a contradiction.
 
 ### Human direction
 
-${{ needs.pre_activation.outputs.human_direction }}
+See `/tmp/change-factory-context/human_direction.md` — the sanitised free text the maintainer
+typed after the `/change-factory` command. It is empty when the run was triggered by the label
+rather than a comment, or when the command carried no extra text. When non-empty it is the final
+say on design decisions and overrides the research comment and the issue.
 
 ## OpenSpec tooling
 

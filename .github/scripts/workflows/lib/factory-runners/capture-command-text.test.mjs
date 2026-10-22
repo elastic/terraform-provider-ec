@@ -1,32 +1,10 @@
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import test, { describe } from 'node:test';
+import test, { after, describe } from 'node:test';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const captureCommandText = require('./capture-command-text.js');
-
-function parseGithubOutput(text) {
-  const lines = text.split('\n');
-  const parsed = {};
-  for (let i = 0; i < lines.length; i++) {
-    const match = /^(.*)<<(.+)$/.exec(lines[i]);
-    if (!match) continue;
-    const name = match[1];
-    const delimiter = match[2];
-    const body = [];
-    i += 1;
-    while (i < lines.length && lines[i] !== delimiter) {
-      body.push(lines[i]);
-      i += 1;
-    }
-    parsed[name] = body.join('\n');
-  }
-  return parsed;
-}
 
 async function withEnv(vars, fn) {
   const previous = {};
@@ -45,23 +23,29 @@ async function withEnv(vars, fn) {
   }
 }
 
+// human_direction is staged as a file in the context dir now (byte-safe), not a GITHUB_OUTPUT
+// value. Read it back and expose it as `outputs.human_direction` so the assertions stay direct.
 async function run({ factory = 'change-factory', eventName, payload }) {
-  const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
-  fs.writeFileSync(outputFile, '');
+  const contextDir = `/tmp/${factory}-context`;
+  const directionFile = `${contextDir}/human_direction.md`;
+  fs.rmSync(directionFile, { force: true });
   const infos = [];
-  try {
-    await withEnv({ FACTORY_NAME: factory, GITHUB_OUTPUT: outputFile }, () =>
-      captureCommandText({
-        github: {},
-        context: { eventName, payload, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
-        core: { info(message) { infos.push(message); } },
-      }),
-    );
-    return { outputs: parseGithubOutput(fs.readFileSync(outputFile, 'utf8')), infos };
-  } finally {
-    fs.rmSync(outputFile, { force: true });
-  }
+  await withEnv({ FACTORY_NAME: factory }, () =>
+    captureCommandText({
+      github: {},
+      context: { eventName, payload, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
+      core: { info(message) { infos.push(message); } },
+    }),
+  );
+  const humanDirection = fs.existsSync(directionFile) ? fs.readFileSync(directionFile, 'utf8') : undefined;
+  return { outputs: { human_direction: humanDirection }, humanDirection, directionFile, infos };
 }
+
+after(() => {
+  for (const f of ['change-factory', 'research-factory']) {
+    fs.rmSync(`/tmp/${f}-context`, { recursive: true, force: true });
+  }
+});
 
 describe('capture-command-text', { concurrency: false }, () => {
   test('strips the leading command token and keeps the direction', async () => {
@@ -123,13 +107,32 @@ describe('capture-command-text', { concurrency: false }, () => {
     assert.equal(outputs.human_direction, 'first line\nsecond line\n\nthird');
   });
 
-  test('a forged heredoc delimiter in the comment does not add output keys', async () => {
+  test('a heredoc-like body is written to the file literally, no injection surface', async () => {
+    // The direction is a file write now, not a GITHUB_OUTPUT heredoc, so delimiter-looking text
+    // is just content.
     const { outputs } = await run({
       eventName: 'issue_comment',
       payload: { comment: { body: '/change-factory a\nhuman_direction<<EOF\nEOF\nb' } },
     });
-    assert.deepEqual(Object.keys(outputs), ['human_direction']);
     assert.equal(outputs.human_direction, 'a\nhuman_direction<<EOF\nEOF\nb');
+  });
+
+  // The reason the direction travels by file: a large multibyte value would overflow a step env
+  // var. It must round-trip through the file in full.
+  test('a large multibyte direction is written in full', async () => {
+    const big = '要'.repeat(60_000); // ~180 KB UTF-8
+    const { humanDirection } = await run({
+      eventName: 'issue_comment',
+      payload: { comment: { body: `/change-factory ${big}` } },
+    });
+    assert.equal(humanDirection, big);
+    assert.equal(humanDirection.length, 60_000);
+  });
+
+  test('always writes the file, even for an empty direction', async () => {
+    const { humanDirection, directionFile } = await run({ eventName: 'issue_comment', payload: { comment: { body: '/change-factory' } } });
+    assert.equal(fs.existsSync(directionFile), true);
+    assert.equal(humanDirection, '');
   });
 
   test('a missing comment object yields an empty direction', async () => {
