@@ -92,9 +92,12 @@ function serializeIssueComments({ comments, truncated }) {
       result += fullBlock;
       usedBytes += fullBlockBytes;
     } else {
-      // Truncate this comment's body (by bytes, without splitting a character) to fit the budget.
-      const truncatedBody = sliceToByteBudget(body, available - frameBytes);
-      const block = header + truncatedBody + footer;
+      // Truncate this comment's body (by bytes, without splitting a character) to fit the budget,
+      // and mark it inline so the agent knows this comment is incomplete (a single oversized
+      // comment would otherwise be silently cut with no truncation signal).
+      const inlineMarker = '\n[... comment body truncated to fit the context budget]';
+      const truncatedBody = sliceToByteBudget(body, Math.max(0, available - frameBytes - utf8Len(inlineMarker)));
+      const block = header + truncatedBody + inlineMarker + footer;
       result += block;
       usedBytes += utf8Len(block);
     }

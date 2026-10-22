@@ -485,8 +485,8 @@ pull request labeled `code-factory`.
 4. Open exactly one pull request for that branch using the `create-pull-request` safe output.
 5. Include `Closes #${{ needs.pre_activation.outputs.issue_number }}` in the PR body — this exact
    string is the stable identifier that prevents duplicate PRs on future runs.
-6. After the PR is created, call the `add-changelog` safe-job **exactly once** with the issue number
-   and a release-note type (see **Changelog**).
+6. After the PR is created, call the `add-changelog` safe-job **exactly once** with a release-note
+   type (and a one-line body unless the type is `none`) — see **Changelog**.
 7. Keep the pull request labeled `code-factory`.
 
 ## Verification ladder (mirrors the `go.yml` gate; never sets `TF_ACC`)

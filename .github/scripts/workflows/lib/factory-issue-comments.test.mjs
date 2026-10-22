@@ -121,3 +121,12 @@ test('serializeIssueComments truncates without splitting a multi-byte character'
   // Round-tripping through UTF-8 must not introduce the replacement char U+FFFD.
   assert.doesNotMatch(out, /�/);
 });
+
+test('serializeIssueComments marks a single oversized comment whose body is cut', () => {
+  // One comment larger than the whole budget: body is truncated but it is the only comment,
+  // so the "more comments" / 200-cap markers never fire — the inline marker is the only signal.
+  const big = 'x'.repeat(80_000);
+  const out = serializeIssueComments({ comments: [{ author: 'a', createdAt: '', body: big }], truncated: false });
+  assert.match(out, /comment body truncated to fit the context budget/);
+  assert.ok(Buffer.byteLength(out, 'utf8') <= COMMENT_CONTEXT_BUDGET);
+});
