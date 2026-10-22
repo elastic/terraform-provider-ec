@@ -42,8 +42,10 @@ async function run({ factory = 'change-factory', eventName, payload }) {
 }
 
 after(() => {
+  // Delete only this suite's own file, never the shared context dir — other suites stage their
+  // own files (research_comment.md, issue_comments.md, …) in the same real dir.
   for (const f of ['change-factory', 'research-factory']) {
-    fs.rmSync(`/tmp/${f}-context`, { recursive: true, force: true });
+    fs.rmSync(`/tmp/${f}-context/human_direction.md`, { force: true });
   }
 });
 
