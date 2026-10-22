@@ -78,9 +78,13 @@ describe('sanitize-context runner', { concurrency: false }, () => {
       const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
       fs.writeFileSync(outputFile, '');
       const infos = [];
+      const setOutputs = {};
       const core = {
         info(message) {
           infos.push(message);
+        },
+        setOutput(key, value) {
+          setOutputs[key] = value;
         },
       };
 
@@ -103,6 +107,7 @@ describe('sanitize-context runner', { concurrency: false }, () => {
       assert.deepEqual(Object.keys(parsed).sort(), ['sanitized_issue_body', 'sanitized_issue_comments']);
       assert.equal(parsed.sanitized_issue_body, expectedBody);
       assert.equal(parsed.sanitized_issue_comments, expectedComments);
+      assert.equal(setOutputs.sanitized_issue_title, '');
       assert.equal(infos.join('\n').includes(body), false);
       fs.rmSync(outputFile, { force: true });
     }
@@ -121,7 +126,7 @@ describe('sanitize-context runner', { concurrency: false }, () => {
         ISSUE_BODY: body,
         HUMAN_COMMENTS: comments,
       },
-      () => sanitizeContext({ github: {}, context: {}, core: { info() {} } }),
+      () => sanitizeContext({ github: {}, context: {}, core: { info() {}, setOutput() {} } }),
     );
 
     const parsed = parseGithubOutput(fs.readFileSync(outputFile, 'utf8'));
@@ -130,5 +135,36 @@ describe('sanitize-context runner', { concurrency: false }, () => {
     assert.equal(parsed.sanitized_issue_comments, sanitizeUserContent(comments));
     assert.equal(parsed.sanitized_issue_body.includes('<!--'), false);
     fs.rmSync(outputFile, { force: true });
+  });
+
+  test('sanitizes ISSUE_TITLE into sanitized_issue_title', async () => {
+    const cases = [
+      ['plain title', 'plain title'],
+      ['keep<!-- drop this -->rest', 'keeprest'],
+      ['a​b﻿c', 'abc'],
+      ['open<!-- never closed', 'open'],
+    ];
+
+    for (const [title, expected] of cases) {
+      const outputFile = path.join(os.tmpdir(), `github-output-${crypto.randomUUID()}`);
+      fs.writeFileSync(outputFile, '');
+      const setOutputs = {};
+      await withEnv(
+        {
+          FACTORY_NAME,
+          GITHUB_OUTPUT: outputFile,
+          ISSUE_BODY: '',
+          HUMAN_COMMENTS: '',
+          ISSUE_TITLE: title,
+        },
+        () => sanitizeContext({
+          github: {},
+          context: {},
+          core: { info() {}, setOutput(key, value) { setOutputs[key] = value; } },
+        }),
+      );
+      assert.equal(setOutputs.sanitized_issue_title, expected);
+      fs.rmSync(outputFile, { force: true });
+    }
   });
 });

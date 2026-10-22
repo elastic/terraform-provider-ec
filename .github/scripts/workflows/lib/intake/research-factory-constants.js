@@ -12,6 +12,9 @@ const ISSUE_OPENED_NOT_ELIGIBLE_REASON =
 // research-factory does not create branches or PRs, so the duplicate-PR gate is intentionally
 // disabled: the shared finalize-gate runner forces duplicatePrFound:false when this flag is set.
 const DISABLE_DUPLICATE_GATE = true;
+// Leading marker on the sticky research comment this factory maintains. The producing factory owns
+// the value; downstream factories (change-factory) only read it to locate the comment.
+const RESEARCH_COMMENT_MARKER = '<!-- gha-research-factory -->';
 
 if (typeof module !== 'undefined') {
   module.exports = {
@@ -20,5 +23,6 @@ if (typeof module !== 'undefined') {
     DUPLICATE_LINKAGE_MODE,
     ISSUE_OPENED_NOT_ELIGIBLE_REASON,
     DISABLE_DUPLICATE_GATE,
+    RESEARCH_COMMENT_MARKER,
   };
 }

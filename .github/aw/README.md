@@ -39,10 +39,12 @@ make workflow-generate          # → gh aw compile --purge   (build/Makefile.te
 authoritative: it rewrites `entries` to contain **exactly** the Actions referenced by the compiled
 output and **deletes any entry nothing references**. Consequences:
 
-- The committed `entries` are gh-aw's **standard scaffolding** Actions, which appear in every
-  compiled workflow and therefore survive `--purge`: `actions/checkout`, `actions/download-artifact`,
-  `actions/github-script`, `actions/setup-go`, `actions/setup-node`, `actions/upload-artifact`, and
-  `github/gh-aw-actions/setup`.
+- The committed `entries` record **only the Actions gh-aw's embedded pin catalog does not already
+  resolve** — currently just two: `actions/checkout` and `github/gh-aw-actions/setup`. The other
+  scaffolding Actions a workflow uses (`actions/github-script`, `actions/download-artifact`,
+  `actions/upload-artifact`, `actions/setup-node`, `actions/setup-go`, …) are pinned from gh-aw's
+  embedded catalog straight into each `*.lock.yml` and are **not** written back here, so adding a
+  workflow that uses them produces **no** `actions-lock.json` diff.
 - **Do not seed an Action no current workflow uses.** It would be stripped by the next
   `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR. For
   example, `hashicorp/setup-terraform` is intentionally **absent**: gh-aw will add it — in that PR —
@@ -130,15 +132,16 @@ a second workflow needs the same block, factor it into a shared fragment.
 
 | Not allowed | Why it is excluded |
 | --- | --- |
-| `api.elastic.cloud` (and the live Elastic Cloud API generally) | Agents **never** call the live, paid Cloud API. Acceptance tests create/destroy real deployments against `EC_API_KEY` and run **out-of-band on Buildkite** (`buildkite/terraform-provider-ec-acceptance`), never inside an agentic workflow — no live-cloud credentials are exposed to agents. Allowing this host would open a spend / data-exfiltration path. (Verified: it is absent from the compiled firewall egress for the menu above.) |
+| `api.elastic.cloud` (and the live Elastic Cloud API generally) | Agents **never** call the live, paid Cloud API. Acceptance tests create/destroy real deployments against `EC_API_KEY` and run **out-of-band on Buildkite** (`buildkite/terraform-provider-ec-acceptance`), never inside an agentic workflow — no live-cloud credentials are exposed to agents. Allowing this host would open a spend / data-exfiltration path. (Verified: it is absent from the compiled firewall egress for the menu above.) The change-factory workflow opens spec-only PRs, so to keep that required Buildkite context green without spending, `.buildkite/acceptance.sh` skips the paid suite for PRs that touch only `docs/`, `dev-docs/`, `openspec/`, or `.changelog/` — the suite still runs the moment a PR also changes provider code. |
 | Local-stack ports (Elasticsearch `:9200`, Kibana `:5601`, Docker localstack) | **N/A** — unlike the Elastic Stack provider, the cloud provider has **no** local Docker stack; there is nothing to reach. Recorded here so these are not copied in out of habit when porting a stack-provider workflow. |
 
 ## Verifying / regenerating
 
-- **Reproducibility (AC):** with at least one workflow `.md` present, `make workflow-generate`
-  followed by `git diff --exit-code -- .github/workflows .github/aw` must be clean. With **no** `.md`
-  sources (the current state), `gh aw compile` has nothing to compile, so `make workflow-generate`
-  skips and the committed lock is dormant. CI enforces this in the `Workflows CI` *test* job.
+- **Reproducibility (AC):** with at least one workflow `.md` present (`issue-classifier.md` and
+  `change-factory-issue.md` both are), `make workflow-generate` followed by
+  `git diff --exit-code -- .github/workflows .github/aw` must be clean. Were **no** `.md` sources
+  present, `gh aw compile` would have nothing to compile and `make workflow-generate` would skip,
+  leaving the committed lock dormant. CI enforces this in the `Workflows CI` *test* job.
 - **Updating on a gh-aw bump:** change the pin in `workflows.yml`, run `make workflow-generate`,
   refresh the `containers` digests here, and review the diff (new/changed Action SHAs, image digests,
   redirects) as a security review. Renovate must not edit `*.lock.yml` (compiled output) —

@@ -22,6 +22,10 @@ module.exports = async function ({ github, context, core }) {
   const output2 = `sanitized_issue_comments<<${eofDelim2}\n${sanitizedComments}\n${eofDelim2}\n`;
   fs.appendFileSync(process.env.GITHUB_OUTPUT, output2);
 
+  // A title is single-line, so plain setOutput is enough. Unset ISSUE_TITLE yields an empty
+  // output, which keeps callers that do not pass a title working unchanged.
+  core.setOutput('sanitized_issue_title', sanitizeUserContent(process.env.ISSUE_TITLE || ''));
+
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(`${dir}/issue_body.md`, sanitizedBody);
   fs.writeFileSync(`${dir}/issue_comments.md`, sanitizedComments);
