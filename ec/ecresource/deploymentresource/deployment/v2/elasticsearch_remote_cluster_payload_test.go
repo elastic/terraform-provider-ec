@@ -33,8 +33,54 @@ import (
 )
 
 func Test_handleRemoteClusters(t *testing.T) {
+	remoteClusters := elasticsearchv2.ElasticsearchRemoteClusters{
+		{
+			Alias:           new("alias"),
+			DeploymentId:    new("someid"),
+			RefId:           new("main-elasticsearch"),
+			SkipUnavailable: new(true),
+		},
+		{
+			Alias:           new("alias"),
+			DeploymentId:    new("some other id"),
+			RefId:           new("main-elasticsearch"),
+			SkipUnavailable: new(false),
+		},
+	}
+
+	deploymentWithRemotes := func(remotes elasticsearchv2.ElasticsearchRemoteClusters) *Deployment {
+		return &Deployment{
+			Name:                 "my_deployment_name",
+			Id:                   "320b7b540dfc967a7a649c18e2fce4ed",
+			DeploymentTemplateId: "aws-io-optimized-v2",
+			Region:               "us-east-1",
+			Version:              "7.7.0",
+			Elasticsearch: &elasticsearchv2.Elasticsearch{
+				RefId:         new("main-elasticsearch"),
+				RemoteCluster: remotes,
+			},
+		}
+	}
+
+	remoteClustersUpdate := func(body string) *api.API {
+		return api.NewMock(mock.New202ResponseAssertion(
+			&mock.RequestAssertion{
+				Header: api.DefaultWriteMockHeaders,
+				Host:   api.DefaultMockHost,
+				Path:   `/api/v1/deployments/320b7b540dfc967a7a649c18e2fce4ed/elasticsearch/main-elasticsearch/remote-clusters`,
+				Method: "PUT",
+				Body:   mock.NewStringBody(body + "\n"),
+			},
+			mock.NewStringBody("{}"),
+		))
+	}
+
+	// Any API call made with this client fails.
+	noRequests := api.NewMock()
+
 	type args struct {
 		plan   Deployment
+		state  *Deployment
 		client *api.API
 	}
 	tests := []struct {
@@ -42,63 +88,72 @@ func Test_handleRemoteClusters(t *testing.T) {
 		args args
 	}{
 		{
-			name: "returns when the resource has no remote clusters",
+			name: "does not update remote clusters on create when the plan has no remote clusters",
 			args: args{
-				plan: Deployment{
-					Id: "320b7b540dfc967a7a649c18e2fce4ed",
-					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: new("main-elasticsearch"),
-					},
-				},
-				client: api.NewMock(mock.New202ResponseAssertion(
-					&mock.RequestAssertion{
-						Header: api.DefaultWriteMockHeaders,
-						Host:   api.DefaultMockHost,
-						Path:   `/api/v1/deployments/320b7b540dfc967a7a649c18e2fce4ed/elasticsearch/main-elasticsearch/remote-clusters`,
-						Method: "PUT",
-						Body:   mock.NewStringBody(`{"resources":[]}` + "\n"),
-					},
-					mock.NewStringBody("{}"),
-				)),
+				plan:   *deploymentWithRemotes(nil),
+				client: noRequests,
 			},
 		},
 		{
-			name: "read the remote clusters",
+			name: "does not update remote clusters on create when the plan has an empty set of remote clusters",
 			args: args{
-				client: api.NewMock(mock.New202ResponseAssertion(
-					&mock.RequestAssertion{
-						Header: api.DefaultWriteMockHeaders,
-						Host:   api.DefaultMockHost,
-						Path:   `/api/v1/deployments/320b7b540dfc967a7a649c18e2fce4ed/elasticsearch/main-elasticsearch/remote-clusters`,
-						Method: "PUT",
-						Body:   mock.NewStringBody(`{"resources":[{"alias":"alias","deployment_id":"someid","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":true},{"alias":"alias","deployment_id":"some other id","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":false}]}` + "\n"),
-					},
-					mock.NewStringBody("{}"),
-				)),
-				plan: Deployment{
-					Name:                 "my_deployment_name",
-					Id:                   "320b7b540dfc967a7a649c18e2fce4ed",
-					DeploymentTemplateId: "aws-io-optimized-v2",
-					Region:               "us-east-1",
-					Version:              "7.7.0",
-					Elasticsearch: &elasticsearchv2.Elasticsearch{
-						RefId: new("main-elasticsearch"),
-						RemoteCluster: elasticsearchv2.ElasticsearchRemoteClusters{
-							{
-								Alias:           new("alias"),
-								DeploymentId:    new("someid"),
-								RefId:           new("main-elasticsearch"),
-								SkipUnavailable: new(true),
-							},
-							{
-								Alias:           new("alias"),
-								DeploymentId:    new("some other id"),
-								RefId:           new("main-elasticsearch"),
-								SkipUnavailable: new(false),
-							},
-						},
-					},
-				},
+				plan:   *deploymentWithRemotes(elasticsearchv2.ElasticsearchRemoteClusters{}),
+				client: noRequests,
+			},
+		},
+		{
+			name: "updates remote clusters on create when the plan has remote clusters",
+			args: args{
+				plan:   *deploymentWithRemotes(remoteClusters),
+				client: remoteClustersUpdate(`{"resources":[{"alias":"alias","deployment_id":"someid","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":true},{"alias":"alias","deployment_id":"some other id","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":false}]}`),
+			},
+		},
+		{
+			name: "does not update remote clusters on update when neither the plan nor the state have remote clusters",
+			args: args{
+				plan:   *deploymentWithRemotes(nil),
+				state:  deploymentWithRemotes(nil),
+				client: noRequests,
+			},
+		},
+		{
+			name: "does not update remote clusters on update when the plan has an empty set and the state has none",
+			args: args{
+				plan:   *deploymentWithRemotes(elasticsearchv2.ElasticsearchRemoteClusters{}),
+				state:  deploymentWithRemotes(nil),
+				client: noRequests,
+			},
+		},
+		{
+			name: "does not update remote clusters on update when the remote clusters are unchanged",
+			args: args{
+				plan:   *deploymentWithRemotes(remoteClusters),
+				state:  deploymentWithRemotes(elasticsearchv2.ElasticsearchRemoteClusters{remoteClusters[1], remoteClusters[0]}),
+				client: noRequests,
+			},
+		},
+		{
+			name: "updates remote clusters on update when remote clusters are added",
+			args: args{
+				plan:   *deploymentWithRemotes(remoteClusters),
+				state:  deploymentWithRemotes(nil),
+				client: remoteClustersUpdate(`{"resources":[{"alias":"alias","deployment_id":"someid","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":true},{"alias":"alias","deployment_id":"some other id","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":false}]}`),
+			},
+		},
+		{
+			name: "updates remote clusters on update when the remote clusters change",
+			args: args{
+				plan:   *deploymentWithRemotes(remoteClusters[:1]),
+				state:  deploymentWithRemotes(remoteClusters),
+				client: remoteClustersUpdate(`{"resources":[{"alias":"alias","deployment_id":"someid","elasticsearch_ref_id":"main-elasticsearch","skip_unavailable":true}]}`),
+			},
+		},
+		{
+			name: "removes remote clusters on update when they are removed from the plan",
+			args: args{
+				plan:   *deploymentWithRemotes(nil),
+				state:  deploymentWithRemotes(remoteClusters),
+				client: remoteClustersUpdate(`{"resources":[]}`),
 			},
 		},
 	}
@@ -111,7 +166,15 @@ func Test_handleRemoteClusters(t *testing.T) {
 			diags := tfsdk.ValueFrom(context.Background(), tt.args.plan, schema.Type(), &planTF)
 			assert.Nil(t, diags)
 
-			diags = HandleRemoteClusters(context.Background(), tt.args.client, planTF.Id.ValueString(), planTF.Elasticsearch)
+			stateES := types.ObjectNull(planTF.Elasticsearch.AttributeTypes(context.Background()))
+			if tt.args.state != nil {
+				var stateTF DeploymentTF
+				diags = tfsdk.ValueFrom(context.Background(), tt.args.state, schema.Type(), &stateTF)
+				assert.Nil(t, diags)
+				stateES = stateTF.Elasticsearch
+			}
+
+			diags = HandleRemoteClusters(context.Background(), tt.args.client, planTF.Id.ValueString(), planTF.Elasticsearch, stateES)
 			assert.Nil(t, diags)
 		})
 	}

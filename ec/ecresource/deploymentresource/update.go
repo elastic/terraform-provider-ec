@@ -89,7 +89,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 	planRules, diags := HandleTrafficFilterChange(ctx, r.client, plan, privateFilters)
 	resp.Diagnostics.Append(diags...)
 	updatePrivateStateTrafficFilters(ctx, resp.Private, planRules)
-	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.ValueString(), plan.Elasticsearch)...)
+	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, plan.Id.ValueString(), plan.Elasticsearch, state.Elasticsearch)...)
 
 	deployment, diags := r.read(ctx, plan.Id.ValueString(), &state, &plan, res.Resources, planRules, nil)
 

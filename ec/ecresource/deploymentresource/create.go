@@ -24,6 +24,7 @@ import (
 	v2 "github.com/elastic/terraform-provider-ec/ec/ecresource/deploymentresource/deployment/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -87,7 +88,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 	tflog.Trace(ctx, "created deployment resource")
 
-	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch)...)
+	resp.Diagnostics.Append(v2.HandleRemoteClusters(ctx, r.client, *res.ID, plan.Elasticsearch, types.ObjectNull(plan.Elasticsearch.AttributeTypes(ctx)))...)
 
 	filters := []string{}
 	if request.Settings != nil && request.Settings.TrafficFilterSettings != nil && request.Settings.TrafficFilterSettings.Rulesets != nil {
