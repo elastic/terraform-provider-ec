@@ -216,7 +216,16 @@ func trafficFilterToModel(ctx context.Context, set types.Set, req *models.Deploy
 	return nil
 }
 
-func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId string, esObj types.Object) diag.Diagnostics {
+// HandleRemoteClusters replaces the deployment's remote clusters with the ones in esObj.
+// The update is skipped when the remote clusters in esObj are the same as the ones in prevEsObj
+// (null and empty sets are considered equal), so that remote clusters configured outside of
+// Terraform are not wiped by unrelated changes. prevEsObj should be null on create.
+func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId string, esObj types.Object, prevEsObj types.Object) diag.Diagnostics {
+	changed, diags := remoteClustersChanged(ctx, esObj, prevEsObj)
+	if diags.HasError() || !changed {
+		return diags
+	}
+
 	remoteClusters, refId, diags := elasticsearchRemoteClustersPayload(ctx, client, deploymentId, esObj)
 
 	if diags.HasError() {
@@ -234,6 +243,41 @@ func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId str
 	}
 
 	return nil
+}
+
+func remoteClustersChanged(ctx context.Context, esObj types.Object, prevEsObj types.Object) (bool, diag.Diagnostics) {
+	planned, diags := remoteClustersSet(ctx, esObj)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	prior, diags := remoteClustersSet(ctx, prevEsObj)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	if len(planned.Elements()) == 0 && len(prior.Elements()) == 0 {
+		return false, nil
+	}
+
+	return !planned.Equal(prior), nil
+}
+
+func remoteClustersSet(ctx context.Context, esObj types.Object) (types.Set, diag.Diagnostics) {
+	if esObj.IsNull() || esObj.IsUnknown() {
+		return types.Set{}, nil
+	}
+
+	var es *elasticsearchv2.ElasticsearchTF
+	if diags := tfsdk.ValueAs(ctx, esObj, &es); diags.HasError() {
+		return types.Set{}, diags
+	}
+
+	if es == nil {
+		return types.Set{}, nil
+	}
+
+	return es.RemoteCluster, nil
 }
 
 func elasticsearchRemoteClustersPayload(ctx context.Context, client *api.API, deploymentId string, esObj types.Object) (*models.RemoteResources, string, diag.Diagnostics) {
