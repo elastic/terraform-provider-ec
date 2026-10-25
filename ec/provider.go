@@ -268,15 +268,15 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 	}
 
 	caCert := config.CACert.ValueString()
-	if caCert == "" {
+	if config.CACert.IsNull() {
 		caCert = util.MultiGetenvOrDefault([]string{"EC_CA_CERT"}, "")
 	}
 	tlsCert := config.TLSCert.ValueString()
-	if tlsCert == "" {
+	if config.TLSCert.IsNull() {
 		tlsCert = util.MultiGetenvOrDefault([]string{"EC_TLS_CERT"}, "")
 	}
 	tlsKey := config.TLSKey.ValueString()
-	if tlsKey == "" {
+	if config.TLSKey.IsNull() {
 		tlsKey = util.MultiGetenvOrDefault([]string{"EC_TLS_KEY"}, "")
 	}
 

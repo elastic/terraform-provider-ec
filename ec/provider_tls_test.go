@@ -123,16 +123,20 @@ func TestProviderMutualTLS(t *testing.T) {
 	oldGetenv := util.GetEnv
 	t.Cleanup(func() { util.GetEnv = oldGetenv })
 	for _, tc := range []struct {
-		name     string
-		env      bool
-		override bool
-		noCA     bool
-		noCert   bool
-		insecure bool
+		name      string
+		env       bool
+		override  bool
+		noCA      bool
+		noCert    bool
+		insecure  bool
+		emptyCA   bool
+		emptyCert bool
 	}{
 		{name: "provider configuration"},
 		{name: "environment defaults", env: true},
 		{name: "provider overrides environment", override: true},
+		{name: "empty CA overrides environment", env: true, emptyCA: true},
+		{name: "empty client certificate and key override environment", env: true, emptyCert: true},
 		{name: "untrusted server is rejected", noCA: true},
 		{name: "client certificate is required", noCert: true},
 		{name: "insecure still sends client certificate", noCA: true, insecure: true},
@@ -154,12 +158,18 @@ func TestProviderMutualTLS(t *testing.T) {
 			if tc.noCert {
 				config.TLSCert, config.TLSKey = types.StringNull(), types.StringNull()
 			}
+			if tc.emptyCA {
+				config.CACert = types.StringValue("")
+			}
+			if tc.emptyCert {
+				config.TLSCert, config.TLSKey = types.StringValue(""), types.StringValue("")
+			}
 			util.GetEnv = func(name string) string { return env[name] }
 			p, resp := configureTLSProvider(t, config)
 			require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
 			_, hostedErr := p.client.V1API.Deployments.ListDeployments(deployments.NewListDeploymentsParams(), p.client.AuthWriter)
 			_, serverlessErr := p.slsClient.ListElasticsearchProjectsWithResponse(context.Background(), nil)
-			if tc.noCert || (tc.noCA && !tc.insecure) {
+			if tc.noCert || tc.emptyCert || ((tc.noCA || tc.emptyCA) && !tc.insecure) {
 				require.Error(t, hostedErr)
 				require.Error(t, serverlessErr)
 			} else {
