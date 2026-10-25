@@ -76,12 +76,27 @@ provider "ec" {
   endpoint = "https://my.ece-environment.corp"
 
   # If the ECE installation has a self-signed certificate
-  # you must set insecure to true.
+  # set ca_cert to a trusted CA bundle, or set insecure to true.
   insecure = true
 
   username = "my-username"
   password = "my-password"
 }
 ```
+
+### Mutual TLS (mTLS)
+
+For an endpoint that requires client certificates, configure `tls_cert` and `tls_key` together. Set `ca_cert` to trust a private CA in addition to the system certificates. These settings take paths to PEM-encoded files and apply to both hosted and serverless API clients. Server certificate verification remains enabled unless `insecure` is set to `true`.
+
+```hcl
+provider "ec" {
+  endpoint = "https://my.ece-environment.corp"
+  ca_cert  = "/path/to/ca.pem"
+  tls_cert = "/path/to/client.pem"
+  tls_key  = "/path/to/client-key.pem"
+}
+```
+
+Alternatively, set `EC_CA_CERT`, `EC_TLS_CERT`, and `EC_TLS_KEY`. Explicit provider values take precedence over environment variables. API authentication is still required; for example, set `EC_API_KEY` alongside these TLS settings.
 
 {{ .SchemaMarkdown | trimspace }}

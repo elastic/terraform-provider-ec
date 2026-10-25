@@ -159,6 +159,19 @@ func (p *Provider) Schema(_ context.Context, req provider.SchemaRequest, resp *p
 				Optional:    true,
 				Sensitive:   true,
 			},
+			"ca_cert": schema.StringAttribute{
+				Description: "Path to a PEM-encoded CA certificate bundle to trust in addition to the system certificates. Can also be set with EC_CA_CERT.",
+				Optional:    true,
+			},
+			"tls_cert": schema.StringAttribute{
+				Description: "Path to a PEM-encoded client certificate for mutual TLS. Must be configured together with tls_key. Can also be set with EC_TLS_CERT.",
+				Optional:    true,
+			},
+			"tls_key": schema.StringAttribute{
+				Description: "Path to the PEM-encoded private key for the mutual TLS client certificate. Must be configured together with tls_cert. Can also be set with EC_TLS_KEY.",
+				Optional:    true,
+				Sensitive:   true,
+			},
 			"insecure": schema.BoolAttribute{
 				Description: insecureDesc,
 				Optional:    true,
@@ -189,6 +202,9 @@ type providerConfig struct {
 	ApiKey             types.String `tfsdk:"apikey"`
 	Username           types.String `tfsdk:"username"`
 	Password           types.String `tfsdk:"password"`
+	CACert             types.String `tfsdk:"ca_cert"`
+	TLSCert            types.String `tfsdk:"tls_cert"`
+	TLSKey             types.String `tfsdk:"tls_key"`
 	Insecure           types.Bool   `tfsdk:"insecure"`
 	Timeout            types.String `tfsdk:"timeout"`
 	Verbose            types.Bool   `tfsdk:"verbose"`
@@ -249,6 +265,19 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 
 	if config.Password.ValueString() == "" {
 		password = util.MultiGetenvOrDefault([]string{"EC_PASS", "EC_PASSWORD"}, "")
+	}
+
+	caCert := config.CACert.ValueString()
+	if caCert == "" {
+		caCert = util.MultiGetenvOrDefault([]string{"EC_CA_CERT"}, "")
+	}
+	tlsCert := config.TLSCert.ValueString()
+	if tlsCert == "" {
+		tlsCert = util.MultiGetenvOrDefault([]string{"EC_TLS_CERT"}, "")
+	}
+	tlsKey := config.TLSKey.ValueString()
+	if tlsKey == "" {
+		tlsKey = util.MultiGetenvOrDefault([]string{"EC_TLS_KEY"}, "")
 	}
 
 	timeoutStr := config.Timeout.ValueString()
@@ -318,6 +347,9 @@ func (p *Provider) Configure(ctx context.Context, req provider.ConfigureRequest,
 		username:           username,
 		password:           password,
 		insecure:           insecure,
+		caCert:             caCert,
+		tlsCert:            tlsCert,
+		tlsKey:             tlsKey,
 		timeout:            timeout,
 		verbose:            verbose,
 		verboseCredentials: verboseCredentials,
