@@ -27,11 +27,43 @@ unit: _report_path
 ## Alias to "unit".
 tests: unit
 
+## Run hook JavaScript unit tests.
+.PHONY: hook-test
+hook-test:
+	@ node --test .agents/hooks/*.test.mjs
+
+## Run unit tests for workflow helpers (Go changelogcheck + node workflow lib).
+## The node globs are quoted so Node expands ** (bash without globstar would drop top-level suites).
+.PHONY: workflow-test
+workflow-test:
+	@ go test ./scripts/changelogcheck/... -count=1
+	@ node --test \
+		'.github/scripts/workflows/lib/**/*.test.mjs' \
+		'.github/scripts/workflows/workflows/**/*.test.mjs' \
+		'.github/scripts/workflows/issue-classifier/**/*.test.mjs'
+
+## Compile gh-aw markdown workflow sources into committed *.lock.yml artifacts.
+## Skip only when both .md sources and .lock.yml artifacts are absent (gh aw compile
+## exits 1 on an empty tree). Fail if locks remain without sources so stale
+## generated workflows cannot pass CI silently.
+## --purge deletes .lock.yml files that this run does not regenerate.
+.PHONY: workflow-generate
+workflow-generate:
+	@ if [ -n "$$(find .github/workflows -maxdepth 1 -name '*.md' -print -quit)" ]; then \
+		gh aw compile --purge; \
+	elif [ -n "$$(find .github/workflows -maxdepth 1 -name '*.lock.yml' -print -quit)" ]; then \
+		echo "-> Stale .lock.yml under .github/workflows with no .md sources. Remove the lock files or restore the markdown sources, then re-run."; \
+		exit 1; \
+	else \
+		echo "-> No gh-aw markdown sources under .github/workflows; skipping compile."; \
+	fi
+
 .PHONY: testacc
 ## Runs the Terraform acceptance tests. Use TEST_NAME, TESTARGS, TEST_COUNT to control execution.
 testacc:
 	@ echo "-> Running terraform acceptance tests..."
-	@ TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) $(TESTARGS) -timeout 120m -run $(TEST_NAME)
+	@ test -n "$(strip $(value TEST_NAME))" || { echo "TEST_NAME must be non-empty (omit it to use default TestAcc)"; exit 1; }
+	@ TF_ACC=1 go test $(TEST_ACC) -v -count $(TEST_COUNT) -parallel $(TEST_ACC_PARALLEL) $(TESTARGS) -timeout 120m -run '$(value TEST_NAME)'
 
 .PHONY: sweep
 ## Destroys any dangling infrastructure created by the acceptance tests (terraform_acc_ prefix).

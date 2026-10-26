@@ -64,7 +64,10 @@ The changelog lives at the top-level [`CHANGELOG.md`](../CHANGELOG.md). It is as
 per-PR `.changelog/{PR}.txt` fragments (see
 [`high-level/contributing.md`](./high-level/contributing.md) for the fragment format). Run
 `make changelog` (which runs `scripts/generate-changelog.sh`) to regenerate it. The `/release`
-skill does this and deletes the fragments it consolidates.
+skill does this and then deletes **all** `.changelog/*.txt` fragments — including
+`release-note:none` ones, which are never rendered into `CHANGELOG.md` but would otherwise
+accumulate on `master`. The release-prep PR itself needs a `.changelog/{PR}.txt` with
+`release-note:none`.
 
 ### Ensure the `NOTICE` file is up to date
 

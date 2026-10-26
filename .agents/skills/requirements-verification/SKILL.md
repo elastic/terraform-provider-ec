@@ -92,5 +92,5 @@ Resolve the package. Read `schema.go`, CRUD files, validators, and `Schema.Versi
 
 - Authoring / CLI: [`dev-docs/high-level/openspec-requirements.md`](../../../dev-docs/high-level/openspec-requirements.md)
 - Consistency checks and implementation mapping: [reference.md](reference.md)
-- Code-path checklist: `.agents/skills/existing-entity-requirements/reference.md`
+- Code-path checklist: [`existing-entity-requirements/reference.md`](../existing-entity-requirements/reference.md)
 - Intentionally incomplete fixture (AC / skill exercise only): [testdata/incomplete-spec.md](testdata/incomplete-spec.md)

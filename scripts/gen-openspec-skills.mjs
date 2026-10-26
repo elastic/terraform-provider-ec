@@ -3,9 +3,11 @@
 // and `openspec update` use the global core profile (propose/explore/apply/
 // update/sync/archive) and would delete new-change/continue-change. This imports
 // dist/ internals of the pinned CLI so we emit exactly the seven named skills
-// as `--tools agents`. If a later CLI grows `--workflows` or a project config
-// field, delete this and call that instead. `.claude` is a symlink to `.agents`;
-// never run `openspec init`/`update` in this repo.
+// as `--tools agents`. Hand-written openspec-* skills (implementation-loop,
+// verify-change) are not CLI workflows — keep them in `handWritten` so this
+// script does not delete them. If a later CLI grows `--workflows` or a project
+// config field, delete this and call that instead. `.claude` is a symlink to
+// `.agents`; never run `openspec init`/`update` in this repo.
 
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -37,13 +39,14 @@ if (templates.length !== wanted.length) {
 
 const transform = getSkillReferenceTransformer('agents');
 const skillsRoot = join(root, '.agents/skills');
-const keep = new Set(templates.map((t) => t.dirName));
+const handWritten = ['openspec-implementation-loop', 'openspec-verify-change'];
+const keep = new Set([...templates.map((t) => t.dirName), ...handWritten]);
 
 mkdirSync(skillsRoot, { recursive: true });
 // Only leftover openspec-* dirs not in `keep` are removed. Hand-written skills
 // that do not use that prefix (new-entity-requirements, existing-entity-requirements,
-// requirements-verification, release) are never deleted. Do not rename them to
-// openspec-* unless you add the directory to `keep`.
+// requirements-verification, release, schema-coverage) are never deleted. Do not
+// rename them to openspec-* unless you add the directory to `keep`.
 for (const name of readdirSync(skillsRoot)) {
   if (!name.startsWith('openspec-') || keep.has(name)) continue;
   rmSync(join(skillsRoot, name), { recursive: true, force: true });

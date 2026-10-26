@@ -1,6 +1,7 @@
 # `ec_stack` data source
 
-Capability id: `stack`. Data source implementation: `ec/ecdatasource/stackdatasource`.
+Capability id: `stack`.
+Data source implementation: `ec/ecdatasource/stackdatasource`
 
 ## Purpose
 

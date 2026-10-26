@@ -12,6 +12,7 @@ They intentionally stay high-level and link to deeper, canonical docs elsewhere 
 - Contributing: [`contributing.md`](./contributing.md)
 - OpenSpec authoring (Purpose / SHALL / Scenarios): [`openspec-requirements.md`](./openspec-requirements.md)
 - OpenSpec change loop (explore / propose / apply / sync / archive): [`openspec-workflows.md`](./openspec-workflows.md)
+- SDLC label taxonomy (routing / factory / phase / gate / topic): [`label-taxonomy.md`](./label-taxonomy.md)
 
 > Docs for GitHub Agentic Workflows (overview, factory workflows, continuous-quality scanners,
 > the OpenSpec implementation loop, and the `verify-openspec` gate) will be added here as those
