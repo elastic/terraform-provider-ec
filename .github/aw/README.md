@@ -169,5 +169,12 @@ a second workflow needs the same block, factor it into a shared fragment.
   redirects) as a security review. Renovate must not edit `*.lock.yml` (compiled output) —
   `renovate.json` lists those under `ignorePaths`. Bump `github/gh-aw-actions` together with the
   compiler pin via `make workflow-generate`, not by patching lock files.
+  **Re-verify one internal coupling on every bump:** `research-factory-issue.md`'s *Remove trigger
+  label* step references gh-aw's injected `steps.check_membership.outputs.is_team_member` directly
+  (so a denied-role actor can't consume the trigger label without the agent running). `gh aw compile`
+  passes that `if` through verbatim, so a renamed step id / output would compile clean and silently
+  evaluate to `''` (fails safe — label never consumed, even for members). Confirm the compiled lock
+  still emits `activated: ${{ steps.check_membership.outputs.is_team_member == 'true' }}` — gh-aw's
+  own usage of the same id — after the bump.
 - **Inspect egress:** assert on the compiled lock's `allowDomains` array (see *Network allowlist
   policy*). `gh aw domains` does not report it.

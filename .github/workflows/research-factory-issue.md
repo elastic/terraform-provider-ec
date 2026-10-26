@@ -141,9 +141,16 @@ on:
           await fn({ github, context, core });
     - name: Remove trigger label
       id: remove_trigger_label
+      # Consume the label only when the factory actually starts. gh-aw's check_membership
+      # sets is_team_member=false WITHOUT failing the step, and activation gates the agent on
+      # `activated` (= is_team_member). Without the membership clause here, a triage-only user
+      # (issues:write but not in the trusted team) applying the label would have it consumed while
+      # the agent is skipped — the request silently dropped, the label destroyed. Mirroring the
+      # agent-run condition keeps the trigger label on the issue so a member can see it and act.
       if: >-
         steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
-        steps.qualify_trigger.outputs.event_eligible == 'true'
+        steps.qualify_trigger.outputs.event_eligible == 'true' &&
+        steps.check_membership.outputs.is_team_member == 'true'
       uses: actions/github-script@v9.0.0
       env:
         FACTORY_NAME: research-factory
