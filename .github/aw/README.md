@@ -48,14 +48,15 @@ SHA. Consequences:
   `*.lock.yml` from that catalog and is **not** written back here; only a pin that *differs* from
   the default is recorded. Measured: with `actions/github-script@v9.0.0` (the default) nothing is
   written, and repointing a workflow to `@v8.0.0` makes `actions/github-script@v8.0.0` appear. That
-  is why this file currently holds just `actions/checkout@v7.0.0` (we deliberately pin one patch
-  behind the default) and `github/gh-aw-actions/setup@v0.92.0`, while the compiled locks also
-  reference `actions/download-artifact`, `actions/github-script`, `actions/setup-node` and
-  `actions/upload-artifact`.
+  is why this file holds `actions/checkout@v7.0.0` (we deliberately pin one patch behind the
+  default), `github/gh-aw-actions/setup@v0.92.0`, and `hashicorp/setup-terraform@v4.0.1`, while the
+  compiled locks also reference `actions/download-artifact`, `actions/github-script`,
+  `actions/setup-node` and `actions/upload-artifact`.
 - **Do not seed an Action no current workflow uses.** A non-scaffolding one is stripped by the next
-  `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR. For
-  example, `hashicorp/setup-terraform` is intentionally **absent**: gh-aw will add it — in that PR —
-  when a workflow that runs `make validate-examples` (or otherwise uses the Terraform CLI) lands.
+  `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR.
+  `hashicorp/setup-terraform@v4.0.1` **is** now recorded because the `code-factory-issue` workflow
+  imports `shared/setup-dev.md`, which uses the Terraform CLI for `make validate-examples`; it stays
+  only while a workflow references it.
 - gh-aw's scaffolding Actions are emitted into **every** compiled workflow regardless of frontmatter —
   e.g. `gh aw compile` still injects an `actions/checkout` step even when a workflow sets
   `checkout: false` — so those pins are retained unconditionally, referenced or not. A clean drift
