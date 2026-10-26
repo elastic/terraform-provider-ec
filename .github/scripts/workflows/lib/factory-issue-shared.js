@@ -21,7 +21,7 @@ function issueClosingReferencePattern(issueNumber) {
 }
 
 /**
- * @param {{ eventName: string, eventAction: string, labelName: string, issueLabels: string[] | null | undefined, factoryLabel: string, issueOpenedNotEligibleReason: string }} params
+ * @param {{ eventName: string, eventAction: string, labelName: string, issueLabels: string[] | null | undefined, factoryLabel: string, issueOpenedNotEligibleReason: string, commentBody?: string, isPullRequest?: boolean }} params
  * @returns {{ event_eligible: boolean, event_eligible_reason: string }}
  */
 function factoryQualifyTriggerEvent({
@@ -31,11 +31,44 @@ function factoryQualifyTriggerEvent({
   issueLabels,
   factoryLabel,
   issueOpenedNotEligibleReason,
+  commentBody,
+  isPullRequest,
 }) {
   if (eventName === 'issue_comment') {
+    // Pre-activation steps run before gh-aw's own activation gate, so the body and the
+    // issue-vs-pull-request discriminator have to be re-checked here: without them any
+    // comment by any reader would qualify and drive the issues: write steps.
+    // Truthy, not `=== true`: a caller that forwards the raw `payload.issue.pull_request` object
+    // rather than a boolean must still be rejected. Omitting the param stays undefined → falsy.
+    if (isPullRequest) {
+      return {
+        event_eligible: false,
+        event_eligible_reason: `Issue comment event does not qualify because the comment is on a pull request, not an issue.`,
+      };
+    }
+
+    const command = `/${factoryLabel}`;
+    const body = typeof commentBody === 'string' ? commentBody : '';
+    // Mirror gh-aw's activation delimiters: raw startsWith, never trimStart(). Trimming here
+    // would qualify a comment gh-aw then refuses, and pre-activation would write labels for a
+    // run the agent never gets. Case-sensitivity deliberately differs: GitHub Actions
+    // expressions compare case-insensitively, so `/Change-Factory` activates gh-aw but is
+    // rejected here — stricter than the gate it guards, which is the safe direction.
+    const matches = body === command
+      || body.startsWith(`${command} `)
+      || body.startsWith(`${command}\n`)
+      || body.startsWith(`${command}\r`);
+
+    if (!matches) {
+      return {
+        event_eligible: false,
+        event_eligible_reason: `Issue comment event does not qualify because the comment body does not start with '${command}'.`,
+      };
+    }
+
     return {
       event_eligible: true,
-      event_eligible_reason: `Issue comment event qualifies because the slash_command trigger routes to issue_comment.`,
+      event_eligible_reason: `Issue comment event qualifies because the comment body starts with '${command}'.`,
     };
   }
 
@@ -129,19 +162,13 @@ function factoryCheckDuplicatePR({
     };
   }
 
-  let linkageTail;
-  if (duplicateLinkageMode === 'closes-literal') {
-    linkageTail = `canonical linkage '${expectedClosesExample}'`;
-  } else if (duplicateLinkageMode === 'related-literal') {
-    linkageTail = `literal linkage \`${expectedRelatedExample}\``;
-  } else {
-    linkageTail = `issue-closing reference such as '${expectedClosesExample}'`;
-  }
-
+  // The no-match reason is what the agent reads as gate_reason on the all-gates-passed path, so
+  // it must not advertise the label and linkage predicates: check-duplicate-pr.js fails closed on
+  // any open PR on the branch, whether or not it carries them.
   return {
     duplicate_pr_found: false,
     duplicate_pr_url: null,
-    gate_reason: `No open linked ${prLabel} PR found for issue #${issueNumber}; expected label '${prLabel}', branch '${expectedBranch}', and ${linkageTail}.`,
+    gate_reason: `No open pull request found on branch '${expectedBranch}' for issue #${issueNumber}.`,
   };
 }
 
