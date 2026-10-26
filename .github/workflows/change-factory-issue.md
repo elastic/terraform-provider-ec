@@ -74,7 +74,7 @@ on:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/fetch-issue-comments.js');
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/stage-issue-comments.js');
           await fn({ github, context, core });
     - name: Extract research comment
       id: extract_research_comment
@@ -163,6 +163,12 @@ on:
         steps.qualify_trigger.outputs.event_eligible == 'true' &&
         steps.check_membership.outputs.is_team_member == 'true' &&
         steps.check_duplicate_pr.outputs.duplicate_pr_found != 'true'
+      # The shared set-phase-label runner is strict (setFailed on a label API hiccup) because
+      # research-factory calls it post-agent, where failing loudly costs nothing. Here it runs in
+      # pre-activation before the agent, so a transient failure must NOT fail the job and skip the
+      # agent (plan §10: a label hiccup must not block the promotion). The runner still emits
+      # phase_label_set before any setFailed, and the agent gate does not read it.
+      continue-on-error: true
       uses: actions/github-script@v9.0.0
       env:
         INPUT_ISSUE_NUMBER: ${{ github.event.issue.number }}

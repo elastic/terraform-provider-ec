@@ -264,6 +264,35 @@ test('findResearchComment skips entries with non-string body', () => {
   assert.equal(result.body, 'marker-W body');
 });
 
+test('findResearchComment matches an overridden bot login', () => {
+  const comments = [
+    { author: 'github-actions[bot]', body: 'marker-O default author' },
+    { author: 'elastic-bot[bot]', body: 'marker-O override author' },
+  ];
+  const result = findResearchComment(comments, 'marker-O', 'elastic-bot[bot]');
+  assert.ok(result);
+  assert.equal(result.body, 'marker-O override author');
+});
+
+test('findResearchComment ignores the default author when a login is overridden', () => {
+  const comments = [{ author: 'github-actions[bot]', body: 'marker-P body' }];
+  assert.equal(findResearchComment(comments, 'marker-P', 'elastic-bot[bot]'), null);
+});
+
+test('findResearchComment uses the default author when no login is passed', () => {
+  const comments = [{ author: 'github-actions[bot]', body: 'marker-Q body' }];
+  const result = findResearchComment(comments, 'marker-Q');
+  assert.ok(result);
+  assert.equal(result.body, 'marker-Q body');
+});
+
+test('findResearchComment matches nothing for an empty login, so callers must resolve with ||', () => {
+  // A set-but-empty GH_AW_BOT_LOGIN propagates '' past a default parameter. Callers resolve the
+  // login with `env.GH_AW_BOT_LOGIN || 'github-actions[bot]'`; this pins the behaviour they guard.
+  const comments = [{ author: 'github-actions[bot]', body: 'marker-R body' }];
+  assert.equal(findResearchComment(comments, 'marker-R', ''), null);
+});
+
 // ─────────────────────────────────────────────────────────────
 // stripControlChars
 // ─────────────────────────────────────────────────────────────

@@ -31,7 +31,7 @@ module.exports = async function ({ github, context, core }) {
     core.info('INPUT_COMMENTS_PATH is empty; treating the comment history as empty.');
   }
 
-  const researchComment = findResearchComment(comments, RESEARCH_COMMENT_MARKER);
+  const researchComment = findResearchComment(comments, RESEARCH_COMMENT_MARKER, process.env.GH_AW_BOT_LOGIN || 'github-actions[bot]');
   // Same strength as the comment blob below, so one file does not carry two sanitisation levels.
   const sanitizedBody = researchComment ? sanitizeForConcatenation(researchComment.body) : '';
 

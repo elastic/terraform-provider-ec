@@ -1,13 +1,32 @@
 import assert from 'node:assert/strict';
-import crypto from 'node:crypto';
+import test, { describe } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import test, { describe } from 'node:test';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const fetchIssueComments = require('./fetch-issue-comments.js');
+
+function mockCore() {
+  const outputs = {};
+  const failed = [];
+  return {
+    outputs,
+    failed,
+    core: {
+      setOutput(key, value) {
+        outputs[key] = value;
+      },
+      setFailed(message) {
+        failed.push(message);
+      },
+      info() {},
+    },
+  };
+}
+
+const context = { repo: { owner: 'elastic', repo: 'terraform-provider-ec' } };
 
 async function withEnv(vars, fn) {
   const previous = {};
@@ -26,182 +45,66 @@ async function withEnv(vars, fn) {
   }
 }
 
-function apiComment({ login, createdAt, body }) {
-  return { user: { login }, created_at: createdAt, body };
-}
-
-async function run({ factory = 'change-factory', payload, apiComments = [] }) {
-  const runnerTemp = fs.mkdtempSync(path.join(os.tmpdir(), `runner-temp-${crypto.randomUUID()}-`));
-  const outputs = {};
-  const calls = [];
-  const listComments = { marker: 'issues.listComments' };
-  const github = {
-    rest: { issues: { listComments } },
-    paginate: async (fn, params) => {
-      calls.push({ fn, params });
-      return apiComments;
+function githubReturning(comments) {
+  return {
+    rest: { issues: { listComments: 'listComments' } },
+    async paginate() {
+      return comments;
     },
   };
-  try {
-    await withEnv({ FACTORY_NAME: factory, RUNNER_TEMP: runnerTemp }, () =>
-      fetchIssueComments({
-        github,
-        context: { eventName: 'issues', payload, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
-        core: {
-          setOutput(key, value) { outputs[key] = value; },
-          info() {},
-        },
-      }),
-    );
-    const staged = outputs.issue_comments_path
-      ? JSON.parse(fs.readFileSync(outputs.issue_comments_path, 'utf8'))
-      : null;
-    return { outputs, calls, listComments, staged, runnerTemp };
-  } finally {
-    fs.rmSync(runnerTemp, { recursive: true, force: true });
-  }
 }
 
-describe('fetch-issue-comments', { concurrency: false }, () => {
-  test('paginates the full comment list for the triggering issue', async () => {
-    const { calls, listComments } = await run({
-      payload: { issue: { number: 42 } },
-      apiComments: [apiComment({ login: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'hi' })],
-    });
-    assert.equal(calls.length, 1);
-    assert.equal(calls[0].fn, listComments);
-    assert.deepEqual(calls[0].params, {
-      owner: 'elastic',
-      repo: 'terraform-provider-ec',
-      issue_number: 42,
-      per_page: 100,
-    });
-  });
+describe('fetch-issue-comments runner', { concurrency: false }, () => {
+  test('writes the serialized history to GITHUB_OUTPUT with a heredoc delimiter', async () => {
+    const outputFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'fic-')), 'out');
+    fs.writeFileSync(outputFile, '');
+    const { core, outputs, failed } = mockCore();
+    const github = githubReturning([
+      { user: { login: 'alice' }, body: 'needs a data source', created_at: '2026-03-01T00:00:00Z' },
+      { user: { login: 'github-actions[bot]' }, body: 'status', created_at: '2026-03-02T00:00:00Z' },
+    ]);
 
-  test('keeps every comment when the history is below the cap', async () => {
-    const apiComments = Array.from({ length: 5 }, (_, i) =>
-      apiComment({ login: `user${i}`, createdAt: '2026-01-01T00:00:00Z', body: `c${i}` }));
-    const { outputs, staged } = await run({ payload: { issue: { number: 42 } }, apiComments });
-    assert.equal(outputs.issue_comments_count, '5');
-    assert.equal(outputs.comments_truncated, 'false');
-    assert.equal(staged.truncated, false);
-    assert.deepEqual(staged.comments.map(c => c.body), ['c0', 'c1', 'c2', 'c3', 'c4']);
-  });
-
-  // The research sticky comment is the newest one, so an oldest-first cap would drop exactly
-  // the comment this factory exists to read.
-  test('keeps the NEWEST 200 comments and reports the truncation', async () => {
-    const apiComments = Array.from({ length: 250 }, (_, i) =>
-      apiComment({ login: `user${i}`, createdAt: '2026-01-01T00:00:00Z', body: `c${i}` }));
-    const { outputs, staged } = await run({ payload: { issue: { number: 42 } }, apiComments });
-    assert.equal(outputs.issue_comments_count, '200');
-    assert.equal(outputs.comments_truncated, 'true');
-    assert.equal(staged.truncated, true);
-    assert.equal(staged.comments.length, 200);
-    assert.equal(staged.comments[0].body, 'c50');
-    assert.equal(staged.comments.at(-1).body, 'c249');
-  });
-
-  test('retains bot comments', async () => {
-    const { staged } = await run({
-      payload: { issue: { number: 42 } },
-      apiComments: [
-        apiComment({ login: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'human' }),
-        apiComment({ login: 'github-actions[bot]', createdAt: '2026-01-02T00:00:00Z', body: '<!-- gha-research-factory -->' }),
-      ],
-    });
-    assert.deepEqual(staged.comments.map(c => c.author), ['alice', 'github-actions[bot]']);
-  });
-
-  // The research sticky comment is created early, so on a busy issue it falls outside the tail
-  // cap. It must still be staged, or the agent loses the research baseline.
-  test('retains the research comment even when the tail cap would drop it', async () => {
-    const research = apiComment({
-      login: 'github-actions[bot]',
-      createdAt: '2026-01-01T00:00:00Z',
-      body: '<!-- gha-research-factory -->\n## Implementation research\nbaseline',
-    });
-    const later = Array.from({ length: 249 }, (_, i) =>
-      apiComment({ login: `user${i}`, createdAt: '2026-02-01T00:00:00Z', body: `c${i}` }));
-    const { outputs, staged } = await run({
-      payload: { issue: { number: 42 } },
-      apiComments: [research, ...later], // research is the oldest, so -200 would drop it
-    });
-    assert.equal(outputs.comments_truncated, 'true');
-    assert.equal(staged.comments.length, 201, 'research comment retained on top of the 200 cap');
-    assert.equal(staged.comments[0].author, 'github-actions[bot]');
-    assert.match(staged.comments[0].body, /gha-research-factory/);
-    assert.equal(staged.comments.filter(c => c.author === 'github-actions[bot]').length, 1);
-  });
-
-  test('does not duplicate the research comment when it is already within the cap', async () => {
-    const older = Array.from({ length: 5 }, (_, i) =>
-      apiComment({ login: `user${i}`, createdAt: '2026-01-01T00:00:00Z', body: `c${i}` }));
-    const research = apiComment({
-      login: 'github-actions[bot]',
-      createdAt: '2026-01-09T00:00:00Z',
-      body: '<!-- gha-research-factory -->\nbaseline',
-    });
-    const { staged } = await run({
-      payload: { issue: { number: 42 } },
-      apiComments: [...older, research],
-    });
-    assert.equal(staged.comments.length, 6);
-    assert.equal(staged.comments.filter(c => c.author === 'github-actions[bot]').length, 1);
-  });
-
-  test('tolerates comments with no user, body, or timestamp', async () => {
-    const { staged } = await run({
-      payload: { issue: { number: 42 } },
-      apiComments: [{}],
-    });
-    assert.deepEqual(staged.comments, [{ author: '', createdAt: '', body: '' }]);
-  });
-
-  // D17: the staged file is raw, unsanitized comment text, so it must not land in the directory
-  // that is uploaded to the agent.
-  test('writes under RUNNER_TEMP, never into the uploaded context dir', async () => {
-    const { outputs, runnerTemp } = await run({
-      payload: { issue: { number: 42 } },
-      apiComments: [apiComment({ login: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'hi' })],
-    });
-    assert.equal(outputs.issue_comments_path, `${runnerTemp}/change-factory-raw/comments.json`);
-    assert.equal(outputs.issue_comments_path.startsWith('/tmp/change-factory-context'), false);
-  });
-
-  test('keys the staging directory off FACTORY_NAME', async () => {
-    const { outputs, runnerTemp } = await run({
-      factory: 'research-factory',
-      payload: { issue: { number: 42 } },
-      apiComments: [],
-    });
-    assert.equal(outputs.issue_comments_path, `${runnerTemp}/research-factory-raw/comments.json`);
-  });
-
-  test('falls back to the OS temp dir when RUNNER_TEMP is unset', async () => {
-    const outputs = {};
-    await withEnv({ FACTORY_NAME: 'change-factory', RUNNER_TEMP: undefined }, () =>
-      fetchIssueComments({
-        github: {
-          rest: { issues: { listComments: {} } },
-          paginate: async () => [apiComment({ login: 'alice', createdAt: '2026-01-01T00:00:00Z', body: 'hi' })],
-        },
-        context: { eventName: 'issues', payload: { issue: { number: 42 } }, repo: { owner: 'elastic', repo: 'terraform-provider-ec' } },
-        core: { setOutput(key, value) { outputs[key] = value; }, info() {} },
-      }),
+    await withEnv({ INPUT_ISSUE_NUMBER: '42', GITHUB_OUTPUT: outputFile }, () =>
+      fetchIssueComments({ github, context, core }),
     );
-    assert.equal(outputs.issue_comments_path, `${os.tmpdir()}/change-factory-raw/comments.json`);
-    assert.equal(outputs.issue_comments_path.includes('undefined'), false);
-    assert.equal(path.isAbsolute(outputs.issue_comments_path), true);
-    assert.equal(outputs.issue_comments_path.startsWith('/tmp/change-factory-context'), false);
-    fs.rmSync(`${os.tmpdir()}/change-factory-raw`, { recursive: true, force: true });
+
+    assert.deepEqual(failed, []);
+    assert.equal(outputs.comment_count, '1');
+    const written = fs.readFileSync(outputFile, 'utf8');
+    const [header] = written.split('\n');
+    assert.match(header, /^issue_comments<<EOF_[0-9a-f]{32}$/);
+    assert.ok(written.includes('**@alice** (2026-03-01T00:00:00Z):'));
+    assert.ok(!written.includes('github-actions[bot]'));
   });
 
-  test('returns empty outputs without throwing when the payload has no issue number', async () => {
-    const { outputs, calls } = await run({ payload: {}, apiComments: [] });
-    assert.equal(calls.length, 0);
-    assert.equal(outputs.issue_comments_path, '');
-    assert.equal(outputs.issue_comments_count, '0');
-    assert.equal(outputs.comments_truncated, 'false');
+  test('fails closed on an invalid issue number', async () => {
+    const { core, outputs, failed } = mockCore();
+    await withEnv({ INPUT_ISSUE_NUMBER: '', GITHUB_OUTPUT: undefined }, () =>
+      fetchIssueComments({ github: githubReturning([]), context, core }),
+    );
+
+    assert.equal(outputs.comment_count, '0');
+    assert.equal(outputs.issue_comments, '');
+    assert.equal(failed.length, 1);
+    assert.match(failed[0], /invalid issue number/);
+  });
+
+  test('fails closed when the API call throws', async () => {
+    const { core, outputs, failed } = mockCore();
+    const github = {
+      rest: { issues: { listComments: 'listComments' } },
+      async paginate() {
+        throw new Error('boom');
+      },
+    };
+
+    await withEnv({ INPUT_ISSUE_NUMBER: '42', GITHUB_OUTPUT: undefined }, () =>
+      fetchIssueComments({ github, context, core }),
+    );
+
+    assert.equal(outputs.comment_count, '0');
+    assert.equal(outputs.issue_comments, '');
+    assert.equal(failed.length, 1);
+    assert.match(failed[0], /Failed to fetch issue comments for #42: boom/);
   });
 });

@@ -1,40 +1,53 @@
 /**
- * Stamps the issue with a phase-* label and clears any other phase-* label.
+ * Applies the completion phase label to an issue, removing any other phase-* label.
  *
- * Deliberately not FACTORY_NAME-keyed: every factory sets a different phase, so the label is
- * passed in through PHASE_LABEL_NAME and this runner is reused verbatim.
+ * Runs in a safe-output job, after the factory's comment has been published, so the issue number
+ * arrives raw from `github.event.issue.number || inputs.issue_number` (a custom safe-output job
+ * cannot depend on `pre_activation`, where the dispatch input was validated).
  *
- * Soft failures are reported through the outputs, not raised: a label that could not be set is
- * not a reason to fail the run.
+ * Fails the job on anything short of full application. `setPhaseLabel` reports
+ * `phase_label_set: true` when the label was added but a stale `phase-*` could not be listed or
+ * removed, which is half the acceptance criterion; only the full-success reason is accepted here.
+ * Setting the label is idempotent, so a red job after a published comment re-runs cleanly.
  */
-const { setPhaseLabel } = require('../phase-label.js');
+'use strict';
 
-// The whole string must be a safe positive integer, so '1.5' or '007' cannot select an issue.
-function positiveIssueNumber(raw) {
-  if (typeof raw !== 'string' || !/^[1-9][0-9]*$/.test(raw)) return 0;
-  const issueNumber = Number(raw);
-  if (!Number.isSafeInteger(issueNumber)) return 0;
-  return issueNumber;
-}
+const { setPhaseLabel } = require('../phase-label.js');
+const { positiveIssueNumber } = require('../issue-number.js');
 
 module.exports = async function ({ github, context, core }) {
 
-  const rawIssueNumber = process.env.INPUT_ISSUE_NUMBER || '';
-  const issueNumber = positiveIssueNumber(rawIssueNumber);
+  const issueNumber = positiveIssueNumber(process.env.INPUT_ISSUE_NUMBER);
   const phaseLabelName = process.env.PHASE_LABEL_NAME || '';
 
-  const result = issueNumber
-    ? await setPhaseLabel({ github, context, issueNumber, phaseLabelName, core })
-    : {
-      phase_label_set: false,
-      phase_label_name: phaseLabelName,
-      stale_labels_removed: [],
-      reason: `No usable issue number: expected a positive integer, got '${rawIssueNumber}'.`,
-    };
+  if (!issueNumber) {
+    core.setOutput('phase_label_set', 'false');
+    core.setFailed(`Cannot set phase label: invalid issue number '${process.env.INPUT_ISSUE_NUMBER || ''}'.`);
+    return;
+  }
 
-  core.setOutput('phase_label_set', result.phase_label_set ? 'true' : 'false');
+  let result;
+  try {
+    result = await setPhaseLabel({ github, context, issueNumber, phaseLabelName, core });
+  } catch (err) {
+    core.setOutput('phase_label_set', 'false');
+    core.setFailed(`Failed to set phase label ${phaseLabelName} on #${issueNumber}: ${err.message}`);
+    return;
+  }
+
+  // Positive allowlist: setPhaseLabel composes its full-success reason as
+  // `Set phase label <name>. ...`. Every partial outcome ("Added label X but failed to ...")
+  // and every refusal uses a different prefix, so anything else fails closed.
+  const fullyApplied = result.phase_label_set === true && result.reason.startsWith(`Set phase label ${result.phase_label_name}.`);
+
+  core.setOutput('phase_label_set', fullyApplied ? 'true' : 'false');
   core.setOutput('phase_label_name', result.phase_label_name);
-  core.setOutput('stale_labels_removed', JSON.stringify(result.stale_labels_removed));
-  core.setOutput('reason', result.reason);
-  core.info(result.reason);
+  core.setOutput('stale_labels_removed', (result.stale_labels_removed || []).join(','));
+
+  if (!fullyApplied) {
+    core.setFailed(`Phase label not fully applied to #${issueNumber}: ${result.reason}`);
+    return;
+  }
+
+  core.info(`#${issueNumber}: ${result.reason}`);
 };

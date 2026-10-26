@@ -43,7 +43,8 @@ workflow-test:
 	@ node --test --test-concurrency=1 \
 		'.github/scripts/workflows/lib/**/*.test.mjs' \
 		'.github/scripts/workflows/workflows/**/*.test.mjs' \
-		'.github/scripts/workflows/issue-classifier/**/*.test.mjs'
+		'.github/scripts/workflows/issue-classifier/**/*.test.mjs' \
+		'.github/scripts/workflows/research-factory/**/*.test.mjs'
 
 ## Compile gh-aw markdown workflow sources into committed *.lock.yml artifacts.
 ## Skip only when both .md sources and .lock.yml artifacts are absent (gh aw compile
