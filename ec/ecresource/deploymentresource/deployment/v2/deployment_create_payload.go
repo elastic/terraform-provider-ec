@@ -217,9 +217,11 @@ func trafficFilterToModel(ctx context.Context, set types.Set, req *models.Deploy
 }
 
 // HandleRemoteClusters replaces the deployment's remote clusters with the ones in esObj.
-// The update is skipped when the remote clusters in esObj are the same as the ones in prevEsObj
-// (null and empty sets are considered equal), so that remote clusters configured outside of
-// Terraform are not wiped by unrelated changes. prevEsObj should be null on create.
+// It skips the update when the planned remote_cluster set equals the prior-state set in
+// prevEsObj (null and empty sets are considered equal), so an apply without a remote_cluster
+// block doesn't clear remote clusters that aren't tracked in state. Remote clusters that are
+// in the prior state are still removed when the block is absent; that removal shows in the plan.
+// prevEsObj should be null on create.
 func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId string, esObj types.Object, prevEsObj types.Object) diag.Diagnostics {
 	changed, diags := remoteClustersChanged(ctx, esObj, prevEsObj)
 	if diags.HasError() || !changed {
@@ -264,17 +266,19 @@ func remoteClustersChanged(ctx context.Context, esObj types.Object, prevEsObj ty
 }
 
 func remoteClustersSet(ctx context.Context, esObj types.Object) (types.Set, diag.Diagnostics) {
+	nullSet := types.SetNull(elasticsearchv2.ElasticsearchRemoteClusterSchema().GetType().(types.SetType).ElemType)
+
 	if esObj.IsNull() || esObj.IsUnknown() {
-		return types.Set{}, nil
+		return nullSet, nil
 	}
 
 	var es *elasticsearchv2.ElasticsearchTF
 	if diags := tfsdk.ValueAs(ctx, esObj, &es); diags.HasError() {
-		return types.Set{}, diags
+		return nullSet, diags
 	}
 
 	if es == nil {
-		return types.Set{}, nil
+		return nullSet, nil
 	}
 
 	return es.RemoteCluster, nil
