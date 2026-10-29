@@ -86,13 +86,44 @@ describe('qualify-trigger', { concurrency: false }, () => {
     assert.match(outputs.event_eligible_reason, /not 'code-factory'/);
   });
 
-  test('accepts an issue_comment because the slash-command trigger routes there', async () => {
+  test('accepts an issue_comment whose body is the slash command', async () => {
     const outputs = await run('code-factory', {
       eventName: 'issue_comment',
-      payload: { action: 'created', comment: { body: '/code-factory' } },
+      payload: { action: 'created', issue: { number: 42 }, comment: { body: '/code-factory' } },
     });
     assert.equal(outputs.event_eligible, 'true');
-    assert.match(outputs.event_eligible_reason, /issue_comment/);
+    assert.match(outputs.event_eligible_reason, /starts with '\/code-factory'/);
+  });
+
+  test('rejects an ordinary issue_comment that is not the slash command', async () => {
+    const outputs = await run('code-factory', {
+      eventName: 'issue_comment',
+      payload: { action: 'created', issue: { number: 42 }, comment: { body: '+1' } },
+    });
+    assert.equal(outputs.event_eligible, 'false');
+    assert.match(outputs.event_eligible_reason, /does not start with '\/code-factory'/);
+  });
+
+  test('rejects an issue_comment with no comment body in the payload', async () => {
+    const outputs = await run('code-factory', {
+      eventName: 'issue_comment',
+      payload: { action: 'created', issue: { number: 42 } },
+    });
+    assert.equal(outputs.event_eligible, 'false');
+    assert.match(outputs.event_eligible_reason, /does not start with '\/code-factory'/);
+  });
+
+  test('rejects a slash command posted on a pull request', async () => {
+    const outputs = await run('code-factory', {
+      eventName: 'issue_comment',
+      payload: {
+        action: 'created',
+        issue: { number: 42, pull_request: { url: 'https://example.com/pr/42' } },
+        comment: { body: '/code-factory' },
+      },
+    });
+    assert.equal(outputs.event_eligible, 'false');
+    assert.match(outputs.event_eligible_reason, /pull request, not an issue/);
   });
 
   test('accepts issues.opened when the factory label is already present', async () => {

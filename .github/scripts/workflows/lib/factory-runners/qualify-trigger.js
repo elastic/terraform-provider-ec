@@ -8,8 +8,11 @@ module.exports = async function ({ github, context, core }) {
   const eventAction = context.payload.action;
   const labelName = context.payload.label?.name ?? '';
   const issueLabels = (context.payload.issue?.labels ?? []).map(l => l.name);
+  // issue_comment fires for pull requests too; only the issue payload omits `pull_request`.
+  const commentBody = context.payload.comment?.body ?? '';
+  const isPullRequest = context.payload.issue?.pull_request != null;
 
-  const result = qualifyTriggerEvent({ eventName, eventAction, labelName, issueLabels });
+  const result = qualifyTriggerEvent({ eventName, eventAction, labelName, issueLabels, commentBody, isPullRequest });
 
   core.setOutput('event_eligible', result.event_eligible ? 'true' : 'false');
   core.setOutput('event_eligible_reason', result.event_eligible_reason);
