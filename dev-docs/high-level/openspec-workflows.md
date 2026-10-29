@@ -15,11 +15,24 @@ via [`openspec/config.yaml`](../../openspec/config.yaml). After a CLI bump, rege
 `make gen-openspec-skills`. That writes those seven skills as `--tools agents` and does **not**
 consult the global OpenSpec profile.
 
-Two heavier skills are **hand-maintained** and listed in `scripts/gen-openspec-skills.mjs` so
-regeneration does not delete them:
+Several skills are **hand-written** and edited by hand (never regenerated). Two use the
+`openspec-` prefix, so `scripts/gen-openspec-skills.mjs` lists them in its keep-list to protect
+them from the deletion sweep:
 
 - [`openspec-implementation-loop`](../../.agents/skills/openspec-implementation-loop/SKILL.md)
 - [`openspec-verify-change`](../../.agents/skills/openspec-verify-change/SKILL.md)
+
+The rest do **not** use the `openspec-` prefix, so regeneration never touches them:
+
+- [`new-entity-requirements`](../../.agents/skills/new-entity-requirements/SKILL.md)
+- [`existing-entity-requirements`](../../.agents/skills/existing-entity-requirements/SKILL.md)
+- [`requirements-verification`](../../.agents/skills/requirements-verification/SKILL.md)
+- [`/release`](../../.agents/skills/release/SKILL.md)
+- [`/schema-coverage`](../../.agents/skills/schema-coverage/SKILL.md)
+
+`make gen-openspec-skills` only deletes leftover directories whose names start with `openspec-`
+and are not in its keep-list (see `scripts/gen-openspec-skills.mjs`). Do not rename a hand-written
+skill to `openspec-*` unless you add it to the keep-list.
 
 Do **not** run `openspec init` or `openspec update` in this repo (any `--tools` value). Both use
 the global *core* profile (propose/explore/apply/update/sync/archive) and would delete
@@ -70,6 +83,8 @@ Goal: an apply-ready change under `openspec/changes/<id>/` with proposal, design
 | [`openspec-propose`](../../.agents/skills/openspec-propose/SKILL.md) | You can describe the outcome in one pass and want all artifacts generated together |
 | [`openspec-new-change`](../../.agents/skills/openspec-new-change/SKILL.md) | Scaffold the change directory first, then add artifacts incrementally |
 | [`openspec-continue-change`](../../.agents/skills/openspec-continue-change/SKILL.md) | A change exists but is not yet apply-ready; create the next artifact in sequence |
+| [`new-entity-requirements`](../../.agents/skills/new-entity-requirements/SKILL.md) | Brand-new resource or data source from an API; writes an OpenSpec **change**, not `openspec/specs/` |
+| [`existing-entity-requirements`](../../.agents/skills/existing-entity-requirements/SKILL.md) | On-demand baseline for **one** existing type that is about to change and has no spec yet |
 
 Send the OpenSpec artifacts for review **before** implementation when the change has spec impact. The
 proposal can be a PR that contains only `openspec/changes/<id>/`.
@@ -158,3 +173,7 @@ archive.
 `make check-openspec` (`openspec validate --all`) checks structure and normative keywords. It does not
 prove the Go code matches every requirement — that is `openspec-verify-change` (and, later, the
 `verify-openspec` label).
+
+| Skill | When to use |
+|-------|-------------|
+| [`requirements-verification`](../../.agents/skills/requirements-verification/SKILL.md) | Semantic review of **one** spec vs its Go package (consistency, compliance, test gaps). Never runs `TF_ACC`. Gating a whole change before archive is `openspec-verify-change` (Phase 1.5 / PR #1056). |

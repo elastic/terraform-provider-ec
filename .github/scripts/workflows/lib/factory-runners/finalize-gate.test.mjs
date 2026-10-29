@@ -106,10 +106,10 @@ describe('finalize-gate', { concurrency: false }, () => {
       FACTORY_NAME: 'code-factory',
       ...eligibleTrusted,
       DUPLICATE_PR_FOUND: 'false',
-      DUPLICATE_GATE_REASON: 'No open linked code-factory PR found.',
+      DUPLICATE_GATE_REASON: "No open pull request found on branch 'code-factory/issue-42' for issue #42.",
     });
     assert.deepEqual(Object.keys(outputs), ['gate_reason']);
-    assert.equal(outputs.gate_reason, 'No open linked code-factory PR found.');
+    assert.equal(outputs.gate_reason, "No open pull request found on branch 'code-factory/issue-42' for issue #42.");
   });
 
   test('fails closed when actor trust was never determined', async () => {
@@ -135,7 +135,7 @@ describe('finalize-gate', { concurrency: false }, () => {
       FACTORY_NAME: 'code-factory',
       ...eligibleTrusted,
       DUPLICATE_PR_FOUND: 'garbage',
-      DUPLICATE_GATE_REASON: 'No open linked code-factory PR found.',
+      DUPLICATE_GATE_REASON: "No open pull request found on branch 'code-factory/issue-42' for issue #42.",
     });
     assert.match(outputs.gate_reason, /Duplicate PR check did not complete/);
     assert.doesNotMatch(outputs.gate_reason, /All deterministic gates passed/);
