@@ -160,17 +160,16 @@ func (p *Provider) Schema(_ context.Context, req provider.SchemaRequest, resp *p
 				Sensitive:   true,
 			},
 			"ca_cert": schema.StringAttribute{
-				Description: "Path to a PEM-encoded CA certificate bundle to trust in addition to the system certificates. Can also be set with EC_CA_CERT.",
+				Description: "Path to a PEM-encoded CA certificate bundle to trust in addition to the system certificates. Can also be set with EC_CA_CERT; set to an empty string to ignore the environment variable.",
 				Optional:    true,
 			},
 			"tls_cert": schema.StringAttribute{
-				Description: "Path to a PEM-encoded client certificate for mutual TLS. Must be configured together with tls_key. Can also be set with EC_TLS_CERT.",
+				Description: "Path to a PEM-encoded client certificate for mutual TLS. Must be configured together with tls_key. Can also be set with EC_TLS_CERT; set to an empty string to ignore the environment variable.",
 				Optional:    true,
 			},
 			"tls_key": schema.StringAttribute{
-				Description: "Path to the PEM-encoded private key for the mutual TLS client certificate. Must be configured together with tls_cert. Can also be set with EC_TLS_KEY.",
+				Description: "Path to the PEM-encoded private key for the mutual TLS client certificate. Must be configured together with tls_cert. Can also be set with EC_TLS_KEY; set to an empty string to ignore the environment variable.",
 				Optional:    true,
-				Sensitive:   true,
 			},
 			"insecure": schema.BoolAttribute{
 				Description: insecureDesc,

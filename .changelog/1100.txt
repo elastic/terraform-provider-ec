@@ -1,0 +1,3 @@
+```release-note:feature
+provider: Add `ca_cert`, `tls_cert`, and `tls_key` settings (and `EC_CA_CERT`, `EC_TLS_CERT`, `EC_TLS_KEY`) for custom CA bundles and mutual TLS client certificates
+```
