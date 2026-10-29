@@ -97,6 +97,6 @@ provider "ec" {
 }
 ```
 
-Alternatively, set `EC_CA_CERT`, `EC_TLS_CERT`, and `EC_TLS_KEY`. Explicit provider values take precedence over environment variables. API authentication is still required; for example, set `EC_API_KEY` alongside these TLS settings.
+Alternatively, set `EC_CA_CERT`, `EC_TLS_CERT`, and `EC_TLS_KEY`. Explicit provider values take precedence over environment variables, and setting one of these attributes to an empty string disables its environment fallback. API authentication is still required; for example, set `EC_API_KEY` alongside these TLS settings.
 
 {{ .SchemaMarkdown | trimspace }}
