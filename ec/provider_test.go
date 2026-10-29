@@ -31,6 +31,8 @@ import (
 )
 
 func Test_Configure(t *testing.T) {
+	originalGetEnv := util.GetEnv
+	t.Cleanup(func() { util.GetEnv = originalGetEnv })
 	type args struct {
 		env    map[string]string
 		config providerConfig
