@@ -2,7 +2,7 @@
 
 See proposal.md — Why. The three serverless project resources are Terraform Plugin Framework resources. CRUD goes through the generated serverless client in `ec/internal/gen/serverless/`, not `cloud-sdk-go`. Create, patch, and read bodies are built by hand in `ec/ecresource/projectresource` (`elasticsearch.go`, `observability.go`, `security.go`) from the generated models.
 
-The raw project API on `elastic/serverless-api-specification` `main` already defines `monitoring.logging.audit` (create, read, and patch, including JSON null to reset a category). Those schemas are marked `x-exclude-from-documentation: true`. The file this provider vendors, `specifications/generated/production/public-user-serverless-api-dereferenced.yml`, strips them. The committed spec (`serverless-project-api.source` ref `059c09ac`) has no `monitoring` object.
+The public project API bundle this provider vendors — `specifications/generated/production/public-user-serverless-api-dereferenced.yml` on `elastic/serverless-api-specification` `main` — defines `monitoring.logging.audit` (create, read, and patch, including JSON null to reset a category). The committed spec is pinned by `serverless-project-api.source`, whose `ref` points at a commit whose bundle contains those schemas.
 
 `client-config.yaml` uses default oapi-codegen. Nullable properties become `*T` with `json:",omitempty"`. A nil pointer is omitted, so it cannot encode `null`. `OptionalTrafficFilters` is cleared today by a non-nil empty slice (`expandTrafficFilterIdsForPatch`), which marshals as `[]`. Linked-project nulls work only because they are nil map values, which `omitempty` does not strip.
 
@@ -18,14 +18,14 @@ The raw project API on `elastic/serverless-api-specification` `main` already def
 
 **Non-Goals:**
 
-- Vendoring the raw user spec, or deleting `x-exclude-from-documentation` in a local copy of the public bundle.
+- Vendoring the raw user spec, or editing `x-exclude-from-documentation` in a copy of the public file. Generation uses the committed public bundle as-is.
 - Turning on oapi-codegen `nullable-type` in `client-config.yaml`. That would change `OptionalLinkConfiguration`, `OptionalTrafficFilters`, `OptionalElasticsearchSearchLake`, and their callers.
 - A shared Terraform resource type. The three resources stay separate.
 - Modeling `logging` categories other than `audit`.
 
 ## Decisions
 
-- **Stop until the public bundle contains the fields.** Bump `serverless-project-api.source` `ref` only to a commit whose `public-user-serverless-api-dereferenced.yml` includes `monitoring.logging.audit`, then run `scripts/update-serverless-spec.sh` and `env -u TF_ACC make gen`. Alternative: hand-write the Go types now and regenerate later — rejected because the next `make gen` would delete them.
+- **Generate from the public bundle.** Set `serverless-project-api.source` `ref` to a commit whose `public-user-serverless-api-dereferenced.yml` contains `monitoring.logging.audit`, run `scripts/update-serverless-spec.sh` to download that bundle, then `env -u TF_ACC make gen`. Generated files are not edited by hand. Alternative: hand-write the Go types now and regenerate later — rejected because the next `make gen` would delete them.
 - **Force the nested attributes the generator would mark computed_optional.** In `modify_spec.sh`, set `monitoring`, `logging`, and `audit` to optional. Leave `destination` required when `audit` is set, because the create schema requires `destination`, not because `project_id` is required inside it. Leave `enabled` computed_optional and give it `Default: true`. A default on a non-computed attribute fails provider schema validation. Set `destination.project_type` to required and replace its generated `OneOf` with `observability` and `security`: the API schema marks it optional with the full `ProjectType` enum, but project-api rejects a request without it (403 "Unable to determine project type") and `ValidateLoggingDestination` accepts only those two types, so the schema fails at plan instead of apply. Leave `destination.status` computed inside `destination`. `destination` is one nested object, so a computed child does not hide removal the way a computed field inside the linked-project map entry does. Create and patch copy `project_id` and `project_type` only.
 - **Replace `ignore_filters` with a set of ids.** The API field is an array of `{id}` objects with no order promise, so the generator emits a nested list. Delete that attribute and add an optional set of strings, the same kind of attribute as `traffic_filter_ids`. A list would plan a diff whenever the API returned ids in another order. Re-add `setvalidator.SizeAtMost(10)` because replacing the attribute drops the generated `maxItems` validator. Do not reject an empty set. Null and empty both mean no filters. The mapper writes each string as `{"id":"..."}`.
 - **Clear with JSON null, and keep the configured absence.** The project API documents `ignore_filters: null` as the way to remove every filter. Removing a non-empty set, whether the new configuration is null or empty, sends that null. A generated nil pointer cannot encode it, because `omitempty` drops the key. The same raw patch body that sends `"audit":null` sends `"ignore_filters":null`. On read, an absent or empty API array keeps the null or empty set already in the plan or state, so `ignore_filter_ids = []` does not come back as null; a non-empty prior set becomes null, so removed filters show as drift. Create omits `ignore_filters` for both null and empty.
@@ -34,7 +34,6 @@ The raw project API on `elastic/serverless-api-specification` `main` already def
 
 ## Risks / Trade-offs
 
-- [Public bundle still strips the schemas] → Implementation stops before `make gen`. No local spec fork. Dropping `x-exclude-from-documentation` is an upstream project-API change; this repo does not publish that bundle.
 - [Hand-built patch JSON drifts from the generated request struct] → Use `Patch*ProjectWithBodyWithResponse` when the body must contain `audit` or `ignore_filters` null. Other patch fields stay on the generated struct, merged into that JSON. The unit test locks those bytes.
 - [`destination.status` shows as known after apply] → It is computed and not sent on write. An unrelated update may mark it `(known after apply)`. That is expected.
 - [API later resolves `project_type` from `project_id` or widens destination types] → Relaxing a required attribute or widening a validator is not a breaking change; a follow-up can do it once the API does.
