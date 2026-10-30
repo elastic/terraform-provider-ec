@@ -75,7 +75,7 @@
                                       "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
                                     }
                                   ],
-                                  "schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"workplaceai\",\n\"vectordb\",\n)"
+                                  "schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"vectordb\",\n)"
                                 }
                               }
                             ]
@@ -185,6 +185,122 @@
                 }
               ],
               "description": "Metadata request for a project with tags."
+            }
+          },
+          {
+            "name": "monitoring",
+            "single_nested": {
+              "computed_optional_required": "optional",
+              "attributes": [
+                {
+                  "name": "logging",
+                  "single_nested": {
+                    "computed_optional_required": "optional",
+                    "attributes": [
+                      {
+                        "name": "audit",
+                        "single_nested": {
+                          "computed_optional_required": "optional",
+                          "attributes": [
+                            {
+                              "name": "destination",
+                              "single_nested": {
+                                "computed_optional_required": "required",
+                                "attributes": [
+                                  {
+                                    "name": "project_id",
+                                    "string": {
+                                      "computed_optional_required": "required",
+                                      "description": "ID of the project.",
+                                      "validators": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "regexp"
+                                              },
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                              }
+                                            ],
+                                            "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-z0-9]{32}$\"), \"\")"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "project_type",
+                                    "string": {
+                                      "computed_optional_required": "required",
+                                      "description": "The type of the linked project",
+                                      "validators": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                              }
+                                            ],
+                                            "schema_definition": "stringvalidator.OneOf(\n\"observability\",\n\"security\",\n)"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "status",
+                                    "string": {
+                                      "computed_optional_required": "computed",
+                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true."
+                                    }
+                                  }
+                                ],
+                                "description": "Configuration for destination of logs."
+                              }
+                            },
+                            {
+                              "name": "enabled",
+                              "bool": {
+                                "computed_optional_required": "computed_optional",
+                                "default": {
+                                  "static": true
+                                },
+                                "description": "When true (default), logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved."
+                              }
+                            },
+                            {
+                              "name": "ignore_filter_ids",
+                              "set": {
+                                "computed_optional_required": "optional",
+                                "element_type": {
+                                  "string": {}
+                                },
+                                "description": "IDs of logging ignore filters applied to reduce the volume of logs delivered for this category. The predefined IDs are listed in the [Elastic Cloud Serverless API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/operation/operation-listignorefilters).",
+                                "validators": [
+                                  {
+                                    "custom": {
+                                      "imports": [
+                                        {
+                                          "path": "github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+                                        }
+                                      ],
+                                      "schema_definition": "setvalidator.SizeAtMost(10)"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ],
+                          "description": "Configuration for logs from a specific category."
+                        }
+                      }
+                    ],
+                    "description": "Configuration for project logs."
+                  }
+                }
+              ],
+              "description": "Configuration for monitoring a project."
             }
           },
           {
@@ -347,6 +463,13 @@
                   }
                 },
                 {
+                  "name": "ingest",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The endpoint to access the Managed OpenTelemetry Collector."
+                  }
+                },
+                {
                   "name": "kibana",
                   "string": {
                     "computed_optional_required": "computed",
@@ -386,6 +509,13 @@
                   "string": {
                     "computed_optional_required": "computed",
                     "description": "The PrivateLink endpoint URL to access elasticsearch."
+                  }
+                },
+                {
+                  "name": "ingest",
+                  "string": {
+                    "computed_optional_required": "computed",
+                    "description": "The PrivateLink endpoint URL to access the Managed OpenTelemetry Collector."
                   }
                 },
                 {
@@ -503,7 +633,7 @@
                                       "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
                                     }
                                   ],
-                                  "schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"workplaceai\",\n\"vectordb\",\n)"
+                                  "schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"vectordb\",\n)"
                                 }
                               }
                             ]
@@ -613,6 +743,122 @@
                 }
               ],
               "description": "Metadata request for a project with tags."
+            }
+          },
+          {
+            "name": "monitoring",
+            "single_nested": {
+              "computed_optional_required": "optional",
+              "attributes": [
+                {
+                  "name": "logging",
+                  "single_nested": {
+                    "computed_optional_required": "optional",
+                    "attributes": [
+                      {
+                        "name": "audit",
+                        "single_nested": {
+                          "computed_optional_required": "optional",
+                          "attributes": [
+                            {
+                              "name": "destination",
+                              "single_nested": {
+                                "computed_optional_required": "required",
+                                "attributes": [
+                                  {
+                                    "name": "project_id",
+                                    "string": {
+                                      "computed_optional_required": "required",
+                                      "description": "ID of the project.",
+                                      "validators": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "regexp"
+                                              },
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                              }
+                                            ],
+                                            "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-z0-9]{32}$\"), \"\")"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "project_type",
+                                    "string": {
+                                      "computed_optional_required": "required",
+                                      "description": "The type of the linked project",
+                                      "validators": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                              }
+                                            ],
+                                            "schema_definition": "stringvalidator.OneOf(\n\"observability\",\n\"security\",\n)"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "status",
+                                    "string": {
+                                      "computed_optional_required": "computed",
+                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true."
+                                    }
+                                  }
+                                ],
+                                "description": "Configuration for destination of logs."
+                              }
+                            },
+                            {
+                              "name": "enabled",
+                              "bool": {
+                                "computed_optional_required": "computed_optional",
+                                "default": {
+                                  "static": true
+                                },
+                                "description": "When true (default), logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved."
+                              }
+                            },
+                            {
+                              "name": "ignore_filter_ids",
+                              "set": {
+                                "computed_optional_required": "optional",
+                                "element_type": {
+                                  "string": {}
+                                },
+                                "description": "IDs of logging ignore filters applied to reduce the volume of logs delivered for this category. The predefined IDs are listed in the [Elastic Cloud Serverless API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/operation/operation-listignorefilters).",
+                                "validators": [
+                                  {
+                                    "custom": {
+                                      "imports": [
+                                        {
+                                          "path": "github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+                                        }
+                                      ],
+                                      "schema_definition": "setvalidator.SizeAtMost(10)"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ],
+                          "description": "Configuration for logs from a specific category."
+                        }
+                      }
+                    ],
+                    "description": "Configuration for project logs."
+                  }
+                }
+              ],
+              "description": "Configuration for monitoring a project."
             }
           },
           {
@@ -919,7 +1165,7 @@
                                       "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
                                     }
                                   ],
-                                  "schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"workplaceai\",\n\"vectordb\",\n)"
+                                  "schema_definition": "stringvalidator.OneOf(\n\"elasticsearch\",\n\"observability\",\n\"security\",\n\"vectordb\",\n)"
                                 }
                               }
                             ]
@@ -1029,6 +1275,122 @@
                 }
               ],
               "description": "Metadata request for a project with tags."
+            }
+          },
+          {
+            "name": "monitoring",
+            "single_nested": {
+              "computed_optional_required": "optional",
+              "attributes": [
+                {
+                  "name": "logging",
+                  "single_nested": {
+                    "computed_optional_required": "optional",
+                    "attributes": [
+                      {
+                        "name": "audit",
+                        "single_nested": {
+                          "computed_optional_required": "optional",
+                          "attributes": [
+                            {
+                              "name": "destination",
+                              "single_nested": {
+                                "computed_optional_required": "required",
+                                "attributes": [
+                                  {
+                                    "name": "project_id",
+                                    "string": {
+                                      "computed_optional_required": "required",
+                                      "description": "ID of the project.",
+                                      "validators": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "regexp"
+                                              },
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                              }
+                                            ],
+                                            "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-z0-9]{32}$\"), \"\")"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "project_type",
+                                    "string": {
+                                      "computed_optional_required": "required",
+                                      "description": "The type of the linked project",
+                                      "validators": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                              }
+                                            ],
+                                            "schema_definition": "stringvalidator.OneOf(\n\"observability\",\n\"security\",\n)"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "name": "status",
+                                    "string": {
+                                      "computed_optional_required": "computed",
+                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true."
+                                    }
+                                  }
+                                ],
+                                "description": "Configuration for destination of logs."
+                              }
+                            },
+                            {
+                              "name": "enabled",
+                              "bool": {
+                                "computed_optional_required": "computed_optional",
+                                "default": {
+                                  "static": true
+                                },
+                                "description": "When true (default), logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved."
+                              }
+                            },
+                            {
+                              "name": "ignore_filter_ids",
+                              "set": {
+                                "computed_optional_required": "optional",
+                                "element_type": {
+                                  "string": {}
+                                },
+                                "description": "IDs of logging ignore filters applied to reduce the volume of logs delivered for this category. The predefined IDs are listed in the [Elastic Cloud Serverless API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/operation/operation-listignorefilters).",
+                                "validators": [
+                                  {
+                                    "custom": {
+                                      "imports": [
+                                        {
+                                          "path": "github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+                                        }
+                                      ],
+                                      "schema_definition": "setvalidator.SizeAtMost(10)"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ],
+                          "description": "Configuration for logs from a specific category."
+                        }
+                      }
+                    ],
+                    "description": "Configuration for project logs."
+                  }
+                }
+              ],
+              "description": "Configuration for monitoring a project."
             }
           },
           {

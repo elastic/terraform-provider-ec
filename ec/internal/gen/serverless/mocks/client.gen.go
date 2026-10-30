@@ -61,9 +61,9 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 }
 
 // CreateElasticsearchProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, params *serverless.CreateElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, contentType, body}
+	varargs := []any{ctx, params, contentType, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -74,16 +74,16 @@ func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithBodyWit
 }
 
 // CreateElasticsearchProjectWithBodyWithResponse indicates an expected call of CreateElasticsearchProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithBodyWithResponse(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateElasticsearchProjectWithBodyWithResponse), varargs...)
 }
 
 // CreateElasticsearchProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithResponse(ctx context.Context, body serverless.CreateElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithResponse(ctx context.Context, params *serverless.CreateElasticsearchProjectParams, body serverless.CreateElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateElasticsearchProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, body}
+	varargs := []any{ctx, params, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -94,16 +94,16 @@ func (m *MockClientWithResponsesInterface) CreateElasticsearchProjectWithRespons
 }
 
 // CreateElasticsearchProjectWithResponse indicates an expected call of CreateElasticsearchProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateElasticsearchProjectWithResponse(ctx, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, body}, reqEditors...)
+	varargs := append([]any{ctx, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateElasticsearchProjectWithResponse), varargs...)
 }
 
 // CreateObservabilityProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, params *serverless.CreateObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, contentType, body}
+	varargs := []any{ctx, params, contentType, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -114,16 +114,16 @@ func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithBodyWit
 }
 
 // CreateObservabilityProjectWithBodyWithResponse indicates an expected call of CreateObservabilityProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithBodyWithResponse(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateObservabilityProjectWithBodyWithResponse), varargs...)
 }
 
 // CreateObservabilityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithResponse(ctx context.Context, body serverless.CreateObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithResponse(ctx context.Context, params *serverless.CreateObservabilityProjectParams, body serverless.CreateObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateObservabilityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, body}
+	varargs := []any{ctx, params, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -134,16 +134,16 @@ func (m *MockClientWithResponsesInterface) CreateObservabilityProjectWithRespons
 }
 
 // CreateObservabilityProjectWithResponse indicates an expected call of CreateObservabilityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateObservabilityProjectWithResponse(ctx, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, body}, reqEditors...)
+	varargs := append([]any{ctx, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateObservabilityProjectWithResponse), varargs...)
 }
 
 // CreateSecurityProjectWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithBodyWithResponse(ctx context.Context, params *serverless.CreateSecurityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, contentType, body}
+	varargs := []any{ctx, params, contentType, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -154,16 +154,16 @@ func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithBodyWithResp
 }
 
 // CreateSecurityProjectWithBodyWithResponse indicates an expected call of CreateSecurityProjectWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithBodyWithResponse(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithBodyWithResponse(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateSecurityProjectWithBodyWithResponse), varargs...)
 }
 
 // CreateSecurityProjectWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithResponse(ctx context.Context, body serverless.CreateSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
+func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithResponse(ctx context.Context, params *serverless.CreateSecurityProjectParams, body serverless.CreateSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateSecurityProjectResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, body}
+	varargs := []any{ctx, params, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -174,9 +174,9 @@ func (m *MockClientWithResponsesInterface) CreateSecurityProjectWithResponse(ctx
 }
 
 // CreateSecurityProjectWithResponse indicates an expected call of CreateSecurityProjectWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithResponse(ctx, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateSecurityProjectWithResponse(ctx, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, body}, reqEditors...)
+	varargs := append([]any{ctx, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateSecurityProjectWithResponse), varargs...)
 }
 
@@ -218,6 +218,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateTrafficFilterWithR
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateTrafficFilterWithResponse), varargs...)
+}
+
+// CreateVectorDBProjectWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) CreateVectorDBProjectWithBodyWithResponse(ctx context.Context, params *serverless.CreateVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateVectorDBProjectWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.CreateVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateVectorDBProjectWithBodyWithResponse indicates an expected call of CreateVectorDBProjectWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateVectorDBProjectWithBodyWithResponse(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVectorDBProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateVectorDBProjectWithBodyWithResponse), varargs...)
+}
+
+// CreateVectorDBProjectWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) CreateVectorDBProjectWithResponse(ctx context.Context, params *serverless.CreateVectorDBProjectParams, body serverless.CreateVectorDBProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.CreateVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateVectorDBProjectWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.CreateVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateVectorDBProjectWithResponse indicates an expected call of CreateVectorDBProjectWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) CreateVectorDBProjectWithResponse(ctx, params, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVectorDBProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).CreateVectorDBProjectWithResponse), varargs...)
 }
 
 // DeleteElasticsearchProjectWithResponse mocks base method.
@@ -298,6 +338,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteTrafficFilterWithR
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteTrafficFilterWithResponse), varargs...)
+}
+
+// DeleteVectorDBProjectWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) DeleteVectorDBProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteVectorDBProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.DeleteVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteVectorDBProjectWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.DeleteVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVectorDBProjectWithResponse indicates an expected call of DeleteVectorDBProjectWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) DeleteVectorDBProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVectorDBProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).DeleteVectorDBProjectWithResponse), varargs...)
 }
 
 // GetElasticsearchProjectCanDeleteWithResponse mocks base method.
@@ -400,6 +460,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetElasticsearchProjectW
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetElasticsearchProjectWithResponse), varargs...)
 }
 
+// GetIgnoreFilterWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetIgnoreFilterWithResponse(ctx context.Context, id string, reqEditors ...serverless.RequestEditorFn) (*serverless.GetIgnoreFilterResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetIgnoreFilterWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetIgnoreFilterResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIgnoreFilterWithResponse indicates an expected call of GetIgnoreFilterWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetIgnoreFilterWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIgnoreFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetIgnoreFilterWithResponse), varargs...)
+}
+
 // GetObservabilityProjectCanDeleteWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) GetObservabilityProjectCanDeleteWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetObservabilityProjectCanDeleteResponse, error) {
 	m.ctrl.T.Helper()
@@ -498,6 +578,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetObservabilityProjectW
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetObservabilityProjectWithResponse), varargs...)
+}
+
+// GetOrganizationCapabilitiesWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetOrganizationCapabilitiesWithResponse(ctx context.Context, reqEditors ...serverless.RequestEditorFn) (*serverless.GetOrganizationCapabilitiesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetOrganizationCapabilitiesWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetOrganizationCapabilitiesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrganizationCapabilitiesWithResponse indicates an expected call of GetOrganizationCapabilitiesWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetOrganizationCapabilitiesWithResponse(ctx any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrganizationCapabilitiesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetOrganizationCapabilitiesWithResponse), varargs...)
 }
 
 // GetRegionWithResponse mocks base method.
@@ -660,6 +760,106 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetTrafficFilterWithResp
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetTrafficFilterWithResponse), varargs...)
 }
 
+// GetVectorDBProjectCanDeleteWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetVectorDBProjectCanDeleteWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetVectorDBProjectCanDeleteResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectCanDeleteWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetVectorDBProjectCanDeleteResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectCanDeleteWithResponse indicates an expected call of GetVectorDBProjectCanDeleteWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetVectorDBProjectCanDeleteWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectCanDeleteWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetVectorDBProjectCanDeleteWithResponse), varargs...)
+}
+
+// GetVectorDBProjectLinkCandidatesWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetVectorDBProjectLinkCandidatesWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.GetVectorDBProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*serverless.GetVectorDBProjectLinkCandidatesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectLinkCandidatesWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetVectorDBProjectLinkCandidatesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectLinkCandidatesWithResponse indicates an expected call of GetVectorDBProjectLinkCandidatesWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetVectorDBProjectLinkCandidatesWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectLinkCandidatesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetVectorDBProjectLinkCandidatesWithResponse), varargs...)
+}
+
+// GetVectorDBProjectRolesWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetVectorDBProjectRolesWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetVectorDBProjectRolesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectRolesWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetVectorDBProjectRolesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectRolesWithResponse indicates an expected call of GetVectorDBProjectRolesWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetVectorDBProjectRolesWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectRolesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetVectorDBProjectRolesWithResponse), varargs...)
+}
+
+// GetVectorDBProjectStatusWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetVectorDBProjectStatusWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetVectorDBProjectStatusResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectStatusWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetVectorDBProjectStatusResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectStatusWithResponse indicates an expected call of GetVectorDBProjectStatusWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetVectorDBProjectStatusWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectStatusWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetVectorDBProjectStatusWithResponse), varargs...)
+}
+
+// GetVectorDBProjectWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetVectorDBProjectWithResponse(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*serverless.GetVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.GetVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectWithResponse indicates an expected call of GetVectorDBProjectWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetVectorDBProjectWithResponse(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetVectorDBProjectWithResponse), varargs...)
+}
+
 // ListElasticsearchProjectsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) ListElasticsearchProjectsWithResponse(ctx context.Context, params *serverless.ListElasticsearchProjectsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListElasticsearchProjectsResponse, error) {
 	m.ctrl.T.Helper()
@@ -678,6 +878,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListElasticsearchProject
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListElasticsearchProjectsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListElasticsearchProjectsWithResponse), varargs...)
+}
+
+// ListIgnoreFiltersWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ListIgnoreFiltersWithResponse(ctx context.Context, params *serverless.ListIgnoreFiltersParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListIgnoreFiltersResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListIgnoreFiltersWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.ListIgnoreFiltersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIgnoreFiltersWithResponse indicates an expected call of ListIgnoreFiltersWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListIgnoreFiltersWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIgnoreFiltersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListIgnoreFiltersWithResponse), varargs...)
 }
 
 // ListObservabilityProjectsWithResponse mocks base method.
@@ -758,6 +978,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListTrafficFiltersWithRe
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTrafficFiltersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListTrafficFiltersWithResponse), varargs...)
+}
+
+// ListVectorDBProjectsWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ListVectorDBProjectsWithResponse(ctx context.Context, params *serverless.ListVectorDBProjectsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ListVectorDBProjectsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListVectorDBProjectsWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.ListVectorDBProjectsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListVectorDBProjectsWithResponse indicates an expected call of ListVectorDBProjectsWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListVectorDBProjectsWithResponse(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListVectorDBProjectsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListVectorDBProjectsWithResponse), varargs...)
 }
 
 // PatchElasticsearchProjectWithBodyWithResponse mocks base method.
@@ -920,6 +1160,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchTrafficFilterWithRe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTrafficFilterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchTrafficFilterWithResponse), varargs...)
 }
 
+// PatchVectorDBProjectWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) PatchVectorDBProjectWithBodyWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchVectorDBProjectWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.PatchVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchVectorDBProjectWithBodyWithResponse indicates an expected call of PatchVectorDBProjectWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchVectorDBProjectWithBodyWithResponse(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchVectorDBProjectWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchVectorDBProjectWithBodyWithResponse), varargs...)
+}
+
+// PatchVectorDBProjectWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) PatchVectorDBProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.PatchVectorDBProjectParams, body serverless.PatchVectorDBProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*serverless.PatchVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchVectorDBProjectWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.PatchVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchVectorDBProjectWithResponse indicates an expected call of PatchVectorDBProjectWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) PatchVectorDBProjectWithResponse(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchVectorDBProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PatchVectorDBProjectWithResponse), varargs...)
+}
+
 // ResetElasticsearchProjectCredentialsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) ResetElasticsearchProjectCredentialsWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResetElasticsearchProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResetElasticsearchProjectCredentialsResponse, error) {
 	m.ctrl.T.Helper()
@@ -978,6 +1258,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetSecurityProjectCred
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetSecurityProjectCredentialsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResetSecurityProjectCredentialsWithResponse), varargs...)
+}
+
+// ResetVectorDBProjectCredentialsWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ResetVectorDBProjectCredentialsWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResetVectorDBProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResetVectorDBProjectCredentialsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ResetVectorDBProjectCredentialsWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.ResetVectorDBProjectCredentialsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetVectorDBProjectCredentialsWithResponse indicates an expected call of ResetVectorDBProjectCredentialsWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResetVectorDBProjectCredentialsWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetVectorDBProjectCredentialsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResetVectorDBProjectCredentialsWithResponse), varargs...)
 }
 
 // ResumeElasticsearchProjectWithResponse mocks base method.
@@ -1040,6 +1340,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeSecurityProjectWit
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeSecurityProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResumeSecurityProjectWithResponse), varargs...)
 }
 
+// ResumeVectorDBProjectWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ResumeVectorDBProjectWithResponse(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeVectorDBProjectParams, reqEditors ...serverless.RequestEditorFn) (*serverless.ResumeVectorDBProjectResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ResumeVectorDBProjectWithResponse", varargs...)
+	ret0, _ := ret[0].(*serverless.ResumeVectorDBProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResumeVectorDBProjectWithResponse indicates an expected call of ResumeVectorDBProjectWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ResumeVectorDBProjectWithResponse(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeVectorDBProjectWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ResumeVectorDBProjectWithResponse), varargs...)
+}
+
 // MockClientInterface is a mock of ClientInterface interface.
 type MockClientInterface struct {
 	ctrl     *gomock.Controller
@@ -1065,9 +1385,9 @@ func (m *MockClientInterface) EXPECT() *MockClientInterfaceMockRecorder {
 }
 
 // CreateElasticsearchProject mocks base method.
-func (m *MockClientInterface) CreateElasticsearchProject(ctx context.Context, body serverless.CreateElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateElasticsearchProject(ctx context.Context, params *serverless.CreateElasticsearchProjectParams, body serverless.CreateElasticsearchProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, body}
+	varargs := []any{ctx, params, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -1078,16 +1398,16 @@ func (m *MockClientInterface) CreateElasticsearchProject(ctx context.Context, bo
 }
 
 // CreateElasticsearchProject indicates an expected call of CreateElasticsearchProject.
-func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProject(ctx, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProject(ctx, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, body}, reqEditors...)
+	varargs := append([]any{ctx, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProject", reflect.TypeOf((*MockClientInterface)(nil).CreateElasticsearchProject), varargs...)
 }
 
 // CreateElasticsearchProjectWithBody mocks base method.
-func (m *MockClientInterface) CreateElasticsearchProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateElasticsearchProjectWithBody(ctx context.Context, params *serverless.CreateElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, contentType, body}
+	varargs := []any{ctx, params, contentType, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -1098,16 +1418,16 @@ func (m *MockClientInterface) CreateElasticsearchProjectWithBody(ctx context.Con
 }
 
 // CreateElasticsearchProjectWithBody indicates an expected call of CreateElasticsearchProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProjectWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateElasticsearchProjectWithBody(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateElasticsearchProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateElasticsearchProjectWithBody), varargs...)
 }
 
 // CreateObservabilityProject mocks base method.
-func (m *MockClientInterface) CreateObservabilityProject(ctx context.Context, body serverless.CreateObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateObservabilityProject(ctx context.Context, params *serverless.CreateObservabilityProjectParams, body serverless.CreateObservabilityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, body}
+	varargs := []any{ctx, params, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -1118,16 +1438,16 @@ func (m *MockClientInterface) CreateObservabilityProject(ctx context.Context, bo
 }
 
 // CreateObservabilityProject indicates an expected call of CreateObservabilityProject.
-func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProject(ctx, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProject(ctx, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, body}, reqEditors...)
+	varargs := append([]any{ctx, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProject", reflect.TypeOf((*MockClientInterface)(nil).CreateObservabilityProject), varargs...)
 }
 
 // CreateObservabilityProjectWithBody mocks base method.
-func (m *MockClientInterface) CreateObservabilityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateObservabilityProjectWithBody(ctx context.Context, params *serverless.CreateObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, contentType, body}
+	varargs := []any{ctx, params, contentType, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -1138,16 +1458,16 @@ func (m *MockClientInterface) CreateObservabilityProjectWithBody(ctx context.Con
 }
 
 // CreateObservabilityProjectWithBody indicates an expected call of CreateObservabilityProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProjectWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateObservabilityProjectWithBody(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateObservabilityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateObservabilityProjectWithBody), varargs...)
 }
 
 // CreateSecurityProject mocks base method.
-func (m *MockClientInterface) CreateSecurityProject(ctx context.Context, body serverless.CreateSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateSecurityProject(ctx context.Context, params *serverless.CreateSecurityProjectParams, body serverless.CreateSecurityProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, body}
+	varargs := []any{ctx, params, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -1158,16 +1478,16 @@ func (m *MockClientInterface) CreateSecurityProject(ctx context.Context, body se
 }
 
 // CreateSecurityProject indicates an expected call of CreateSecurityProject.
-func (mr *MockClientInterfaceMockRecorder) CreateSecurityProject(ctx, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateSecurityProject(ctx, params, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, body}, reqEditors...)
+	varargs := append([]any{ctx, params, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).CreateSecurityProject), varargs...)
 }
 
 // CreateSecurityProjectWithBody mocks base method.
-func (m *MockClientInterface) CreateSecurityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+func (m *MockClientInterface) CreateSecurityProjectWithBody(ctx context.Context, params *serverless.CreateSecurityProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{ctx, contentType, body}
+	varargs := []any{ctx, params, contentType, body}
 	for _, a := range reqEditors {
 		varargs = append(varargs, a)
 	}
@@ -1178,9 +1498,9 @@ func (m *MockClientInterface) CreateSecurityProjectWithBody(ctx context.Context,
 }
 
 // CreateSecurityProjectWithBody indicates an expected call of CreateSecurityProjectWithBody.
-func (mr *MockClientInterfaceMockRecorder) CreateSecurityProjectWithBody(ctx, contentType, body any, reqEditors ...any) *gomock.Call {
+func (mr *MockClientInterfaceMockRecorder) CreateSecurityProjectWithBody(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, contentType, body}, reqEditors...)
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecurityProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateSecurityProjectWithBody), varargs...)
 }
 
@@ -1222,6 +1542,46 @@ func (mr *MockClientInterfaceMockRecorder) CreateTrafficFilterWithBody(ctx, cont
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, contentType, body}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficFilterWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateTrafficFilterWithBody), varargs...)
+}
+
+// CreateVectorDBProject mocks base method.
+func (m *MockClientInterface) CreateVectorDBProject(ctx context.Context, params *serverless.CreateVectorDBProjectParams, body serverless.CreateVectorDBProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateVectorDBProject", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateVectorDBProject indicates an expected call of CreateVectorDBProject.
+func (mr *MockClientInterfaceMockRecorder) CreateVectorDBProject(ctx, params, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVectorDBProject", reflect.TypeOf((*MockClientInterface)(nil).CreateVectorDBProject), varargs...)
+}
+
+// CreateVectorDBProjectWithBody mocks base method.
+func (m *MockClientInterface) CreateVectorDBProjectWithBody(ctx context.Context, params *serverless.CreateVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateVectorDBProjectWithBody", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateVectorDBProjectWithBody indicates an expected call of CreateVectorDBProjectWithBody.
+func (mr *MockClientInterfaceMockRecorder) CreateVectorDBProjectWithBody(ctx, params, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVectorDBProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).CreateVectorDBProjectWithBody), varargs...)
 }
 
 // DeleteElasticsearchProject mocks base method.
@@ -1302,6 +1662,26 @@ func (mr *MockClientInterfaceMockRecorder) DeleteTrafficFilter(ctx, id any, reqE
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTrafficFilter", reflect.TypeOf((*MockClientInterface)(nil).DeleteTrafficFilter), varargs...)
+}
+
+// DeleteVectorDBProject mocks base method.
+func (m *MockClientInterface) DeleteVectorDBProject(ctx context.Context, id serverless.ProjectID, params *serverless.DeleteVectorDBProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteVectorDBProject", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVectorDBProject indicates an expected call of DeleteVectorDBProject.
+func (mr *MockClientInterfaceMockRecorder) DeleteVectorDBProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVectorDBProject", reflect.TypeOf((*MockClientInterface)(nil).DeleteVectorDBProject), varargs...)
 }
 
 // GetElasticsearchProject mocks base method.
@@ -1404,6 +1784,26 @@ func (mr *MockClientInterfaceMockRecorder) GetElasticsearchProjectStatus(ctx, id
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElasticsearchProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetElasticsearchProjectStatus), varargs...)
 }
 
+// GetIgnoreFilter mocks base method.
+func (m *MockClientInterface) GetIgnoreFilter(ctx context.Context, id string, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetIgnoreFilter", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIgnoreFilter indicates an expected call of GetIgnoreFilter.
+func (mr *MockClientInterfaceMockRecorder) GetIgnoreFilter(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIgnoreFilter", reflect.TypeOf((*MockClientInterface)(nil).GetIgnoreFilter), varargs...)
+}
+
 // GetObservabilityProject mocks base method.
 func (m *MockClientInterface) GetObservabilityProject(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -1502,6 +1902,26 @@ func (mr *MockClientInterfaceMockRecorder) GetObservabilityProjectStatus(ctx, id
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObservabilityProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetObservabilityProjectStatus), varargs...)
+}
+
+// GetOrganizationCapabilities mocks base method.
+func (m *MockClientInterface) GetOrganizationCapabilities(ctx context.Context, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetOrganizationCapabilities", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrganizationCapabilities indicates an expected call of GetOrganizationCapabilities.
+func (mr *MockClientInterfaceMockRecorder) GetOrganizationCapabilities(ctx any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrganizationCapabilities", reflect.TypeOf((*MockClientInterface)(nil).GetOrganizationCapabilities), varargs...)
 }
 
 // GetRegion mocks base method.
@@ -1664,6 +2084,106 @@ func (mr *MockClientInterfaceMockRecorder) GetTrafficFilterMetadata(ctx, params 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTrafficFilterMetadata", reflect.TypeOf((*MockClientInterface)(nil).GetTrafficFilterMetadata), varargs...)
 }
 
+// GetVectorDBProject mocks base method.
+func (m *MockClientInterface) GetVectorDBProject(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProject", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProject indicates an expected call of GetVectorDBProject.
+func (mr *MockClientInterfaceMockRecorder) GetVectorDBProject(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProject", reflect.TypeOf((*MockClientInterface)(nil).GetVectorDBProject), varargs...)
+}
+
+// GetVectorDBProjectCanDelete mocks base method.
+func (m *MockClientInterface) GetVectorDBProjectCanDelete(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectCanDelete", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectCanDelete indicates an expected call of GetVectorDBProjectCanDelete.
+func (mr *MockClientInterfaceMockRecorder) GetVectorDBProjectCanDelete(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectCanDelete", reflect.TypeOf((*MockClientInterface)(nil).GetVectorDBProjectCanDelete), varargs...)
+}
+
+// GetVectorDBProjectLinkCandidates mocks base method.
+func (m *MockClientInterface) GetVectorDBProjectLinkCandidates(ctx context.Context, id serverless.ProjectID, params *serverless.GetVectorDBProjectLinkCandidatesParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectLinkCandidates", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectLinkCandidates indicates an expected call of GetVectorDBProjectLinkCandidates.
+func (mr *MockClientInterfaceMockRecorder) GetVectorDBProjectLinkCandidates(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectLinkCandidates", reflect.TypeOf((*MockClientInterface)(nil).GetVectorDBProjectLinkCandidates), varargs...)
+}
+
+// GetVectorDBProjectRoles mocks base method.
+func (m *MockClientInterface) GetVectorDBProjectRoles(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectRoles", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectRoles indicates an expected call of GetVectorDBProjectRoles.
+func (mr *MockClientInterfaceMockRecorder) GetVectorDBProjectRoles(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectRoles", reflect.TypeOf((*MockClientInterface)(nil).GetVectorDBProjectRoles), varargs...)
+}
+
+// GetVectorDBProjectStatus mocks base method.
+func (m *MockClientInterface) GetVectorDBProjectStatus(ctx context.Context, id serverless.ProjectID, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetVectorDBProjectStatus", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVectorDBProjectStatus indicates an expected call of GetVectorDBProjectStatus.
+func (mr *MockClientInterfaceMockRecorder) GetVectorDBProjectStatus(ctx, id any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVectorDBProjectStatus", reflect.TypeOf((*MockClientInterface)(nil).GetVectorDBProjectStatus), varargs...)
+}
+
 // ListElasticsearchProjects mocks base method.
 func (m *MockClientInterface) ListElasticsearchProjects(ctx context.Context, params *serverless.ListElasticsearchProjectsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -1682,6 +2202,26 @@ func (mr *MockClientInterfaceMockRecorder) ListElasticsearchProjects(ctx, params
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListElasticsearchProjects", reflect.TypeOf((*MockClientInterface)(nil).ListElasticsearchProjects), varargs...)
+}
+
+// ListIgnoreFilters mocks base method.
+func (m *MockClientInterface) ListIgnoreFilters(ctx context.Context, params *serverless.ListIgnoreFiltersParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListIgnoreFilters", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIgnoreFilters indicates an expected call of ListIgnoreFilters.
+func (mr *MockClientInterfaceMockRecorder) ListIgnoreFilters(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIgnoreFilters", reflect.TypeOf((*MockClientInterface)(nil).ListIgnoreFilters), varargs...)
 }
 
 // ListObservabilityProjects mocks base method.
@@ -1762,6 +2302,26 @@ func (mr *MockClientInterfaceMockRecorder) ListTrafficFilters(ctx, params any, r
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTrafficFilters", reflect.TypeOf((*MockClientInterface)(nil).ListTrafficFilters), varargs...)
+}
+
+// ListVectorDBProjects mocks base method.
+func (m *MockClientInterface) ListVectorDBProjects(ctx context.Context, params *serverless.ListVectorDBProjectsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListVectorDBProjects", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListVectorDBProjects indicates an expected call of ListVectorDBProjects.
+func (mr *MockClientInterfaceMockRecorder) ListVectorDBProjects(ctx, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListVectorDBProjects", reflect.TypeOf((*MockClientInterface)(nil).ListVectorDBProjects), varargs...)
 }
 
 // PatchElasticsearchProject mocks base method.
@@ -1924,6 +2484,46 @@ func (mr *MockClientInterfaceMockRecorder) PatchTrafficFilterWithBody(ctx, id, c
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTrafficFilterWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchTrafficFilterWithBody), varargs...)
 }
 
+// PatchVectorDBProject mocks base method.
+func (m *MockClientInterface) PatchVectorDBProject(ctx context.Context, id serverless.ProjectID, params *serverless.PatchVectorDBProjectParams, body serverless.PatchVectorDBProjectJSONRequestBody, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchVectorDBProject", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchVectorDBProject indicates an expected call of PatchVectorDBProject.
+func (mr *MockClientInterfaceMockRecorder) PatchVectorDBProject(ctx, id, params, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchVectorDBProject", reflect.TypeOf((*MockClientInterface)(nil).PatchVectorDBProject), varargs...)
+}
+
+// PatchVectorDBProjectWithBody mocks base method.
+func (m *MockClientInterface) PatchVectorDBProjectWithBody(ctx context.Context, id serverless.ProjectID, params *serverless.PatchVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params, contentType, body}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchVectorDBProjectWithBody", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchVectorDBProjectWithBody indicates an expected call of PatchVectorDBProjectWithBody.
+func (mr *MockClientInterfaceMockRecorder) PatchVectorDBProjectWithBody(ctx, id, params, contentType, body any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params, contentType, body}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchVectorDBProjectWithBody", reflect.TypeOf((*MockClientInterface)(nil).PatchVectorDBProjectWithBody), varargs...)
+}
+
 // ResetElasticsearchProjectCredentials mocks base method.
 func (m *MockClientInterface) ResetElasticsearchProjectCredentials(ctx context.Context, id serverless.ProjectID, params *serverless.ResetElasticsearchProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -1984,6 +2584,26 @@ func (mr *MockClientInterfaceMockRecorder) ResetSecurityProjectCredentials(ctx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetSecurityProjectCredentials", reflect.TypeOf((*MockClientInterface)(nil).ResetSecurityProjectCredentials), varargs...)
 }
 
+// ResetVectorDBProjectCredentials mocks base method.
+func (m *MockClientInterface) ResetVectorDBProjectCredentials(ctx context.Context, id serverless.ProjectID, params *serverless.ResetVectorDBProjectCredentialsParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ResetVectorDBProjectCredentials", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetVectorDBProjectCredentials indicates an expected call of ResetVectorDBProjectCredentials.
+func (mr *MockClientInterfaceMockRecorder) ResetVectorDBProjectCredentials(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetVectorDBProjectCredentials", reflect.TypeOf((*MockClientInterface)(nil).ResetVectorDBProjectCredentials), varargs...)
+}
+
 // ResumeElasticsearchProject mocks base method.
 func (m *MockClientInterface) ResumeElasticsearchProject(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeElasticsearchProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
 	m.ctrl.T.Helper()
@@ -2042,4 +2662,24 @@ func (mr *MockClientInterfaceMockRecorder) ResumeSecurityProject(ctx, id, params
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id, params}, reqEditors...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeSecurityProject", reflect.TypeOf((*MockClientInterface)(nil).ResumeSecurityProject), varargs...)
+}
+
+// ResumeVectorDBProject mocks base method.
+func (m *MockClientInterface) ResumeVectorDBProject(ctx context.Context, id serverless.ProjectID, params *serverless.ResumeVectorDBProjectParams, reqEditors ...serverless.RequestEditorFn) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id, params}
+	for _, a := range reqEditors {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ResumeVectorDBProject", varargs...)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResumeVectorDBProject indicates an expected call of ResumeVectorDBProject.
+func (mr *MockClientInterfaceMockRecorder) ResumeVectorDBProject(ctx, id, params any, reqEditors ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id, params}, reqEditors...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeVectorDBProject", reflect.TypeOf((*MockClientInterface)(nil).ResumeVectorDBProject), varargs...)
 }
