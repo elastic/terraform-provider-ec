@@ -18,6 +18,7 @@
 package projectresource
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -173,8 +174,13 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 	}
 
 	createBody.Linked = expandLinkedForCreateElasticsearch(model)
+	monitoringView, monitoringDiags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if monitoringDiags.HasError() {
+		return model, monitoringDiags
+	}
+	createBody.Monitoring = expandMonitoringForCreate(monitoringView)
 
-	resp, err := es.client.CreateElasticsearchProjectWithResponse(ctx, createBody)
+	resp, err := es.client.CreateElasticsearchProjectWithResponse(ctx, nil, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -254,7 +260,7 @@ func (es elasticsearchApi) Patch(ctx context.Context, plan, state resource_elast
 
 	updateBody.Linked = expandLinkedForPatchElasticsearch(plan, state)
 
-	resp, err := es.client.PatchElasticsearchProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+	resp, err := patchElasticsearch(ctx, es, plan, state, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -322,6 +328,7 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 		model.Endpoints.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"elasticsearch": basetypes.NewStringValue(resp.JSON200.Endpoints.Elasticsearch),
+			"ingest":        basetypes.NewStringValue(resp.JSON200.Endpoints.Ingest),
 			"kibana":        basetypes.NewStringValue(resp.JSON200.Endpoints.Kibana),
 		},
 	)
@@ -374,6 +381,7 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 			model.PrivateEndpoints.AttributeTypes(ctx),
 			map[string]attr.Value{
 				"elasticsearch": basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Elasticsearch),
+				"ingest":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Ingest),
 				"kibana":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Kibana),
 			},
 		)
@@ -413,7 +421,54 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 	}
 	model.SearchLake = searchLake
 
+	model, monDiags := setElasticsearchMonitoring(ctx, model, resp.JSON200.Monitoring)
+	if monDiags.HasError() {
+		return false, model, monDiags
+	}
+
 	return true, model, nil
+}
+
+func patchElasticsearch(ctx context.Context, es elasticsearchApi, plan, state resource_elasticsearch_project.ElasticsearchProjectModel, updateBody serverless.PatchElasticsearchProjectRequest) (*serverless.PatchElasticsearchProjectResponse, error) {
+	planView, planDiags := monitoringFrom(ctx, plan.Monitoring.IsNull(), plan.Monitoring.Logging)
+	if err := firstError(planDiags); err != nil {
+		return nil, err
+	}
+	stateView, stateDiags := monitoringFrom(ctx, state.Monitoring.IsNull(), state.Monitoring.Logging)
+	if err := firstError(stateDiags); err != nil {
+		return nil, err
+	}
+	patch, err := auditPatchFor(planView, stateView)
+	if err != nil {
+		return nil, err
+	}
+	if patch.useRaw() {
+		raw, err := mergeMonitoringField(updateBody, patch.raw)
+		if err != nil {
+			return nil, err
+		}
+		return es.client.PatchElasticsearchProjectWithBodyWithResponse(ctx, plan.Id.ValueString(), nil, "application/json", bytes.NewReader(raw))
+	}
+	updateBody.Monitoring = patch.typed
+	return es.client.PatchElasticsearchProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+}
+
+func setElasticsearchMonitoring(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel, api *serverless.Monitoring) (resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
+	monitoringView, diags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if diags.HasError() {
+		return model, diags
+	}
+	obj, flattenDiags := flattenMonitoring(model.Monitoring.AttributeTypes(ctx), monitoringView, api)
+	diags.Append(flattenDiags...)
+	if diags.HasError() {
+		return model, diags
+	}
+	if obj.IsNull() {
+		model.Monitoring = resource_elasticsearch_project.NewMonitoringValueNull()
+		return model, nil
+	}
+	model.Monitoring, diags = resource_elasticsearch_project.NewMonitoringValue(obj.AttributeTypes(ctx), obj.Attributes())
+	return model, diags
 }
 
 func (es elasticsearchApi) Delete(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {
