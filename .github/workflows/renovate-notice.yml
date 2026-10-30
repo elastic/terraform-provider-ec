@@ -1,11 +1,19 @@
-name: Update NOTICE for Renovate PRs
+name: Update generated files for Renovate PRs
 
-# Regenerates NOTICE on Renovate dependency PRs and commits the result onto the
-# PR branch.
+# Regenerates NOTICE and the generated serverless client on Renovate dependency
+# PRs and commits the result onto the PR branch.
+#
+# Why both? go.yml has two drift checks that Renovate cannot satisfy on its own:
+#   - `make notice` must match the dependency graph in go.mod/go.sum.
+#   - `make gen` must match the pinned generator versions: oapi-codegen stamps
+#     its own version into ec/internal/gen/serverless/client.gen.go, so every
+#     github.com/oapi-codegen bump (and any output change in the hashicorp
+#     tfplugingen generators) fails the "serverless client is up-to-date" check
+#     until someone commits the regenerated output.
 #
 # Why a Vault-minted token instead of the default GITHUB_TOKEN?
 # A push authenticated with the default GITHUB_TOKEN does NOT re-trigger required
-# checks (GitHub's anti-recursion rule), so the NOTICE commit would leave the PR
+# checks (GitHub's anti-recursion rule), so the fix-up commit would leave the PR
 # stuck on stale checks and block automerge. This workflow mints a short-lived,
 # contents:write-scoped token via Vault OIDC (elastic/ci-gh-actions/fetch-github-token);
 # a commit made with it is treated like a normal actor and DOES re-trigger checks.
@@ -18,20 +26,26 @@ name: Update NOTICE for Renovate PRs
 # this workflow to `.github/workflows/renovate-notice.yml@refs/heads/renovate/*`,
 # so the file path and the `renovate/` branch scope below must not change.
 #
-# Follows the current elastic/mcp-gateway reference workflow
-# (.github/workflows/renovate-helm-docs.yml), which evolved past PR #78's original
-# git-push approach to commit via the Contents API — verified, correctly authored
-# as the vault bot, and with no hardcoded git identity to keep in sync.
+# Follows the elastic/mcp-gateway reference workflow
+# (.github/workflows/renovate-helm-docs.yml) in committing through the GitHub API
+# rather than `git push`, so the commit is verified and authored as the vault bot
+# with no hardcoded git identity. It uses the GraphQL `createCommitOnBranch`
+# mutation instead of the REST Contents API because the regenerated output spans
+# several files (NOTICE, client.gen.go, mocks, framework schema code): one
+# mutation yields one verified commit and one re-trigger, where per-file Contents
+# API PUTs would produce one commit per file, each re-triggering (and, via the
+# concurrency group below, cancelling) this workflow mid-run.
 
 on:
   pull_request:
-    # Only dependency PRs affect NOTICE, so scope to go module changes.
+    # Only dependency PRs affect NOTICE and the pinned generator versions, so
+    # scope to go module changes.
     paths:
       - go.mod
       - go.sum
     types: [opened, synchronize, reopened]
 
-# One NOTICE-regen run per PR at a time; a newer push supersedes the older run.
+# One regen run per PR at a time; a newer push supersedes the older run.
 concurrency:
   group: renovate-notice-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -41,8 +55,8 @@ permissions:
   contents: read  # the write happens via the Vault-minted token, not GITHUB_TOKEN
 
 jobs:
-  update-notice:
-    name: Update NOTICE
+  update-generated:
+    name: Update generated files
     runs-on: ubuntu-latest
     # Only act on Renovate's own PRs.
     if: github.event.pull_request.user.login == 'elastic-renovate-prod[bot]'
@@ -70,36 +84,76 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
 
-      # Regenerate NOTICE the same way the required go.yml check does: tidy with this
-      # repo's Go toolchain (so our NOTICE can't diverge from what CI recomputes if
-      # Renovate's tidy differs), then make notice. `make notice` builds go-licence-detector
-      # on demand via the go.mod tool directive. (go-licenser, which make vendor also runs,
-      # only writes .go source headers and is unrelated to NOTICE, so it is intentionally
-      # not run here.) We commit only NOTICE.
-      - name: Regenerate NOTICE
+      # Regenerate the same way the required go.yml checks do: tidy with this repo's
+      # Go toolchain (so our NOTICE can't diverge from what CI recomputes if Renovate's
+      # tidy differs), then `make notice` and `make gen`. `make notice` builds
+      # go-licence-detector on demand via the go.mod tool directive; `make gen` runs
+      # `go generate ./...` (tfplugingen-openapi, tfplugingen-framework, oapi-codegen,
+      # mockgen) and then re-applies license headers, exactly like the
+      # "Check serverless client is up-to-date" step. We commit only NOTICE and
+      # ec/internal/gen/serverless, the two paths those checks diff.
+      - name: Regenerate NOTICE and serverless client
         run: |
           go mod download
           go mod tidy
           make notice
+          make gen
 
-      - name: Commit NOTICE if changed
+      - name: Commit regenerated files if changed
         env:
           GH_TOKEN: ${{ steps.fetch-token.outputs.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          if git diff --quiet -- NOTICE; then
-            echo "NOTICE is up-to-date, nothing to commit"
+          # Stage both paths so new or deleted generated files are included, then
+          # diff against HEAD to find out what actually changed.
+          git add -A -- NOTICE ec/internal/gen/serverless
+          if git diff --cached --quiet; then
+            echo "NOTICE and generated serverless client are up-to-date, nothing to commit"
             exit 0
           fi
-          # Commit via the Contents API (not git commit) so GitHub marks it as a
-          # verified commit. Verified bot signatures only apply to API-created
-          # commits with no custom author/committer info, so leave those unset —
-          # GitHub authors the commit as the vault bot
+          echo "Changed files:"
+          git diff --cached --name-status --no-renames
+
+          # Commit via the GraphQL createCommitOnBranch mutation (not git commit/push)
+          # so GitHub marks it as a verified commit. Verified bot signatures only apply
+          # to API-created commits with no custom author/committer info, and this
+          # mutation accepts none — GitHub authors the commit as the vault bot
           # (150874479+elastic-vault-github-plugin-prod[bot]@users.noreply.github.com),
           # which is exactly the identity `gitIgnoredAuthors` in renovate.json lists.
-          gh api --method PUT "repos/${{ github.repository }}/contents/NOTICE" \
-            -f message="Update NOTICE for dependency changes" \
-            -F content=@<(base64 -w0 NOTICE) \
-            -f branch="${{ github.event.pull_request.head.ref }}" \
-            -f sha="$(git rev-parse HEAD:NOTICE)"
-          # The Contents API commit re-triggers this workflow; that run finds NOTICE
+          # File contents go through files (--rawfile/--slurpfile), never argv, so a
+          # large regenerated client cannot hit ARG_MAX.
+          work="$(mktemp -d)"
+          : > "$work/additions.jsonl"
+          git diff --cached --name-only --no-renames --diff-filter=AM -z \
+            | while IFS= read -r -d '' path; do
+                base64 -w0 -- "$path" > "$work/blob"
+                jq -n --arg path "$path" --rawfile contents "$work/blob" \
+                  '{path: $path, contents: $contents}' >> "$work/additions.jsonl"
+              done
+          git diff --cached --name-only --no-renames --diff-filter=D -z \
+            | while IFS= read -r -d '' path; do
+                jq -n --arg path "$path" '{path: $path}'
+              done > "$work/deletions.jsonl"
+          git diff --cached --name-only --no-renames > "$work/changed.txt"
+
+          jq -n \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg branch "$HEAD_REF" \
+            --arg head "$(git rev-parse HEAD)" \
+            --arg headline "Update generated files for dependency changes" \
+            --rawfile body "$work/changed.txt" \
+            --slurpfile additions "$work/additions.jsonl" \
+            --slurpfile deletions "$work/deletions.jsonl" \
+            '{
+              query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid url } } }",
+              variables: { input: {
+                branch: { repositoryNameWithOwner: $repo, branchName: $branch },
+                expectedHeadOid: $head,
+                message: { headline: $headline, body: ("Regenerated by renovate-notice.yml:\n\n" + $body) },
+                fileChanges: { additions: $additions, deletions: $deletions }
+              } }
+            }' > "$work/request.json"
+
+          gh api graphql --input "$work/request.json" --jq '.data.createCommitOnBranch.commit.url'
+          # The API commit re-triggers this workflow; that run finds everything
           # up-to-date and exits without committing, so there's no loop.

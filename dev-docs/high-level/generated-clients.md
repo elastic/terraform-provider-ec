@@ -113,6 +113,18 @@ overwritten on the next `make gen`. To change behavior, edit the real inputs ins
 
 then rerun `make gen` and commit the regenerated output.
 
+### Renovate dependency PRs
+
+`oapi-codegen` stamps its own version into the header of `client.gen.go`, so every Renovate bump of
+`github.com/oapi-codegen/*` (and any output change from the `hashicorp` generator bumps) makes
+`make gen` dirty and fails the "Check serverless client is up-to-date" step in
+[`go.yml`](../../.github/workflows/go.yml). Renovate only edits `go.mod`/`go.sum`, so the
+[`renovate-notice.yml`](../../.github/workflows/renovate-notice.yml) workflow runs `make notice`
+and `make gen` on Renovate's PRs and commits whatever changed under `NOTICE` and
+`ec/internal/gen/serverless/` back onto the PR branch as a single verified commit by the Vault bot
+(an author Renovate ignores, so automerge keeps working). Nothing to do by hand; if that run fails,
+run `make gen` locally and push the result to the Renovate branch.
+
 See [`development-workflow.md`](./development-workflow.md) for where this sits in the day-to-day
 workflow and [`contributing.md`](./contributing.md) for PR conventions.
 
