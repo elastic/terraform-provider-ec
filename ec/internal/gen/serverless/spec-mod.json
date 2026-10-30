@@ -252,7 +252,19 @@
                                     "name": "status",
                                     "string": {
                                       "computed_optional_required": "computed",
-                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true."
+                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true.",
+                                      "plan_modifiers": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                                              }
+                                            ],
+                                            "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                                          }
+                                        }
+                                      ]
                                     }
                                   }
                                 ],
@@ -810,7 +822,19 @@
                                     "name": "status",
                                     "string": {
                                       "computed_optional_required": "computed",
-                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true."
+                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true.",
+                                      "plan_modifiers": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                                              }
+                                            ],
+                                            "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                                          }
+                                        }
+                                      ]
                                     }
                                   }
                                 ],
@@ -1342,7 +1366,19 @@
                                     "name": "status",
                                     "string": {
                                       "computed_optional_required": "computed",
-                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true."
+                                      "description": "The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true.",
+                                      "plan_modifiers": [
+                                        {
+                                          "custom": {
+                                            "imports": [
+                                              {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+                                              }
+                                            ],
+                                            "schema_definition": "stringplanmodifier.UseStateForUnknown()"
+                                          }
+                                        }
+                                      ]
                                     }
                                   }
                                 ],
