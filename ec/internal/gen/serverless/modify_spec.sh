@@ -51,9 +51,7 @@ jq '
 # the practitioner sets to optional so an omitted block is a removal, and
 # keep enabled computed_optional: a default on a non-computed attribute fails
 # schema validation. destination stays required. destination.project_type is
-# required and limited to the types project-api accepts. status stays computed
-# and gets UseStateForUnknown so an unrelated update does not plan it as
-# "(known after apply)" when the value is unchanged (matching id/optimized_for).
+# required and limited to the types project-api accepts. status stays computed.
 # ignore_filters is an unordered array of {id}, so replace it with a set of
 # ids and keep the size limit the list validator had.
 jq '
@@ -73,14 +71,6 @@ jq '
                   "custom": {
                     "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"}],
                     "schema_definition": "stringvalidator.OneOf(\n\"observability\",\n\"security\",\n)"
-                  }
-                }]
-            )
-          | (.attributes[] | select(.name=="destination") | .single_nested.attributes[] | select(.name=="status") | .string) |= (
-              .plan_modifiers = [{
-                  "custom": {
-                    "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"}],
-                    "schema_definition": "stringplanmodifier.UseStateForUnknown()"
                   }
                 }]
             )
