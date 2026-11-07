@@ -182,6 +182,54 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 		},
 		{
+			name: "Should convert storage based sizes to memory when counting nodes",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:         new("96g"), // 4g memory with a storage multiplier of 24
+						SizeResource: new("storage"),
+						ZoneCount:    3,
+					},
+				},
+				config:             es.Elasticsearch{},
+				deploymentTemplate: deploymentTemplate(),
+				instanceConfigs:    masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:         new("96g"),
+					SizeResource: new("storage"),
+					ZoneCount:    3,
+				},
+			},
+		},
+		{
+			name: "Should count multiple nodes for a storage based size above the max memory size",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:         new("192g"), // 8g memory with a storage multiplier of 24
+						SizeResource: new("storage"),
+						ZoneCount:    3,
+					},
+				},
+				config:             es.Elasticsearch{},
+				deploymentTemplate: deploymentTemplate(),
+				instanceConfigs:    masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:         new("192g"),
+					SizeResource: new("storage"),
+					ZoneCount:    3,
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					Size:      new("1g"),
+					ZoneCount: 2,
+				},
+			},
+		},
+		{
 			name: "Should not override configured values",
 			args: args{
 				plan: es.Elasticsearch{
@@ -453,9 +501,11 @@ func deploymentTemplate() models.DeploymentTemplateInfoV2 {
 				ID: "hot-ic",
 				DiscreteSizes: &models.DiscreteSizes{
 					DefaultSize: 1024,
+					Resource:    "memory",
 					Sizes:       []int32{1024, 2048, 4096},
 				},
-				MaxZones: 3,
+				MaxZones:          3,
+				StorageMultiplier: 24,
 			},
 			{
 				ID: "warm-ic",
