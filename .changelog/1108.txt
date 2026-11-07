@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Honor `size_resource` when counting nodes to decide whether a dedicated master tier is needed, so storage based sizing no longer adds an unneeded master tier.
+```
