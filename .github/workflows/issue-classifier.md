@@ -38,28 +38,15 @@ on:
           await fn({ github, context, core });
 checkout:
   fetch-depth: 0
-model: "anthropic/claude-sonnet-5"
-engine:
-  id: claude
-  args:
-    - "--effort"
-    - "high"
-  env:
-    ANTHROPIC_BASE_URL: "https://openrouter.ai/api"
-    ANTHROPIC_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-# Disable the per-run AI Credits budget guard. The OpenRouter model slug
-# "anthropic/claude-sonnet-5" may be absent from the AWF api-proxy's built-in
-# pricing table. gh-aw's models.providers frontmatter override does not
-# propagate to apiProxy.defaultAiCreditsPricing
-# (see https://github.com/github/gh-aw/issues/47365, fix pending in
-# https://github.com/github/gh-aw/pull/47571), so with the guard active the
-# proxy could reject every request with HTTP 400 (unknown_model_ai_credits).
-# Setting -1 omits maxAiCredits from the generated AWF config, letting the
-# agent run. The daily guardrail (max-daily-ai-credits, default 5000/day)
-# still applies.
+# Model and engine config is single-sourced in the shared fragment (extract-on-second-use).
+# The AI-credit budget fields stay inline: gh-aw does not honor max-ai-credits /
+# max-daily-ai-credits from an import (it re-enables the fail-closed daily guardrail).
+imports:
+  - shared/inference.md
+# Setting -1 omits maxAiCredits from the generated AWF config (the OpenRouter slug may be absent
+# from the api-proxy pricing table, which would otherwise HTTP 400 every request); the daily
+# guardrail is likewise disabled because it fails closed without resolvable prior AIC usage.
 max-ai-credits: -1
-# The daily guardrail is also disabled: it fails closed ("Daily AIC accounting
-# record could not be resolved") when prior runs lack resolvable AIC usage.
 max-daily-ai-credits: -1
 permissions:
   issues: read

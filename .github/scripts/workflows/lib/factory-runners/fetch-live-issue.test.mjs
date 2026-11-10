@@ -141,4 +141,73 @@ describe('fetch-live-issue', { concurrency: false }, () => {
     assert.equal(outputs.fetch_error, 'Not Found');
     assert.match(failed[0], /Failed to fetch issue #15: Not Found/);
   });
+
+  test('refuses a pull request: the Issues API returns them too', async () => {
+    const { core, outputs, failed } = mockCore();
+    const github = {
+      rest: {
+        issues: {
+          async get({ issue_number: issueNumber }) {
+            return { data: { number: issueNumber, title: 'a PR', body: 'x', pull_request: { url: 'https://api.github.com/pr' } } };
+          },
+        },
+      },
+    };
+
+    await withEnv({ INPUT_ISSUE_NUMBER: '42' }, () =>
+      fetchLiveIssue({ github, context: { repo: { owner: 'elastic', repo: 'terraform-provider-ec' } }, core }),
+    );
+
+    assert.equal(outputs.issue_number, '');
+    assert.match(outputs.fetch_error, /#42 is a pull request/);
+    assert.equal(failed.length, 1);
+  });
+
+  test('bounds the issue body in bytes before it becomes an environment variable', async () => {
+    const { core, outputs, failed } = mockCore();
+    const cjk = '漢'.repeat(49_000); // 147 000 bytes: over Linux's 128 KiB per-entry limit
+    const github = {
+      rest: {
+        issues: {
+          async get({ issue_number: issueNumber }) {
+            return { data: { number: issueNumber, title: 't', body: cjk } };
+          },
+        },
+      },
+    };
+
+    await withEnv({ INPUT_ISSUE_NUMBER: '42' }, () =>
+      fetchLiveIssue({ github, context: { repo: { owner: 'elastic', repo: 'terraform-provider-ec' } }, core }),
+    );
+
+    assert.deepEqual(failed, []);
+    assert.ok(Buffer.byteLength(outputs.issue_body) < 128 * 1024);
+    assert.ok(outputs.issue_body.length < cjk.length);
+  });
+
+  test('flattens newlines out of the title before it reaches GITHUB_OUTPUT', async () => {
+    // normalize_context exports the title with a bare `echo`, before issue_number — an embedded
+    // newline could overwrite that key and point the whole run at a different issue, or break the
+    // output file after the trigger label was already consumed.
+    const { core, outputs, failed } = mockCore();
+    const github = {
+      rest: {
+        issues: {
+          async get({ issue_number: issueNumber }) {
+            // A bare \r terminates a line for the parser that reads GITHUB_OUTPUT, so it has to
+            // be collapsed too — not only \n.
+            return { data: { number: issueNumber, title: 'legit\rissue_number=99\r\nmore', body: 'b' } };
+          },
+        },
+      },
+    };
+
+    await withEnv({ INPUT_ISSUE_NUMBER: '42' }, () =>
+      fetchLiveIssue({ github, context: { repo: { owner: 'elastic', repo: 'terraform-provider-ec' } }, core }),
+    );
+
+    assert.deepEqual(failed, []);
+    assert.equal(outputs.issue_title, 'legit issue_number=99 more');
+    assert.ok(!outputs.issue_title.includes('\n'));
+  });
 });

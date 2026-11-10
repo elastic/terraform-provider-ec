@@ -69,15 +69,55 @@ function sanitizeUserContent(text) {
   return stripInvisibleUnicode(stripControlChars(stripHtmlComments(text)));
 }
 
+/** Upper bound on sanitisation passes. Legitimate content reaches a fixed point on the first. */
+const SANITIZE_FIXED_POINT_MAX_PASSES = 20;
+
 /**
- * Finds the most recently created matching research comment written by
- * <code>github-actions[bot]</code> whose body starts with <code>marker</code>.
+ * Sanitisation for a value that will be <strong>concatenated with others</strong> and sanitized
+ * again downstream — a comment body joined into a multi-author blob, for example.
+ *
+ * {@link sanitizeUserContent} is deliberately a single pass and is not idempotent: removing an
+ * invisible character or an inner comment can reassemble a literal <code>&lt;!--</code> in its
+ * own output (<code>hello &lt;!-&lt;!-- --&gt;-</code> becomes <code>hello &lt;!--</code>). In one
+ * standalone document that residue is inert text, but once it is concatenated the next
+ * sanitisation pass treats it as an unterminated opener and deletes everything after it — one
+ * comment can then erase every later comment and its attribution.
+ *
+ * Running to a fixed point removes that residue: <code>stripHtmlComments</code> strictly shortens
+ * the string whenever it fires, so a surviving <code>&lt;!--</code> would mean the next pass
+ * differs and the fixed point has not been reached. The pass bound keeps a crafted input from
+ * running long; if it is ever hit, every <code>&lt;</code> is dropped so the result still cannot
+ * open a comment.
+ *
+ * @param {string} text
+ * @returns {string} Sanitized text guaranteed to contain no <code>&lt;!--</code>.
+ */
+function sanitizeForConcatenation(text) {
+  let current = typeof text === 'string' ? text : '';
+  for (let pass = 0; pass < SANITIZE_FIXED_POINT_MAX_PASSES; pass++) {
+    const next = sanitizeUserContent(current);
+    if (next === current) break;
+    current = next;
+  }
+  return current.includes('<!--') ? current.replace(/</g, '') : current;
+}
+
+/**
+ * Finds the most recently created matching research comment written by the sticky-comment author
+ * (<code>github-actions[bot]</code> by default) whose body starts with <code>marker</code>.
+ *
+ * Only a comment authored by the bot counts, so a marker-bearing comment from a reporter cannot
+ * displace the real sticky comment.
  *
  * @param {Array<{author: string, body: string}>} comments Ordered oldest-first.
  * @param {string} marker
+ * @param {string} [botLogin] Author of the sticky comment. Callers resolve it as
+ *   <code>env.GH_AW_BOT_LOGIN || 'github-actions[bot]'</code> — with <code>||</code>, never by
+ *   relying on this default, because a set-but-empty env propagates <code>''</code>, which the
+ *   default parameter does not replace and which matches no author.
  * @returns {{author: string, body: string} | null}
  */
-function findResearchComment(comments, marker) {
+function findResearchComment(comments, marker, botLogin = 'github-actions[bot]') {
   if (!Array.isArray(comments)) {
     return null;
   }
@@ -85,7 +125,7 @@ function findResearchComment(comments, marker) {
     (c) =>
       c != null &&
       typeof c.body === 'string' &&
-      (c.author ?? c.user?.login) === 'github-actions[bot]' &&
+      (c.author ?? c.user?.login) === botLogin &&
       c.body.trimStart().startsWith(marker),
   );
   return matches.length > 0 ? matches[matches.length - 1] : null;
@@ -97,6 +137,8 @@ if (typeof module !== 'undefined') {
     stripControlChars,
     stripInvisibleUnicode,
     sanitizeUserContent,
+    sanitizeForConcatenation,
+    SANITIZE_FIXED_POINT_MAX_PASSES,
     findResearchComment,
   };
 }

@@ -95,11 +95,12 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
       per_page: 100,
     });
     assert.equal(outputs.duplicate_pr_found, 'true');
+    assert.equal(outputs.duplicate_pr_contract_match, 'true');
     assert.equal(outputs.duplicate_pr_url, 'https://example.com/pr/101');
     assert.match(outputs.gate_reason, /Closes #42/);
   });
 
-  test('does not treat Related to #N as a code-factory duplicate', async () => {
+  test('still blocks when the linkage does not match the factory mode', async () => {
     const { outputs } = await run({
       factory: 'code-factory',
       eventName: 'issues',
@@ -111,7 +112,11 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
         body: 'Related to #42',
       })],
     });
-    assert.equal(outputs.duplicate_pr_found, 'false');
+    assert.equal(outputs.duplicate_pr_found, 'true');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
+    assert.equal(outputs.duplicate_pr_url, 'https://example.com/pr/102');
+    assert.match(outputs.gate_reason, /Refusing to open a second pull request: PR #102/);
+    assert.match(outputs.gate_reason, /Closes #42/);
   });
 
   test('suppresses a re-run when an open change-factory PR uses Related to #N', async () => {
@@ -129,10 +134,11 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
 
     assert.equal(calls[0].params.head, 'elastic:change-factory/issue-7');
     assert.equal(outputs.duplicate_pr_found, 'true');
+    assert.equal(outputs.duplicate_pr_contract_match, 'true');
     assert.match(outputs.gate_reason, /Related to #7/);
   });
 
-  test('does not treat Closes #N as a change-factory duplicate', async () => {
+  test('blocks a change-factory branch PR whose body is missing the literal linkage', async () => {
     const { outputs } = await run({
       factory: 'change-factory',
       eventName: 'issues',
@@ -144,7 +150,14 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
         body: 'Closes #7',
       })],
     });
-    assert.equal(outputs.duplicate_pr_found, 'false');
+    assert.equal(outputs.duplicate_pr_found, 'true');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
+    assert.equal(outputs.duplicate_pr_url, 'https://example.com/pr/202');
+    assert.match(
+      outputs.gate_reason,
+      /Refusing to open a second pull request: PR #202 .* is already open on branch 'change-factory\/issue-7'/,
+    );
+    assert.match(outputs.gate_reason, /'Related to #7'/);
   });
 
   test('reads the issue number from workflow_dispatch inputs', async () => {
@@ -163,7 +176,9 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
     assert.equal(outputs.duplicate_pr_found, 'true');
   });
 
-  test('ignores an open PR on the factory branch that lacks the factory label', async () => {
+  // Fail closed: stripping the label is an ordinary triage action, and the workflow force-recreates
+  // the branch ref — so a bare branch match has to block even though it is not a contract match.
+  test('blocks an open PR on the factory branch that lacks the factory label', async () => {
     const { outputs } = await run({
       factory: 'code-factory',
       eventName: 'issues',
@@ -177,7 +192,64 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
         html_url: 'https://example.com/pr/103',
       }],
     });
+    assert.equal(outputs.duplicate_pr_found, 'true');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
+    assert.equal(outputs.duplicate_pr_url, 'https://example.com/pr/103');
+    assert.match(outputs.gate_reason, /does not carry the 'code-factory' label/);
+  });
+
+  test('reports no duplicate when nothing is open on the expected branch', async () => {
+    const { outputs } = await run({
+      factory: 'change-factory',
+      eventName: 'issues',
+      payload: { issue: { number: 7 } },
+      pulls: [],
+    });
     assert.equal(outputs.duplicate_pr_found, 'false');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
+    assert.equal(outputs.duplicate_pr_url, '');
+    assert.equal(
+      outputs.gate_reason,
+      "No open pull request found on branch 'change-factory/issue-7' for issue #7.",
+    );
+  });
+
+  // The defensive re-assert, not the API filter, is what rejects this row.
+  test('ignores a row whose head branch does not match the expected branch', async () => {
+    const { outputs } = await run({
+      factory: 'change-factory',
+      eventName: 'issues',
+      payload: { issue: { number: 7 } },
+      pulls: [pull({
+        number: 203,
+        ref: 'change-factory/issue-70',
+        label: 'change-factory',
+        body: 'Related to #7',
+      })],
+    });
+    assert.equal(outputs.duplicate_pr_found, 'false');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
+    assert.equal(outputs.duplicate_pr_url, '');
+  });
+
+  // Same guard for state: a closed PR on the branch must not block, because recreate-ref is safe
+  // once no open PR stands on the ref.
+  test('ignores a closed PR on the expected branch', async () => {
+    const { outputs } = await run({
+      factory: 'change-factory',
+      eventName: 'issues',
+      payload: { issue: { number: 7 } },
+      pulls: [{
+        number: 204,
+        state: 'closed',
+        head: { ref: 'change-factory/issue-7' },
+        labels: [{ name: 'change-factory' }],
+        body: 'Related to #7',
+        html_url: 'https://example.com/pr/204',
+      }],
+    });
+    assert.equal(outputs.duplicate_pr_found, 'false');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
   });
 
   test('skips the API when no issue number is available', async () => {
@@ -189,6 +261,7 @@ describe('check-duplicate-pr', { concurrency: false }, () => {
     });
     assert.equal(calls.length, 0);
     assert.equal(outputs.duplicate_pr_found, 'false');
+    assert.equal(outputs.duplicate_pr_contract_match, 'false');
     assert.equal(outputs.duplicate_pr_url, '');
     assert.match(outputs.gate_reason, /No issue number/);
   });

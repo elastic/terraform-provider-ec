@@ -18,6 +18,7 @@
 package projectresource
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -172,8 +173,13 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
 	createBody.Linked = expandLinkedForCreateSecurity(model)
+	monitoringView, monitoringDiags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if monitoringDiags.HasError() {
+		return model, monitoringDiags
+	}
+	createBody.Monitoring = expandMonitoringForCreate(monitoringView)
 
-	resp, err := sec.client.CreateSecurityProjectWithResponse(ctx, createBody)
+	resp, err := sec.client.CreateSecurityProjectWithResponse(ctx, nil, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -238,7 +244,7 @@ func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_
 	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
 	updateBody.Linked = expandLinkedForPatchSecurity(plan, state)
 
-	resp, err := sec.client.PatchSecurityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+	resp, err := patchSecurity(ctx, sec, plan, state, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -433,7 +439,54 @@ func (sec securityApi) Read(ctx context.Context, id string, model resource_secur
 	}
 	model.SearchLake = searchLake
 
+	model, monDiags := setSecurityMonitoring(ctx, model, resp.JSON200.Monitoring)
+	if monDiags.HasError() {
+		return false, model, monDiags
+	}
+
 	return true, model, nil
+}
+
+func patchSecurity(ctx context.Context, sec securityApi, plan, state resource_security_project.SecurityProjectModel, updateBody serverless.PatchSecurityProjectRequest) (*serverless.PatchSecurityProjectResponse, error) {
+	planView, planDiags := monitoringFrom(ctx, plan.Monitoring.IsNull(), plan.Monitoring.Logging)
+	if err := firstError(planDiags); err != nil {
+		return nil, err
+	}
+	stateView, stateDiags := monitoringFrom(ctx, state.Monitoring.IsNull(), state.Monitoring.Logging)
+	if err := firstError(stateDiags); err != nil {
+		return nil, err
+	}
+	patch, err := auditPatchFor(planView, stateView)
+	if err != nil {
+		return nil, err
+	}
+	if patch.useRaw() {
+		raw, err := mergeMonitoringField(updateBody, patch.raw)
+		if err != nil {
+			return nil, err
+		}
+		return sec.client.PatchSecurityProjectWithBodyWithResponse(ctx, plan.Id.ValueString(), nil, "application/json", bytes.NewReader(raw))
+	}
+	updateBody.Monitoring = patch.typed
+	return sec.client.PatchSecurityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+}
+
+func setSecurityMonitoring(ctx context.Context, model resource_security_project.SecurityProjectModel, api *serverless.Monitoring) (resource_security_project.SecurityProjectModel, diag.Diagnostics) {
+	monitoringView, diags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if diags.HasError() {
+		return model, diags
+	}
+	obj, flattenDiags := flattenMonitoring(model.Monitoring.AttributeTypes(ctx), monitoringView, api)
+	diags.Append(flattenDiags...)
+	if diags.HasError() {
+		return model, diags
+	}
+	if obj.IsNull() {
+		model.Monitoring = resource_security_project.NewMonitoringValueNull()
+		return model, nil
+	}
+	model.Monitoring, diags = resource_security_project.NewMonitoringValue(obj.AttributeTypes(ctx), obj.Attributes())
+	return model, diags
 }
 
 func securitySearchLakeValueFromAPI(ctx context.Context, model resource_security_project.SecurityProjectModel, apiSL *serverless.SecuritySearchLake) (resource_security_project.SearchLakeValue, diag.Diagnostics) {
