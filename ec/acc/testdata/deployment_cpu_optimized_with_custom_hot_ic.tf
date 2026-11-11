@@ -12,6 +12,7 @@ resource "ec_deployment" "cpu_optimized" {
   elasticsearch = {
     hot = {
       instance_configuration_id = "aws.es.datahot.m5d"
+      size                      = "2g"
       autoscaling               = {}
     }
   }
