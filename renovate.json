@@ -13,6 +13,18 @@
   "ignorePaths": [
     ".github/workflows/*.lock.yml"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Terraform CLI and hc-install versions pinned in the Buildkite acceptance script",
+      "managerFilePatterns": [
+        "/^\\.buildkite/acceptance\\.sh$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>[^\\s]+)\\n[A-Z_]+=\"?(?<currentValue>[^\"\\s]+)\"?"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "groupName": "github.com/oapi-codegen dependencies",
