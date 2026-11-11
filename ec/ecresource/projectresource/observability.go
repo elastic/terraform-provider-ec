@@ -18,6 +18,7 @@
 package projectresource
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -139,8 +140,13 @@ func (obs observabilityApi) Create(ctx context.Context, model resource_observabi
 	}
 
 	createBody.Linked = expandLinkedForCreateObservability(model)
+	monitoringView, monitoringDiags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if monitoringDiags.HasError() {
+		return model, monitoringDiags
+	}
+	createBody.Monitoring = expandMonitoringForCreate(monitoringView)
 
-	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, createBody)
+	resp, err := obs.client.CreateObservabilityProjectWithResponse(ctx, nil, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -217,7 +223,7 @@ func (obs observabilityApi) Patch(ctx context.Context, plan, state resource_obse
 
 	updateBody.Linked = expandLinkedForPatchObservability(plan, state)
 
-	resp, err := obs.client.PatchObservabilityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+	resp, err := patchObservability(ctx, obs, plan, state, updateBody)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -364,7 +370,54 @@ func (obs observabilityApi) Read(ctx context.Context, id string, model resource_
 		model.ProductTier = basetypes.NewStringValue(string(serverless.ObservabilityProjectProductTierComplete))
 	}
 
+	model, monDiags := setObservabilityMonitoring(ctx, model, resp.JSON200.Monitoring)
+	if monDiags.HasError() {
+		return false, model, monDiags
+	}
+
 	return true, model, nil
+}
+
+func patchObservability(ctx context.Context, obs observabilityApi, plan, state resource_observability_project.ObservabilityProjectModel, updateBody serverless.PatchObservabilityProjectRequest) (*serverless.PatchObservabilityProjectResponse, error) {
+	planView, planDiags := monitoringFrom(ctx, plan.Monitoring.IsNull(), plan.Monitoring.Logging)
+	if err := firstError(planDiags); err != nil {
+		return nil, err
+	}
+	stateView, stateDiags := monitoringFrom(ctx, state.Monitoring.IsNull(), state.Monitoring.Logging)
+	if err := firstError(stateDiags); err != nil {
+		return nil, err
+	}
+	patch, err := auditPatchFor(planView, stateView)
+	if err != nil {
+		return nil, err
+	}
+	if patch.useRaw() {
+		raw, err := mergeMonitoringField(updateBody, patch.raw)
+		if err != nil {
+			return nil, err
+		}
+		return obs.client.PatchObservabilityProjectWithBodyWithResponse(ctx, plan.Id.ValueString(), nil, "application/json", bytes.NewReader(raw))
+	}
+	updateBody.Monitoring = patch.typed
+	return obs.client.PatchObservabilityProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+}
+
+func setObservabilityMonitoring(ctx context.Context, model resource_observability_project.ObservabilityProjectModel, api *serverless.Monitoring) (resource_observability_project.ObservabilityProjectModel, diag.Diagnostics) {
+	monitoringView, diags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if diags.HasError() {
+		return model, diags
+	}
+	obj, flattenDiags := flattenMonitoring(model.Monitoring.AttributeTypes(ctx), monitoringView, api)
+	diags.Append(flattenDiags...)
+	if diags.HasError() {
+		return model, diags
+	}
+	if obj.IsNull() {
+		model.Monitoring = resource_observability_project.NewMonitoringValueNull()
+		return model, nil
+	}
+	model.Monitoring, diags = resource_observability_project.NewMonitoringValue(obj.AttributeTypes(ctx), obj.Attributes())
+	return model, diags
 }
 
 func (obs observabilityApi) Delete(ctx context.Context, model resource_observability_project.ObservabilityProjectModel) diag.Diagnostics {

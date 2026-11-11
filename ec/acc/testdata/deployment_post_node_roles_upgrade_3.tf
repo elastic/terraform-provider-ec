@@ -1,5 +1,5 @@
 data "ec_stack" "post_node_roles_upgrade" {
-  version_regex = "7.17.?"
+  version_regex = "^7\\.17\\.\\d{1,2}$"
   region        = "%s"
 }
 

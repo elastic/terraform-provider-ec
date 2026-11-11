@@ -159,6 +159,7 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 					state.Endpoints.AttributeTypes(context.Background()),
 					map[string]attr.Value{
 						"elasticsearch": basetypes.NewStringValue("es"),
+						"ingest":        basetypes.NewStringValue("ingest"),
 						"kibana":        basetypes.NewStringValue("kibana"),
 					},
 				)
@@ -219,6 +220,7 @@ func TestElasticsearchModelReader_Modify(t *testing.T) {
 					state.PrivateEndpoints.AttributeTypes(context.Background()),
 					map[string]attr.Value{
 						"elasticsearch": basetypes.NewStringValue("private-es"),
+						"ingest":        basetypes.NewStringValue("private-ingest"),
 						"kibana":        basetypes.NewStringValue("private-kib"),
 					},
 				)
@@ -359,7 +361,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 			name: "should fail when the api returns an error",
 			testData: func(ctx context.Context) testData {
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any()).Return(
+				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any(), gomock.Any()).Return(
 					nil,
 					assert.AnError,
 				)
@@ -383,7 +385,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 					Body: []byte("api call failed"),
 				}
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any()).Return(
+				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any(), gomock.Any()).Return(
 					failedResponse,
 					nil,
 				)
@@ -426,7 +428,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 					},
 				)
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, serverless.CreateElasticsearchProjectRequest{
+				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any(), serverless.CreateElasticsearchProjectRequest{
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 				}).Return(
@@ -478,7 +480,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 				)
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, serverless.CreateElasticsearchProjectRequest{
+				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any(), serverless.CreateElasticsearchProjectRequest{
 					Name:         initialModel.Name.ValueString(),
 					RegionId:     initialModel.RegionId.ValueString(),
 					Alias:        initialModel.Alias.ValueStringPointer(),
@@ -542,7 +544,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 				)
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, serverless.CreateElasticsearchProjectRequest{
+				mockApiClient.EXPECT().CreateElasticsearchProjectWithResponse(ctx, gomock.Any(), serverless.CreateElasticsearchProjectRequest{
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 					Metadata: &serverless.ProjectMetadataRequest{
@@ -1087,6 +1089,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 						},
 					),
@@ -1175,6 +1178,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 						},
 					),
@@ -1260,6 +1264,7 @@ func TestElasticsearchApi_Read(t *testing.T) {
 						initialModel.Endpoints.AttributeTypes(ctx),
 						map[string]attr.Value{
 							"elasticsearch": basetypes.NewStringValue(readModel.Endpoints.Elasticsearch),
+							"ingest":        basetypes.NewStringValue(readModel.Endpoints.Ingest),
 							"kibana":        basetypes.NewStringValue(readModel.Endpoints.Kibana),
 						},
 					),
