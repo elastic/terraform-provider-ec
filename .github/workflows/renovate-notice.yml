@@ -18,6 +18,12 @@ name: Update generated files for Renovate PRs
 # contents:write-scoped token via Vault OIDC (elastic/ci-gh-actions/fetch-github-token);
 # a commit made with it is treated like a normal actor and DOES re-trigger checks.
 #
+# Token hygiene: `make gen` and `make notice` execute generator and licence tooling
+# at whatever versions the Renovate PR pins, i.e. third-party code we have not
+# reviewed yet. The Vault token is therefore minted only after those steps and is
+# never persisted by actions/checkout, so it is reachable solely from the commit
+# step's GH_TOKEN env.
+#
 # This replaces the abandoned Renovate `postUpgradeTasks` approach, which required
 # allowlisting `make notice` in elastic/renovate-workflows-base — frozen by InfoSec.
 #
@@ -61,22 +67,18 @@ jobs:
     # Only act on Renovate's own PRs.
     if: github.event.pull_request.user.login == 'elastic-renovate-prod[bot]'
     steps:
-      # Mint a short-lived GitHub token from Vault via the workflow's own OIDC
-      # identity. Scope (contents:write, this repo, renovate/* branches) is defined
-      # by the TokenPolicy, not here.
-      - name: Fetch ephemeral GitHub token
-        id: fetch-token
-        uses: elastic/ci-gh-actions/fetch-github-token@2feb1c6f5086cf8e06f61ef35e275abed3456f7b # v1.5.3
-        with:
-          vault-instance: "ci-prod"
-
+      # Renovate branches live in this repo, so the default read-only GITHUB_TOKEN
+      # is enough to check them out. The Vault token is minted later, right before
+      # the commit step, and is never handed to checkout: the commit is made
+      # through the API with GH_TOKEN, so checkout needs no write credentials.
       - name: Check out PR branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          # Check out with the Vault-minted token so the fix-up commit is authored by
-          # the vault bot and therefore re-triggers required checks + automerge.
-          token: ${{ steps.fetch-token.outputs.token }}
+          # Do not leave any token in .git/config: everything after this step
+          # (go generate, the license-header tooling) runs third-party code at the
+          # versions Renovate just bumped.
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@v7
@@ -98,6 +100,17 @@ jobs:
           go mod tidy
           make notice
           make gen
+
+      # Mint a short-lived GitHub token from Vault via the workflow's own OIDC
+      # identity. Scope (contents:write, this repo, renovate/* branches) is defined
+      # by the TokenPolicy, not here. Minted only now, after every step that runs
+      # Renovate-bumped tool code, so a compromised dependency release has no
+      # token to find; it is exposed to the commit step alone via GH_TOKEN.
+      - name: Fetch ephemeral GitHub token
+        id: fetch-token
+        uses: elastic/ci-gh-actions/fetch-github-token@2feb1c6f5086cf8e06f61ef35e275abed3456f7b # v1.5.3
+        with:
+          vault-instance: "ci-prod"
 
       - name: Commit regenerated files if changed
         env:
