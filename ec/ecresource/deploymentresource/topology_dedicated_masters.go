@@ -35,6 +35,11 @@ import (
 
 var objectAsOptions = basetypes.ObjectAsOptions{UnhandledNullAsEmpty: false, UnhandledUnknownAsEmpty: false}
 
+const (
+	memoryResource  = "memory"
+	storageResource = "storage"
+)
+
 func UpdateDedicatedMasterTier(
 	ctx context.Context,
 	config tfsdk.Config,
@@ -137,7 +142,7 @@ func masterTierIsEnabled(ctx context.Context, planElasticsearch es.Elasticsearch
 		return false
 	}
 
-	size, zoneCount := getSizeAndZoneCount(ctx, "master", planElasticsearch.MasterTier, template)
+	size, _, zoneCount := getSizeAndZoneCount(ctx, "master", planElasticsearch.MasterTier, template)
 
 	return size > 0 && zoneCount > 0
 }
@@ -216,12 +221,20 @@ func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, templat
 			continue
 		}
 
-		size, zoneCount := getSizeAndZoneCount(ctx, topologyId, rawTopology, template)
+		size, sizeResource, zoneCount := getSizeAndZoneCount(ctx, topologyId, rawTopology, template)
 
 		// Calculate if there are >1 nodes in each zone:
 		// If the size is > the maximum size allowed in the zone, more nodes are added to reach the desired size.
 		instanceConfig := getTemplateInstanceConfiguration(template, topologyId)
 		maxSize := getMaxSize(instanceConfig)
+		// The discrete sizes of the instance configuration are expressed in a single resource (usually memory),
+		// so the topology size has to be converted to that resource before comparing them.
+		// Only convert when the tier runs on the template instance configuration: the multiplier of any other
+		// configuration is unknown here, and skipping the conversion over-counts, which keeps dedicated masters
+		// rather than removing them by mistake.
+		if tierUsesInstanceConfig(ctx, rawTopology, instanceConfig) {
+			size = convertSizeToInstanceConfigResource(size, sizeResource, instanceConfig)
+		}
 		var nodesPerZone int32
 		if size < maxSize || maxSize == 0 {
 			nodesPerZone = 1
@@ -242,25 +255,29 @@ func getSizeAndZoneCount(
 	topologyId string,
 	rawTopology types.Object,
 	template models.DeploymentTemplateInfoV2,
-) (int32, int32) {
+) (int32, string, int32) {
 	var topology es.ElasticsearchTopologyTF
 	diags := rawTopology.As(ctx, &topology, objectAsOptions)
 	if diags.HasError() {
 		tflog.Debug(ctx, "getSizeAndZoneCount: Failed to read topology.", withDiags(diags))
-		return 0, 0
+		return 0, "", 0
 	}
 
 	var size int32
+	var sizeResource string
 	if !topology.Size.IsUnknown() && !topology.Size.IsNull() {
 		var err error
 		size, err = deploymentsize.ParseGb(topology.Size.ValueString())
 		if err != nil {
 			tflog.Debug(ctx, "getSizeAndZoneCount: Failed to parse topology size.", withError(err))
-			return 0, 0
+			return 0, "", 0
+		}
+		if !topology.SizeResource.IsUnknown() && !topology.SizeResource.IsNull() {
+			sizeResource = topology.SizeResource.ValueString()
 		}
 	} else {
 		// Fall back to template value
-		size = getTopologySize(template, topologyId)
+		size, sizeResource = getTopologySize(template, topologyId)
 	}
 
 	var zoneCount int32
@@ -271,7 +288,7 @@ func getSizeAndZoneCount(
 		zoneCount = getTopologyZoneCount(template, topologyId)
 	}
 
-	return size, zoneCount
+	return size, sizeResource, zoneCount
 }
 
 // If the instance-config-id is set in the topology, loads that specific IC via API
@@ -358,21 +375,78 @@ func getMaxSize(ic *models.InstanceConfigurationInfo) int32 {
 	return maxSize
 }
 
-func getTopologySize(template models.DeploymentTemplateInfoV2, tier string) int32 {
+// convertSizeToInstanceConfigResource converts a topology size (in MB) expressed in sizeResource
+// into the resource used by the discrete sizes of the instance configuration, using the
+// instance configuration storage multiplier. An empty resource is treated as memory.
+func convertSizeToInstanceConfigResource(size int32, sizeResource string, ic *models.InstanceConfigurationInfo) int32 {
+	if ic == nil || ic.StorageMultiplier <= 0 {
+		return size
+	}
+
+	icResource := memoryResource
+	if ic.DiscreteSizes != nil && ic.DiscreteSizes.Resource != "" {
+		icResource = ic.DiscreteSizes.Resource
+	}
+	if sizeResource == "" {
+		sizeResource = memoryResource
+	}
+
+	switch {
+	case sizeResource == icResource:
+		return size
+	case sizeResource == storageResource && icResource == memoryResource:
+		return int32(float64(size) / ic.StorageMultiplier)
+	case sizeResource == memoryResource && icResource == storageResource:
+		return int32(float64(size) * ic.StorageMultiplier)
+	default:
+		return size
+	}
+}
+
+// tierUsesInstanceConfig reports whether the tier runs on the given instance configuration.
+// An unknown instance_configuration_id means the tier will move to the template configuration
+// (create, new tier, template change, or migrate_to_latest_hardware with a migration available);
+// a null one (none reported by the API) falls back to the template configuration.
+func tierUsesInstanceConfig(ctx context.Context, rawTopology types.Object, ic *models.InstanceConfigurationInfo) bool {
+	if ic == nil {
+		return false
+	}
+	var topology es.ElasticsearchTopologyTF
+	if diags := rawTopology.As(ctx, &topology, objectAsOptions); diags.HasError() {
+		return false
+	}
+	if topology.InstanceConfigurationId.IsNull() || topology.InstanceConfigurationId.IsUnknown() {
+		return true
+	}
+	if topology.InstanceConfigurationId.ValueString() != ic.ID {
+		return false
+	}
+	if topology.InstanceConfigurationVersion.IsUnknown() {
+		return true
+	}
+	// The API reads an unset version back as version 0 (or an unversioned configuration).
+	return int32(topology.InstanceConfigurationVersion.ValueInt64()) == ic.ConfigVersion
+}
+
+func getTopologySize(template models.DeploymentTemplateInfoV2, tier string) (int32, string) {
 	if len(template.DeploymentTemplate.Resources.Elasticsearch) == 0 {
-		return 0
+		return 0, ""
 	}
 
 	elasticsearch := template.DeploymentTemplate.Resources.Elasticsearch[0]
 	for _, topology := range elasticsearch.Plan.ClusterTopology {
 		if topology.ID == tier {
 			if topology.Size == nil || topology.Size.Value == nil {
-				return 0
+				return 0, ""
 			}
-			return *topology.Size.Value
+			var resource string
+			if topology.Size.Resource != nil {
+				resource = *topology.Size.Resource
+			}
+			return *topology.Size.Value, resource
 		}
 	}
-	return 0
+	return 0, ""
 }
 
 func getTopologyZoneCount(template models.DeploymentTemplateInfoV2, tier string) int32 {
