@@ -229,7 +229,12 @@ func countNodesInCluster(ctx context.Context, esPlan es.ElasticsearchTF, templat
 		maxSize := getMaxSize(instanceConfig)
 		// The discrete sizes of the instance configuration are expressed in a single resource (usually memory),
 		// so the topology size has to be converted to that resource before comparing them.
-		size = convertSizeToInstanceConfigResource(size, sizeResource, instanceConfig)
+		// Only convert when the tier runs on the template instance configuration: the multiplier of any other
+		// configuration is unknown here, and skipping the conversion over-counts, which keeps dedicated masters
+		// rather than removing them by mistake.
+		if tierUsesInstanceConfig(ctx, rawTopology, instanceConfig) {
+			size = convertSizeToInstanceConfigResource(size, sizeResource, instanceConfig)
+		}
 		var nodesPerZone int32
 		if size < maxSize || maxSize == 0 {
 			nodesPerZone = 1
@@ -396,6 +401,31 @@ func convertSizeToInstanceConfigResource(size int32, sizeResource string, ic *mo
 	default:
 		return size
 	}
+}
+
+// tierUsesInstanceConfig reports whether the tier runs on the given instance configuration.
+// An unknown instance_configuration_id means the tier will move to the template configuration
+// (create, new tier, template change, or migrate_to_latest_hardware with a migration available);
+// a null one (none reported by the API) falls back to the template configuration.
+func tierUsesInstanceConfig(ctx context.Context, rawTopology types.Object, ic *models.InstanceConfigurationInfo) bool {
+	if ic == nil {
+		return false
+	}
+	var topology es.ElasticsearchTopologyTF
+	if diags := rawTopology.As(ctx, &topology, objectAsOptions); diags.HasError() {
+		return false
+	}
+	if topology.InstanceConfigurationId.IsNull() || topology.InstanceConfigurationId.IsUnknown() {
+		return true
+	}
+	if topology.InstanceConfigurationId.ValueString() != ic.ID {
+		return false
+	}
+	if topology.InstanceConfigurationVersion.IsUnknown() {
+		return true
+	}
+	// The API reads an unset version back as version 0 (or an unversioned configuration).
+	return int32(topology.InstanceConfigurationVersion.ValueInt64()) == ic.ConfigVersion
 }
 
 func getTopologySize(template models.DeploymentTemplateInfoV2, tier string) (int32, string) {
