@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment: Skip the remote-clusters update when the planned remote_cluster set matches the prior state, so an apply without a remote_cluster block no longer clears remote clusters that are not tracked in state
+```
