@@ -44,7 +44,7 @@ make vendor
 # renovate: datasource=github-releases depName=hashicorp/terraform
 TERRAFORM_VERSION="1.17.1"
 # renovate: datasource=go depName=github.com/hashicorp/hc-install
-HC_INSTALL_VERSION="v0.9.4"
+HC_INSTALL_VERSION="v0.10.0"
 
 echo "--- Install Terraform ${TERRAFORM_VERSION}"
 terraform_dir="$(mktemp -d)"
