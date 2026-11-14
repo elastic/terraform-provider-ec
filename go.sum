@@ -1124,8 +1124,8 @@ gitlab.com/gitlab-org/api/client-go v1.46.0 h1:YxBWFZIFYKcGESCb9fpkwzouo+apyB9pr
 gitlab.com/gitlab-org/api/client-go v1.46.0/go.mod h1:FtgyU6g2HS5+fMhw6nLK96GBEEBx5MzntOiJWfIaiN8=
 go.abhg.dev/goldmark/frontmatter v0.2.0 h1:P8kPG0YkL12+aYk2yU3xHv4tcXzeVnN+gU0tJ5JnxRw=
 go.abhg.dev/goldmark/frontmatter v0.2.0/go.mod h1:XqrEkZuM57djk7zrlRUB02x8I5J0px76YjkOzhB4YlU=
-go.elastic.co/go-licence-detector v0.11.0 h1:XE+tGhY5f8tdtAczz9xk1uM17qw2iEEHbRUA3Q+lNRg=
-go.elastic.co/go-licence-detector v0.11.0/go.mod h1:S0eXCzealuNbvQXp9gb1xhIEfjOGn7zCS24CRpTQG44=
+go.elastic.co/go-licence-detector v0.11.1 h1:UGw78bu/hzsnL78yfOnSJ16SLL98ZLAiD/tjS3oJWZk=
+go.elastic.co/go-licence-detector v0.11.1/go.mod h1:S0eXCzealuNbvQXp9gb1xhIEfjOGn7zCS24CRpTQG44=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/contrib/bridges/prometheus v0.63.0 h1:/Rij/t18Y7rUayNg7Id6rPrEnHgorxYabm2E6wUdPP4=
