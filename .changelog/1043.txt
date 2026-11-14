@@ -1,0 +1,3 @@
+```release-note:bug
+data/ec_stack: allow matching deleted stack versions if explicit version is passed
+```
