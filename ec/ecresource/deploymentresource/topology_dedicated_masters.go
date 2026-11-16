@@ -407,6 +407,9 @@ func convertSizeToInstanceConfigResource(size int32, sizeResource string, ic *mo
 // An unknown instance_configuration_id means the tier will move to the template configuration
 // (create, new tier, template change, or migrate_to_latest_hardware with a migration available);
 // a null one (none reported by the API) falls back to the template configuration.
+// In both cases, unless instance_configuration_version is pinned to a different version than the
+// template configuration's: the payload then sends the template ID at the pinned version, whose
+// storage multiplier is unknown here.
 func tierUsesInstanceConfig(ctx context.Context, rawTopology types.Object, ic *models.InstanceConfigurationInfo) bool {
 	if ic == nil {
 		return false
@@ -416,7 +419,9 @@ func tierUsesInstanceConfig(ctx context.Context, rawTopology types.Object, ic *m
 		return false
 	}
 	if topology.InstanceConfigurationId.IsNull() || topology.InstanceConfigurationId.IsUnknown() {
-		return true
+		return topology.InstanceConfigurationVersion.IsNull() ||
+			topology.InstanceConfigurationVersion.IsUnknown() ||
+			int32(topology.InstanceConfigurationVersion.ValueInt64()) == ic.ConfigVersion
 	}
 	if topology.InstanceConfigurationId.ValueString() != ic.ID {
 		return false

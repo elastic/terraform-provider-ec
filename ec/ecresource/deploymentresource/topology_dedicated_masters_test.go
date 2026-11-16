@@ -346,6 +346,58 @@ func TestUpdateDedicatedMasterTier(t *testing.T) {
 			},
 		},
 		{
+			name: "Should not convert storage based sizes when only a different instance configuration version is pinned",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:                         new("96g"),
+						SizeResource:                 new("storage"),
+						ZoneCount:                    3,
+						InstanceConfigurationVersion: new(1),
+					},
+				},
+				config:             es.Elasticsearch{},
+				deploymentTemplate: deploymentTemplate(),
+				instanceConfigs:    masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:                         new("96g"),
+					SizeResource:                 new("storage"),
+					ZoneCount:                    3,
+					InstanceConfigurationVersion: new(1),
+				},
+				MasterTier: &es.ElasticsearchTopology{
+					Size:      new("1g"),
+					ZoneCount: 2,
+				},
+			},
+		},
+		{
+			name: "Should convert storage based sizes when only the template instance configuration version is pinned",
+			args: args{
+				plan: es.Elasticsearch{
+					HotTier: &es.ElasticsearchTopology{
+						Size:                         new("96g"),
+						SizeResource:                 new("storage"),
+						ZoneCount:                    3,
+						InstanceConfigurationVersion: new(0),
+					},
+				},
+				config:             es.Elasticsearch{},
+				deploymentTemplate: deploymentTemplate(),
+				instanceConfigs:    masterInstanceConfig(),
+			},
+			expectedPlan: es.Elasticsearch{
+				HotTier: &es.ElasticsearchTopology{
+					Size:                         new("96g"),
+					SizeResource:                 new("storage"),
+					ZoneCount:                    3,
+					InstanceConfigurationVersion: new(0),
+				},
+			},
+		},
+		{
 			name: "Should not override configured values",
 			args: args{
 				plan: es.Elasticsearch{
