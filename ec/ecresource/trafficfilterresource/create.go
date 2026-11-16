@@ -58,9 +58,8 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 	newState.ID = types.StringValue(*res.ID)
 
 	found, diags := r.readAfterMutate.UntilFound(ctx, func(ctx context.Context) (bool, diag.Diagnostics) {
-		return r.readRetryable(ctx, newState.ID.ValueString(), &newState)
+		return r.readAfterCreate(ctx, newState.ID.ValueString(), &newState)
 	})
-	found, diags = missingIfForbidden(found, diags)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return

@@ -143,14 +143,37 @@ func TestResourceTrafficFilter_serverErrorAfterCreate(t *testing.T) {
 	})
 }
 
-func TestResourceTrafficFilter_forbiddenAfterCreateIsNotRetried(t *testing.T) {
+func TestResourceTrafficFilter_retryForbiddenAfterCreate(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				forbiddenReadResponse("false"),
+				forbiddenReadResponse("false"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				readResponse("true", "true"),
+				deleteResponse(),
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{
+				Config: trafficFilter,
+				Check:  checkResource("true"),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_forbiddenAfterCreate(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
 			api.NewMock(
 				createResponse("true"),
 				forbiddenReadResponse("false"),
 			),
-			util.ImmediateRetry(time.Second),
+			util.NoRetry(),
 		),
 		Steps: []r.TestStep{
 			{
