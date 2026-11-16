@@ -73,8 +73,8 @@ accumulate on `master`. The release-prep PR itself needs a `.changelog/{PR}.txt`
 
 Regenerate the third-party `NOTICE` with `make notice` (it runs `go-licence-detector` over the
 module graph). On Renovate dependency PRs this is done automatically by the
-[`renovate-notice.yml`](../.github/workflows/renovate-notice.yml) workflow, so `NOTICE` is usually
-already current by release time — but verify.
+[`renovate-notice.yml`](../.github/workflows/renovate-notice.yml) workflow (which also regenerates
+the serverless client), so `NOTICE` is usually already current by release time — but verify.
 
 ## Executing the release
 
