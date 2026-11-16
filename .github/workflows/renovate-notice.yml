@@ -45,10 +45,12 @@ name: Update generated files for Renovate PRs
 # release can put anything there (now including Go source: client.gen.go,
 # mocks, framework schema code); go.yml re-validates with the same generator
 # version, approve-renovate.yml auto-approves Renovate PRs that have auto-merge
-# on, and renovate.json enables auto-merge for every non-major bump. So on a
-# minor/patch bump of a generator there is NO human review of the regenerated
-# source before it merges. The lever for that is renovate.json (e.g. no
-# automerge for the oapi-codegen and hashicorp groups), not this workflow.
+# on, and renovate.json enables auto-merge for non-major bumps. The only thing
+# that puts a human in front of regenerated source is the "serverless client
+# generators" rule in renovate.json, which turns automerge off for the four
+# modules whose bump changes what `make gen` emits (oapi-codegen/v2, the two
+# tfplugingen generators, mockgen). Keep that rule in step with the go:generate
+# chain in ec/internal/gen/serverless/serverless.go.
 #
 # Token scope: the TokenPolicy grants `contents: write` on the whole repository
 # (installation tokens cannot be branch-scoped; only branch protection and
