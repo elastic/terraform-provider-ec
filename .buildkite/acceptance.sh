@@ -42,7 +42,7 @@ make vendor
 # hc-install resolves that exact path and never downloads. Both pins are bumped by Renovate
 # (see customManagers in renovate.json).
 # renovate: datasource=github-releases depName=hashicorp/terraform
-TERRAFORM_VERSION="1.17.1"
+TERRAFORM_VERSION="1.17.2"
 # renovate: datasource=go depName=github.com/hashicorp/hc-install
 HC_INSTALL_VERSION="v0.9.4"
 
