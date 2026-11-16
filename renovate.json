@@ -13,6 +13,18 @@
   "ignorePaths": [
     ".github/workflows/*.lock.yml"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Terraform CLI and hc-install versions pinned in the Buildkite acceptance script",
+      "managerFilePatterns": [
+        "/^\\.buildkite/acceptance\\.sh$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>[^\\s]+)\\n[A-Z_]+=\"?(?<currentValue>[^\"\\s]+)\"?"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "groupName": "github.com/oapi-codegen dependencies",
@@ -25,6 +37,17 @@
       "matchPackageNames": [
         "github.com/hashicorp/*"
       ]
+    },
+    {
+      "description": "Generators whose bump rewrites committed Go source under ec/internal/gen/serverless via renovate-notice.yml; keep a human in the loop instead of automerging",
+      "groupName": "serverless client generators",
+      "matchPackageNames": [
+        "github.com/oapi-codegen/oapi-codegen/v2",
+        "github.com/hashicorp/terraform-plugin-codegen-openapi",
+        "github.com/hashicorp/terraform-plugin-codegen-framework",
+        "go.uber.org/mock"
+      ],
+      "automerge": false
     }
   ],
   "major": {

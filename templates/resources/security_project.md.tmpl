@@ -10,7 +10,17 @@ description: |-
 
 ## Example Usage
 
+### Basic
+
 {{ tffile "examples/resources/ec_security_project/resource.tf" }}
+
+### With audit logging
+
+{{ tffile "examples/resources/ec_security_project/with-audit-logging/resource.tf" }}
+
+Audit logs are delivered to a serverless project of type `observability` or `security`. `destination.status` is read-only and reports whether that project is accepting logs. Set `enabled = false` to pause delivery while keeping the configuration. The predefined `ignore_filter_ids` are listed in the [Elastic Cloud Serverless API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/operation/operation-listignorefilters).
+
+~> **Note on audit logging** Audit logging configured outside Terraform is removed on the next apply unless the configuration includes `monitoring.logging.audit`.
 
 {{ .SchemaMarkdown | trimspace }}
 

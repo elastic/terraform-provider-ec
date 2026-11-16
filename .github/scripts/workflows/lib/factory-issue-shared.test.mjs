@@ -117,17 +117,67 @@ test('factoryQualifyTriggerEvent rejects non-issues events', () => {
   assert.match(result.event_eligible_reason, /expected 'issues'/);
 });
 
-test('factoryQualifyTriggerEvent accepts issue_comment event', () => {
-  const result = factoryQualifyTriggerEvent({
+function qualifyComment(overrides) {
+  return factoryQualifyTriggerEvent({
     eventName: 'issue_comment',
     eventAction: '',
     labelName: '',
     issueLabels: [],
     factoryLabel: 'change-factory',
     issueOpenedNotEligibleReason: 'n/a',
+    ...overrides,
   });
-  assert.equal(result.event_eligible, true);
-  assert.match(result.event_eligible_reason, /issue_comment/);
+}
+
+test('factoryQualifyTriggerEvent accepts an issue_comment carrying the slash command', () => {
+  for (const commentBody of ['/change-factory', '/change-factory do X', '/change-factory\nmore', '/change-factory\r\nmore']) {
+    const result = qualifyComment({ commentBody });
+    assert.equal(result.event_eligible, true, `expected ${JSON.stringify(commentBody)} to qualify`);
+    assert.match(result.event_eligible_reason, /starts with '\/change-factory'/);
+  }
+});
+
+test('factoryQualifyTriggerEvent rejects an issue_comment without the slash command', () => {
+  for (const commentBody of ['+1', '', '/change-factory-foo', '/change-factoryX', ' /change-factory', 'see /change-factory']) {
+    const result = qualifyComment({ commentBody });
+    assert.equal(result.event_eligible, false, `expected ${JSON.stringify(commentBody)} to be rejected`);
+    assert.match(result.event_eligible_reason, /does not start with '\/change-factory'/);
+  }
+});
+
+test('factoryQualifyTriggerEvent rejects an issue_comment when commentBody is omitted', () => {
+  const result = qualifyComment({});
+  assert.equal(result.event_eligible, false);
+  assert.match(result.event_eligible_reason, /does not start with '\/change-factory'/);
+});
+
+test('factoryQualifyTriggerEvent rejects a pull-request comment even with the slash command', () => {
+  // Any truthy marker rejects, not just a literal boolean: a caller that forwards the raw
+  // payload.issue.pull_request object must not slip past the gate.
+  for (const isPullRequest of [true, { url: 'https://example.com/pr/1' }, 'yes']) {
+    const result = qualifyComment({ commentBody: '/change-factory', isPullRequest });
+    assert.equal(result.event_eligible, false, `expected ${JSON.stringify(isPullRequest)} to reject`);
+    assert.match(result.event_eligible_reason, /pull request, not an issue/);
+  }
+});
+
+test('factoryQualifyTriggerEvent treats an absent pull-request marker as an issue comment', () => {
+  for (const isPullRequest of [undefined, null, false]) {
+    assert.equal(qualifyComment({ commentBody: '/change-factory', isPullRequest }).event_eligible, true);
+  }
+});
+
+// GitHub Actions expressions compare case-insensitively, so gh-aw would activate on this while
+// the qualifier refuses. Stricter than the gate it guards: the run does nothing instead of
+// writing labels.
+test('factoryQualifyTriggerEvent is case-sensitive, erring stricter than gh-aw', () => {
+  const result = qualifyComment({ commentBody: '/Change-Factory do X' });
+  assert.equal(result.event_eligible, false);
+});
+
+test('factoryQualifyTriggerEvent keys the slash command off factoryLabel', () => {
+  assert.equal(qualifyComment({ factoryLabel: 'code-factory', commentBody: '/code-factory' }).event_eligible, true);
+  assert.equal(qualifyComment({ factoryLabel: 'code-factory', commentBody: '/change-factory' }).event_eligible, false);
 });
 
 test('issueClosingReferencePattern matches GitHub closing keywords but not longer issue numbers', () => {
@@ -288,6 +338,24 @@ test('factoryCheckDuplicatePR related-literal matches Related to #42 but not Clo
     }],
   });
   assert.equal(wrongBranch.duplicate_pr_found, false);
+});
+
+// The no-match reason reaches the agent verbatim as gate_reason on the success path, so it must
+// not promise the label/linkage predicates that check-duplicate-pr.js no longer relies on.
+test('factoryCheckDuplicatePR no-match reason names only the branch and the issue', () => {
+  const result = factoryCheckDuplicatePR({
+    issueNumber: 42,
+    pullRequests: [],
+    branchPrefix: 'change-factory/issue-',
+    prLabel: 'change-factory',
+    duplicateLinkageMode: 'related-literal',
+  });
+  assert.equal(result.duplicate_pr_found, false);
+  assert.equal(
+    result.gate_reason,
+    "No open pull request found on branch 'change-factory/issue-42' for issue #42.",
+  );
+  assert.doesNotMatch(result.gate_reason, /expected label|Related to/);
 });
 
 test('factoryCheckDuplicatePR ignores a closed PR even when linkage, label, and branch match', () => {

@@ -1,3 +1,24 @@
+# 0.14.0 (October 30, 2026)
+
+NOTES:
+
+* resource/ec_elasticsearch_project, resource/ec_observability_project, resource/ec_security_project: Serverless project resources are no longer marked Technical Preview ([#1062](https://github.com/elastic/terraform-provider-ec/issues/1062))
+* resource/ec_elasticsearch_project, resource/ec_observability_project, resource/ec_security_project: Audit logging configured outside Terraform is removed on the next apply unless the configuration includes `monitoring.logging.audit` ([#1104](https://github.com/elastic/terraform-provider-ec/issues/1104))
+
+FEATURES:
+
+* resource/ec_elasticsearch_project: Add `monitoring.logging.audit` support, including `ignore_filter_ids` and computed `destination.status`, and add computed `ingest` endpoints to `endpoints` and `private_endpoints` ([#1104](https://github.com/elastic/terraform-provider-ec/issues/1104))
+* resource/ec_observability_project: Add `monitoring.logging.audit` support, including `ignore_filter_ids` and computed `destination.status` ([#1104](https://github.com/elastic/terraform-provider-ec/issues/1104))
+* resource/ec_security_project: Add `monitoring.logging.audit` support, including `ignore_filter_ids` and computed `destination.status` ([#1104](https://github.com/elastic/terraform-provider-ec/issues/1104))
+* provider: Add `ca_cert`, `tls_cert`, and `tls_key` settings (and `EC_CA_CERT`, `EC_TLS_CERT`, `EC_TLS_KEY`) for custom CA bundles and mutual TLS client certificates ([#1100](https://github.com/elastic/terraform-provider-ec/issues/1100))
+
+BUG FIXES:
+
+* resource/ec_deployment: Redact sensitive user settings from Terraform CLI output ([#1088](https://github.com/elastic/terraform-provider-ec/issues/1088))
+* resource/ec_deployment: Use the deployment template Kibana size and zone count when `kibana` is set without those attributes, instead of clamping to 1g and 1 zone. ([#1057](https://github.com/elastic/terraform-provider-ec/issues/1057))
+* resource/ec_deployment_traffic_filter: Retry GET after create/update when the ruleset is not immediately visible. ([#1052](https://github.com/elastic/terraform-provider-ec/issues/1052))
+* resource/ec_elasticsearch_project, resource/ec_observability_project, resource/ec_security_project: The `linked.projects.*.type` validator no longer accepts `workplaceai`, which the serverless project API already rejects, so the error now surfaces at plan time ([#1104](https://github.com/elastic/terraform-provider-ec/issues/1104))
+
 # 0.13.1 (September 14, 2026)
 
 FEATURES:
