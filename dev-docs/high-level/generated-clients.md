@@ -113,6 +113,22 @@ overwritten on the next `make gen`. To change behavior, edit the real inputs ins
 
 then rerun `make gen` and commit the regenerated output.
 
+### Renovate dependency PRs
+
+`oapi-codegen` stamps its own version into the header of `client.gen.go`, so every Renovate bump of
+the `github.com/oapi-codegen/oapi-codegen/v2` generator (and any output change from the `hashicorp`
+tfplugingen bumps; `oapi-codegen/runtime` bumps do not touch the header) makes `make gen` dirty and
+fails the "Check serverless client is up-to-date" step in [`go.yml`](../../.github/workflows/go.yml).
+Renovate only edits `go.mod`/`go.sum`, so the
+[`renovate-notice.yml`](../../.github/workflows/renovate-notice.yml) workflow runs `make notice`
+and `make gen` on Renovate's PRs and commits whatever changed under `NOTICE` and
+`ec/internal/gen/serverless/` back onto the PR branch as a single verified commit by the Vault bot
+(an author Renovate ignores, so automerge keeps working). It is split into a `regen` job with no
+write or OIDC capability, which runs the Renovate-pinned generators, and a `commit` job that only
+applies the resulting patch and commits it; the trust model is documented at the top of the
+workflow. Nothing to do by hand; if that run fails, run `make gen` locally and push the result to the
+Renovate branch (a push by a human stops Renovate from rebasing that PR, so merge it manually).
+
 See [`development-workflow.md`](./development-workflow.md) for where this sits in the day-to-day
 workflow and [`contributing.md`](./contributing.md) for PR conventions.
 
