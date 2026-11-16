@@ -36,19 +36,19 @@ import (
 
 // Defines values for CSP.
 const (
-	Aws   CSP = "aws"
-	Azure CSP = "azure"
-	Gcp   CSP = "gcp"
+	CSPAws   CSP = "aws"
+	CSPAzure CSP = "azure"
+	CSPGcp   CSP = "gcp"
 )
 
 // Valid indicates whether the value is a known member of the CSP enum.
 func (e CSP) Valid() bool {
 	switch e {
-	case Aws:
+	case CSPAws:
 		return true
-	case Azure:
+	case CSPAzure:
 		return true
-	case Gcp:
+	case CSPGcp:
 		return true
 	default:
 		return false
@@ -103,6 +103,21 @@ func (e ElasticsearchProjectCreatedType) Valid() bool {
 	}
 }
 
+// Defines values for IgnoreFilterType.
+const (
+	Audit IgnoreFilterType = "audit"
+)
+
+// Valid indicates whether the value is a known member of the IgnoreFilterType enum.
+func (e IgnoreFilterType) Valid() bool {
+	switch e {
+	case Audit:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for LinkedProjectStatus.
 const (
 	LinkedProjectStatusDeleted   LinkedProjectStatus = "deleted"
@@ -118,6 +133,27 @@ func (e LinkedProjectStatus) Valid() bool {
 	case LinkedProjectStatusEnabled:
 		return true
 	case LinkedProjectStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LoggingDestinationStatus.
+const (
+	LoggingDestinationStatusDeleted   LoggingDestinationStatus = "deleted"
+	LoggingDestinationStatusEnabled   LoggingDestinationStatus = "enabled"
+	LoggingDestinationStatusSuspended LoggingDestinationStatus = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the LoggingDestinationStatus enum.
+func (e LoggingDestinationStatus) Valid() bool {
+	switch e {
+	case LoggingDestinationStatusDeleted:
+		return true
+	case LoggingDestinationStatusEnabled:
+		return true
+	case LoggingDestinationStatusSuspended:
 		return true
 	default:
 		return false
@@ -223,7 +259,6 @@ const (
 	ProjectTypeObservability ProjectType = "observability"
 	ProjectTypeSecurity      ProjectType = "security"
 	ProjectTypeVectorDB      ProjectType = "vectordb"
-	ProjectTypeWorkplaceAI   ProjectType = "workplaceai"
 )
 
 // Valid indicates whether the value is a known member of the ProjectType enum.
@@ -236,8 +271,6 @@ func (e ProjectType) Valid() bool {
 	case ProjectTypeSecurity:
 		return true
 	case ProjectTypeVectorDB:
-		return true
-	case ProjectTypeWorkplaceAI:
 		return true
 	default:
 		return false
@@ -331,10 +364,32 @@ func (e SecurityProjectCreatedType) Valid() bool {
 	}
 }
 
+// Defines values for TrafficFilterRegionMetadataCsp.
+const (
+	TrafficFilterRegionMetadataCspAws   TrafficFilterRegionMetadataCsp = "aws"
+	TrafficFilterRegionMetadataCspAzure TrafficFilterRegionMetadataCsp = "azure"
+	TrafficFilterRegionMetadataCspGcp   TrafficFilterRegionMetadataCsp = "gcp"
+)
+
+// Valid indicates whether the value is a known member of the TrafficFilterRegionMetadataCsp enum.
+func (e TrafficFilterRegionMetadataCsp) Valid() bool {
+	switch e {
+	case TrafficFilterRegionMetadataCspAws:
+		return true
+	case TrafficFilterRegionMetadataCspAzure:
+		return true
+	case TrafficFilterRegionMetadataCspGcp:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TrafficFilterType.
 const (
 	Ip              TrafficFilterType = "ip"
 	PrivateEndpoint TrafficFilterType = "private_endpoint"
+	PscEndpoint     TrafficFilterType = "psc_endpoint"
 	Vpce            TrafficFilterType = "vpce"
 )
 
@@ -345,7 +400,39 @@ func (e TrafficFilterType) Valid() bool {
 		return true
 	case PrivateEndpoint:
 		return true
+	case PscEndpoint:
+		return true
 	case Vpce:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VectorDBProjectType.
+const (
+	VectorDBProjectTypeVectorDB VectorDBProjectType = "vectordb"
+)
+
+// Valid indicates whether the value is a known member of the VectorDBProjectType enum.
+func (e VectorDBProjectType) Valid() bool {
+	switch e {
+	case VectorDBProjectTypeVectorDB:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VectorDBProjectCreatedType.
+const (
+	VectorDBProjectCreatedTypeVectorDB VectorDBProjectCreatedType = "vectordb"
+)
+
+// Valid indicates whether the value is a known member of the VectorDBProjectCreatedType enum.
+func (e VectorDBProjectCreatedType) Valid() bool {
+	switch e {
+	case VectorDBProjectCreatedTypeVectorDB:
 		return true
 	default:
 		return false
@@ -362,6 +449,18 @@ type CanDeleteResponse struct {
 
 	// LinkedProjects Details about linked origins that affect deletion.
 	LinkedProjects []DependentProjectSummary `json:"linked_projects"`
+
+	// MonitoredProjects Details about projects being monitored by the target project that affect deletion.
+	MonitoredProjects []DependentProjectSummary `json:"monitored_projects"`
+}
+
+// Capabilities Capabilities that apply to the user's organization.
+type Capabilities struct {
+	// CrossProjectSearch Cross-project search capabilities of the organization.
+	CrossProjectSearch CrossProjectSearchCapabilities `json:"cross_project_search"`
+
+	// Quotas Quota limits that apply to the organization.
+	Quotas Quotas `json:"quotas"`
 }
 
 // CloudID The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
@@ -386,6 +485,9 @@ type CreateElasticsearchProjectRequest struct {
 
 	// Metadata Metadata request for a project with tags.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *MonitoringCreateRequest `json:"monitoring,omitempty"`
 
 	// Name Descriptive name for a project.
 	//
@@ -437,6 +539,9 @@ type CreateObservabilityProjectRequest struct {
 	// Metadata Metadata request for a project with tags.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *MonitoringCreateRequest `json:"monitoring,omitempty"`
+
 	// Name Descriptive name for a project.
 	//
 	// Example: my project
@@ -470,6 +575,9 @@ type CreateSecurityProjectRequest struct {
 	// Metadata Metadata request for a project with tags.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *MonitoringCreateRequest `json:"monitoring,omitempty"`
+
 	// Name Descriptive name for a project.
 	//
 	// Example: my project
@@ -499,14 +607,65 @@ type CreateTrafficFilterRequest struct {
 	// Name Name of the traffic filter
 	Name string `json:"name"`
 
-	// Region The traffic filter can be attached only to projects in the specific region
+	// Region Serverless region ID the filter applies to (e.g. `azure-australiaeast`, `aws-eu-west-1`).
+	// The filter can only be attached to projects in this region.
+	//
+	//
+	// Example: azure-australiaeast
 	Region string `json:"region"`
 
-	// Rules List of rules
+	// Rules List of rules. Required fields depend on `type`:
+	// - `ip`, `vpce` and `psc_endpoint` use `source`.
+	// - `private_endpoint` uses `azure_endpoint_name` and `azure_endpoint_guid`, not `source`.
 	Rules *[]TrafficFilterRule `json:"rules,omitempty"`
 
-	// Type Type of the traffic filter
+	// Type Type of the traffic filter. Determines which rule fields are valid:
+	// - `ip` — IP/CIDR allowlist (`source`)
+	// - `vpce` — AWS PrivateLink VPC endpoint (`source`)
+	// - `private_endpoint` — Azure Private Link (`azure_endpoint_name`, `azure_endpoint_guid`)
+	// - `psc_endpoint` — GCP Private Service Connect endpoint (`source`)
 	Type TrafficFilterType `json:"type"`
+}
+
+// CreateVectorDBProjectRequest A request to create a VectorDB serverless project.
+type CreateVectorDBProjectRequest struct {
+	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+	//
+	// Example: my-project-alias
+	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Linked Configuration for linked projects associated with this project
+	Linked *CreateLinkedRequest `json:"linked,omitempty"`
+
+	// Metadata Metadata request for a project with tags.
+	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *MonitoringCreateRequest `json:"monitoring,omitempty"`
+
+	// Name Descriptive name for a project.
+	//
+	// Example: my project
+	Name ProjectName `json:"name"`
+
+	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
+	//
+	// Example: aws-us-east-1
+	RegionId RegionID `json:"region_id"`
+
+	// SearchLake Configuration for entire set of capabilities that make the data searchable in VectorDB.
+	SearchLake *VectorDBSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
+}
+
+// CrossProjectSearchCapabilities Cross-project search capabilities of the organization.
+type CrossProjectSearchCapabilities struct {
+	// MaxLinkedProjects The maximum number of projects that can be linked to an origin project.
+	//
+	// Example: 100
+	MaxLinkedProjects int `json:"max_linked_projects"`
 }
 
 // DataRetention Configuration to control the data retention in Elasticsearch data streams.
@@ -568,6 +727,9 @@ type ElasticsearchProject struct {
 
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
 
 	// Name Descriptive name for a project.
 	//
@@ -631,6 +793,9 @@ type ElasticsearchProjectCreated struct {
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
 
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
+
 	// Name Descriptive name for a project.
 	//
 	// Example: my project
@@ -673,6 +838,11 @@ type ElasticsearchProjectEndpoints struct {
 	// Example: https://my-project-alias-df6c6d.es.us-east-1.aws.elastic.cloud
 	Elasticsearch string `json:"elasticsearch"`
 
+	// Ingest The endpoint to access the Managed OpenTelemetry Collector.
+	//
+	// Example: https://my-project-alias-df6c6d.ingest.us-east-1.aws.elastic.cloud
+	Ingest string `json:"ingest"`
+
 	// Kibana The endpoint to access kibana.
 	//
 	// Example: https://my-project-alias-df6c6d.kb.us-east-1.aws.elastic.cloud
@@ -697,6 +867,11 @@ type ElasticsearchProjectPrivateEndpoints struct {
 	//
 	// Example: https://my-project-alias-df6c6d.es.private.us-east-1.aws.elastic.cloud
 	Elasticsearch string `json:"elasticsearch"`
+
+	// Ingest The PrivateLink endpoint URL to access the Managed OpenTelemetry Collector.
+	//
+	// Example: https://my-project-alias-df6c6d.ingest.private.us-east-1.aws.elastic.cloud
+	Ingest string `json:"ingest"`
 
 	// Kibana The PrivateLink endpoint URL to access kibana.
 	//
@@ -729,6 +904,47 @@ type ErrorResponse struct {
 	// Example: Explicative error message
 	Message string `json:"message"`
 }
+
+// IgnoreFilter A named filter used to drop noisy or low-value log records before ingestion, helping control log volume and cost.
+type IgnoreFilter struct {
+	// Description A description of what the ignore filter suppresses and when to use it.
+	//
+	// Example: Suppress internal monitoring service-account noise common to all projects.
+	Description string `json:"description"`
+
+	// Id The unique identifier of the ignore filter, used as the `{id}` path parameter.
+	// The predefined ignore filter identifiers are:
+	// - `audit-ignore-data-reads`: ignore data searches and reads. - `audit-ignore-ui-requests`: ignore UI requests. - `audit-ignore-data-writes`: ignore data writes. - `audit-ignore-successful-authentications`: ignore successful sign-ins. - `audit-ignore-successful-iam-checks`: ignore routine user and role checks.
+	//
+	//
+	// Example: audit-ignore-data-reads
+	Id string `json:"id"`
+
+	// Name The human-readable name of the ignore filter.
+	//
+	// Example: Ignore data searches and reads
+	Name string `json:"name"`
+
+	// Type The kind of log this ignore filter applies to.
+	Type IgnoreFilterType `json:"type"`
+}
+
+// IgnoreFilterList A list of ignore filters.
+type IgnoreFilterList struct {
+	// Items The ignore filters in the catalog.
+	Items []IgnoreFilter `json:"items"`
+}
+
+// IgnoreFilterRef Reference to a logging ignore filter applied to a logging category.
+type IgnoreFilterRef struct {
+	// Id The unique identifier of the ignore filter.
+	//
+	// Example: audit-ignore-data-reads
+	Id string `json:"id"`
+}
+
+// IgnoreFilterType The kind of log this ignore filter applies to.
+type IgnoreFilterType string
 
 // LinkConfiguration Configuration for projects linked to this project
 type LinkConfiguration struct {
@@ -784,6 +1000,78 @@ type LinkedProject struct {
 // LinkedProjectStatus The state of the linked project.
 type LinkedProjectStatus string
 
+// Logging Configuration for project logs.
+type Logging struct {
+	// Audit Configuration for logs from a specific category.
+	Audit *LoggingCategory `json:"audit,omitempty"`
+}
+
+// LoggingCategory Configuration for logs from a specific category.
+type LoggingCategory struct {
+	// Destination Configuration for destination of logs.
+	Destination LoggingDestination `json:"destination"`
+
+	// Enabled When true, logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved.
+	Enabled bool `json:"enabled"`
+
+	// IgnoreFilters References to logging ignore filters applied to reduce the volume of logs delivered for this category.
+	IgnoreFilters *[]IgnoreFilterRef `json:"ignore_filters,omitempty"`
+}
+
+// LoggingCategoryCreateRequest Configuration for logs from a specific category.
+type LoggingCategoryCreateRequest struct {
+	// Destination Configuration for destination of logs.
+	Destination LoggingDestinationCreateRequest `json:"destination"`
+
+	// Enabled When true (default), logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved.
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// IgnoreFilters References to logging ignore filters applied to reduce the volume of logs delivered for this category.
+	IgnoreFilters *[]IgnoreFilterRef `json:"ignore_filters,omitempty"`
+}
+
+// LoggingCreateRequest Configuration for project logs.
+type LoggingCreateRequest struct {
+	// Audit Configuration for logs from a specific category.
+	Audit *LoggingCategoryCreateRequest `json:"audit,omitempty"`
+}
+
+// LoggingDestination Configuration for destination of logs.
+type LoggingDestination struct {
+	// ProjectId ID of the project.
+	ProjectId ProjectID `json:"project_id"`
+
+	// ProjectType The type of the linked project
+	ProjectType ProjectType `json:"project_type"`
+
+	// Status The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true.
+	Status LoggingDestinationStatus `json:"status"`
+}
+
+// LoggingDestinationCreateRequest Configuration for destination of logs.
+type LoggingDestinationCreateRequest struct {
+	// ProjectId ID of the project.
+	ProjectId ProjectID `json:"project_id"`
+
+	// ProjectType The type of the linked project
+	ProjectType *ProjectType `json:"project_type,omitempty"`
+}
+
+// LoggingDestinationStatus The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category's `enabled` flag is true.
+type LoggingDestinationStatus string
+
+// Monitoring Configuration for monitoring a project.
+type Monitoring struct {
+	// Logging Configuration for project logs.
+	Logging *Logging `json:"logging,omitempty"`
+}
+
+// MonitoringCreateRequest Configuration for monitoring a project.
+type MonitoringCreateRequest struct {
+	// Logging Configuration for project logs.
+	Logging *LoggingCreateRequest `json:"logging,omitempty"`
+}
+
 // MultiErrorResponse A non-empty list of errors.
 type MultiErrorResponse struct {
 	Errors []ErrorResponse `json:"errors"`
@@ -812,6 +1100,9 @@ type ObservabilityProject struct {
 
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
 
 	// Name Descriptive name for a project.
 	//
@@ -865,6 +1156,9 @@ type ObservabilityProjectCreated struct {
 
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
 
 	// Name Descriptive name for a project.
 	//
@@ -943,12 +1237,12 @@ type ObservabilityProjectPrivateEndpoints struct {
 // ObservabilityProjectProductTier the tier of the observability project. The default is "complete" when not specified at creation time.
 type ObservabilityProjectProductTier string
 
-// OptionalElasticsearchSearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
+// OptionalElasticsearchSearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. Pass `null` to reset configuration to the default values.
 type OptionalElasticsearchSearchLake struct {
-	// BoostWindow Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. It can be passed as `null` to reset the Search Boost Window to the default value.
+	// BoostWindow Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. Pass `null` to reset the Search Boost Window to the default value.
 	BoostWindow *int `json:"boost_window,omitempty"`
 
-	// SearchPower Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs. It can be passed as `null` to reset the Search Power to the default value.
+	// SearchPower Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs. Pass `null` to reset the Search Power to the default value.
 	SearchPower *int `json:"search_power,omitempty"`
 }
 
@@ -963,13 +1257,37 @@ type OptionalLinkedProject struct {
 	Type ProjectType `json:"type"`
 }
 
+// OptionalLogging Configuration for project logs. Pass `null` to reset all log configuration.
+type OptionalLogging struct {
+	// Audit Configuration for logs from a specific category. Pass as `null` to reset configuration for this category of logs.
+	Audit *OptionalLoggingCategory `json:"audit,omitempty"`
+}
+
+// OptionalLoggingCategory Configuration for logs from a specific category. Pass as `null` to reset configuration for this category of logs.
+type OptionalLoggingCategory struct {
+	// Destination Configuration for destination of logs.
+	Destination *LoggingDestinationCreateRequest `json:"destination,omitempty"`
+
+	// Enabled When true, logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved. Omit to leave the current value unchanged.
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// IgnoreFilters Named ignore filters applied to reduce the volume of logs delivered for this category. Can be passed as `null` to remove all ignore filters for this category.
+	IgnoreFilters *[]IgnoreFilterRef `json:"ignore_filters,omitempty"`
+}
+
 // OptionalMetadata Metadata about the project
 type OptionalMetadata struct {
 	// Tags Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.
 	Tags ProjectPatchTags `json:"tags"`
 }
 
-// OptionalSecurityAdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
+// OptionalMonitoring Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
+type OptionalMonitoring struct {
+	// Logging Configuration for project logs. Pass `null` to reset all log configuration.
+	Logging *OptionalLogging `json:"logging,omitempty"`
+}
+
+// OptionalSecurityAdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). Pass `null` to reset the admin features package to the default value.
 type OptionalSecurityAdminFeaturesPackage string
 
 // OptionalSecuritySearchLake Configuration for the entire set of capabilities that make the data searchable in Security.
@@ -980,6 +1298,12 @@ type OptionalSecuritySearchLake struct {
 
 // OptionalTrafficFilters traffic filters IDs
 type OptionalTrafficFilters = []TrafficFilter
+
+// OptionalVectorDBSearchLake Configuration for entire set of capabilities that make the data searchable in VectorDB. Pass `null` to reset configuration to the default values.
+type OptionalVectorDBSearchLake struct {
+	// SearchPower Controls how fast searches are against your project data. Must be a multiple of 100. Pass `null` to reset the Search Power to the default value.
+	SearchPower *int `json:"search_power,omitempty"`
+}
 
 // PatchElasticsearchProjectRequest A request to patch an existing Elasticsearch serverless project.
 type PatchElasticsearchProjectRequest struct {
@@ -994,12 +1318,15 @@ type PatchElasticsearchProjectRequest struct {
 	// Metadata Metadata about the project
 	Metadata *OptionalMetadata `json:"metadata,omitempty"`
 
+	// Monitoring Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
+	Monitoring *OptionalMonitoring `json:"monitoring,omitempty"`
+
 	// Name Descriptive name for a project.
 	//
 	// Example: my project
 	Name *ProjectName `json:"name,omitempty"`
 
-	// SearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
+	// SearchLake Configuration for entire set of capabilities that make the data searchable in Elasticsearch. Pass `null` to reset configuration to the default values.
 	SearchLake *OptionalElasticsearchSearchLake `json:"search_lake,omitempty"`
 
 	// TrafficFilters traffic filters IDs
@@ -1019,6 +1346,9 @@ type PatchObservabilityProjectRequest struct {
 	// Metadata Metadata about the project
 	Metadata *OptionalMetadata `json:"metadata,omitempty"`
 
+	// Monitoring Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
+	Monitoring *OptionalMonitoring `json:"monitoring,omitempty"`
+
 	// Name Descriptive name for a project.
 	//
 	// Example: my project
@@ -1033,7 +1363,7 @@ type PatchObservabilityProjectRequest struct {
 
 // PatchSecurityProjectRequest A request to patch an existing Security project.
 type PatchSecurityProjectRequest struct {
-	// AdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
+	// AdminFeaturesPackage admin features package (BYOK, BYOIDP, CCS, CCR). Pass `null` to reset the admin features package to the default value.
 	AdminFeaturesPackage *OptionalSecurityAdminFeaturesPackage `json:"admin_features_package,omitempty"`
 
 	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
@@ -1046,6 +1376,9 @@ type PatchSecurityProjectRequest struct {
 
 	// Metadata Metadata about the project
 	Metadata *OptionalMetadata `json:"metadata,omitempty"`
+
+	// Monitoring Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
+	Monitoring *OptionalMonitoring `json:"monitoring,omitempty"`
 
 	// Name Descriptive name for a project.
 	//
@@ -1073,6 +1406,34 @@ type PatchTrafficFilterRequest struct {
 
 	// Rules List of rules
 	Rules *[]TrafficFilterRule `json:"rules,omitempty"`
+}
+
+// PatchVectorDBProjectRequest A request to patch an existing VectorDB serverless project.
+type PatchVectorDBProjectRequest struct {
+	// Alias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
+	//
+	// Example: my-project-alias
+	Alias *ProjectAlias `json:"alias,omitempty"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *OptionalLinkConfiguration `json:"linked,omitempty"`
+
+	// Metadata Metadata about the project
+	Metadata *OptionalMetadata `json:"metadata,omitempty"`
+
+	// Monitoring Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
+	Monitoring *OptionalMonitoring `json:"monitoring,omitempty"`
+
+	// Name Descriptive name for a project.
+	//
+	// Example: my project
+	Name *ProjectName `json:"name,omitempty"`
+
+	// SearchLake Configuration for entire set of capabilities that make the data searchable in VectorDB. Pass `null` to reset configuration to the default values.
+	SearchLake *OptionalVectorDBSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *OptionalTrafficFilters `json:"traffic_filters,omitempty"`
 }
 
 // ProjectAlias A custom domain label compatible with RFC-1035 standards. Derived from the project name by default.
@@ -1207,6 +1568,14 @@ type ProjectTags map[string]ProjectTagValue
 // ProjectType The type of the linked project
 type ProjectType string
 
+// Quotas Quota limits that apply to the organization.
+type Quotas struct {
+	// MaxProjects The maximum number of projects that can be created in the organization.
+	//
+	// Example: 500
+	MaxProjects int `json:"max_projects"`
+}
+
 // Region A Cloud Service Provider region.
 type Region struct {
 	// CountryCode ISO 3166-1 alpha-2 country code which this region is associated with
@@ -1286,6 +1655,9 @@ type SecurityProject struct {
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
 
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
+
 	// Name Descriptive name for a project.
 	//
 	// Example: my project
@@ -1342,6 +1714,9 @@ type SecurityProjectCreated struct {
 
 	// Metadata Additional details about the project.
 	Metadata ProjectMetadata `json:"metadata"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
 
 	// Name Descriptive name for a project.
 	//
@@ -1450,7 +1825,11 @@ type TrafficFilterInfo struct {
 	// Rules List of rules
 	Rules []TrafficFilterRule `json:"rules"`
 
-	// Type Type of the traffic filter
+	// Type Type of the traffic filter. Determines which rule fields are valid:
+	// - `ip` — IP/CIDR allowlist (`source`)
+	// - `vpce` — AWS PrivateLink VPC endpoint (`source`)
+	// - `private_endpoint` — Azure Private Link (`azure_endpoint_name`, `azure_endpoint_guid`)
+	// - `psc_endpoint` — GCP Private Service Connect endpoint (`source`)
 	Type TrafficFilterType `json:"type"`
 }
 
@@ -1459,7 +1838,8 @@ type TrafficFilterList struct {
 	// Items List of traffic filters
 	Items []TrafficFilterInfo `json:"items"`
 
-	// NextPage A token to fetch the next page.
+	// NextPage A token to fetch the next page, to be sent back in the X-Elastic-Next-Page header. Absent when there are no further pages. When present it does not guarantee the next page is non-empty, so keep paging until it is absent.
+	//
 	//
 	// Example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
 	NextPage *string `json:"next_page,omitempty"`
@@ -1470,39 +1850,89 @@ type TrafficFilterMetadata struct {
 	Regions *[]TrafficFilterRegionMetadata `json:"regions,omitempty"`
 }
 
+// TrafficFilterPageSize Maximum number of items returned in a single page of a list response.
+type TrafficFilterPageSize = int
+
 // TrafficFilterRegionMetadata defines model for TrafficFilterRegionMetadata.
 type TrafficFilterRegionMetadata struct {
 	AvailabilityZones []TrafficFilterAvailabilityZone `json:"availability_zones"`
 
-	// Csp Cloud service provider (aws, azure, gcp)
-	Csp                         *string `json:"csp,omitempty"`
-	PrivateHostedZoneDomainName string  `json:"private_hosted_zone_domain_name"`
+	// Csp Cloud service provider.
+	//
+	// Example: azure
+	Csp TrafficFilterRegionMetadataCsp `json:"csp"`
 
-	// PrivateServiceName CSP-agnostic service name. For AWS: VPC endpoint service name. For Azure: Private Link Service alias. For GCP: Service Attachment URI.
-	PrivateServiceName *string `json:"private_service_name,omitempty"`
-	Region             string  `json:"region"`
+	// PrivateHostedZoneDomainName Private DNS suffix for project endpoints in this region. Create DNS records pointing
+	// to your Private Endpoint under this zone.
+	//
+	//
+	// Example: private.australiaeast.azure.elastic.cloud
+	PrivateHostedZoneDomainName string `json:"private_hosted_zone_domain_name"`
+
+	// PrivateServiceName CSP-specific PrivateLink service identifier. Use the `/metadata` endpoint to look up
+	// the value for your region. See also [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity).
+	// - **AWS**: VPC endpoint service name (e.g. `com.amazonaws.vpce.eu-west-1.vpce-svc-…`).
+	// - **Azure**: Private Link Service alias (e.g. `australiaeast-prod-….australiaeast.azure.privatelinkservice`).
+	// - **GCP**: Service Attachment URI.
+	//
+	//
+	// Example: australiaeast-prod-012-privatelink-service.a0cf0c1a-33ab-4528-81e7-9cb23608f94e.australiaeast.azure.privatelinkservice
+	PrivateServiceName string `json:"private_service_name"`
+
+	// Region Serverless region ID (e.g. `azure-australiaeast`, `aws-eu-west-1`).
+	//
+	// Example: azure-australiaeast
+	Region string `json:"region"`
 
 	// VpcServiceName Deprecated. Use private_service_name instead. Kept for backward compatibility.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	VpcServiceName string `json:"vpc_service_name"`
+	VpcServiceName *string `json:"vpc_service_name,omitempty"`
 }
 
-// TrafficFilterRule The container for a traffic filter rule.
+// TrafficFilterRegionMetadataCsp Cloud service provider.
+//
+// Example: azure
+type TrafficFilterRegionMetadataCsp string
+
+// TrafficFilterRule A single traffic filter rule. Which fields are required depends on the parent filter's
+// `type` — the fields are mutually exclusive between Azure and IP/private-connectivity rules.
 type TrafficFilterRule struct {
-	// AzureEndpointGuid Resource GUID of the Azure Private Endpoint. Required for private_endpoint type.
+	// AzureEndpointGuid Azure Private Endpoint **resource GUID** (`properties.resourceGuid` from the Azure
+	// resource). Required for `private_endpoint` filters. Must be a lowercase UUID.
+	// This is not the ARM resource ID.
+	//
+	//
+	// Example: 7c0f05e4-e32b-4b10-a246-7b77f7dcc63c
 	AzureEndpointGuid *string `json:"azure_endpoint_guid,omitempty"`
 
-	// AzureEndpointName Name of the Azure Private Endpoint. Required for private_endpoint type.
+	// AzureEndpointName Azure Private Endpoint resource name. Required for `private_endpoint` filters;
+	// not applicable to `ip`, `vpce`, or `psc_endpoint` filters.
+	// Must be 2–80 characters, start with an alphanumeric character, and end with an
+	// alphanumeric character or underscore. May contain alphanumerics, underscores,
+	// periods, and hyphens.
+	//
+	//
+	// Example: my-private-endpoint
 	AzureEndpointName *string `json:"azure_endpoint_name,omitempty"`
 
-	// Description Description of the rule.
+	// Description Optional human-readable description of the rule.
 	Description *string `json:"description,omitempty"`
 
-	// Source Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID. Required for ip and vpce types.
+	// Source Allowed source for `ip`, `vpce`, or `psc_endpoint` filters: an IP address, CIDR
+	// mask, AWS VPC endpoint ID (`vpce-` followed by 17 lowercase hex characters), or
+	// GCP PSC connection ID.
+	// Must not be set for `private_endpoint` filters.
+	//
+	//
+	// Example: vpce-0123456789abcdef0
 	Source *string `json:"source,omitempty"`
 }
 
-// TrafficFilterType Type of the traffic filter
+// TrafficFilterType Type of the traffic filter. Determines which rule fields are valid:
+// - `ip` — IP/CIDR allowlist (`source`)
+// - `vpce` — AWS PrivateLink VPC endpoint (`source`)
+// - `private_endpoint` — Azure Private Link (`azure_endpoint_name`, `azure_endpoint_guid`)
+// - `psc_endpoint` — GCP Private Service Connect endpoint (`source`)
 type TrafficFilterType string
 
 // TrafficFilters traffic filters IDs
@@ -1512,6 +1942,161 @@ type TrafficFilters = []TrafficFilter
 //
 // Example: 1014289666002276
 type UserID = string
+
+// VectorDBProject A VectorDB serverless project.
+type VectorDBProject struct {
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	//
+	// Example: my-project-alias-bdc0f7
+	Alias ProjectAliasWithSuffix `json:"alias"`
+
+	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
+	//
+	// Example: my_project:LmF3cy5lbGFzdG
+	CloudId CloudID `json:"cloud_id"`
+
+	// Endpoints The endpoints to access the different apps of the project.
+	Endpoints VectorDBProjectEndpoints `json:"endpoints"`
+
+	// Id ID of the project.
+	Id ProjectID `json:"id"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
+
+	// Metadata Additional details about the project.
+	Metadata ProjectMetadata `json:"metadata"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
+
+	// Name Descriptive name for a project.
+	//
+	// Example: my project
+	Name ProjectName `json:"name"`
+
+	// PrivateEndpoints Private endpoints (URLs) for VectorDB projects when PrivateLink is enabled.
+	PrivateEndpoints *VectorDBProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
+
+	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
+	//
+	// Example: aws-us-east-1
+	RegionId RegionID `json:"region_id"`
+
+	// SearchLake Configuration for entire set of capabilities that make the data searchable in VectorDB.
+	SearchLake *VectorDBSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
+
+	// Type the type of the project
+	Type VectorDBProjectType `json:"type"`
+}
+
+// VectorDBProjectType the type of the project
+type VectorDBProjectType string
+
+// VectorDBProjectCreated The created VectorDB project along with credentials to access the project.
+type VectorDBProjectCreated struct {
+	// Alias A domain label compatible with RFC-1035 standards. Project alias with a unique suffix added by the system to avoid naming conflicts.
+	//
+	// Example: my-project-alias-bdc0f7
+	Alias ProjectAliasWithSuffix `json:"alias"`
+
+	// CloudId The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
+	//
+	// Example: my_project:LmF3cy5lbGFzdG
+	CloudId CloudID `json:"cloud_id"`
+
+	// Credentials Basic auth credentials to access the Elasticsearch API.
+	Credentials ProjectCredentials `json:"credentials"`
+
+	// Endpoints The endpoints to access the different apps of the project.
+	Endpoints VectorDBProjectEndpoints `json:"endpoints"`
+
+	// Id ID of the project.
+	Id ProjectID `json:"id"`
+
+	// Linked Configuration for projects linked to this project
+	Linked *LinkConfiguration `json:"linked,omitempty"`
+
+	// Metadata Additional details about the project.
+	Metadata ProjectMetadata `json:"metadata"`
+
+	// Monitoring Configuration for monitoring a project.
+	Monitoring *Monitoring `json:"monitoring,omitempty"`
+
+	// Name Descriptive name for a project.
+	//
+	// Example: my project
+	Name ProjectName `json:"name"`
+
+	// PrivateEndpoints Private endpoints (URLs) for VectorDB projects when PrivateLink is enabled.
+	PrivateEndpoints *VectorDBProjectPrivateEndpoints `json:"private_endpoints,omitempty"`
+
+	// RegionId Unique human-readable identifier for a region in Elastic Cloud.
+	//
+	// Example: aws-us-east-1
+	RegionId RegionID `json:"region_id"`
+
+	// SearchLake Configuration for entire set of capabilities that make the data searchable in VectorDB.
+	SearchLake *VectorDBSearchLake `json:"search_lake,omitempty"`
+
+	// TrafficFilters traffic filters IDs
+	TrafficFilters *TrafficFilters `json:"traffic_filters,omitempty"`
+
+	// Type the type of the project
+	Type VectorDBProjectCreatedType `json:"type"`
+}
+
+// VectorDBProjectCreatedType the type of the project
+type VectorDBProjectCreatedType string
+
+// VectorDBProjectEndpoints The endpoints to access the different apps of the project.
+type VectorDBProjectEndpoints struct {
+	// Elasticsearch The endpoint to access elasticsearch.
+	//
+	// Example: https://my-project-alias-df6c6d.es.us-east-1.aws.elastic.cloud
+	Elasticsearch string `json:"elasticsearch"`
+
+	// Kibana The endpoint to access kibana.
+	//
+	// Example: https://my-project-alias-df6c6d.kb.us-east-1.aws.elastic.cloud
+	Kibana string `json:"kibana"`
+}
+
+// VectorDBProjectList A paginated list of serverless VectorDB projects.
+type VectorDBProjectList struct {
+	// Items The actual projects.
+	Items []VectorDBProject `json:"items"`
+
+	// NextPage A token to fetch the next page.
+	//
+	// Example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	NextPage *string `json:"next_page,omitempty"`
+}
+
+// VectorDBProjectPrivateEndpoints Private endpoints (URLs) for VectorDB projects when PrivateLink is enabled.
+type VectorDBProjectPrivateEndpoints struct {
+	// Elasticsearch The PrivateLink endpoint URL to access elasticsearch.
+	//
+	// Example: https://my-project-alias-df6c6d.es.private.us-east-1.aws.elastic.cloud
+	Elasticsearch string `json:"elasticsearch"`
+
+	// Kibana The PrivateLink endpoint URL to access kibana.
+	//
+	// Example: https://my-project-alias-df6c6d.kb.private.us-east-1.aws.elastic.cloud
+	Kibana string `json:"kibana"`
+}
+
+// VectorDBSearchLake Configuration for entire set of capabilities that make the data searchable in VectorDB.
+type VectorDBSearchLake struct {
+	// SearchPower Controls how fast searches are against your project data. Must be a multiple of 100.
+	//
+	// Example: 100
+	SearchPower *int `json:"search_power,omitempty"`
+}
 
 // BadRequest A non-empty list of errors.
 type BadRequest = MultiErrorResponse
@@ -1543,6 +2128,12 @@ type CreateTrafficFilterRequestBody = CreateTrafficFilterRequest
 // PatchTrafficFilterBody The specification for traffic filter.
 type PatchTrafficFilterBody = PatchTrafficFilterRequest
 
+// ListIgnoreFiltersParams defines parameters for ListIgnoreFilters.
+type ListIgnoreFiltersParams struct {
+	// Type Filter the results to ignore filters of the given type.
+	Type *IgnoreFilterType `form:"type,omitempty" json:"type,omitempty"`
+}
+
 // ListElasticsearchProjectsParams defines parameters for ListElasticsearchProjects.
 type ListElasticsearchProjectsParams struct {
 	// TrafficFilter Filters the returned list of projects. Only projects associated with the provided traffic_filter will be returned.
@@ -1553,6 +2144,12 @@ type ListElasticsearchProjectsParams struct {
 
 	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
 	Tags *ProjectTags `json:"tags,omitempty"`
+}
+
+// CreateElasticsearchProjectParams defines parameters for CreateElasticsearchProject.
+type CreateElasticsearchProjectParams struct {
+	// ExcludeCredentials If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+	ExcludeCredentials *bool `form:"exclude_credentials,omitempty" json:"exclude_credentials,omitempty"`
 }
 
 // DeleteElasticsearchProjectParams defines parameters for DeleteElasticsearchProject.
@@ -1612,6 +2209,12 @@ type ListObservabilityProjectsParams struct {
 	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
+// CreateObservabilityProjectParams defines parameters for CreateObservabilityProject.
+type CreateObservabilityProjectParams struct {
+	// ExcludeCredentials If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+	ExcludeCredentials *bool `form:"exclude_credentials,omitempty" json:"exclude_credentials,omitempty"`
+}
+
 // DeleteObservabilityProjectParams defines parameters for DeleteObservabilityProject.
 type DeleteObservabilityProjectParams struct {
 	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
@@ -1669,6 +2272,12 @@ type ListSecurityProjectsParams struct {
 	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
+// CreateSecurityProjectParams defines parameters for CreateSecurityProject.
+type CreateSecurityProjectParams struct {
+	// ExcludeCredentials If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+	ExcludeCredentials *bool `form:"exclude_credentials,omitempty" json:"exclude_credentials,omitempty"`
+}
+
 // DeleteSecurityProjectParams defines parameters for DeleteSecurityProject.
 type DeleteSecurityProjectParams struct {
 	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
@@ -1714,6 +2323,69 @@ type GetSecurityProjectLinkCandidatesParams struct {
 	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
+// ListVectorDBProjectsParams defines parameters for ListVectorDBProjects.
+type ListVectorDBProjectsParams struct {
+	// TrafficFilter Filters the returned list of projects. Only projects associated with the provided traffic_filter will be returned.
+	TrafficFilter *string `form:"traffic_filter,omitempty" json:"traffic_filter,omitempty"`
+
+	// Linked Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+	Linked *ProjectID `form:"linked,omitempty" json:"linked,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
+}
+
+// CreateVectorDBProjectParams defines parameters for CreateVectorDBProject.
+type CreateVectorDBProjectParams struct {
+	// ExcludeCredentials If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+	ExcludeCredentials *bool `form:"exclude_credentials,omitempty" json:"exclude_credentials,omitempty"`
+}
+
+// DeleteVectorDBProjectParams defines parameters for DeleteVectorDBProject.
+type DeleteVectorDBProjectParams struct {
+	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+	IfMatch *string `json:"If-Match,omitempty"`
+}
+
+// PatchVectorDBProjectParams defines parameters for PatchVectorDBProject.
+type PatchVectorDBProjectParams struct {
+	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+	IfMatch *string `json:"If-Match,omitempty"`
+}
+
+// ResetVectorDBProjectCredentialsParams defines parameters for ResetVectorDBProjectCredentials.
+type ResetVectorDBProjectCredentialsParams struct {
+	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+	IfMatch *string `json:"If-Match,omitempty"`
+}
+
+// ResumeVectorDBProjectParams defines parameters for ResumeVectorDBProject.
+type ResumeVectorDBProjectParams struct {
+	// IfMatch ETag value fetched in a previous GET project request. Used to prevent simultaneous updates.
+	IfMatch *string `json:"If-Match,omitempty"`
+}
+
+// GetVectorDBProjectLinkCandidatesParams defines parameters for GetVectorDBProjectLinkCandidates.
+type GetVectorDBProjectLinkCandidatesParams struct {
+	// Types One or more types of projects to return as link candidates.
+	Types *[]ProjectType `form:"types,omitempty" json:"types,omitempty"`
+
+	// Csp The Cloud Service Provider to filter the link candidate projects by.
+	Csp *string `form:"csp,omitempty" json:"csp,omitempty"`
+
+	// Region The region to filter the link candidate projects by.
+	Region *string `form:"region,omitempty" json:"region,omitempty"`
+
+	// Name The project name to filter the link candidates by.
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
+
+	// Alias The project alias to filter the link candidates by.
+	Alias *string `form:"alias,omitempty" json:"alias,omitempty"`
+
+	// Tags If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+	Tags *ProjectTags `json:"tags,omitempty"`
+}
+
 // ListTrafficFiltersParams defines parameters for ListTrafficFilters.
 type ListTrafficFiltersParams struct {
 	// IncludeByDefault Retrieves a list of resources that have include_by_default set or not set
@@ -1721,6 +2393,12 @@ type ListTrafficFiltersParams struct {
 
 	// Region If provided limits the traffic filters to that region only.
 	Region *string `form:"region,omitempty" json:"region,omitempty"`
+
+	// XElasticPageSize Maximum number of traffic filters returned in the response. Defaults to 1000.
+	XElasticPageSize *TrafficFilterPageSize `json:"X-Elastic-Page-Size,omitempty"`
+
+	// XElasticNextPage The next_page token from a previous response, to fetch the page that follows it.
+	XElasticNextPage *string `json:"X-Elastic-Next-Page,omitempty"`
 }
 
 // GetTrafficFilterMetadataParams defines parameters for GetTrafficFilterMetadata.
@@ -1749,6 +2427,12 @@ type CreateSecurityProjectJSONRequestBody = CreateSecurityProjectRequest
 
 // PatchSecurityProjectJSONRequestBody defines body for PatchSecurityProject for application/json ContentType.
 type PatchSecurityProjectJSONRequestBody = PatchSecurityProjectRequest
+
+// CreateVectorDBProjectJSONRequestBody defines body for CreateVectorDBProject for application/json ContentType.
+type CreateVectorDBProjectJSONRequestBody = CreateVectorDBProjectRequest
+
+// PatchVectorDBProjectJSONRequestBody defines body for PatchVectorDBProject for application/json ContentType.
+type PatchVectorDBProjectJSONRequestBody = PatchVectorDBProjectRequest
 
 // CreateTrafficFilterJSONRequestBody defines body for CreateTrafficFilter for application/json ContentType.
 type CreateTrafficFilterJSONRequestBody = CreateTrafficFilterRequest
@@ -1830,6 +2514,27 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 
+	// ListIgnoreFilters List ignore filters
+	//
+	// Returns the list of ignore filters that can be applied to the logs from a project to suppress noisy or low-value log records before ingestion, helping control log volume and cost.
+	//
+	// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters (the `ListIgnoreFilters` operationId).
+	ListIgnoreFilters(ctx context.Context, params *ListIgnoreFiltersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetIgnoreFilter Get an ignore filter
+	//
+	// Returns the details of a single log ignore filter.
+	//
+	// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters/{id} (the `GetIgnoreFilter` operationId).
+	GetIgnoreFilter(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetOrganizationCapabilities Get organization capabilities
+	//
+	// Returns the capabilities that apply to the authenticated user's organization.
+	//
+	// Corresponds with GET /api/v1/serverless/capabilities (the `GetOrganizationCapabilities` operationId).
+	GetOrganizationCapabilities(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListElasticsearchProjects Get Elasticsearch projects
 	//
 	// Fetches a list of Elasticsearch projects.
@@ -1844,7 +2549,7 @@ type ClientInterface interface {
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-	CreateElasticsearchProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateElasticsearchProjectWithBody(ctx context.Context, params *CreateElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateElasticsearchProject Create an Elasticsearch project
 	//
@@ -1853,7 +2558,7 @@ type ClientInterface interface {
 	// Takes a body of the `application/json` content type.
 	//
 	// Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-	CreateElasticsearchProject(ctx context.Context, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateElasticsearchProject(ctx context.Context, params *CreateElasticsearchProjectParams, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteElasticsearchProject Delete an Elasticsearch project
 	//
@@ -1939,7 +2644,7 @@ type ClientInterface interface {
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-	CreateObservabilityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateObservabilityProjectWithBody(ctx context.Context, params *CreateObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateObservabilityProject Create an observability project
 	//
@@ -1948,7 +2653,7 @@ type ClientInterface interface {
 	// Takes a body of the `application/json` content type.
 	//
 	// Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-	CreateObservabilityProject(ctx context.Context, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateObservabilityProject(ctx context.Context, params *CreateObservabilityProjectParams, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteObservabilityProject Delete an Observability project
 	//
@@ -2034,7 +2739,7 @@ type ClientInterface interface {
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-	CreateSecurityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateSecurityProjectWithBody(ctx context.Context, params *CreateSecurityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateSecurityProject Create a security project
 	//
@@ -2043,7 +2748,7 @@ type ClientInterface interface {
 	// Takes a body of the `application/json` content type.
 	//
 	// Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-	CreateSecurityProject(ctx context.Context, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateSecurityProject(ctx context.Context, params *CreateSecurityProjectParams, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteSecurityProject Delete a Security project
 	//
@@ -2115,6 +2820,101 @@ type ClientInterface interface {
 	// Corresponds with GET /api/v1/serverless/projects/security/{id}/status (the `GetSecurityProjectStatus` operationId).
 	GetSecurityProjectStatus(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListVectorDBProjects Get VectorDB projects
+	//
+	// Fetches a list of VectorDB projects.
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb (the `ListVectorDBProjects` operationId).
+	ListVectorDBProjects(ctx context.Context, params *ListVectorDBProjectsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateVectorDBProjectWithBody Create a VectorDB project
+	//
+	// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+	CreateVectorDBProjectWithBody(ctx context.Context, params *CreateVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateVectorDBProject Create a VectorDB project
+	//
+	// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+	CreateVectorDBProject(ctx context.Context, params *CreateVectorDBProjectParams, body CreateVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteVectorDBProject Delete a VectorDB project
+	//
+	// Corresponds with DELETE /api/v1/serverless/projects/vectordb/{id} (the `DeleteVectorDBProject` operationId).
+	DeleteVectorDBProject(ctx context.Context, id ProjectID, params *DeleteVectorDBProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVectorDBProject Get a VectorDB project
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id} (the `GetVectorDBProject` operationId).
+	GetVectorDBProject(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchVectorDBProjectWithBody Update a VectorDB project
+	//
+	// Only the fields included in the body of the request will be updated.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+	PatchVectorDBProjectWithBody(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchVectorDBProject Update a VectorDB project
+	//
+	// Only the fields included in the body of the request will be updated.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+	PatchVectorDBProject(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, body PatchVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVectorDBProjectCanDelete Get VectorDB project delete status
+	//
+	// Find issues that would prevent deletion of a project.
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/_can-delete (the `GetVectorDBProjectCanDelete` operationId).
+	GetVectorDBProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResetVectorDBProjectCredentials Reset the project credentials
+	//
+	// Retrieve new project credentials, invalidating the previous ones.
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_reset-credentials (the `ResetVectorDBProjectCredentials` operationId).
+	ResetVectorDBProjectCredentials(ctx context.Context, id ProjectID, params *ResetVectorDBProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResumeVectorDBProject Resume VectorDB project
+	//
+	// Resume a previously suspended VectorDB project. Projects can be automatically suspended after their trial period has expired.
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_resume (the `ResumeVectorDBProject` operationId).
+	ResumeVectorDBProject(ctx context.Context, id ProjectID, params *ResumeVectorDBProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVectorDBProjectLinkCandidates Get VectorDB project link candidates
+	//
+	// The response contains the list of projects which can be linked to the specified VectorDB project in a cross-project search configuration.
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/link-candidates (the `GetVectorDBProjectLinkCandidates` operationId).
+	GetVectorDBProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetVectorDBProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVectorDBProjectRoles Get roles for a VectorDB project
+	//
+	// Retrieve the custom roles defined for a VectorDB project.
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/roles (the `GetVectorDBProjectRoles` operationId).
+	GetVectorDBProjectRoles(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVectorDBProjectStatus Get the status of a VectorDB project
+	//
+	// The response indicates whether the project is initialized and ready to be used. The phase will change from \"initializing\" to \"initialized\" when the project is ready.
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/status (the `GetVectorDBProjectStatus` operationId).
+	GetVectorDBProjectStatus(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListRegions Get regions
 	//
 	// Retrieve the available cloud service provider regions where a project can be created.
@@ -2131,7 +2931,7 @@ type ClientInterface interface {
 
 	// ListTrafficFilters List traffic filters
 	//
-	// List all of the traffic filters.
+	// Lists the organization's traffic filters. Up to 1000 filters are returned per call; use the X-Elastic-Page-Size header to request a smaller page. When more results remain, the response carries a next_page token to send back in the X-Elastic-Next-Page header. Keep paging until next_page is absent: a page filled exactly to the page size still returns a token, and the page that follows it may be empty.
 	//
 	// Corresponds with GET /api/v1/serverless/traffic-filters (the `ListTrafficFilters` operationId).
 	ListTrafficFilters(ctx context.Context, params *ListTrafficFiltersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2139,6 +2939,37 @@ type ClientInterface interface {
 	// CreateTrafficFilterWithBody Create a traffic filter
 	//
 	// Creates a traffic filter that consists of a set of rules.
+	//
+	// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+	// for setup guides and regional service names.
+	//
+	// ### AWS PrivateLink (`type: vpce`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+	//
+	// ### Azure Private Link (`type: private_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+	// - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+	//   This is not the ARM resource ID.
+	//
+	// Do not set `source` on Azure rules.
+	//
+	// ### GCP Private Service Connect (`type: psc_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+	// connections are accepted automatically by the service attachment, so creating this
+	// traffic filter does not trigger a cloud approval or resolution operation.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -2149,6 +2980,37 @@ type ClientInterface interface {
 	//
 	// Creates a traffic filter that consists of a set of rules.
 	//
+	// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+	// for setup guides and regional service names.
+	//
+	// ### AWS PrivateLink (`type: vpce`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+	//
+	// ### Azure Private Link (`type: private_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+	// - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+	//   This is not the ARM resource ID.
+	//
+	// Do not set `source` on Azure rules.
+	//
+	// ### GCP Private Service Connect (`type: psc_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+	// connections are accepted automatically by the service attachment, so creating this
+	// traffic filter does not trigger a cloud approval or resolution operation.
+	//
 	// Takes a body of the `application/json` content type.
 	//
 	// Corresponds with POST /api/v1/serverless/traffic-filters (the `CreateTrafficFilter` operationId).
@@ -2156,7 +3018,7 @@ type ClientInterface interface {
 
 	// GetTrafficFilterMetadata List PrivateLink region metadata
 	//
-	// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+	// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region or csp. If no matches are found, returns 200 with an empty regions array.
 	//
 	// Corresponds with GET /api/v1/serverless/traffic-filters/metadata (the `GetTrafficFilterMetadata` operationId).
 	GetTrafficFilterMetadata(ctx context.Context, params *GetTrafficFilterMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2194,6 +3056,57 @@ type ClientInterface interface {
 	PatchTrafficFilter(ctx context.Context, id string, body PatchTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
+// ListIgnoreFilters List ignore filters
+//
+// Returns the list of ignore filters that can be applied to the logs from a project to suppress noisy or low-value log records before ingestion, helping control log volume and cost.
+//
+// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters (the `ListIgnoreFilters` operationId).
+func (c *Client) ListIgnoreFilters(ctx context.Context, params *ListIgnoreFiltersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListIgnoreFiltersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetIgnoreFilter Get an ignore filter
+//
+// Returns the details of a single log ignore filter.
+//
+// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters/{id} (the `GetIgnoreFilter` operationId).
+func (c *Client) GetIgnoreFilter(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetIgnoreFilterRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetOrganizationCapabilities Get organization capabilities
+//
+// Returns the capabilities that apply to the authenticated user's organization.
+//
+// Corresponds with GET /api/v1/serverless/capabilities (the `GetOrganizationCapabilities` operationId).
+func (c *Client) GetOrganizationCapabilities(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrganizationCapabilitiesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // ListElasticsearchProjects Get Elasticsearch projects
 //
 // Fetches a list of Elasticsearch projects.
@@ -2218,8 +3131,8 @@ func (c *Client) ListElasticsearchProjects(ctx context.Context, params *ListElas
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-func (c *Client) CreateElasticsearchProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateElasticsearchProjectRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateElasticsearchProjectWithBody(ctx context.Context, params *CreateElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateElasticsearchProjectRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2237,8 +3150,8 @@ func (c *Client) CreateElasticsearchProjectWithBody(ctx context.Context, content
 // Takes a body of the `application/json` content type.
 //
 // Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-func (c *Client) CreateElasticsearchProject(ctx context.Context, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateElasticsearchProjectRequest(c.Server, body)
+func (c *Client) CreateElasticsearchProject(ctx context.Context, params *CreateElasticsearchProjectParams, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateElasticsearchProjectRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2443,8 +3356,8 @@ func (c *Client) ListObservabilityProjects(ctx context.Context, params *ListObse
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-func (c *Client) CreateObservabilityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateObservabilityProjectRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateObservabilityProjectWithBody(ctx context.Context, params *CreateObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateObservabilityProjectRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2462,8 +3375,8 @@ func (c *Client) CreateObservabilityProjectWithBody(ctx context.Context, content
 // Takes a body of the `application/json` content type.
 //
 // Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-func (c *Client) CreateObservabilityProject(ctx context.Context, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateObservabilityProjectRequest(c.Server, body)
+func (c *Client) CreateObservabilityProject(ctx context.Context, params *CreateObservabilityProjectParams, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateObservabilityProjectRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2668,8 +3581,8 @@ func (c *Client) ListSecurityProjects(ctx context.Context, params *ListSecurityP
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-func (c *Client) CreateSecurityProjectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateSecurityProjectRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateSecurityProjectWithBody(ctx context.Context, params *CreateSecurityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateSecurityProjectRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2687,8 +3600,8 @@ func (c *Client) CreateSecurityProjectWithBody(ctx context.Context, contentType 
 // Takes a body of the `application/json` content type.
 //
 // Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-func (c *Client) CreateSecurityProject(ctx context.Context, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateSecurityProjectRequest(c.Server, body)
+func (c *Client) CreateSecurityProject(ctx context.Context, params *CreateSecurityProjectParams, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateSecurityProjectRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2869,6 +3782,231 @@ func (c *Client) GetSecurityProjectStatus(ctx context.Context, id ProjectID, req
 	return c.Client.Do(req)
 }
 
+// ListVectorDBProjects Get VectorDB projects
+//
+// Fetches a list of VectorDB projects.
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb (the `ListVectorDBProjects` operationId).
+func (c *Client) ListVectorDBProjects(ctx context.Context, params *ListVectorDBProjectsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListVectorDBProjectsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// CreateVectorDBProjectWithBody Create a VectorDB project
+//
+// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+func (c *Client) CreateVectorDBProjectWithBody(ctx context.Context, params *CreateVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateVectorDBProjectRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// CreateVectorDBProject Create a VectorDB project
+//
+// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+func (c *Client) CreateVectorDBProject(ctx context.Context, params *CreateVectorDBProjectParams, body CreateVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateVectorDBProjectRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// DeleteVectorDBProject Delete a VectorDB project
+//
+// Corresponds with DELETE /api/v1/serverless/projects/vectordb/{id} (the `DeleteVectorDBProject` operationId).
+func (c *Client) DeleteVectorDBProject(ctx context.Context, id ProjectID, params *DeleteVectorDBProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteVectorDBProjectRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetVectorDBProject Get a VectorDB project
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id} (the `GetVectorDBProject` operationId).
+func (c *Client) GetVectorDBProject(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVectorDBProjectRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// PatchVectorDBProjectWithBody Update a VectorDB project
+//
+// Only the fields included in the body of the request will be updated.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+func (c *Client) PatchVectorDBProjectWithBody(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchVectorDBProjectRequestWithBody(c.Server, id, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// PatchVectorDBProject Update a VectorDB project
+//
+// Only the fields included in the body of the request will be updated.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+func (c *Client) PatchVectorDBProject(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, body PatchVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchVectorDBProjectRequest(c.Server, id, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetVectorDBProjectCanDelete Get VectorDB project delete status
+//
+// Find issues that would prevent deletion of a project.
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/_can-delete (the `GetVectorDBProjectCanDelete` operationId).
+func (c *Client) GetVectorDBProjectCanDelete(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVectorDBProjectCanDeleteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ResetVectorDBProjectCredentials Reset the project credentials
+//
+// Retrieve new project credentials, invalidating the previous ones.
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_reset-credentials (the `ResetVectorDBProjectCredentials` operationId).
+func (c *Client) ResetVectorDBProjectCredentials(ctx context.Context, id ProjectID, params *ResetVectorDBProjectCredentialsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetVectorDBProjectCredentialsRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ResumeVectorDBProject Resume VectorDB project
+//
+// Resume a previously suspended VectorDB project. Projects can be automatically suspended after their trial period has expired.
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_resume (the `ResumeVectorDBProject` operationId).
+func (c *Client) ResumeVectorDBProject(ctx context.Context, id ProjectID, params *ResumeVectorDBProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResumeVectorDBProjectRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetVectorDBProjectLinkCandidates Get VectorDB project link candidates
+//
+// The response contains the list of projects which can be linked to the specified VectorDB project in a cross-project search configuration.
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/link-candidates (the `GetVectorDBProjectLinkCandidates` operationId).
+func (c *Client) GetVectorDBProjectLinkCandidates(ctx context.Context, id ProjectID, params *GetVectorDBProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVectorDBProjectLinkCandidatesRequest(c.Server, id, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetVectorDBProjectRoles Get roles for a VectorDB project
+//
+// Retrieve the custom roles defined for a VectorDB project.
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/roles (the `GetVectorDBProjectRoles` operationId).
+func (c *Client) GetVectorDBProjectRoles(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVectorDBProjectRolesRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetVectorDBProjectStatus Get the status of a VectorDB project
+//
+// The response indicates whether the project is initialized and ready to be used. The phase will change from \"initializing\" to \"initialized\" when the project is ready.
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/status (the `GetVectorDBProjectStatus` operationId).
+func (c *Client) GetVectorDBProjectStatus(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVectorDBProjectStatusRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // ListRegions Get regions
 //
 // Retrieve the available cloud service provider regions where a project can be created.
@@ -2905,7 +4043,7 @@ func (c *Client) GetRegion(ctx context.Context, id RegionID, reqEditors ...Reque
 
 // ListTrafficFilters List traffic filters
 //
-// List all of the traffic filters.
+// Lists the organization's traffic filters. Up to 1000 filters are returned per call; use the X-Elastic-Page-Size header to request a smaller page. When more results remain, the response carries a next_page token to send back in the X-Elastic-Next-Page header. Keep paging until next_page is absent: a page filled exactly to the page size still returns a token, and the page that follows it may be empty.
 //
 // Corresponds with GET /api/v1/serverless/traffic-filters (the `ListTrafficFilters` operationId).
 func (c *Client) ListTrafficFilters(ctx context.Context, params *ListTrafficFiltersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2923,6 +4061,37 @@ func (c *Client) ListTrafficFilters(ctx context.Context, params *ListTrafficFilt
 // CreateTrafficFilterWithBody Create a traffic filter
 //
 // Creates a traffic filter that consists of a set of rules.
+//
+// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+// for setup guides and regional service names.
+//
+// ### AWS PrivateLink (`type: vpce`)
+//
+// Each rule must include:
+//
+// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+//
+// ### Azure Private Link (`type: private_endpoint`)
+//
+// Each rule must include:
+//
+//   - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+//   - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+//     This is not the ARM resource ID.
+//
+// Do not set `source` on Azure rules.
+//
+// ### GCP Private Service Connect (`type: psc_endpoint`)
+//
+// Each rule must include:
+//
+// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+// connections are accepted automatically by the service attachment, so creating this
+// traffic filter does not trigger a cloud approval or resolution operation.
 //
 // Takes any type of body and a specified content type.
 //
@@ -2943,6 +4112,37 @@ func (c *Client) CreateTrafficFilterWithBody(ctx context.Context, contentType st
 //
 // Creates a traffic filter that consists of a set of rules.
 //
+// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+// for setup guides and regional service names.
+//
+// ### AWS PrivateLink (`type: vpce`)
+//
+// Each rule must include:
+//
+// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+//
+// ### Azure Private Link (`type: private_endpoint`)
+//
+// Each rule must include:
+//
+//   - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+//   - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+//     This is not the ARM resource ID.
+//
+// Do not set `source` on Azure rules.
+//
+// ### GCP Private Service Connect (`type: psc_endpoint`)
+//
+// Each rule must include:
+//
+// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+// connections are accepted automatically by the service attachment, so creating this
+// traffic filter does not trigger a cloud approval or resolution operation.
+//
 // Takes a body of the `application/json` content type.
 //
 // Corresponds with POST /api/v1/serverless/traffic-filters (the `CreateTrafficFilter` operationId).
@@ -2960,7 +4160,7 @@ func (c *Client) CreateTrafficFilter(ctx context.Context, body CreateTrafficFilt
 
 // GetTrafficFilterMetadata List PrivateLink region metadata
 //
-// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region or csp. If no matches are found, returns 200 with an empty regions array.
 //
 // Corresponds with GET /api/v1/serverless/traffic-filters/metadata (the `GetTrafficFilterMetadata` operationId).
 func (c *Client) GetTrafficFilterMetadata(ctx context.Context, params *GetTrafficFilterMetadataParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -3047,6 +4247,121 @@ func (c *Client) PatchTrafficFilter(ctx context.Context, id string, body PatchTr
 	return c.Client.Do(req)
 }
 
+// NewListIgnoreFiltersRequest constructs an http.Request for the ListIgnoreFilters method
+func NewListIgnoreFiltersRequest(server string, params *ListIgnoreFiltersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/configuration/monitoring/ignore-filters")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Type != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetIgnoreFilterRequest constructs an http.Request for the GetIgnoreFilter method
+func NewGetIgnoreFilterRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/configuration/monitoring/ignore-filters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetOrganizationCapabilitiesRequest constructs an http.Request for the GetOrganizationCapabilities method
+func NewGetOrganizationCapabilitiesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/capabilities")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListElasticsearchProjectsRequest constructs an http.Request for the ListElasticsearchProjects method
 func NewListElasticsearchProjectsRequest(server string, params *ListElasticsearchProjectsParams) (*http.Request, error) {
 	var err error
@@ -3126,18 +4441,18 @@ func NewListElasticsearchProjectsRequest(server string, params *ListElasticsearc
 }
 
 // NewCreateElasticsearchProjectRequest calls the generic CreateElasticsearchProject builder with application/json body
-func NewCreateElasticsearchProjectRequest(server string, body CreateElasticsearchProjectJSONRequestBody) (*http.Request, error) {
+func NewCreateElasticsearchProjectRequest(server string, params *CreateElasticsearchProjectParams, body CreateElasticsearchProjectJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateElasticsearchProjectRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateElasticsearchProjectRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewCreateElasticsearchProjectRequestWithBody constructs an http.Request for the CreateElasticsearchProject method, with any body, and a specified content type
-func NewCreateElasticsearchProjectRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateElasticsearchProjectRequestWithBody(server string, params *CreateElasticsearchProjectParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -3153,6 +4468,33 @@ func NewCreateElasticsearchProjectRequestWithBody(server string, contentType str
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ExcludeCredentials != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "exclude_credentials", *params.ExcludeCredentials, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
@@ -3710,18 +5052,18 @@ func NewListObservabilityProjectsRequest(server string, params *ListObservabilit
 }
 
 // NewCreateObservabilityProjectRequest calls the generic CreateObservabilityProject builder with application/json body
-func NewCreateObservabilityProjectRequest(server string, body CreateObservabilityProjectJSONRequestBody) (*http.Request, error) {
+func NewCreateObservabilityProjectRequest(server string, params *CreateObservabilityProjectParams, body CreateObservabilityProjectJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateObservabilityProjectRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateObservabilityProjectRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewCreateObservabilityProjectRequestWithBody constructs an http.Request for the CreateObservabilityProject method, with any body, and a specified content type
-func NewCreateObservabilityProjectRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateObservabilityProjectRequestWithBody(server string, params *CreateObservabilityProjectParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -3737,6 +5079,33 @@ func NewCreateObservabilityProjectRequestWithBody(server string, contentType str
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ExcludeCredentials != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "exclude_credentials", *params.ExcludeCredentials, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
@@ -4294,18 +5663,18 @@ func NewListSecurityProjectsRequest(server string, params *ListSecurityProjectsP
 }
 
 // NewCreateSecurityProjectRequest calls the generic CreateSecurityProject builder with application/json body
-func NewCreateSecurityProjectRequest(server string, body CreateSecurityProjectJSONRequestBody) (*http.Request, error) {
+func NewCreateSecurityProjectRequest(server string, params *CreateSecurityProjectParams, body CreateSecurityProjectJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewCreateSecurityProjectRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateSecurityProjectRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewCreateSecurityProjectRequestWithBody constructs an http.Request for the CreateSecurityProject method, with any body, and a specified content type
-func NewCreateSecurityProjectRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateSecurityProjectRequestWithBody(server string, params *CreateSecurityProjectParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -4321,6 +5690,33 @@ func NewCreateSecurityProjectRequestWithBody(server string, contentType string, 
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ExcludeCredentials != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "exclude_credentials", *params.ExcludeCredentials, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
@@ -4799,6 +6195,617 @@ func NewGetSecurityProjectStatusRequest(server string, id ProjectID) (*http.Requ
 	return req, nil
 }
 
+// NewListVectorDBProjectsRequest constructs an http.Request for the ListVectorDBProjects method
+func NewListVectorDBProjectsRequest(server string, params *ListVectorDBProjectsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.TrafficFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "traffic_filter", *params.TrafficFilter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Linked != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "linked", *params.Linked, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateVectorDBProjectRequest calls the generic CreateVectorDBProject builder with application/json body
+func NewCreateVectorDBProjectRequest(server string, params *CreateVectorDBProjectParams, body CreateVectorDBProjectJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateVectorDBProjectRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewCreateVectorDBProjectRequestWithBody constructs an http.Request for the CreateVectorDBProject method, with any body, and a specified content type
+func NewCreateVectorDBProjectRequestWithBody(server string, params *CreateVectorDBProjectParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ExcludeCredentials != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "exclude_credentials", *params.ExcludeCredentials, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteVectorDBProjectRequest constructs an http.Request for the DeleteVectorDBProject method
+func NewDeleteVectorDBProjectRequest(server string, id ProjectID, params *DeleteVectorDBProjectParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewGetVectorDBProjectRequest constructs an http.Request for the GetVectorDBProject method
+func NewGetVectorDBProjectRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPatchVectorDBProjectRequest calls the generic PatchVectorDBProject builder with application/json body
+func NewPatchVectorDBProjectRequest(server string, id ProjectID, params *PatchVectorDBProjectParams, body PatchVectorDBProjectJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchVectorDBProjectRequestWithBody(server, id, params, "application/json", bodyReader)
+}
+
+// NewPatchVectorDBProjectRequestWithBody constructs an http.Request for the PatchVectorDBProject method, with any body, and a specified content type
+func NewPatchVectorDBProjectRequestWithBody(server string, id ProjectID, params *PatchVectorDBProjectParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewGetVectorDBProjectCanDeleteRequest constructs an http.Request for the GetVectorDBProjectCanDelete method
+func NewGetVectorDBProjectCanDeleteRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s/_can-delete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewResetVectorDBProjectCredentialsRequest constructs an http.Request for the ResetVectorDBProjectCredentials method
+func NewResetVectorDBProjectCredentialsRequest(server string, id ProjectID, params *ResetVectorDBProjectCredentialsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s/_reset-credentials", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewResumeVectorDBProjectRequest constructs an http.Request for the ResumeVectorDBProject method
+func NewResumeVectorDBProjectRequest(server string, id ProjectID, params *ResumeVectorDBProjectParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s/_resume", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewGetVectorDBProjectLinkCandidatesRequest constructs an http.Request for the GetVectorDBProjectLinkCandidates method
+func NewGetVectorDBProjectLinkCandidatesRequest(server string, id ProjectID, params *GetVectorDBProjectLinkCandidatesParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s/link-candidates", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Types != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "types", *params.Types, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Csp != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "csp", *params.Csp, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Region != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region", *params.Region, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "name", *params.Name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Alias != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "alias", *params.Alias, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Tags != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "tags", *params.Tags, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetVectorDBProjectRolesRequest constructs an http.Request for the GetVectorDBProjectRoles method
+func NewGetVectorDBProjectRolesRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s/roles", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetVectorDBProjectStatusRequest constructs an http.Request for the GetVectorDBProjectStatus method
+func NewGetVectorDBProjectStatusRequest(server string, id ProjectID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "id", id, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/serverless/projects/vectordb/%s/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListRegionsRequest constructs an http.Request for the ListRegions method
 func NewListRegionsRequest(server string) (*http.Request, error) {
 	var err error
@@ -4921,6 +6928,32 @@ func NewListTrafficFiltersRequest(server string, params *ListTrafficFiltersParam
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+
+		if params.XElasticPageSize != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "X-Elastic-Page-Size", *params.XElasticPageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Elastic-Page-Size", headerParam0)
+		}
+
+		if params.XElasticNextPage != nil {
+			var headerParam1 string
+
+			headerParam1, err = runtime.StyleParamWithOptions("simple", false, "X-Elastic-Next-Page", *params.XElasticNextPage, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Elastic-Next-Page", headerParam1)
+		}
+
 	}
 
 	return req, nil
@@ -5191,6 +7224,33 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 
+	// ListIgnoreFiltersWithResponse List ignore filters
+	//
+	// Returns the list of ignore filters that can be applied to the logs from a project to suppress noisy or low-value log records before ingestion, helping control log volume and cost.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters (the `ListIgnoreFilters` operationId).
+	ListIgnoreFiltersWithResponse(ctx context.Context, params *ListIgnoreFiltersParams, reqEditors ...RequestEditorFn) (*ListIgnoreFiltersResponse, error)
+
+	// GetIgnoreFilterWithResponse Get an ignore filter
+	//
+	// Returns the details of a single log ignore filter.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters/{id} (the `GetIgnoreFilter` operationId).
+	GetIgnoreFilterWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetIgnoreFilterResponse, error)
+
+	// GetOrganizationCapabilitiesWithResponse Get organization capabilities
+	//
+	// Returns the capabilities that apply to the authenticated user's organization.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/capabilities (the `GetOrganizationCapabilities` operationId).
+	GetOrganizationCapabilitiesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOrganizationCapabilitiesResponse, error)
+
 	// ListElasticsearchProjectsWithResponse Get Elasticsearch projects
 	//
 	// Fetches a list of Elasticsearch projects.
@@ -5207,7 +7267,7 @@ type ClientWithResponsesInterface interface {
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-	CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error)
+	CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, params *CreateElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error)
 
 	// CreateElasticsearchProjectWithResponse Create an Elasticsearch project
 	//
@@ -5216,7 +7276,7 @@ type ClientWithResponsesInterface interface {
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-	CreateElasticsearchProjectWithResponse(ctx context.Context, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error)
+	CreateElasticsearchProjectWithResponse(ctx context.Context, params *CreateElasticsearchProjectParams, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error)
 
 	// DeleteElasticsearchProjectWithResponse Delete an Elasticsearch project
 	//
@@ -5320,7 +7380,7 @@ type ClientWithResponsesInterface interface {
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-	CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error)
+	CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, params *CreateObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error)
 
 	// CreateObservabilityProjectWithResponse Create an observability project
 	//
@@ -5329,7 +7389,7 @@ type ClientWithResponsesInterface interface {
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-	CreateObservabilityProjectWithResponse(ctx context.Context, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error)
+	CreateObservabilityProjectWithResponse(ctx context.Context, params *CreateObservabilityProjectParams, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error)
 
 	// DeleteObservabilityProjectWithResponse Delete an Observability project
 	//
@@ -5433,7 +7493,7 @@ type ClientWithResponsesInterface interface {
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-	CreateSecurityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error)
+	CreateSecurityProjectWithBodyWithResponse(ctx context.Context, params *CreateSecurityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error)
 
 	// CreateSecurityProjectWithResponse Create a security project
 	//
@@ -5442,7 +7502,7 @@ type ClientWithResponsesInterface interface {
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-	CreateSecurityProjectWithResponse(ctx context.Context, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error)
+	CreateSecurityProjectWithResponse(ctx context.Context, params *CreateSecurityProjectParams, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error)
 
 	// DeleteSecurityProjectWithResponse Delete a Security project
 	//
@@ -5530,6 +7590,119 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with GET /api/v1/serverless/projects/security/{id}/status (the `GetSecurityProjectStatus` operationId).
 	GetSecurityProjectStatusWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetSecurityProjectStatusResponse, error)
 
+	// ListVectorDBProjectsWithResponse Get VectorDB projects
+	//
+	// Fetches a list of VectorDB projects.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb (the `ListVectorDBProjects` operationId).
+	ListVectorDBProjectsWithResponse(ctx context.Context, params *ListVectorDBProjectsParams, reqEditors ...RequestEditorFn) (*ListVectorDBProjectsResponse, error)
+
+	// CreateVectorDBProjectWithBodyWithResponse Create a VectorDB project
+	//
+	// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+	CreateVectorDBProjectWithBodyWithResponse(ctx context.Context, params *CreateVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVectorDBProjectResponse, error)
+
+	// CreateVectorDBProjectWithResponse Create a VectorDB project
+	//
+	// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+	CreateVectorDBProjectWithResponse(ctx context.Context, params *CreateVectorDBProjectParams, body CreateVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVectorDBProjectResponse, error)
+
+	// DeleteVectorDBProjectWithResponse Delete a VectorDB project
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with DELETE /api/v1/serverless/projects/vectordb/{id} (the `DeleteVectorDBProject` operationId).
+	DeleteVectorDBProjectWithResponse(ctx context.Context, id ProjectID, params *DeleteVectorDBProjectParams, reqEditors ...RequestEditorFn) (*DeleteVectorDBProjectResponse, error)
+
+	// GetVectorDBProjectWithResponse Get a VectorDB project
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id} (the `GetVectorDBProject` operationId).
+	GetVectorDBProjectWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectResponse, error)
+
+	// PatchVectorDBProjectWithBodyWithResponse Update a VectorDB project
+	//
+	// Only the fields included in the body of the request will be updated.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+	PatchVectorDBProjectWithBodyWithResponse(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchVectorDBProjectResponse, error)
+
+	// PatchVectorDBProjectWithResponse Update a VectorDB project
+	//
+	// Only the fields included in the body of the request will be updated.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+	PatchVectorDBProjectWithResponse(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, body PatchVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchVectorDBProjectResponse, error)
+
+	// GetVectorDBProjectCanDeleteWithResponse Get VectorDB project delete status
+	//
+	// Find issues that would prevent deletion of a project.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/_can-delete (the `GetVectorDBProjectCanDelete` operationId).
+	GetVectorDBProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectCanDeleteResponse, error)
+
+	// ResetVectorDBProjectCredentialsWithResponse Reset the project credentials
+	//
+	// Retrieve new project credentials, invalidating the previous ones.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_reset-credentials (the `ResetVectorDBProjectCredentials` operationId).
+	ResetVectorDBProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetVectorDBProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetVectorDBProjectCredentialsResponse, error)
+
+	// ResumeVectorDBProjectWithResponse Resume VectorDB project
+	//
+	// Resume a previously suspended VectorDB project. Projects can be automatically suspended after their trial period has expired.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_resume (the `ResumeVectorDBProject` operationId).
+	ResumeVectorDBProjectWithResponse(ctx context.Context, id ProjectID, params *ResumeVectorDBProjectParams, reqEditors ...RequestEditorFn) (*ResumeVectorDBProjectResponse, error)
+
+	// GetVectorDBProjectLinkCandidatesWithResponse Get VectorDB project link candidates
+	//
+	// The response contains the list of projects which can be linked to the specified VectorDB project in a cross-project search configuration.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/link-candidates (the `GetVectorDBProjectLinkCandidates` operationId).
+	GetVectorDBProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetVectorDBProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetVectorDBProjectLinkCandidatesResponse, error)
+
+	// GetVectorDBProjectRolesWithResponse Get roles for a VectorDB project
+	//
+	// Retrieve the custom roles defined for a VectorDB project.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/roles (the `GetVectorDBProjectRoles` operationId).
+	GetVectorDBProjectRolesWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectRolesResponse, error)
+
+	// GetVectorDBProjectStatusWithResponse Get the status of a VectorDB project
+	//
+	// The response indicates whether the project is initialized and ready to be used. The phase will change from \"initializing\" to \"initialized\" when the project is ready.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/status (the `GetVectorDBProjectStatus` operationId).
+	GetVectorDBProjectStatusWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectStatusResponse, error)
+
 	// ListRegionsWithResponse Get regions
 	//
 	// Retrieve the available cloud service provider regions where a project can be created.
@@ -5550,7 +7723,7 @@ type ClientWithResponsesInterface interface {
 
 	// ListTrafficFiltersWithResponse List traffic filters
 	//
-	// List all of the traffic filters.
+	// Lists the organization's traffic filters. Up to 1000 filters are returned per call; use the X-Elastic-Page-Size header to request a smaller page. When more results remain, the response carries a next_page token to send back in the X-Elastic-Next-Page header. Keep paging until next_page is absent: a page filled exactly to the page size still returns a token, and the page that follows it may be empty.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -5561,6 +7734,37 @@ type ClientWithResponsesInterface interface {
 	//
 	// Creates a traffic filter that consists of a set of rules.
 	//
+	// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+	// for setup guides and regional service names.
+	//
+	// ### AWS PrivateLink (`type: vpce`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+	//
+	// ### Azure Private Link (`type: private_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+	// - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+	//   This is not the ARM resource ID.
+	//
+	// Do not set `source` on Azure rules.
+	//
+	// ### GCP Private Service Connect (`type: psc_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+	// connections are accepted automatically by the service attachment, so creating this
+	// traffic filter does not trigger a cloud approval or resolution operation.
+	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/traffic-filters (the `CreateTrafficFilter` operationId).
@@ -5570,6 +7774,37 @@ type ClientWithResponsesInterface interface {
 	//
 	// Creates a traffic filter that consists of a set of rules.
 	//
+	// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+	// for setup guides and regional service names.
+	//
+	// ### AWS PrivateLink (`type: vpce`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+	//
+	// ### Azure Private Link (`type: private_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+	// - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+	//   This is not the ARM resource ID.
+	//
+	// Do not set `source` on Azure rules.
+	//
+	// ### GCP Private Service Connect (`type: psc_endpoint`)
+	//
+	// Each rule must include:
+	//
+	// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+	//
+	// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+	// connections are accepted automatically by the service attachment, so creating this
+	// traffic filter does not trigger a cloud approval or resolution operation.
+	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v1/serverless/traffic-filters (the `CreateTrafficFilter` operationId).
@@ -5577,7 +7812,7 @@ type ClientWithResponsesInterface interface {
 
 	// GetTrafficFilterMetadataWithResponse List PrivateLink region metadata
 	//
-	// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+	// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region or csp. If no matches are found, returns 200 with an empty regions array.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -5619,6 +7854,157 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with PATCH /api/v1/serverless/traffic-filters/{id} (the `PatchTrafficFilter` operationId).
 	PatchTrafficFilterWithResponse(ctx context.Context, id string, body PatchTrafficFilterJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchTrafficFilterResponse, error)
+}
+
+type ListIgnoreFiltersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *IgnoreFilterList
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequest
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListIgnoreFiltersResponse) GetJSON200() *IgnoreFilterList {
+	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r ListIgnoreFiltersResponse) GetJSON400() *BadRequest {
+	return r.JSON400
+}
+
+// GetBody returns the raw response body bytes
+func (r ListIgnoreFiltersResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListIgnoreFiltersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListIgnoreFiltersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListIgnoreFiltersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetIgnoreFilterResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *IgnoreFilter
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequest
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetIgnoreFilterResponse) GetJSON200() *IgnoreFilter {
+	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r GetIgnoreFilterResponse) GetJSON400() *BadRequest {
+	return r.JSON400
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetIgnoreFilterResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetIgnoreFilterResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetIgnoreFilterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetIgnoreFilterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetIgnoreFilterResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetOrganizationCapabilitiesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *Capabilities
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *Unauthorized
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetOrganizationCapabilitiesResponse) GetJSON200() *Capabilities {
+	return r.JSON200
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r GetOrganizationCapabilitiesResponse) GetJSON401() *Unauthorized {
+	return r.JSON401
+}
+
+// GetBody returns the raw response body bytes
+func (r GetOrganizationCapabilitiesResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOrganizationCapabilitiesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOrganizationCapabilitiesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetOrganizationCapabilitiesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type ListElasticsearchProjectsResponse struct {
@@ -7499,6 +9885,639 @@ func (r GetSecurityProjectStatusResponse) ContentType() string {
 	return ""
 }
 
+type ListVectorDBProjectsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *VectorDBProjectList
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *Unauthorized
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListVectorDBProjectsResponse) GetJSON200() *VectorDBProjectList {
+	return r.JSON200
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r ListVectorDBProjectsResponse) GetJSON401() *Unauthorized {
+	return r.JSON401
+}
+
+// GetBody returns the raw response body bytes
+func (r ListVectorDBProjectsResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListVectorDBProjectsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListVectorDBProjectsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListVectorDBProjectsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// CreateVectorDBProjectResponse201Headers the declared response headers of an HTTP 201 response for CreateVectorDBProject
+type CreateVectorDBProjectResponse201Headers struct {
+	ETag *string
+}
+
+type CreateVectorDBProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON201 the response for an HTTP 201 `application/json` response
+	JSON201 *VectorDBProjectCreated
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequest
+	// JSON422 the response for an HTTP 422 `application/json` response
+	JSON422 *UnprocessableEntity
+	// Headers201 the parsed response headers for an HTTP 201 response
+	Headers201 *CreateVectorDBProjectResponse201Headers
+}
+
+// GetJSON201 returns the response for an HTTP 201 `application/json` response
+func (r CreateVectorDBProjectResponse) GetJSON201() *VectorDBProjectCreated {
+	return r.JSON201
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r CreateVectorDBProjectResponse) GetJSON400() *BadRequest {
+	return r.JSON400
+}
+
+// GetJSON422 returns the response for an HTTP 422 `application/json` response
+func (r CreateVectorDBProjectResponse) GetJSON422() *UnprocessableEntity {
+	return r.JSON422
+}
+
+// GetBody returns the raw response body bytes
+func (r CreateVectorDBProjectResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateVectorDBProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateVectorDBProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateVectorDBProjectResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// DeleteVectorDBProjectResponse200Headers the declared response headers of an HTTP 200 response for DeleteVectorDBProject
+type DeleteVectorDBProjectResponse200Headers struct {
+	ETag *string
+}
+
+type DeleteVectorDBProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequest
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *Conflict
+	// JSON412 the response for an HTTP 412 `application/json` response
+	JSON412 *PreconditionFailed
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *DeleteVectorDBProjectResponse200Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r DeleteVectorDBProjectResponse) GetJSON400() *BadRequest {
+	return r.JSON400
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r DeleteVectorDBProjectResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r DeleteVectorDBProjectResponse) GetJSON409() *Conflict {
+	return r.JSON409
+}
+
+// GetJSON412 returns the response for an HTTP 412 `application/json` response
+func (r DeleteVectorDBProjectResponse) GetJSON412() *PreconditionFailed {
+	return r.JSON412
+}
+
+// GetBody returns the raw response body bytes
+func (r DeleteVectorDBProjectResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteVectorDBProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteVectorDBProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteVectorDBProjectResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// GetVectorDBProjectResponse200Headers the declared response headers of an HTTP 200 response for GetVectorDBProject
+type GetVectorDBProjectResponse200Headers struct {
+	ETag *string
+}
+
+type GetVectorDBProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *VectorDBProject
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *GetVectorDBProjectResponse200Headers
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetVectorDBProjectResponse) GetJSON200() *VectorDBProject {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetVectorDBProjectResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetVectorDBProjectResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVectorDBProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVectorDBProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetVectorDBProjectResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// PatchVectorDBProjectResponse200Headers the declared response headers of an HTTP 200 response for PatchVectorDBProject
+type PatchVectorDBProjectResponse200Headers struct {
+	ETag *string
+}
+
+type PatchVectorDBProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *VectorDBProject
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *Conflict
+	// JSON412 the response for an HTTP 412 `application/json` response
+	JSON412 *PreconditionFailed
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *PatchVectorDBProjectResponse200Headers
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r PatchVectorDBProjectResponse) GetJSON200() *VectorDBProject {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r PatchVectorDBProjectResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r PatchVectorDBProjectResponse) GetJSON409() *Conflict {
+	return r.JSON409
+}
+
+// GetJSON412 returns the response for an HTTP 412 `application/json` response
+func (r PatchVectorDBProjectResponse) GetJSON412() *PreconditionFailed {
+	return r.JSON412
+}
+
+// GetBody returns the raw response body bytes
+func (r PatchVectorDBProjectResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchVectorDBProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchVectorDBProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PatchVectorDBProjectResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetVectorDBProjectCanDeleteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *CanDeleteResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetVectorDBProjectCanDeleteResponse) GetJSON200() *CanDeleteResponse {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetVectorDBProjectCanDeleteResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetVectorDBProjectCanDeleteResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVectorDBProjectCanDeleteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVectorDBProjectCanDeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetVectorDBProjectCanDeleteResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// ResetVectorDBProjectCredentialsResponse200Headers the declared response headers of an HTTP 200 response for ResetVectorDBProjectCredentials
+type ResetVectorDBProjectCredentialsResponse200Headers struct {
+	ETag *string
+}
+
+type ResetVectorDBProjectCredentialsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *ProjectCredentials
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *Conflict
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *ResetVectorDBProjectCredentialsResponse200Headers
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ResetVectorDBProjectCredentialsResponse) GetJSON200() *ProjectCredentials {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r ResetVectorDBProjectCredentialsResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r ResetVectorDBProjectCredentialsResponse) GetJSON409() *Conflict {
+	return r.JSON409
+}
+
+// GetBody returns the raw response body bytes
+func (r ResetVectorDBProjectCredentialsResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ResetVectorDBProjectCredentialsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResetVectorDBProjectCredentialsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ResetVectorDBProjectCredentialsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// ResumeVectorDBProjectResponse200Headers the declared response headers of an HTTP 200 response for ResumeVectorDBProject
+type ResumeVectorDBProjectResponse200Headers struct {
+	ETag *string
+}
+
+type ResumeVectorDBProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequest
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *Conflict
+	// JSON412 the response for an HTTP 412 `application/json` response
+	JSON412 *PreconditionFailed
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *ResumeVectorDBProjectResponse200Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r ResumeVectorDBProjectResponse) GetJSON400() *BadRequest {
+	return r.JSON400
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r ResumeVectorDBProjectResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r ResumeVectorDBProjectResponse) GetJSON409() *Conflict {
+	return r.JSON409
+}
+
+// GetJSON412 returns the response for an HTTP 412 `application/json` response
+func (r ResumeVectorDBProjectResponse) GetJSON412() *PreconditionFailed {
+	return r.JSON412
+}
+
+// GetBody returns the raw response body bytes
+func (r ResumeVectorDBProjectResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ResumeVectorDBProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResumeVectorDBProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ResumeVectorDBProjectResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetVectorDBProjectLinkCandidatesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *LinkedCandidatesList
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetVectorDBProjectLinkCandidatesResponse) GetJSON200() *LinkedCandidatesList {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetVectorDBProjectLinkCandidatesResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetVectorDBProjectLinkCandidatesResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVectorDBProjectLinkCandidatesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVectorDBProjectLinkCandidatesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetVectorDBProjectLinkCandidatesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// GetVectorDBProjectRolesResponse200Headers the declared response headers of an HTTP 200 response for GetVectorDBProjectRoles
+type GetVectorDBProjectRolesResponse200Headers struct {
+	ETag *string
+}
+
+type GetVectorDBProjectRolesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *ProjectRolesByProjectID
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *GetVectorDBProjectRolesResponse200Headers
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetVectorDBProjectRolesResponse) GetJSON200() *ProjectRolesByProjectID {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetVectorDBProjectRolesResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetVectorDBProjectRolesResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVectorDBProjectRolesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVectorDBProjectRolesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetVectorDBProjectRolesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetVectorDBProjectStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *ProjectStatus
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFound
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetVectorDBProjectStatusResponse) GetJSON200() *ProjectStatus {
+	return r.JSON200
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetVectorDBProjectStatusResponse) GetJSON404() *NotFound {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetVectorDBProjectStatusResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVectorDBProjectStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVectorDBProjectStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetVectorDBProjectStatusResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListRegionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8037,6 +11056,51 @@ func (r PatchTrafficFilterResponse) ContentType() string {
 	return ""
 }
 
+// ListIgnoreFiltersWithResponse List ignore filters
+//
+// Returns the list of ignore filters that can be applied to the logs from a project to suppress noisy or low-value log records before ingestion, helping control log volume and cost.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters (the `ListIgnoreFilters` operationId).
+func (c *ClientWithResponses) ListIgnoreFiltersWithResponse(ctx context.Context, params *ListIgnoreFiltersParams, reqEditors ...RequestEditorFn) (*ListIgnoreFiltersResponse, error) {
+	rsp, err := c.ListIgnoreFilters(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListIgnoreFiltersResponse(rsp)
+}
+
+// GetIgnoreFilterWithResponse Get an ignore filter
+//
+// Returns the details of a single log ignore filter.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/configuration/monitoring/ignore-filters/{id} (the `GetIgnoreFilter` operationId).
+func (c *ClientWithResponses) GetIgnoreFilterWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetIgnoreFilterResponse, error) {
+	rsp, err := c.GetIgnoreFilter(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetIgnoreFilterResponse(rsp)
+}
+
+// GetOrganizationCapabilitiesWithResponse Get organization capabilities
+//
+// Returns the capabilities that apply to the authenticated user's organization.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/capabilities (the `GetOrganizationCapabilities` operationId).
+func (c *ClientWithResponses) GetOrganizationCapabilitiesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOrganizationCapabilitiesResponse, error) {
+	rsp, err := c.GetOrganizationCapabilities(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOrganizationCapabilitiesResponse(rsp)
+}
+
 // ListElasticsearchProjectsWithResponse Get Elasticsearch projects
 //
 // Fetches a list of Elasticsearch projects.
@@ -8059,8 +11123,8 @@ func (c *ClientWithResponses) ListElasticsearchProjectsWithResponse(ctx context.
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-func (c *ClientWithResponses) CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error) {
-	rsp, err := c.CreateElasticsearchProjectWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateElasticsearchProjectWithBodyWithResponse(ctx context.Context, params *CreateElasticsearchProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error) {
+	rsp, err := c.CreateElasticsearchProjectWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -8074,8 +11138,8 @@ func (c *ClientWithResponses) CreateElasticsearchProjectWithBodyWithResponse(ctx
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/projects/elasticsearch (the `CreateElasticsearchProject` operationId).
-func (c *ClientWithResponses) CreateElasticsearchProjectWithResponse(ctx context.Context, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error) {
-	rsp, err := c.CreateElasticsearchProject(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateElasticsearchProjectWithResponse(ctx context.Context, params *CreateElasticsearchProjectParams, body CreateElasticsearchProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateElasticsearchProjectResponse, error) {
+	rsp, err := c.CreateElasticsearchProject(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -8250,8 +11314,8 @@ func (c *ClientWithResponses) ListObservabilityProjectsWithResponse(ctx context.
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-func (c *ClientWithResponses) CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error) {
-	rsp, err := c.CreateObservabilityProjectWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateObservabilityProjectWithBodyWithResponse(ctx context.Context, params *CreateObservabilityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error) {
+	rsp, err := c.CreateObservabilityProjectWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -8265,8 +11329,8 @@ func (c *ClientWithResponses) CreateObservabilityProjectWithBodyWithResponse(ctx
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/projects/observability (the `CreateObservabilityProject` operationId).
-func (c *ClientWithResponses) CreateObservabilityProjectWithResponse(ctx context.Context, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error) {
-	rsp, err := c.CreateObservabilityProject(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateObservabilityProjectWithResponse(ctx context.Context, params *CreateObservabilityProjectParams, body CreateObservabilityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateObservabilityProjectResponse, error) {
+	rsp, err := c.CreateObservabilityProject(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -8441,8 +11505,8 @@ func (c *ClientWithResponses) ListSecurityProjectsWithResponse(ctx context.Conte
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-func (c *ClientWithResponses) CreateSecurityProjectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error) {
-	rsp, err := c.CreateSecurityProjectWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateSecurityProjectWithBodyWithResponse(ctx context.Context, params *CreateSecurityProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error) {
+	rsp, err := c.CreateSecurityProjectWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -8456,8 +11520,8 @@ func (c *ClientWithResponses) CreateSecurityProjectWithBodyWithResponse(ctx cont
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/projects/security (the `CreateSecurityProject` operationId).
-func (c *ClientWithResponses) CreateSecurityProjectWithResponse(ctx context.Context, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error) {
-	rsp, err := c.CreateSecurityProject(ctx, body, reqEditors...)
+func (c *ClientWithResponses) CreateSecurityProjectWithResponse(ctx context.Context, params *CreateSecurityProjectParams, body CreateSecurityProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSecurityProjectResponse, error) {
+	rsp, err := c.CreateSecurityProject(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -8610,6 +11674,197 @@ func (c *ClientWithResponses) GetSecurityProjectStatusWithResponse(ctx context.C
 	return ParseGetSecurityProjectStatusResponse(rsp)
 }
 
+// ListVectorDBProjectsWithResponse Get VectorDB projects
+//
+// Fetches a list of VectorDB projects.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb (the `ListVectorDBProjects` operationId).
+func (c *ClientWithResponses) ListVectorDBProjectsWithResponse(ctx context.Context, params *ListVectorDBProjectsParams, reqEditors ...RequestEditorFn) (*ListVectorDBProjectsResponse, error) {
+	rsp, err := c.ListVectorDBProjects(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListVectorDBProjectsResponse(rsp)
+}
+
+// CreateVectorDBProjectWithBodyWithResponse Create a VectorDB project
+//
+// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+func (c *ClientWithResponses) CreateVectorDBProjectWithBodyWithResponse(ctx context.Context, params *CreateVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateVectorDBProjectResponse, error) {
+	rsp, err := c.CreateVectorDBProjectWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateVectorDBProjectResponse(rsp)
+}
+
+// CreateVectorDBProjectWithResponse Create a VectorDB project
+//
+// Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb (the `CreateVectorDBProject` operationId).
+func (c *ClientWithResponses) CreateVectorDBProjectWithResponse(ctx context.Context, params *CreateVectorDBProjectParams, body CreateVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateVectorDBProjectResponse, error) {
+	rsp, err := c.CreateVectorDBProject(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateVectorDBProjectResponse(rsp)
+}
+
+// DeleteVectorDBProjectWithResponse Delete a VectorDB project
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /api/v1/serverless/projects/vectordb/{id} (the `DeleteVectorDBProject` operationId).
+func (c *ClientWithResponses) DeleteVectorDBProjectWithResponse(ctx context.Context, id ProjectID, params *DeleteVectorDBProjectParams, reqEditors ...RequestEditorFn) (*DeleteVectorDBProjectResponse, error) {
+	rsp, err := c.DeleteVectorDBProject(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteVectorDBProjectResponse(rsp)
+}
+
+// GetVectorDBProjectWithResponse Get a VectorDB project
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id} (the `GetVectorDBProject` operationId).
+func (c *ClientWithResponses) GetVectorDBProjectWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectResponse, error) {
+	rsp, err := c.GetVectorDBProject(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVectorDBProjectResponse(rsp)
+}
+
+// PatchVectorDBProjectWithBodyWithResponse Update a VectorDB project
+//
+// Only the fields included in the body of the request will be updated.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+func (c *ClientWithResponses) PatchVectorDBProjectWithBodyWithResponse(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchVectorDBProjectResponse, error) {
+	rsp, err := c.PatchVectorDBProjectWithBody(ctx, id, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchVectorDBProjectResponse(rsp)
+}
+
+// PatchVectorDBProjectWithResponse Update a VectorDB project
+//
+// Only the fields included in the body of the request will be updated.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /api/v1/serverless/projects/vectordb/{id} (the `PatchVectorDBProject` operationId).
+func (c *ClientWithResponses) PatchVectorDBProjectWithResponse(ctx context.Context, id ProjectID, params *PatchVectorDBProjectParams, body PatchVectorDBProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchVectorDBProjectResponse, error) {
+	rsp, err := c.PatchVectorDBProject(ctx, id, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchVectorDBProjectResponse(rsp)
+}
+
+// GetVectorDBProjectCanDeleteWithResponse Get VectorDB project delete status
+//
+// Find issues that would prevent deletion of a project.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/_can-delete (the `GetVectorDBProjectCanDelete` operationId).
+func (c *ClientWithResponses) GetVectorDBProjectCanDeleteWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectCanDeleteResponse, error) {
+	rsp, err := c.GetVectorDBProjectCanDelete(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVectorDBProjectCanDeleteResponse(rsp)
+}
+
+// ResetVectorDBProjectCredentialsWithResponse Reset the project credentials
+//
+// Retrieve new project credentials, invalidating the previous ones.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_reset-credentials (the `ResetVectorDBProjectCredentials` operationId).
+func (c *ClientWithResponses) ResetVectorDBProjectCredentialsWithResponse(ctx context.Context, id ProjectID, params *ResetVectorDBProjectCredentialsParams, reqEditors ...RequestEditorFn) (*ResetVectorDBProjectCredentialsResponse, error) {
+	rsp, err := c.ResetVectorDBProjectCredentials(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetVectorDBProjectCredentialsResponse(rsp)
+}
+
+// ResumeVectorDBProjectWithResponse Resume VectorDB project
+//
+// Resume a previously suspended VectorDB project. Projects can be automatically suspended after their trial period has expired.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v1/serverless/projects/vectordb/{id}/_resume (the `ResumeVectorDBProject` operationId).
+func (c *ClientWithResponses) ResumeVectorDBProjectWithResponse(ctx context.Context, id ProjectID, params *ResumeVectorDBProjectParams, reqEditors ...RequestEditorFn) (*ResumeVectorDBProjectResponse, error) {
+	rsp, err := c.ResumeVectorDBProject(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResumeVectorDBProjectResponse(rsp)
+}
+
+// GetVectorDBProjectLinkCandidatesWithResponse Get VectorDB project link candidates
+//
+// The response contains the list of projects which can be linked to the specified VectorDB project in a cross-project search configuration.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/link-candidates (the `GetVectorDBProjectLinkCandidates` operationId).
+func (c *ClientWithResponses) GetVectorDBProjectLinkCandidatesWithResponse(ctx context.Context, id ProjectID, params *GetVectorDBProjectLinkCandidatesParams, reqEditors ...RequestEditorFn) (*GetVectorDBProjectLinkCandidatesResponse, error) {
+	rsp, err := c.GetVectorDBProjectLinkCandidates(ctx, id, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVectorDBProjectLinkCandidatesResponse(rsp)
+}
+
+// GetVectorDBProjectRolesWithResponse Get roles for a VectorDB project
+//
+// Retrieve the custom roles defined for a VectorDB project.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/roles (the `GetVectorDBProjectRoles` operationId).
+func (c *ClientWithResponses) GetVectorDBProjectRolesWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectRolesResponse, error) {
+	rsp, err := c.GetVectorDBProjectRoles(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVectorDBProjectRolesResponse(rsp)
+}
+
+// GetVectorDBProjectStatusWithResponse Get the status of a VectorDB project
+//
+// The response indicates whether the project is initialized and ready to be used. The phase will change from \"initializing\" to \"initialized\" when the project is ready.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/serverless/projects/vectordb/{id}/status (the `GetVectorDBProjectStatus` operationId).
+func (c *ClientWithResponses) GetVectorDBProjectStatusWithResponse(ctx context.Context, id ProjectID, reqEditors ...RequestEditorFn) (*GetVectorDBProjectStatusResponse, error) {
+	rsp, err := c.GetVectorDBProjectStatus(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVectorDBProjectStatusResponse(rsp)
+}
+
 // ListRegionsWithResponse Get regions
 //
 // Retrieve the available cloud service provider regions where a project can be created.
@@ -8642,7 +11897,7 @@ func (c *ClientWithResponses) GetRegionWithResponse(ctx context.Context, id Regi
 
 // ListTrafficFiltersWithResponse List traffic filters
 //
-// List all of the traffic filters.
+// Lists the organization's traffic filters. Up to 1000 filters are returned per call; use the X-Elastic-Page-Size header to request a smaller page. When more results remain, the response carries a next_page token to send back in the X-Elastic-Next-Page header. Keep paging until next_page is absent: a page filled exactly to the page size still returns a token, and the page that follows it may be empty.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -8659,6 +11914,37 @@ func (c *ClientWithResponses) ListTrafficFiltersWithResponse(ctx context.Context
 //
 // Creates a traffic filter that consists of a set of rules.
 //
+// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+// for setup guides and regional service names.
+//
+// ### AWS PrivateLink (`type: vpce`)
+//
+// Each rule must include:
+//
+// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+//
+// ### Azure Private Link (`type: private_endpoint`)
+//
+// Each rule must include:
+//
+//   - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+//   - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+//     This is not the ARM resource ID.
+//
+// Do not set `source` on Azure rules.
+//
+// ### GCP Private Service Connect (`type: psc_endpoint`)
+//
+// Each rule must include:
+//
+// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+// connections are accepted automatically by the service attachment, so creating this
+// traffic filter does not trigger a cloud approval or resolution operation.
+//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/traffic-filters (the `CreateTrafficFilter` operationId).
@@ -8674,6 +11960,37 @@ func (c *ClientWithResponses) CreateTrafficFilterWithBodyWithResponse(ctx contex
 //
 // Creates a traffic filter that consists of a set of rules.
 //
+// See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+// for setup guides and regional service names.
+//
+// ### AWS PrivateLink (`type: vpce`)
+//
+// Each rule must include:
+//
+// - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+//
+// ### Azure Private Link (`type: private_endpoint`)
+//
+// Each rule must include:
+//
+//   - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+//   - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+//     This is not the ARM resource ID.
+//
+// Do not set `source` on Azure rules.
+//
+// ### GCP Private Service Connect (`type: psc_endpoint`)
+//
+// Each rule must include:
+//
+// - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+//
+// Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+// connections are accepted automatically by the service attachment, so creating this
+// traffic filter does not trigger a cloud approval or resolution operation.
+//
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v1/serverless/traffic-filters (the `CreateTrafficFilter` operationId).
@@ -8687,7 +12004,7 @@ func (c *ClientWithResponses) CreateTrafficFilterWithResponse(ctx context.Contex
 
 // GetTrafficFilterMetadataWithResponse List PrivateLink region metadata
 //
-// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+// Returns region-specific PrivateLink connectivity metadata. Optionally filter by region or csp. If no matches are found, returns 200 with an empty regions array.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -8758,6 +12075,112 @@ func (c *ClientWithResponses) PatchTrafficFilterWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParsePatchTrafficFilterResponse(rsp)
+}
+
+// ParseListIgnoreFiltersResponse parses an HTTP response from a ListIgnoreFiltersWithResponse call
+func ParseListIgnoreFiltersResponse(rsp *http.Response) (*ListIgnoreFiltersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListIgnoreFiltersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest IgnoreFilterList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetIgnoreFilterResponse parses an HTTP response from a GetIgnoreFilterWithResponse call
+func ParseGetIgnoreFilterResponse(rsp *http.Response) (*GetIgnoreFilterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetIgnoreFilterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest IgnoreFilter
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetOrganizationCapabilitiesResponse parses an HTTP response from a GetOrganizationCapabilitiesWithResponse call
+func ParseGetOrganizationCapabilitiesResponse(rsp *http.Response) (*GetOrganizationCapabilitiesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOrganizationCapabilitiesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Capabilities
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseListElasticsearchProjectsResponse parses an HTTP response from a ListElasticsearchProjectsWithResponse call
@@ -10263,6 +13686,522 @@ func ParseGetSecurityProjectStatusResponse(rsp *http.Response) (*GetSecurityProj
 	}
 
 	response := &GetSecurityProjectStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProjectStatus
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListVectorDBProjectsResponse parses an HTTP response from a ListVectorDBProjectsWithResponse call
+func ParseListVectorDBProjectsResponse(rsp *http.Response) (*ListVectorDBProjectsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListVectorDBProjectsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest VectorDBProjectList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateVectorDBProjectResponse parses an HTTP response from a CreateVectorDBProjectWithResponse call
+func ParseCreateVectorDBProjectResponse(rsp *http.Response) (*CreateVectorDBProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateVectorDBProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest VectorDBProjectCreated
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableEntity
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 201:
+		var headers CreateVectorDBProjectResponse201Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers201 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseDeleteVectorDBProjectResponse parses an HTTP response from a DeleteVectorDBProjectWithResponse call
+func ParseDeleteVectorDBProjectResponse(rsp *http.Response) (*DeleteVectorDBProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteVectorDBProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers DeleteVectorDBProjectResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseGetVectorDBProjectResponse parses an HTTP response from a GetVectorDBProjectWithResponse call
+func ParseGetVectorDBProjectResponse(rsp *http.Response) (*GetVectorDBProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVectorDBProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest VectorDBProject
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers GetVectorDBProjectResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
+	}
+
+	return response, nil
+}
+
+// ParsePatchVectorDBProjectResponse parses an HTTP response from a PatchVectorDBProjectWithResponse call
+func ParsePatchVectorDBProjectResponse(rsp *http.Response) (*PatchVectorDBProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchVectorDBProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest VectorDBProject
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers PatchVectorDBProjectResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseGetVectorDBProjectCanDeleteResponse parses an HTTP response from a GetVectorDBProjectCanDeleteWithResponse call
+func ParseGetVectorDBProjectCanDeleteResponse(rsp *http.Response) (*GetVectorDBProjectCanDeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVectorDBProjectCanDeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CanDeleteResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResetVectorDBProjectCredentialsResponse parses an HTTP response from a ResetVectorDBProjectCredentialsWithResponse call
+func ParseResetVectorDBProjectCredentialsResponse(rsp *http.Response) (*ResetVectorDBProjectCredentialsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResetVectorDBProjectCredentialsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProjectCredentials
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers ResetVectorDBProjectCredentialsResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseResumeVectorDBProjectResponse parses an HTTP response from a ResumeVectorDBProjectWithResponse call
+func ParseResumeVectorDBProjectResponse(rsp *http.Response) (*ResumeVectorDBProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResumeVectorDBProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailed
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers ResumeVectorDBProjectResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseGetVectorDBProjectLinkCandidatesResponse parses an HTTP response from a GetVectorDBProjectLinkCandidatesWithResponse call
+func ParseGetVectorDBProjectLinkCandidatesResponse(rsp *http.Response) (*GetVectorDBProjectLinkCandidatesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVectorDBProjectLinkCandidatesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LinkedCandidatesList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetVectorDBProjectRolesResponse parses an HTTP response from a GetVectorDBProjectRolesWithResponse call
+func ParseGetVectorDBProjectRolesResponse(rsp *http.Response) (*GetVectorDBProjectRolesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVectorDBProjectRolesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProjectRolesByProjectID
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers GetVectorDBProjectRolesResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseGetVectorDBProjectStatusResponse parses an HTTP response from a GetVectorDBProjectStatusWithResponse call
+func ParseGetVectorDBProjectStatusResponse(rsp *http.Response) (*GetVectorDBProjectStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVectorDBProjectStatusResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

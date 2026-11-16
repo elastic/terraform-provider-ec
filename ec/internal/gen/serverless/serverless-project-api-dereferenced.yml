@@ -40,22 +40,40 @@ security:
 tags:
   - name: elasticsearch projects
     description: Management of Elasticsearch projects
-  - name: linked candidate projects
-    description: Management of project link candidates
+  - name: capabilities
+    description: Capabilities that apply to the user's organization
   - name: observability projects
     description: Management of Observability projects
   - name: security projects
     description: Management of Security projects
-  - name: workplaceai projects
-    description: Management of Workplace AI projects
   - name: vectordb projects
     description: Management of VectorDB projects
-  - name: linked projects
   - name: regions
     description: Cloud service provider regions
   - name: traffic filters
-    description: Management of Elastic Cloud traffic filters
+    description: |
+      Create, read, update, and delete traffic filters for Serverless projects, and retrieve
+      regional PrivateLink metadata (AWS VPC endpoint service names, Azure PLS aliases, GCP
+      service attachment URIs).
+  - name: monitoring
+    description: Management of monitoring configuration.
 paths:
+  /api/v1/serverless/capabilities:
+    get:
+      summary: Get organization capabilities
+      description: Returns the capabilities that apply to the authenticated user's organization.
+      operationId: getOrganizationCapabilities
+      tags:
+        - capabilities
+      responses:
+        '200':
+          description: The capabilities for the user's organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Capabilities'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/serverless/projects/elasticsearch:
     get:
       summary: Get Elasticsearch projects
@@ -99,6 +117,13 @@ paths:
       operationId: createElasticsearchProject
       tags:
         - elasticsearch projects
+      parameters:
+        - name: exclude_credentials
+          in: query
+          description: If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         description: Configuration of the elasticsearch project to create.
         required: true
@@ -229,7 +254,7 @@ paths:
       description: Find issues that would prevent deletion of a project
       operationId: getElasticsearchProjectCanDelete
       tags:
-        - linked projects
+        - elasticsearch projects
       responses:
         '200':
           description: The requested delete status
@@ -364,7 +389,7 @@ paths:
       description: The response contains the list of projects which can be linked to the specified Elasticsearch project in a cross-project search configuration.
       operationId: getElasticsearchProjectLinkCandidates
       tags:
-        - linked candidate projects
+        - elasticsearch projects
       responses:
         '200':
           description: The requested link candidate projects
@@ -467,6 +492,13 @@ paths:
       operationId: createObservabilityProject
       tags:
         - observability projects
+      parameters:
+        - name: exclude_credentials
+          in: query
+          description: If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         description: Configuration of the observability project to create.
         required: true
@@ -597,7 +629,7 @@ paths:
       description: Find issues that would prevent deletion of a project
       operationId: getObservabilityProjectCanDelete
       tags:
-        - linked projects
+        - observability projects
       responses:
         '200':
           description: The requested delete status
@@ -732,7 +764,7 @@ paths:
       description: The response contains the list of projects which can be linked to the specified Observability project in a cross-project search configuration.
       operationId: getObservabilityProjectLinkCandidates
       tags:
-        - linked candidate projects
+        - observability projects
       responses:
         '200':
           description: The requested link candidate projects
@@ -835,6 +867,13 @@ paths:
       operationId: createSecurityProject
       tags:
         - security projects
+      parameters:
+        - name: exclude_credentials
+          in: query
+          description: If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         description: Configuration of the security project to create.
         required: true
@@ -965,7 +1004,7 @@ paths:
       description: Find issues that would prevent deletion of a project
       operationId: getSecurityProjectCanDelete
       tags:
-        - linked projects
+        - security projects
       responses:
         '200':
           description: The requested delete status
@@ -1100,7 +1139,7 @@ paths:
       description: The response contains the list of projects which can be linked to the specified Security project in a cross-project search configuration.
       operationId: getSecurityProjectLinkCandidates
       tags:
-        - linked candidate projects
+        - security projects
       responses:
         '200':
           description: The requested link candidate projects
@@ -1160,6 +1199,383 @@ paths:
                 $ref: '#/components/schemas/ProjectStatus'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/vectordb:
+    get:
+      summary: Get VectorDB projects
+      description: Fetches a list of VectorDB projects.
+      operationId: listVectorDBProjects
+      tags:
+        - vectordb projects
+      parameters:
+        - name: traffic_filter
+          in: query
+          description: Filters the returned list of projects. Only projects associated with the provided traffic_filter will be returned.
+          required: false
+          schema:
+            type: string
+        - name: linked
+          in: query
+          description: Contains a project ID. If specified, the result will be filtered to only those origin projects that are linked to the specified project ID in a cross-project search configuration.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProjectID'
+        - name: tags
+          in: query
+          style: deepObject
+          description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+          explode: true
+          required: false
+          schema:
+            $ref: '#/components/schemas/ProjectTags'
+      responses:
+        '200':
+          description: The VectorDB project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorDBProjectList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      description: Create a VectorDB project. The response will include the created project details, such as the project ID, the credentials to access the project, and the endpoints to access different apps. The credentials can be regenerated at any time using the _reset-credentials endpoint.
+      summary: Create a VectorDB project
+      operationId: createVectorDBProject
+      tags:
+        - vectordb projects
+      parameters:
+        - name: exclude_credentials
+          in: query
+          description: If true, the username and password fields in the response credentials are set to empty strings and no usable credentials are returned. Credentials can be retrieved later using the _reset-credentials endpoint.
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        description: Configuration of the VectorDB project to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVectorDBProjectRequest'
+            example:
+              name: Example project
+              region_id: aws-us-east-1
+      responses:
+        '201':
+          description: The created VectorDB project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorDBProjectCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /api/v1/serverless/projects/vectordb/{id}:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get a VectorDB project
+      operationId: getVectorDBProject
+      tags:
+        - vectordb projects
+      responses:
+        '200':
+          description: The requested VectorDB project
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorDBProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      description: Only the fields included in the body of the request will be updated.
+      summary: Update a VectorDB project
+      operationId: patchVectorDBProject
+      tags:
+        - vectordb projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      requestBody:
+        description: The VectorDB project patch body
+        required: true
+        content:
+          application/json:
+            example:
+              name: Example project
+            schema:
+              $ref: '#/components/schemas/PatchVectorDBProjectRequest'
+      responses:
+        '200':
+          description: The updated VectorDB project.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorDBProject'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      summary: Delete a VectorDB project
+      operationId: deleteVectorDBProject
+      tags:
+        - vectordb projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project deletion scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/vectordb/{id}/_can-delete:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get VectorDB project delete status
+      description: Find issues that would prevent deletion of a project
+      operationId: getVectorDBProjectCanDelete
+      tags:
+        - vectordb projects
+      responses:
+        '200':
+          description: The requested delete status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanDeleteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/vectordb/{id}/_reset-credentials:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: If-Match
+        in: header
+        description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates
+        required: false
+        schema:
+          type: string
+    post:
+      description: Retrieve new project credentials, invalidating the previous ones.
+      summary: Reset the project credentials
+      operationId: resetVectorDBProjectCredentials
+      tags:
+        - vectordb projects
+      responses:
+        '200':
+          description: The new project credentials.
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCredentials'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/serverless/projects/vectordb/{id}/_resume:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    post:
+      description: Resume a previously suspended VectorDB project. Projects can be automatically suspended after their trial period has expired.
+      summary: Resume VectorDB project
+      operationId: resumeVectorDBProject
+      tags:
+        - vectordb projects
+      parameters:
+        - name: If-Match
+          in: header
+          description: ETag value fetched in a previous GET project request. Used to prevent simultaneous updates.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project resumption scheduled.
+          headers:
+            ETag:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+  /api/v1/serverless/projects/vectordb/{id}/link-candidates:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+      - name: types
+        in: query
+        description: One or more types of projects to return as link candidates.
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectType'
+      - name: csp
+        in: query
+        description: The Cloud Service Provider to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: region
+        in: query
+        description: The region to filter the link candidate projects by.
+        required: false
+        schema:
+          type: string
+      - name: name
+        in: query
+        description: The project name to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+      - name: alias
+        in: query
+        description: The project alias to filter the link candidates by.
+        required: false
+        schema:
+          type: string
+      - name: tags
+        in: query
+        style: deepObject
+        description: If specified, the result will be filtered to only those projects that have the specified tags and corresponding values.
+        required: false
+        explode: true
+        schema:
+          $ref: '#/components/schemas/ProjectTags'
+        example:
+          tags[environment]: production
+          tags[team]: team-a
+    get:
+      summary: Get VectorDB project link candidates
+      description: The response contains the list of projects which can be linked to the specified VectorDB project in a cross-project search configuration.
+      operationId: getVectorDBProjectLinkCandidates
+      tags:
+        - vectordb projects
+      responses:
+        '200':
+          description: The requested link candidate projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkedCandidatesList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/vectordb/{id}/roles:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      description: Retrieve the custom roles defined for a VectorDB project.
+      summary: Get roles for a VectorDB project
+      operationId: getVectorDBProjectRoles
+      tags:
+        - vectordb projects
+      responses:
+        '200':
+          description: The requested roles
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectRolesByProjectID'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/serverless/projects/vectordb/{id}/status:
+    parameters:
+      - name: id
+        description: The ID of the project
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectID'
+    get:
+      summary: Get the status of a VectorDB project
+      description: The response indicates whether the project is initialized and ready to be used. The phase will change from \"initializing\" to \"initialized\" when the project is ready.
+      operationId: getVectorDBProjectStatus
+      tags:
+        - vectordb projects
+      responses:
+        '200':
+          description: The requested VectorDB project status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/v1/serverless/regions:
     get:
       description: Retrieve the available cloud service provider regions where a project can be created.
@@ -1204,7 +1620,8 @@ paths:
   /api/v1/serverless/traffic-filters:
     get:
       summary: List traffic filters
-      description: List all of the traffic filters.
+      description: |
+        Lists the organization's traffic filters. Up to 1000 filters are returned per call; use the X-Elastic-Page-Size header to request a smaller page. When more results remain, the response carries a next_page token to send back in the X-Elastic-Next-Page header. Keep paging until next_page is absent: a page filled exactly to the page size still returns a token, and the page that follows it may be empty.
       operationId: listTrafficFilters
       tags:
         - traffic filters
@@ -1222,6 +1639,19 @@ paths:
           required: false
           schema:
             type: string
+        - name: X-Elastic-Page-Size
+          in: header
+          description: Maximum number of traffic filters returned in the response. Defaults to 1000.
+          required: false
+          schema:
+            $ref: '#/components/schemas/TrafficFilterPageSize'
+        - name: X-Elastic-Next-Page
+          in: header
+          description: The next_page token from a previous response, to fetch the page that follows it.
+          required: false
+          schema:
+            type: string
+          example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
       responses:
         '200':
           description: The collection of traffic filters were successfully returned.
@@ -1237,7 +1667,39 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       summary: Create a traffic filter
-      description: Creates a traffic filter that consists of a set of rules.
+      description: |
+        Creates a traffic filter that consists of a set of rules.
+
+        See [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity)
+        for setup guides and regional service names.
+
+        ### AWS PrivateLink (`type: vpce`)
+
+        Each rule must include:
+
+        - `source` — the VPC endpoint ID (format: `vpce-` followed by 17 lowercase hex characters).
+
+        Do not set `azure_endpoint_name` or `azure_endpoint_guid` on AWS rules.
+
+        ### Azure Private Link (`type: private_endpoint`)
+
+        Each rule must include:
+
+        - `azure_endpoint_name` — the Azure Private Endpoint resource name (2–80 characters).
+        - `azure_endpoint_guid` — the PE **resource GUID** (`properties.resourceGuid`), a lowercase UUID.
+          This is not the ARM resource ID.
+
+        Do not set `source` on Azure rules.
+
+        ### GCP Private Service Connect (`type: psc_endpoint`)
+
+        Each rule must include:
+
+        - `source` — the decimal PSC connection ID reported by the consumer forwarding rule.
+
+        Do not set `azure_endpoint_name` or `azure_endpoint_guid` on GCP rules. GCP PSC
+        connections are accepted automatically by the service attachment, so creating this
+        traffic filter does not trigger a cloud approval or resolution operation.
       operationId: createTrafficFilter
       tags:
         - traffic filters
@@ -1266,7 +1728,7 @@ paths:
     get:
       summary: List PrivateLink region metadata
       description: |
-        Returns region-specific PrivateLink connectivity metadata. Optionally filter by region. If no matches are found, returns 200 with an empty regions array.
+        Returns region-specific PrivateLink connectivity metadata. Optionally filter by region or csp. If no matches are found, returns 200 with an empty regions array.
       operationId: getTrafficFilterMetadata
       tags:
         - traffic filters
@@ -1387,6 +1849,57 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /api/v1/configuration/monitoring/ignore-filters:
+    get:
+      summary: List ignore filters
+      description: |
+        Returns the list of ignore filters that can be applied to the logs from a project to suppress noisy or low-value log records before ingestion, helping control log volume and cost.
+      operationId: listIgnoreFilters
+      tags:
+        - monitoring
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Filter the results to ignore filters of the given type.
+          schema:
+            $ref: '#/components/schemas/IgnoreFilterType'
+      responses:
+        '200':
+          description: The list of available ignore filters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IgnoreFilterList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/configuration/monitoring/ignore-filters/{id}:
+    get:
+      summary: Get an ignore filter
+      description: |
+        Returns the details of a single log ignore filter.
+      operationId: getIgnoreFilter
+      tags:
+        - monitoring
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The identifier of the ignore filter.
+          schema:
+            type: string
+          example: audit-ignore-data-reads
+      responses:
+        '200':
+          description: The requested ignore filter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IgnoreFilter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     apiKey:
@@ -1470,9 +1983,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DependentProjectSummary'
+        monitored_projects:
+          description: Details about projects being monitored by the target project that affect deletion.
+          type: array
+          items:
+            $ref: '#/components/schemas/DependentProjectSummary'
         can_be_deleted:
           description: Indicates whether the project can be deleted.
           type: boolean
+    Capabilities:
+      type: object
+      description: Capabilities that apply to the user's organization.
+      required:
+        - cross_project_search
+        - quotas
+      properties:
+        cross_project_search:
+          $ref: '#/components/schemas/CrossProjectSearchCapabilities'
+        quotas:
+          $ref: '#/components/schemas/Quotas'
     CloudID:
       type: string
       description: The cloud ID, an encoded string that provides other Elastic services with the necessary information to connect to this Elasticsearch and Kibana.
@@ -1500,6 +2029,8 @@ components:
           $ref: '#/components/schemas/CreateLinkedRequest'
         metadata:
           $ref: '#/components/schemas/ProjectMetadataRequest'
+        monitoring:
+          $ref: '#/components/schemas/MonitoringCreateRequest'
       additionalProperties: false
     CreateLinkedProjectRequest:
       type: object
@@ -1543,6 +2074,8 @@ components:
           $ref: '#/components/schemas/CreateLinkedRequest'
         metadata:
           $ref: '#/components/schemas/ProjectMetadataRequest'
+        monitoring:
+          $ref: '#/components/schemas/MonitoringCreateRequest'
       additionalProperties: false
     CreateSecurityProjectRequest:
       type: object
@@ -1580,7 +2113,43 @@ components:
           $ref: '#/components/schemas/CreateLinkedRequest'
         metadata:
           $ref: '#/components/schemas/ProjectMetadataRequest'
+        monitoring:
+          $ref: '#/components/schemas/MonitoringCreateRequest'
       additionalProperties: false
+    CreateVectorDBProjectRequest:
+      type: object
+      description: A request to create a VectorDB serverless project.
+      required:
+        - name
+        - region_id
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        search_lake:
+          $ref: '#/components/schemas/VectorDBSearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/CreateLinkedRequest'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadataRequest'
+        monitoring:
+          $ref: '#/components/schemas/MonitoringCreateRequest'
+      additionalProperties: false
+    CrossProjectSearchCapabilities:
+      type: object
+      description: Cross-project search capabilities of the organization.
+      required:
+        - max_linked_projects
+      properties:
+        max_linked_projects:
+          type: integer
+          description: The maximum number of projects that can be linked to an origin project.
+          example: 100
     DataRetention:
       type: object
       description: Configuration to control the data retention in Elasticsearch data streams.
@@ -1657,6 +2226,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         linked:
           $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
         type:
           type: string
           description: the type of the project
@@ -1701,6 +2272,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         linked:
           $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
         type:
           type: string
           description: the type of the project
@@ -1722,6 +2295,7 @@ components:
       required:
         - elasticsearch
         - kibana
+        - ingest
       properties:
         elasticsearch:
           type: string
@@ -1731,6 +2305,10 @@ components:
           type: string
           description: The endpoint to access kibana.
           example: https://my-project-alias-df6c6d.kb.us-east-1.aws.elastic.cloud
+        ingest:
+          type: string
+          description: The endpoint to access the Managed OpenTelemetry Collector.
+          example: https://my-project-alias-df6c6d.ingest.us-east-1.aws.elastic.cloud
     ElasticsearchProjectList:
       type: object
       description: A paginated list of serverless elasticsearch projects.
@@ -1753,6 +2331,7 @@ components:
       required:
         - elasticsearch
         - kibana
+        - ingest
       properties:
         elasticsearch:
           type: string
@@ -1762,6 +2341,10 @@ components:
           type: string
           description: The PrivateLink endpoint URL to access kibana.
           example: https://my-project-alias-df6c6d.kb.private.us-east-1.aws.elastic.cloud
+        ingest:
+          type: string
+          description: The PrivateLink endpoint URL to access the Managed OpenTelemetry Collector.
+          example: https://my-project-alias-df6c6d.ingest.private.us-east-1.aws.elastic.cloud
     ElasticsearchSearchLake:
       type: object
       description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch.
@@ -1793,6 +2376,17 @@ components:
           type: string
           description: An identifier for this type of error.
           example: code.error
+    IgnoreFilterRef:
+      type: object
+      description: Reference to a logging ignore filter applied to a logging category.
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the ignore filter.
+          example: audit-ignore-data-reads
+      additionalProperties: false
     LinkConfiguration:
       type: object
       description: Configuration for projects linked to this project
@@ -1861,6 +2455,99 @@ components:
         - enabled
         - suspended
         - deleted
+    Logging:
+      type: object
+      description: Configuration for project logs.
+      properties:
+        audit:
+          $ref: '#/components/schemas/LoggingCategory'
+    LoggingCategory:
+      type: object
+      description: Configuration for logs from a specific category.
+      required:
+        - destination
+        - enabled
+      properties:
+        destination:
+          $ref: '#/components/schemas/LoggingDestination'
+        enabled:
+          type: boolean
+          description: When true, logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved.
+        ignore_filters:
+          type: array
+          description: References to logging ignore filters applied to reduce the volume of logs delivered for this category.
+          items:
+            $ref: '#/components/schemas/IgnoreFilterRef'
+    LoggingCategoryCreateRequest:
+      type: object
+      description: Configuration for logs from a specific category.
+      required:
+        - destination
+      properties:
+        destination:
+          $ref: '#/components/schemas/LoggingDestinationCreateRequest'
+        enabled:
+          type: boolean
+          default: true
+          description: When true (default), logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved.
+        ignore_filters:
+          type: array
+          description: References to logging ignore filters applied to reduce the volume of logs delivered for this category.
+          items:
+            $ref: '#/components/schemas/IgnoreFilterRef'
+          maxItems: 10
+      additionalProperties: false
+    LoggingCreateRequest:
+      type: object
+      description: Configuration for project logs.
+      properties:
+        audit:
+          $ref: '#/components/schemas/LoggingCategoryCreateRequest'
+      additionalProperties: false
+    LoggingDestination:
+      type: object
+      description: Configuration for destination of logs.
+      required:
+        - project_id
+        - project_type
+        - status
+      properties:
+        project_id:
+          $ref: '#/components/schemas/ProjectID'
+        project_type:
+          $ref: '#/components/schemas/ProjectType'
+        status:
+          $ref: '#/components/schemas/LoggingDestinationStatus'
+    LoggingDestinationCreateRequest:
+      type: object
+      description: Configuration for destination of logs.
+      required:
+        - project_id
+      properties:
+        project_id:
+          $ref: '#/components/schemas/ProjectID'
+        project_type:
+          $ref: '#/components/schemas/ProjectType'
+      additionalProperties: false
+    LoggingDestinationStatus:
+      type: string
+      description: 'The state of log delivery to this destination. Controlled by the system and read-only: it is set to `suspended` or `deleted` when the destination project is suspended or deleted. Logs are only delivered when this is `enabled` and the logging category''s `enabled` flag is true.'
+      enum:
+        - enabled
+        - suspended
+        - deleted
+    Monitoring:
+      type: object
+      description: Configuration for monitoring a project.
+      properties:
+        logging:
+          $ref: '#/components/schemas/Logging'
+    MonitoringCreateRequest:
+      type: object
+      description: Configuration for monitoring a project.
+      properties:
+        logging:
+          $ref: '#/components/schemas/LoggingCreateRequest'
     MultiErrorResponse:
       type: object
       description: A non-empty list of errors.
@@ -1900,6 +2587,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         linked:
           $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
         type:
           type: string
           description: the type of the project
@@ -1941,6 +2630,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         linked:
           $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
         type:
           type: string
           description: the type of the project
@@ -2026,16 +2717,16 @@ components:
         - ObservabilityProjectProductTierLogsEssentials
     OptionalElasticsearchSearchLake:
       type: object
-      description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch. It can be passed as `null` to reset configuration to the default values.
+      description: Configuration for entire set of capabilities that make the data searchable in Elasticsearch. Pass `null` to reset configuration to the default values.
       properties:
         search_power:
-          description: Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs. It can be passed as `null` to reset the Search Power to the default value.
+          description: Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs. Pass `null` to reset the Search Power to the default value.
           type: integer
           nullable: true
           minimum: 28
           maximum: 3000
         boost_window:
-          description: Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. It can be passed as `null` to reset the Search Boost Window to the default value.
+          description: Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. Pass `null` to reset the Search Boost Window to the default value.
           type: integer
           minimum: 1
           maximum: 180
@@ -2062,6 +2753,32 @@ components:
           $ref: '#/components/schemas/ProjectType'
       additionalProperties: false
       nullable: true
+    OptionalLogging:
+      type: object
+      description: Configuration for project logs. Pass `null` to reset all log configuration.
+      properties:
+        audit:
+          $ref: '#/components/schemas/OptionalLoggingCategory'
+      additionalProperties: false
+      nullable: true
+    OptionalLoggingCategory:
+      type: object
+      description: Configuration for logs from a specific category. Pass as `null` to reset configuration for this category of logs.
+      properties:
+        destination:
+          $ref: '#/components/schemas/LoggingDestinationCreateRequest'
+        enabled:
+          type: boolean
+          description: When true, logs from this category are delivered to the configured destination. When false, delivery is paused but the configuration is preserved. Omit to leave the current value unchanged.
+        ignore_filters:
+          type: array
+          description: Named ignore filters applied to reduce the volume of logs delivered for this category. Can be passed as `null` to remove all ignore filters for this category.
+          items:
+            $ref: '#/components/schemas/IgnoreFilterRef'
+          nullable: true
+          maxItems: 10
+      additionalProperties: false
+      nullable: true
     OptionalMetadata:
       type: object
       description: Metadata about the project
@@ -2070,9 +2787,17 @@ components:
       properties:
         tags:
           $ref: '#/components/schemas/ProjectPatchTags'
+    OptionalMonitoring:
+      type: object
+      description: Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
+      properties:
+        logging:
+          $ref: '#/components/schemas/OptionalLogging'
+      additionalProperties: false
+      nullable: true
     OptionalSecurityAdminFeaturesPackage:
       type: string
-      description: admin features package (BYOK, BYOIDP, CCS, CCR). It can be passed as `null` to reset the admin features package to the default value.
+      description: admin features package (BYOK, BYOIDP, CCS, CCR). Pass `null` to reset the admin features package to the default value.
       enum:
         - standard
         - enterprise
@@ -2090,6 +2815,18 @@ components:
       items:
         $ref: '#/components/schemas/TrafficFilter'
       nullable: true
+    OptionalVectorDBSearchLake:
+      type: object
+      description: Configuration for entire set of capabilities that make the data searchable in VectorDB. Pass `null` to reset configuration to the default values.
+      properties:
+        search_power:
+          description: Controls how fast searches are against your project data. Must be a multiple of 100. Pass `null` to reset the Search Power to the default value.
+          type: integer
+          nullable: true
+          minimum: 100
+          maximum: 1900
+          multipleOf: 100
+      nullable: true
     PatchElasticsearchProjectRequest:
       type: object
       description: A request to patch an existing Elasticsearch serverless project.
@@ -2106,6 +2843,8 @@ components:
           $ref: '#/components/schemas/OptionalLinkConfiguration'
         metadata:
           $ref: '#/components/schemas/OptionalMetadata'
+        monitoring:
+          $ref: '#/components/schemas/OptionalMonitoring'
       additionalProperties: false
     PatchObservabilityProjectRequest:
       type: object
@@ -2123,6 +2862,8 @@ components:
           $ref: '#/components/schemas/ObservabilityProjectProductTier'
         metadata:
           $ref: '#/components/schemas/OptionalMetadata'
+        monitoring:
+          $ref: '#/components/schemas/OptionalMonitoring'
       additionalProperties: false
     PatchSecurityProjectRequest:
       type: object
@@ -2149,6 +2890,27 @@ components:
           $ref: '#/components/schemas/OptionalMetadata'
         linked:
           $ref: '#/components/schemas/OptionalLinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/OptionalMonitoring'
+      additionalProperties: false
+    PatchVectorDBProjectRequest:
+      type: object
+      description: A request to patch an existing VectorDB serverless project.
+      properties:
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAlias'
+        search_lake:
+          $ref: '#/components/schemas/OptionalVectorDBSearchLake'
+        traffic_filters:
+          $ref: '#/components/schemas/OptionalTrafficFilters'
+        linked:
+          $ref: '#/components/schemas/OptionalLinkConfiguration'
+        metadata:
+          $ref: '#/components/schemas/OptionalMetadata'
+        monitoring:
+          $ref: '#/components/schemas/OptionalMonitoring'
       additionalProperties: false
     ProjectAlias:
       type: string
@@ -2320,14 +3082,22 @@ components:
         - elasticsearch
         - observability
         - security
-        - workplaceai
         - vectordb
       x-enumNames:
         - ProjectTypeElasticsearch
         - ProjectTypeObservability
         - ProjectTypeSecurity
-        - ProjectTypeWorkplaceAI
         - ProjectTypeVectorDB
+    Quotas:
+      type: object
+      description: Quota limits that apply to the organization.
+      required:
+        - max_projects
+      properties:
+        max_projects:
+          type: integer
+          description: The maximum number of projects that can be created in the organization.
+          example: 500
     RegionID:
       type: string
       description: Unique human-readable identifier for a region in Elastic Cloud.
@@ -2396,6 +3166,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         linked:
           $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
         type:
           type: string
           description: the type of the project
@@ -2452,6 +3224,8 @@ components:
           $ref: '#/components/schemas/TrafficFilters'
         linked:
           $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
         type:
           type: string
           description: the type of the project
@@ -2557,6 +3331,154 @@ components:
       type: string
       description: ID of the user.
       example: '1014289666002276'
+    VectorDBProject:
+      type: object
+      description: A VectorDB serverless project.
+      required:
+        - alias
+        - cloud_id
+        - endpoints
+        - id
+        - metadata
+        - name
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - vectordb
+          x-enumNames:
+            - VectorDB
+        endpoints:
+          $ref: '#/components/schemas/VectorDBProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/VectorDBProjectPrivateEndpoints'
+        search_lake:
+          $ref: '#/components/schemas/VectorDBSearchLake'
+    VectorDBProjectCreated:
+      type: object
+      description: The created VectorDB project along with credentials to access the project.
+      required:
+        - alias
+        - cloud_id
+        - credentials
+        - endpoints
+        - id
+        - metadata
+        - name
+        - region_id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectID'
+        name:
+          $ref: '#/components/schemas/ProjectName'
+        alias:
+          $ref: '#/components/schemas/ProjectAliasWithSuffix'
+        region_id:
+          $ref: '#/components/schemas/RegionID'
+        metadata:
+          $ref: '#/components/schemas/ProjectMetadata'
+        cloud_id:
+          $ref: '#/components/schemas/CloudID'
+        traffic_filters:
+          $ref: '#/components/schemas/TrafficFilters'
+        linked:
+          $ref: '#/components/schemas/LinkConfiguration'
+        monitoring:
+          $ref: '#/components/schemas/Monitoring'
+        type:
+          type: string
+          description: the type of the project
+          enum:
+            - vectordb
+          x-enumNames:
+            - VectorDB
+        endpoints:
+          $ref: '#/components/schemas/VectorDBProjectEndpoints'
+        private_endpoints:
+          $ref: '#/components/schemas/VectorDBProjectPrivateEndpoints'
+        search_lake:
+          $ref: '#/components/schemas/VectorDBSearchLake'
+        credentials:
+          $ref: '#/components/schemas/ProjectCredentials'
+    VectorDBProjectEndpoints:
+      type: object
+      description: The endpoints to access the different apps of the project.
+      required:
+        - elasticsearch
+        - kibana
+      properties:
+        elasticsearch:
+          type: string
+          description: The endpoint to access elasticsearch.
+          example: https://my-project-alias-df6c6d.es.us-east-1.aws.elastic.cloud
+        kibana:
+          type: string
+          description: The endpoint to access kibana.
+          example: https://my-project-alias-df6c6d.kb.us-east-1.aws.elastic.cloud
+    VectorDBProjectList:
+      type: object
+      description: A paginated list of serverless VectorDB projects.
+      required:
+        - items
+      properties:
+        next_page:
+          deprecated: true
+          description: A token to fetch the next page.
+          type: string
+          example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
+        items:
+          description: The actual projects.
+          type: array
+          items:
+            $ref: '#/components/schemas/VectorDBProject'
+    VectorDBProjectPrivateEndpoints:
+      type: object
+      description: Private endpoints (URLs) for VectorDB projects when PrivateLink is enabled.
+      required:
+        - elasticsearch
+        - kibana
+      properties:
+        elasticsearch:
+          type: string
+          description: The PrivateLink endpoint URL to access elasticsearch.
+          example: https://my-project-alias-df6c6d.es.private.us-east-1.aws.elastic.cloud
+        kibana:
+          type: string
+          description: The PrivateLink endpoint URL to access kibana.
+          example: https://my-project-alias-df6c6d.kb.private.us-east-1.aws.elastic.cloud
+    VectorDBSearchLake:
+      type: object
+      description: Configuration for entire set of capabilities that make the data searchable in VectorDB.
+      properties:
+        search_power:
+          description: Controls how fast searches are against your project data. Must be a multiple of 100.
+          type: integer
+          minimum: 100
+          maximum: 1900
+          multipleOf: 100
+          example: 100
     CSP:
       type: string
       description: The identifier of the cloud service provider hosting this region.
@@ -2621,14 +3543,25 @@ components:
           description: Should the traffic filter be automatically included in the new projects
         region:
           type: string
-          description: The traffic filter can be attached only to projects in the specific region
+          description: |
+            Serverless region ID the filter applies to (e.g. `azure-australiaeast`, `aws-eu-west-1`).
+            The filter can only be attached to projects in this region.
           minLength: 1
           maxLength: 32
+          example: azure-australiaeast
         rules:
           type: array
-          description: List of rules
+          description: |
+            List of rules. Required fields depend on `type`:
+            - `ip`, `vpce` and `psc_endpoint` use `source`.
+            - `private_endpoint` uses `azure_endpoint_name` and `azure_endpoint_guid`, not `source`.
           items:
             $ref: '#/components/schemas/TrafficFilterRule'
+    TrafficFilterPageSize:
+      description: Maximum number of items returned in a single page of a list response.
+      type: integer
+      minimum: 1
+      maximum: 1000
     PatchTrafficFilterRequest:
       type: object
       description: The specification for traffic filter.
@@ -2705,7 +3638,8 @@ components:
         - items
       properties:
         next_page:
-          description: A token to fetch the next page.
+          description: |
+            A token to fetch the next page, to be sent back in the X-Elastic-Next-Page header. Absent when there are no further pages. When present it does not guarantee the next page is non-empty, so keep paging until it is absent.
           type: string
           example: YyMzY1MDQiLCJtYXgiOiJGRiJ9fV0=
           nullable: true
@@ -2726,59 +3660,190 @@ components:
       type: object
       required:
         - region
-        - vpc_service_name
+        - csp
+        - private_service_name
         - private_hosted_zone_domain_name
         - availability_zones
       properties:
         region:
           type: string
+          description: Serverless region ID (e.g. `azure-australiaeast`, `aws-eu-west-1`).
+          example: azure-australiaeast
         csp:
           type: string
-          description: Cloud service provider (aws, azure, gcp)
+          description: Cloud service provider.
+          enum:
+            - aws
+            - azure
+            - gcp
+          example: azure
         vpc_service_name:
           type: string
           deprecated: true
           description: Deprecated. Use private_service_name instead. Kept for backward compatibility.
         private_service_name:
           type: string
-          description: 'CSP-agnostic service name. For AWS: VPC endpoint service name. For Azure: Private Link Service alias. For GCP: Service Attachment URI.'
+          description: |
+            CSP-specific PrivateLink service identifier. Use the `/metadata` endpoint to look up
+            the value for your region. See also [Private connectivity](https://www.elastic.co/docs/deploy-manage/security/private-connectivity).
+            - **AWS**: VPC endpoint service name (e.g. `com.amazonaws.vpce.eu-west-1.vpce-svc-…`).
+            - **Azure**: Private Link Service alias (e.g. `australiaeast-prod-….australiaeast.azure.privatelinkservice`).
+            - **GCP**: Service Attachment URI.
+          example: australiaeast-prod-012-privatelink-service.a0cf0c1a-33ab-4528-81e7-9cb23608f94e.australiaeast.azure.privatelinkservice
         private_hosted_zone_domain_name:
           type: string
+          description: |
+            Private DNS suffix for project endpoints in this region. Create DNS records pointing
+            to your Private Endpoint under this zone.
+          example: private.australiaeast.azure.elastic.cloud
         availability_zones:
           type: array
           items:
             $ref: '#/components/schemas/TrafficFilterAvailabilityZone'
     TrafficFilterRule:
       type: object
-      description: The container for a traffic filter rule.
+      description: |
+        A single traffic filter rule. Which fields are required depends on the parent filter's
+        `type` — the fields are mutually exclusive between Azure and IP/private-connectivity rules.
       properties:
         description:
           type: string
-          description: Description of the rule.
+          description: Optional human-readable description of the rule.
         source:
           type: string
-          description: 'Allowed traffic filter source: IP address, CIDR mask, or VPC endpoint ID. Required for ip and vpce types.'
+          description: |
+            Allowed source for `ip`, `vpce`, or `psc_endpoint` filters: an IP address, CIDR
+            mask, AWS VPC endpoint ID (`vpce-` followed by 17 lowercase hex characters), or
+            GCP PSC connection ID.
+            Must not be set for `private_endpoint` filters.
+          example: vpce-0123456789abcdef0
         azure_endpoint_name:
           type: string
-          description: Name of the Azure Private Endpoint. Required for private_endpoint type.
+          description: |
+            Azure Private Endpoint resource name. Required for `private_endpoint` filters;
+            not applicable to `ip`, `vpce`, or `psc_endpoint` filters.
+            Must be 2–80 characters, start with an alphanumeric character, and end with an
+            alphanumeric character or underscore. May contain alphanumerics, underscores,
+            periods, and hyphens.
+          minLength: 2
+          maxLength: 80
+          pattern: ^[a-zA-Z0-9][-\w.]{0,78}[\w]$
+          example: my-private-endpoint
         azure_endpoint_guid:
           type: string
-          description: Resource GUID of the Azure Private Endpoint. Required for private_endpoint type.
+          description: |
+            Azure Private Endpoint **resource GUID** (`properties.resourceGuid` from the Azure
+            resource). Required for `private_endpoint` filters. Must be a lowercase UUID.
+            This is not the ARM resource ID.
+          pattern: ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$
+          example: 7c0f05e4-e32b-4b10-a246-7b77f7dcc63c
     TrafficFilterType:
       type: string
-      description: Type of the traffic filter
+      description: |
+        Type of the traffic filter. Determines which rule fields are valid:
+        - `ip` — IP/CIDR allowlist (`source`)
+        - `vpce` — AWS PrivateLink VPC endpoint (`source`)
+        - `private_endpoint` — Azure Private Link (`azure_endpoint_name`, `azure_endpoint_guid`)
+        - `psc_endpoint` — GCP Private Service Connect endpoint (`source`)
       enum:
         - ip
         - vpce
         - private_endpoint
+        - psc_endpoint
       maxLength: 32
       minLength: 1
+    IgnoreFilter:
+      type: object
+      description: |
+        A named filter used to drop noisy or low-value log records before ingestion, helping control log volume and cost.
+      required:
+        - id
+        - name
+        - description
+        - type
+      properties:
+        id:
+          type: string
+          description: |
+            The unique identifier of the ignore filter, used as the `{id}` path parameter.
+            The predefined ignore filter identifiers are:
+            - `audit-ignore-data-reads`: ignore data searches and reads. - `audit-ignore-ui-requests`: ignore UI requests. - `audit-ignore-data-writes`: ignore data writes. - `audit-ignore-successful-authentications`: ignore successful sign-ins. - `audit-ignore-successful-iam-checks`: ignore routine user and role checks.
+          example: audit-ignore-data-reads
+        name:
+          type: string
+          description: The human-readable name of the ignore filter.
+          example: Ignore data searches and reads
+        description:
+          type: string
+          description: A description of what the ignore filter suppresses and when to use it.
+          example: Suppress internal monitoring service-account noise common to all projects.
+        type:
+          $ref: '#/components/schemas/IgnoreFilterType'
+    IgnoreFilterList:
+      type: object
+      description: A list of ignore filters.
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          description: The ignore filters in the catalog.
+          items:
+            $ref: '#/components/schemas/IgnoreFilter'
+    IgnoreFilterType:
+      type: string
+      description: The kind of log this ignore filter applies to.
+      enum:
+        - audit
   requestBodies:
     CreateTrafficFilterRequestBody:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/CreateTrafficFilterRequest'
+          examples:
+            azurePrivateEndpoint:
+              summary: Azure Private Endpoint filter
+              description: |
+                Use for Azure Private Link. Requires a pending PE connection created against
+                the region's PLS alias from the metadata endpoint.
+              value:
+                name: my-azure-pl-filter
+                description: Allow traffic from office VNet
+                region: azure-australiaeast
+                type: private_endpoint
+                include_by_default: false
+                rules:
+                  - description: Office VNet PE
+                    azure_endpoint_name: my-private-endpoint
+                    azure_endpoint_guid: 7c0f05e4-e32b-4b10-a246-7b77f7dcc63c
+            awsVpce:
+              summary: AWS PrivateLink filter
+              value:
+                name: my-aws-pl-filter
+                region: aws-eu-west-1
+                type: vpce
+                include_by_default: false
+                rules:
+                  - source: vpce-0123456789abcdef0
+            gcpPscEndpoint:
+              summary: GCP Private Service Connect filter
+              value:
+                name: my-gcp-psc-filter
+                region: gcp-us-central1
+                type: psc_endpoint
+                include_by_default: false
+                rules:
+                  - source: '12345678901234567890'
+            ipFilter:
+              summary: IP allowlist filter
+              value:
+                name: my-ip-filter
+                region: aws-eu-west-1
+                type: ip
+                include_by_default: false
+                rules:
+                  - source: 203.0.113.0/24
       description: The specification for traffic filter.
       required: true
     PatchTrafficFilterBody:
