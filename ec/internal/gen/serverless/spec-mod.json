@@ -385,6 +385,25 @@
                   }
                 },
                 {
+                  "name": "min_search_vcu",
+                  "int64": {
+                    "computed_optional_required": "optional",
+                    "description": "The minimum number of search VCUs allocated to your project. Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing.",
+                    "validators": [
+                      {
+                        "custom": {
+                          "imports": [
+                            {
+                              "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                            }
+                          ],
+                          "schema_definition": "int64validator.AtLeast(2)"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
                   "name": "search_power",
                   "int64": {
                     "computed_optional_required": "computed_optional",

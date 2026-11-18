@@ -483,7 +483,7 @@ type CreateElasticsearchProjectRequest struct {
 	// Linked Configuration for linked projects associated with this project
 	Linked *CreateLinkedRequest `json:"linked,omitempty"`
 
-	// Metadata Metadata request for a project with tags.
+	// Metadata Metadata request for a project with tags and annotations.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
 	// Monitoring Configuration for monitoring a project.
@@ -536,7 +536,7 @@ type CreateObservabilityProjectRequest struct {
 	// Linked Configuration for linked projects associated with this project
 	Linked *CreateLinkedRequest `json:"linked,omitempty"`
 
-	// Metadata Metadata request for a project with tags.
+	// Metadata Metadata request for a project with tags and annotations.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
 	// Monitoring Configuration for monitoring a project.
@@ -572,7 +572,7 @@ type CreateSecurityProjectRequest struct {
 	// Linked Configuration for linked projects associated with this project
 	Linked *CreateLinkedRequest `json:"linked,omitempty"`
 
-	// Metadata Metadata request for a project with tags.
+	// Metadata Metadata request for a project with tags and annotations.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
 	// Monitoring Configuration for monitoring a project.
@@ -637,7 +637,7 @@ type CreateVectorDBProjectRequest struct {
 	// Linked Configuration for linked projects associated with this project
 	Linked *CreateLinkedRequest `json:"linked,omitempty"`
 
-	// Metadata Metadata request for a project with tags.
+	// Metadata Metadata request for a project with tags and annotations.
 	Metadata *ProjectMetadataRequest `json:"metadata,omitempty"`
 
 	// Monitoring Configuration for monitoring a project.
@@ -885,6 +885,9 @@ type ElasticsearchSearchLake struct {
 	//
 	// Example: 100
 	BoostWindow *int `json:"boost_window,omitempty"`
+
+	// MinSearchVcu The minimum number of search VCUs allocated to your project.
+	MinSearchVcu *int `json:"min_search_vcu,omitempty"`
 
 	// SearchPower Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs.
 	//
@@ -1242,6 +1245,9 @@ type OptionalElasticsearchSearchLake struct {
 	// BoostWindow Determines how much data can benefit from faster search. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. The system dynamically adjusts the cache allocated to your project based on how much data you ingest during the period defined by your Search Boost Window. Pass `null` to reset the Search Boost Window to the default value.
 	BoostWindow *int `json:"boost_window,omitempty"`
 
+	// MinSearchVcu The minimum number of search VCUs allocated to your project. Pass `null` to unset the minimum.
+	MinSearchVcu *int `json:"min_search_vcu,omitempty"`
+
 	// SearchPower Controls how fast searches are against your project data. When ingested, a certain amount of data is loaded into a cache that makes it super fast to query. You can either increase the performance of searches on cached data by adding replicas, or reduce the quantity of cached data by a static factor to save on costs. Pass `null` to reset the Search Power to the default value.
 	SearchPower *int `json:"search_power,omitempty"`
 }
@@ -1277,8 +1283,11 @@ type OptionalLoggingCategory struct {
 
 // OptionalMetadata Metadata about the project
 type OptionalMetadata struct {
+	// Annotations Annotations to set or delete on a project. A value sets or overwrites the key, and `null` deletes it. Keys that are left out are unchanged. After the patch, a project can have at most 64 annotations.
+	Annotations *ProjectPatchAnnotations `json:"annotations,omitempty"`
+
 	// Tags Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.
-	Tags ProjectPatchTags `json:"tags"`
+	Tags *ProjectPatchTags `json:"tags,omitempty"`
 }
 
 // OptionalMonitoring Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
@@ -1446,6 +1455,15 @@ type ProjectAlias = string
 // Example: my-project-alias-bdc0f7
 type ProjectAliasWithSuffix = string
 
+// ProjectAnnotationPatchValue defines model for ProjectAnnotationPatchValue.
+type ProjectAnnotationPatchValue = string
+
+// ProjectAnnotationValue defines model for ProjectAnnotationValue.
+type ProjectAnnotationValue = string
+
+// ProjectAnnotations Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.
+type ProjectAnnotations map[string]ProjectAnnotationValue
+
 // ProjectCredentials Basic auth credentials to access the Elasticsearch API.
 type ProjectCredentials struct {
 	// Password Basic auth password that can be used to access the Elasticsearch API.
@@ -1464,6 +1482,9 @@ type ProjectID = string
 
 // ProjectMetadata Additional details about the project.
 type ProjectMetadata struct {
+	// Annotations Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.
+	Annotations *ProjectAnnotations `json:"annotations,omitempty"`
+
 	// CreatedAt Date and time when the project was created.
 	CreatedAt time.Time `json:"created_at"`
 
@@ -1492,16 +1513,22 @@ type ProjectMetadata struct {
 	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
-// ProjectMetadataRequest Metadata request for a project with tags.
+// ProjectMetadataRequest Metadata request for a project with tags and annotations.
 type ProjectMetadataRequest struct {
+	// Annotations Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.
+	Annotations *ProjectAnnotations `json:"annotations,omitempty"`
+
 	// Tags Tags associated with a project in the form of key-value pairs. Tags are limited to a minimum of 1 and a maximum of 64 per project. Each tag key must begin with a lowercase letter (a-z), contain only lowercase letters, digits, underscores, and hyphens (a-z0-9_-), and have a maximum length of 32 characters.
-	Tags ProjectTags `json:"tags"`
+	Tags *ProjectTags `json:"tags,omitempty"`
 }
 
 // ProjectName Descriptive name for a project.
 //
 // Example: my project
 type ProjectName = string
+
+// ProjectPatchAnnotations Annotations to set or delete on a project. A value sets or overwrites the key, and `null` deletes it. Keys that are left out are unchanged. After the patch, a project can have at most 64 annotations.
+type ProjectPatchAnnotations map[string]*ProjectAnnotationPatchValue
 
 // ProjectPatchTags Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.
 type ProjectPatchTags map[string]*ProjectTagPatchValue

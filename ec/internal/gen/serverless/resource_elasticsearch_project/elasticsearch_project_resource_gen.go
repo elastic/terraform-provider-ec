@@ -376,6 +376,14 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 							int64validator.Between(1, 180),
 						},
 					},
+					"min_search_vcu": schema.Int64Attribute{
+						Optional:            true,
+						Description:         "The minimum number of search VCUs allocated to your project. Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing.",
+						MarkdownDescription: "The minimum number of search VCUs allocated to your project. Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing.",
+						Validators: []validator.Int64{
+							int64validator.AtLeast(2),
+						},
+					},
 					"search_power": schema.Int64Attribute{
 						Optional:            true,
 						Computed:            true,
@@ -4838,6 +4846,24 @@ func (t SearchLakeType) ValueFromObject(ctx context.Context, in basetypes.Object
 			fmt.Sprintf(`boost_window expected to be basetypes.Int64Value, was: %T`, boostWindowAttribute))
 	}
 
+	minSearchVcuAttribute, ok := attributes["min_search_vcu"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_search_vcu is missing from object`)
+
+		return nil, diags
+	}
+
+	minSearchVcuVal, ok := minSearchVcuAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_search_vcu expected to be basetypes.Int64Value, was: %T`, minSearchVcuAttribute))
+	}
+
 	searchPowerAttribute, ok := attributes["search_power"]
 
 	if !ok {
@@ -4861,9 +4887,10 @@ func (t SearchLakeType) ValueFromObject(ctx context.Context, in basetypes.Object
 	}
 
 	return SearchLakeValue{
-		BoostWindow: boostWindowVal,
-		SearchPower: searchPowerVal,
-		state:       attr.ValueStateKnown,
+		BoostWindow:  boostWindowVal,
+		MinSearchVcu: minSearchVcuVal,
+		SearchPower:  searchPowerVal,
+		state:        attr.ValueStateKnown,
 	}, diags
 }
 
@@ -4948,6 +4975,24 @@ func NewSearchLakeValue(attributeTypes map[string]attr.Type, attributes map[stri
 			fmt.Sprintf(`boost_window expected to be basetypes.Int64Value, was: %T`, boostWindowAttribute))
 	}
 
+	minSearchVcuAttribute, ok := attributes["min_search_vcu"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`min_search_vcu is missing from object`)
+
+		return NewSearchLakeValueUnknown(), diags
+	}
+
+	minSearchVcuVal, ok := minSearchVcuAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`min_search_vcu expected to be basetypes.Int64Value, was: %T`, minSearchVcuAttribute))
+	}
+
 	searchPowerAttribute, ok := attributes["search_power"]
 
 	if !ok {
@@ -4971,9 +5016,10 @@ func NewSearchLakeValue(attributeTypes map[string]attr.Type, attributes map[stri
 	}
 
 	return SearchLakeValue{
-		BoostWindow: boostWindowVal,
-		SearchPower: searchPowerVal,
-		state:       attr.ValueStateKnown,
+		BoostWindow:  boostWindowVal,
+		MinSearchVcu: minSearchVcuVal,
+		SearchPower:  searchPowerVal,
+		state:        attr.ValueStateKnown,
 	}, diags
 }
 
@@ -5045,25 +5091,27 @@ func (t SearchLakeType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = SearchLakeValue{}
 
 type SearchLakeValue struct {
-	BoostWindow basetypes.Int64Value `tfsdk:"boost_window"`
-	SearchPower basetypes.Int64Value `tfsdk:"search_power"`
-	state       attr.ValueState
+	BoostWindow  basetypes.Int64Value `tfsdk:"boost_window"`
+	MinSearchVcu basetypes.Int64Value `tfsdk:"min_search_vcu"`
+	SearchPower  basetypes.Int64Value `tfsdk:"search_power"`
+	state        attr.ValueState
 }
 
 func (v SearchLakeValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 2)
+	attrTypes := make(map[string]tftypes.Type, 3)
 
 	var val tftypes.Value
 	var err error
 
 	attrTypes["boost_window"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["min_search_vcu"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["search_power"] = basetypes.Int64Type{}.TerraformType(ctx)
 
 	objectType := tftypes.Object{AttributeTypes: attrTypes}
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 2)
+		vals := make(map[string]tftypes.Value, 3)
 
 		val, err = v.BoostWindow.ToTerraformValue(ctx)
 
@@ -5072,6 +5120,14 @@ func (v SearchLakeValue) ToTerraformValue(ctx context.Context) (tftypes.Value, e
 		}
 
 		vals["boost_window"] = val
+
+		val, err = v.MinSearchVcu.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["min_search_vcu"] = val
 
 		val, err = v.SearchPower.ToTerraformValue(ctx)
 
@@ -5111,8 +5167,9 @@ func (v SearchLakeValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 	var diags diag.Diagnostics
 
 	attributeTypes := map[string]attr.Type{
-		"boost_window": basetypes.Int64Type{},
-		"search_power": basetypes.Int64Type{},
+		"boost_window":   basetypes.Int64Type{},
+		"min_search_vcu": basetypes.Int64Type{},
+		"search_power":   basetypes.Int64Type{},
 	}
 
 	if v.IsNull() {
@@ -5126,8 +5183,9 @@ func (v SearchLakeValue) ToObjectValue(ctx context.Context) (basetypes.ObjectVal
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"boost_window": v.BoostWindow,
-			"search_power": v.SearchPower,
+			"boost_window":   v.BoostWindow,
+			"min_search_vcu": v.MinSearchVcu,
+			"search_power":   v.SearchPower,
 		})
 
 	return objVal, diags
@@ -5152,6 +5210,10 @@ func (v SearchLakeValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	if !v.MinSearchVcu.Equal(other.MinSearchVcu) {
+		return false
+	}
+
 	if !v.SearchPower.Equal(other.SearchPower) {
 		return false
 	}
@@ -5169,7 +5231,8 @@ func (v SearchLakeValue) Type(ctx context.Context) attr.Type {
 
 func (v SearchLakeValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"boost_window": basetypes.Int64Type{},
-		"search_power": basetypes.Int64Type{},
+		"boost_window":   basetypes.Int64Type{},
+		"min_search_vcu": basetypes.Int64Type{},
+		"search_power":   basetypes.Int64Type{},
 	}
 }

@@ -2361,6 +2361,11 @@ components:
           minimum: 1
           maximum: 180
           example: 100
+        min_search_vcu:
+          description: The minimum number of search VCUs allocated to your project.
+          type: integer
+          minimum: 2
+          maximum: 4992
     ErrorResponse:
       type: object
       description: An error response returned by the API.
@@ -2731,6 +2736,12 @@ components:
           minimum: 1
           maximum: 180
           nullable: true
+        min_search_vcu:
+          description: The minimum number of search VCUs allocated to your project. Pass `null` to unset the minimum.
+          type: integer
+          minimum: 2
+          maximum: 4992
+          nullable: true
       nullable: true
     OptionalLinkConfiguration:
       type: object
@@ -2782,11 +2793,13 @@ components:
     OptionalMetadata:
       type: object
       description: Metadata about the project
-      required:
-        - tags
       properties:
         tags:
           $ref: '#/components/schemas/ProjectPatchTags'
+        annotations:
+          $ref: '#/components/schemas/ProjectPatchAnnotations'
+      additionalProperties: false
+      minProperties: 1
     OptionalMonitoring:
       type: object
       description: Configuration for monitoring a project. Pass `null` to reset all monitoring configuration.
@@ -2926,6 +2939,24 @@ components:
       maxLength: 57
       minLength: 8
       pattern: ^[a-zA-Z]{1}(?:[a-zA-Z0-9-]*[a-zA-Z0-9]{1})?$
+    ProjectAnnotationPatchValue:
+      type: string
+      maxLength: 128
+      minLength: 1
+      nullable: true
+      pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+    ProjectAnnotationValue:
+      type: string
+      maxLength: 128
+      minLength: 1
+      pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+    ProjectAnnotations:
+      type: object
+      description: Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectAnnotationValue'
+      maxProperties: 64
+      minProperties: 1
     ProjectCredentials:
       type: object
       description: Basic auth credentials to access the Elasticsearch API.
@@ -2976,20 +3007,30 @@ components:
           $ref: '#/components/schemas/ProjectTags'
         system_tags:
           $ref: '#/components/schemas/ProjectSystemTags'
+        annotations:
+          $ref: '#/components/schemas/ProjectAnnotations'
     ProjectMetadataRequest:
       type: object
-      description: Metadata request for a project with tags.
-      required:
-        - tags
+      description: Metadata request for a project with tags and annotations.
       properties:
         tags:
           $ref: '#/components/schemas/ProjectTags'
+        annotations:
+          $ref: '#/components/schemas/ProjectAnnotations'
+      additionalProperties: false
+      minProperties: 1
     ProjectName:
       type: string
       description: Descriptive name for a project.
       example: my project
       maxLength: 255
       minLength: 1
+    ProjectPatchAnnotations:
+      type: object
+      description: Annotations to set or delete on a project. A value sets or overwrites the key, and `null` deletes it. Keys that are left out are unchanged. After the patch, a project can have at most 64 annotations.
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectAnnotationPatchValue'
+      minProperties: 1
     ProjectPatchTags:
       type: object
       description: Tags that need to be updated for a project. The maximum number of tags that can be updated is 64.

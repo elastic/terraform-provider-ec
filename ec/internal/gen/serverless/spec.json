@@ -102,9 +102,31 @@
 							"computed_optional_required": "computed_optional",
 							"attributes": [
 								{
+									"name": "annotations",
+									"map": {
+										"computed_optional_required": "computed_optional",
+										"element_type": {
+											"string": {}
+										},
+										"description": "Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.",
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+														}
+													],
+													"schema_definition": "mapvalidator.SizeBetween(1, 64)"
+												}
+											}
+										]
+									}
+								},
+								{
 									"name": "tags",
 									"map": {
-										"computed_optional_required": "required",
+										"computed_optional_required": "computed_optional",
 										"element_type": {
 											"string": {}
 										},
@@ -169,7 +191,7 @@
 									}
 								}
 							],
-							"description": "Metadata request for a project with tags."
+							"description": "Metadata request for a project with tags and annotations."
 						}
 					},
 					{
@@ -360,6 +382,25 @@
 														}
 													],
 													"schema_definition": "int64validator.Between(1, 180)"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "min_search_vcu",
+									"int64": {
+										"computed_optional_required": "computed_optional",
+										"description": "The minimum number of search VCUs allocated to your project.",
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+														}
+													],
+													"schema_definition": "int64validator.Between(2, 4992)"
 												}
 											}
 										]
@@ -613,9 +654,31 @@
 							"computed_optional_required": "computed_optional",
 							"attributes": [
 								{
+									"name": "annotations",
+									"map": {
+										"computed_optional_required": "computed_optional",
+										"element_type": {
+											"string": {}
+										},
+										"description": "Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.",
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+														}
+													],
+													"schema_definition": "mapvalidator.SizeBetween(1, 64)"
+												}
+											}
+										]
+									}
+								},
+								{
 									"name": "tags",
 									"map": {
-										"computed_optional_required": "required",
+										"computed_optional_required": "computed_optional",
 										"element_type": {
 											"string": {}
 										},
@@ -680,7 +743,7 @@
 									}
 								}
 							],
-							"description": "Metadata request for a project with tags."
+							"description": "Metadata request for a project with tags and annotations."
 						}
 					},
 					{
@@ -1110,9 +1173,31 @@
 							"computed_optional_required": "computed_optional",
 							"attributes": [
 								{
+									"name": "annotations",
+									"map": {
+										"computed_optional_required": "computed_optional",
+										"element_type": {
+											"string": {}
+										},
+										"description": "Annotations associated with a project, as key-value pairs that keep their case. A project can have at most 64 annotations, separate from its tags. Each key must start with a letter, contain only letters, digits, underscores and hyphens (a-zA-Z0-9_-), and be at most 32 characters long. Annotations can't be used in cross-project search and can't filter the project list.",
+										"validators": [
+											{
+												"custom": {
+													"imports": [
+														{
+															"path": "github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+														}
+													],
+													"schema_definition": "mapvalidator.SizeBetween(1, 64)"
+												}
+											}
+										]
+									}
+								},
+								{
 									"name": "tags",
 									"map": {
-										"computed_optional_required": "required",
+										"computed_optional_required": "computed_optional",
 										"element_type": {
 											"string": {}
 										},
@@ -1177,7 +1262,7 @@
 									}
 								}
 							],
-							"description": "Metadata request for a project with tags."
+							"description": "Metadata request for a project with tags and annotations."
 						}
 					},
 					{
