@@ -73,7 +73,7 @@ resource "ec_elasticsearch_project" "my_project" {
 }
 ```
 
-`search_lake.min_search_vcu` pins a lower bound on Search tier autoscaling, expressed in VCUs. Refer to [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the floor affects scaling and billing. The provider only checks at plan time that the value is at least 2; the maximum is enforced by the API at apply time.
+`search_lake.min_search_vcu` pins a lower bound on Search tier autoscaling, expressed in VCUs. Refer to [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the floor affects scaling and billing. At plan time the provider only checks that the value is between 2 and 2147483647, the largest value every provider build can send; the API enforces its own maximum at apply time.
 
 The floor follows the usual Terraform rules for the `search_lake` block:
 

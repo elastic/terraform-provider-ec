@@ -100,10 +100,12 @@ jq '
 # projects. The generator marks it computed_optional because it is present on
 # read, but a computed attribute could never be unset from configuration: a
 # null config value would be planned from prior state. Make it optional-only so
-# removing the line plans null, which Patch sends as JSON null. Validate only
-# the lower bound: the maximum can differ between organizations and change
-# over time, so the project API enforces it and limit changes need no provider
-# release.
+# removing the line plans null, which Patch sends as JSON null. Validate the
+# lower bound and leave the API's maximum to the API: the maximum can differ
+# between organizations and change over time, so the project API enforces it
+# and limit changes need no provider release. The upper bound of 2147483647
+# is not the API's maximum; it keeps the int64-to-int conversion in Create and
+# Patch lossless on the released 32-bit (386, arm) builds.
 #
 # metadata.annotations arrived with the same spec bump and is not exposed yet;
 # drop it from the three project schemas so Read does not have to fill an
@@ -117,7 +119,7 @@ jq '
   | .validators = [{
       "custom": {
         "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"}],
-        "schema_definition": "int64validator.AtLeast(2)"
+        "schema_definition": "int64validator.Between(2, 2147483647)"
       }
     }]
   | .description += " Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing."

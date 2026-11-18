@@ -381,7 +381,7 @@ func ElasticsearchProjectResourceSchema(ctx context.Context) schema.Schema {
 						Description:         "The minimum number of search VCUs allocated to your project. Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing.",
 						MarkdownDescription: "The minimum number of search VCUs allocated to your project. Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing.",
 						Validators: []validator.Int64{
-							int64validator.AtLeast(2),
+							int64validator.Between(2, 2147483647),
 						},
 					},
 					"search_power": schema.Int64Attribute{

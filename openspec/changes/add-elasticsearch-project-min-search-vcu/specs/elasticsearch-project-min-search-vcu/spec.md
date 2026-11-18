@@ -43,13 +43,20 @@ resource "ec_elasticsearch_project" "example" {
 - WHEN they are inspected
 - THEN neither SHALL contain a `min_search_vcu` attribute
 
-### Requirement: Lower bound validated at plan time, upper bound left to the API
+### Requirement: Lower bound validated at plan time, API maximum left to the API
 
-The provider SHALL reject `min_search_vcu` values below 2 with an error diagnostic at plan time and SHALL NOT call the project API for such a configuration. The provider SHALL NOT enforce an upper bound: values above the API's current maximum (4992 in the API specification, or a lower limit the API applies to an organization) SHALL be sent to the project API, and the API's rejection SHALL be returned to the practitioner as an error diagnostic at apply time that includes the API's status and body.
+The provider SHALL reject `min_search_vcu` values below 2 with an error diagnostic at plan time and SHALL NOT call the project API for such a configuration. The provider SHALL reject values above 2147483647 with an error diagnostic at plan time, because a larger value cannot be sent unchanged by 32-bit builds. Below that, the provider SHALL NOT enforce the API's maximum: values above the API's current maximum (4992 in the API specification, or a lower limit the API applies to an organization) SHALL be sent to the project API, and the API's rejection SHALL be returned to the practitioner as an error diagnostic at apply time that includes the API's status and body.
 
 #### Scenario: Value below the minimum
 
 - GIVEN `min_search_vcu = 1`
+- WHEN the plan is validated
+- THEN the provider SHALL return an error diagnostic
+- AND SHALL NOT call the project API
+
+#### Scenario: Value too large for a 32-bit build
+
+- GIVEN `min_search_vcu = 4294967298`
 - WHEN the plan is validated
 - THEN the provider SHALL return an error diagnostic
 - AND SHALL NOT call the project API

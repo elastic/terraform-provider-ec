@@ -397,7 +397,7 @@
                               "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
                             }
                           ],
-                          "schema_definition": "int64validator.AtLeast(2)"
+                          "schema_definition": "int64validator.Between(2, 2147483647)"
                         }
                       }
                     ]

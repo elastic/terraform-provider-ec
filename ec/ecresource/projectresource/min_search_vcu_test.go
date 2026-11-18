@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"testing"
 
@@ -73,9 +74,16 @@ func TestElasticsearchMinSearchVcuSchema(t *testing.T) {
 		require.True(t, validate(0))
 	})
 
-	t.Run("has no upper bound", func(t *testing.T) {
+	t.Run("leaves the API maximum to the API", func(t *testing.T) {
 		require.False(t, validate(2))
 		require.False(t, validate(5000), "the API's maximum is not enforced client-side")
+		require.False(t, validate(math.MaxInt32))
+	})
+
+	t.Run("rejects values that do not fit a 32-bit int", func(t *testing.T) {
+		// 4294967298 would wrap to 2 in int(...) on 386 and arm builds.
+		require.True(t, validate(math.MaxInt32+1))
+		require.True(t, validate(4294967298))
 	})
 
 	t.Run("is absent on the other project resources", func(t *testing.T) {
