@@ -96,7 +96,6 @@ func Test_createDeploymentWithEmptyFields(t *testing.T) {
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
-				mock.New202Response(io.NopCloser(strings.NewReader(""))),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-empty-config-expected-deployment3.json")),
 				readRemoteClusters(t),
 				mock.New200Response(readTestData(t, "testdata/aws-io-optimized-v2-template-migration-response.json")),
