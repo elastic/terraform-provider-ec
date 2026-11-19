@@ -36,6 +36,7 @@ import (
 
 	"github.com/elastic/terraform-provider-ec/ec/internal"
 	"github.com/elastic/terraform-provider-ec/ec/internal/planmodifiers"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -150,7 +151,8 @@ Timeouts: &schema.ResourceTimeout{
 */
 
 type Resource struct {
-	client *api.API
+	client          *api.API
+	readAfterMutate util.ReadAfterMutate
 }
 
 func resourceReady(r Resource, dg *diag.Diagnostics) bool {
@@ -234,6 +236,7 @@ func (r *Resource) Configure(ctx context.Context, request resource.ConfigureRequ
 	clients, diags := internal.ConvertProviderData(request.ProviderData)
 	response.Diagnostics.Append(diags...)
 	r.client = clients.Stateful
+	r.readAfterMutate = clients.ReadAfterMutate
 }
 
 func (r *Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {

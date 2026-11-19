@@ -18,9 +18,11 @@
 package trafficfilterresource_test
 
 import (
+	"net/http"
 	"net/url"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -31,6 +33,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 
 	provider "github.com/elastic/terraform-provider-ec/ec"
+	"github.com/elastic/terraform-provider-ec/ec/internal/util"
 )
 
 func TestResourceTrafficFilter(t *testing.T) {
@@ -122,9 +125,142 @@ func TestResourceTrafficFilter_failedRead1(t *testing.T) {
 	})
 }
 
+func TestResourceTrafficFilter_serverErrorAfterCreate(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				failedReadResponse("false"),
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{
+				Config:      trafficFilter,
+				ExpectError: regexp.MustCompile(`internal.server.error: There was an internal server error`),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_forbiddenAfterCreateIsNotRetried(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				forbiddenReadResponse("false"),
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{
+				Config:      trafficFilter,
+				ExpectError: regexp.MustCompile(`Failed to read deployment traffic filter ruleset after create.`),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_retryReadAfterCreate(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				notFoundReadResponse("false"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				readResponse("true", "true"),
+				deleteResponse(),
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{
+				Config: trafficFilter,
+				Check:  checkResource("true"),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_notFoundAfterCreate(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				notFoundReadResponse("false"),
+			),
+			util.NoRetry(),
+		),
+		Steps: []r.TestStep{
+			{
+				Config:      trafficFilter,
+				ExpectError: regexp.MustCompile(`Failed to read deployment traffic filter ruleset after create.`),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_retryReadAfterUpdate(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				updateResponse("false"),
+				notFoundReadResponse("false"),
+				readResponse("false", "false"),
+				readResponse("false", "false"),
+				readResponse("true", "false"),
+				deleteResponse(),
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{
+				Config: trafficFilter,
+				Check:  checkResource("true"),
+			},
+			{
+				Config: trafficFilterWithoutIncludeByDefault,
+				Check:  checkResource("false"),
+			},
+		},
+	})
+}
+
+func TestResourceTrafficFilter_forbiddenAfterUpdateIsNotRetried(t *testing.T) {
+	r.UnitTest(t, r.TestCase{
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
+			api.NewMock(
+				createResponse("true"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				readResponse("false", "true"),
+				updateResponse("false"),
+				forbiddenReadResponse("false"),
+				notFoundReadResponse("true"), // required for cleanup
+			),
+			util.ImmediateRetry(time.Second),
+		),
+		Steps: []r.TestStep{
+			{ // Create resource
+				Config: trafficFilter,
+				Check:  checkResource("true"),
+			},
+			{ // Update resource
+				Config:      trafficFilterWithoutIncludeByDefault,
+				ExpectError: regexp.MustCompile(`Failed to read deployment traffic filter ruleset after update.`),
+			},
+		},
+	})
+}
+
 func TestResourceTrafficFilter_notFoundAfterUpdate(t *testing.T) {
 	r.UnitTest(t, r.TestCase{
-		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClient(
+		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
 			api.NewMock(
 				createResponse("true"),
 				readResponse("false", "true"),
@@ -134,6 +270,7 @@ func TestResourceTrafficFilter_notFoundAfterUpdate(t *testing.T) {
 				notFoundReadResponse("false"),
 				notFoundReadResponse("true"),
 			),
+			util.NoRetry(),
 		),
 		Steps: []r.TestStep{
 			{ // Create resource
@@ -638,6 +775,24 @@ func notFoundReadResponse(includeAssociations string) mock.Response {
 		mock.NewStringBody(`{	}`),
 	)
 }
+
+func forbiddenReadResponse(includeAssociations string) mock.Response {
+	return mock.Response{
+		Assert: &mock.RequestAssertion{
+			Host:   api.DefaultMockHost,
+			Header: api.DefaultReadMockHeaders,
+			Method: "GET",
+			Path:   "/api/v1/deployments/traffic-filter/rulesets/some-random-id",
+			Query: url.Values{
+				"include_associations": []string{includeAssociations},
+			},
+		},
+		Response: http.Response{
+			StatusCode: http.StatusForbidden,
+			Body:       mock.NewStringBody(`{"errors":[{"code":"root.permission_denied","message":"To access the resource, the user must have the required authorization."}]}`),
+		},
+	}
+}
 func failedReadResponse(includeAssociations string) mock.Response {
 	return mock.New500ResponseAssertion(
 		&mock.RequestAssertion{
@@ -700,9 +855,13 @@ func failedDeletionResponse() mock.Response {
 }
 
 func protoV6ProviderFactoriesWithMockClient(client *api.API) map[string]func() (tfprotov6.ProviderServer, error) {
+	return protoV6ProviderFactoriesWithMockClientRetry(client, util.ReadAfterMutate{})
+}
+
+func protoV6ProviderFactoriesWithMockClientRetry(client *api.API, ram util.ReadAfterMutate) map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		"ec": func() (tfprotov6.ProviderServer, error) {
-			return providerserver.NewProtocol6(provider.ProviderWithClient(client, "unit-tests"))(), nil
+			return providerserver.NewProtocol6(provider.ProviderWithClientRetry(client, "unit-tests", ram))(), nil
 		},
 	}
 }

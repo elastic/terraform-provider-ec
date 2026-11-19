@@ -12,6 +12,16 @@ dist
 .terraform.lock.hcl
 node_modules/
 
+# CI sentinel: docs-only acc jobs write this so pre-exit skips make sweep
+.buildkite/.skip-acceptance-sweep
+
 # agent local overrides (not committed)
 .agents/settings.local.json
 .agents/worktrees
+
+# pr-monitoring-loop watcher state (per-PR seen IDs, last-poll timestamps)
+.agents/skills/pr-monitoring-loop/scripts/state/
+
+__pycache__/
+*.pyc
+.pytest_cache/

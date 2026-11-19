@@ -64,14 +64,17 @@ The changelog lives at the top-level [`CHANGELOG.md`](../CHANGELOG.md). It is as
 per-PR `.changelog/{PR}.txt` fragments (see
 [`high-level/contributing.md`](./high-level/contributing.md) for the fragment format). Run
 `make changelog` (which runs `scripts/generate-changelog.sh`) to regenerate it. The `/release`
-skill does this and deletes the fragments it consolidates.
+skill does this and then deletes **all** `.changelog/*.txt` fragments — including
+`release-note:none` ones, which are never rendered into `CHANGELOG.md` but would otherwise
+accumulate on `master`. The release-prep PR itself needs a `.changelog/{PR}.txt` with
+`release-note:none`.
 
 ### Ensure the `NOTICE` file is up to date
 
 Regenerate the third-party `NOTICE` with `make notice` (it runs `go-licence-detector` over the
 module graph). On Renovate dependency PRs this is done automatically by the
-[`renovate-notice.yml`](../.github/workflows/renovate-notice.yml) workflow, so `NOTICE` is usually
-already current by release time — but verify.
+[`renovate-notice.yml`](../.github/workflows/renovate-notice.yml) workflow (which also regenerates
+the serverless client), so `NOTICE` is usually already current by release time — but verify.
 
 ## Executing the release
 
@@ -86,7 +89,11 @@ make tag
 configured). Pushing the tag triggers the Buildkite
 [release pipeline](https://buildkite.com/elastic/terraform-provider-ec-release), which runs
 [`.buildkite/release.sh`](../.buildkite/release.sh) → `make release` (GoReleaser) to build, sign,
-and publish the artifacts.
+and publish the artifacts. `make release` extracts this version's section from
+[`CHANGELOG.md`](../CHANGELOG.md) via [`scripts/extract-release-notes.sh`](../scripts/extract-release-notes.sh)
+and passes it to GoReleaser as `--release-notes`. Do not set `changelog.disable` in
+[`.goreleaser.yml`](../.goreleaser.yml): that skips the changelog pipe and ignores the file,
+so the GitHub body would stay empty.
 
 Confirm the new version is listed in the
 [Terraform registry](https://registry.terraform.io/providers/elastic/ec/latest/docs).

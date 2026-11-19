@@ -7,5 +7,6 @@ the PR flow, dev-environment setup, the pre-submit checklist, commit conventions
 
 For the how-to detail behind it, see [`development-workflow.md`](./development-workflow.md) (make
 targets and the change loop), [`testing.md`](./testing.md) (unit + acceptance, required env),
-[`coding-standards.md`](./coding-standards.md), and [`openspec-requirements.md`](./openspec-requirements.md)
-(OpenSpec Purpose / SHALL-MUST / Scenarios).
+[`coding-standards.md`](./coding-standards.md), [`openspec-requirements.md`](./openspec-requirements.md)
+(OpenSpec Purpose / SHALL-MUST / Scenarios), and [`openspec-workflows.md`](./openspec-workflows.md)
+(explore / propose / apply / sync / archive).

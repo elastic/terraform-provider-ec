@@ -58,8 +58,8 @@ release:
     name: terraform-provider-ec
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
-changelog:
-  disable: true
+# Do not set changelog.disable: true — GoReleaser then ignores --release-notes
+# and publishes an empty GitHub body. make release always passes --release-notes.
 snapshot:
   # Allows you to change the name of the generated snapshot
   #

@@ -30,7 +30,9 @@ If the user provided an explicit version like `X.Y.Z`, use that. Otherwise deter
    gh pr list --repo elastic/terraform-provider-ec --state merged --search "merged:>YYYY-MM-DD" --json number,title,mergedAt --limit 100
    ```
 4. Filter out dependency updates (`fix(deps):`, `chore(deps):`), CI changes (`chore:` actions/checkout, actions/setup-go, etc.), and the previous release prep PR.
-5. For each remaining PR, check if it has a `.changelog/` entry. Flag PRs that look user-facing but have no changelog entry.
+5. For each remaining PR, check its `.changelog/` entry. Flag PRs that look user-facing but have
+   only `release-note:none` (or no entry at all — pre-check PRs). `release-note:none` is the
+   correct signal for non-user-facing work; it must not appear under FEATURES/ENHANCEMENTS/BUG FIXES.
 
 ## Step 2: Build changelog
 
@@ -56,7 +58,9 @@ After the user approves the changelog:
    - All files under `examples/` that declare the `ec` provider
    You can use `./scripts/update-provider-version.sh X.Y.Z` for this.
 4. Write the new changelog section to `CHANGELOG.md` (prepend before the previous release)
-5. Delete the `.changelog/*.txt` files that were consolidated
+5. Delete **all** `.changelog/*.txt` files, including `release-note:none` fragments (they are not
+   rendered into `CHANGELOG.md` but would otherwise accumulate on `master`). Release-prep PRs also
+   need their own `.changelog/{PR}.txt` with `release-note:none`.
 6. Commit with message: `Prepare X.Y.Z release`
 
 ## Step 4: Create PR
@@ -64,6 +68,15 @@ After the user approves the changelog:
 Ask the user before creating the PR. When approved:
 - Push the branch
 - Create PR with title `Prepare X.Y.Z release` targeting `master`
+- **Changelog follow-up (required):** after the PR number is known, write
+  `.changelog/{PR}.txt` with a `release-note:none` fence, commit it, and push.
+  Step 3 deletes every fragment before the number exists, so without this
+  follow-up commit `Check PR changelog` stays red. Example body:
+
+  ````
+  ```release-note:none
+  ```
+  ````
 
 ## Step 5: Tag (after merge)
 
@@ -71,6 +84,7 @@ Only when the user explicitly asks to tag (typically after the PR is merged):
 1. Ensure you're on `master` with the merge commit
 2. Run `make tag` — it creates the `vX.Y.Z` tag (the `VERSION` minus its `-dev` suffix) and pushes it to the remote pointing at `elastic/terraform-provider-ec`, which triggers the Buildkite release pipeline.
 3. Equivalently, tag and push by hand: `git tag vX.Y.Z` then `git push <remote> vX.Y.Z`, where `<remote>` is the one pointing at `elastic/terraform-provider-ec` (often `upstream`).
+4. Do **not** `gh release edit`. `make release` (Buildkite) fills the GitHub release body from this version's `CHANGELOG.md` section (`scripts/extract-release-notes.sh` → GoReleaser `--release-notes`; `changelog.disable` in `.goreleaser.yml` would ignore that file). After the pipeline finishes, confirm `gh release view vX.Y.Z --repo elastic/terraform-provider-ec` shows that section (not an empty body).
 
 ## Important rules
 
@@ -79,3 +93,4 @@ Only when the user explicitly asks to tag (typically after the PR is merged):
 - **Keep `-dev` suffix in `Makefile` and `ec/version.go`.**
 - **Verify `.changelog/` file contents against upstream.**
 - **Check all merged PRs, not just those with `.changelog/` entries.**
+- **Do not `gh release edit` for notes.** `make release` copies `CHANGELOG.md` into the GitHub release via `--release-notes` (requires the GoReleaser changelog pipe to stay enabled).

@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "required_names": [
+    "needs-research",
+    "needs-reproduction",
+    "needs-spec",
+    "needs-human",
+    "triaged",
+    "research-factory",
+    "change-factory",
+    "code-factory",
+    "reproducer-factory",
+    "phase-research",
+    "phase-reproduction",
+    "phase-specification",
+    "phase-coding",
+    "verify-openspec",
+    "duplicate-code",
+    "semantic-refactor",
+    "schema-coverage",
+    "flaky-test",
+    "serverless-spec"
+  ],
+  "labels": [
+    {
+      "name": "needs-research",
+      "color": "0d9488",
+      "description": "Bot routing: feature needs research. Human promotes with research-factory.",
+      "category": "routing",
+      "applied_by": "issue-classifier (bot)",
+      "lifecycle": "Exactly one needs-* per issue, with triaged. Not consumed; factory trigger is separate."
+    },
+    {
+      "name": "needs-reproduction",
+      "color": "0f766e",
+      "description": "Bot routing: bug needs reproduction. Human promotes with reproducer-factory.",
+      "category": "routing",
+      "applied_by": "issue-classifier (bot)",
+      "lifecycle": "Exactly one needs-* per issue, with triaged. Not consumed; factory trigger is separate."
+    },
+    {
+      "name": "needs-spec",
+      "color": "14b8a6",
+      "description": "Bot routing: ready for OpenSpec. Human promotes with change-factory.",
+      "category": "routing",
+      "applied_by": "issue-classifier (bot)",
+      "lifecycle": "Exactly one needs-* per issue, with triaged. Not consumed; factory trigger is separate."
+    },
+    {
+      "name": "needs-human",
+      "color": "5eead4",
+      "description": "Bot routing: needs human judgment; not auto-promoted to a factory.",
+      "category": "routing",
+      "applied_by": "issue-classifier (bot)",
+      "lifecycle": "Exactly one needs-* per issue, with triaged. Stays until a human re-routes."
+    },
+    {
+      "name": "triaged",
+      "color": "134e4a",
+      "description": "Sticky marker: classifier or scanner already routed; skip re-classify.",
+      "category": "routing",
+      "applied_by": "issue-classifier (bot) or scanners when filing issues",
+      "lifecycle": "Sticky. Applied with one needs-* (classifier) or with a topic label (scanners). Never a factory trigger."
+    },
+    {
+      "name": "research-factory",
+      "color": "fd3b56",
+      "description": "Human trigger: run research-factory. Consumed when the factory starts.",
+      "category": "factory",
+      "applied_by": "human (maintainer)",
+      "lifecycle": "Consumed (removed) when research-factory qualifies the trigger. Re-apply to re-run."
+    },
+    {
+      "name": "change-factory",
+      "color": "fdb096",
+      "description": "Human trigger: run change-factory. Consumed when the factory starts.",
+      "category": "factory",
+      "applied_by": "human (maintainer)",
+      "lifecycle": "Consumed (removed) when change-factory qualifies the trigger. Re-apply to re-run."
+    },
+    {
+      "name": "code-factory",
+      "color": "e8f446",
+      "description": "Human trigger: run code-factory. Consumed when the factory starts.",
+      "category": "factory",
+      "applied_by": "human (maintainer) or scanner dispatch",
+      "lifecycle": "Consumed (removed) when code-factory qualifies the trigger. Re-apply to re-run."
+    },
+    {
+      "name": "reproducer-factory",
+      "color": "b60205",
+      "description": "Human trigger: run reproducer-factory. Consumed when the factory starts.",
+      "category": "factory",
+      "applied_by": "human (maintainer)",
+      "lifecycle": "Consumed (removed) when reproducer-factory qualifies the trigger. Re-apply to re-run."
+    },
+    {
+      "name": "phase-research",
+      "color": "aaaaaa",
+      "description": "Bot phase: research-factory done. Swapped for the next phase-* label.",
+      "category": "phase",
+      "applied_by": "research-factory (bot)",
+      "lifecycle": "Exactly one phase-* at a time. phase-label helper removes other phase-* labels."
+    },
+    {
+      "name": "phase-reproduction",
+      "color": "aaaaaa",
+      "description": "Bot phase: reproducer-factory done. Swapped for the next phase-* label.",
+      "category": "phase",
+      "applied_by": "reproducer-factory (bot)",
+      "lifecycle": "Exactly one phase-* at a time. phase-label helper removes other phase-* labels."
+    },
+    {
+      "name": "phase-specification",
+      "color": "aaaaaa",
+      "description": "Bot phase: change-factory done. Swapped for the next phase-* label.",
+      "category": "phase",
+      "applied_by": "change-factory (bot)",
+      "lifecycle": "Exactly one phase-* at a time. phase-label helper removes other phase-* labels."
+    },
+    {
+      "name": "phase-coding",
+      "color": "aaaaaa",
+      "description": "Bot phase: code-factory done. Swapped for the next phase-* label.",
+      "category": "phase",
+      "applied_by": "code-factory (bot)",
+      "lifecycle": "Exactly one phase-* at a time. phase-label helper removes other phase-* labels."
+    },
+    {
+      "name": "verify-openspec",
+      "color": "9bf329",
+      "description": "Human gate: run openspec-verify on this PR. Removed when the gate starts.",
+      "category": "gate",
+      "applied_by": "human (maintainer)",
+      "lifecycle": "Applied to a PR. Deterministic step removes it when openspec-verify-label starts."
+    },
+    {
+      "name": "duplicate-code",
+      "color": "ededed",
+      "description": "Scanner topic: duplicate-code-detector finding. Pre-stamped with triaged.",
+      "category": "topic",
+      "applied_by": "duplicate-code-detector scanner (bot)",
+      "lifecycle": "Topic label on scanner-filed issues. Used for issue-slots backpressure."
+    },
+    {
+      "name": "semantic-refactor",
+      "color": "ededed",
+      "description": "Scanner topic: semantic-function-refactor finding. Pre-stamped with triaged.",
+      "category": "topic",
+      "applied_by": "semantic-function-refactor scanner (bot)",
+      "lifecycle": "Topic label on scanner-filed issues. Used for issue-slots backpressure."
+    },
+    {
+      "name": "schema-coverage",
+      "color": "ededed",
+      "description": "Scanner topic: schema-coverage-rotation finding. Pre-stamped with triaged.",
+      "category": "topic",
+      "applied_by": "schema-coverage-rotation scanner (bot)",
+      "lifecycle": "Topic label on scanner-filed issues. Used for issue-slots backpressure."
+    },
+    {
+      "name": "flaky-test",
+      "color": "ededed",
+      "description": "Scanner topic: flaky-test-catcher finding. Pre-stamped with triaged.",
+      "category": "topic",
+      "applied_by": "flaky-test-catcher scanner (bot)",
+      "lifecycle": "Topic label on scanner-filed issues. Used for de-duplication and slots."
+    },
+    {
+      "name": "serverless-spec",
+      "color": "ededed",
+      "description": "Reserved for serverless-spec-impact scanner (cp-hosted-team#4391). No consumer yet.",
+      "category": "topic",
+      "applied_by": "none yet (reserved)",
+      "lifecycle": "Reserved name from the Phase 2 taxonomy. No workflow consumes it until #4391 lands."
+    }
+  ]
+}

@@ -118,6 +118,42 @@ func Test_KibanaPayload(t *testing.T) {
 			},
 		},
 		{
+			name: "parses a kibana resource without topology using the template size and zone count",
+			args: args{
+				updateResources: func() *models.DeploymentUpdateResources {
+					ur := getUpdateResources()
+					top := ur.Kibana[0].Plan.ClusterTopology[0]
+					top.Size.Value = ec.Int32(2048)
+					top.ZoneCount = 2
+					return ur
+				}(),
+				kibana: &Kibana{
+					RefId:                     new("main-kibana"),
+					ResourceId:                &mock.ValidClusterID,
+					Region:                    new("some-region"),
+					ElasticsearchClusterRefId: new("somerefid"),
+				},
+			},
+			want: &models.KibanaPayload{
+				ElasticsearchClusterRefID: new("somerefid"),
+				Region:                    new("some-region"),
+				RefID:                     new("main-kibana"),
+				Plan: &models.KibanaClusterPlan{
+					Kibana: &models.KibanaConfiguration{},
+					ClusterTopology: []*models.KibanaClusterTopologyElement{
+						{
+							ZoneCount:               2,
+							InstanceConfigurationID: "aws.kibana.r5d",
+							Size: &models.TopologySize{
+								Resource: new("memory"),
+								Value:    ec.Int32(2048),
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "parses a kibana resource with a topology but no instance_configuration_id or instance_configuration_version - use values from template",
 			args: args{
 				updateResources: getUpdateResourcesWithIcVersion(),
