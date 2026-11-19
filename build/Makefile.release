@@ -10,10 +10,15 @@ PREFIXED_V = v$(subst -dev,,$(VERSION))
 # it must not leak into the provider's module graph or NOTICE.
 GORELEASER = $(GOBIN)/goreleaser
 
-## Builds GoReleaser from tools/goreleaser into $(GOBIN). Always rebuilt; go build caches it.
+# GOTOOLCHAIN=auto lets this tool build fetch the Go version tools/goreleaser/go.mod
+# requires even where the image pins GOTOOLCHAIN=local (golang:* release image), so
+# a GoReleaser bump that raises its go directive can't break release day. It only
+# affects building GoReleaser; the provider binaries GoReleaser builds still use the
+# Go toolchain selected for the root module.
+## Builds GoReleaser from tools/goreleaser into bin/. Always rebuilt; go build caches it.
 .PHONY: goreleaser
 goreleaser: | $(GOBIN)
-	@ go -C tools/goreleaser build -o $(GORELEASER) github.com/goreleaser/goreleaser/v2
+	@ GOTOOLCHAIN=auto go -C tools/goreleaser build -o $(GORELEASER) github.com/goreleaser/goreleaser/v2
 
 ## Tags the current commit as the release commit with $(VERSION) (minus -dev).
 tag:
