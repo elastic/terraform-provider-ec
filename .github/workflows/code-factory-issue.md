@@ -373,6 +373,10 @@ safe-outputs:
   report-failure-as-issue: false
   report-incomplete: false
   report-failed-jobs: false
+  # The agent must not be able to file issues; this makes the "do not open issues" guardrail
+  # deterministic rather than prompt-dependent (matches change-factory-issue.md).
+  missing-tool: false
+  missing-data: false
   create-pull-request:
     labels: [code-factory]
     max: 1
