@@ -157,6 +157,18 @@ a second workflow needs the same block, factor it into a shared fragment.
 | Live Elastic Cloud API **operations** on `api.elastic-cloud.com` | Agents **never** perform an operation that creates, mutates or destroys a deployment, or that spends. Acceptance tests create/destroy real deployments against `EC_API_KEY` and run **out-of-band on Buildkite** (`buildkite/terraform-provider-ec-acceptance`), never inside an agentic workflow — no live-cloud credentials are exposed to agents. The host is therefore kept out of every `network.allowed` list, so the agent sandbox cannot reach any path on it. Reading a **public, unauthenticated specification document** from that host is outside this restriction and is permitted: the research factory fetches `api/v1/api-docs-user/swagger.json` in a **runner-side** step, before the sandbox exists, which grounds the agent while adding **zero** egress hosts. (Verified: `api.elastic-cloud.com` is absent from the compiled firewall egress of every workflow.) The change-factory workflow opens spec-only PRs, so `.buildkite/acceptance.sh` skips the paid acceptance suite for PRs that touch only `docs/`, `dev-docs/`, `openspec/`, or `.changelog/` (keeping that required Buildkite context green without spending); the suite still runs the moment a PR also changes provider code. |
 | Local-stack ports (Elasticsearch `:9200`, Kibana `:5601`, Docker localstack) | **N/A** — unlike the Elastic Stack provider, the cloud provider has **no** local Docker stack; there is nothing to reach. Recorded here so these are not copied in out of habit when porting a stack-provider workflow. |
 
+## What threat detection sees
+
+gh-aw's `detection` job analyses the artifact directory it stages for the detector (the rendered
+prompt, `agent_output.json`, and any patches).
+
+`research-factory-issue` stages its issue context files (issue body, comment history, prior research
+comment) plus a `census.md` summary as the `research-factory-detection-inputs` artifact. A
+`safe-outputs.threat-detection.steps` pre-step downloads it into the detector's artifacts directory,
+and `safe-outputs.threat-detection.prompt` points the detector at it. The staged copies are bounded by
+the existing byte clamps (`MAX_ENV_PAYLOAD_BYTES`, `COMMENT_CONTEXT_BUDGET`); the census is bounded
+by `CENSUS_MAX_BYTES`.
+
 ## Verifying / regenerating
 
 - **Reproducibility (AC):** `make workflow-generate` followed by
@@ -169,6 +181,11 @@ a second workflow needs the same block, factor it into a shared fragment.
   redirects) as a security review. Renovate must not edit `*.lock.yml` (compiled output) —
   `renovate.json` lists those under `ignorePaths`. Bump `github/gh-aw-actions` together with the
   compiler pin via `make workflow-generate`, not by patching lock files.
+  **Detection pre-step pin:** the `uses:` inside `safe-outputs.threat-detection.steps` in
+  `research-factory-issue.md` is pinned to a SHA in the source, because gh-aw copies steps in that
+  list into the lock as written rather than pinning them. On every bump, set it to the SHA gh-aw pins
+  for `actions/download-artifact` elsewhere in the regenerated lock, and confirm the compiled step
+  shows that SHA, not a `@vX` tag.
   **Re-verify one internal coupling on every bump:** `research-factory-issue.md`'s *Remove trigger
   label* step references gh-aw's injected `steps.check_membership.outputs.is_team_member` directly
   (so a denied-role actor can't consume the trigger label without the agent running). `gh aw compile`
@@ -176,5 +193,8 @@ a second workflow needs the same block, factor it into a shared fragment.
   evaluate to `''` (fails safe — label never consumed, even for members). Confirm the compiled lock
   still emits `activated: ${{ steps.check_membership.outputs.is_team_member == 'true' }}` — gh-aw's
   own usage of the same id — after the bump.
+  Also confirm the regenerated lock still runs `Download research-factory grounding inputs for
+  detection` between `Prepare threat detection files` and `Setup threat detection`, and that the AWF
+  invocation still mounts `/tmp/gh-aw/threat-detection:/tmp/gh-aw/threat-detection:rw`.
 - **Inspect egress:** assert on the compiled lock's `allowDomains` array (see *Network allowlist
   policy*). `gh aw domains` does not report it.

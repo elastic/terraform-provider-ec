@@ -147,6 +147,17 @@ describe('boundEnvPayload', () => {
     assert.ok(bounded.endsWith(TRUNCATION_NOTICE), 'the cut is visible, not silent');
   });
 
+  test('bounds GitHub\'s maximum multi-byte issue body (65 536 characters)', () => {
+    // The issue's literal AC: a full-length issue body in a multi-byte script is 196 608 bytes,
+    // three times the kernel's per-entry limit. If the clamp were removed this would export and die.
+    const body = '漢'.repeat(65_536);
+    assert.equal(byteLength(body), 196_608);
+
+    const bounded = boundEnvPayload(body);
+    assert.ok(byteLength(bounded) <= MAX_ENV_PAYLOAD_BYTES);
+    assert.ok(bounded.endsWith(TRUNCATION_NOTICE), 'the cut is visible, not silent');
+  });
+
   test('a bounded payload stays well-formed', () => {
     const bounded = boundEnvPayload('😀'.repeat(40_000));
     assert.ok(bounded.isWellFormed());
