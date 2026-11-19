@@ -1,0 +1,17 @@
+### SDLC label taxonomy (cp-hosted-team#4378)
+
+## Validate label taxonomy manifest and doc table (no network)
+.PHONY: check-label-taxonomy
+check-label-taxonomy:
+	@ ./scripts/check-label-taxonomy.sh
+	@ ./scripts/check-label-taxonomy_test.sh
+
+## Regenerate the label table in dev-docs/high-level/label-taxonomy.md from the manifest
+.PHONY: gen-label-taxonomy
+gen-label-taxonomy:
+	@ ./scripts/check-label-taxonomy.sh --write
+
+## Create or update GitHub labels from the manifest (pass SYNC_LABELS_ARGS='--dry-run')
+.PHONY: sync-sdlc-labels
+sync-sdlc-labels:
+	@ ./scripts/sync-sdlc-labels.sh $(SYNC_LABELS_ARGS)

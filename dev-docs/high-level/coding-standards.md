@@ -112,16 +112,18 @@ and archived into `openspec/specs/` after the implementation lands.
 - Write **table-driven unit tests** with `t.Run()` subtests, using
   [`testify`](https://github.com/stretchr/testify) (`assert`/`require`) for assertions. Tests are
   colocated with the code they cover (e.g. `ec/internal/converters/convert_tags_test.go`).
-- Unit tests (`make unit`) need no credentials and are always safe to run.
+- Unit tests (`env -u TF_ACC make unit`) need no credentials and are always safe to run.
 - **Acceptance tests hit the real, paid Elastic Cloud API** and cost money. Run the **targeted**
   `TestAcc…` case(s) for your change locally before a PR; the **full** suite runs on Buildkite per
-  PR, and **agents never run acceptance tests**. There is no local Docker stack. See
-  [`./testing.md`](./testing.md) for the full contract.
+  PR. Agents never run acceptance tests. The implementation loop never sets `TF_ACC`; in PR mode it
+  recommends named local `TestAcc…` cases and confirms before `gh pr create` (skip = wait on Buildkite). There is no local Docker stack. See [`./testing.md`](./testing.md)
+  for the full contract.
 
 ## Changelog
 
-User-facing changes require a per-PR entry at `.changelog/{PR}.txt` (the PR number, not a shared
-CHANGELOG file). See [`./contributing.md`](./contributing.md) for the entry format.
+Every PR requires a per-PR entry at `.changelog/{PR}.txt` (the PR number, not a shared CHANGELOG
+file) after the PR is opened. Use a user-facing `release-note:…` tag, or `release-note:none` when
+the change is not user-facing. See [`./contributing.md`](./contributing.md) for the entry format.
 
 ## GitHub Agentic Workflow authoring (`imports:`)
 
@@ -132,3 +134,7 @@ shared workflow fragments follow an **extract-on-second-use** convention: write 
 time, and the moment a *second* workflow needs the same block, factor it into a shared fragment and pull
 it in via a [gh-aw](https://github.com/githubnext/gh-aw) `imports:` entry rather than copy-pasting. This
 keeps prompts and steps single-sourced without prematurely abstracting one-off blocks.
+
+The supply-chain pins (`actions-lock.json`) and the network allowlist policy each workflow's
+`network.allowed` draws from — including the deliberately excluded hosts — are documented in
+[`.github/aw/README.md`](../../.github/aw/README.md).

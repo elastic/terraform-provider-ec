@@ -18,7 +18,10 @@
 package ec
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -42,6 +45,9 @@ type apiSetup struct {
 	username           string
 	password           string
 	insecure           bool
+	caCert             string
+	tlsCert            string
+	tlsKey             string
 	timeout            time.Duration
 	verbose            bool
 	verboseCredentials bool
@@ -61,6 +67,11 @@ func newAPIConfig(setup apiSetup) (api.Config, error) {
 		return cfg, err
 	}
 
+	client, err := newHTTPClient(setup)
+	if err != nil {
+		return cfg, err
+	}
+
 	verboseCfg, err := verboseSettings(
 		setup.verboseFile,
 		setup.verbose,
@@ -72,7 +83,7 @@ func newAPIConfig(setup apiSetup) (api.Config, error) {
 
 	return api.Config{
 		ErrorDevice:     os.Stdout,
-		Client:          &http.Client{},
+		Client:          client,
 		VerboseSettings: verboseCfg,
 		AuthWriter:      authWriter,
 		Host:            setup.endpoint,
@@ -81,6 +92,48 @@ func newAPIConfig(setup apiSetup) (api.Config, error) {
 		UserAgent:       userAgent(Version),
 		Retries:         DefaultHTTPRetries,
 	}, nil
+}
+
+// newHTTPClient leaves the default transport to the SDK unless custom TLS is configured.
+func newHTTPClient(setup apiSetup) (*http.Client, error) {
+	if (setup.tlsCert == "") != (setup.tlsKey == "") {
+		return nil, fmt.Errorf("tls_cert and tls_key must be configured together")
+	}
+	client := &http.Client{}
+	if setup.caCert == "" && setup.tlsCert == "" {
+		return client, nil
+	}
+	tlsConfig := &tls.Config{}
+	if setup.caCert != "" {
+		pem, err := os.ReadFile(setup.caCert)
+		if err != nil {
+			return nil, fmt.Errorf("failed reading ca_cert: %w", err)
+		}
+		roots, err := x509.SystemCertPool()
+		if err != nil {
+			return nil, fmt.Errorf("failed loading system CA certificates: %w", err)
+		}
+		if !roots.AppendCertsFromPEM(pem) {
+			return nil, fmt.Errorf("ca_cert does not contain any valid PEM certificates")
+		}
+		tlsConfig.RootCAs = roots
+	}
+	if setup.tlsCert != "" {
+		cert, err := tls.LoadX509KeyPair(setup.tlsCert, setup.tlsKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed loading tls_cert and tls_key: %w", err)
+		}
+		tlsConfig.Certificates = []tls.Certificate{cert}
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = tlsConfig
+	timeout := setup.timeout
+	if timeout <= 0 {
+		timeout = api.DefaultTimeout
+	}
+	transport.DialContext = (&net.Dialer{Timeout: timeout, KeepAlive: 30 * time.Second}).DialContext
+	client.Transport = transport
+	return client, nil
 }
 
 func verboseSettings(name string, verbose, redactAuth bool) (api.VerboseSettings, error) {
