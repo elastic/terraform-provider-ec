@@ -1,3 +1,15 @@
+# 0.15.0 (November 19, 2026)
+
+ENHANCEMENTS:
+
+* resource/ec_elasticsearch_project: Add `search_lake.min_search_vcu` to set the minimum number of search VCUs for a project. A configured `search_lake` block without `min_search_vcu` unsets the minimum, including one set outside Terraform; omitting the `search_lake` block leaves it unchanged. ([#1113](https://github.com/elastic/terraform-provider-ec/issues/1113))
+
+BUG FIXES:
+
+* resource/ec_deployment: Skip the remote-clusters update when the planned remote_cluster set matches the prior state, so an apply without a remote_cluster block no longer clears remote clusters that are not tracked in state ([#1099](https://github.com/elastic/terraform-provider-ec/issues/1099))
+* resource/ec_deployment: Honor `size_resource` when counting nodes to decide whether a dedicated master tier is needed, so storage based sizing no longer adds an unneeded master tier. ([#1108](https://github.com/elastic/terraform-provider-ec/issues/1108))
+* resource/ec_elasticsearch_project, resource/ec_observability_project, resource/ec_security_project: Keep the prior state when a project update fails, instead of reading the project back into state. ([#1113](https://github.com/elastic/terraform-provider-ec/issues/1113))
+
 # 0.14.0 (October 30, 2026)
 
 NOTES:
