@@ -10,11 +10,13 @@ PREFIXED_V = v$(subst -dev,,$(VERSION))
 # it must not leak into the provider's module graph or NOTICE.
 GORELEASER = $(GOBIN)/goreleaser
 
-# GOTOOLCHAIN=auto lets this tool build fetch the Go version tools/goreleaser/go.mod
-# requires even where the image pins GOTOOLCHAIN=local (golang:* release image), so
-# a GoReleaser bump that raises its go directive can't break release day. It only
-# affects building GoReleaser; the provider binaries GoReleaser builds still use the
-# Go toolchain selected for the root module.
+# GOTOOLCHAIN=auto is forced on purpose (it overrides any GOTOOLCHAIN in the
+# environment) so this tool build can fetch the Go version tools/goreleaser/go.mod
+# requires even where the image pins GOTOOLCHAIN=local (golang:* release image); a
+# GoReleaser bump that raises its go directive then can't break release day. The
+# toolchain download is checksum-verified via sum.golang.org. It applies to this
+# recipe line only: the provider binaries GoReleaser builds use the ambient
+# go/GOTOOLCHAIN.
 ## Builds GoReleaser from tools/goreleaser into bin/. Always rebuilt; go build caches it.
 .PHONY: goreleaser
 goreleaser: | $(GOBIN)
