@@ -6,7 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* resource/ec_deployment: Skip the remote-clusters update when the planned remote_cluster set matches the prior state, so an apply without a remote_cluster block no longer clears remote clusters that are not tracked in state ([#1099](https://github.com/elastic/terraform-provider-ec/issues/1099))
+* resource/ec_deployment: Skip the remote-clusters update when the planned `remote_cluster` set matches the prior state. An apply without a `remote_cluster` block no longer clears remote clusters that are not tracked in state, as long as state holds no remote clusters either. Removing tracked remote clusters from the configuration still replaces the whole set, including untracked ones. ([#1099](https://github.com/elastic/terraform-provider-ec/issues/1099))
 * resource/ec_deployment: Honor `size_resource` when counting nodes to decide whether a dedicated master tier is needed, so storage based sizing no longer adds an unneeded master tier. ([#1108](https://github.com/elastic/terraform-provider-ec/issues/1108))
 * resource/ec_elasticsearch_project, resource/ec_observability_project, resource/ec_security_project: Keep the prior state when a project update fails, instead of reading the project back into state. ([#1113](https://github.com/elastic/terraform-provider-ec/issues/1113))
 
