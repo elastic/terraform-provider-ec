@@ -20,7 +20,10 @@ for f in "${UPDATE_FILES[@]}"; do
     # Linux, save the output in the temporary folder and move the result over to
     # the original file for better OS cross-compatibility.
     FILE_NAME="$(basename $f)"
-    sed "s/ version = \".*\"/ version = \"${1}\"/" $f > /tmp/$FILE_NAME
+    # Only rewrite the version line that follows `source = "elastic/ec"`, so
+    # other providers declared in the same file (e.g. hashicorp/aws) keep
+    # their own version constraints.
+    sed "/source *= *\"elastic\/ec\"/,/ version = / s/ version = \".*\"/ version = \"${1}\"/" $f > /tmp/$FILE_NAME
     mv /tmp/$FILE_NAME $f
 done
 
