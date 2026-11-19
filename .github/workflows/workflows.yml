@@ -55,17 +55,22 @@ jobs:
       - name: Install gh-aw
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh extension install githubnext/gh-aw --pin v0.89.21
+        run: gh extension install githubnext/gh-aw --pin v0.92.0
       - name: Check workflow lock files are up-to-date
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           make workflow-generate
-          # intent-to-add so new untracked generated files show up in git diff
-          git add --intent-to-add -- .github/workflows
-          git diff --exit-code -- .github/workflows \
-            || (echo "::error::Workflow artifacts under .github/workflows are out of date. Run 'make workflow-generate' and commit the changes." && exit 1)
+          # intent-to-add so new untracked generated files show up in git diff.
+          # .github/aw holds the gh-aw actions-lock.json; compile keeps it in sync, so drift there
+          # must fail CI too (see .github/aw/README.md).
+          git add --intent-to-add -- .github/workflows .github/aw
+          git diff --exit-code -- .github/workflows .github/aw \
+            || (echo "::error::Workflow artifacts under .github/workflows or .github/aw are out of date. Run 'make workflow-generate' and commit the changes." && exit 1)
 
+  # Always-on required status check on master (ruleset "Require Workflows Gate").
+  # Test is skipped when there are no workflow changes; this gate maps skip vs
+  # failure so a red Test cannot automerge. Keep the job name stable.
   gate:
     name: Workflows Gate
     needs: [classify, test]

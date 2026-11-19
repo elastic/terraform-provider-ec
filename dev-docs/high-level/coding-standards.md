@@ -134,3 +134,7 @@ shared workflow fragments follow an **extract-on-second-use** convention: write 
 time, and the moment a *second* workflow needs the same block, factor it into a shared fragment and pull
 it in via a [gh-aw](https://github.com/githubnext/gh-aw) `imports:` entry rather than copy-pasting. This
 keeps prompts and steps single-sourced without prematurely abstracting one-off blocks.
+
+The supply-chain pins (`actions-lock.json`) and the network allowlist policy each workflow's
+`network.allowed` draws from — including the deliberately excluded hosts — are documented in
+[`.github/aw/README.md`](../../.github/aw/README.md).

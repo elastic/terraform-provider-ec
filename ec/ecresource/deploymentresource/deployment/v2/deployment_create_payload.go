@@ -216,7 +216,18 @@ func trafficFilterToModel(ctx context.Context, set types.Set, req *models.Deploy
 	return nil
 }
 
-func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId string, esObj types.Object) diag.Diagnostics {
+// HandleRemoteClusters replaces the deployment's remote clusters with the ones in esObj.
+// It skips the update when the planned remote_cluster set equals the prior-state set in
+// prevEsObj (null and empty sets are considered equal), so an apply without a remote_cluster
+// block doesn't clear remote clusters that aren't tracked in state. Remote clusters that are
+// in the prior state are still removed when the block is absent; that removal shows in the plan.
+// prevEsObj should be null on create.
+func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId string, esObj types.Object, prevEsObj types.Object) diag.Diagnostics {
+	changed, diags := remoteClustersChanged(ctx, esObj, prevEsObj)
+	if diags.HasError() || !changed {
+		return diags
+	}
+
 	remoteClusters, refId, diags := elasticsearchRemoteClustersPayload(ctx, client, deploymentId, esObj)
 
 	if diags.HasError() {
@@ -234,6 +245,43 @@ func HandleRemoteClusters(ctx context.Context, client *api.API, deploymentId str
 	}
 
 	return nil
+}
+
+func remoteClustersChanged(ctx context.Context, esObj types.Object, prevEsObj types.Object) (bool, diag.Diagnostics) {
+	planned, diags := remoteClustersSet(ctx, esObj)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	prior, diags := remoteClustersSet(ctx, prevEsObj)
+	if diags.HasError() {
+		return false, diags
+	}
+
+	if len(planned.Elements()) == 0 && len(prior.Elements()) == 0 {
+		return false, nil
+	}
+
+	return !planned.Equal(prior), nil
+}
+
+func remoteClustersSet(ctx context.Context, esObj types.Object) (types.Set, diag.Diagnostics) {
+	nullSet := types.SetNull(elasticsearchv2.ElasticsearchRemoteClusterSchema().GetType().(types.SetType).ElemType)
+
+	if esObj.IsNull() || esObj.IsUnknown() {
+		return nullSet, nil
+	}
+
+	var es *elasticsearchv2.ElasticsearchTF
+	if diags := tfsdk.ValueAs(ctx, esObj, &es); diags.HasError() {
+		return nullSet, diags
+	}
+
+	if es == nil {
+		return nullSet, nil
+	}
+
+	return es.RemoteCluster, nil
 }
 
 func elasticsearchRemoteClustersPayload(ctx context.Context, client *api.API, deploymentId string, esObj types.Object) (*models.RemoteResources, string, diag.Diagnostics) {
