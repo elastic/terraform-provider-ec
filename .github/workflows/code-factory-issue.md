@@ -382,11 +382,19 @@ safe-outputs:
     max: 1
     patch-format: am
     preserve-branch-name: true
-    allowed-branches: ["code-factory/issue-*"]
+    # Bind the branch EXACTLY to the triggering issue, not a `code-factory/issue-*` glob: with
+    # recreate-ref the duplicate-PR gate only protects the expected branch, so a glob would let a
+    # run for issue A force-recreate issue B's open PR branch. `needs.pre_activation` is not a
+    # direct dependency of the agent/safe_outputs jobs, so use the `github` context (same
+    # expression as `concurrency`). A dispatch input that does not normalise to the same number
+    # pre-activation used fails closed (no PR), never open.
+    allowed-branches: ["code-factory/issue-${{ github.event.issue.number || github.event.inputs.issue_number }}"]
     recreate-ref: true
     fallback-as-issue: false
-    protected-files:
-      exclude: [".changelog/"]
+    # The changelog is add-changelog's job (Contents API, exactly .changelog/{PR}.txt). Strip any
+    # agent-written .changelog/ file from the patch so a stray fragment can never reach the PR
+    # (changelogcheck rejects any other path there, and add-changelog only writes {PR}.txt).
+    excluded-files: [".changelog/**"]
   noop:
     max: 1
     report-as-issue: false
@@ -394,8 +402,8 @@ safe-outputs:
     add-changelog:
       name: add-changelog
       description: >-
-        Commit the .changelog/{PR}.txt fragment for this PR. Call exactly once, after creating the
-        pull request. Pass a release-note type (and a one-line body unless the type is 'none').
+        Commit the .changelog/{PR}.txt fragment for this PR. Call exactly once, alongside
+        create_pull_request (it runs after the PR is created). Pass a release-note type (and a one-line body unless the type is 'none').
       runs-on: ubuntu-latest
       needs: safe_outputs
       if: needs.safe_outputs.result == 'success' && needs.safe_outputs.outputs.created_pr_number != ''
@@ -429,25 +437,23 @@ safe-outputs:
           env:
             GH_TOKEN: ${{ github.token }}
             PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
+            ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
           run: |
             set -euo pipefail
             # Derive the target branch from the TRUSTED created-PR number (not from any
-            # agent-supplied value): commit the changelog onto the PR we just created. Assert it is
-            # a factory branch so we never write elsewhere. (A safe-job cannot read the triggering
-            # issue number from pre-activation, so the branch cannot be bound to the trigger here;
-            # the create-PR allowed-branches glob + the duplicate-PR gate + the agent prompt are the
-            # controls for that.)
+            # agent-supplied value): commit the changelog onto the PR we just created, and only if
+            # its head is exactly the triggering issue's factory branch (the same binding as the
+            # create-pull-request allowed-branches), so we never write elsewhere.
             BRANCH=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.ref)
-            # Match the whole string (bash =~ anchors to the full value), so a crafted multi-line
-            # ref cannot pass on its first line.
-            if [[ ! "${BRANCH}" =~ ^code-factory/issue-[0-9]+$ ]]; then
-              echo "::error::PR #${PR_NUMBER} head ref '${BRANCH}' is not a code-factory/issue-<n> branch; refusing to write"
+            if [[ ! "${ISSUE_NUMBER}" =~ ^[0-9]+$ ]] || [[ "${BRANCH}" != "code-factory/issue-${ISSUE_NUMBER}" ]]; then
+              echo "::error::PR #${PR_NUMBER} head ref '${BRANCH}' is not code-factory/issue-${ISSUE_NUMBER}; refusing to write"
               exit 1
             fi
             # Upsert .changelog/{PR}.txt via the Contents API (verified commit), so the committed
             # file is ALWAYS exactly our validated render. If the path already exists on the branch
-            # (a re-run, or the agent/a human wrote a different or invalid fragment — .changelog/ is
-            # excluded from protected-files, so the agent *can* write there), fetch its blob sha and
+            # (a re-run, or a human pushed a different or invalid fragment — .changelog/ is in
+            # create-pull-request's excluded-files, so the agent's own patch never carries one),
+            # fetch its blob sha and
             # PUT with it, overwriting the stale content. A byte-identical content+sha PUT is a
             # no-op on GitHub, so this stays idempotent without a spurious commit.
             # DEFERRED (plan D1): this commit is made with GITHUB_TOKEN, so by GitHub's
@@ -529,8 +535,8 @@ pull request labeled `code-factory`.
 4. Open exactly one pull request for that branch using the `create-pull-request` safe output.
 5. Include `Closes #${{ needs.pre_activation.outputs.issue_number }}` in the PR body — this exact
    string is the stable identifier that prevents duplicate PRs on future runs.
-6. After the PR is created, call the `add-changelog` safe-job **exactly once** with a release-note
-   type (and a one-line body unless the type is `none`) — see **Changelog**.
+6. Call the `add-changelog` safe-job **exactly once**, alongside `create-pull-request` (it runs
+   after the PR is created; do not wait for a PR number), with a release-note type (and a one-line body unless the type is `none`) — see **Changelog**.
 7. Keep the pull request labeled `code-factory`.
 
 ## Verification ladder (mirrors the `go.yml` gate; never sets `TF_ACC`)
@@ -585,8 +591,9 @@ The linked pull request must:
 
 ## Changelog
 
-Every PR needs a `.changelog/{PR}.txt` entry. You do not write the file yourself — after the PR
-exists, call the **`add-changelog`** safe-job exactly once:
+Every PR needs a `.changelog/{PR}.txt` entry. You do not write the file yourself (any `.changelog/`
+file in your patch is stripped before the PR is created) — call the **`add-changelog`** safe-job exactly
+once, alongside `create-pull-request`; it commits the file after the PR is created:
 
 - `release_note_type`: one of `none`, `bug`, `enhancement`, `feature`, `new-resource`,
   `new-data-source`, `new-guide`, `note`, `breaking-change`.
@@ -605,7 +612,7 @@ issue does not describe.
 - Run `make lint` and the rest of the ladder before opening the PR; an unformatted or failing tree
   blocks CI.
 - Open exactly one pull request for this issue; do not open a second, and do not open issues.
-- Call `add-changelog` exactly once, after the PR exists.
+- Call `add-changelog` exactly once, alongside `create-pull-request`.
 - Do not change the branch naming convention.
 - Do not use another issue, pull request, or external request as the source of truth over the
   triggering issue.

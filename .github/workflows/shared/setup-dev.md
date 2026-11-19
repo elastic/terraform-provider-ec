@@ -65,4 +65,6 @@ agent firewall); and asserts a clean tree before the agent starts.
 
 Declares **no** `network:` block: gh-aw merges an imported fragment's `network.allowed` into the
 importer's, so the egress menu stays owned by each workflow's own frontmatter (see
-[`.github/aw/README.md`](../../aw/README.md)).
+[`.github/aw/README.md`](../../aw/README.md)). An importer whose agent runs `make validate-examples` must allow both
+`registry.terraform.io` and `releases.hashicorp.com` itself (the README's `make validate-examples`
+caveat).
