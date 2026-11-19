@@ -93,10 +93,19 @@ Acceptance runs are wired through Buildkite, not run inline by contributors:
   on a `golang` image.
 - `acceptance.sh` exits 0 without `make testacc` when the PR only touches `docs/` or `dev-docs/`
   (and writes `.buildkite/.skip-acceptance-sweep` so `pre-exit` does not sweep); otherwise it
-  runs `make vendor` then `EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET make testacc`.
-- Branch protection on `master` requires **CLA**, **Unit**, and
-  `buildkite/terraform-provider-ec-acceptance`. GitHub auto-merge (used by Renovate) waits on those
-  checks. Non-major Renovate PRs are auto-approved as `github-actions[bot]` by
+  runs `make vendor`, installs the pinned Terraform CLI once (via `hc-install`, with retries) and
+  exports `TF_ACC_TERRAFORM_PATH`, then runs `EC_API_KEY=$TERRAFORM_PROVIDER_API_KEY_SECRET make testacc`.
+  Without `TF_ACC_TERRAFORM_PATH`, `terraform-plugin-testing` downloads its own Terraform CLI from
+  checkpoint in **every** test, and any download hiccup (`chmod … no such file`, `text file busy`,
+  HTTP 5xx) calls `os.Exit(1)` and fails the whole run with a bare `FAIL` and no `--- FAIL` line.
+  The Terraform and `hc-install` versions are pinned in the script and bumped by Renovate.
+- Branch protection on `master` requires **CLA**, **Unit**, **Validate OpenSpecs**,
+  and `buildkite/terraform-provider-ec-acceptance`. The repository ruleset
+  [Require Workflows Gate](https://github.com/elastic/terraform-provider-ec/rules/25594481)
+  additionally requires **Workflows Gate**. GitHub auto-merge (used by Renovate) waits on
+  those checks. **Workflows Gate** always reports: it passes when the Workflows CI Test
+  job succeeds or is legitimately skipped, and fails when Test fails, so a red Test cannot
+  merge. Non-major Renovate PRs are auto-approved as `github-actions[bot]` by
   [`.github/workflows/approve-renovate.yml`](../../.github/workflows/approve-renovate.yml) once
   Renovate enables auto-merge.
 - The [`pre-command`](../../.buildkite/hooks/pre-command) hook loads the API key from Vault and
@@ -130,7 +139,8 @@ sweep:
   `SWEEPARGS='-sweep-run=ec_deployments,ec_serverless_projects' make sweep` after every acceptance
   build except docs-only skips (`.buildkite/.skip-acceptance-sweep`) — so stale deployments
   **and** projects are reaped on exit regardless of pass/fail. (The `acceptance.sh` step itself
-  only runs `make vendor` + `make testacc`, or exits early on docs-only PRs.)
+  only runs `make vendor`, the one-time Terraform install, and `make testacc`, or exits early on
+  docs-only PRs.)
 - **When to run manually:** after a *local* acceptance failure that may have left dangling
   infrastructure, or to reclaim serverless quota (see below).
 

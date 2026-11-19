@@ -58,13 +58,30 @@ describe('_factory-context', { concurrency: false }, () => {
     }
   });
 
-  test('getFactoryModule fails until factory-issue-shared.js exists', async () => {
-    await withEnv({ FACTORY_NAME: 'code-factory' }, async () => {
-      assert.throws(() => getFactoryModule(), (err) => {
-        assert.equal(err.code, 'MODULE_NOT_FOUND');
-        assert.match(err.message, /factory-issue-shared/);
-        return true;
+  test('PR-opening factories bind branch prefix and linkage mode', async () => {
+    const expected = {
+      'change-factory': { prefix: 'change-factory/issue-', mode: 'related-literal' },
+      'code-factory': { prefix: 'code-factory/issue-', mode: 'closes-literal' },
+      'reproducer-factory': { prefix: 'reproducer-factory/issue-', mode: 'related-literal' },
+    };
+    for (const [name, spec] of Object.entries(expected)) {
+      await withEnv({ FACTORY_NAME: name }, async () => {
+        const constants = getFactoryConstants();
+        assert.equal(constants.ISSUE_BRANCH_PREFIX, spec.prefix);
+        assert.equal(constants.DUPLICATE_LINKAGE_MODE, spec.mode);
+        assert.equal(getFactoryModule().issueBranchName(42), `${spec.prefix}42`);
       });
+    }
+  });
+
+  test('getFactoryModule returns the gate functions', async () => {
+    await withEnv({ FACTORY_NAME: 'code-factory' }, async () => {
+      const mod = getFactoryModule();
+      assert.equal(typeof mod.qualifyTriggerEvent, 'function');
+      assert.equal(typeof mod.checkDuplicatePR, 'function');
+      assert.equal(typeof mod.computeGateReason, 'function');
+      assert.equal(typeof mod.parseFinalizeGateEnv, 'function');
+      assert.equal(mod.issueBranchName(42), 'code-factory/issue-42');
     });
   });
 });

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 export GO111MODULE ?= on
-export VERSION := 0.13.1-dev
+export VERSION := 0.14.0-dev
 export BINARY := terraform-provider-ec
 export GOBIN = $(shell pwd)/bin
 
@@ -11,6 +11,7 @@ include build/Makefile.build
 include build/Makefile.test
 include build/Makefile.dev
 include build/Makefile.openspec
+include build/Makefile.labels
 include build/Makefile.deps
 include build/Makefile.lint
 include build/Makefile.format

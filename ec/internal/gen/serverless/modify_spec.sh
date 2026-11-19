@@ -46,4 +46,52 @@ jq '
   }]
 ' /tmp/with-traffic-filters.json >/tmp/with-linked.json
 
-mv /tmp/with-linked.json ./spec-mod.json
+# Audit logging is nested under monitoring. The generator marks the whole
+# chain computed_optional because the fields exist on read. Force the blocks
+# the practitioner sets to optional so an omitted block is a removal, and
+# keep enabled computed_optional: a default on a non-computed attribute fails
+# schema validation. destination stays required. destination.project_type is
+# required and limited to the types project-api accepts. status stays computed.
+# ignore_filters is an unordered array of {id}, so replace it with a set of
+# ids and keep the size limit the list validator had.
+jq '
+(.resources[] | select(.name | endswith("_project")) | .schema.attributes[] | select(.name=="monitoring") | .single_nested) |= (
+  .computed_optional_required = "optional"
+  | (.attributes[] | select(.name=="logging") | .single_nested) |= (
+      .computed_optional_required = "optional"
+      | (.attributes[] | select(.name=="audit") | .single_nested) |= (
+          .computed_optional_required = "optional"
+          | (.attributes[] | select(.name=="enabled") | .bool) |= (
+              .computed_optional_required = "computed_optional"
+              | .default = {"static": true}
+            )
+          | (.attributes[] | select(.name=="destination") | .single_nested.attributes[] | select(.name=="project_type") | .string) |= (
+              .computed_optional_required = "required"
+              | .validators = [{
+                  "custom": {
+                    "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"}],
+                    "schema_definition": "stringvalidator.OneOf(\n\"observability\",\n\"security\",\n)"
+                  }
+                }]
+            )
+          | .attributes = (
+              [.attributes[] | select(.name != "ignore_filters")]
+              + [{
+                  "name": "ignore_filter_ids",
+                  "set": {
+                    "computed_optional_required": "optional",
+                    "element_type": {"string": {}},
+                    "description": "IDs of logging ignore filters applied to reduce the volume of logs delivered for this category. The predefined IDs are listed in the [Elastic Cloud Serverless API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/operation/operation-listignorefilters).",
+                    "validators": [{
+                      "custom": {
+                        "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"}],
+                        "schema_definition": "setvalidator.SizeAtMost(10)"
+                      }
+                    }]
+                  }
+                }]
+            )
+        )
+    )
+)
+' /tmp/with-linked.json >./spec-mod.json

@@ -46,7 +46,9 @@ and related resources through the Elastic Cloud API.
 - If this is a Terraform entity change, or examples/provider schemas changed: `env -u TF_ACC make install validate-examples`
 - If you changed the serverless client inputs, regenerate with `env -u TF_ACC make gen`. See
   [`generated-clients.md`](./dev-docs/high-level/generated-clients.md).
-- Add a `.changelog/{PR}.txt` entry for user-facing changes (see [`contributing.md`](./dev-docs/high-level/contributing.md)).
+- Add a `.changelog/{PR}.txt` entry after the PR number is known (user-facing
+  `release-note:…` or `release-note:none` for non-user-facing). See
+  [`contributing.md`](./dev-docs/high-level/contributing.md).
 
 > The OpenSpec CLI is installed via `make setup-openspec` (Node.js 24, `npm ci`) and validated by
 > `make check-openspec` / `.github/workflows/openspec.yml`. Author specs per
