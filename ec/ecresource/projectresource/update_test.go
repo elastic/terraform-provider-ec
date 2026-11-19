@@ -115,6 +115,83 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		{
+			name: "should not read the project back when the patch fails",
+			testData: func(ctx context.Context) testData {
+				req := resource.UpdateRequest{
+					Plan: tfsdk.Plan{
+						Raw: tftypes.NewValue(tftypes.Bool, true),
+					},
+					State: tfsdk.State{
+						Raw: tftypes.NewValue(tftypes.Bool, true),
+					},
+				}
+
+				model := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id:               basetypes.NewStringValue("project id"),
+					TrafficFilterIds: types.SetNull(types.StringType),
+				}
+
+				patchDiags := diag.Diagnostics{
+					diag.NewErrorDiagnostic("patch failed", "nope"),
+				}
+
+				modelHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+				modelHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(&model, nil)
+				modelHandler.EXPECT().ReadFrom(ctx, req.State).Return(&model, nil)
+
+				// No GetID or Read expectation: gomock fails the test if either is called.
+				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+				api.EXPECT().Ready().Return(true)
+				api.EXPECT().Patch(ctx, model, model).Return(patchDiags)
+
+				return testData{
+					modelHandler:  modelHandler,
+					api:           api,
+					req:           req,
+					expectedDiags: patchDiags,
+				}
+			},
+		},
+		{
+			name: "should return only the read error when reading the updated project fails",
+			testData: func(ctx context.Context) testData {
+				req := resource.UpdateRequest{
+					Plan: tfsdk.Plan{
+						Raw: tftypes.NewValue(tftypes.Bool, true),
+					},
+					State: tfsdk.State{
+						Raw: tftypes.NewValue(tftypes.Bool, true),
+					},
+				}
+
+				model := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id:               basetypes.NewStringValue("project id"),
+					TrafficFilterIds: types.SetNull(types.StringType),
+				}
+
+				readDiags := diag.Diagnostics{
+					diag.NewErrorDiagnostic("read failed", "nope"),
+				}
+
+				modelHandler := NewMockmodelHandler[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+				modelHandler.EXPECT().ReadFrom(ctx, req.Plan).Return(&model, nil)
+				modelHandler.EXPECT().ReadFrom(ctx, req.State).Return(&model, nil)
+				modelHandler.EXPECT().GetID(model).Return(model.Id.ValueString())
+
+				api := NewMockapi[resource_elasticsearch_project.ElasticsearchProjectModel](ctrl)
+				api.EXPECT().Ready().Return(true)
+				api.EXPECT().Patch(ctx, model, model).Return(nil)
+				api.EXPECT().Read(ctx, model.Id.ValueString(), model).Return(false, model, readDiags)
+
+				return testData{
+					modelHandler:  modelHandler,
+					api:           api,
+					req:           req,
+					expectedDiags: readDiags,
+				}
+			},
+		},
+		{
 			name: "should update state with the patched project when successful",
 			testData: func(ctx context.Context) testData {
 				req := resource.UpdateRequest{

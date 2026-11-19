@@ -562,7 +562,7 @@ func TestSecurityApi_Create(t *testing.T) {
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 					Metadata: &serverless.ProjectMetadataRequest{
-						Tags: serverless.ProjectTags{"owner": "sec-team"},
+						Tags: &serverless.ProjectTags{"owner": "sec-team"},
 					},
 				}).Return(
 					&serverless.CreateSecurityProjectResponse{
@@ -764,7 +764,7 @@ func TestSecurityApi_Patch(t *testing.T) {
 
 				val := "security"
 				meta := serverless.OptionalMetadata{
-					Tags: serverless.ProjectPatchTags{
+					Tags: &serverless.ProjectPatchTags{
 						"cost_center": &val,
 					},
 				}

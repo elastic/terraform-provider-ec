@@ -47,8 +47,17 @@ func (r *Resource[T]) Update(ctx context.Context, request resource.UpdateRequest
 	}
 
 	response.Diagnostics.Append(r.api.Patch(ctx, *planModel, stateVal)...)
+	// Skip Read after a failed patch: state is not set on error anyway, so the
+	// read-back would only cost an API call and could add a second error.
+	if response.Diagnostics.HasError() {
+		return
+	}
+
 	found, readModel, diags := r.api.Read(ctx, r.modelHandler.GetID(*planModel), *planModel)
 	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	if !found {
 		response.Diagnostics.AddError(

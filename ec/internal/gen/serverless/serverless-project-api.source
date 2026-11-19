@@ -6,4 +6,4 @@
 # renovate: datasource=git-refs depName=serverless-api-specification packageName=https://github.com/elastic/serverless-api-specification currentValue=main
 source: https://github.com/elastic/serverless-api-specification
 path:   specifications/generated/production/public-user-serverless-api-dereferenced.yml
-ref:    07c1cd8d11f0798374b5ac675345e020108469b1
+ref:    c40bfde6285b259c6e7ef7fd6cb64cbac084ff38
