@@ -545,8 +545,9 @@ always marked, never silent:
 
 Read a marker as "there was more here". **Do not fetch the original issue, its comments, or the
 prior research comment** with `gh` or any other tool: these three files are the complete input for
-this run. If the missing part could change the recommendation, say so under `### Open questions`
-and name which file was cut.
+this run. Record every cut under `### Open questions`: name the file that was cut and say whether
+the missing part could change the recommendation. Mirror it in `open_questions` with
+`blocking: true` only if it could.
 
 Read those files before proceeding. They may contain markdown, code fences, and other content that
 cannot be safely embedded inline in a prompt.
@@ -768,7 +769,8 @@ Your comment body SHALL contain these sections, in this order:
    Elastic Cloud API surface it uses (operation, path, platform), and pros and cons.
 4. `### Recommendation` — exactly one of those approaches as the chosen spine, with a brief rationale.
 5. `### Open questions` — a (possibly empty) bullet list of questions whose answers would change the
-   recommendation or the scope.
+   recommendation or the scope, plus one entry per truncated input file (see *Pre-activation
+   context*).
 6. `### Out of scope` — a (possibly empty) bullet list of what the recommendation excludes.
 7. `### Quality gate` — informational, **not part of the recommended scope**:
    - a first line in exactly this format: ``**Outcome:** `<outcome>` - <one-line reason>``, where
