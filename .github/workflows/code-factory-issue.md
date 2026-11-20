@@ -416,7 +416,9 @@ safe-outputs:
       if: needs.safe_outputs.result == 'success' && needs.safe_outputs.outputs.created_pr_number != ''
       permissions:
         contents: write
-        pull-requests: read
+        # write: only for the failure report below (PR + issue comment).
+        issues: write
+        pull-requests: write
       inputs:
         release_note_type:
           description: "release-note category. Use 'none' for non-user-facing changes."
@@ -488,6 +490,29 @@ safe-outputs:
               exit 1
             fi
             echo "Committed .changelog/${PR_NUMBER}.txt to ${BRANCH}"
+        - name: Report a failed changelog commit
+          # gh-aw v0.92.0's completion-status comment derives success from the agent and
+          # safe_outputs results only, not from custom safe-jobs, so a failure here would otherwise
+          # be reported as success on the issue. Say so on the PR and the issue instead.
+          if: failure()
+          env:
+            GH_TOKEN: ${{ github.token }}
+            PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
+            ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+            RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          run: |
+            set -uo pipefail
+            if [[ ! "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
+              echo "::error::no valid PR number; cannot report the changelog failure"
+              exit 1
+            fi
+            MSG="The code-factory run opened #${PR_NUMBER} but did not commit \`.changelog/${PR_NUMBER}.txt\`, so the PR has no changelog entry. Add it by hand before merging. Run: ${RUN_URL}"
+            gh pr comment "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+              || echo "::warning::could not comment on PR #${PR_NUMBER}"
+            if [[ "${ISSUE_NUMBER}" =~ ^[0-9]+$ ]]; then
+              gh issue comment "${ISSUE_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+                || echo "::warning::could not comment on issue #${ISSUE_NUMBER}"
+            fi
 ---
 
 # Code Factory issue intake worker
