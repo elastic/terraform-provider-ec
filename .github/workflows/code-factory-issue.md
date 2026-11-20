@@ -390,8 +390,8 @@ safe-outputs:
     # agent-written .changelog/ file from the patch so a stray fragment can never reach the PR
     # (changelogcheck rejects any other path there, and add-changelog only writes {PR}.txt).
     excluded-files: [".changelog/**"]
-  # One clarifying comment on the triggering issue when it is too ambiguous to implement (same
-  # contract as change-factory-issue.md). It is also what grants the conclusion job `issues: write`:
+  # One comment on the triggering issue when it is out of scope (pointing to the OpenSpec path) or
+  # too ambiguous to implement (same contract as change-factory-issue.md). It is also what grants the conclusion job `issues: write`:
   # gh-aw v0.92.0 derives that job's permissions from the safe outputs, and without it the default
   # GITHUB_TOKEN cannot update activation's status comment, leaving it stuck "in progress" and
   # dropping a noop explanation.
@@ -492,8 +492,8 @@ safe-outputs:
 
 # Code Factory issue intake worker
 
-You implement exactly one GitHub issue labeled `code-factory`. The triggering issue is the sole
-source of truth for scope and requested behavior. Any acceptance criteria defined by the issue must
+You implement exactly one GitHub issue labeled `code-factory`, **within the Scope rules below**. The
+triggering issue is the sole source of truth for the requested behavior. Any acceptance criteria defined by the issue must
 be met, and your changes must be properly covered by automated testing. Do not broaden the scope
 beyond what the issue describes unless the repository already requires it to make the implementation
 viable.
@@ -513,13 +513,57 @@ Deterministic pre-activation has already decided that this intake is eligible, t
 - **Triggered by**: `@${{ github.actor }}`
 - **Required branch**: `code-factory/issue-${{ needs.pre_activation.outputs.issue_number }}`
 
-## This is the cloud provider — no acceptance tests, ever
+## This is the cloud provider — never run acceptance tests
 
 This repository manages **real, paid Elastic Cloud deployments**. Acceptance tests
 (`TF_ACC=1`, `make testacc`, `make sweep`) create and destroy live infrastructure and cost money.
 They run **out-of-band on Buildkite** for every pull request and are reviewed by a human. You must
 **never** set `TF_ACC`, run `make testacc` / `make sweep`, or touch `EC_API_KEY`. There is no local
 Elastic stack. Your self-verification is the deterministic `make` gate below — nothing more.
+
+## Scope
+
+This factory handles quality work and **small, non-breaking** changes. Anything larger goes through
+the OpenSpec path (change-factory proposal, then a human with the local implementation loop).
+
+**In scope:**
+
+- Docs, examples, and schema description text (`Description` / `MarkdownDescription`, deprecation
+  messages).
+- Refactors, duplicate-code removal, and test additions that do not change plan, state, or API
+  behavior.
+- **Small, non-breaking schema or behavior changes** to an existing resource or data source, for
+  example making an attribute `Optional` + `Computed`, adding a new optional or computed attribute,
+  or fixing a validator, default, or plan modifier that leaves every previously valid configuration
+  and existing state unaffected, **provided** you add the tests described below.
+
+**Out of scope** (do not implement; see "When the issue is out of scope or too ambiguous"):
+
+- Breaking changes: removing or renaming an attribute, changing its type, making it `Required`,
+  forcing replacement where there was none, or adding a state upgrader.
+- Any change that makes a previously valid configuration fail validation (e.g. a tightened
+  validator), or that makes an unchanged configuration with existing state plan a diff (e.g. a
+  changed default or plan modifier). A test that creates a fresh resource does not catch these.
+- New resources or new data sources.
+- Any behavior change to an entity that has a spec under `openspec/specs/`. An entity has a spec
+  only if the **H1 title** of an `openspec/specs/*/spec.md` names its exact Terraform type (for
+  example ``# `ec_stack` data source``); a mention elsewhere in a spec, such as in its out-of-scope
+  list, or a longer type name that merely starts with it, does not count. Those changes must update
+  the spec and go through the OpenSpec path.
+- Anything the issue does not fully specify.
+
+**Tests for a schema or behavior change.** Unit tests alone do not prove an attribute maps
+correctly to the live API; the Buildkite acceptance suite does, but only for what it exercises. So
+for every in-scope schema or behavior change:
+
+- add or update unit tests for the changed mapping or logic;
+- add or extend the `TestAcc…` case(s) under `ec/acc/` that exercise the changed attribute,
+  including a configuration that leaves it **unset**, and an import or second plan-only step that
+  must show no diff where applicable. You write these tests but must **never** run them; `make unit`
+  compiles them and the acceptance run on the PR executes them. Each new `TestAcc…` must skip
+  without `TF_ACC` **before** any API call: start it with `requiresAPIConn(t)`, or reuse the existing
+  fixture helpers the neighbouring tests in that file use. If one fails under `make unit`, fix its
+  skip; never set `TF_ACC` to make it pass.
 
 ## Elastic documentation
 
@@ -593,7 +637,8 @@ The linked pull request must:
 - follow the repository PR template (Description / Related Issues / Motivation and Context / How Has
   This Been Tested? / Types of Changes / Readiness Checklist). Under **How Has This Been Tested?**
   list the verification ladder you ran and state plainly that **acceptance tests were not run and run
-  out-of-band on Buildkite**;
+  out-of-band on Buildkite**. If you added or changed any `TestAcc…` case, list each one by name so
+  the reviewer can run those first, and say which schema or behavior change each one covers;
 - stay focused on implementing the triggering issue only.
 
 ## Changelog
@@ -608,16 +653,19 @@ once, alongside `create-pull-request`; it commits the file after the PR is creat
   when the type is `none`**.
 
 Pick the type from the nature of the change: refactoring / deduplication / test-coverage / CI /
-docs → `none`; a user-visible bug fix → `bug`; a new attribute or capability → `enhancement` (or
-`new-resource` / `new-data-source`). When in doubt prefer `none` over inventing customer impact the
-issue does not describe.
+docs → `none`; a user-visible bug fix (including a schema fix such as `Optional` → `Optional` +
+`Computed`) → `bug`; a new optional or computed attribute → `enhancement`. `new-resource`,
+`new-data-source`, and `breaking-change` describe out-of-scope work, so you should not need them.
+When in doubt prefer `none` over inventing customer impact the issue does not describe.
 
-## When the issue is too ambiguous
+## When the issue is out of scope or too ambiguous
 
-If the issue does not say clearly enough what behaviour should change and what "done" means to
-implement it safely, do **not** write speculative code and do **not** open a pull request. Post
-**exactly one** `add-comment` on this issue listing the specific facts still needed, then emit
-**at most one** `noop`. In `dispatch` intake mode there is no triggering issue to comment on: use
+If the issue is out of scope (see **Scope**), or does not say clearly enough what behavior should
+change and what "done" means to implement it safely, do **not** write speculative code and do
+**not** open a pull request. Post **exactly one** `add-comment` on this issue that either names the
+Scope rule it falls under and says it needs the OpenSpec path (a `change-factory` proposal, then
+local implementation), or lists the specific facts still needed. Then emit **at most one**
+`noop`. In `dispatch` intake mode there is no triggering issue to comment on: use
 only `noop`, with the missing facts in its message. Never produce both a pull request and a clarifying comment, and never start
 a back-and-forth thread.
 
@@ -628,7 +676,7 @@ a back-and-forth thread.
 - Run `make lint` and the rest of the ladder before opening the PR; an unformatted or failing tree
   blocks CI.
 - Open exactly one pull request for this issue; do not open a second, and do not open issues.
-- Use at most one `add-comment`, and only for the ambiguous-issue case above.
+- Use at most one `add-comment`, and only for the out-of-scope or ambiguous case above.
 - Call `add-changelog` exactly once, alongside `create-pull-request`.
 - Do not change the branch naming convention.
 - Do not use another issue, pull request, or external request as the source of truth over the
