@@ -390,6 +390,18 @@ safe-outputs:
     # agent-written .changelog/ file from the patch so a stray fragment can never reach the PR
     # (changelogcheck rejects any other path there, and add-changelog only writes {PR}.txt).
     excluded-files: [".changelog/**"]
+  # One clarifying comment on the triggering issue when it is too ambiguous to implement (same
+  # contract as change-factory-issue.md). It is also what grants the conclusion job `issues: write`:
+  # gh-aw v0.92.0 derives that job's permissions from the safe outputs, and without it the default
+  # GITHUB_TOKEN cannot update activation's status comment, leaving it stuck "in progress" and
+  # dropping a noop explanation.
+  # Pinned to the ambient GITHUB_TOKEN even if a GH_AW_GITHUB_TOKEN / App token is configured later
+  # (plan D1): GITHUB_TOKEN-authored comments never trigger workflows, so an agent comment can never
+  # reach another workflow's issue_comment / slash-command trigger.
+  add-comment:
+    max: 1
+    target: triggering
+    github-token: ${{ secrets.GITHUB_TOKEN }}
   noop:
     max: 1
     report-as-issue: false
@@ -600,6 +612,15 @@ docs → `none`; a user-visible bug fix → `bug`; a new attribute or capability
 `new-resource` / `new-data-source`). When in doubt prefer `none` over inventing customer impact the
 issue does not describe.
 
+## When the issue is too ambiguous
+
+If the issue does not say clearly enough what behaviour should change and what "done" means to
+implement it safely, do **not** write speculative code and do **not** open a pull request. Post
+**exactly one** `add-comment` on this issue listing the specific facts still needed, then emit
+**at most one** `noop`. In `dispatch` intake mode there is no triggering issue to comment on: use
+only `noop`, with the missing facts in its message. Never produce both a pull request and a clarifying comment, and never start
+a back-and-forth thread.
+
 ## Guardrails
 
 - Do not re-check trigger eligibility, actor trust, or duplicate PR state — pre-activation did that.
@@ -607,6 +628,7 @@ issue does not describe.
 - Run `make lint` and the rest of the ladder before opening the PR; an unformatted or failing tree
   blocks CI.
 - Open exactly one pull request for this issue; do not open a second, and do not open issues.
+- Use at most one `add-comment`, and only for the ambiguous-issue case above.
 - Call `add-changelog` exactly once, alongside `create-pull-request`.
 - Do not change the branch naming convention.
 - Do not use another issue, pull request, or external request as the source of truth over the
