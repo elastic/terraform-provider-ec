@@ -4,7 +4,11 @@ steps:
     uses: actions/setup-go@v7.0.0
     with:
       go-version-file: go.mod
-      cache: true
+      # No actions/cache: setup-go would restore the default ~/go paths, but the next step moves
+      # GOMODCACHE/GOCACHE to /tmp/gh-aw, so the post-job save would persist directories the agent
+      # had read-write access to (a cache-poisoning vector) under a key that never restores. The
+      # caches are warmed on the host by make vendor/deps below instead.
+      cache: false
   - name: Setup Terraform CLI
     uses: hashicorp/setup-terraform@v4.0.1
     with:
@@ -13,7 +17,9 @@ steps:
     run: |
       # The firewalled agent container sees $GITHUB_WORKSPACE but not the Go
       # install or the RUNNER_TEMP path hashicorp/setup-terraform uses, so export
-      # the Go env roots and stage the terraform binary into the workspace.
+      # GOROOT and stage the terraform binary into the workspace. GOPATH stays the
+      # host default ($HOME/go, not mounted in the sandbox); that is harmless because
+      # GOBIN is ./bin and the module/build caches are moved below.
       echo "GOROOT=$(go env GOROOT)" >> "$GITHUB_ENV"
       echo "GOPATH=$(go env GOPATH)" >> "$GITHUB_ENV"
       # Put the Go module + build caches under /tmp/gh-aw, which is the one host
@@ -58,7 +64,7 @@ steps:
 # Dev environment setup (shared)
 
 Shared `imports:` fragment for cloud-provider factory workflows that need a build environment.
-Installs Go (module + build cache on), the Terraform CLI (staged into `$GITHUB_WORKSPACE/bin` so the
+Installs Go (no actions/cache; see the `cache: false` comment), the Terraform CLI (staged into `$GITHUB_WORKSPACE/bin` so the
 AWF chroot can find it), and Node.js; exports the Go env roots including `GOCACHE`; runs
 `make vendor` + `make deps` on the runner host (golangci-lint is fetched from a host outside the
 agent firewall); and asserts a clean tree before the agent starts.

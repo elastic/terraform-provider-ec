@@ -344,6 +344,44 @@ jobs:
       trigger_label_removed_reason: ${{ steps.normalize_context.outputs.trigger_label_removed_reason }}
       source_workflow: ${{ steps.normalize_context.outputs.source_workflow }}
       gate_reason: ${{ steps.finalize_gate.outputs.gate_reason }}
+  # The add_changelog safe-job only runs when the agent calls it. If the agent opens a PR without
+  # calling it, nothing would commit a fragment, and the GITHUB_TOKEN-opened PR may get no
+  # changelog check run either. Say so on the PR and the issue.
+  changelog-guard:
+    needs: [agent, safe_outputs]
+    # !cancelled() rather than the implicit success(): the agent job can fail (e.g. timeout) after
+    # emitting a create_pull_request item, and that PR still needs the check.
+    if: >-
+      !cancelled() &&
+      needs.safe_outputs.result == 'success' &&
+      needs.safe_outputs.outputs.created_pr_number != '' &&
+      !contains(needs.agent.outputs.output_types, 'add_changelog')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Report a PR opened without a changelog entry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          if [[ ! "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
+            echo "::error::no valid PR number; cannot report the missing changelog entry"
+            exit 1
+          fi
+          MSG="The code-factory run opened #${PR_NUMBER} without calling add-changelog, so the PR has no \`.changelog/${PR_NUMBER}.txt\`. Add it by hand before merging. Run: ${RUN_URL}"
+          gh pr comment "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+            || echo "::warning::could not comment on PR #${PR_NUMBER}"
+          if [[ "${ISSUE_NUMBER}" =~ ^[0-9]+$ ]]; then
+            gh issue comment "${ISSUE_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+              || echo "::warning::could not comment on issue #${ISSUE_NUMBER}"
+          fi
+          echo "::error::PR #${PR_NUMBER} was opened without a changelog entry"
+          exit 1
 tools:
   cli-proxy: true
   github:
@@ -638,7 +676,10 @@ Run **in order**, each to completion. Stop and fix on any failure.
    clean-tree check at step 10): `mkdir -p /tmp/gh-aw/home && HOME=/tmp/gh-aw/home make install validate-examples`.
 1. `make check-label-taxonomy`
 2. `make lint` (already runs `fmt`, `check-license`, `tfproviderlint`, `tfproviderdocs`)
-3. `make build`
+3. `make build`, then **commit your work** (`git add -A && git commit`). Steps 4–6 diff against that
+   commit, so a diff there means regeneration produced files your change needs: review them, commit
+   them too, and re-run the ladder from step 2. Do not revert your own change to make a diff go
+   away.
 4. `make docs-generate` then `git diff --exit-code docs/`
 5. `make notice` then `git diff --exit-code NOTICE`
 6. `make gen` then `git add --intent-to-add -- ec/internal/gen/serverless && git diff --exit-code -- ec/internal/gen/serverless`
