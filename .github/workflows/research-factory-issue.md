@@ -374,7 +374,7 @@ tools:
     toolsets: [issues, repos]
     min-integrity: unapproved
     # allowed-repos REPLACES the dynamic lockdown expression rather than extending it, so this
-    # repository has to be listed or `gh issue view` breaks on its own issues. The expression
+    # repository has to be listed explicitly or `gh` calls against it are blocked. The expression
     # survives into CLI_PROXY_POLICY verbatim, which keeps the fork path working. Read access to
     # elastic/cloud-sdk-go is a security-review line: the hosted half of the provider imports it and
     # there is no vendor/ directory to read it from.
@@ -531,18 +531,10 @@ always marked, never silent:
 | `[... a comment above was truncated for context budget]` / `[... N more comments truncated for context budget]` | the history hit the budget |
 | `[... comment history truncated at 200 comments]` | there were simply too many |
 
-Read a marker as "there was more here". If the missing part could change the recommendation, fetch
-the original — `gh` is pre-authenticated:
-
-```bash
-gh issue view <number> --repo ${{ github.repository }} --json title,body
-gh api repos/${{ github.repository }}/issues/<number>/comments --paginate --jq '.[] | {user: .user.login, created_at, body}'
-```
-
-Otherwise record the gap under `### Open questions`. **What you must not do is paste a fetched body
-into your draft**: raw issue content routinely contains `<!-- … -->`, and the publishing job rejects
-any comment body containing `<!--` outright. Quote the parts you need in your own words, or inside a
-fenced block with the opener broken.
+Read a marker as "there was more here". **Do not fetch the original issue, its comments, or the
+prior research comment** with `gh` or any other tool: these three files are the complete input for
+this run. If the missing part could change the recommendation, say so under `### Open questions`
+and name which file was cut.
 
 Read those files before proceeding. They may contain markdown, code fences, and other content that
 cannot be safely embedded inline in a prompt.
