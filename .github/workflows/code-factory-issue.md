@@ -349,11 +349,11 @@ jobs:
   # changelog check run either. Say so on the PR and the issue.
   changelog-guard:
     needs: [agent, safe_outputs]
-    # !cancelled() rather than the implicit success(): the agent job can fail (e.g. timeout) after
-    # emitting a create_pull_request item, and that PR still needs the check.
+    # !cancelled() rather than the implicit success(), and no safe_outputs-success term: the agent
+    # job can fail (e.g. timeout) after emitting a create_pull_request item, and safe_outputs emits
+    # created_pr_number before it fails on any other item, so a created PR still needs the check.
     if: >-
       !cancelled() &&
-      needs.safe_outputs.result == 'success' &&
       needs.safe_outputs.outputs.created_pr_number != '' &&
       !contains(needs.agent.outputs.output_types, 'add_changelog')
     runs-on: ubuntu-latest
@@ -451,7 +451,10 @@ safe-outputs:
         create_pull_request (it runs after the PR is created). Pass a release-note type (and a one-line body unless the type is 'none').
       runs-on: ubuntu-latest
       needs: safe_outputs
-      if: needs.safe_outputs.result == 'success' && needs.safe_outputs.outputs.created_pr_number != ''
+      # Keyed on the created PR only, not on safe_outputs succeeding: gh-aw emits created_pr_number
+      # before failing the job on any other item, and that PR still needs its fragment. The branch
+      # check below still guards the write.
+      if: needs.safe_outputs.outputs.created_pr_number != ''
       permissions:
         contents: write
         # write: only for the failure report below (PR + issue comment).
