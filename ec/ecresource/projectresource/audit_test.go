@@ -628,3 +628,63 @@ func attrJSON(v attr.Value) any {
 		return nil
 	}
 }
+
+func TestMergeRawFields(t *testing.T) {
+	name := serverless.ProjectName("proj")
+	alias := serverless.ProjectAlias("my-alias")
+	searchPower := 100
+	body := serverless.PatchElasticsearchProjectRequest{
+		Name:       &name,
+		Alias:      &alias,
+		SearchLake: &serverless.OptionalElasticsearchSearchLake{SearchPower: &searchPower},
+	}
+
+	cases := []struct {
+		name   string
+		fields map[string]json.RawMessage
+		want   string
+	}{
+		{
+			name:   "no fields returns the marshalled body",
+			fields: nil,
+			want:   `{"name":"proj","alias":"my-alias","search_lake":{"search_power":100}}`,
+		},
+		{
+			name:   "replaces a key the body already has",
+			fields: map[string]json.RawMessage{"search_lake": json.RawMessage(`{"min_search_vcu":null}`)},
+			want:   `{"name":"proj","alias":"my-alias","search_lake":{"min_search_vcu":null}}`,
+		},
+		{
+			name:   "adds a key the body omitted",
+			fields: map[string]json.RawMessage{"monitoring": json.RawMessage(`{"logging":{"audit":null}}`)},
+			want:   `{"name":"proj","alias":"my-alias","search_lake":{"search_power":100},"monitoring":{"logging":{"audit":null}}}`,
+		},
+		{
+			name: "applies several fields at once",
+			fields: map[string]json.RawMessage{
+				"search_lake": json.RawMessage(`{"min_search_vcu":null}`),
+				"monitoring":  json.RawMessage(`{"logging":{"audit":null}}`),
+			},
+			want: `{"name":"proj","alias":"my-alias","search_lake":{"min_search_vcu":null},"monitoring":{"logging":{"audit":null}}}`,
+		},
+		{
+			name:   "passes a top-level null through",
+			fields: map[string]json.RawMessage{"search_lake": json.RawMessage(`null`)},
+			want:   `{"name":"proj","alias":"my-alias","search_lake":null}`,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := mergeRawFields(body, tc.fields)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(got))
+		})
+	}
+
+	t.Run("a nil body yields only the fields", func(t *testing.T) {
+		var nilBody *serverless.PatchElasticsearchProjectRequest
+		got, err := mergeRawFields(nilBody, map[string]json.RawMessage{"search_lake": json.RawMessage(`{"min_search_vcu":null}`)})
+		require.NoError(t, err)
+		require.JSONEq(t, `{"search_lake":{"min_search_vcu":null}}`, string(got))
+	})
+}

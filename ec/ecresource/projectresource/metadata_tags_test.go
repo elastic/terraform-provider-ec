@@ -45,8 +45,8 @@ func TestOptionalMetadataForTagPatch_emptyPlanWithPriorTagsSendsNullRemovals(t *
 	om, diags := optionalMetadataForTagPatch(ctx, planTags, stateTags)
 	require.False(t, diags.HasError())
 	require.NotNil(t, om)
-	require.Contains(t, om.Tags, "k")
-	require.Nil(t, om.Tags["k"])
+	require.Contains(t, *om.Tags, "k")
+	require.Nil(t, (*om.Tags)["k"])
 }
 
 func TestOptionalMetadataForTagPatch_bothEmptyNoPatch(t *testing.T) {
@@ -69,10 +69,10 @@ func TestOptionalMetadataForTagPatch_removedKeysAreJSONNull(t *testing.T) {
 	om, diags := optionalMetadataForTagPatch(ctx, planTags, stateTags)
 	require.False(t, diags.HasError())
 	require.NotNil(t, om)
-	require.NotNil(t, om.Tags["acc_team"])
-	require.Equal(t, "platform", *om.Tags["acc_team"])
-	require.Contains(t, om.Tags, "acc_test")
-	require.Nil(t, om.Tags["acc_test"])
+	require.NotNil(t, (*om.Tags)["acc_team"])
+	require.Equal(t, "platform", *(*om.Tags)["acc_team"])
+	require.Contains(t, *om.Tags, "acc_test")
+	require.Nil(t, (*om.Tags)["acc_test"])
 }
 
 func TestMetadataSystemTagsFromAPI(t *testing.T) {

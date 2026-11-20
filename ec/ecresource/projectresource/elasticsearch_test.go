@@ -457,8 +457,9 @@ func TestElasticsearchApi_Create(t *testing.T) {
 				initialModel.SearchLake = resource_elasticsearch_project.NewSearchLakeValueMust(
 					initialModel.SearchLake.AttributeTypes(ctx),
 					map[string]attr.Value{
-						"boost_window": types.Int64Value(20),
-						"search_power": types.Int64Value(60),
+						"boost_window":   types.Int64Value(20),
+						"min_search_vcu": basetypes.NewInt64Null(),
+						"search_power":   types.Int64Value(60),
 					},
 				)
 
@@ -548,7 +549,7 @@ func TestElasticsearchApi_Create(t *testing.T) {
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 					Metadata: &serverless.ProjectMetadataRequest{
-						Tags: serverless.ProjectTags{"owner": "team-a"},
+						Tags: &serverless.ProjectTags{"owner": "team-a"},
 					},
 				}).Return(
 					&serverless.CreateElasticsearchProjectResponse{
@@ -696,8 +697,9 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 				model.SearchLake = resource_elasticsearch_project.NewSearchLakeValueMust(
 					model.SearchLake.AttributeTypes(ctx),
 					map[string]attr.Value{
-						"boost_window": types.Int64Value(20),
-						"search_power": types.Int64Value(60),
+						"boost_window":   types.Int64Value(20),
+						"min_search_vcu": basetypes.NewInt64Null(),
+						"search_power":   types.Int64Value(60),
 					},
 				)
 
@@ -716,9 +718,18 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 					nil,
 				)
 
+				// The prior state has no search_lake, so the block is a change
+				// and is sent; a block equal to the state is skipped.
+				priorState := resource_elasticsearch_project.ElasticsearchProjectModel{
+					Id:       model.Id,
+					Name:     model.Name,
+					RegionId: model.RegionId,
+				}
+
 				return testData{
-					client: mockApiClient,
-					model:  model,
+					client:     mockApiClient,
+					model:      model,
+					patchState: &priorState,
 				}
 			},
 		},
@@ -762,7 +773,7 @@ func TestElasticsearchApi_Patch(t *testing.T) {
 
 				val := "eng"
 				meta := serverless.OptionalMetadata{
-					Tags: serverless.ProjectPatchTags{
+					Tags: &serverless.ProjectPatchTags{
 						"cost_center": &val,
 					},
 				}
@@ -1109,8 +1120,9 @@ func TestElasticsearchApi_Read(t *testing.T) {
 					SearchLake: resource_elasticsearch_project.NewSearchLakeValueMust(
 						initialModel.SearchLake.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"boost_window": basetypes.NewInt64Null(),
-							"search_power": basetypes.NewInt64Null(),
+							"boost_window":   basetypes.NewInt64Null(),
+							"min_search_vcu": basetypes.NewInt64Null(),
+							"search_power":   basetypes.NewInt64Null(),
 						},
 					),
 					Name:         types.StringValue(readModel.Name),
@@ -1160,8 +1172,9 @@ func TestElasticsearchApi_Read(t *testing.T) {
 						SuspendedReason: new("meh"),
 					},
 					SearchLake: &serverless.ElasticsearchSearchLake{
-						BoostWindow: new(20),
-						SearchPower: new(30),
+						BoostWindow:  new(20),
+						MinSearchVcu: new(64),
+						SearchPower:  new(30),
 					},
 					Name:         "project-name",
 					OptimizedFor: "general_purpose",
@@ -1198,8 +1211,9 @@ func TestElasticsearchApi_Read(t *testing.T) {
 					SearchLake: resource_elasticsearch_project.NewSearchLakeValueMust(
 						initialModel.SearchLake.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"boost_window": basetypes.NewInt64Value(int64(*readModel.SearchLake.BoostWindow)),
-							"search_power": basetypes.NewInt64Value(int64(*readModel.SearchLake.SearchPower)),
+							"boost_window":   basetypes.NewInt64Value(int64(*readModel.SearchLake.BoostWindow)),
+							"min_search_vcu": basetypes.NewInt64Value(int64(*readModel.SearchLake.MinSearchVcu)),
+							"search_power":   basetypes.NewInt64Value(int64(*readModel.SearchLake.SearchPower)),
 						},
 					),
 					Name:         types.StringValue(readModel.Name),
@@ -1284,8 +1298,9 @@ func TestElasticsearchApi_Read(t *testing.T) {
 					SearchLake: resource_elasticsearch_project.NewSearchLakeValueMust(
 						initialModel.SearchLake.AttributeTypes(ctx),
 						map[string]attr.Value{
-							"boost_window": basetypes.NewInt64Null(),
-							"search_power": basetypes.NewInt64Null(),
+							"boost_window":   basetypes.NewInt64Null(),
+							"min_search_vcu": basetypes.NewInt64Null(),
+							"search_power":   basetypes.NewInt64Null(),
 						},
 					),
 					Name:         types.StringValue(readModel.Name),

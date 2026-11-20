@@ -536,7 +536,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 					Metadata: &serverless.ProjectMetadataRequest{
-						Tags: serverless.ProjectTags{"owner": "team-b"},
+						Tags: &serverless.ProjectTags{"owner": "team-b"},
 					},
 				}).Return(
 					&serverless.CreateObservabilityProjectResponse{
@@ -738,7 +738,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 
 				val := "obs"
 				meta := serverless.OptionalMetadata{
-					Tags: serverless.ProjectPatchTags{
+					Tags: &serverless.ProjectPatchTags{
 						"cost_center": &val,
 					},
 				}
