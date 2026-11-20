@@ -459,6 +459,8 @@ describe('stage-detection-copy entry', { concurrency: false }, () => {
     await stage({ core }, { paths: { sourceRoot, detectionDir }, outputTypes: PUBLISH_OUTPUT_TYPE });
 
     assert.equal(calls.setFailed.length, 1);
+    assert.ok(calls.setFailed[0].includes(path.join(sourceRoot, 'agent', 'research', 'draft-final.md')));
+    assert.equal(calls.outputs.detection_copy_status, 'no-canonical-draft');
     assert.equal(fs.existsSync(stagedDir(detectionDir)), false);
   });
 
