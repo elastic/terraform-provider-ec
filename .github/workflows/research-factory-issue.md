@@ -398,6 +398,18 @@ safe-outputs:
         with:
           name: research-factory-detection-inputs
           path: /tmp/gh-aw/threat-detection/grounding-inputs/
+      # Fail the detection job if any staged file is missing. Empty files are valid (no comments,
+      # no prior research comment).
+      - name: Verify research-factory grounding inputs for detection
+        run: |
+          set -euo pipefail
+          dir=/tmp/gh-aw/threat-detection/grounding-inputs
+          for f in census.md issue_body.md issue_comments.md prior_research_comment.md; do
+            if [ ! -f "$dir/$f" ]; then
+              echo "::error::missing detection input: $f"
+              exit 1
+            fi
+          done
     prompt: |
       ## Research-factory grounding inputs (untrusted)
 
