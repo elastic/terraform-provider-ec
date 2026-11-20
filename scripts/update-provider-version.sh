@@ -16,6 +16,10 @@ fi
 
 echo "-> Updating the version field on references to the previous 'ec' provider declaration"
 
+# Remove a leftover temporary file if the script fails or is interrupted.
+tmp=""
+trap '[[ -n "${tmp}" ]] && rm -f "${tmp}"' EXIT
+
 declare -a UPDATE_FILES=("README.md")
 while IFS= read -r f; do
     UPDATE_FILES+=("$f")
@@ -26,7 +30,7 @@ for f in "${UPDATE_FILES[@]}"; do
     # other providers declared in the same file (e.g. hashicorp/aws) keep their
     # own version constraints regardless of attribute order.
     # Instead of in-place editing, whose flags differ on macOS and Linux, write
-    # to a temporary file and move it over the original.
+    # to a temporary file and copy it back over the original.
     tmp="$(mktemp)"
     if ! awk -v version="${VERSION}" '
         /^[[:space:]]*ec[[:space:]]*=[[:space:]]*\{/ { in_ec = 1 }
@@ -34,17 +38,17 @@ for f in "${UPDATE_FILES[@]}"; do
             sub(/version[[:space:]]*=[[:space:]]*"[^"]*"/, "version = \"" version "\"")
             updated++
         }
-        in_ec && /}/ { in_ec = 0 }
+        in_ec && /^[[:space:]]*}/ { in_ec = 0 }
         { print }
         END { if (updated != 1) exit 1 }
     ' "$f" > "$tmp"; then
-        rm -f "$tmp"
         echo "error: expected exactly one ec provider version in $f" >&2
         exit 1
     fi
     # Copy rather than mv so the original file keeps its permissions.
     cat "$tmp" > "$f"
     rm -f "$tmp"
+    tmp=""
 done
 
 echo "-> Updated all the ec provider declarations"
