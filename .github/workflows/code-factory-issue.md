@@ -1,5 +1,9 @@
 ---
+# Model and engine config is single-sourced in shared/inference.md (as in change-factory and
+# issue-classifier); shared/setup-dev.md is the build environment. The AI-credit budget fields stay
+# inline below: gh-aw does not honor them from an import.
 imports:
+  - shared/inference.md
   - shared/setup-dev.md
 name: Code Factory Issue Intake
 timeout-minutes: 65
@@ -309,15 +313,6 @@ steps:
       # /tmp/code-factory-context is NOT mounted, so the agent could not read the sanitized
       # issue body / comments the prompt points it to.
       path: /tmp/gh-aw/code-factory-context/
-model: "anthropic/claude-sonnet-5"
-engine:
-  id: claude
-  args:
-    - "--effort"
-    - "high"
-  env:
-    ANTHROPIC_BASE_URL: "https://openrouter.ai/api"
-    ANTHROPIC_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 # Disable the per-run AI Credits budget guard. The OpenRouter model slug
 # "anthropic/claude-sonnet-5" may be absent from the AWF api-proxy's built-in
 # pricing table; gh-aw's models.providers override does not propagate to
