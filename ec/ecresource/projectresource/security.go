@@ -171,6 +171,10 @@ func (sec securityApi) Create(ctx context.Context, model resource_security_proje
 		}
 	}
 
+	if dataRetention := securityDataRetentionFromModel(model.SearchLake); dataRetention != nil {
+		createBody.SearchLake = &serverless.SecuritySearchLake{DataRetention: dataRetention}
+	}
+
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
 	createBody.Linked = expandLinkedForCreateSecurity(model)
 	monitoringView, monitoringDiags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
@@ -238,6 +242,12 @@ func (sec securityApi) Patch(ctx context.Context, plan, state resource_security_
 		}
 		if om != nil {
 			updateBody.Metadata = om
+		}
+	}
+
+	if !plan.SearchLake.Equal(state.SearchLake) {
+		if dataRetention := securityDataRetentionFromModel(plan.SearchLake); dataRetention != nil {
+			updateBody.SearchLake = &serverless.OptionalSecuritySearchLake{DataRetention: dataRetention}
 		}
 	}
 
@@ -487,6 +497,29 @@ func setSecurityMonitoring(ctx context.Context, model resource_security_project.
 	}
 	model.Monitoring, diags = resource_security_project.NewMonitoringValue(obj.AttributeTypes(ctx), obj.Attributes())
 	return model, diags
+}
+
+// securityDataRetentionFromModel returns the known data_retention values of
+// search_lake, or nil when none is known.
+func securityDataRetentionFromModel(searchLake resource_security_project.SearchLakeValue) *serverless.DataRetention {
+	if !util.IsKnown(searchLake) || !util.IsKnown(searchLake.DataRetention) {
+		return nil
+	}
+
+	var dataRetention serverless.DataRetention
+	attrs := searchLake.DataRetention.Attributes()
+	if v, ok := attrs["default_retention_days"].(basetypes.Int64Value); ok && util.IsKnown(v) {
+		days := int(v.ValueInt64())
+		dataRetention.DefaultRetentionDays = &days
+	}
+	if v, ok := attrs["max_retention_days"].(basetypes.Int64Value); ok && util.IsKnown(v) {
+		days := int(v.ValueInt64())
+		dataRetention.MaxRetentionDays = &days
+	}
+	if dataRetention.DefaultRetentionDays == nil && dataRetention.MaxRetentionDays == nil {
+		return nil
+	}
+	return &dataRetention
 }
 
 func securitySearchLakeValueFromAPI(ctx context.Context, model resource_security_project.SecurityProjectModel, apiSL *serverless.SecuritySearchLake) (resource_security_project.SearchLakeValue, diag.Diagnostics) {
