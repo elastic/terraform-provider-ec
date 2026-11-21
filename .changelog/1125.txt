@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_security_project: Send the configured `search_lake` data retention to the API on create and update.
+```
