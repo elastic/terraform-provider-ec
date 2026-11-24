@@ -161,10 +161,21 @@ a second workflow needs the same block, factor it into a shared fragment.
 ## What threat detection sees
 
 gh-aw's `detection` job analyses the artifact directory it stages for the detector (the rendered
-prompt, `agent_output.json`, and any patches).
+prompt, `agent_output.json`, any patches, and any `comment-memory/*.md` files).
 
-`research-factory-issue` stages its issue context files (issue body, comment history, prior research
-comment) plus a `census.md` summary as the `research-factory-detection-inputs` artifact. A
+`research-factory-issue` stages the comment it is about to post. Two
+`safe-outputs.threat-detection.steps` pre-steps check out `.github/scripts/workflows` (non-cone
+sparse checkout: that directory and `.git`, no other repository file) and run
+`research-factory/stage-detection-copy.js`, which computes the body with the publish handler's own
+`preparePublishedBody` from the draft at its canonical artifact path and writes it to
+`comment-memory/research-comment.md` in the detector's artifacts directory; the detector lists files
+there for analysis, and `safe-outputs.threat-detection.prompt` says what the file is. The copy is
+for inspection only: the publish job never reads it. The pre-steps have no `continue-on-error`, and
+the staging step fails when a comment was requested but its draft is not at the canonical path, or
+when the comment is larger than `MAX_ENV_PAYLOAD_BYTES`; a failed detection job posts nothing.
+
+It also stages its issue context files (issue body, comment history, prior research comment) plus
+a `census.md` summary as the `research-factory-detection-inputs` artifact. A
 `safe-outputs.threat-detection.steps` pre-step downloads it into the detector's artifacts directory,
 and `safe-outputs.threat-detection.prompt` points the detector at it. The staged copies are bounded by
 the existing byte clamps (`MAX_ENV_PAYLOAD_BYTES`, `COMMENT_CONTEXT_BUDGET`); the census is bounded
@@ -182,11 +193,6 @@ by `CENSUS_MAX_BYTES`.
   redirects) as a security review. Renovate must not edit `*.lock.yml` (compiled output) —
   `renovate.json` lists those under `ignorePaths`. Bump `github/gh-aw-actions` together with the
   compiler pin via `make workflow-generate`, not by patching lock files.
-  **Detection pre-step pin:** the `uses:` inside `safe-outputs.threat-detection.steps` in
-  `research-factory-issue.md` is pinned to a SHA in the source, because gh-aw copies steps in that
-  list into the lock as written rather than pinning them. On every bump, set it to the SHA gh-aw pins
-  for `actions/download-artifact` elsewhere in the regenerated lock, and confirm the compiled step
-  shows that SHA, not a `@vX` tag.
   **Re-verify one internal coupling on every bump:** `research-factory-issue.md`'s *Remove trigger
   label* step references gh-aw's injected `steps.check_membership.outputs.is_team_member` directly
   (so a denied-role actor can't consume the trigger label without the agent running). `gh aw compile`
@@ -194,8 +200,21 @@ by `CENSUS_MAX_BYTES`.
   evaluate to `''` (fails safe — label never consumed, even for members). Confirm the compiled lock
   still emits `activated: ${{ steps.check_membership.outputs.is_team_member == 'true' }}` — gh-aw's
   own usage of the same id — after the bump.
-  Also confirm the regenerated lock still runs `Download research-factory grounding inputs for
-  detection` between `Prepare threat detection files` and `Setup threat detection`, and that the AWF
-  invocation still mounts `/tmp/gh-aw/threat-detection:/tmp/gh-aw/threat-detection:rw`.
+  - **Detection pre-step pins:** every `uses:` inside `safe-outputs.threat-detection.steps` in
+    `research-factory-issue.md` is pinned to a SHA in the source, because gh-aw copies steps in that
+    list into the lock as written. On every bump, set each to the SHA gh-aw pins for the same action
+    elsewhere in the regenerated lock; the checkout and github-script pins must equal the ones the
+    `update_research_comment` job compiles to. `detection-staging-lock.test.mjs` fails
+    `make workflow-test` if any of them drifts.
+  - **Detection couplings:** the staging step relies on gh-aw running `threat-detection.steps` after
+    `Prepare threat detection files`, on `/tmp/gh-aw/threat-detection` being the detector's artifacts
+    directory, on the agent artifact landing under `/tmp/gh-aw/`, and on the detector listing
+    `comment-memory/*.md`. The first three are asserted by `detection-staging-lock.test.mjs`;
+    re-check the fourth against the `threat-detect` version the new lock installs. The same test
+    asserts that `Download research-factory grounding inputs for detection` and `Verify
+    research-factory grounding inputs for detection` also run between `Prepare threat detection
+    files` and `Setup threat detection`. The checkout step uses the default path because this
+    workflow has no other checkout in the detection job; give it a `path:` if the workflow ever
+    gains a patch-producing safe output.
 - **Inspect egress:** assert on the compiled lock's `allowDomains` array (see *Network allowlist
   policy*). `gh aw domains` does not report it.
