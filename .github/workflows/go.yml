@@ -69,6 +69,14 @@ jobs:
       run: make unit
       id: unit
 
+    # tools/goreleaser is a separate module that the root-module checks above don't
+    # touch; build it and validate .goreleaser.yml so a broken GoReleaser bump
+    # (e.g. an automerged Renovate PR) fails here instead of on release day.
+    # `goreleaser check` also fails on deprecated config keys (release only warns),
+    # so a bump that deprecates something we use turns this red until it is fixed.
+    - name: Check GoReleaser builds and accepts .goreleaser.yml
+      run: make goreleaser && bin/goreleaser check
+
     - name: PR monitor script tests
       run: |
         python3 -m pip install --break-system-packages pytest

@@ -29,7 +29,7 @@ the [terraform-plugin-framework](https://developer.hashicorp.com/terraform/plugi
 | `.github/` | GitHub Actions (unit/lint/docs via `go.yml`, OpenSpec via `openspec.yml`, per-PR changelog via `pr-changelog-check.yml`, Renovate auto-approve via `approve-renovate.yml`), repo config, and the SDLC label taxonomy manifest (`label-taxonomy.json`). See [`label-taxonomy.md`](./label-taxonomy.md). |
 | `dev-docs/` | Developer docs (this set), including [`RELEASE.md`](../RELEASE.md) — the release runbook. |
 | `docs-elastic/` | AsciiDoc source (`index.asciidoc`) for the Elastic docs site. |
-| `tools/` | Tool dependencies (pinned via `go` tooling). |
+| `tools/` | Tool dependencies (pinned via `go` tooling). `tools/goreleaser/` is a separate Go module so GoReleaser's dependencies stay out of the provider's `go.mod` and `NOTICE`; `make goreleaser` builds it into `bin/`. |
 | `CONTRIBUTING.md`, `README.md`, `NOTICE`, `LICENSE` | Standard top-level files. |
 
 ## Inside `ec/`
