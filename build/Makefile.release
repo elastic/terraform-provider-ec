@@ -4,6 +4,24 @@ PREFIXED_V = v$(subst -dev,,$(VERSION))
 
 ### Release targets
 
+# GoReleaser lives in its own module (tools/goreleaser) instead of the root
+# go.mod's tool block: its dependency graph (e.g. google/ko -> go-yit on yaml/v4)
+# is incompatible with the serverless client generators used by `make gen`, and
+# it must not leak into the provider's module graph or NOTICE.
+GORELEASER = $(GOBIN)/goreleaser
+
+# GOTOOLCHAIN=auto is forced on purpose (it overrides any GOTOOLCHAIN in the
+# environment) so this tool build can fetch the Go version tools/goreleaser/go.mod
+# requires even where the image pins GOTOOLCHAIN=local (golang:* release image); a
+# GoReleaser bump that raises its go directive then can't break release day. The
+# toolchain download is checksum-verified via sum.golang.org. It applies to this
+# recipe line only: the provider binaries GoReleaser builds use the ambient
+# go/GOTOOLCHAIN.
+## Builds GoReleaser from tools/goreleaser into bin/. Always rebuilt; go build caches it.
+.PHONY: goreleaser
+goreleaser: | $(GOBIN)
+	@ GOTOOLCHAIN=auto go -C tools/goreleaser build -o $(GORELEASER) github.com/goreleaser/goreleaser/v2
+
 ## Tags the current commit as the release commit with $(VERSION) (minus -dev).
 tag:
 	@ git fetch
@@ -21,8 +39,8 @@ endif
 	@ git push -u $(REMOTE) $(PREFIXED_V)
 
 ## Creates a snapshot build of the terraform provider.
-snapshot:
-	@ go tool goreleaser release --clean --snapshot
+snapshot: goreleaser
+	@ $(GORELEASER) release --clean --snapshot
 
 # GitHub release body is this version's CHANGELOG.md section, passed via
 # --release-notes. Do not set changelog.disable in .goreleaser.yml: that skips
@@ -31,20 +49,20 @@ snapshot:
 RELEASE_VERSION = $(subst -dev,,$(VERSION))
 
 ## Releases a new version of the terraform provider with a matching tag.
-release:
+release: goreleaser
 	@ $(MAKE) gen VERSION=$(RELEASE_VERSION)
 	@ notes=$$(mktemp) && \
 		trap 'rm -f "$$notes"' EXIT && \
 		./scripts/extract-release-notes.sh $(RELEASE_VERSION) > "$$notes" && \
-		go tool goreleaser release --clean --skip=validate --parallelism=4 --release-notes "$$notes"
+		$(GORELEASER) release --clean --skip=validate --parallelism=4 --release-notes "$$notes"
 
 ## Builds a new version of the terraform provider with a matching tag without publishing it.
-release-no-publish:
+release-no-publish: goreleaser
 	@ $(MAKE) gen VERSION=$(RELEASE_VERSION)
 	@ notes=$$(mktemp) && \
 		trap 'rm -f "$$notes"' EXIT && \
 		./scripts/extract-release-notes.sh $(RELEASE_VERSION) > "$$notes" && \
-		go tool goreleaser release --clean --skip=publish,validate --parallelism=4 --release-notes "$$notes"
+		$(GORELEASER) release --clean --skip=publish,validate --parallelism=4 --release-notes "$$notes"
 
 .PHONY: changelog
 changelog:
