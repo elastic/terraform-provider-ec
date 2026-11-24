@@ -166,14 +166,21 @@ func TestResourceTrafficFilter_retryForbiddenAfterCreate(t *testing.T) {
 	})
 }
 
-func TestResourceTrafficFilter_forbiddenAfterCreate(t *testing.T) {
+func TestResourceTrafficFilter_forbiddenUntilDeadlineAfterCreate(t *testing.T) {
+	// One GET answers 403, then the wait outlasts the deadline, so the retry
+	// budget runs out while the ruleset is still forbidden.
+	timeout := 10 * time.Millisecond
 	r.UnitTest(t, r.TestCase{
 		ProtoV6ProviderFactories: protoV6ProviderFactoriesWithMockClientRetry(
 			api.NewMock(
 				createResponse("true"),
 				forbiddenReadResponse("false"),
 			),
-			util.NoRetry(),
+			util.ReadAfterMutate{
+				Wait:     util.ContextualSleep,
+				Timeout:  &timeout,
+				Interval: time.Hour,
+			},
 		),
 		Steps: []r.TestStep{
 			{

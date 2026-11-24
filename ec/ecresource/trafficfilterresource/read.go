@@ -70,13 +70,6 @@ func (r Resource) readRetryable(ctx context.Context, id string, state *modelV0) 
 	return r.readIfMissing(ctx, id, state, util.TrafficFilterRetryableMiss)
 }
 
-// readAfterCreate treats 404 and 403 as a retryable miss. Right after Create
-// the API can briefly answer 403 for a ruleset the same credentials just
-// created, so 403 is retried within the read-after-mutate budget.
-func (r Resource) readAfterCreate(ctx context.Context, id string, state *modelV0) (found bool, diags diag.Diagnostics) {
-	return r.readIfMissing(ctx, id, state, util.TrafficFilterNotFound)
-}
-
 func (r Resource) readIfMissing(ctx context.Context, id string, state *modelV0, missing func(error) bool) (found bool, diags diag.Diagnostics) {
 	res, err := trafficfilterapi.Get(trafficfilterapi.GetParams{
 		API: r.client, ID: id, IncludeAssociations: false,
