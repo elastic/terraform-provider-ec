@@ -104,6 +104,89 @@ resource ec_elasticsearch_project "%s" {
 `, id, name, region)
 }
 
+// TestAcc_ElasticsearchProject_MinSearchVCU exercises the Search VCU floor:
+// set on create, import, change, keep it when the whole search_lake block is
+// omitted, and unset it with a search_lake block that has no min_search_vcu.
+// The floor stays at 2–4 VCU so the project pre-scales to the smallest paid
+// step only. The organization must not be a trial organization.
+func TestAcc_ElasticsearchProject_MinSearchVCU(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccElasticsearchProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create with a floor.
+				Config: testAccElasticsearchProjectWithSearchLake(resId, randomName, region, "min_search_vcu = 2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "search_lake.min_search_vcu", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.search_power"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.boost_window"),
+				),
+			},
+			{
+				// Import rebuilds the floor from the API with no prior state.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+			},
+			{
+				// Raise the floor.
+				Config: testAccElasticsearchProjectWithSearchLake(resId, randomName, region, "min_search_vcu = 4"),
+				Check:  resource.TestCheckResourceAttr(resourceName, "search_lake.min_search_vcu", "4"),
+			},
+			{
+				// Delete the whole block: it is unmanaged, so the floor stays and
+				// the post-apply plan is empty (no perpetual "known after apply").
+				Config: testAccBasicElasticsearchProject(resId, randomName, region),
+				Check:  resource.TestCheckResourceAttr(resourceName, "search_lake.min_search_vcu", "4"),
+			},
+			{
+				// A block without min_search_vcu unsets the floor. The attribute
+				// must be null in state, not zero. search_power and boost_window
+				// must stay set: the PATCH nulls only the floor, not the whole
+				// search_lake block.
+				Config: testAccElasticsearchProjectWithSearchLake(resId, randomName, region, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAttrNull(resourceName, "search_lake.min_search_vcu"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.search_power"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.boost_window"),
+				),
+			},
+			{
+				// Finish with no block.
+				Config: testAccBasicElasticsearchProject(resId, randomName, region),
+				Check:  testCheckAttrNull(resourceName, "search_lake.min_search_vcu"),
+			},
+		},
+	})
+}
+
+// testAccElasticsearchProjectWithSearchLake configures a search_lake block;
+// extra is appended inside it.
+func testAccElasticsearchProjectWithSearchLake(id, name, region, extra string) string {
+	return fmt.Sprintf(`
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+
+	search_lake = {
+		%s
+	}
+}
+`, id, name, region, extra)
+}
+
 func testAccElasticsearchProjectWithAlias(id string, name string, region string, alias string) string {
 	return fmt.Sprintf(`
 resource ec_elasticsearch_project "%s" {

@@ -1,0 +1,754 @@
+---
+# Model and engine config is single-sourced in shared/inference.md (as in change-factory and
+# issue-classifier); shared/setup-dev.md is the build environment. The AI-credit budget fields stay
+# inline below: gh-aw does not honor them from an import.
+imports:
+  - shared/inference.md
+  - shared/setup-dev.md
+name: Code Factory Issue Intake
+timeout-minutes: 65
+description: >-
+  Reacts to trusted qualifying `code-factory` issue events or internal workflow dispatch requests,
+  suppresses duplicate linked pull requests, and delegates implementation to an agent that creates
+  exactly one linked PR per issue. Self-verifies with the cloud provider's `make` gate and never
+  runs acceptance tests (`TF_ACC`).
+on:
+  issues:
+    types: [opened, labeled]
+  bots:
+    - github-actions[bot]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to implement'
+        required: true
+        type: number
+      source_workflow:
+        description: 'Source workflow that triggered this dispatch'
+        required: false
+        type: string
+  status-comment: true
+  permissions:
+    contents: read
+    issues: write
+    pull-requests: read
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7.0.1
+      with:
+        persist-credentials: false
+        fetch-depth: 1
+    - name: Determine intake mode
+      id: determine_intake_mode
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const mode = context.eventName === 'workflow_dispatch' ? 'dispatch' : 'issue-event';
+          core.setOutput('intake_mode', mode);
+          core.info(`Intake mode: ${mode}`);
+    - name: Qualify trigger event
+      id: qualify_trigger
+      # Gate on gh-aw's membership check: a denied/failed lookup yields is_team_member != 'true',
+      # so an untrusted actor who can apply the trigger label cannot reach the downstream
+      # label-mutating steps (remove_trigger_label / set_phase_label), which cascade from this.
+      if: >-
+        steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
+        steps.check_membership.outputs.is_team_member == 'true'
+      uses: actions/github-script@v9.0.0
+      env:
+        FACTORY_NAME: code-factory
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/qualify-trigger.js');
+          await fn({ github, context, core });
+    - name: Capture issue context
+      id: capture_issue_context
+      if: steps.determine_intake_mode.outputs.intake_mode == 'issue-event'
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { boundEnvPayload } = require('${{ github.workspace }}/.github/scripts/workflows/lib/env-payload.js');
+          const { flattenTitle } = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/fetch-live-issue.js');
+          // Bound the body to a UTF-8 byte budget: it is passed to the normalize/sanitize steps
+          // via environment variables, and a value above ~128 KB (MAX_ARG_STRLEN) would make those
+          // steps fail to launch with E2BIG. Shared helper (also drops an orphaned HTML-comment
+          // opener so the downstream sanitiser cannot erase the tail).
+          const issueBody = boundEnvPayload(context.payload.issue?.body ?? '');
+          core.setOutput('issue_number', context.payload.issue?.number ?? '');
+          // Flatten newlines: normalize_context exports the title with a bare `echo` into
+          // GITHUB_OUTPUT, where a newline would start a second key=value line (e.g. an injected
+          // issue_number= could redirect the run). The dispatch path's fetch-live-issue flattens
+          // the same way.
+          core.setOutput('issue_title', flattenTitle(context.payload.issue?.title));
+          core.setOutput('issue_body', issueBody);
+    - name: Validate dispatch inputs
+      id: validate_dispatch_inputs
+      # Same membership gate as the issue-event path. For dispatch the trusted actor is the
+      # scanner bot, which is_team_member == 'true' only via on.bots: [github-actions[bot]].
+      if: >-
+        steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
+        steps.check_membership.outputs.is_team_member == 'true'
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/validate-dispatch-inputs.js');
+          await fn({ github, context, core });
+    - name: Fetch live issue
+      id: fetch_live_issue
+      if: >-
+        steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
+        steps.validate_dispatch_inputs.outputs.event_eligible == 'true'
+      env:
+        INPUT_ISSUE_NUMBER: ${{ steps.validate_dispatch_inputs.outputs.issue_number }}
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/fetch-live-issue.js');
+          await fn({ github, context, core });
+    - name: Fetch issue comments
+      id: fetch_issue_comments
+      if: >-
+        (
+          steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
+          steps.qualify_trigger.outputs.event_eligible == 'true'
+        ) || (
+          steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
+          steps.validate_dispatch_inputs.outputs.event_eligible == 'true'
+        )
+      env:
+        INPUT_ISSUE_NUMBER: >-
+          ${{ steps.determine_intake_mode.outputs.intake_mode == 'issue-event'
+            && steps.capture_issue_context.outputs.issue_number
+            || steps.validate_dispatch_inputs.outputs.issue_number }}
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/fetch-issue-comments.js');
+          await fn({ github, context, core });
+    - name: Check duplicate PR
+      id: check_duplicate_pr
+      if: >-
+        (
+          steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
+          steps.qualify_trigger.outputs.event_eligible == 'true'
+        ) || (
+          steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
+          steps.validate_dispatch_inputs.outputs.event_eligible == 'true'
+        )
+      uses: actions/github-script@v9.0.0
+      env:
+        FACTORY_NAME: code-factory
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/check-duplicate-pr.js');
+          await fn({ github, context, core });
+    - name: Remove trigger label
+      id: remove_trigger_label
+      if: >-
+        steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
+        steps.qualify_trigger.outputs.event_eligible == 'true' &&
+        steps.check_duplicate_pr.outputs.duplicate_pr_found != 'true'
+      uses: actions/github-script@v9.0.0
+      env:
+        FACTORY_NAME: code-factory
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/remove-trigger-label.js');
+          await fn({ github, context, core });
+    - name: Set phase label
+      id: set_phase_label
+      if: >-
+        steps.check_duplicate_pr.outputs.duplicate_pr_found != 'true' &&
+        (
+          (
+            steps.determine_intake_mode.outputs.intake_mode == 'issue-event' &&
+            steps.qualify_trigger.outputs.event_eligible == 'true'
+          ) || (
+            steps.determine_intake_mode.outputs.intake_mode == 'dispatch' &&
+            steps.validate_dispatch_inputs.outputs.event_eligible == 'true'
+          )
+        )
+      env:
+        INPUT_ISSUE_NUMBER: >-
+          ${{ steps.determine_intake_mode.outputs.intake_mode == 'issue-event'
+            && steps.capture_issue_context.outputs.issue_number
+            || steps.validate_dispatch_inputs.outputs.issue_number }}
+        PHASE_LABEL_NAME: phase-coding
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/set-phase-label.js');
+          await fn({ github, context, core });
+    - name: Normalize context
+      id: normalize_context
+      if: always()
+      env:
+        INTAKE_MODE: ${{ steps.determine_intake_mode.outputs.intake_mode }}
+        ISSUE_NUMBER_EVENT: ${{ steps.capture_issue_context.outputs.issue_number }}
+        ISSUE_TITLE_EVENT: ${{ steps.capture_issue_context.outputs.issue_title }}
+        ISSUE_BODY_EVENT: ${{ steps.capture_issue_context.outputs.issue_body }}
+        EVENT_ELIGIBLE_EVENT: ${{ steps.qualify_trigger.outputs.event_eligible }}
+        EVENT_ELIGIBLE_REASON_EVENT: ${{ steps.qualify_trigger.outputs.event_eligible_reason }}
+        TRIGGER_LABEL_REMOVED_EVENT: ${{ steps.remove_trigger_label.outputs.trigger_label_removed }}
+        TRIGGER_LABEL_REMOVED_REASON_EVENT: ${{ steps.remove_trigger_label.outputs.trigger_label_removed_reason }}
+        ISSUE_NUMBER_DISPATCH: ${{ steps.fetch_live_issue.outputs.issue_number }}
+        ISSUE_TITLE_DISPATCH: ${{ steps.fetch_live_issue.outputs.issue_title }}
+        ISSUE_BODY_DISPATCH: ${{ steps.fetch_live_issue.outputs.issue_body }}
+        EVENT_ELIGIBLE_DISPATCH: ${{ steps.validate_dispatch_inputs.outputs.event_eligible }}
+        EVENT_ELIGIBLE_REASON_DISPATCH: ${{ steps.validate_dispatch_inputs.outputs.event_eligible_reason }}
+        SOURCE_WORKFLOW: ${{ github.event.inputs.source_workflow }}
+        DUPLICATE_PR_FOUND: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_found }}
+        DUPLICATE_PR_URL: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_url }}
+      run: |
+        echo "intake_mode=${INTAKE_MODE}" >> "$GITHUB_OUTPUT"
+        EOF_DELIM="EOF_$(cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s%N)"
+
+        if [ "${INTAKE_MODE}" = "issue-event" ]; then
+          echo "issue_number=${ISSUE_NUMBER_EVENT}" >> "$GITHUB_OUTPUT"
+          echo "issue_title=${ISSUE_TITLE_EVENT}" >> "$GITHUB_OUTPUT"
+          {
+            echo "issue_body<<${EOF_DELIM}"
+            printf '%s\n' "${ISSUE_BODY_EVENT}"
+            echo "${EOF_DELIM}"
+          } >> "$GITHUB_OUTPUT"
+          echo "event_eligible=${EVENT_ELIGIBLE_EVENT}" >> "$GITHUB_OUTPUT"
+          echo "event_eligible_reason=${EVENT_ELIGIBLE_REASON_EVENT}" >> "$GITHUB_OUTPUT"
+          echo "actor_trusted=true" >> "$GITHUB_OUTPUT"
+          echo "actor_trusted_reason=Role-based gate guarantees trust for issue events." >> "$GITHUB_OUTPUT"
+          echo "trigger_label_removed=${TRIGGER_LABEL_REMOVED_EVENT}" >> "$GITHUB_OUTPUT"
+          echo "trigger_label_removed_reason=${TRIGGER_LABEL_REMOVED_REASON_EVENT}" >> "$GITHUB_OUTPUT"
+        else
+          echo "issue_number=${ISSUE_NUMBER_DISPATCH}" >> "$GITHUB_OUTPUT"
+          echo "issue_title=${ISSUE_TITLE_DISPATCH}" >> "$GITHUB_OUTPUT"
+          {
+            echo "issue_body<<${EOF_DELIM}"
+            printf '%s\n' "${ISSUE_BODY_DISPATCH}"
+            echo "${EOF_DELIM}"
+          } >> "$GITHUB_OUTPUT"
+          echo "event_eligible=${EVENT_ELIGIBLE_DISPATCH}" >> "$GITHUB_OUTPUT"
+          echo "event_eligible_reason=${EVENT_ELIGIBLE_REASON_DISPATCH}" >> "$GITHUB_OUTPUT"
+          echo "actor_trusted=true" >> "$GITHUB_OUTPUT"
+          echo "actor_trusted_reason=Dispatch intake bypasses actor trust check." >> "$GITHUB_OUTPUT"
+          echo "trigger_label_removed=false" >> "$GITHUB_OUTPUT"
+          echo "trigger_label_removed_reason=Trigger label removal is not required for dispatch intake." >> "$GITHUB_OUTPUT"
+          echo "source_workflow=${SOURCE_WORKFLOW}" >> "$GITHUB_OUTPUT"
+        fi
+
+        echo "duplicate_pr_found=${DUPLICATE_PR_FOUND}" >> "$GITHUB_OUTPUT"
+        echo "duplicate_pr_url=${DUPLICATE_PR_URL}" >> "$GITHUB_OUTPUT"
+      shell: bash
+    - name: Write sanitized context files
+      id: sanitize_context
+      if: >-
+        steps.normalize_context.outputs.event_eligible == 'true' &&
+        steps.normalize_context.outputs.actor_trusted == 'true' &&
+        steps.check_duplicate_pr.outputs.duplicate_pr_found != 'true'
+      env:
+        FACTORY_NAME: code-factory
+        # write-context-files.js sanitizes ISSUE_BODY / ISSUE_COMMENTS (by value) and writes
+        # issue_body.md / issue_comments.md to the factory context dir. Body and comments are
+        # byte-bounded upstream (boundEnvPayload in capture / fetch-live-issue; the comment library
+        # budget), so they stay under the step env-var size limit. Mirrors research-factory.
+        ISSUE_BODY: ${{ steps.normalize_context.outputs.issue_body }}
+        ISSUE_COMMENTS: ${{ steps.fetch_issue_comments.outputs.issue_comments }}
+      uses: actions/github-script@v9.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/write-context-files.js');
+          await fn({ github, context, core });
+    - name: Upload issue context artifact
+      if: >-
+        steps.normalize_context.outputs.event_eligible == 'true' &&
+        steps.normalize_context.outputs.actor_trusted == 'true' &&
+        steps.check_duplicate_pr.outputs.duplicate_pr_found != 'true'
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: code-factory-issue-context
+        path: /tmp/code-factory-context/
+        if-no-files-found: error
+    - name: Finalize gate reason
+      id: finalize_gate
+      if: always()
+      uses: actions/github-script@v9.0.0
+      env:
+        FACTORY_NAME: code-factory
+        EVENT_ELIGIBLE: ${{ steps.normalize_context.outputs.event_eligible }}
+        EVENT_ELIGIBLE_REASON: ${{ steps.normalize_context.outputs.event_eligible_reason }}
+        ACTOR_TRUSTED: ${{ steps.normalize_context.outputs.actor_trusted }}
+        ACTOR_TRUSTED_REASON: ${{ steps.normalize_context.outputs.actor_trusted_reason }}
+        DUPLICATE_PR_FOUND: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_found }}
+        DUPLICATE_PR_URL: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_url }}
+        DUPLICATE_GATE_REASON: ${{ steps.check_duplicate_pr.outputs.gate_reason }}
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fn = require('${{ github.workspace }}/.github/scripts/workflows/lib/factory-runners/finalize-gate.js');
+          await fn({ github, context, core });
+concurrency:
+  group: gh-aw-code-factory-${{ github.event.issue.number || github.event.inputs.issue_number }}
+  job-discriminator: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+  queue: max
+if: >-
+  needs.pre_activation.outputs.event_eligible == 'true' &&
+  needs.pre_activation.outputs.actor_trusted == 'true' &&
+  needs.pre_activation.outputs.duplicate_pr_found != 'true' &&
+  needs.pre_activation.outputs.issue_number != ''
+steps:
+  - name: Download issue context artifact
+    uses: actions/download-artifact@v8.0.2
+    with:
+      name: code-factory-issue-context
+      # Extract under /tmp/gh-aw, the one host path the AWF agent container bind-mounts
+      # read-write (--mount /tmp/gh-aw:/tmp/gh-aw:rw). A sibling /tmp path like
+      # /tmp/code-factory-context is NOT mounted, so the agent could not read the sanitized
+      # issue body / comments the prompt points it to.
+      path: /tmp/gh-aw/code-factory-context/
+# Disable the per-run AI Credits budget guard. The OpenRouter model slug
+# "anthropic/claude-sonnet-5" may be absent from the AWF api-proxy's built-in
+# pricing table; gh-aw's models.providers override does not propagate to
+# apiProxy.defaultAiCreditsPricing (github/gh-aw#47365), so with the guard
+# active the proxy could reject every request with HTTP 400. Setting -1 omits
+# maxAiCredits from the generated AWF config. Mirrors issue-classifier.md.
+max-ai-credits: -1
+# The daily guardrail is also disabled: it fails closed ("Daily AIC accounting
+# record could not be resolved") when prior runs lack resolvable AIC usage.
+max-daily-ai-credits: -1
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  pre-activation:
+    outputs:
+      intake_mode: ${{ steps.normalize_context.outputs.intake_mode }}
+      issue_number: ${{ steps.normalize_context.outputs.issue_number }}
+      issue_title: ${{ steps.normalize_context.outputs.issue_title }}
+      issue_body: ${{ steps.normalize_context.outputs.issue_body }}
+      event_eligible: ${{ steps.normalize_context.outputs.event_eligible }}
+      event_eligible_reason: ${{ steps.normalize_context.outputs.event_eligible_reason }}
+      actor_trusted: ${{ steps.normalize_context.outputs.actor_trusted }}
+      actor_trusted_reason: ${{ steps.normalize_context.outputs.actor_trusted_reason }}
+      duplicate_pr_found: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_found }}
+      duplicate_pr_url: ${{ steps.check_duplicate_pr.outputs.duplicate_pr_url }}
+      trigger_label_removed: ${{ steps.normalize_context.outputs.trigger_label_removed }}
+      trigger_label_removed_reason: ${{ steps.normalize_context.outputs.trigger_label_removed_reason }}
+      source_workflow: ${{ steps.normalize_context.outputs.source_workflow }}
+      gate_reason: ${{ steps.finalize_gate.outputs.gate_reason }}
+  # The add_changelog safe-job only runs when the agent calls it. If the agent opens a PR without
+  # calling it, nothing would commit a fragment, and the GITHUB_TOKEN-opened PR may get no
+  # changelog check run either. Say so on the PR and the issue.
+  changelog-guard:
+    needs: [agent, safe_outputs]
+    # !cancelled() rather than the implicit success(), and no safe_outputs-success term: the agent
+    # job can fail (e.g. timeout) after emitting a create_pull_request item, and safe_outputs emits
+    # created_pr_number before it fails on any other item, so a created PR still needs the check.
+    if: >-
+      !cancelled() &&
+      needs.safe_outputs.outputs.created_pr_number != '' &&
+      !contains(needs.agent.outputs.output_types, 'add_changelog')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Report a PR opened without a changelog entry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          if [[ ! "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
+            echo "::error::no valid PR number; cannot report the missing changelog entry"
+            exit 1
+          fi
+          MSG="The code-factory run opened #${PR_NUMBER} without calling add-changelog, so the PR has no \`.changelog/${PR_NUMBER}.txt\`. Add it by hand before merging. Run: ${RUN_URL}"
+          gh pr comment "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+            || echo "::warning::could not comment on PR #${PR_NUMBER}"
+          if [[ "${ISSUE_NUMBER}" =~ ^[0-9]+$ ]]; then
+            gh issue comment "${ISSUE_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+              || echo "::warning::could not comment on issue #${ISSUE_NUMBER}"
+          fi
+          echo "::error::PR #${PR_NUMBER} was opened without a changelog entry"
+          exit 1
+tools:
+  cli-proxy: true
+  github:
+    mode: gh-proxy
+    toolsets: [issues, pull_requests, repos]
+network:
+  allowed: [defaults, node, go, registry.terraform.io, releases.hashicorp.com, www.elastic.co, openrouter.ai]
+env:
+  CHECKPOINT_DISABLE: "1"
+mcp-servers:
+  elastic-docs:
+    url: "https://www.elastic.co/docs/_mcp/"
+    allowed: ["*"]
+checkout:
+  fetch-depth: 0
+safe-outputs:
+  # Match the repo's agentic-workflow convention (issue-classifier.md): this human-triggered,
+  # human-reviewed factory does not auto-file framework failure/incomplete issues. Disabling
+  # report-failed-jobs also removes the generated conclusion step that passes `toJSON(needs)`
+  # (including gh-aw's activation body/text) through an environment variable, so a pathological
+  # issue body cannot exceed the env-var size limit there.
+  report-failure-as-issue: false
+  report-incomplete: false
+  report-failed-jobs: false
+  # The agent must not be able to file issues; this makes the "do not open issues" guardrail
+  # deterministic rather than prompt-dependent (matches change-factory-issue.md).
+  missing-tool: false
+  missing-data: false
+  create-pull-request:
+    labels: [code-factory]
+    max: 1
+    patch-format: am
+    preserve-branch-name: true
+    # Bind the branch EXACTLY to the triggering issue, not a `code-factory/issue-*` glob: with
+    # recreate-ref the duplicate-PR gate only protects the expected branch, so a glob would let a
+    # run for issue A force-recreate issue B's open PR branch. `needs.pre_activation` is not a
+    # direct dependency of the agent/safe_outputs jobs, so use the `github` context (same
+    # expression as `concurrency`). A dispatch input that does not normalise to the same number
+    # pre-activation used fails closed (no PR), never open.
+    allowed-branches: ["code-factory/issue-${{ github.event.issue.number || github.event.inputs.issue_number }}"]
+    recreate-ref: true
+    fallback-as-issue: false
+    # The changelog is add-changelog's job (Contents API, exactly .changelog/{PR}.txt). Strip any
+    # agent-written .changelog/ file from the patch so a stray fragment can never reach the PR
+    # (changelogcheck rejects any other path there, and add-changelog only writes {PR}.txt).
+    excluded-files: [".changelog/**"]
+  # One comment on the triggering issue when it is out of scope (pointing to the OpenSpec path) or
+  # too ambiguous to implement (same contract as change-factory-issue.md). It is also what grants the conclusion job `issues: write`:
+  # gh-aw v0.92.0 derives that job's permissions from the safe outputs, and without it the default
+  # GITHUB_TOKEN cannot update activation's status comment, leaving it stuck "in progress" and
+  # dropping a noop explanation.
+  # Pinned to the ambient GITHUB_TOKEN even if a GH_AW_GITHUB_TOKEN / App token is configured later
+  # (plan D1): GITHUB_TOKEN-authored comments never trigger workflows, so an agent comment can never
+  # reach another workflow's issue_comment / slash-command trigger.
+  add-comment:
+    max: 1
+    target: triggering
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+  noop:
+    max: 1
+    report-as-issue: false
+  jobs:
+    add-changelog:
+      name: add-changelog
+      description: >-
+        Commit the .changelog/{PR}.txt fragment for this PR. Call exactly once, alongside
+        create_pull_request (it runs after the PR is created). Pass a release-note type (and a one-line body unless the type is 'none').
+      runs-on: ubuntu-latest
+      needs: safe_outputs
+      # Keyed on the created PR only, not on safe_outputs succeeding: gh-aw emits created_pr_number
+      # before failing the job on any other item, and that PR still needs its fragment. The branch
+      # check below still guards the write.
+      if: needs.safe_outputs.outputs.created_pr_number != ''
+      permissions:
+        contents: write
+        # write: only for the failure report below (PR + issue comment).
+        issues: write
+        pull-requests: write
+      inputs:
+        release_note_type:
+          description: "release-note category. Use 'none' for non-user-facing changes."
+          required: true
+          type: choice
+          options: [none, bug, enhancement, feature, new-resource, new-data-source, new-guide, note, breaking-change]
+        release_note_body:
+          description: "One-line user-facing note. Leave empty when release_note_type is 'none'."
+          required: false
+          type: string
+      steps:
+        - name: Checkout helper scripts
+          uses: actions/checkout@v7.0.1
+          with:
+            persist-credentials: false
+            sparse-checkout: .github/scripts/workflows/lib
+            sparse-checkout-cone-mode: true
+            fetch-depth: 1
+        - name: Render and validate the changelog fragment
+          id: render
+          run: |
+            node .github/scripts/workflows/lib/code-factory-changelog.js --render-only \
+              > "$RUNNER_TEMP/fragment.txt"
+        - name: Commit the fragment to the PR branch
+          env:
+            GH_TOKEN: ${{ github.token }}
+            PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
+            ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+          run: |
+            set -euo pipefail
+            # Derive the target branch from the TRUSTED created-PR number (not from any
+            # agent-supplied value): commit the changelog onto the PR we just created, and only if
+            # its head is exactly the triggering issue's factory branch (the same binding as the
+            # create-pull-request allowed-branches), so we never write elsewhere.
+            BRANCH=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.ref)
+            if [[ ! "${ISSUE_NUMBER}" =~ ^[0-9]+$ ]] || [[ "${BRANCH}" != "code-factory/issue-${ISSUE_NUMBER}" ]]; then
+              echo "::error::PR #${PR_NUMBER} head ref '${BRANCH}' is not code-factory/issue-${ISSUE_NUMBER}; refusing to write"
+              exit 1
+            fi
+            # Upsert .changelog/{PR}.txt via the Contents API (verified commit), so the committed
+            # file is ALWAYS exactly our validated render. If the path already exists on the branch
+            # (a re-run, or a human pushed a different or invalid fragment — .changelog/ is in
+            # create-pull-request's excluded-files, so the agent's own patch never carries one),
+            # fetch its blob sha and
+            # PUT with it, overwriting the stale content. A byte-identical content+sha PUT is a
+            # no-op on GitHub, so this stays idempotent without a spurious commit.
+            # DEFERRED (plan D1): this commit is made with GITHUB_TOKEN, so by GitHub's
+            # anti-recursion rule it does not re-trigger the PR's required checks; a human nudge (or
+            # the later Vault/App-token fix) is needed to green the new HEAD.
+            EXISTING_SHA=$(gh api \
+              "repos/${GITHUB_REPOSITORY}/contents/.changelog/${PR_NUMBER}.txt?ref=${BRANCH}" \
+              --jq .sha 2>/dev/null || true)
+            # Base64-encode to a PERSISTENT temp file and pass it with `-F content=@<file>`. Not a
+            # plain variable (`-f content="$B64"`): a pathologically large release note would make
+            # the base64 string exceed MAX_ARG_STRLEN (~128 KB) and `gh api` could not launch
+            # (E2BIG). Not a process substitution (`@<(base64 ...)`): a /dev/fd descriptor stored in
+            # the array is not guaranteed open when gh api reads it later. A real file avoids both.
+            base64 -w0 "$RUNNER_TEMP/fragment.txt" > "$RUNNER_TEMP/fragment.b64"
+            PUT_ARGS=(--method PUT "repos/${GITHUB_REPOSITORY}/contents/.changelog/${PR_NUMBER}.txt"
+              -f message="Add changelog entry for PR #${PR_NUMBER}"
+              -f branch="${BRANCH}"
+              -F content=@"$RUNNER_TEMP/fragment.b64")
+            if [ -n "${EXISTING_SHA}" ]; then
+              echo "existing .changelog/${PR_NUMBER}.txt found (sha ${EXISTING_SHA}); overwriting with the validated fragment"
+              PUT_ARGS+=(-f sha="${EXISTING_SHA}")
+            fi
+            if ! gh api "${PUT_ARGS[@]}"; then
+              echo "::error::failed to commit changelog fragment to ${BRANCH}"
+              exit 1
+            fi
+            echo "Committed .changelog/${PR_NUMBER}.txt to ${BRANCH}"
+        - name: Report a failed changelog commit
+          # gh-aw v0.92.0's completion-status comment derives success from the agent and
+          # safe_outputs results only, not from custom safe-jobs, so a failure here would otherwise
+          # be reported as success on the issue. Say so on the PR and the issue instead.
+          if: failure()
+          env:
+            GH_TOKEN: ${{ github.token }}
+            PR_NUMBER: ${{ needs.safe_outputs.outputs.created_pr_number }}
+            ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+            RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          run: |
+            set -uo pipefail
+            if [[ ! "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
+              echo "::error::no valid PR number; cannot report the changelog failure"
+              exit 1
+            fi
+            MSG="The code-factory run opened #${PR_NUMBER} but did not commit \`.changelog/${PR_NUMBER}.txt\`, so the PR has no changelog entry. Add it by hand before merging. Run: ${RUN_URL}"
+            gh pr comment "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+              || echo "::warning::could not comment on PR #${PR_NUMBER}"
+            if [[ "${ISSUE_NUMBER}" =~ ^[0-9]+$ ]]; then
+              gh issue comment "${ISSUE_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "${MSG}" \
+                || echo "::warning::could not comment on issue #${ISSUE_NUMBER}"
+            fi
+---
+
+# Code Factory issue intake worker
+
+You implement exactly one GitHub issue labeled `code-factory`, **within the Scope rules below**. The
+triggering issue is the sole source of truth for the requested behavior. Any acceptance criteria defined by the issue must
+be met, and your changes must be properly covered by automated testing. Do not broaden the scope
+beyond what the issue describes unless the repository already requires it to make the implementation
+viable.
+
+## Pre-activation context
+
+Deterministic pre-activation has already decided that this intake is eligible, the actor is trusted
+(or dispatch bypasses trust), and there is no open linked `code-factory` pull request for the issue.
+
+- **Gate reason**: ${{ needs.pre_activation.outputs.gate_reason }}
+- **Intake mode**: `${{ needs.pre_activation.outputs.intake_mode }}`
+- **Issue number**: `${{ needs.pre_activation.outputs.issue_number }}`
+- **Issue title**: `${{ needs.pre_activation.outputs.issue_title }}`
+- **Issue body** (sanitised): see `/tmp/gh-aw/code-factory-context/issue_body.md`
+- **Comment history** (sanitised, human-authored): see `/tmp/gh-aw/code-factory-context/issue_comments.md`
+- **Repository**: `${{ github.repository }}`
+- **Triggered by**: `@${{ github.actor }}`
+- **Required branch**: `code-factory/issue-${{ needs.pre_activation.outputs.issue_number }}`
+
+## This is the cloud provider — never run acceptance tests
+
+This repository manages **real, paid Elastic Cloud deployments**. Acceptance tests
+(`TF_ACC=1`, `make testacc`, `make sweep`) create and destroy live infrastructure and cost money.
+They run **out-of-band on Buildkite** for every pull request and are reviewed by a human. You must
+**never** set `TF_ACC`, run `make testacc` / `make sweep`, or touch `EC_API_KEY`. There is no local
+Elastic stack. Your self-verification is the deterministic `make` gate below — nothing more.
+
+## Scope
+
+This factory handles quality work and **small, non-breaking** changes. Anything larger goes through
+the OpenSpec path (change-factory proposal, then a human with the local implementation loop).
+
+**In scope:**
+
+- Docs, examples, and schema description text (`Description` / `MarkdownDescription`, deprecation
+  messages).
+- Refactors, duplicate-code removal, and test additions that do not change plan, state, or API
+  behavior.
+- **Small, non-breaking schema or behavior changes** to an existing resource or data source, for
+  example making an attribute `Optional` + `Computed`, adding a new optional or computed attribute,
+  or fixing a validator, default, or plan modifier that leaves every previously valid configuration
+  and existing state unaffected, **provided** you add the tests described below.
+
+**Out of scope** (do not implement; see "When the issue is out of scope or too ambiguous"):
+
+- Breaking changes: removing or renaming an attribute, changing its type, making it `Required`,
+  forcing replacement where there was none, or adding a state upgrader.
+- Any change that makes a previously valid configuration fail validation (e.g. a tightened
+  validator), or that makes an unchanged configuration with existing state plan a diff (e.g. a
+  changed default or plan modifier). A test that creates a fresh resource does not catch these.
+- New resources or new data sources.
+- Any behavior change to an entity that has a spec under `openspec/specs/`. An entity has a spec
+  only if the **H1 title** of an `openspec/specs/*/spec.md` names its exact Terraform type (for
+  example ``# `ec_stack` data source``); a mention elsewhere in a spec, such as in its out-of-scope
+  list, or a longer type name that merely starts with it, does not count. Those changes must update
+  the spec and go through the OpenSpec path.
+- Anything the issue does not fully specify.
+
+**Tests for a schema or behavior change.** Unit tests alone do not prove an attribute maps
+correctly to the live API; the Buildkite acceptance suite does, but only for what it exercises. So
+for every in-scope schema or behavior change:
+
+- add or update unit tests for the changed mapping or logic;
+- add or extend the `TestAcc…` case(s) under `ec/acc/` that exercise the changed attribute,
+  including a configuration that leaves it **unset**, and an import or second plan-only step that
+  must show no diff where applicable. You write these tests but must **never** run them; `make unit`
+  compiles them and the acceptance run on the PR executes them. Each new `TestAcc…` must skip
+  without `TF_ACC` **before** any API call: start it with `requiresAPIConn(t)`, or reuse the existing
+  fixture helpers the neighbouring tests in that file use. If one fails under `make unit`, fix its
+  skip; never set `TF_ACC` to make it pass.
+
+## Elastic documentation
+
+An `elastic-docs` MCP server is available (`search_docs`, `find_related_docs`,
+`get_document_by_url`). Before writing implementation code, use `search_docs` to ground the Elastic
+Cloud / provider API behavior relevant to the issue. If the tools are unavailable or unhelpful,
+proceed from the issue content alone — do not block on documentation.
+
+## Task
+
+Implement the triggering issue on branch
+`code-factory/issue-${{ needs.pre_activation.outputs.issue_number }}` and create exactly one linked
+pull request labeled `code-factory`.
+
+1. Read the issue title and body carefully and treat them as authoritative.
+2. Create or update the implementation on branch
+   `code-factory/issue-${{ needs.pre_activation.outputs.issue_number }}`.
+3. Verify your changes according to the **Verification ladder** below. Run the steps **in order**,
+   each to completion.
+4. Open exactly one pull request for that branch using the `create-pull-request` safe output.
+5. Include `Closes #${{ needs.pre_activation.outputs.issue_number }}` in the PR body — this exact
+   string is the stable identifier that prevents duplicate PRs on future runs.
+6. Call the `add-changelog` safe-job **exactly once**, alongside `create-pull-request` (it runs
+   after the PR is created; do not wait for a PR number), with a release-note type (and a one-line body unless the type is `none`) — see **Changelog**.
+7. Keep the pull request labeled `code-factory`.
+
+## Verification ladder (mirrors the `go.yml` gate; never sets `TF_ACC`)
+
+Run **in order**, each to completion. Stop and fix on any failure.
+
+0. **Preflight** — confirm the toolchain is present (a missing tool must fail, not pass silently):
+   ```bash
+   for t in terraform go node jq git base64; do
+     command -v "$t" >/dev/null || { echo "::error::missing required tool: $t"; exit 1; }
+   done
+   command -v cc >/dev/null || command -v gcc >/dev/null \
+     || { echo "::error::no C toolchain for go test -race"; exit 1; }
+   ```
+   **Reuse the primed Go cache:** the dev-setup step warmed the module and build caches under
+   `/tmp/gh-aw/gocache` (a path this sandbox shares read-write with the host). Export them so your
+   `make` commands do not re-download or rebuild from scratch:
+   ```bash
+   export GOMODCACHE=/tmp/gh-aw/gocache/mod GOCACHE=/tmp/gh-aw/gocache/build
+   ```
+   If `make install` / `make validate-examples` cannot write to `~/.terraform.d`, run them with a
+   writable home **outside the repo checkout** (so it does not leave an untracked dir that fails the
+   clean-tree check at step 10): `mkdir -p /tmp/gh-aw/home && HOME=/tmp/gh-aw/home make install validate-examples`.
+1. `make check-label-taxonomy`
+2. `make lint` (already runs `fmt`, `check-license`, `tfproviderlint`, `tfproviderdocs`)
+3. `make build`, then **commit your work** (`git add -A && git commit`). Steps 4–6 diff against that
+   commit, so a diff there means regeneration produced files your change needs: review them, commit
+   them too, and re-run the ladder from step 2. Do not revert your own change to make a diff go
+   away.
+4. `make docs-generate` then `git diff --exit-code docs/`
+5. `make notice` then `git diff --exit-code NOTICE`
+6. `make gen` then `git add --intent-to-add -- ec/internal/gen/serverless && git diff --exit-code -- ec/internal/gen/serverless`
+7. `make unit`
+8. `make install validate-examples`
+9. Only if you changed `.github/scripts/workflows/**` or `scripts/changelogcheck/**`: `make workflow-test`
+10. `git status --porcelain` must be empty before you open the PR.
+
+Do **not** run `make workflow-generate` (it needs the `gh aw` extension from a host outside the agent
+firewall). Do **not** edit `.github/workflows/*.md`, `.github/aw/**`, or
+`.agents/skills/pr-monitoring-loop/scripts/**` — those paths are verified by steps you cannot run in
+this sandbox.
+
+## Pull request contract
+
+The linked pull request must:
+
+- use branch `code-factory/issue-${{ needs.pre_activation.outputs.issue_number }}`;
+- be the only open `code-factory` pull request for this issue;
+- include `Closes #${{ needs.pre_activation.outputs.issue_number }}` in the body;
+- follow the repository PR template (Description / Related Issues / Motivation and Context / How Has
+  This Been Tested? / Types of Changes / Readiness Checklist). Under **How Has This Been Tested?**
+  list the verification ladder you ran and state plainly that **acceptance tests were not run and run
+  out-of-band on Buildkite**. If you added or changed any `TestAcc…` case, list each one by name so
+  the reviewer can run those first, and say which schema or behavior change each one covers;
+- stay focused on implementing the triggering issue only.
+
+## Changelog
+
+Every PR needs a `.changelog/{PR}.txt` entry. You do not write the file yourself (any `.changelog/`
+file in your patch is stripped before the PR is created) — call the **`add-changelog`** safe-job exactly
+once, alongside `create-pull-request`; it commits the file after the PR is created:
+
+- `release_note_type`: one of `none`, `bug`, `enhancement`, `feature`, `new-resource`,
+  `new-data-source`, `new-guide`, `note`, `breaking-change`.
+- `release_note_body`: a **single-line** user-facing sentence with no code fences — **omit/empty only
+  when the type is `none`**.
+
+Pick the type from the nature of the change: refactoring / deduplication / test-coverage / CI /
+docs → `none`; a user-visible bug fix (including a schema fix such as `Optional` → `Optional` +
+`Computed`) → `bug`; a new optional or computed attribute → `enhancement`. `new-resource`,
+`new-data-source`, and `breaking-change` describe out-of-scope work, so you should not need them.
+When in doubt prefer `none` over inventing customer impact the issue does not describe.
+
+## When the issue is out of scope or too ambiguous
+
+If the issue is out of scope (see **Scope**), or does not say clearly enough what behavior should
+change and what "done" means to implement it safely, do **not** write speculative code and do
+**not** open a pull request. Post **exactly one** `add-comment` on this issue that either names the
+Scope rule it falls under and says it needs the OpenSpec path (a `change-factory` proposal, then
+local implementation), or lists the specific facts still needed. Then emit **at most one**
+`noop`. In `dispatch` intake mode there is no triggering issue to comment on: use
+only `noop`, with the missing facts in its message. Never produce both a pull request and a clarifying comment, and never start
+a back-and-forth thread.
+
+## Guardrails
+
+- Do not re-check trigger eligibility, actor trust, or duplicate PR state — pre-activation did that.
+- **Never** set `TF_ACC`, run `make testacc` / `make sweep`, or touch `EC_API_KEY`.
+- Run `make lint` and the rest of the ladder before opening the PR; an unformatted or failing tree
+  blocks CI.
+- Open exactly one pull request for this issue; do not open a second, and do not open issues.
+- Use at most one `add-comment`, and only for the out-of-scope or ambiguous case above.
+- Call `add-changelog` exactly once, alongside `create-pull-request`.
+- Do not change the branch naming convention.
+- Do not use another issue, pull request, or external request as the source of truth over the
+  triggering issue.
+- If you cannot make progress safely, use `noop` with a concise explanation instead of opening a
+  half-finished pull request.
