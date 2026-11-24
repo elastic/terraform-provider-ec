@@ -269,6 +269,13 @@ func optionalMonitoring(a *audit) *serverless.OptionalMonitoring {
 // mergeMonitoringField marshals body, then sets its monitoring field to the
 // already-encoded JSON value. Callers use this when that value contains null.
 func mergeMonitoringField(body any, monitoring json.RawMessage) ([]byte, error) {
+	return mergeRawFields(body, map[string]json.RawMessage{"monitoring": monitoring})
+}
+
+// mergeRawFields marshals body, then replaces each named top-level field with
+// its already-encoded JSON value. Callers use this when a value must contain
+// null, which the generated omitempty pointers cannot encode.
+func mergeRawFields(body any, fields map[string]json.RawMessage) ([]byte, error) {
 	raw, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -277,7 +284,12 @@ func mergeMonitoringField(body any, monitoring json.RawMessage) ([]byte, error) 
 	if err := json.Unmarshal(raw, &doc); err != nil {
 		return nil, err
 	}
-	doc["monitoring"] = monitoring
+	if doc == nil { // a nil body marshals to null, which Unmarshal turns into a nil map
+		doc = map[string]json.RawMessage{}
+	}
+	for name, value := range fields {
+		doc[name] = value
+	}
 	return json.Marshal(doc)
 }
 

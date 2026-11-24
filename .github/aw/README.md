@@ -48,14 +48,15 @@ SHA. Consequences:
   `*.lock.yml` from that catalog and is **not** written back here; only a pin that *differs* from
   the default is recorded. Measured: with `actions/github-script@v9.0.0` (the default) nothing is
   written, and repointing a workflow to `@v8.0.0` makes `actions/github-script@v8.0.0` appear. That
-  is why this file currently holds just `actions/checkout@v7.0.0` (we deliberately pin one patch
-  behind the default) and `github/gh-aw-actions/setup@v0.92.0`, while the compiled locks also
-  reference `actions/download-artifact`, `actions/github-script`, `actions/setup-node` and
-  `actions/upload-artifact`.
+  is why this file holds `actions/checkout@v7.0.0` (we deliberately pin one patch behind the
+  default), `github/gh-aw-actions/setup@v0.92.0`, and `hashicorp/setup-terraform@v4.0.1`, while the
+  compiled locks also reference `actions/download-artifact`, `actions/github-script`,
+  `actions/setup-node` and `actions/upload-artifact`.
 - **Do not seed an Action no current workflow uses.** A non-scaffolding one is stripped by the next
-  `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR. For
-  example, `hashicorp/setup-terraform` is intentionally **absent**: gh-aw will add it — in that PR —
-  when a workflow that runs `make validate-examples` (or otherwise uses the Terraform CLI) lands.
+  `make workflow-generate`, and the CI drift check (below) would then fail on an unrelated PR.
+  `hashicorp/setup-terraform@v4.0.1` **is** now recorded because the `code-factory-issue` workflow
+  imports `shared/setup-dev.md`, which uses the Terraform CLI for `make validate-examples`; it stays
+  only while a workflow references it.
 - gh-aw's scaffolding Actions are emitted into **every** compiled workflow regardless of frontmatter —
   e.g. `gh aw compile` still injects an `actions/checkout` step even when a workflow sets
   `checkout: false` — so those pins are retained unconditionally, referenced or not. A clean drift
@@ -123,12 +124,12 @@ The policy menu for this repo is:
 
 ```yaml
 network:
-  allowed: [defaults, node, go, registry.terraform.io, www.elastic.co, openrouter.ai]
+  allowed: [defaults, node, go, registry.terraform.io, releases.hashicorp.com, www.elastic.co, openrouter.ai]
 ```
 
 This is a **menu, not a block to paste verbatim** — each workflow includes only the entries it needs
 (a triage/classifier agent that calls no docs MCP omits `www.elastic.co`, a workflow that never runs
-Terraform omits `registry.terraform.io`, etc.). Per the extract-on-second-use `imports:` convention
+Terraform omits `registry.terraform.io` and `releases.hashicorp.com`, etc.). Per the extract-on-second-use `imports:` convention
 (see [`dev-docs/high-level/coding-standards.md`](../../dev-docs/high-level/coding-standards.md)), once
 a second workflow needs the same block, factor it into a shared fragment.
 
@@ -137,7 +138,8 @@ a second workflow needs the same block, factor it into a shared fragment.
 | `defaults` | ✅ | gh-aw baseline: GitHub API, TLS CA/OCSP/CRL endpoints, Ubuntu apt mirrors. Required by any runner. This set is itself broad (e.g. `storage.googleapis.com`, package registries), so "least-egress" below is **relative to this baseline**. |
 | `node` | ✅ | npm registry + Node toolchain — the `.github/scripts/workflows` JS helpers and their tests. |
 | `go` | ✅ | Go module proxy / checksum DB — building and testing the provider and the `scripts/changelogcheck` helper. |
-| `registry.terraform.io` | ✅ | Terraform registry metadata for provider/schema lookups during `terraform init`. Pinned as a **single host** rather than gh-aw's `terraform` domain set (which also opens `releases.hashicorp.com` / checkpoint) for least-egress. **Not sufficient on its own for a full `make validate-examples`** — see the caveat below. gh-aw emits a non-fatal advisory suggesting the `terraform` set; we keep the single host deliberately. |
+| `registry.terraform.io` | ✅ | Terraform registry metadata for provider/schema lookups during `terraform init`. Pinned as a **single host** rather than gh-aw's `terraform` domain set (which also opens the `apt.`/`yum.releases.hashicorp.com` OS package mirrors) for least-egress. **Not sufficient on its own for a full `make validate-examples`** — see the caveat below. gh-aw emits a non-fatal advisory suggesting the `terraform` set; we keep the single host deliberately. |
+| `releases.hashicorp.com` | ✅ (conditional) | Released Terraform provider binaries. Required **only** by a workflow that runs `make validate-examples` inside the firewall (today: `code-factory-issue.md`): `examples/deployment_ec2_instance` needs `hashicorp/aws`, which `terraform init` downloads from this host — see the caveat below. Listed as a single host for the same least-egress reason as `registry.terraform.io`. |
 | `www.elastic.co` | ✅ (conditional) | Egress host for the **Elastic docs MCP** (`https://www.elastic.co/docs/_mcp/`). Required **only** by a workflow that declares the `elastic-docs` MCP server (the research/change/code/reproducer factories consult Elastic Cloud / provider docs while drafting). Omit it from any workflow that does not wire up that MCP. |
 | `openrouter.ai` | ✅ | The inference endpoint. Agentic workflows call **OpenRouter** (`ANTHROPIC_BASE_URL=https://openrouter.ai/api`), with `anthropic/claude-sonnet-5` as the authoring model and `openai/gpt-6.1-sol` as the research-factory critic — a different slug on purpose, since a model grading its own output is a weak check. The only inference secret is the repository secret `OPENROUTER_API_KEY`. |
 
@@ -145,10 +147,9 @@ a second workflow needs the same block, factor it into a shared fragment.
 > `make validate-examples` finish. `scripts/validate_examples.sh` configures a Terraform
 > `filesystem_mirror` for `elastic/ec` (not dev overrides) and installs every other provider via
 > `direct`; `examples/deployment_ec2_instance` requires `hashicorp/aws`, whose provider binary is
-> fetched from `releases.hashicorp.com` — a host deliberately **not** in this menu. A workflow that
-> must validate examples inside the firewall therefore has to pre-install providers, or add
-> `releases.hashicorp.com` to its own `network.allowed` with explicit review. Do not assume the local
-> `elastic/ec` mirror removes all released-provider downloads.
+> fetched from `releases.hashicorp.com`. A workflow that validates examples inside the firewall
+> must therefore allow **both** hosts (as `code-factory-issue.md` does) or pre-install providers. Do
+> not assume the local `elastic/ec` mirror removes all released-provider downloads.
 
 ### Excluded on purpose (least-egress, cloud-provider-specific)
 
@@ -156,6 +157,22 @@ a second workflow needs the same block, factor it into a shared fragment.
 | --- | --- |
 | Live Elastic Cloud API **operations** on `api.elastic-cloud.com` | Agents **never** perform an operation that creates, mutates or destroys a deployment, or that spends. Acceptance tests create/destroy real deployments against `EC_API_KEY` and run **out-of-band on Buildkite** (`buildkite/terraform-provider-ec-acceptance`), never inside an agentic workflow — no live-cloud credentials are exposed to agents. The host is therefore kept out of every `network.allowed` list, so the agent sandbox cannot reach any path on it. Reading a **public, unauthenticated specification document** from that host is outside this restriction and is permitted: the research factory fetches `api/v1/api-docs-user/swagger.json` in a **runner-side** step, before the sandbox exists, which grounds the agent while adding **zero** egress hosts. (Verified: `api.elastic-cloud.com` is absent from the compiled firewall egress of every workflow.) The change-factory workflow opens spec-only PRs, so `.buildkite/acceptance.sh` skips the paid acceptance suite for PRs that touch only `docs/`, `dev-docs/`, `openspec/`, or `.changelog/` (keeping that required Buildkite context green without spending); the suite still runs the moment a PR also changes provider code. |
 | Local-stack ports (Elasticsearch `:9200`, Kibana `:5601`, Docker localstack) | **N/A** — unlike the Elastic Stack provider, the cloud provider has **no** local Docker stack; there is nothing to reach. Recorded here so these are not copied in out of habit when porting a stack-provider workflow. |
+
+## What threat detection sees
+
+gh-aw's `detection` job analyses the artifact directory it stages for the detector (the rendered
+prompt, `agent_output.json`, any patches, and any `comment-memory/*.md` files).
+
+`research-factory-issue` stages the comment it is about to post. Two
+`safe-outputs.threat-detection.steps` pre-steps check out `.github/scripts/workflows` (non-cone
+sparse checkout: that directory and `.git`, no other repository file) and run
+`research-factory/stage-detection-copy.js`, which computes the body with the publish handler's own
+`preparePublishedBody` from the draft at its canonical artifact path and writes it to
+`comment-memory/research-comment.md` in the detector's artifacts directory; the detector lists files
+there for analysis, and `safe-outputs.threat-detection.prompt` says what the file is. The copy is
+for inspection only: the publish job never reads it. The pre-steps have no `continue-on-error`, and
+the staging step fails when a comment was requested but its draft is not at the canonical path, or
+when the comment is larger than `MAX_ENV_PAYLOAD_BYTES`; a failed detection job posts nothing.
 
 ## Verifying / regenerating
 
@@ -176,5 +193,18 @@ a second workflow needs the same block, factor it into a shared fragment.
   evaluate to `''` (fails safe — label never consumed, even for members). Confirm the compiled lock
   still emits `activated: ${{ steps.check_membership.outputs.is_team_member == 'true' }}` — gh-aw's
   own usage of the same id — after the bump.
+  - **Detection pre-step pins:** every `uses:` inside `safe-outputs.threat-detection.steps` in
+    `research-factory-issue.md` is pinned to a SHA in the source, because gh-aw copies steps in that
+    list into the lock as written. On every bump, set each to the SHA gh-aw pins for the same action
+    elsewhere in the regenerated lock; the checkout and github-script pins must equal the ones the
+    `update_research_comment` job compiles to. `detection-staging-lock.test.mjs` fails
+    `make workflow-test` if any of them drifts.
+  - **Detection couplings:** the staging step relies on gh-aw running `threat-detection.steps` after
+    `Prepare threat detection files`, on `/tmp/gh-aw/threat-detection` being the detector's artifacts
+    directory, on the agent artifact landing under `/tmp/gh-aw/`, and on the detector listing
+    `comment-memory/*.md`. The first three are asserted by `detection-staging-lock.test.mjs`;
+    re-check the fourth against the `threat-detect` version the new lock installs. The checkout step
+    uses the default path because this workflow has no other checkout in the detection job; give it
+    a `path:` if the workflow ever gains a patch-producing safe output.
 - **Inspect egress:** assert on the compiled lock's `allowDomains` array (see *Network allowlist
   policy*). `gh aw domains` does not report it.
