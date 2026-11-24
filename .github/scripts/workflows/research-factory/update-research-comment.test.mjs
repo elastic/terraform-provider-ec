@@ -1771,4 +1771,35 @@ describe('update-research-comment runner', { concurrency: false }, () => {
 
     assert.match(failed[0], /failed to publish the research comment on #42: 403/);
   });
+
+  test('publishes the same bytes whether or not a detection copy exists', async () => {
+    const { stageDetectionCopy } = require('./stage-detection-copy.js');
+
+    const rootA = artifactWith(makeDraft());
+    const runA = mockGithub([]);
+    await withEnv(cleanEnv(rootA), () => handler({ github: runA.github, context, core: mockCore().core }));
+    assert.equal(runA.created.length, 1);
+    const bodyA = Buffer.from(runA.created[0].body, 'utf8');
+
+    // The copy sits inside the directory tree the handler searches.
+    const rootB = artifactWith(makeDraft());
+    const safeJobs = path.join(rootB, 'gh-aw', 'safe-jobs');
+    const staged = stageDetectionCopy({ sourceRoot: safeJobs, detectionDir: path.join(safeJobs, 'threat-detection') });
+    assert.equal(staged.status, 'staged');
+    const runB = mockGithub([]);
+    await withEnv(cleanEnv(rootB), () => handler({ github: runB.github, context, core: mockCore().core }));
+    assert.equal(runB.created.length, 1);
+    const bodyB = Buffer.from(runB.created[0].body, 'utf8');
+
+    assert.equal(Buffer.compare(bodyA, bodyB), 0);
+    assert.equal(Buffer.compare(fs.readFileSync(staged.stagedPath), bodyB), 0);
+
+    // With only the detection copy left, the handler finds no draft and publishes nothing.
+    fs.rmSync(path.join(safeJobs, 'agent', 'research', 'draft-final.md'));
+    const runC = mockGithub([]);
+    const coreC = mockCore();
+    await withEnv(cleanEnv(rootB), () => handler({ github: runC.github, context, core: coreC.core }));
+    assert.equal(runC.created.length + runC.updated.length, 0);
+    assert.match(coreC.failed[0], /no draft-final\.md/);
+  });
 });
