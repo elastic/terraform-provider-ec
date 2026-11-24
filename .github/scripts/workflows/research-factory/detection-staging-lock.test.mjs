@@ -19,6 +19,8 @@ const LINES = LOCK.split('\n');
 const PREPARE = 'Prepare threat detection files';
 const CHECKOUT = 'Checkout the publish handler for detection';
 const STAGE = 'Stage the research comment body for detection';
+const DOWNLOAD_INPUTS = 'Download research-factory grounding inputs for detection';
+const VERIFY_INPUTS = 'Verify research-factory grounding inputs for detection';
 const SETUP = 'Setup threat detection';
 const EXECUTE = 'Execute threat detection with AWF';
 
@@ -94,9 +96,22 @@ describe('research-factory lock: detection staging', () => {
     }
   });
 
+  test('the grounding-input steps run after the detector files are prepared and before the detector', () => {
+    const names = steps('detection').map((s) => s.name);
+    const order = [PREPARE, DOWNLOAD_INPUTS, VERIFY_INPUTS, SETUP, EXECUTE].map((name) => {
+      const index = names.indexOf(name);
+      assert.notEqual(index, -1, `detection job has no "${name}" step`);
+      return index;
+    });
+    for (let i = 1; i < order.length; i += 1) {
+      assert.ok(order[i - 1] < order[i], `step order broken: ${names.join(' | ')}`);
+    }
+  });
+
   test('every custom detection step pins its action to a SHA gh-aw pins elsewhere in the lock', () => {
     const custom = customDetectionSteps();
     assert.ok(custom.some((s) => s.name === CHECKOUT) && custom.some((s) => s.name === STAGE));
+    assert.ok(custom.some((s) => s.name === DOWNLOAD_INPUTS));
     for (const s of custom) {
       const line = s.lines.find((l) => /^\s+uses: /.test(l));
       if (!line) continue;
@@ -178,6 +193,7 @@ describe('research-factory lock: detection staging', () => {
     assert.equal(prompts.length, 2);
     for (const line of prompts) {
       assert.ok(line.includes('comment-memory/research-comment.md'));
+      assert.ok(line.includes('/tmp/gh-aw/threat-detection/grounding-inputs/'));
     }
   });
 

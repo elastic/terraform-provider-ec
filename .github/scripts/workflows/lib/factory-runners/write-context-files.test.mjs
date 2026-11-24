@@ -12,6 +12,7 @@ const { sanitizeUserContent } = require('../sanitize-context.js');
 
 const FACTORY_NAME = 'research-factory';
 const CONTEXT_DIR = `/tmp/${FACTORY_NAME}-context`;
+const DETECTION_DIR = `/tmp/${FACTORY_NAME}-detection-inputs`;
 
 async function withEnv(vars, fn) {
   const previous = {};
@@ -33,6 +34,7 @@ async function withEnv(vars, fn) {
 describe('write-context-files', { concurrency: false }, () => {
   after(() => {
     fs.rmSync(CONTEXT_DIR, { recursive: true, force: true });
+    fs.rmSync(DETECTION_DIR, { recursive: true, force: true });
   });
 
   test('writes sanitized body, comments, and prior comment, and leaves GITHUB_OUTPUT empty', async () => {
@@ -73,6 +75,23 @@ describe('write-context-files', { concurrency: false }, () => {
       assert.equal(fs.readFileSync(`${CONTEXT_DIR}/issue_comments.md`, 'utf8'), sanitizeUserContent(comments));
       assert.equal(fs.readFileSync(`${CONTEXT_DIR}/prior_research_comment.md`, 'utf8'), sanitizeUserContent(prior));
       assert.equal(fs.readFileSync(`${CONTEXT_DIR}/issue_body.md`, 'utf8').includes('<!--'), false);
+
+      // Detection-inputs copies are byte-identical to the context-dir files, plus a census.
+      for (const name of ['issue_body.md', 'issue_comments.md', 'prior_research_comment.md']) {
+        assert.equal(
+          Buffer.compare(
+            fs.readFileSync(`${CONTEXT_DIR}/${name}`),
+            fs.readFileSync(`${DETECTION_DIR}/${name}`),
+          ),
+          0,
+          `${name} differs between context and detection dirs`,
+        );
+      }
+      assert.ok(fs.existsSync(`${DETECTION_DIR}/census.md`));
+      assert.ok(
+        fs.readFileSync(`${DETECTION_DIR}/census.md`, 'utf8').startsWith('# Grounding-input census'),
+      );
+
       assert.equal(fs.readFileSync(outputFile, 'utf8'), '');
       const logged = infos.join('\n');
       assert.equal(logged.includes(body), false);
@@ -104,5 +123,6 @@ describe('write-context-files', { concurrency: false }, () => {
       /Unknown FACTORY_NAME/,
     );
     assert.equal(fs.existsSync('/etc-context'), false);
+    assert.equal(fs.existsSync('/etc-detection-inputs'), false);
   });
 });

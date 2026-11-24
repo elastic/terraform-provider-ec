@@ -174,6 +174,13 @@ for inspection only: the publish job never reads it. The pre-steps have no `cont
 the staging step fails when a comment was requested but its draft is not at the canonical path, or
 when the comment is larger than `MAX_ENV_PAYLOAD_BYTES`; a failed detection job posts nothing.
 
+It also stages its issue context files (issue body, comment history, prior research comment) plus
+a `census.md` summary as the `research-factory-detection-inputs` artifact. A
+`safe-outputs.threat-detection.steps` pre-step downloads it into the detector's artifacts directory,
+and `safe-outputs.threat-detection.prompt` points the detector at it. The staged copies are bounded by
+the existing byte clamps (`MAX_ENV_PAYLOAD_BYTES`, `COMMENT_CONTEXT_BUDGET`); the census is bounded
+by `CENSUS_MAX_BYTES`.
+
 ## Verifying / regenerating
 
 - **Reproducibility (AC):** `make workflow-generate` followed by
@@ -203,8 +210,11 @@ when the comment is larger than `MAX_ENV_PAYLOAD_BYTES`; a failed detection job 
     `Prepare threat detection files`, on `/tmp/gh-aw/threat-detection` being the detector's artifacts
     directory, on the agent artifact landing under `/tmp/gh-aw/`, and on the detector listing
     `comment-memory/*.md`. The first three are asserted by `detection-staging-lock.test.mjs`;
-    re-check the fourth against the `threat-detect` version the new lock installs. The checkout step
-    uses the default path because this workflow has no other checkout in the detection job; give it
-    a `path:` if the workflow ever gains a patch-producing safe output.
+    re-check the fourth against the `threat-detect` version the new lock installs. The same test
+    asserts that `Download research-factory grounding inputs for detection` and `Verify
+    research-factory grounding inputs for detection` also run between `Prepare threat detection
+    files` and `Setup threat detection`. The checkout step uses the default path because this
+    workflow has no other checkout in the detection job; give it a `path:` if the workflow ever
+    gains a patch-producing safe output.
 - **Inspect egress:** assert on the compiled lock's `allowDomains` array (see *Network allowlist
   policy*). `gh aw domains` does not report it.

@@ -39,4 +39,8 @@ function getFactoryContextDir() {
   return `/tmp/${getFactoryName()}-context`;
 }
 
-module.exports = { getFactoryName, getFactoryConstants, getFactoryModule, getFactoryContextDir };
+function getFactoryDetectionInputsDir() {
+  return `/tmp/${getFactoryName()}-detection-inputs`;
+}
+
+module.exports = { getFactoryName, getFactoryConstants, getFactoryModule, getFactoryContextDir, getFactoryDetectionInputsDir };
