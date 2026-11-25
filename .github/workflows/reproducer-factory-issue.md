@@ -427,8 +427,9 @@ safe-outputs:
         issues: write
       if: needs.detection.result == 'success' && (needs.detection.outputs.detection_conclusion == 'success' || needs.detection.outputs.detection_conclusion == 'skipped')
       # The repro directory, so an emitted unit test / `.tf` and the final draft survive a timeout and
-      # are reviewable. A directory entry is expanded into a fixed extension allowlist (*.md *.go *.tf
-      # *.json ...), so the agent must write those extensions.
+      # are reviewable. A directory entry is expanded into gh-aw's fixed extension list (*.md *.txt
+      # *.json ..., the same list its secret redactor rewrites). `.go` and `.tf` are not in it, so the
+      # agent saves code with a `.txt` suffix; see the note before the top-level `jobs:` key.
       artifacts:
         - "/tmp/gh-aw/agent/repro/"
       # No inputs: the resolved draft path is the contract. The safe-output gateway caps string inputs
@@ -498,14 +499,14 @@ steps:
       echo "GOPATH=$(go env GOPATH)" >> "$GITHUB_ENV"
       echo "GOMODCACHE=$(go env GOMODCACHE)" >> "$GITHUB_ENV"
     shell: bash
-post-steps:
-  - name: Upload reproduction artifact
-    uses: actions/upload-artifact@v7.0.2
-    with:
-      name: reproducer-factory-repro
-      path: /tmp/gh-aw/agent/repro/
-      if-no-files-found: ignore
-    if: always()
+# No post-steps upload of the repro directory, deliberately. gh-aw's "Redact secrets in logs" step
+# rewrites a fixed list of extensions (.txt .json .log .md .mdx .yml .jsonl .patch .html in v0.92.0)
+# and its `agent` artifact, gated on that step succeeding, carries exactly those extensions from the
+# directory named under `artifacts:` above. A separate upload of the whole directory would publish
+# `.go` and `.tf` files the redactor never opened, and a post-step cannot redact them itself: gh-aw
+# refuses secrets in post-steps, so the exact secret values are not available there. The prompt
+# therefore has the agent save code as `<name>.go.txt` / `<name>.tf.txt`, which the redactor covers
+# and the `agent` artifact includes. A file saved under another extension is simply not uploaded.
 jobs:
   pre-activation:
     outputs:
@@ -624,6 +625,8 @@ Emit the pull request **before** the comment, and still emit the comment.
 ## Artifacts
 
 Write anything else you emit (a unit test, a `.tf` repro) to `/tmp/gh-aw/agent/repro/` **and** inline it in the comment in a fenced block. Those never go into the pull request: a unit test you wrote next to the suspect code must not be committed on the repro branch. Also copy the repro test file to `/tmp/gh-aw/agent/repro/` so it survives if the pull request is rejected.
+
+Every file you save there must end in `.txt` or `.md`: save Go as `<name>.go.txt` and Terraform as `<name>.tf.txt`. Files with those extensions are scanned for secrets and uploaded with the run's `agent` artifact; a file saved as `.go` or `.tf` in that directory is not uploaded at all. Never write a token, key, password or any value taken from an environment variable into any file.
 
 ## Comment budget
 

@@ -131,6 +131,84 @@ test('the workflow runs on Claude through OpenRouter, not on the Copilot default
   assert.ok(lock.includes('OPENROUTER_API_KEY'));
 });
 
+// The extensions gh-aw v0.92.0's redact_secrets.cjs rewrites. Re-read that file on a gh-aw bump: an
+// extension dropped from its list but still uploaded would be published unredacted.
+const REDACTED_EXTENSIONS = ['.txt', '.json', '.log', '.md', '.mdx', '.yml', '.jsonl', '.patch', '.html'];
+const REPRO_DIR = '/tmp/gh-aw/agent/repro/';
+
+/** The `path:` entries of an upload-artifact step, one per line, without negations. */
+function uploadPaths(step) {
+  const lines = step.split('\n');
+  const start = lines.findIndex((line) => /^\s+path:/.test(line));
+  if (start === -1) return [];
+  const inline = /^\s+path:\s*(\S.*)$/.exec(lines[start]);
+  if (inline && inline[1] !== '|') return [inline[1].trim()];
+  const indent = /^(\s+)path:/.exec(lines[start])[1].length;
+  const paths = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.trim() === '') continue;
+    if (/^\s*/.exec(line)[0].length <= indent) break;
+    if (!line.trim().startsWith('!')) paths.push(line.trim());
+  }
+  return paths;
+}
+
+/** True when uploading `uploadPath` could take a file out of the repro directory. */
+function reachesReproDir(uploadPath) {
+  const literal = uploadPath.split(/[*?[{]/)[0];
+  // The path is inside the directory, or is the directory or one of its parents.
+  return literal.startsWith(REPRO_DIR) || REPRO_DIR.startsWith(literal.endsWith('/') ? literal : `${literal}/`);
+}
+
+test('nothing from the repro directory is uploaded without passing the secret redactor', () => {
+  // gh-aw's "Redact secrets in logs" step rewrites a fixed list of extensions, and `.go` / `.tf` are
+  // not on it. The directory is where the agent saves the unit test and `.tf` it wrote, so the only
+  // safe way to publish from it is gh-aw's own `agent` upload, which lists the directory one
+  // redacted extension at a time and is gated on the redaction step. A step that uploaded the whole
+  // directory, a parent of it, or a glob for another extension would publish files the redactor
+  // never opened.
+  const agent = jobBlock('agent');
+  assert.match(agent, /^      - name: Redact secrets in logs\n        id: redact_secrets\n/m);
+
+  const uploads = lock.split(/\n(?=      - )/).filter((step) => /uses: actions\/upload-artifact@/.test(step));
+  assert.ok(uploads.length > 0);
+  const fromRepro = uploads.filter((step) => uploadPaths(step).some(reachesReproDir));
+  assert.equal(fromRepro.length, 1, 'exactly one step may upload from the repro directory');
+  const [upload] = fromRepro;
+  assert.ok(agent.includes(upload.split('\n')[0]), 'the upload is not in the agent job');
+  assert.match(upload, /^\s+name: agent$/m);
+  assert.match(upload, /if: always\(\) && steps\.redact_secrets\.outcome == 'success'/);
+
+  const extensions = uploadPaths(upload).filter(reachesReproDir).map((uploadPath) => {
+    const match = /^\/tmp\/gh-aw\/agent\/repro\/\*\*\/\*(\.[a-z]+)$/.exec(uploadPath);
+    assert.ok(match, `the repro directory is uploaded by something other than an extension glob: ${uploadPath}`);
+    return match[1];
+  });
+  for (const extension of extensions) {
+    assert.ok(REDACTED_EXTENSIONS.includes(extension), `${extension} files would be uploaded unredacted`);
+  }
+  // The extensions the prompt tells the agent to use must be among those uploaded.
+  assert.ok(extensions.includes('.txt'));
+  assert.ok(extensions.includes('.md'));
+});
+
+test('reachesReproDir sees the directory, its parents and its contents, and nothing else', () => {
+  for (const hit of ['/tmp/gh-aw/agent/repro/', '/tmp/gh-aw/agent/repro', '/tmp/gh-aw/agent/', '/tmp/gh-aw/agent/**',
+    '/tmp/gh-aw/', '/tmp/gh-aw/**/*.go', '/tmp/', '/tmp/gh-aw/agent/repro/**/*.go', '/tmp/gh-aw/agent/repro/x.tf']) {
+    assert.equal(reachesReproDir(hit), true, hit);
+  }
+  for (const miss of ['/tmp/gh-aw/agent_output.json', '/tmp/gh-aw/agent/model-endpoint-mismatch.json',
+    '/tmp/gh-aw/mcp-logs/', '/tmp/gh-aw/aw-*.patch', '/tmp/gh-aw/agent-stdio.log', '/tmp/gh-aw/agent/reproducer.txt']) {
+    assert.equal(reachesReproDir(miss), false, miss);
+  }
+});
+
+test('the prompt has the agent save code under an extension the redactor covers', () => {
+  const md = readFileSync(path.join(repoRoot, '.github/workflows/reproducer-factory-issue.md'), 'utf8');
+  assert.match(md, /save Go as `<name>\.go\.txt` and Terraform as `<name>\.tf\.txt`/);
+  assert.match(md, /a file saved as `\.go` or `\.tf` in that directory is not uploaded at all/);
+});
+
 test('the pull request author has no standing with Buildkite, as far as the repository can tell', () => {
   // Buildkite builds a PR on open for an author who is in allowed_list, is an org member
   // (allow_org_users), or has one of allowed_repo_permissions. The factory's PRs are opened with
