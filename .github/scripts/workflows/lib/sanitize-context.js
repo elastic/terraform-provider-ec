@@ -131,6 +131,41 @@ function findResearchComment(comments, marker, botLogin = 'github-actions[bot]')
   return matches.length > 0 ? matches[matches.length - 1] : null;
 }
 
+/**
+ * An `@` that could start a GitHub @mention, in any spelling that renders as one: the character
+ * itself or an HTML character reference for it (`&#64;`, `&#x40;`, `&commat;`), followed by a
+ * character a handle can start with or by `&`, since the first handle character can itself be
+ * written as a character reference (`@&#111;ctocat`). An `@` directly after a letter or digit is left alone, which is
+ * what keeps an email address (`user@host`) intact; GitHub does not treat that as a mention either.
+ */
+const MENTION_AT_RE = /(?<![A-Za-z0-9])(@|&#0*64;|&#[xX]0*40;|&commat;)(?=[A-Za-z0-9&])/g;
+
+/** U+200B ZERO WIDTH SPACE. Invisible when rendered; `@<ZWSP>handle` is not a mention. */
+const ZERO_WIDTH_SPACE = '\u200B';
+
+/**
+ * Neutralises @mentions so a bot comment that quotes attacker-controlled issue text cannot turn into
+ * a mass ping. A zero-width space is inserted after every `@` that could start a mention, the same
+ * way dependency bots defuse the mentions they quote, so the text reads the same and notifies no one.
+ *
+ * This deliberately parses no markdown. An earlier version skipped fenced blocks and inline-code
+ * spans and wrapped the rest in backticks; every disagreement between that parser and GitHub's
+ * (an info string on a closing fence, a shorter closing fence, an unbalanced backtick, a code span
+ * across two lines) was a way to get a live mention through. Rewriting every occurrence has no such
+ * cases. The cost is an invisible character after an `@` inside quoted code.
+ *
+ * Idempotent: a neutralised `@` is no longer followed by a handle character.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function neutralizeMentions(text) {
+  if (typeof text !== 'string') {
+    return '';
+  }
+  return text.replace(MENTION_AT_RE, `$1${ZERO_WIDTH_SPACE}`);
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     stripHtmlComments,
@@ -139,6 +174,10 @@ if (typeof module !== 'undefined') {
     sanitizeUserContent,
     sanitizeForConcatenation,
     SANITIZE_FIXED_POINT_MAX_PASSES,
+    neutralizeMentions,
     findResearchComment,
+    // Forward name: the bot+marker lookup is not research-specific. New callers use this;
+    // findResearchComment stays exported for the landed research-factory handlers.
+    findBotCommentByMarker: findResearchComment,
   };
 }

@@ -160,6 +160,19 @@ test('pull_request rename out of .github/ via previous_filename → workflow_cha
   assert.equal(outputs.workflow_changes, 'true');
 });
 
+test('pull_request with only a .buildkite/ script → workflow_changes=true', async () => {
+  const { outputs, core } = mockCore();
+  await classifyChanges({
+    github: {
+      paginate: async () => [{ filename: '.buildkite/acceptance-test-selection.sh' }],
+      rest: { pulls: { listFiles: {} } },
+    },
+    context: baseContext('pull_request'),
+    core,
+  });
+  assert.equal(outputs.workflow_changes, 'true');
+});
+
 test('pull_request with only build/Makefile.test → workflow_changes=true', async () => {
   const { outputs, core } = mockCore();
   await classifyChanges({
