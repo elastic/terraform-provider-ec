@@ -82,10 +82,10 @@ Two things keep this true:
 clicking **Update branch**, the PR bot can create a build for that push, and it runs. Read the test
 before pushing to the branch, as you would before commenting.
 
-What a build started by a `buildkite test this` comment looks like to the rule has not been observed
-yet: no such build exists in this pipeline's recent history. The rule expects it to come from the PR
-bot with the commenter named as requester, like the bot's other builds. If it does not, the build is
-refused, and the rule needs adjusting.
+A build started by a `buildkite test this` comment has been observed on a bot-authored pull request
+from a branch of this repository (Buildkite build 3475): the PR bot creates it, with source `api`,
+the branch named `elastic:<branch>`, and the commenter in `GITHUB_PR_TRIGGER_USER`. That is the shape
+the refusal rule lets through.
 
 ## A repro pull request runs one test, until it stops being one
 
