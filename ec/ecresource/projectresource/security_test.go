@@ -578,6 +578,55 @@ func TestSecurityApi_Create(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send search_lake data_retention in create request",
+			testData: func(ctx context.Context) testData {
+				initialModel := resource_security_project.SecurityProjectModel{
+					Name:       types.StringValue("project name"),
+					RegionId:   types.StringValue("nether region"),
+					SearchLake: testSecuritySearchLakeRetention(ctx, basetypes.NewInt64Value(90), basetypes.NewInt64Value(365)),
+				}
+				createdProject := serverless.SecurityProjectCreated{
+					Id: "created id",
+					Credentials: serverless.ProjectCredentials{
+						Username: "project username",
+						Password: "sekret",
+					},
+				}
+				expectedProject := initialModel
+				expectedProject.Id = types.StringValue(createdProject.Id)
+				expectedProject.Credentials = resource_security_project.NewCredentialsValueMust(
+					initialModel.Credentials.AttributeTypes(ctx),
+					map[string]attr.Value{
+						"username": types.StringValue(createdProject.Credentials.Username),
+						"password": types.StringValue(createdProject.Credentials.Password),
+					},
+				)
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().CreateSecurityProjectWithResponse(ctx, gomock.Any(), serverless.CreateSecurityProjectRequest{
+					Name:     initialModel.Name.ValueString(),
+					RegionId: initialModel.RegionId.ValueString(),
+					SearchLake: &serverless.SecuritySearchLake{
+						DataRetention: &serverless.DataRetention{
+							DefaultRetentionDays: new(90),
+							MaxRetentionDays:     new(365),
+						},
+					},
+				}).Return(
+					&serverless.CreateSecurityProjectResponse{
+						JSON201: &createdProject,
+					},
+					nil,
+				)
+
+				return testData{
+					client:        mockApiClient,
+					initialModel:  initialModel,
+					expectedModel: expectedProject,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -786,6 +835,66 @@ func TestSecurityApi_Patch(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "should send search_lake data_retention on patch when it changes",
+			testData: func(ctx context.Context) testData {
+				planModel := resource_security_project.SecurityProjectModel{
+					Id:         types.StringValue("project id"),
+					Name:       types.StringValue("project name"),
+					RegionId:   types.StringValue("nether region"),
+					SearchLake: testSecuritySearchLakeRetention(ctx, basetypes.NewInt64Value(90), basetypes.NewInt64Unknown()),
+				}
+				stateModel := planModel
+				stateModel.SearchLake = testSecuritySearchLakeRetention(ctx, basetypes.NewInt64Value(396), basetypes.NewInt64Value(396))
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().PatchSecurityProjectWithResponse(ctx, planModel.Id.ValueString(), nil, serverless.PatchSecurityProjectRequest{
+					Name: planModel.Name.ValueStringPointer(),
+					SearchLake: &serverless.OptionalSecuritySearchLake{
+						DataRetention: &serverless.DataRetention{
+							DefaultRetentionDays: new(90),
+						},
+					},
+				}).Return(
+					&serverless.PatchSecurityProjectResponse{
+						JSON200: &serverless.SecurityProject{},
+					},
+					nil,
+				)
+
+				return testData{
+					client:     mockApiClient,
+					model:      planModel,
+					patchState: &stateModel,
+				}
+			},
+		},
+		{
+			name: "should not send search_lake on patch when it is unchanged",
+			testData: func(ctx context.Context) testData {
+				model := resource_security_project.SecurityProjectModel{
+					Id:         types.StringValue("project id"),
+					Name:       types.StringValue("project name"),
+					RegionId:   types.StringValue("nether region"),
+					SearchLake: testSecuritySearchLakeRetention(ctx, basetypes.NewInt64Value(90), basetypes.NewInt64Value(365)),
+				}
+
+				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
+				mockApiClient.EXPECT().PatchSecurityProjectWithResponse(ctx, model.Id.ValueString(), nil, serverless.PatchSecurityProjectRequest{
+					Name: model.Name.ValueStringPointer(),
+				}).Return(
+					&serverless.PatchSecurityProjectResponse{
+						JSON200: &serverless.SecurityProject{},
+					},
+					nil,
+				)
+
+				return testData{
+					client: mockApiClient,
+					model:  model,
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -958,6 +1067,20 @@ func testSecuritySearchLakeEmptyKnown(ctx context.Context) resource_security_pro
 		map[string]attr.Value{
 			"default_retention_days": basetypes.NewInt64Null(),
 			"max_retention_days":     basetypes.NewInt64Null(),
+		},
+	)
+	return resource_security_project.NewSearchLakeValueMust(
+		resource_security_project.SearchLakeValue{}.AttributeTypes(ctx),
+		map[string]attr.Value{"data_retention": drObj},
+	)
+}
+
+func testSecuritySearchLakeRetention(ctx context.Context, defaultDays, maxDays basetypes.Int64Value) resource_security_project.SearchLakeValue {
+	drObj := types.ObjectValueMust(
+		resource_security_project.DataRetentionValue{}.AttributeTypes(ctx),
+		map[string]attr.Value{
+			"default_retention_days": defaultDays,
+			"max_retention_days":     maxDays,
 		},
 	)
 	return resource_security_project.NewSearchLakeValueMust(
