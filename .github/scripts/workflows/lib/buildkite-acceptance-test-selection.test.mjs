@@ -258,6 +258,130 @@ describe('acceptance test selection', () => {
     );
   });
 
+  // ── the two sources of builds name the branch differently ───
+
+  /** The variables Elastic's PR bot sets on a build it creates for a same-repository branch. */
+  const botBuild = (branch, extra = {}) => ({
+    BUILDKITE_SOURCE: 'api',
+    BUILDKITE_BRANCH: `elastic:${branch}`,
+    GITHUB_PR_BRANCH: branch,
+    GITHUB_PR_OWNER: 'elastic',
+    GITHUB_PR_BASE_OWNER: 'elastic',
+    GITHUB_PR_TARGET_BRANCH: 'master',
+    GITHUB_PR_USER: BOT,
+    GITHUB_PR_TRIGGER_USER: 'a-maintainer',
+    ...extra,
+  });
+
+  const selectWith = (env) =>
+    withRepo({ branch: branchFor(42), commits: [factoryCommit(42)] }, (work) => select(work, env));
+
+  test('a build the PR bot created for the repro branch narrows', () => {
+    // The `buildkite test this` path: the bot names the branch `elastic:<branch>`.
+    assert.equal(selectWith(botBuild(branchFor(42))), '^TestAccReproduceIssue42$');
+  });
+
+  test('a fork branch with the factory name runs the full suite', () => {
+    assert.equal(
+      selectWith(botBuild(branchFor(42), { BUILDKITE_BRANCH: `someone:${branchFor(42)}`, GITHUB_PR_OWNER: 'someone' })),
+      '',
+    );
+  });
+
+  test('PR-bot variables that disagree with each other run the full suite', () => {
+    assert.equal(selectWith(botBuild(branchFor(42), { BUILDKITE_BRANCH: 'elastic:other-branch' })), '');
+    assert.equal(selectWith(botBuild(branchFor(42), { GITHUB_PR_OWNER: undefined })), '');
+    assert.equal(selectWith(botBuild(branchFor(42), { GITHUB_PR_BASE_OWNER: undefined })), '');
+    assert.equal(selectWith(botBuild(branchFor(42), { GITHUB_PR_BRANCH: branchFor(43) })), '');
+  });
+
+  test('a pull request into a branch other than master is never narrowed', () => {
+    // The pipeline does not rebuild when a pull request is retargeted, so a narrowed green earned
+    // against another base would survive the move to master.
+    assert.equal(selectWith(botBuild(branchFor(42), { GITHUB_PR_TARGET_BRANCH: 'release' })), '');
+    assert.equal(
+      withRepo({ branch: branchFor(42), commits: [factoryCommit(42)] }, (work) => {
+        git(work, ['push', '--quiet', 'origin', 'master:release']);
+        return select(work, { BUILDKITE_BRANCH: branchFor(42), BUILDKITE_PULL_REQUEST_BASE_BRANCH: 'release' });
+      }),
+      '',
+    );
+    assert.equal(selectWith({ BUILDKITE_BRANCH: branchFor(42), BUILDKITE_PULL_REQUEST_BASE_BRANCH: undefined }), '');
+  });
+
+  // ── nothing runs on a repro branch unless a person asked ────
+
+  /** True when reproducer_factory_build_refused returns 0 for this environment. */
+  function refused(env) {
+    try {
+      execFileSync(
+        'bash',
+        ['-c', 'set -euo pipefail; source "$1"; if reproducer_factory_build_refused; then exit 0; else exit 3; fi', 'bash', SCRIPT],
+        { stdio: 'ignore', env: { PATH: process.env.PATH, ...Object.fromEntries(Object.entries(env).filter(([, v]) => v !== undefined)) } },
+      );
+      return true;
+    } catch (error) {
+      assert.equal(error.status, 3, `reproducer_factory_build_refused did not return cleanly: ${error.message}`);
+      return false;
+    }
+  }
+
+  test('the webhook build of a repro pull request is refused', () => {
+    // What Buildkite starts by itself two seconds after the factory opens the pull request.
+    assert.equal(refused({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: branchFor(42), BUILDKITE_PULL_REQUEST: '7' }), true);
+    assert.equal(refused({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: branchFor(42), BUILDKITE_PULL_REQUEST: 'false' }), true);
+  });
+
+  test('a build a maintainer asked the PR bot for is not refused', () => {
+    assert.equal(refused(botBuild(branchFor(42))), false);
+    assert.equal(refused(botBuild(branchFor(42), { BUILDKITE_SOURCE: 'ui' })), false);
+  });
+
+  test('a repro branch build with no person behind it is refused, whatever its source', () => {
+    for (const env of [
+      botBuild(branchFor(42), { GITHUB_PR_TRIGGER_USER: BOT }),
+      botBuild(branchFor(42), { GITHUB_PR_TRIGGER_USER: 'renovate[bot]' }),
+      botBuild(branchFor(42), { GITHUB_PR_TRIGGER_USER: '' }),
+      botBuild(branchFor(42), { GITHUB_PR_TRIGGER_USER: undefined }),
+      botBuild(branchFor(42), { BUILDKITE_SOURCE: 'webhook' }),
+      botBuild(branchFor(42), { BUILDKITE_SOURCE: 'schedule' }),
+      botBuild(branchFor(42), { BUILDKITE_SOURCE: 'trigger_job' }),
+      botBuild(branchFor(42), { BUILDKITE_SOURCE: undefined }),
+      // A person starting a build from the Buildkite UI on the plain branch: no PR-bot variables.
+      { BUILDKITE_SOURCE: 'ui', BUILDKITE_BRANCH: branchFor(42) },
+      { BUILDKITE_SOURCE: 'api', BUILDKITE_BRANCH: branchFor(42) },
+    ]) {
+      assert.equal(refused(env), true, JSON.stringify(env));
+    }
+  });
+
+  test('the repro branch is recognised broadly when deciding to refuse', () => {
+    // Refusing errs the other way from narrowing: any owner, any suffix, either variable.
+    for (const env of [
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'reproducer-factory/issue-42-fix' },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'reproducer-factory/anything' },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: `someone:${branchFor(42)}` },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'elastic:other', GITHUB_PR_BRANCH: branchFor(42) },
+    ]) {
+      assert.equal(refused(env), true, JSON.stringify(env));
+    }
+  });
+
+  test('builds on other branches are never refused', () => {
+    for (const env of [
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'master' },
+      { BUILDKITE_SOURCE: 'schedule', BUILDKITE_BRANCH: 'master' },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'change-factory/issue-42' },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'code-factory/issue-42' },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'feature/reproducer-factory/issue-42' },
+      { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'reproducer-factory' },
+      { BUILDKITE_SOURCE: 'webhook' },
+      botBuild('renovate/actions-checkout-7.x', { GITHUB_PR_TRIGGER_USER: 'renovate[bot]' }),
+    ]) {
+      assert.equal(refused(env), false, JSON.stringify(env));
+    }
+  });
+
   // ── bringing the pull request up to date ────────────────────
 
   /** The factory PR, then `master` moves on, then `who` merges master into the branch. */
@@ -748,6 +872,27 @@ describe('acceptance test selection', () => {
     );
   });
 
+  test('a text-only pull request into a branch other than master still skips the suite', () => {
+    // A backport of documentation must not run the paid suite. Only the narrowing rule is tied to
+    // master; this one diffs against whatever base the pull request names.
+    const commits = [{ files: { 'docs/a.md': 'a\n' }, author: HUMAN }];
+    assert.equal(
+      withRepo({ branch: 'some-pr', commits }, (work) => {
+        git(work, ['push', '--quiet', 'origin', 'master:release']);
+        return runDocsOnly(work, { BUILDKITE_PULL_REQUEST_BASE_BRANCH: 'release' });
+      }),
+      true,
+    );
+    // A code change against that base still runs it.
+    assert.equal(
+      withRepo({ branch: 'some-pr', commits: [{ files: { 'docs/a.md': 'a\n', 'ec/x.go': 'package ec\n' }, author: HUMAN }] }, (work) => {
+        git(work, ['push', '--quiet', 'origin', 'master:release']);
+        return runDocsOnly(work, { BUILDKITE_PULL_REQUEST_BASE_BRANCH: 'release' });
+      }),
+      false,
+    );
+  });
+
   test('the suite is never skipped when the build is not a pull request, the base is missing, or nothing changed', () => {
     const commits = [{ files: { 'docs/a.md': 'a\n' }, author: HUMAN }];
     assert.equal(docsOnly({ commits, env: { BUILDKITE_PULL_REQUEST: 'false' } }), false);
@@ -757,6 +902,64 @@ describe('acceptance test selection', () => {
   });
 
   // ── wiring ──────────────────────────────────────────────────
+
+  test('acceptance.sh refuses an unrequested repro build before anything from the branch is compiled', () => {
+    const acceptance = readFileSync(ACCEPTANCE, 'utf8');
+    const source = acceptance.indexOf('acceptance-test-selection.sh"');
+    const refuse = acceptance.indexOf('if reproducer_factory_build_refused; then');
+    assert.ok(source !== -1 && refuse > source);
+    // Nothing that compiles or runs Go, and no other rule, comes before it.
+    for (const later of ['if docs_only_pr; then', 'make vendor', 'go run', 'make testacc']) {
+      const at = acceptance.indexOf(later);
+      assert.ok(at > refuse, `${later} comes before the refusal`);
+    }
+    // It fails the step and keeps the pre-exit sweep, which compiles the same package, from running.
+    const block = acceptance.slice(refuse, acceptance.indexOf('\nfi\n', refuse));
+    assert.match(block, /touch \.buildkite\/\.skip-acceptance-sweep\n\s*exit 1$/);
+    const hook = readFileSync(path.join(repoRoot, '.buildkite/hooks/pre-exit'), 'utf8');
+    assert.match(hook, /if \[\[ -f \.buildkite\/\.skip-acceptance-sweep \]\]; then[\s\S]*?exit 0/);
+  });
+
+  /** Runs the pre-exit hook in a scratch checkout with a fake `make`; returns what it printed. */
+  function runPreExit(env, { marker = false } = {}) {
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'acc-pre-exit-'));
+    try {
+      mkdirSync(path.join(dir, '.buildkite/hooks'), { recursive: true });
+      mkdirSync(path.join(dir, 'bin-fake'));
+      writeFileSync(path.join(dir, '.buildkite/acceptance-test-selection.sh'), readFileSync(SCRIPT));
+      writeFileSync(path.join(dir, '.buildkite/hooks/pre-exit'), readFileSync(path.join(repoRoot, '.buildkite/hooks/pre-exit')));
+      writeFileSync(path.join(dir, 'bin-fake/make'), '#!/bin/bash\necho "FAKE-MAKE $*"\n', { mode: 0o755 });
+      if (marker) writeFileSync(path.join(dir, '.buildkite/.skip-acceptance-sweep'), '');
+      return execFileSync('bash', ['.buildkite/hooks/pre-exit'], {
+        cwd: dir,
+        encoding: 'utf8',
+        env: {
+          PATH: `${path.join(dir, 'bin-fake')}:${process.env.PATH}`,
+          BUILDKITE_STEP_KEY: 'acceptance-tests',
+          TERRAFORM_PROVIDER_API_KEY_SECRET: 'not-a-real-key',
+          ...Object.fromEntries(Object.entries(env).filter(([, v]) => v !== undefined)),
+        },
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  test('the pre-exit sweep is held back on a refused repro build even without the marker file', () => {
+    // A job cancelled before acceptance.sh wrote the marker still reaches this hook, and the sweep
+    // compiles the agent-written test with the live key.
+    const webhook = { BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: branchFor(42) };
+    assert.doesNotMatch(runPreExit(webhook), /FAKE-MAKE/);
+    assert.match(runPreExit(webhook), /Skip sweep/);
+    // A build a person asked for sweeps as usual, and so does every other branch.
+    assert.match(runPreExit(botBuild(branchFor(42))), /FAKE-MAKE sweep/);
+    assert.match(runPreExit({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'master' }), /FAKE-MAKE sweep/);
+    assert.match(runPreExit({ BUILDKITE_SOURCE: 'schedule', BUILDKITE_BRANCH: 'master' }), /FAKE-MAKE sweep/);
+    // The marker written by acceptance.sh still works on its own.
+    assert.doesNotMatch(runPreExit({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'master' }, { marker: true }), /FAKE-MAKE/);
+    // Another step's pre-exit does nothing.
+    assert.equal(runPreExit({ BUILDKITE_STEP_KEY: 'other', BUILDKITE_BRANCH: branchFor(42) }), '');
+  });
 
   test('acceptance.sh takes the skip rule from the script, before anything paid runs', () => {
     const acceptance = readFileSync(ACCEPTANCE, 'utf8');

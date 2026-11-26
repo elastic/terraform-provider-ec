@@ -17,6 +17,21 @@ set -euo pipefail
 # shellcheck source=.buildkite/acceptance-test-selection.sh
 source "$(dirname "${BASH_SOURCE[0]}")/acceptance-test-selection.sh"
 
+# First, before anything from the branch is compiled: a reproducer-factory branch runs nothing unless
+# a person asked for this build. The sweep in the pre-exit hook compiles the same package, so it is
+# skipped too. The step fails rather than passes: a green required check must not appear on a pull
+# request whose test nobody has run.
+if reproducer_factory_build_refused; then
+  echo "+++ Not running acceptance tests: nobody has asked for this build"
+  echo "This is a reproducer-factory branch. Its acceptance test was written by an automated agent"
+  echo "and runs with a live Elastic Cloud credential, so nothing runs until a person asks."
+  echo "Read the test file first, then comment 'buildkite test this' on the pull request."
+  echo "A push to the branch by a person with standing, including 'Update branch', can also start"
+  echo "the run, so read the test before doing either."
+  touch .buildkite/.skip-acceptance-sweep
+  exit 1
+fi
+
 if docs_only_pr; then
   echo "--- Skip acceptance tests (docs/dev-docs/openspec/changelog only)"
   # pre-exit still runs; skip sweep so a leftover cleanup failure cannot fail the required check.

@@ -1,7 +1,25 @@
 #!/bin/bash
 # Sourced by .buildkite/acceptance.sh. Decides whether a build runs the whole acceptance suite, one
-# named test, or (docs_only_pr) nothing. Kept apart from acceptance.sh so the decision can be tested without running
-# anything paid: see .github/scripts/workflows/lib/buildkite-acceptance-test-selection.test.mjs.
+# named test, nothing because the change is text only (docs_only_pr), or nothing because nobody
+# asked for the run (reproducer_factory_build_refused). Kept apart from acceptance.sh so the
+# decisions can be tested without running anything paid: see
+# .github/scripts/workflows/lib/buildkite-acceptance-test-selection.test.mjs.
+#
+# This pipeline gets builds from two sources, and they name the branch differently:
+#   - Buildkite's own GitHub webhook builds every pull request branch of this repository on open
+#     and on push, whoever the author is. BUILDKITE_SOURCE is `webhook`, BUILDKITE_BRANCH is the
+#     plain branch name, and no GITHUB_PR_* variable is set.
+#   - Elastic's PR bot (.buildkite/pull-requests.json) creates builds through the API for authors
+#     with standing and for a maintainer's `buildkite test this` comment. BUILDKITE_SOURCE is `api`
+#     (`ui` for a rebuild of such a build), BUILDKITE_BRANCH is `<owner>:<branch>` even for a branch
+#     of this repository, and GITHUB_PR_BRANCH, GITHUB_PR_OWNER, GITHUB_PR_BASE_OWNER,
+#     GITHUB_PR_TARGET_BRANCH and GITHUB_PR_TRIGGER_USER describe the pull request and who asked.
+#
+# The narrowing rule applies only to pull requests into ACCEPTANCE_BASE_BRANCH. The pipeline does
+# not rebuild when a pull request's base is changed, so a narrowed green earned against another base
+# (one that already carries a fix, say) would stay on the commit after the pull request is pointed
+# at master. docs_only_pr deliberately keeps working for any base, so that a text-only backport does
+# not run the paid suite; it has the same retargeting gap, as it always had.
 #
 # Contract: acceptance_test_name prints a `go test -run` pattern, or prints nothing. Nothing means
 # "run the full suite". Every doubt resolves to nothing, because the Buildkite context is a required
@@ -10,6 +28,56 @@
 #
 # One arm per factory branch prefix. To add one, add a case arm and a function; do not widen an
 # existing arm.
+
+ACCEPTANCE_BASE_BRANCH='master'
+
+# True when the build is for a pull request into ACCEPTANCE_BASE_BRANCH, by every variable that
+# names the base.
+pull_request_into_base_branch() {
+  [[ "${BUILDKITE_PULL_REQUEST:-false}" != "false" ]] || return 1
+  [[ "${BUILDKITE_PULL_REQUEST_BASE_BRANCH:-}" == "$ACCEPTANCE_BASE_BRANCH" ]] || return 1
+  [[ -z "${GITHUB_PR_TARGET_BRANCH:-}" || "$GITHUB_PR_TARGET_BRANCH" == "$ACCEPTANCE_BASE_BRANCH" ]]
+}
+
+# Prints the branch of this repository the build is for, in either naming, or nothing when the
+# branch lives in a fork or cannot be told. Used to decide whether a build may be NARROWED, so every
+# doubt prints nothing.
+same_repository_branch() {
+  if [[ -n "${GITHUB_PR_BRANCH:-}" ]]; then
+    [[ -n "${GITHUB_PR_OWNER:-}" && "$GITHUB_PR_OWNER" == "${GITHUB_PR_BASE_OWNER:-}" ]] || return 0
+    [[ "${BUILDKITE_BRANCH:-}" == "${GITHUB_PR_OWNER}:${GITHUB_PR_BRANCH}" ]] || return 0
+    printf '%s' "$GITHUB_PR_BRANCH"
+    return 0
+  fi
+  local branch="${BUILDKITE_BRANCH:-}"
+  [[ -n "$branch" && "$branch" != *:* ]] || return 0
+  printf '%s' "$branch"
+}
+
+# True when a build on a reproducer-factory branch must not run anything, because no person asked
+# for it.
+#
+# A repro pull request carries Go that an agent wrote after reading an untrusted issue, and both the
+# acceptance tests and the pre-exit sweep compile and run the ec/acc package with the live Elastic
+# Cloud API key. Buildkite's webhook builds such a pull request the moment it opens (see the top of
+# this file), so the only place left to hold the run back until a maintainer has read the test is
+# here. Only a build the PR bot created on behalf of a person runs: that is a maintainer commenting
+# `buildkite test this`, or a person with standing pushing to the branch.
+#
+# Unlike the narrowing rule, every doubt here resolves to REFUSING: the branch is recognised by its
+# prefix in either variable and under any owner, and the requester must be named and not a bot.
+reproducer_factory_build_refused() {
+  local buildkite_branch="${BUILDKITE_BRANCH:-}"
+  local on_repro_branch=false
+  case "${buildkite_branch##*:}" in reproducer-factory/*) on_repro_branch=true ;; esac
+  case "${GITHUB_PR_BRANCH:-}" in reproducer-factory/*) on_repro_branch=true ;; esac
+  [[ "$on_repro_branch" == true ]] || return 1
+
+  case "${BUILDKITE_SOURCE:-}" in api | ui) ;; *) return 0 ;; esac
+  local requester="${GITHUB_PR_TRIGGER_USER:-}"
+  [[ -n "$requester" && "$requester" != *"[bot]" ]] || return 0
+  return 1
+}
 
 # Fetches the base branch so the functions below can diff against it. A checkout that is already
 # shallow stays shallow (--depth=50). A full clone is fetched without --depth: with it, git would cut
@@ -89,8 +157,8 @@ reproducer_factory_test_name() {
   local test_file="ec/acc/issue_${issue}_acc_test.go"
   local test_name="TestAccReproduceIssue${issue}"
 
-  [[ "${BUILDKITE_PULL_REQUEST:-false}" != "false" ]] || return 0
-  local base="${BUILDKITE_PULL_REQUEST_BASE_BRANCH:-master}"
+  pull_request_into_base_branch || return 0
+  local base="$ACCEPTANCE_BASE_BRANCH"
   fetch_base "$base" || return 0
 
   single_merge_base "$base" || return 0
@@ -144,7 +212,8 @@ narrowed_run_passed_test() {
 }
 
 acceptance_test_name() {
-  local branch="${BUILDKITE_BRANCH:-}"
+  local branch
+  branch="$(same_repository_branch)"
   case "$branch" in
     reproducer-factory/issue-*) reproducer_factory_test_name "$branch" ;;
     *) ;;

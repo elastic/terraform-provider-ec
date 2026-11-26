@@ -33,27 +33,28 @@ The repro test asserts the behaviour the provider *should* have, so it fails whi
 passes once the bug is fixed. It is meant to become the fix's acceptance test. That is why the pull
 request is a draft: it is a handover to a human, not something to merge as opened.
 
-A red acceptance check on a repro pull request therefore has two possible meanings: the bug
-reproduced, or the environment flaked. The pull request body and the sticky comment both quote the
+A red acceptance check on a repro pull request therefore has three possible meanings: nobody has
+asked for the run yet (see the next section), the bug reproduced, or the environment flaked. The pull request body and the sticky comment both quote the
 exact failure text the test is expected to produce. Compare the Buildkite log against it before
 concluding anything.
 
-## Nothing is spent until a maintainer asks
+## Nothing runs until a maintainer asks
 
-Opening the pull request does not start the acceptance pipeline. Buildkite builds a pull request on
-open only when its author has standing in
-[`.buildkite/pull-requests.json`](../../.buildkite/pull-requests.json): the author is in
-`allowed_list`, is a member of the organisation (`allow_org_users`), or has `admin` or `write` on the
-repository (`allowed_repo_permissions`). Factory pull requests are opened by `github-actions[bot]`,
-which is none of those.
+Opening the pull request starts a Buildkite build, but that build runs nothing.
 
-That depends on two things staying as they are:
+The acceptance pipeline gets builds from two sources:
 
-- **`allowed_list` does not gain a factory identity.** A test pins this.
-- **The `GH_AW_GITHUB_TOKEN` secret is not set to a token of an organisation member or of a user with
-  write access.** The workflow opens the pull request with that secret when it exists and with the
-  default workflow token otherwise. No test can see a secret, so setting it is a spend decision:
-  every repro pull request would then start a paid run the moment it opens.
+- **Buildkite's GitHub webhook** builds every pull request branch of this repository on open and on
+  push, whoever the author is. A repro pull request is built this way within seconds of opening.
+- **Elastic's PR bot** ([`.buildkite/pull-requests.json`](../../.buildkite/pull-requests.json))
+  creates a build for an author with standing, for a push by a person with standing, and for
+  anyone with standing who comments `buildkite test this`.
+
+Because the webhook does not look at the author, the gate is in the pipeline's own script. On any
+`reproducer-factory/` branch, [`.buildkite/acceptance.sh`](../../.buildkite/acceptance.sh) runs
+nothing, neither the tests nor the clean-up sweep, unless the PR bot created the build on behalf of a
+person. The step fails with a message saying so. A repro pull request therefore shows a **red**
+acceptance check from the moment it opens; that red means "not run yet", not "the bug reproduced".
 
 To run the repro test, a maintainer **reads the test file first** and then comments on the pull
 request:
@@ -64,8 +65,27 @@ buildkite test this
 
 That comment is the decision to spend. It is also a decision to execute the file: the test was
 written by an agent that read an untrusted issue, and the build runs it with the live Elastic Cloud
-API key in its environment. Review it as you would review code from an outside
-contributor before asking Buildkite to run it.
+API key in its environment. Review it as you would review code from an outside contributor before
+asking Buildkite to run it.
+
+Two things keep this true:
+
+- **The refusal rule stays first in `acceptance.sh`.** Tests pin its position and its conditions.
+- **The `GH_AW_GITHUB_TOKEN` secret is not set to a token of a user account.** The workflow opens
+  the pull request with that secret when it exists and with the default workflow token otherwise.
+  The refusal rule counts any requester whose name does not end in `[bot]` as a person, so a token
+  of a member or of a machine user (anything but a GitHub App) would make the PR bot build the pull
+  request at once, and the build would run. No test can see a secret, so setting it is a spend
+  decision.
+
+**A push counts as asking.** When a person with standing pushes to the repro branch, which includes
+clicking **Update branch**, the PR bot can create a build for that push, and it runs. Read the test
+before pushing to the branch, as you would before commenting.
+
+What a build started by a `buildkite test this` comment looks like to the rule has not been observed
+yet: no such build exists in this pipeline's recent history. The rule expects it to come from the PR
+bot with the commenter named as requester, like the bot's other builds. If it does not, the build is
+refused, and the rule needs adjusting.
 
 ## A repro pull request runs one test, until it stops being one
 
@@ -74,7 +94,8 @@ whole suite. The rule is in
 [`.buildkite/acceptance-test-selection.sh`](../../.buildkite/acceptance-test-selection.sh), and it
 applies only while all of these hold:
 
-- the branch is exactly `reproducer-factory/issue-<N>` and the build is a pull-request build;
+- the branch is exactly `reproducer-factory/issue-<N>` in this repository, and the build is for a
+  pull request into `master`;
 - the pull request's whole diff is the addition of `ec/acc/issue_<N>_acc_test.go`, with renames
   counted as a deletion plus an addition;
 - every commit on the branch, merge commits aside, was authored by `github-actions[bot]`;
@@ -85,9 +106,11 @@ A narrowed build also fails, rather than going green, when the run exits 0 witho
 for the test: a skipped test, a file excluded by a build constraint, or a declaration that exists
 only in a comment would otherwise report success having run nothing.
 
-To run the test against current `master`, bring the pull request up to date with **Update branch**
-on the pull request page, then comment. The merge commit that button creates is exempt from the
-author rule above, so the build still runs the one test. The exemption covers only a plain merge of
+To run the test against current `master`, read the test file, then bring the pull request up to
+date with **Update branch** on the pull request page. That click is a push by you, so it can start
+the run by itself; if no build starts, comment `buildkite test this`. Do not do both at once: a
+second build on the branch cancels the first. The merge commit that button creates is exempt from
+the author rule above, so the build still runs the one test. The exemption covers only a plain merge of
 the base branch that leaves the repro test as it was. A merge of any other branch, a merge with more
 than two parents, or a merge that edits the test runs the full suite.
 
@@ -122,14 +145,15 @@ These hold whatever the agent does, and are asserted in tests against the compil
 | The pull request may contain only `ec/acc/issue_<N>_acc_test.go` for the triggering issue | `allowed-files`, same test |
 | The pull request is a draft, on the triggering issue's branch, never closes the issue, and never falls back to opening an issue | same test |
 | The lock and the prompt contain no acceptance-test invocation and no cloud credential | `acc-free-guard.test.mjs` |
-| Opening a pull request does not start a paid run, while `GH_AW_GITHUB_TOKEN` is unset or has no standing with Buildkite | `allowed_list` and the token expression, pinned in `reproducer-factory-lock.test.mjs`; the secret itself is not testable |
+| A build on a repro branch runs nothing unless the PR bot created it for a person | `reproducer_factory_build_refused`, first in `acceptance.sh`; `buildkite-acceptance-test-selection.test.mjs` |
+| The factory identity is not allowlisted with the PR bot, and the pull request is opened with the expected token expression | pinned in `reproducer-factory-lock.test.mjs`; the secret itself is not testable |
 | A build is narrowed only for a pull request whose diff is the one added repro file | `buildkite-acceptance-test-selection.test.mjs` |
 | A narrowed build that did not run and pass the test fails | same test |
 
 One thing is a prompt instruction rather than a control: that a pull request is opened only on the
 `reproduced-by-inspection` outcome. gh-aw v0.92.0 does not accept a condition on the pull-request
 output. A pull request opened on another outcome would still be a draft containing only a test file,
-and would still cost nothing until a maintainer comments.
+and would still run nothing until a maintainer comments.
 
 ## Before enabling it
 

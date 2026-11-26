@@ -381,11 +381,13 @@ network:
 checkout:
   fetch-depth: 0
 safe-outputs:
-  # The repro PR. Opening it spends nothing while it is opened by github-actions[bot], which has no
-  # standing in .buildkite/pull-requests.json (not in `allowed_list`, not an org user, no write
-  # permission), so Buildkite does not build it until a maintainer comments `buildkite test this`.
-  # Setting the GH_AW_GITHUB_TOKEN secret to a member's token would change that: see
-  # dev-docs/high-level/reproducer-factory.md. That comment, not this workflow, is the spend gate.
+  # The repro PR. Opening it does start a Buildkite build (the pipeline's GitHub webhook builds
+  # every pull request branch of this repository, whoever the author is), but that build runs
+  # nothing: .buildkite/acceptance.sh refuses a reproducer-factory branch unless the PR bot created
+  # the build for a person, which is what a maintainer's `buildkite test this` comment does. That
+  # comment, not this workflow, is the spend gate. Setting the GH_AW_GITHUB_TOKEN secret to a
+  # person's token would make the PR bot build on open: see
+  # dev-docs/high-level/reproducer-factory.md.
   # gh-aw v0.92.0 rejects an `if:` on this block, so whether a PR is opened is decided by the
   # agent's outcome alone.
   create-pull-request:
@@ -618,7 +620,7 @@ The body must contain, in this order:
 
 1. `Related to #<issue number>` and one sentence on what the bug is.
 2. **Expected failure** — a fenced block with the exact failure text from "Know the exact failure", plus the resource and attribute under test. State plainly that a red acceptance check showing this text means the bug reproduced, and that a red check showing anything else is not a reproduction.
-3. **How to run it** — tell the maintainer that the acceptance check does not start by itself on this pull request, that the test in this pull request was written by an automated agent from the issue text and must be read before it is run, because the acceptance check executes it with a live cloud credential, that commenting `buildkite test this` then starts it, and that for this branch it runs only the repro test, not the full suite. Do not write a shell command for running the test.
+3. **How to run it** — tell the maintainer that the acceptance check shows as failed on this pull request until someone asks for it, because nothing is run automatically on this branch, that the test in this pull request was written by an automated agent from the issue text and must be read before it is run, because the acceptance check executes it with a live cloud credential, that commenting `buildkite test this` then runs it, that pushing to the branch or clicking "Update branch" can also start the run and so also comes after reading the test, and that for this branch it runs only the repro test, not the full suite. Do not write a shell command for running the test.
 4. **What this pull request is** — a draft that fails by design. To fix the bug, push the fix to this branch; from then on the full acceptance suite runs. Ask the reader not to remove the `reproducer-factory` label, which the duplicate gate relies on.
 
 Emit the pull request **before** the comment, and still emit the comment.
@@ -664,7 +666,7 @@ When you opened a pull request, the comment must also carry a `### Reproduction 
 - names the repro branch and links the **Repro PR link** given above, verbatim. That link lists the pull request on the branch; do not invent a pull request number or URL;
 - says that if the link lists nothing, the pull-request step of this run did not complete and the workflow run has the reason;
 - repeats the exact expected failure text in a fenced block;
-- says the acceptance check starts only when a maintainer comments `buildkite test this` on the pull request, and that the test file should be read first because the check executes it with a live cloud credential.
+- says the acceptance check runs nothing, and shows as failed, until a maintainer comments `buildkite test this` on the pull request (or pushes to the branch, which can also start the run), and that the test file should be read first because the check executes it with a live cloud credential.
 
 ### Pre-flight before you emit
 
