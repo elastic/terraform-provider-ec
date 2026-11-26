@@ -65,15 +65,21 @@ and issues #1015 / #1108.
      `ConfigVersion` 0 in private state. This happens when the ID is set in configuration and the
      version is left unknown (new tier, template change).
   2. Otherwise, call `getInstanceConfiguration(ctx, rawTopology, instanceConfigurations)` for the
-     tier. If it returns a non-nil result, use it (resolved from private state).
-  3. Otherwise (no private state yet on create, tier not found, ID or version unknown), fall back
-     to the template's instance configuration for the tier id, matching current behavior (not
-     resolved from private state).
+     tier. If it returns a non-nil result with non-nil `DiscreteSizes`, use it (resolved from
+     private state).
+  3. Otherwise (no private state yet on create, tier not found, ID or version unknown, or the
+     found instance configuration has no `DiscreteSizes`), fall back to the template's instance
+     configuration for the tier id, matching current behavior (not resolved from private state).
   - Unlike `selectInstanceConfigurationToUse`, this resolver does not special-case `"master"` and
-    does not discard a found instance configuration merely because `DiscreteSizes` is `nil` —
-    `getMaxSize` and `convertSizeToInstanceConfigResource` already treat a `nil`/zero
-    `DiscreteSizes` or `StorageMultiplier` as "no adjustment", so the caller does not need the
-    early-exit `selectInstanceConfigurationToUse` relies on for the master-tier enable path.
+    does not bail out: when the tier's own instance configuration is unusable it falls back to the
+    template's. That can still be nil when the template defines none for the tier;
+    `getMaxSize`, `convertSizeToInstanceConfigResource` and `tierUsesInstanceConfig` already
+    handle nil (one node per zone, no conversion), as today.
+  - *Why fall back when `DiscreteSizes` is nil?* `getMaxSize` returns 0 for it, and the counting
+    loop then counts one node per zone whatever the size, which can undercount and remove a master
+    tier that is still needed. The template fallback keeps today's count; if the tier is not on
+    the template's instance configuration, the `tierUsesInstanceConfig` guard below then skips the
+    storage conversion, so the count errs high.
 - **Use the resolved instance configuration for both `getMaxSize` and
   `convertSizeToInstanceConfigResource`.** When it was resolved from private state, convert
   unconditionally: it is the tier's own instance configuration, so its multiplier is the right

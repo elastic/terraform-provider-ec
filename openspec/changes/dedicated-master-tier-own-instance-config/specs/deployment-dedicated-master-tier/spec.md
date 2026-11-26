@@ -65,8 +65,8 @@ dedicated-master-tier decision never fails or silently skips a tier.
 #### Scenario: Tier's instance configuration is unresolvable
 
 - **GIVEN** a planned tier whose instance configuration ID or version is unknown (for example, a
-  newly added tier, or a deployment template change in progress) or does not match any instance
-  configuration known for the deployment
+  newly added tier, or a deployment template change in progress), does not match any instance
+  configuration known for the deployment, or matches one that defines no discrete node sizes
 - **WHEN** the provider counts nodes for that tier during `terraform plan`
 - **THEN** the provider SHALL use the deployment template's instance configuration for that tier
 

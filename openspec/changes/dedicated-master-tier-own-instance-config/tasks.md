@@ -12,7 +12,8 @@
       looks up the tier's instance configuration via `getInstanceConfiguration` against the
       private-state instance-configuration list; it falls back to the template's instance
       configuration for the tier id when the lookup is skipped or finds nothing (no private state
-      yet, tier not found, unknown ID or version).
+      yet, tier not found, unknown ID or version), or when the found instance configuration has
+      nil `DiscreteSizes`.
 - [ ] 2.2 In `countNodesInCluster`, read the private-state instance configurations once per call
       (reusing `ReadPrivateStateInstanceConfigurations`, logging and falling back to template-only
       behavior for all tiers on a read error, as `selectInstanceConfigurationToUse` already does),
@@ -44,6 +45,10 @@
         private state has an instance configuration with that ID and `ConfigVersion` 0.
       - A storage tier whose ID is known, differs from the template's, and is missing from private
         state is counted without conversion and enables the master tier.
+      - A tier whose instance configuration is in private state but has nil `DiscreteSizes` is
+        sized against the template's maximum node size instead of one node per zone: for example
+        8g memory with a 4g template maximum across 3 zones counts 6 nodes and enables the master
+        tier, where one node per zone would count 3 and not.
       - `migrate_to_latest_hardware = true` with a migrating tier whose
         `instance_configuration_id` and `instance_configuration_version` are unknown (as the
         topology plan modifier leaves them) sizes against the template's instance configuration,
