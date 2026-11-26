@@ -14,7 +14,7 @@ fragments are the source of truth for exact behavior.
 > `TF_ACC=1`) provisions and destroys real deployments/projects via `EC_API_KEY` and costs money.
 > **Before opening a PR, run the _targeted_ test(s) covering your change locally** —
 > `make testacc TEST_NAME='^TestAccMyThing$'` — for fast feedback, then `make sweep` any leftovers.
-> Don't run the **full** suite locally for routine iteration (up to an hour); the Buildkite acceptance
+> Don't run the **full** suite locally for routine iteration (~25-30 min in CI); the Buildkite acceptance
 > pipeline runs the full suite for every PR and is a required status check on `master`. **Agents
 > never run acceptance tests.** The implementation loop never sets `TF_ACC`. In PR mode it
 > recommends the human run named `TestAcc…` cases locally and confirms before `gh pr create`
