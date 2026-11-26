@@ -260,7 +260,10 @@ describe('acceptance test selection', () => {
 
   // ── the two sources of builds name the branch differently ───
 
-  /** The variables Elastic's PR bot sets on a build it creates for a same-repository branch. */
+  /**
+   * The variables Elastic's PR bot sets on a build it creates for a `buildkite test this` comment
+   * on a same-repository branch, as seen on build 3475.
+   */
   const botBuild = (branch, extra = {}) => ({
     BUILDKITE_SOURCE: 'api',
     BUILDKITE_BRANCH: `elastic:${branch}`,
@@ -270,6 +273,9 @@ describe('acceptance test selection', () => {
     GITHUB_PR_TARGET_BRANCH: 'master',
     GITHUB_PR_USER: BOT,
     GITHUB_PR_TRIGGER_USER: 'a-maintainer',
+    GITHUB_PR_EVENT_TYPE: 'issue_comment',
+    GITHUB_PR_EVENT_ACTION: 'created',
+    GITHUB_PR_TRIGGER_COMMENT: 'buildkite test this',
     ...extra,
   });
 
@@ -330,6 +336,47 @@ describe('acceptance test selection', () => {
     // What Buildkite starts by itself two seconds after the factory opens the pull request.
     assert.equal(refused({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: branchFor(42), BUILDKITE_PULL_REQUEST: '7' }), true);
     assert.equal(refused({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: branchFor(42), BUILDKITE_PULL_REQUEST: 'false' }), true);
+  });
+
+  test('a push to the repro branch is refused, even by a person with standing', () => {
+    // "Update branch" is a push. The PR bot builds it for a person with standing, with the pusher
+    // as requester, and that must not run code nobody has decided to run.
+    const push = { GITHUB_PR_EVENT_TYPE: 'pull_request', GITHUB_PR_EVENT_ACTION: 'synchronize', GITHUB_PR_TRIGGER_COMMENT: undefined };
+    assert.equal(refused(botBuild(branchFor(42), push)), true);
+    // The event type decides on its own: a push build is refused even if it carried the comment text.
+    assert.equal(refused(botBuild(branchFor(42), { ...push, GITHUB_PR_TRIGGER_COMMENT: 'buildkite test this' })), true);
+    assert.equal(refused(botBuild(branchFor(42), { ...push, BUILDKITE_SOURCE: 'ui' })), true);
+    // The PR bot building at opening, which it would do if the PR were opened with a user's token.
+    assert.equal(refused(botBuild(branchFor(42), { ...push, GITHUB_PR_EVENT_ACTION: 'opened', GITHUB_PR_USER: 'a-member', GITHUB_PR_TRIGGER_USER: 'a-member' })), true);
+    // No event type at all, or an unknown one.
+    assert.equal(refused(botBuild(branchFor(42), { GITHUB_PR_EVENT_TYPE: undefined })), true);
+    assert.equal(refused(botBuild(branchFor(42), { GITHUB_PR_EVENT_TYPE: '' })), true);
+    assert.equal(refused(botBuild(branchFor(42), { GITHUB_PR_EVENT_TYPE: 'pull_request_review' })), true);
+  });
+
+  test('only the exact comment runs the test, not everything the PR bot accepts as a trigger', () => {
+    // The PR bot's pattern is anchored at the start only and also accepts "test it" / "build this".
+    const config = JSON.parse(readFileSync(path.join(repoRoot, '.buildkite/pull-requests.json'), 'utf8'));
+    const job = config.jobs.find((j) => j.pipeline_slug === 'terraform-provider-ec-acceptance');
+    const botPattern = new RegExp(job.trigger_comment_regex);
+    for (const comment of [
+      'test it with a larger deployment before we merge',
+      'build this on top of #1128 please',
+      'buildkite test it',
+      'test this',
+      'buildkite test this please',
+      'buildkite test this\nand also look at the config',
+    ]) {
+      assert.ok(botPattern.test(comment), `the PR bot is expected to accept: ${comment}`);
+      assert.equal(refused(botBuild(branchFor(42), { GITHUB_PR_TRIGGER_COMMENT: comment })), true, comment);
+    }
+    for (const comment of ['', undefined]) {
+      assert.equal(refused(botBuild(branchFor(42), { GITHUB_PR_TRIGGER_COMMENT: comment })), true, String(comment));
+    }
+    for (const comment of ['buildkite test this', '  buildkite test this  ', 'buildkite  test\tthis\n']) {
+      assert.ok(botPattern.test(comment.trimStart()));
+      assert.equal(refused(botBuild(branchFor(42), { GITHUB_PR_TRIGGER_COMMENT: comment })), false, JSON.stringify(comment));
+    }
   });
 
   test('a build a maintainer asked the PR bot for is not refused', () => {
@@ -953,6 +1000,8 @@ describe('acceptance test selection', () => {
     assert.match(runPreExit(webhook), /Skip sweep/);
     // A build a person asked for sweeps as usual, and so does every other branch.
     assert.match(runPreExit(botBuild(branchFor(42))), /FAKE-MAKE sweep/);
+    // A push build on the repro branch is refused, so it does not sweep either.
+    assert.doesNotMatch(runPreExit(botBuild(branchFor(42), { GITHUB_PR_EVENT_TYPE: 'pull_request' })), /FAKE-MAKE/);
     assert.match(runPreExit({ BUILDKITE_SOURCE: 'webhook', BUILDKITE_BRANCH: 'master' }), /FAKE-MAKE sweep/);
     assert.match(runPreExit({ BUILDKITE_SOURCE: 'schedule', BUILDKITE_BRANCH: 'master' }), /FAKE-MAKE sweep/);
     // The marker written by acceptance.sh still works on its own.

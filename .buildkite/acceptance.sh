@@ -25,9 +25,8 @@ if reproducer_factory_build_refused; then
   echo "+++ Not running acceptance tests: nobody has asked for this build"
   echo "This is a reproducer-factory branch. Its acceptance test was written by an automated agent"
   echo "and runs with a live Elastic Cloud credential, so nothing runs until a person asks."
-  echo "Read the test file first, then comment 'buildkite test this' on the pull request."
-  echo "A push to the branch by a person with standing, including 'Update branch', can also start"
-  echo "the run, so read the test before doing either."
+  echo "Read the test file first, then comment exactly 'buildkite test this' on the pull request."
+  echo "A push to the branch, including 'Update branch', does not start the run: comment after it."
   touch .buildkite/.skip-acceptance-sweep
   exit 1
 fi

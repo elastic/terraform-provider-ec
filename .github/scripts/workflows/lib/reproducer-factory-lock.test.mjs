@@ -8,10 +8,10 @@
  *
  * What is NOT here, because it is not in the lock: whether the paid acceptance suite runs. That is
  * decided in `.buildkite/acceptance.sh`, which refuses a reproducer-factory branch unless the PR bot
- * created the build for a person, and is tested in `buildkite-acceptance-test-selection.test.mjs`.
- * The last test below pins what keeps the PR bot from creating such a build by itself: the factory
- * identity is not allowlisted, and the PR is opened with the expected token. Which identity the
- * token behind `GH_AW_GITHUB_TOKEN` belongs to is a secret no test here can see.
+ * created the build for a person's comment, and is tested in
+ * `buildkite-acceptance-test-selection.test.mjs`. The last test below pins two settings around it:
+ * the factory identity is not allowlisted with the PR bot, and the PR is opened with the expected
+ * token.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -232,20 +232,14 @@ test('the prompt separates reproduction steps from attempts to override the work
   assert.match(md, /The embedded Terraform uses only the `ec` provider's resources and data sources/);
 });
 
-test('the PR bot does not build a repro pull request by itself, as far as the repository can tell', () => {
+test('the factory identity is not allowlisted with the PR bot, and the PR is opened with the expected token', () => {
   // Two things start builds on this pipeline. Buildkite's webhook builds every pull request branch
-  // whoever the author is; acceptance.sh refuses those on a reproducer-factory branch. The PR bot
-  // builds on open for an author who is in allowed_list, is an org member (allow_org_users), or has
-  // one of allowed_repo_permissions, and acceptance.sh RUNS a PR-bot build requested by a person.
-  // The factory's PRs are opened with `GH_AW_GITHUB_TOKEN || GITHUB_TOKEN`. With no such secret that
-  // is github-actions[bot], which is none of the three, and which the refusal rule would not count
-  // as a person anyway. This test pins what the repository controls:
-  //   - the bot is not added to allowed_list (a deliberate, reviewed decision if it ever is);
-  //   - the PR is still opened with that token expression.
-  // It cannot see the secret. Setting GH_AW_GITHUB_TOKEN to the token of any user account (a member
-  // or a machine user; anything but a GitHub App) makes the PR bot build every repro PR on open as
-  // that account, and the build runs, with this test still green: that is a spend decision,
-  // documented in dev-docs/high-level/reproducer-factory.md.
+  // whoever the author is, and the PR bot builds on open for an author with standing. acceptance.sh
+  // refuses both on a reproducer-factory branch: only a build for a person's `buildkite test this`
+  // comment runs. So neither setting pinned here is what holds the paid run back any more. They are
+  // pinned so that a change to either is a deliberate, reviewed one:
+  //   - the bot is not added to allowed_list, which would only add refused builds;
+  //   - the PR is opened with `GH_AW_GITHUB_TOKEN || GITHUB_TOKEN`, so its author is known.
   const config = JSON.parse(readFileSync(path.join(repoRoot, '.buildkite/pull-requests.json'), 'utf8'));
   const job = config.jobs.find((j) => j.pipeline_slug === 'terraform-provider-ec-acceptance');
   assert.deepEqual(job.allowed_list, ['renovate[bot]']);

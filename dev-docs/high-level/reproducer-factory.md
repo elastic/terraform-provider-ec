@@ -52,12 +52,12 @@ The acceptance pipeline gets builds from two sources:
 
 Because the webhook does not look at the author, the gate is in the pipeline's own script. On any
 `reproducer-factory/` branch, [`.buildkite/acceptance.sh`](../../.buildkite/acceptance.sh) runs
-nothing, neither the tests nor the clean-up sweep, unless the PR bot created the build on behalf of a
-person. The step fails with a message saying so. A repro pull request therefore shows a **red**
+nothing, neither the tests nor the clean-up sweep, unless the PR bot created the build for a
+person's `buildkite test this` comment. The step fails with a message saying so. A repro pull request therefore shows a **red**
 acceptance check from the moment it opens; that red means "not run yet", not "the bug reproduced".
 
 To run the repro test, a maintainer **reads the test file first** and then comments on the pull
-request:
+request, with exactly this text and nothing else:
 
 ```
 buildkite test this
@@ -71,21 +71,22 @@ asking Buildkite to run it.
 Two things keep this true:
 
 - **The refusal rule stays first in `acceptance.sh`.** Tests pin its position and its conditions.
-- **The `GH_AW_GITHUB_TOKEN` secret is not set to a token of a user account.** The workflow opens
-  the pull request with that secret when it exists and with the default workflow token otherwise.
-  The refusal rule counts any requester whose name does not end in `[bot]` as a person, so a token
-  of a member or of a machine user (anything but a GitHub App) would make the PR bot build the pull
-  request at once, and the build would run. No test can see a secret, so setting it is a spend
-  decision.
+- **The PR bot keeps deciding whose comments count.** The rule cannot tell a maintainer from any
+  other user account: it only refuses a commenter whose name ends in `[bot]`. This repository is
+  public, so anyone can comment on a repro pull request. What stops an outsider's comment from
+  starting a build is the PR bot's own check, `allow_org_users` and `allowed_repo_permissions` in
+  `.buildkite/pull-requests.json`. Those settings are part of this gate and must not be loosened.
+  Do not give an automation that comments on pull requests a user account's token either.
 
-**A push counts as asking.** When a person with standing pushes to the repro branch, which includes
-clicking **Update branch**, the PR bot can create a build for that push, and it runs. Read the test
-before pushing to the branch, as you would before commenting.
+**A push does not count as asking.** When anyone pushes to the repro branch, which includes clicking
+**Update branch**, the builds that push starts are refused like the one at opening, and the check
+goes red again. Only a comment runs anything, and after every push a new comment is needed. This
+also applies to someone pushing a fix to the branch: comment to run the suite on it.
 
 A build started by a `buildkite test this` comment has been observed on a bot-authored pull request
 from a branch of this repository (Buildkite build 3475): the PR bot creates it, with source `api`,
-the branch named `elastic:<branch>`, and the commenter in `GITHUB_PR_TRIGGER_USER`. That is the shape
-the refusal rule lets through.
+the branch named `elastic:<branch>`, the commenter in `GITHUB_PR_TRIGGER_USER`, and
+`GITHUB_PR_EVENT_TYPE=issue_comment`. That is the shape the refusal rule lets through.
 
 ## A repro pull request runs one test, until it stops being one
 
@@ -106,10 +107,9 @@ A narrowed build also fails, rather than going green, when the run exits 0 witho
 for the test: a skipped test, a file excluded by a build constraint, or a declaration that exists
 only in a comment would otherwise report success having run nothing.
 
-To run the test against current `master`, read the test file, then bring the pull request up to
-date with **Update branch** on the pull request page. That click is a push by you, so it can start
-the run by itself; if no build starts, comment `buildkite test this`. Do not do both at once: a
-second build on the branch cancels the first. The merge commit that button creates is exempt from
+To run the test against current `master`, bring the pull request up to date with **Update branch**
+on the pull request page, then comment `buildkite test this`. The click alone runs nothing. The
+merge commit that button creates is exempt from
 the author rule above, so the build still runs the one test. The exemption covers only a plain merge of
 the base branch that leaves the repro test as it was. A merge of any other branch, a merge with more
 than two parents, or a merge that edits the test runs the full suite.

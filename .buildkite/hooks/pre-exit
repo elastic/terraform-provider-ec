@@ -10,7 +10,7 @@ if  [[ "$BUILDKITE_STEP_KEY" == "acceptance-tests" ]]; then
   # shellcheck source=.buildkite/acceptance-test-selection.sh
   source .buildkite/acceptance-test-selection.sh
   if reproducer_factory_build_refused; then
-    echo "--- Skip sweep (nobody asked for this build of a reproducer-factory branch)"
+    echo "--- Skip sweep (no comment asked for this build of a reproducer-factory branch)"
     exit 0
   fi
   if [[ -f .buildkite/.skip-acceptance-sweep ]]; then

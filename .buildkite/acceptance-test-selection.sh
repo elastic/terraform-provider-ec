@@ -14,6 +14,8 @@
 #     (`ui` for a rebuild of such a build), BUILDKITE_BRANCH is `<owner>:<branch>` even for a branch
 #     of this repository, and GITHUB_PR_BRANCH, GITHUB_PR_OWNER, GITHUB_PR_BASE_OWNER,
 #     GITHUB_PR_TARGET_BRANCH and GITHUB_PR_TRIGGER_USER describe the pull request and who asked.
+#     GITHUB_PR_EVENT_TYPE says why: `issue_comment` for a comment (seen on build 3475),
+#     `pull_request` for an open or a push.
 #
 # The narrowing rule applies only to pull requests into ACCEPTANCE_BASE_BRANCH. The pipeline does
 # not rebuild when a pull request's base is changed, so a narrowed green earned against another base
@@ -61,11 +63,21 @@ same_repository_branch() {
 # acceptance tests and the pre-exit sweep compile and run the ec/acc package with the live Elastic
 # Cloud API key. Buildkite's webhook builds such a pull request the moment it opens (see the top of
 # this file), so the only place left to hold the run back until a maintainer has read the test is
-# here. Only a build the PR bot created on behalf of a person runs: that is a maintainer commenting
-# `buildkite test this`, or a person with standing pushing to the branch.
+# here. Only a build the PR bot created for a person's comment runs: that is a maintainer commenting
+# `buildkite test this`. A push to the branch does not count, not even by a person with standing:
+# clicking "Update branch" is a push, and it must not run code nobody has decided to run. After a
+# push, a comment is needed again.
+#
+# The comment must be exactly `buildkite test this`. The PR bot's own pattern
+# (trigger_comment_regex in pull-requests.json) is anchored only at the start and also accepts
+# "test it" and "build this", so an ordinary review comment beginning "test it with a larger
+# deployment" would start a build under the reviewer's name without anyone deciding to run anything.
 #
 # Unlike the narrowing rule, every doubt here resolves to REFUSING: the branch is recognised by its
-# prefix in either variable and under any owner, and the requester must be named and not a bot.
+# prefix in either variable and under any owner, the event must be a comment with that exact text,
+# and the requester must be named and not a bot. Whether the commenter is a maintainer is NOT
+# checked here and cannot be: the PR bot decides whose comments start a build, through
+# allow_org_users and allowed_repo_permissions in pull-requests.json, which are part of this gate.
 reproducer_factory_build_refused() {
   local buildkite_branch="${BUILDKITE_BRANCH:-}"
   local on_repro_branch=false
@@ -74,6 +86,8 @@ reproducer_factory_build_refused() {
   [[ "$on_repro_branch" == true ]] || return 1
 
   case "${BUILDKITE_SOURCE:-}" in api | ui) ;; *) return 0 ;; esac
+  [[ "${GITHUB_PR_EVENT_TYPE:-}" == "issue_comment" ]] || return 0
+  [[ "${GITHUB_PR_TRIGGER_COMMENT:-}" =~ ^[[:space:]]*buildkite[[:space:]]+test[[:space:]]+this[[:space:]]*$ ]] || return 0
   local requester="${GITHUB_PR_TRIGGER_USER:-}"
   [[ -n "$requester" && "$requester" != *"[bot]" ]] || return 0
   return 1
