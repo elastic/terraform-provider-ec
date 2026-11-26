@@ -12,7 +12,7 @@ This is mechanical documentation copy only (GitHub issue elastic/terraform-provi
   - `templates/resources/security_project.md.tmpl`
 - Regenerate registry markdown with `env -u TF_ACC make docs-generate` so `docs/resources/{elasticsearch,observability,security}_project.md` no longer start that block.
 
-No Go, schema, resource CRUD, examples, or `.changelog/` entry (docs-only skip).
+No Go, schema, resource CRUD, or examples. Docs-only: use `.changelog/{PR}.txt` with `release-note:none` once a PR number exists.
 
 ## Capabilities
 
@@ -28,4 +28,4 @@ No Go, schema, resource CRUD, examples, or `.changelog/` entry (docs-only skip).
 
 - Source templates under `templates/resources/` for `ec_elasticsearch_project`, `ec_observability_project`, and `ec_security_project`.
 - Generated pages under `docs/resources/` for those three types (do not hand-edit `docs/`).
-- Out of scope: provider schema, generated serverless client, CRUD, acceptance tests, changelog, canonical `openspec/specs/`.
+- Out of scope: provider schema, generated serverless client, CRUD, acceptance tests, canonical `openspec/specs/`.

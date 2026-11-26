@@ -18,7 +18,9 @@
 package projectresource
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -74,6 +76,17 @@ func (es elasticsearchModelReader) Modify(plan resource_elasticsearch_project.El
 	plan.PrivateEndpoints = useStateForUnknown(plan.PrivateEndpoints, state.PrivateEndpoints)
 	plan.Metadata = useStateForUnknown(plan.Metadata, state.Metadata)
 	plan.Linked = useStateForUnknownOrNull(plan.Linked, state.Linked, resource_elasticsearch_project.NewLinkedValueNull())
+
+	// search_lake is optional+computed, but min_search_vcu inside it is
+	// optional only. When the block is omitted from configuration and the
+	// prior state holds a floor, Terraform core proposes the block as null and
+	// the framework then marks it unknown, which would show "known after
+	// apply" on every plan. Plan the omitted block from state instead: it
+	// stays unmanaged, floor included, with no diff. On create the state is
+	// null and the block stays unknown.
+	if cfg.SearchLake.IsNull() {
+		plan.SearchLake = useStateForUnknown(plan.SearchLake, state.SearchLake)
+	}
 
 	nameHasChanged := !plan.Name.Equal(state.Name)
 	aliasIsConfigured := util.IsKnown(cfg.Alias)
@@ -158,6 +171,13 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 			searchPower := int(model.SearchLake.SearchPower.ValueInt64())
 			createBody.SearchLake.SearchPower = &searchPower
 		}
+
+		// There is no server-side default: an omitted key creates the
+		// project with no floor.
+		if util.IsKnown(model.SearchLake.MinSearchVcu) {
+			minSearchVcu := int(model.SearchLake.MinSearchVcu.ValueInt64())
+			createBody.SearchLake.MinSearchVcu = &minSearchVcu
+		}
 	}
 
 	createBody.TrafficFilters = expandTrafficFilterIdsForCreate(ctx, model.TrafficFilterIds)
@@ -173,8 +193,13 @@ func (es elasticsearchApi) Create(ctx context.Context, model resource_elasticsea
 	}
 
 	createBody.Linked = expandLinkedForCreateElasticsearch(model)
+	monitoringView, monitoringDiags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if monitoringDiags.HasError() {
+		return model, monitoringDiags
+	}
+	createBody.Monitoring = expandMonitoringForCreate(monitoringView)
 
-	resp, err := es.client.CreateElasticsearchProjectWithResponse(ctx, createBody)
+	resp, err := es.client.CreateElasticsearchProjectWithResponse(ctx, nil, createBody)
 	if err != nil {
 		return model, diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -222,19 +247,13 @@ func (es elasticsearchApi) Patch(ctx context.Context, plan, state resource_elast
 		updateBody.Alias = plan.Alias.ValueStringPointer()
 	}
 
-	if util.IsKnown(plan.SearchLake) {
-		updateBody.SearchLake = &serverless.OptionalElasticsearchSearchLake{}
-
-		if util.IsKnown(plan.SearchLake.BoostWindow) {
-			boostWindow := int(plan.SearchLake.BoostWindow.ValueInt64())
-			updateBody.SearchLake.BoostWindow = &boostWindow
-		}
-
-		if util.IsKnown(plan.SearchLake.SearchPower) {
-			searchPower := int(plan.SearchLake.SearchPower.ValueInt64())
-			updateBody.SearchLake.SearchPower = &searchPower
+	searchLake, rawSearchLake, err := searchLakePatchFor(plan.SearchLake, state.SearchLake)
+	if err != nil {
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic("Failed to build search_lake update", err.Error()),
 		}
 	}
+	updateBody.SearchLake = searchLake
 
 	updateBody.TrafficFilters = expandTrafficFilterIdsForPatch(ctx, plan.TrafficFilterIds)
 
@@ -254,7 +273,7 @@ func (es elasticsearchApi) Patch(ctx context.Context, plan, state resource_elast
 
 	updateBody.Linked = expandLinkedForPatchElasticsearch(plan, state)
 
-	resp, err := es.client.PatchElasticsearchProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+	resp, err := patchElasticsearch(ctx, es, plan, state, updateBody, rawSearchLake)
 	if err != nil {
 		return diag.Diagnostics{
 			diag.NewErrorDiagnostic(err.Error(), err.Error()),
@@ -322,6 +341,7 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 		model.Endpoints.AttributeTypes(ctx),
 		map[string]attr.Value{
 			"elasticsearch": basetypes.NewStringValue(resp.JSON200.Endpoints.Elasticsearch),
+			"ingest":        basetypes.NewStringValue(resp.JSON200.Endpoints.Ingest),
 			"kibana":        basetypes.NewStringValue(resp.JSON200.Endpoints.Kibana),
 		},
 	)
@@ -374,6 +394,7 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 			model.PrivateEndpoints.AttributeTypes(ctx),
 			map[string]attr.Value{
 				"elasticsearch": basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Elasticsearch),
+				"ingest":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Ingest),
 				"kibana":        basetypes.NewStringValue(resp.JSON200.PrivateEndpoints.Kibana),
 			},
 		)
@@ -391,13 +412,19 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 	model.Type = basetypes.NewStringValue(string(resp.JSON200.Type))
 
 	searchLakeValues := map[string]attr.Value{
-		"boost_window": basetypes.NewInt64Null(),
-		"search_power": basetypes.NewInt64Null(),
+		"boost_window":   basetypes.NewInt64Null(),
+		"min_search_vcu": basetypes.NewInt64Null(),
+		"search_power":   basetypes.NewInt64Null(),
 	}
 
 	if resp.JSON200.SearchLake != nil {
 		if resp.JSON200.SearchLake.BoostWindow != nil {
 			searchLakeValues["boost_window"] = basetypes.NewInt64Value(int64(*resp.JSON200.SearchLake.BoostWindow))
+		}
+
+		// Absent when no floor is set: the API has no default for it.
+		if resp.JSON200.SearchLake.MinSearchVcu != nil {
+			searchLakeValues["min_search_vcu"] = basetypes.NewInt64Value(int64(*resp.JSON200.SearchLake.MinSearchVcu))
 		}
 
 		if resp.JSON200.SearchLake.SearchPower != nil {
@@ -409,11 +436,110 @@ func (es elasticsearchApi) Read(ctx context.Context, id string, model resource_e
 		searchLakeValues,
 	)
 	if diags.HasError() {
-		return false, model, nil
+		return false, model, diags
 	}
 	model.SearchLake = searchLake
 
+	model, monDiags := setElasticsearchMonitoring(ctx, model, resp.JSON200.Monitoring)
+	if monDiags.HasError() {
+		return false, model, monDiags
+	}
+
 	return true, model, nil
+}
+
+// searchLakePatchFor builds the search_lake field of a patch. It returns the
+// typed field for the generated request, or a raw JSON object when the body
+// must contain "min_search_vcu":null, which the generated omitempty pointer
+// cannot encode. Both are nil when the block is unknown or equals the state,
+// so an omitted block (planned from state by Modify) sends nothing.
+func searchLakePatchFor(plan, state resource_elasticsearch_project.SearchLakeValue) (*serverless.OptionalElasticsearchSearchLake, json.RawMessage, error) {
+	if !util.IsKnown(plan) || plan.Equal(state) {
+		return nil, nil, nil
+	}
+
+	typed := &serverless.OptionalElasticsearchSearchLake{}
+	if util.IsKnown(plan.BoostWindow) {
+		boostWindow := int(plan.BoostWindow.ValueInt64())
+		typed.BoostWindow = &boostWindow
+	}
+	if util.IsKnown(plan.SearchPower) {
+		searchPower := int(plan.SearchPower.ValueInt64())
+		typed.SearchPower = &searchPower
+	}
+	if util.IsKnown(plan.MinSearchVcu) {
+		minSearchVcu := int(plan.MinSearchVcu.ValueInt64())
+		typed.MinSearchVcu = &minSearchVcu
+		return typed, nil, nil
+	}
+
+	// A null floor in the plan removes a floor the state has. Omitting the key
+	// would leave it unchanged and "search_lake":null would also reset the
+	// siblings, so send an explicit null next to the known sibling values.
+	if plan.MinSearchVcu.IsNull() && util.IsKnown(state) && util.IsKnown(state.MinSearchVcu) {
+		raw := map[string]any{"min_search_vcu": nil}
+		if typed.BoostWindow != nil {
+			raw["boost_window"] = *typed.BoostWindow
+		}
+		if typed.SearchPower != nil {
+			raw["search_power"] = *typed.SearchPower
+		}
+		encoded, err := json.Marshal(raw)
+		return nil, encoded, err
+	}
+
+	return typed, nil, nil
+}
+
+func patchElasticsearch(ctx context.Context, es elasticsearchApi, plan, state resource_elasticsearch_project.ElasticsearchProjectModel, updateBody serverless.PatchElasticsearchProjectRequest, rawSearchLake json.RawMessage) (*serverless.PatchElasticsearchProjectResponse, error) {
+	planView, planDiags := monitoringFrom(ctx, plan.Monitoring.IsNull(), plan.Monitoring.Logging)
+	if err := firstError(planDiags); err != nil {
+		return nil, err
+	}
+	stateView, stateDiags := monitoringFrom(ctx, state.Monitoring.IsNull(), state.Monitoring.Logging)
+	if err := firstError(stateDiags); err != nil {
+		return nil, err
+	}
+	patch, err := auditPatchFor(planView, stateView)
+	if err != nil {
+		return nil, err
+	}
+
+	overrides := map[string]json.RawMessage{}
+	if patch.useRaw() {
+		overrides["monitoring"] = patch.raw
+	} else {
+		updateBody.Monitoring = patch.typed
+	}
+	if len(rawSearchLake) > 0 {
+		overrides["search_lake"] = rawSearchLake
+	}
+	if len(overrides) > 0 {
+		raw, err := mergeRawFields(updateBody, overrides)
+		if err != nil {
+			return nil, err
+		}
+		return es.client.PatchElasticsearchProjectWithBodyWithResponse(ctx, plan.Id.ValueString(), nil, "application/json", bytes.NewReader(raw))
+	}
+	return es.client.PatchElasticsearchProjectWithResponse(ctx, plan.Id.ValueString(), nil, updateBody)
+}
+
+func setElasticsearchMonitoring(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel, api *serverless.Monitoring) (resource_elasticsearch_project.ElasticsearchProjectModel, diag.Diagnostics) {
+	monitoringView, diags := monitoringFrom(ctx, model.Monitoring.IsNull(), model.Monitoring.Logging)
+	if diags.HasError() {
+		return model, diags
+	}
+	obj, flattenDiags := flattenMonitoring(model.Monitoring.AttributeTypes(ctx), monitoringView, api)
+	diags.Append(flattenDiags...)
+	if diags.HasError() {
+		return model, diags
+	}
+	if obj.IsNull() {
+		model.Monitoring = resource_elasticsearch_project.NewMonitoringValueNull()
+		return model, nil
+	}
+	model.Monitoring, diags = resource_elasticsearch_project.NewMonitoringValue(obj.AttributeTypes(ctx), obj.Attributes())
+	return model, diags
 }
 
 func (es elasticsearchApi) Delete(ctx context.Context, model resource_elasticsearch_project.ElasticsearchProjectModel) diag.Diagnostics {

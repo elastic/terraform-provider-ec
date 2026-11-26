@@ -46,4 +46,97 @@ jq '
   }]
 ' /tmp/with-traffic-filters.json >/tmp/with-linked.json
 
-mv /tmp/with-linked.json ./spec-mod.json
+# Audit logging is nested under monitoring. The generator marks the whole
+# chain computed_optional because the fields exist on read. Force the blocks
+# the practitioner sets to optional so an omitted block is a removal, and
+# keep enabled computed_optional: a default on a non-computed attribute fails
+# schema validation. destination stays required. destination.project_type is
+# required and limited to the types project-api accepts. status stays computed.
+# ignore_filters is an unordered array of {id}, so replace it with a set of
+# ids and keep the size limit the list validator had.
+jq '
+(.resources[] | select(.name | endswith("_project")) | .schema.attributes[] | select(.name=="monitoring") | .single_nested) |= (
+  .computed_optional_required = "optional"
+  | (.attributes[] | select(.name=="logging") | .single_nested) |= (
+      .computed_optional_required = "optional"
+      | (.attributes[] | select(.name=="audit") | .single_nested) |= (
+          .computed_optional_required = "optional"
+          | (.attributes[] | select(.name=="enabled") | .bool) |= (
+              .computed_optional_required = "computed_optional"
+              | .default = {"static": true}
+            )
+          | (.attributes[] | select(.name=="destination") | .single_nested.attributes[] | select(.name=="project_type") | .string) |= (
+              .computed_optional_required = "required"
+              | .validators = [{
+                  "custom": {
+                    "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"}],
+                    "schema_definition": "stringvalidator.OneOf(\n\"observability\",\n\"security\",\n)"
+                  }
+                }]
+            )
+          | .attributes = (
+              [.attributes[] | select(.name != "ignore_filters")]
+              + [{
+                  "name": "ignore_filter_ids",
+                  "set": {
+                    "computed_optional_required": "optional",
+                    "element_type": {"string": {}},
+                    "description": "IDs of logging ignore filters applied to reduce the volume of logs delivered for this category. The predefined IDs are listed in the [Elastic Cloud Serverless API reference](https://www.elastic.co/docs/api/doc/elastic-cloud-serverless/operation/operation-listignorefilters).",
+                    "validators": [{
+                      "custom": {
+                        "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"}],
+                        "schema_definition": "setvalidator.SizeAtMost(10)"
+                      }
+                    }]
+                  }
+                }]
+            )
+        )
+    )
+)
+' /tmp/with-linked.json >/tmp/with-audit.json
+
+# search_lake.min_search_vcu is the Minimum Search VCU floor on Elasticsearch
+# projects. The generator marks it computed_optional because it is present on
+# read, but a computed attribute could never be unset from configuration: a
+# null config value would be planned from prior state. Make it optional-only so
+# removing the line plans null, which Patch sends as JSON null. Validate the
+# lower bound and leave the API's maximum to the API: the maximum can differ
+# between organizations and change over time, so the project API enforces it
+# and limit changes need no provider release. The upper bound of 2147483647
+# is not the API's maximum; it keeps the int64-to-int conversion in Create and
+# Patch lossless on the released 32-bit (386, arm) builds.
+#
+# metadata.annotations arrived with the same spec bump and is not exposed yet;
+# drop it from the three project schemas so Read does not have to fill an
+# attribute nothing maps (NewMetadataValue fails on a missing attribute). The
+# same bump made metadata.tags optional in the API (it used to be the only
+# metadata key); keep the Terraform attribute required and the block
+# description as they were so the metadata schema does not change.
+jq '
+(.resources[] | select(.name=="elasticsearch_project") | .schema.attributes[] | select(.name=="search_lake") | .single_nested.attributes[] | select(.name=="min_search_vcu") | .int64) |= (
+  .computed_optional_required = "optional"
+  | .validators = [{
+      "custom": {
+        "imports": [{"path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"}],
+        "schema_definition": "int64validator.Between(2, 2147483647)"
+      }
+    }]
+  | .description += " Remove the attribute from a configured `search_lake` block, or set it to `null`, to unset the minimum. See [Minimum Search VCUs](https://www.elastic.co/docs/deploy-manage/deploy/elastic-cloud/project-settings#minimum-search-vcus) for how the setting affects scaling and billing."
+)
+| (.resources[] | select(.name | endswith("_project")) | .schema.attributes[] | select(.name=="metadata") | .single_nested) |= (
+    .description = "Metadata request for a project with tags."
+    | .attributes = [.attributes[] | select(.name != "annotations")]
+    | (.attributes[] | select(.name=="tags") | .map.computed_optional_required) = "required"
+  )
+' /tmp/with-audit.json >./spec-mod.json
+
+# jq's |= on a select() that matches nothing exits 0 and leaves the input
+# untouched, so assert the rewrites above landed rather than letting a moved
+# or renamed field silently regenerate the default schema.
+jq -e '
+([.resources[] | select(.name=="elasticsearch_project") | .schema.attributes[] | select(.name=="search_lake") | .single_nested.attributes[] | select(.name=="min_search_vcu") | .int64]
+  | length == 1 and .[0].computed_optional_required == "optional" and (.[0].validators | length == 1))
+and ([.resources[] | select(.name | endswith("_project")) | .schema.attributes[] | select(.name=="metadata") | .single_nested.attributes[] | select(.name=="annotations")] | length == 0)
+and ([.resources[] | select(.name | endswith("_project")) | .schema.attributes[] | select(.name=="metadata") | .single_nested.attributes[] | select(.name=="tags") | .map.computed_optional_required] | all(. == "required"))
+' ./spec-mod.json >/dev/null || { echo "modify_spec.sh: min_search_vcu or metadata rewrite did not apply; check the paths in this script against spec.json" >&2; exit 1; }

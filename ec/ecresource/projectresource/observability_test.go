@@ -362,7 +362,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 			name: "should fail when the api returns an error",
 			testData: func(ctx context.Context) testData {
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any()).Return(
+				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any(), gomock.Any()).Return(
 					nil,
 					assert.AnError,
 				)
@@ -386,7 +386,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 					Body: []byte("api call failed"),
 				}
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any()).Return(
+				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any(), gomock.Any()).Return(
 					failedResponse,
 					nil,
 				)
@@ -429,7 +429,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 					},
 				)
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, serverless.CreateObservabilityProjectRequest{
+				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any(), serverless.CreateObservabilityProjectRequest{
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 				}).Return(
@@ -473,7 +473,7 @@ func TestObservabilityApi_Create(t *testing.T) {
 				)
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, serverless.CreateObservabilityProjectRequest{
+				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any(), serverless.CreateObservabilityProjectRequest{
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 					Alias:    initialModel.Alias.ValueStringPointer(),
@@ -532,11 +532,11 @@ func TestObservabilityApi_Create(t *testing.T) {
 				)
 
 				mockApiClient := mocks.NewMockClientWithResponsesInterface(ctrl)
-				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, serverless.CreateObservabilityProjectRequest{
+				mockApiClient.EXPECT().CreateObservabilityProjectWithResponse(ctx, gomock.Any(), serverless.CreateObservabilityProjectRequest{
 					Name:     initialModel.Name.ValueString(),
 					RegionId: initialModel.RegionId.ValueString(),
 					Metadata: &serverless.ProjectMetadataRequest{
-						Tags: serverless.ProjectTags{"owner": "team-b"},
+						Tags: &serverless.ProjectTags{"owner": "team-b"},
 					},
 				}).Return(
 					&serverless.CreateObservabilityProjectResponse{
@@ -738,7 +738,7 @@ func TestObservabilityApi_Patch(t *testing.T) {
 
 				val := "obs"
 				meta := serverless.OptionalMetadata{
-					Tags: serverless.ProjectPatchTags{
+					Tags: &serverless.ProjectPatchTags{
 						"cost_center": &val,
 					},
 				}

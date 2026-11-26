@@ -1,0 +1,3 @@
+```release-note:bug
+resource/ec_deployment_traffic_filter: Retry the read after create when the API briefly answers 403, so creating a ruleset no longer fails with "Failed to read deployment traffic filter ruleset after create."
+```

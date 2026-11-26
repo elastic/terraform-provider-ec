@@ -6,22 +6,49 @@
 # to use the current version.
 #
 
-set -e
+set -euo pipefail
+
+VERSION="${1:?usage: $0 <version>}"
+if [[ ! "${VERSION}" =~ ^[0-9A-Za-z.+-]+$ ]]; then
+    echo "error: invalid version '${VERSION}'" >&2
+    exit 1
+fi
 
 echo "-> Updating the version field on references to the previous 'ec' provider declaration"
 
+# Remove a leftover temporary file if the script fails or is interrupted.
+tmp=""
+trap '[[ -n "${tmp}" ]] && rm -f "${tmp}"' EXIT
+
 declare -a UPDATE_FILES=("README.md")
-for f in $(grep -R 'ec = {' examples | cut -d : -f1); do
+while IFS= read -r f; do
     UPDATE_FILES+=("$f")
-done
+done < <(grep -RlE '^[[:space:]]*ec[[:space:]]*=[[:space:]]*\{' examples)
 
 for f in "${UPDATE_FILES[@]}"; do
-    # Instead of using the -i flag which its implementation differs on macOS and
-    # Linux, save the output in the temporary folder and move the result over to
-    # the original file for better OS cross-compatibility.
-    FILE_NAME="$(basename $f)"
-    sed "s/ version = \".*\"/ version = \"${1}\"/" $f > /tmp/$FILE_NAME
-    mv /tmp/$FILE_NAME $f
+    # Only rewrite the `version` attribute inside the `ec = { ... }` block, so
+    # other providers declared in the same file (e.g. hashicorp/aws) keep their
+    # own version constraints regardless of attribute order.
+    # Instead of in-place editing, whose flags differ on macOS and Linux, write
+    # to a temporary file and copy it back over the original.
+    tmp="$(mktemp)"
+    if ! awk -v version="${VERSION}" '
+        /^[[:space:]]*ec[[:space:]]*=[[:space:]]*\{/ { in_ec = 1 }
+        in_ec && /^[[:space:]]*version[[:space:]]*=/ {
+            sub(/version[[:space:]]*=[[:space:]]*"[^"]*"/, "version = \"" version "\"")
+            updated++
+        }
+        in_ec && /^[[:space:]]*}/ { in_ec = 0 }
+        { print }
+        END { if (updated != 1) exit 1 }
+    ' "$f" > "$tmp"; then
+        echo "error: expected exactly one ec provider version in $f" >&2
+        exit 1
+    fi
+    # Copy rather than mv so the original file keeps its permissions.
+    cat "$tmp" > "$f"
+    rm -f "$tmp"
+    tmp=""
 done
 
 echo "-> Updated all the ec provider declarations"

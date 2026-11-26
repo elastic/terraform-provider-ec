@@ -7,7 +7,7 @@ context: |
   Constraints:
   - No local Docker stack. Hosted ESS via cloud-sdk-go; serverless via the generated client under ec/internal/gen/serverless/.
   - Agents never run acceptance tests (TF_ACC). Acc hits the paid Elastic Cloud API. Specs may mention acc as a human step; they MUST NOT require make testacc. The implementation loop never sets TF_ACC; in PR mode it recommends the human run named TestAcc cases locally and confirms before gh pr create (skip = wait on Buildkite). apply, verify-change, and CI reuse never set TF_ACC.
-  - User-facing implementation PRs add .changelog/{PR}.txt. Spec/docs-only PRs skip it.
+  - Every PR adds .changelog/{PR}.txt after the PR number is known. User-facing work uses a rendered release-note tag; spec/docs/CI-only PRs use release-note:none.
   - Capability ids are kebab-case without the ec_ Terraform type prefix (e.g. deployment-traffic-filter).
   - Do not put unimplemented behavior into openspec/specs/. New or changed behavior goes in openspec/changes/ and is archived after it lands.
 
@@ -30,7 +30,7 @@ operations:
   apply:
     guidance:
       - Run `env -u TF_ACC make lint`, `env -u TF_ACC make build`, and `env -u TF_ACC make unit`. Never run make unit/lint/build without unsetting TF_ACC. Never run make testacc or set TF_ACC during apply. The implementation loop never sets TF_ACC; in PR mode it recommends the human run named TestAcc cases locally and confirms before gh pr create. apply, verify-change, and CI reuse never set TF_ACC.
-      - User-facing implementation needs .changelog/{PR}.txt; spec/docs-only PRs skip it.
+      - Every PR needs .changelog/{PR}.txt after the number is known (rendered release-note tag, or release-note:none for spec/docs/CI-only).
   archive:
     guidance:
       - Sync delta specs into openspec/specs/ before or as part of archive.

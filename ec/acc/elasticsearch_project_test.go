@@ -104,6 +104,89 @@ resource ec_elasticsearch_project "%s" {
 `, id, name, region)
 }
 
+// TestAcc_ElasticsearchProject_MinSearchVCU exercises the Search VCU floor:
+// set on create, import, change, keep it when the whole search_lake block is
+// omitted, and unset it with a search_lake block that has no min_search_vcu.
+// The floor stays at 2–4 VCU so the project pre-scales to the smallest paid
+// step only. The organization must not be a trial organization.
+func TestAcc_ElasticsearchProject_MinSearchVCU(t *testing.T) {
+	resId := "my_project"
+	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", resId)
+	randomName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy:             testAccElasticsearchProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Create with a floor.
+				Config: testAccElasticsearchProjectWithSearchLake(resId, randomName, region, "min_search_vcu = 2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", randomName),
+					resource.TestCheckResourceAttr(resourceName, "search_lake.min_search_vcu", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.search_power"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.boost_window"),
+				),
+			},
+			{
+				// Import rebuilds the floor from the API with no prior state.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+			},
+			{
+				// Raise the floor.
+				Config: testAccElasticsearchProjectWithSearchLake(resId, randomName, region, "min_search_vcu = 4"),
+				Check:  resource.TestCheckResourceAttr(resourceName, "search_lake.min_search_vcu", "4"),
+			},
+			{
+				// Delete the whole block: it is unmanaged, so the floor stays and
+				// the post-apply plan is empty (no perpetual "known after apply").
+				Config: testAccBasicElasticsearchProject(resId, randomName, region),
+				Check:  resource.TestCheckResourceAttr(resourceName, "search_lake.min_search_vcu", "4"),
+			},
+			{
+				// A block without min_search_vcu unsets the floor. The attribute
+				// must be null in state, not zero. search_power and boost_window
+				// must stay set: the PATCH nulls only the floor, not the whole
+				// search_lake block.
+				Config: testAccElasticsearchProjectWithSearchLake(resId, randomName, region, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAttrNull(resourceName, "search_lake.min_search_vcu"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.search_power"),
+					resource.TestCheckResourceAttrSet(resourceName, "search_lake.boost_window"),
+				),
+			},
+			{
+				// Finish with no block.
+				Config: testAccBasicElasticsearchProject(resId, randomName, region),
+				Check:  testCheckAttrNull(resourceName, "search_lake.min_search_vcu"),
+			},
+		},
+	})
+}
+
+// testAccElasticsearchProjectWithSearchLake configures a search_lake block;
+// extra is appended inside it.
+func testAccElasticsearchProjectWithSearchLake(id, name, region, extra string) string {
+	return fmt.Sprintf(`
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+
+	search_lake = {
+		%s
+	}
+}
+`, id, name, region, extra)
+}
+
 func testAccElasticsearchProjectWithAlias(id string, name string, region string, alias string) string {
 	return fmt.Sprintf(`
 resource ec_elasticsearch_project "%s" {
@@ -425,6 +508,188 @@ func testCheckLinkedProject(resourceName, targetResourceName, targetType string)
 			return fmt.Errorf("linked project status not set")
 		}
 
+		return nil
+	}
+}
+
+func TestAcc_ElasticsearchProject_AuditLogging(t *testing.T) {
+	sourceID := "source"
+	destID := "destination"
+	resourceName := fmt.Sprintf("ec_elasticsearch_project.%s", sourceID)
+	destResourceName := fmt.Sprintf("ec_observability_project.%s", destID)
+	sourceName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	destName := prefix + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	region := getRegion()
+	if !strings.HasPrefix(region, "aws-") {
+		region = fmt.Sprintf("aws-%s", region)
+	}
+	// Ids from the global ignore-filter catalog. Drop the filter steps if they are absent.
+	dataReadsFilter := "audit-ignore-data-reads"
+	uiRequestsFilter := "audit-ignore-ui-requests"
+
+	destinationChecks := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "name", sourceName),
+		resource.TestCheckResourceAttrPair(resourceName, "monitoring.logging.audit.destination.project_id", destResourceName, "id"),
+		resource.TestCheckResourceAttr(resourceName, "monitoring.logging.audit.destination.project_type", "observability"),
+		resource.TestCheckResourceAttrSet(resourceName, "monitoring.logging.audit.destination.status"),
+	)
+	auditChecks := resource.ComposeAggregateTestCheckFunc(
+		destinationChecks,
+		resource.TestCheckResourceAttr(resourceName, "monitoring.logging.audit.enabled", "true"),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactory,
+		CheckDestroy: resource.ComposeAggregateTestCheckFunc(
+			testAccElasticsearchProjectDestroy,
+			testAccObservabilityProjectDestroy,
+		),
+		Steps: []resource.TestStep{
+			{
+				// Create the destination and a source project that audits to it.
+				Config: testAccElasticsearchProjectWithAudit(sourceID, sourceName, region, destID, destName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					auditChecks,
+					testCheckAttrNull(resourceName, "monitoring.logging.audit.ignore_filter_ids"),
+				),
+			},
+			{
+				// Import rebuilds the audit block from the API with no prior state.
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"credentials"},
+			},
+			{
+				// Add two ignore filters. The post-apply refresh plan proves the set
+				// round-trips whatever order the API returns them in.
+				Config: testAccElasticsearchProjectWithAudit(sourceID, sourceName, region, destID, destName, fmt.Sprintf(`ignore_filter_ids = ["%s", "%s"]`, uiRequestsFilter, dataReadsFilter)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					auditChecks,
+					resource.TestCheckResourceAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.#", "2"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.*", dataReadsFilter),
+					resource.TestCheckTypeSetElemAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.*", uiRequestsFilter),
+				),
+			},
+			{
+				// Replace the filters with a different single id; this patches the
+				// array rather than clearing it.
+				Config: testAccElasticsearchProjectWithAudit(sourceID, sourceName, region, destID, destName, fmt.Sprintf(`ignore_filter_ids = ["%s"]`, uiRequestsFilter)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					auditChecks,
+					resource.TestCheckResourceAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.*", uiRequestsFilter),
+				),
+			},
+			{
+				// Pause delivery. The destination and filters must survive.
+				Config: testAccElasticsearchProjectWithAudit(sourceID, sourceName, region, destID, destName, fmt.Sprintf("enabled = false\n\t\t\t\tignore_filter_ids = [%q]", uiRequestsFilter)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					destinationChecks,
+					resource.TestCheckResourceAttr(resourceName, "monitoring.logging.audit.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.#", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "monitoring.logging.audit.ignore_filter_ids.*", uiRequestsFilter),
+				),
+			},
+			{
+				// Resume with the default enabled and remove the ignore filters; the
+				// attribute must be null, not an empty set.
+				Config: testAccElasticsearchProjectWithAudit(sourceID, sourceName, region, destID, destName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					auditChecks,
+					testCheckAttrNull(resourceName, "monitoring.logging.audit.ignore_filter_ids"),
+				),
+			},
+			{
+				// Remove audit; state must end up with monitoring null.
+				Config: testAccElasticsearchProjectWithDestination(sourceID, sourceName, region, destID, destName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", sourceName),
+					testCheckAttrNull(resourceName, "monitoring"),
+				),
+			},
+			{
+				// A monitoring block without audit is a shell. It must apply
+				// without touching the API and survive refresh: the framework's
+				// post-apply plan fails this step if Read drops the shell.
+				Config: testAccElasticsearchProjectWithDestination(sourceID, sourceName, region, destID, destName, "monitoring = { logging = {} }"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{plancheck.ExpectNonEmptyPlan()},
+				},
+				Check: resource.TestCheckResourceAttr(resourceName, "name", sourceName),
+			},
+			{
+				// The other shell shape behaves the same way.
+				Config: testAccElasticsearchProjectWithDestination(sourceID, sourceName, region, destID, destName, "monitoring = {}"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{plancheck.ExpectNonEmptyPlan()},
+				},
+				Check: resource.TestCheckResourceAttr(resourceName, "name", sourceName),
+			},
+		},
+	})
+}
+
+// testAccElasticsearchProjectWithDestination creates an observability project
+// and an elasticsearch project with no audit. extra is appended inside the
+// elasticsearch resource.
+func testAccElasticsearchProjectWithDestination(esID, esName, region, destID, destName, extra string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+	%s
+}
+`, destID, destName, region, esID, esName, region, extra)
+}
+
+// testAccElasticsearchProjectWithAudit audits esID into the observability
+// project destID. auditExtra is appended inside the audit block.
+func testAccElasticsearchProjectWithAudit(esID, esName, region, destID, destName, auditExtra string) string {
+	return fmt.Sprintf(`
+resource ec_observability_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+}
+
+resource ec_elasticsearch_project "%s" {
+	name      = "%s"
+	region_id = "%s"
+
+	monitoring = {
+		logging = {
+			audit = {
+				destination = {
+					project_id   = ec_observability_project.%s.id
+					project_type = "observability"
+				}
+				%s
+			}
+		}
+	}
+}
+`, destID, destName, region, esID, esName, region, destID, auditExtra)
+}
+
+// testCheckAttrNull fails when key is present in state, including as an
+// empty collection or object, which TestCheckNoResourceAttr allows.
+func testCheckAttrNull(resourceName, key string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource not found: %s", resourceName)
+		}
+		for k := range rs.Primary.Attributes {
+			if k == key || strings.HasPrefix(k, key+".") {
+				return fmt.Errorf("%s: attribute %q expected to be null, found %q", resourceName, key, k)
+			}
+		}
 		return nil
 	}
 }

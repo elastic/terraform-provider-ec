@@ -41,8 +41,11 @@ fragments are the source of truth for exact behavior.
   [`openspec-workflows.md`](./openspec-workflows.md). After an OpenSpec CLI bump, regenerate the
   seven lifecycle skills with **`make gen-openspec-skills`** — not `openspec init` or
   `openspec update`. That target leaves the hand-written `openspec-implementation-loop` and
-  `openspec-verify-change` skills in place. Until 1.9, call the pinned CLI as `npx openspec` or
-  `./node_modules/.bin/openspec`.
+  `openspec-verify-change` skills in place. `make hook-test` runs the hook unit tests. Cursor agent
+  shell calls rewrite a bare `openspec` to `npx openspec` via `.cursor/hooks.json`. Claude Code loads
+  the hook from `.agents/settings.json`; the script rewrites only `tool_name` `Shell`, so a Claude
+  `Bash` call is left unchanged. Humans and CI call `npx openspec`, `./node_modules/.bin/openspec`,
+  or `make check-openspec`.
 - **`make gen`** (alias `make generate`) regenerates the serverless client *and* `ec/version.go`. To
   refresh the vendored serverless OpenAPI spec, use `scripts/update-serverless-spec.sh` — see
   [`generated-clients.md`](./generated-clients.md).
@@ -72,8 +75,9 @@ full manual runbook see [`../RELEASE.md`](../RELEASE.md).
 6. Run the **targeted** acceptance test(s) covering your change —
    `make testacc TEST_NAME='^TestAcc…$'` — then `make sweep` any leftovers. Skip if the change has no
    runtime behavior (docs/config only).
-7. Add a changelog entry at `.changelog/{PR}.txt` for any user-facing change (one file per PR; see
-   [`contributing.md`](./contributing.md)).
+7. After the PR number is known, add `.changelog/{PR}.txt` (one file per PR; user-facing
+   `release-note:…`, or `release-note:none` for non-user-facing). See
+   [`contributing.md`](./contributing.md).
 
 The **full** acceptance suite runs on Buildkite for every PR and must pass before merge; run only
 the targeted cases locally. Agents never run acceptance tests. The implementation loop never sets

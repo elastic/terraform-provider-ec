@@ -10,7 +10,7 @@ jobs:
     steps:
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
     - name: Set up Go
       uses: actions/setup-go@v7
@@ -37,6 +37,10 @@ jobs:
       run: make vendor
       id: modules
 
+    - name: Check SDLC label taxonomy
+      run: make check-label-taxonomy
+      id: label-taxonomy
+
     - name: Linters
       run: make lint
       id: lint
@@ -51,9 +55,32 @@ jobs:
         make notice
         git diff --exit-code NOTICE || (echo "::error::NOTICE is out of date. Run 'make notice' and commit the changes." && exit 1)
 
+    # After "Linters": make gen -> license-header -> deps curls golangci-lint
+    # unless bin/golangci-lint is already installed. jq is on ubuntu-latest.
+    - name: Check serverless client is up-to-date
+      run: |
+        make gen
+        # intent-to-add so new untracked generated files show up in git diff
+        git add --intent-to-add -- ec/internal/gen/serverless
+        git diff --exit-code -- ec/internal/gen/serverless \
+          || (echo "::error::Generated serverless client is out of date. Run 'make gen' and commit the changes." && exit 1)
+
     - name: Run unit tests
       run: make unit
       id: unit
+
+    # tools/goreleaser is a separate module that the root-module checks above don't
+    # touch; build it and validate .goreleaser.yml so a broken GoReleaser bump
+    # (e.g. an automerged Renovate PR) fails here instead of on release day.
+    # `goreleaser check` also fails on deprecated config keys (release only warns),
+    # so a bump that deprecates something we use turns this red until it is fixed.
+    - name: Check GoReleaser builds and accepts .goreleaser.yml
+      run: make goreleaser && bin/goreleaser check
+
+    - name: PR monitor script tests
+      run: |
+        python3 -m pip install --break-system-packages pytest
+        python3 -m pytest .agents/skills/pr-monitoring-loop/scripts/tests
 
     - name: Validate the examples
       run: make install validate-examples

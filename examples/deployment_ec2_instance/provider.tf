@@ -4,7 +4,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = "0.13.1"
+      version = "0.15.0"
     }
 
     aws = {

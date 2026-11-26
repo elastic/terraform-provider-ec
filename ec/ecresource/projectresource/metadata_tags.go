@@ -125,7 +125,7 @@ func projectMetadataRequestFromTFMetadata(ctx context.Context, tags basetypes.Ma
 	for k, v := range tagMap {
 		out[k] = v
 	}
-	return &serverless.ProjectMetadataRequest{Tags: out}, diags
+	return &serverless.ProjectMetadataRequest{Tags: &out}, diags
 }
 
 // tagMapFromTF returns an empty map for null/unknown tags.
@@ -177,6 +177,6 @@ func optionalMetadataForTagPatch(ctx context.Context, planTags, stateTags basety
 			}
 		}
 	}
-	om := serverless.OptionalMetadata{Tags: wrapped}
+	om := serverless.OptionalMetadata{Tags: &wrapped}
 	return &om, diags
 }
