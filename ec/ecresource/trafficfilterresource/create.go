@@ -57,10 +57,11 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 
 	newState.ID = types.StringValue(*res.ID)
 
+	// read treats both 404 and 403 as a miss, so both are retried. Right after
+	// Create the API can briefly answer 403 for the ruleset just created.
 	found, diags := r.readAfterMutate.UntilFound(ctx, func(ctx context.Context) (bool, diag.Diagnostics) {
-		return r.readRetryable(ctx, newState.ID.ValueString(), &newState)
+		return r.read(ctx, newState.ID.ValueString(), &newState)
 	})
-	found, diags = missingIfForbidden(found, diags)
 	response.Diagnostics.Append(diags...)
 	if response.Diagnostics.HasError() {
 		return
