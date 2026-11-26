@@ -5,4 +5,5 @@ steps:
     agents:
       image: "docker.io/library/golang:1.27"
       cpu: "8"
-      memory: "4G"
+      # Headroom for TEST_ACC_PARALLEL in build/Makefile.test (one Terraform CLI per running test).
+      memory: "8G"
