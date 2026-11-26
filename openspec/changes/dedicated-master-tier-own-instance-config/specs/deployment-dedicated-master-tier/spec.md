@@ -29,13 +29,15 @@ configuration for that tier.
 #### Scenario: Storage-sized tier on a different multiplier is not overcounted
 
 - **GIVEN** a deployment template whose hot content tier's instance configuration has a storage
-  multiplier of 24 and a dedicated-masters-threshold of 6
+  multiplier of 8, a 4g per-node maximum, and a dedicated-masters-threshold of 6
 - **AND** the hot content tier is actually running on a different instance configuration with a
   storage multiplier of 24 and a 4g per-node maximum
 - **WHEN** the plan requests a 96g storage hot content tier across 3 zones
 - **THEN** the provider SHALL convert the 96g storage size using the tier's own instance
   configuration's multiplier (96g storage / 24 = 4g memory), count 1 node per zone (3 nodes
   total), and SHALL NOT plan a dedicated master tier because the count stays below the threshold
+  (using the template's multiplier instead would give 96g / 8 = 12g, 3 nodes per zone, 9 in
+  total, and plan a master tier)
 
 #### Scenario: Storage-sized tier whose own multiplier still requires masters
 
@@ -74,3 +76,37 @@ dedicated-master-tier decision never fails or silently skips a tier.
 - **WHEN** the provider counts nodes for a planned tier that will move to the deployment
   template's latest instance configuration
 - **THEN** the provider SHALL use the deployment template's instance configuration for that tier
+
+#### Scenario: A pinned tier is not migrated and keeps its own configuration
+
+- **GIVEN** a plan with `migrate_to_latest_hardware` set to `true`
+- **AND** a tier with `instance_configuration_id` or `instance_configuration_version` set in its
+  configuration, whose instance configuration is known for the deployment and differs from the
+  template's
+- **WHEN** the provider counts nodes for that tier during `terraform plan`
+- **THEN** the provider SHALL use the tier's own instance configuration, because the tier is not
+  migrated
+
+### Requirement: Fallback storage conversion only when the tier is on the template's configuration
+
+When a tier's node count falls back to the deployment template's instance configuration, the
+provider SHALL convert a storage-based size with the template's storage multiplier only if the
+tier runs on the template's instance configuration, as decided today by `tierUsesInstanceConfig`:
+
+- When the tier's instance configuration ID is null or unknown, it matches unless an instance
+  configuration version is set that differs from the template's.
+- When the ID is known, it MUST equal the template's ID, and the version MUST be unknown or equal
+  the template's version (a null version counts as version 0).
+
+Otherwise the provider SHALL count the size without conversion, so the count errs high and an
+existing dedicated master tier is kept rather than removed by mistake.
+
+#### Scenario: Tier on an instance configuration missing from private state
+
+- **GIVEN** a deployment template whose hot content tier's instance configuration has a storage
+  multiplier of 24, a 4g per-node maximum, and a dedicated-masters-threshold of 6
+- **AND** the hot content tier's `instance_configuration_id` is known, differs from the template's,
+  and does not match any instance configuration known for the deployment
+- **WHEN** the plan requests a 96g storage hot content tier across 3 zones
+- **THEN** the provider SHALL NOT convert the size with the template's multiplier, SHALL count
+  96g / 4g = 24 nodes per zone (72 in total), and SHALL plan a dedicated master tier

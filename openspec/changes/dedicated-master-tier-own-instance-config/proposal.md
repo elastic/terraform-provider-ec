@@ -35,16 +35,20 @@ diagnosis surface (see #1015, #1108).
   for that tier's node-count calculation.
 - `countNodesInCluster` falls back to the deployment template's instance configuration for a tier
   when: there is no private state yet (resource creation), the tier's instance configuration
-  cannot be found in private state, the tier's instance configuration ID or version is unknown
-  (new tier, deployment-template change in progress), or `migrate_to_latest_hardware` is `true`
-  (the tier is moving to the template's latest instance configuration).
-- Because the per-tier instance configuration is now always resolved from the right source, the
-  storage-size conversion no longer needs to be skipped when the tier is not on the template's
-  instance configuration; `tierUsesInstanceConfig` becomes unnecessary for this path and is
-  removed.
-- `UpdateDedicatedMasterTier` threads `privateState` and the plan's `migrate_to_latest_hardware`
-  value into `countNodesInCluster` so it can do this per-tier lookup the same way
-  `enableMasterTier` already does for the master tier itself.
+  cannot be found in private state, or the tier's instance configuration ID or version is unknown
+  (new tier, deployment-template change in progress, or a `migrate_to_latest_hardware` migration,
+  which leaves the ID unknown in the plan).
+- When the tier's own instance configuration was found in private state, the storage-size
+  conversion always uses it. When the count falls back to the template's instance configuration,
+  the existing `tierUsesInstanceConfig` check still decides whether to convert: if the tier's ID
+  or version differs from the template's, the template's multiplier is not the tier's, so the
+  conversion is skipped and the count errs high (keeping the master tier), as today.
+- `UpdateDedicatedMasterTier` threads `privateState` into `countNodesInCluster` so it can do this
+  per-tier lookup the same way `enableMasterTier` already does for the master tier itself.
+  `migrate_to_latest_hardware` does not need to be threaded: a tier that migrates has an unknown
+  ID in the plan and already falls back to the template, and a tier with
+  `instance_configuration_id` or `instance_configuration_version` set in its configuration is never
+  migrated, so it stays on its own instance configuration.
 
 This only changes a `terraform plan`-time computation used to decide `master.size` /
 `master.zone_count`; it does not change the Elastic Cloud API payload format or any other
@@ -74,7 +78,7 @@ attribute.
 ## Impact
 
 - Affects `ec/ecresource/deploymentresource/topology_dedicated_masters.go`
-  (`UpdateDedicatedMasterTier`, `countNodesInCluster`, `tierUsesInstanceConfig` removal) and its
+  (`UpdateDedicatedMasterTier`, `countNodesInCluster`, a new per-tier resolver) and its
   unit tests (`TestUpdateDedicatedMasterTier`).
 - No Terraform schema, state-storage, or API-payload changes; only the plan-time node-count
   heuristic changes.

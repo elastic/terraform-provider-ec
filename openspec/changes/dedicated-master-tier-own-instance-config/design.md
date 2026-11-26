@@ -27,10 +27,10 @@ and issues #1015 / #1108.
   configuration (max discrete node size + storage multiplier) when it is known, instead of always
   on the deployment template's instance configuration for that tier id.
 - Preserve today's safe fallback to the template's instance configuration when the tier's own one
-  cannot be resolved (create, unknown/new, `migrate_to_latest_hardware`), so the heuristic never
-  regresses to failing outright or crashing on a `nil` instance configuration.
-- Remove the now-redundant `tierUsesInstanceConfig` storage-conversion skip once every tier
-  resolves its own instance configuration directly.
+  cannot be resolved (create, unknown ID or version, not found in private state), so the heuristic
+  never regresses to failing outright or crashing on a `nil` instance configuration.
+- Keep the `tierUsesInstanceConfig` storage-conversion skip on the fallback path only, where the
+  template's multiplier may not be the tier's.
 
 **Non-Goals:**
 
@@ -42,39 +42,46 @@ and issues #1015 / #1108.
 
 ## Decisions
 
-- **Thread `privateState` and `migrateToLatestHw` into `countNodesInCluster`.**
-  `UpdateDedicatedMasterTier` already reads `privateState` (passed to `enableMasterTier`) and
-  `plan`'s `migrate_to_latest_hardware` is already read inside `enableMasterTier`. Read
-  `migrate_to_latest_hardware` once in `UpdateDedicatedMasterTier` (via
-  `plan.GetAttribute(ctx, path.Root("migrate_to_latest_hardware"), &migrateToLatestHw)`, the same
-  pattern `enableMasterTier` uses) and pass both `privateState` and that bool down into
-  `countNodesInCluster`, which in turn passes them to a new per-tier instance-configuration
-  resolver.
+- **Thread `privateState` into `countNodesInCluster`.** `UpdateDedicatedMasterTier` already
+  receives `privateState` (passed to `enableMasterTier`); pass it down into `countNodesInCluster`,
+  which decodes it and passes the instance configurations to a new per-tier resolver.
+  - *Why not thread `migrate_to_latest_hardware` too?* It is not needed to pick the right instance
+    configuration. When a migration applies, the topology plan modifier (`useTopologyState`)
+    leaves `instance_configuration_id` unknown, so the resolver already falls back to the
+    template. A tier with `instance_configuration_id` or `instance_configuration_version` set in
+    its configuration is never migrated (`planmodifiers.CheckAvailableMigration`), so it stays
+    on its own instance configuration and must be sized against it, not the template's.
   - *Why not read private state once per tier inside the loop?* `ReadPrivateStateInstanceConfigurations`
     deserializes the full private-state list; call it once per `countNodesInCluster` invocation
     (not once per tier) and pass the decoded slice into the per-tier resolver, mirroring how
     `selectInstanceConfigurationToUse` already does one decode for the master tier.
 - **New `resolveTierInstanceConfiguration` helper** (name chosen to avoid colliding with
   `selectInstanceConfigurationToUse`, which stays master-tier-specific and keeps its own
-  `nil`-on-no-`DiscreteSizes` behavior for `enableMasterTier`'s needs):
-  1. If `migrateToLatestHw` is `true`, return the template's instance configuration for the tier
-     (`getTemplateInstanceConfiguration(template, topologyId)`) — the tier is moving to the
-     template's latest configuration, so that is the correct one to size against.
+  `nil`-on-no-`DiscreteSizes` behavior for `enableMasterTier`'s needs). It returns the instance
+  configuration and whether it was resolved from private state:
+  1. If the tier's `instance_configuration_version` is unknown, skip the lookup and fall back
+     (step 3). `getInstanceConfiguration` only checks for an unknown or null ID; for an unknown
+     version `ValueInt64()` returns 0, which can match an unrelated instance configuration with
+     `ConfigVersion` 0 in private state. This happens when the ID is set in configuration and the
+     version is left unknown (new tier, template change).
   2. Otherwise, call `getInstanceConfiguration(ctx, rawTopology, instanceConfigurations)` for the
-     tier. If it returns a non-nil result, use it.
-  3. Otherwise (no private state yet on create, tier not found, ID/version unknown), fall back to
-     the template's instance configuration for the tier id, matching current behavior.
+     tier. If it returns a non-nil result, use it (resolved from private state).
+  3. Otherwise (no private state yet on create, tier not found, ID or version unknown), fall back
+     to the template's instance configuration for the tier id, matching current behavior (not
+     resolved from private state).
   - Unlike `selectInstanceConfigurationToUse`, this resolver does not special-case `"master"` and
     does not discard a found instance configuration merely because `DiscreteSizes` is `nil` —
     `getMaxSize` and `convertSizeToInstanceConfigResource` already treat a `nil`/zero
     `DiscreteSizes` or `StorageMultiplier` as "no adjustment", so the caller does not need the
     early-exit `selectInstanceConfigurationToUse` relies on for the master-tier enable path.
 - **Use the resolved instance configuration for both `getMaxSize` and
-  `convertSizeToInstanceConfigResource`**, unconditionally — drop the
-  `tierUsesInstanceConfig` guard around the storage conversion. Once the instance configuration
-  comes from the tier's own ID/version (or a deliberate template fallback), its storage multiplier
-  is always the right one to convert with, so the "skip conversion, overcount instead" safety net
-  from #1108 is no longer needed and `tierUsesInstanceConfig` is deleted.
+  `convertSizeToInstanceConfigResource`.** When it was resolved from private state, convert
+  unconditionally: it is the tier's own instance configuration, so its multiplier is the right
+  one. When it is the template fallback, keep the existing `tierUsesInstanceConfig` guard: if the
+  tier's ID or version differs from the template's (for example an ID that has no match in private
+  state, or a null/unknown ID with a version pinned to a different version than the template's),
+  the template's multiplier is not the tier's, so the conversion is skipped and the count errs
+  high, keeping the master tier as #1108 intended.
 - **Read `privateState` once per `countNodesInCluster` call, reusing the existing
   `ReadPrivateStateInstanceConfigurations` + diagnostics pattern.** On a read error, log at debug
   (as `selectInstanceConfigurationToUse` does) and fall back to the template's instance
@@ -85,11 +92,11 @@ and issues #1015 / #1108.
 - A private-state read failure now affects every tier's node count, not just the master tier's
   sizing → mitigated by falling back to today's template-only behavior on that path, so the worst
   case is the previously-existing heuristic, not a new failure mode.
-- Removing `tierUsesInstanceConfig` changes behavior for any tier that previously benefited from
-  the "skip storage conversion" safety net *and* still has no resolvable own instance
-  configuration (template fallback) → the fallback path still resolves to the template's own
-  instance configuration, so the conversion runs against the template's correct multiplier in that
-  case too; the net effect is strictly more accurate, not less.
+- On the fallback path, a tier whose ID or version differs from the template's is still counted
+  without the storage conversion, so it can overcount and keep a master tier that is not needed →
+  accepted: this is today's behavior, and erring high avoids removing a master tier that is still
+  needed. Converting with the template's multiplier there could undercount whenever that multiplier
+  is larger than the tier's real one.
 
 ## Migration Plan
 
