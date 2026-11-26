@@ -80,9 +80,9 @@ repository code handles platform differences fail `grounded`, not `versioned`.
 | File | Platform | Format | Role |
 |---|---|---|---|
 | `/tmp/gh-aw/specs/api-elastic-cloud-swagger.json` | ECH | Swagger 2.0 (`definitions`) | ECH content authority |
-| `/tmp/gh-aw/specs/cloud.json` | ECH (published mirror) | Swagger 2.0 (`definitions`) | Discriminator, **positive evidence only**; fallback for the live spec |
-| `/tmp/gh-aw/specs/cloud-enterprise.json` | ECE | Swagger 2.0 (`definitions`) | ECE content |
-| `/tmp/gh-aw/specs/elastic-cloud-serverless.json` | Serverless | **OpenAPI 3.0.1 (`components/schemas`)** | Serverless content authority |
+| `/tmp/gh-aw/specs/cloud.json` | ECH (published mirror) | OpenAPI 3.1 (`components/schemas`) | Discriminator, **positive evidence only**; fallback for the live spec |
+| `/tmp/gh-aw/specs/cloud-enterprise.json` | ECE | OpenAPI 3.1 (`components/schemas`) | ECE content |
+| `/tmp/gh-aw/specs/elastic-cloud-serverless.json` | Serverless | OpenAPI 3.1 (`components/schemas`) | Serverless content authority |
 
 - Grep the spec for the cited path, operation, or definition, and confirm each claimed field, its
   type, whether it is required, and any claimed default against the schema.
@@ -95,8 +95,21 @@ repository code handles platform differences fail `grounded`, not `versioned`.
   ECH-only fields. Verify the field in the spec for the platform being claimed.
 - **ECE is not ECH.** `cloud-enterprise.json` contains many ECE-only definitions and marks no
   platform anywhere. A field that looks ordinary there can fail on ECH.
-- **The serverless spec is OpenAPI 3.0.1; the other three are Swagger 2.0.** Schemas live under
-  `components/schemas`, not `definitions`. It is not the same extraction path.
+- **Only the live ECH spec (`api-elastic-cloud-swagger.json`) is Swagger 2.0**, with schemas under
+  `definitions`. The three files from `www.elastic.co` (`cloud.json`, `cloud-enterprise.json`,
+  `elastic-cloud-serverless.json`) are OpenAPI 3.1, with schemas under `components/schemas`. It is
+  not the same extraction path: look up an ECH definition under `definitions` in the live spec and
+  under `components/schemas` in the mirror.
+- **Two things to know when reading the serverless spec.** A nullable field is written
+  `type: ["null", "<type>"]`, not `nullable: true`; read a `type` array that contains `"null"` as
+  "nullable". The project schemas are `allOf` compositions with no `properties` of their own:
+  `<Type>Project` (Elasticsearch, Observability, Security, VectorDB) is `allOf` of
+  `CommonProjectFields` and `<Type>ProjectFields`, and `<Type>ProjectCreated` is `allOf` of
+  `<Type>Project` and an inline object that adds `credentials`. Read every `allOf` member,
+  following each `$ref`, before you decide a field is absent or optional. The vendored
+  `serverless-project-api-dereferenced.yml` is an OpenAPI 3.0 file: it writes `nullable: true` and
+  has the project fields inlined instead of composed. A difference in notation alone is not an API
+  change; a field present in one file and absent from the other is.
 - **Never fetch an operation's HTML page.** The structured spec answers the same question at a
   fraction of the size, and you have it locally. A citation does not need its rendered page to be
   verified.

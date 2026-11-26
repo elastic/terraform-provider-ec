@@ -311,29 +311,24 @@ steps:
   # performed. /tmp/gh-aw is mounted into the sandbox read-write, so the agent can read them, and
   # /tmp/gh-aw/specs/ is deliberately outside /tmp/gh-aw/agent/ so ~1.9 MB of JSON neither collides
   # with the context artifact nor rides the agent artifact.
+  # The fetch is research-factory/fetch-specs.js. The research needs every spec: a URL that still
+  # does not answer 2xx with an API specification after four attempts (5 s, 30 s and 2 min apart)
+  # fails the run, whatever the reason (dead link, 5xx, 429, timeout, DNS, failed write). On purpose
+  # (cp-hosted-team#5441): a red run is noticed, research grounded without a spec is not.
   - name: Fetch Elastic Cloud API specifications
-    continue-on-error: true
+    uses: actions/github-script@v9.0.0
     env:
       SPECS_DIR: /tmp/gh-aw/specs
-    run: |
-      set -u
-      mkdir -p "${SPECS_DIR}"
-      fetch_spec() {
-        # --remove-on-error so a failed fetch leaves no truncated file behind: the agent and the
-        # critic treat an absent spec as an unavailable source, but would read a partial one.
-        if curl --fail --silent --show-error --location --max-time 120 --retry 2 \
-          --remove-on-error --output "${SPECS_DIR}/$2" "$1"; then
-          echo "fetched $2 ($(wc -c < "${SPECS_DIR}/$2") bytes)"
-        else
-          echo "::warning::could not fetch $1; the agent treats $2 as an unavailable source"
-        fi
-      }
-      fetch_spec https://api.elastic-cloud.com/api/v1/api-docs-user/swagger.json api-elastic-cloud-swagger.json
-      fetch_spec https://www.elastic.co/docs/api/doc/cloud.json cloud.json
-      fetch_spec https://www.elastic.co/docs/api/doc/cloud-enterprise.json cloud-enterprise.json
-      fetch_spec https://www.elastic.co/docs/api/doc/elastic-cloud-serverless.json elastic-cloud-serverless.json
-      ls -l "${SPECS_DIR}"
-    shell: bash
+      # One "<url> <file name>" pair per line.
+      SPECS: |
+        https://api.elastic-cloud.com/api/v1/api-docs-user/swagger.json api-elastic-cloud-swagger.json
+        https://www.elastic.co/docs/api/doc/cloud.json cloud.json
+        https://www.elastic.co/docs/api/doc/cloud-enterprise.json cloud-enterprise.json
+        https://www.elastic.co/docs/api/cloud-serverless.json elastic-cloud-serverless.json
+    with:
+      script: |
+        const fn = require('${{ github.workspace }}/.github/scripts/workflows/research-factory/fetch-specs.js');
+        await fn({ core });
 model: "anthropic/claude-sonnet-5"
 engine:
   id: claude
@@ -652,9 +647,9 @@ of them need the network.
 | File | Platform | Format | Role |
 |---|---|---|---|
 | `/tmp/gh-aw/specs/api-elastic-cloud-swagger.json` | Elastic Cloud Hosted (ECH) | Swagger 2.0 (`definitions`) | ECH **content authority** |
-| `/tmp/gh-aw/specs/cloud.json` | ECH, published mirror | Swagger 2.0 (`definitions`) | ECH/ECE discriminator, **positive evidence only**; fallback for the live spec |
-| `/tmp/gh-aw/specs/cloud-enterprise.json` | Elastic Cloud Enterprise (ECE) | Swagger 2.0 (`definitions`) | ECE content |
-| `/tmp/gh-aw/specs/elastic-cloud-serverless.json` | Elastic Cloud Serverless | **OpenAPI 3.0.1 (`components/schemas`)** | Serverless **content authority** |
+| `/tmp/gh-aw/specs/cloud.json` | ECH, published mirror | OpenAPI 3.1 (`components/schemas`) | ECH/ECE discriminator, **positive evidence only**; fallback for the live spec |
+| `/tmp/gh-aw/specs/cloud-enterprise.json` | Elastic Cloud Enterprise (ECE) | OpenAPI 3.1 (`components/schemas`) | ECE content |
+| `/tmp/gh-aw/specs/elastic-cloud-serverless.json` | Elastic Cloud Serverless | OpenAPI 3.1 (`components/schemas`) | Serverless **content authority** |
 
 Rules that decide whether a claim is grounded:
 
@@ -667,12 +662,24 @@ Rules that decide whether a claim is grounded:
 - **ECE is not ECH**, and `cloud-enterprise.json` marks no platform anywhere. A field that looks
   ordinary there can fail on ECH. ECE is first-class for this provider (`ec/provider.go`,
   `eceOnlyText`), so "available on ECE but not ECH" is a finding worth stating, not a problem.
-- **The serverless spec is OpenAPI 3.0.1**; the other three are Swagger 2.0. Different extraction
-  path (`components/schemas` vs `definitions`).
+- **Only the live ECH spec (`api-elastic-cloud-swagger.json`) is Swagger 2.0**, with schemas under
+  `definitions`. The three files from `www.elastic.co` (`cloud.json`, `cloud-enterprise.json`,
+  `elastic-cloud-serverless.json`) are OpenAPI 3.1, with schemas under `components/schemas`. The
+  same ECH definition therefore has a different path in the live spec and in the mirror.
+- **Two things to know when reading the serverless spec.** A nullable field is written
+  `type: ["null", "<type>"]`, not `nullable: true`. The project schemas are `allOf` compositions
+  with no `properties` of their own: `<Type>Project` (Elasticsearch, Observability, Security,
+  VectorDB) is `allOf` of `CommonProjectFields` and `<Type>ProjectFields`, and
+  `<Type>ProjectCreated` is `allOf` of `<Type>Project` and an inline object that adds
+  `credentials`. Read every `allOf` member, following each `$ref`, before you decide a field is
+  absent or optional. The vendored copy under `ec/internal/gen/serverless/` is an OpenAPI 3.0 file:
+  it writes `nullable: true` and has the project fields inlined instead of composed. A difference
+  in notation alone is not an API change; a field present in one file and absent from the other
+  is.
 - **Never fetch an operation's rendered HTML page.** The structured spec answers the same question at
-  a fraction of the context cost, and you already have it. If a spec file is missing (the fetch
-  failed), treat it as an unavailable source, say so, and expect the critic to fail `grounded` for
-  anything you cannot verify another way.
+  a fraction of the context cost, and you already have it. All four spec files are always present:
+  the run fails before you start if any of them could not be fetched. If one is missing anyway,
+  something is broken: emit `noop` naming the missing file, and do not publish research without it.
 
 ### Provider-side sources (this checkout)
 
