@@ -1,8 +1,21 @@
+# `deployment-dedicated-master-tier`
+
+Automatic dedicated master tier management on `ec_deployment`.
+
 ## Purpose
+
+Resource implementation: `ec/ecresource/deploymentresource`
 
 Defines how `ec_deployment` decides, during `terraform plan`, whether an Elasticsearch deployment
 needs an automatically managed dedicated master tier, based on how many nodes the planned
 data/coordinating topologies would require.
+
+**In scope:** the plan-time node count of the hot content, coordinating, warm, cold and frozen
+tiers that decides whether the master tier is enabled or disabled
+(`UpdateDedicatedMasterTier` in `topology_dedicated_masters.go`).
+
+**Out of scope:** how the master tier is sized once enabled, serverless projects, and any
+Terraform schema or private-state format change.
 
 ## ADDED Requirements
 
