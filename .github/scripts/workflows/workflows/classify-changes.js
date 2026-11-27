@@ -34,7 +34,9 @@ module.exports = async function ({ github, context, core }) {
   const workflowChanges =
     changedFiles.length === 0 ||
     changedFiles.some(
-      (f) => f.startsWith('.github/') || f === 'build/Makefile.test',
+      // .buildkite/ is here because lib/buildkite-acceptance-test-selection.test.mjs tests
+      // .buildkite/acceptance-test-selection.sh; a PR touching only that script must still run it.
+      (f) => f.startsWith('.github/') || f.startsWith('.buildkite/') || f === 'build/Makefile.test',
     );
   core.setOutput('workflow_changes', workflowChanges ? 'true' : 'false');
 };

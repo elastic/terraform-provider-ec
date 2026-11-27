@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { stripHtmlComments, stripControlChars, stripInvisibleUnicode, sanitizeUserContent, sanitizeForConcatenation, SANITIZE_FIXED_POINT_MAX_PASSES, findResearchComment } = require('./sanitize-context.js');
+const { stripHtmlComments, stripControlChars, stripInvisibleUnicode, sanitizeUserContent, sanitizeForConcatenation, SANITIZE_FIXED_POINT_MAX_PASSES, findResearchComment, neutralizeMentions, findBotCommentByMarker } = require('./sanitize-context.js');
 
 /**
  * A nested chain that peels exactly one layer per sanitisation pass. `layers` controls how many
@@ -291,6 +291,116 @@ test('findResearchComment matches nothing for an empty login, so callers must re
   // login with `env.GH_AW_BOT_LOGIN || 'github-actions[bot]'`; this pins the behaviour they guard.
   const comments = [{ author: 'github-actions[bot]', body: 'marker-R body' }];
   assert.equal(findResearchComment(comments, 'marker-R', ''), null);
+});
+
+// ─────────────────────────────────────────────────────────────
+// neutralizeMentions
+// ─────────────────────────────────────────────────────────────
+
+test('neutralizeMentions returns empty string for non-string input', () => {
+  assert.equal(neutralizeMentions(null), '');
+  assert.equal(neutralizeMentions(undefined), '');
+  assert.equal(neutralizeMentions(42), '');
+});
+
+test('neutralizeMentions leaves text with no mentions unchanged', () => {
+  const text = 'Hello world.\nNo mentions here.';
+  assert.equal(neutralizeMentions(text), text);
+});
+
+const Z = '​';
+
+test('neutralizeMentions defuses a plain @handle with a zero-width space', () => {
+  assert.equal(neutralizeMentions('ping @octocat please'), `ping @${Z}octocat please`);
+});
+
+test('neutralizeMentions defuses an @org/team mention', () => {
+  assert.equal(
+    neutralizeMentions('cc @elastic/cloud-team for review'),
+    `cc @${Z}elastic/cloud-team for review`,
+  );
+});
+
+test('neutralizeMentions defuses multiple mentions on one line', () => {
+  assert.equal(neutralizeMentions('@alice and @bob/team'), `@${Z}alice and @${Z}bob/team`);
+});
+
+test('neutralizeMentions does not treat an email local part as a mention', () => {
+  assert.equal(neutralizeMentions('mail user@example.com now'), 'mail user@example.com now');
+});
+
+test('neutralizeMentions defuses a mention after punctuation, emphasis or a backtick', () => {
+  assert.equal(neutralizeMentions('_@octocat_ and __@elastic/everyone__'), `_@${Z}octocat_ and __@${Z}elastic/everyone__`);
+  assert.equal(neutralizeMentions('(@alice), "@bob".'), `(@${Z}alice), "@${Z}bob".`);
+  assert.equal(neutralizeMentions('see `@elastic/everyone for details'), `see \`@${Z}elastic/everyone for details`);
+});
+
+test('neutralizeMentions defuses character-reference spellings of the at sign', () => {
+  assert.equal(neutralizeMentions('&#64;alice &#x40;bob &#X0040;carol &commat;dave'),
+    `&#64;${Z}alice &#x40;${Z}bob &#X0040;${Z}carol &commat;${Z}dave`);
+});
+
+test('neutralizeMentions defuses a handle whose first character is a character reference', () => {
+  assert.equal(neutralizeMentions('@&#111;ctocat'), `@${Z}&#111;ctocat`);
+  assert.equal(neutralizeMentions('@&#x6f;ctocat'), `@${Z}&#x6f;ctocat`);
+  assert.equal(neutralizeMentions('&#64;&#111;ctocat'), `&#64;${Z}&#111;ctocat`);
+});
+
+test('neutralizeMentions leaves no mention live, whatever the markdown around it', () => {
+  // Each of these got a live mention past the earlier fence-and-code-span parser. There is no
+  // parser now: the property is simply that no `@` is left directly followed by a handle character
+  // unless a letter or digit precedes it.
+  const live = /(?<![A-Za-z0-9])@[A-Za-z0-9]/;
+  const inputs = [
+    '```x``` @elastic/everyone\nlater @octocat\n',
+    '```\ncode\n``` notclose\n```\n@elastic/everyone here\n',
+    '````\ncode\n```\n````\n@elastic/everyone here\n',
+    '`foo\n@octocat bar`',
+    'ping @alice\n```\n@bob never closes',
+    '~~~\n@alice\n~~~',
+    'before @alice\n```\nhello @bob/team\n```\nafter @carol',
+    '@alice says `@bob` is fine',
+    '> quoted @team\n- list @user',
+  ];
+  for (const text of inputs) {
+    const out = neutralizeMentions(text);
+    assert.doesNotMatch(out, live, `live mention left in ${JSON.stringify(text)}`);
+    // Nothing but zero-width spaces was added.
+    assert.equal(out.replaceAll(Z, ''), text);
+  }
+});
+
+test('neutralizeMentions is idempotent', () => {
+  const inputs = [
+    'cc @elastic/cloud-team and @alice',
+    'see `@bob` inline',
+    'fenced\n```\n@team\n```\nplain @carol',
+    'user@example.com',
+    '&#64;alice',
+  ];
+  for (const text of inputs) {
+    const once = neutralizeMentions(text);
+    assert.equal(neutralizeMentions(once), once, `not idempotent for ${JSON.stringify(text)}`);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// findBotCommentByMarker (forward name for findResearchComment)
+// ─────────────────────────────────────────────────────────────
+
+test('findBotCommentByMarker is the same function as findResearchComment', () => {
+  assert.equal(findBotCommentByMarker, findResearchComment);
+});
+
+test('findBotCommentByMarker finds the newest bot comment with the marker', () => {
+  const comments = [
+    { author: 'github-actions[bot]', body: 'MARK older' },
+    { author: 'alice', body: 'MARK not bot' },
+    { author: 'github-actions[bot]', body: 'MARK newer' },
+  ];
+  const result = findBotCommentByMarker(comments, 'MARK');
+  assert.ok(result);
+  assert.equal(result.body, 'MARK newer');
 });
 
 // ─────────────────────────────────────────────────────────────

@@ -18,7 +18,11 @@ function extractPrNumber(url) {
 module.exports = async function ({ github, context, core }) {
 
   const factoryName = getFactoryName();
-  const { ISSUE_BRANCH_PREFIX: branchPrefix, DUPLICATE_LINKAGE_MODE: linkageMode } = getFactoryConstants();
+  const {
+    ISSUE_BRANCH_PREFIX: branchPrefix,
+    DUPLICATE_LINKAGE_MODE: linkageMode,
+    HAS_SLASH_COMMAND: hasSlashCommand,
+  } = getFactoryConstants();
   const { owner, repo } = context.repo;
 
   const duplicatePrUrl = process.env.DUPLICATE_PR_URL || '';
@@ -35,12 +39,18 @@ module.exports = async function ({ github, context, core }) {
   const branch = `${branchPrefix}${issueNumber}`;
   const linkage = linkageMode === 'closes-literal' ? `Closes #${issueNumber}` : `Related to #${issueNumber}`;
 
+  // A factory with no slash_command trigger sets HAS_SLASH_COMMAND to false in its constants, so the
+  // comment does not advertise a retry path that would do nothing. Unset keeps the original wording.
+  const retry = hasSlashCommand === false
+    ? `re-apply the \`${factoryName}\` label to retry.`
+    : `re-apply the \`${factoryName}\` label (or comment \`/${factoryName}\`) to retry.`;
+
   const body = contractMatch === 'true'
     ? `⚠️ **${factoryName} skipped** — PR #${prNumber} is already open for this issue. `
-      + `Close it, then re-apply the \`${factoryName}\` label (or comment \`/${factoryName}\`) to retry.`
+      + `Close it, then ${retry}`
     : `⚠️ **${factoryName} skipped** — PR #${prNumber} is already open on branch \`${branch}\`, but it is `
       + `missing the \`${factoryName}\` label or the \`${linkage}\` line. Close it **or move it to another `
-      + `branch**, then re-apply the \`${factoryName}\` label (or comment \`/${factoryName}\`) to retry.`;
+      + `branch**, then ${retry}`;
 
   // This step runs on the already-blocked path, where the only work left is bookkeeping. Letting
   // a rate-limited createComment fail the job would skip the trigger-label removal that follows,

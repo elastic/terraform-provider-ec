@@ -13,7 +13,8 @@ They intentionally stay high-level and link to deeper, canonical docs elsewhere 
 - OpenSpec authoring (Purpose / SHALL / Scenarios): [`openspec-requirements.md`](./openspec-requirements.md)
 - OpenSpec change loop (explore / propose / apply / sync / archive): [`openspec-workflows.md`](./openspec-workflows.md)
 - SDLC label taxonomy (routing / factory / phase / gate / topic): [`label-taxonomy.md`](./label-taxonomy.md)
+- The `reproducer-factory` workflow (repro PRs and when their acceptance test runs): [`reproducer-factory.md`](./reproducer-factory.md)
 
-> Docs for GitHub Agentic Workflows (overview, factory workflows, continuous-quality scanners,
-> the OpenSpec implementation loop, and the `verify-openspec` gate) will be added here as those
-> phases of the LLM-driven SDLC epic land.
+> Docs for the remaining GitHub Agentic Workflows (the other factory workflows, continuous-quality
+> scanners, the OpenSpec implementation loop, and the `verify-openspec` gate) will be added here as
+> those phases of the LLM-driven SDLC epic land.

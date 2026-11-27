@@ -95,6 +95,24 @@ describe('notify-duplicate-blocked', { concurrency: false }, () => {
     assert.match(calls[0].body, /`Closes #9` line/);
   });
 
+  // reproducer-factory has no slash_command trigger (HAS_SLASH_COMMAND: false in its constants), so
+  // advertising `/reproducer-factory` would send a maintainer down a retry path that does nothing.
+  test('omits the slash-command retry for a label-only factory', async () => {
+    for (const contractMatch of ['true', 'false']) {
+      const calls = await run({
+        factory: 'reproducer-factory',
+        url: 'https://github.com/elastic/terraform-provider-ec/pull/404',
+        contractMatch,
+        issueNumber: '11',
+      });
+      assert.equal(calls.length, 1);
+      assert.match(calls[0].body, /\*\*reproducer-factory skipped\*\* — PR #404 is already open/);
+      assert.match(calls[0].body, /re-apply the `reproducer-factory` label to retry\.$/);
+      assert.equal(calls[0].body.includes('or comment'), false, `contractMatch=${contractMatch}`);
+      assert.equal(calls[0].body.includes('/reproducer-factory`'), false, `contractMatch=${contractMatch}`);
+    }
+  });
+
   test('falls back to the raw URL when no PR number can be extracted', async () => {
     const calls = await run({ url: 'https://example.com/pulls', contractMatch: 'true', issueNumber: '42' });
     assert.match(calls[0].body, /PR #https:\/\/example\.com\/pulls is already open/);

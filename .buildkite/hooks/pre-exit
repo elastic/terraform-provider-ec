@@ -3,8 +3,18 @@
 set -euo pipefail
 
 if  [[ "$BUILDKITE_STEP_KEY" == "acceptance-tests" ]]; then
+  # The sweep compiles and runs the ec/acc package with the live API key, exactly like the tests.
+  # On a reproducer-factory branch that package holds a test an agent wrote, so the sweep is held
+  # back by the same rule as the tests, asked here directly: the marker file below is written by
+  # acceptance.sh and would be missing if the job was cancelled before that script got to it.
+  # shellcheck source=.buildkite/acceptance-test-selection.sh
+  source .buildkite/acceptance-test-selection.sh
+  if reproducer_factory_build_refused; then
+    echo "--- Skip sweep (no comment asked for this build of a reproducer-factory branch)"
+    exit 0
+  fi
   if [[ -f .buildkite/.skip-acceptance-sweep ]]; then
-    echo "--- Skip sweep (docs/dev-docs only)"
+    echo "--- Skip sweep (acceptance tests were skipped or refused)"
     exit 0
   fi
   echo "--- Sweeps any deployments and serverless projects older than 3h."
