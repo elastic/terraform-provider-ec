@@ -5,7 +5,7 @@ The cloud provider has two test tiers with very different cost and safety profil
 | Tier | Command | Credentials | Cost / duration | Safe to run locally? |
 |------|---------|-------------|-----------------|----------------------|
 | Unit | `env -u TF_ACC make unit` (alias `env -u TF_ACC make tests`) | none | seconds, free | Yes, always |
-| Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | **real money**; full suite ~2h | Targeted cases: yes (encouraged pre-PR); full suite: no (CI) |
+| Acceptance | `make testacc` (`TF_ACC=1`) | `EC_API_KEY` | **real money**; full suite ~25-30 min in CI | Targeted cases: yes (encouraged pre-PR); full suite: no (CI) |
 
 Unlike the stack provider (`terraform-provider-elasticstack`), the cloud provider has
 **no local Docker stack**. Acceptance tests run against the **live Elastic Cloud API**, provisioning
@@ -49,7 +49,7 @@ testacc:
 ```
 
 Defaults: `TEST_ACC ?= github.com/elastic/terraform-provider-ec/ec/acc`, `TEST_NAME ?= TestAcc`,
-`TEST_COUNT ?= 1`, `TEST_ACC_PARALLEL = 6`. Tests skip themselves unless `TF_ACC=1` is set
+`TEST_COUNT ?= 1`, `TEST_ACC_PARALLEL ?= 12`. Tests skip themselves unless `TF_ACC=1` is set
 (`requiresAPIConn` in [`ec/acc/acc_prereq.go`](../../ec/acc/acc_prereq.go)).
 
 ### Required environment
