@@ -16,6 +16,10 @@
  * a `Retry-After` header lengthens the wait, up to `MAX_RETRY_AFTER_MS`. An attempt succeeds only
  * on 2xx with a body that is an API specification; anything else is tried again.
  *
+ * Only the HTTP fetch is retried. Writing a fetched spec to SPECS_DIR is not: a local write fails
+ * for reasons waiting does not fix (disk full, permissions, read-only file system), so that spec
+ * fails at once with `could not save <file>`; the step fails after the other URLs finish.
+ *
  *   | URL result        | File in SPECS_DIR | Log                          | Step                      |
  *   | ----------------- | ----------------- | ---------------------------- | ------------------------- |
  *   | spec fetched      | written           | `fetched <file> (<n> bytes)` | succeeds                  |

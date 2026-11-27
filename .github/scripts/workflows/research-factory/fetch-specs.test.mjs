@@ -448,21 +448,26 @@ describe('fetch-specs: main function', () => {
     assert.deepEqual(f.calls, {});
   });
 
-  test('9. a failed write fails the step and leaves no partial file; the other pairs still run', async () => {
+  test('9. a failed write fails that spec without a retry and leaves no partial file; the other pairs still run', async () => {
     const thirdTarget = path.join(specsDir, 'cloud-enterprise.json');
+    let thirdWrites = 0;
     const fsImpl = {
       ...fs,
       writeFileSync: (target, ...rest) => {
         if (target === thirdTarget) {
+          thirdWrites += 1;
           fs.writeFileSync(target, 'partial');
           throw new Error('ENOSPC: no space left on device');
         }
         return fs.writeFileSync(target, ...rest);
       },
     };
-    const { core, fetch: f } = await run({ fsImpl });
+    const { core, fetch: f, sleep } = await run({ fsImpl });
     assert.deepEqual(filesIn(specsDir), ['api-elastic-cloud-swagger.json', 'cloud.json', 'elastic-cloud-serverless.json']);
     assert.deepEqual(core.calls.error, ['could not save cloud-enterprise.json: ENOSPC: no space left on device']);
+    assert.equal(f.calls[ECE_URL], 1);
+    assert.equal(thirdWrites, 1);
+    assert.deepEqual(sleep.delays, []);
     assert.equal(f.calls[SERVERLESS_URL], 1);
     assert.deepEqual(core.calls.setFailed, ['1 of 4 spec(s) not fetched: cloud-enterprise.json; the research needs every spec']);
   });

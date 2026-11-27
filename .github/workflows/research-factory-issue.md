@@ -313,7 +313,8 @@ steps:
   # with the context artifact nor rides the agent artifact.
   # The fetch is research-factory/fetch-specs.js. The research needs every spec: a URL that still
   # does not answer 2xx with an API specification after four attempts (5 s, 30 s and 2 min apart)
-  # fails the run, whatever the reason (dead link, 5xx, 429, timeout, DNS, failed write). On purpose
+  # fails the run, whatever the reason (dead link, 5xx, 429, timeout, DNS). So does a spec that
+  # cannot be written to disk, without a retry, once the other URLs finish. On purpose
   # (cp-hosted-team#5441): a red run is noticed, research grounded without a spec is not.
   - name: Fetch Elastic Cloud API specifications
     uses: actions/github-script@v9.0.0
